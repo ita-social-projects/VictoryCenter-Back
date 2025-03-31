@@ -50,23 +50,17 @@
 - Images of what it should look like
 
 ### Required to install
-* Python (3.6.3)
-* PostgreSQL (9.5.9)
-* Django (1.11.6)
-* NodeJS (6.11.4)
-* Redis (3.0.6)
+- MS Visual Studio (2022 or later)
+  https://visualstudio.microsoft.com/ru/downloads
+- .NET SDK (v 6.0.101)
+  https://dotnet.microsoft.com/en-us/download/dotnet/6.0
+- NodeJS (v 16.13.2) 
+  https://nodejs.org
 
 ### Environment
 environmental variables
 ```properties
-spring.datasource.url=${DATASOURCE_URL}
-spring.datasource.username=${DATASOURCE_USER}
-spring.datasource.password=${DATASOURCE_PASSWORD}
-spring.mail.username=${EMAIL_ADDRESS}
-spring.mail.password=${EMAIL_PASSWORD}
-cloud.name=${CLOUD_NAME}
-api.key=${API_KEY}
-api.secret=${API_SECRET}
+
 ```
 
 ### Clone
@@ -111,6 +105,10 @@ $ bower install
 ---
 
 ## Contributing
+1. All Pull Requests should start from prefix #xxx-yyy where xxx - task number and and yyy - short description e.g. #020-CreateAdminPanel
+2. Pull request should not contain any files that is not required by task.
+
+In case of any violations, pull request will be rejected.
 
 ### Git flow
 > To get started...
