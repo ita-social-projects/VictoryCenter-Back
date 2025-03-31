@@ -168,4 +168,4 @@ Reach out to us at one of the following places!
 
 ## License
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
-- Copyright 2025 © <a href="https://softserve.academy/" target="_blank"> SoftServe IT Academy</a>.
+- Copyright 2025 © <a href="https://softserve.academy/" target="_blank"> SoftServe Academy</a>.
