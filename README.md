@@ -137,9 +137,9 @@ In case of any violations, pull request will be rejected.
 > Or Contributors/People
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
-[![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?v=4)](https://github.com/mehalyna)
+[![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?v=100&v=4)](https://github.com/mehalyna)
 [![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym) 
-[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?v=4)](https://github.com/Rominos7) 
+[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?v=100&v=4)](https://github.com/Rominos7) 
  
 
 - You can just grab their GitHub profile image URL
