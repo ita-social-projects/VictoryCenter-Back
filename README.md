@@ -132,18 +132,13 @@ In case of any violations, pull request will be rejected.
 
 ---
 
-## Team
-
-> Or Contributors/People
+## Our Team
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
 [![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?s=100&v=4)](https://github.com/mehalyna)
 [![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym) 
 [![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7) 
  
-
-- You can just grab their GitHub profile image URL
-- You should probably resize their picture using `?s=200` at the end of the image URL.
 
 ---
 
