@@ -17,11 +17,83 @@ Application should consist of (at least) 4 projects.
 - Web Layer: `VictoryCenter` (Controllers, Models)
 - Buisness Logic Layer: `VictoryCenter.BLL` (Dtos, Services, Interfaces)
 - Data Access Layer: `VictoryCenter.DAL` (DbContext, Entities)
-- Unit test project: `VictoryCenter.Tests`
+- Unit test project: `VictoryCenter.UnitTests`
+- Integration tests project: `VictoryCenter.IntegrationTests` (optional for now)
 
 Web Layer should reference BLL and DAL, BLL should reference DAL. Unit test project should reference all three other projects.
 
-Web Layer project should be Web Api template, BLL and DAL should be class libraries templates (see in Visual Studio, when you create a new project). Tests project can be created using xUnit tests template.
+Web Layer project should be Web Api template, BLL and DAL should be class libraries templates (see in Visual Studio, when you create a new project). Unit tests project can be created using xUnit tests template.
+
+**Overoll folder structure:**
+
+```
+VictoryCenter (Solution)
+│
+├── VictoryCenter/                        ← Presentation Layer (Web API)
+│   ├── Controllers/                  ← API endpoints
+│   │   └── PagesController.cs
+│   ├── Program.cs
+│   ├── appsettings.json
+│   └── ...
+│
+├── VictoryCenter.BLL/               ← Business Logic Layer (CQRS, Services, DTOs)
+│   ├── Commands/                    ← Write operations
+│   │   └── CreatePage/
+│   │       ├── CreatePageCommand.cs
+│   │       ├── CreatePageHandler.cs
+│   │       └── CreatePageValidator.cs (optional, with FluentValidation)
+│   │
+│   ├── Queries/                     ← Read operations
+│   │   └── GetAllPages/
+│   │       ├── GetAllPagesQuery.cs
+│   │       └── GetAllPagesHandler.cs
+│   │
+│   ├── Interfaces/                  ← Business layer contracts
+│   │   └── IPagesService.cs 
+|   |
+|   ├── Services/
+|   |   └── PagesService.cs         ← Business layer services
+│   │
+│   ├── DTOs/                        ← Data Transfer Objects
+│   │   └── PageDto.cs
+│   │
+│   └── ...
+│
+├── VictoryCenter.DAL/           ← Data Access Layer (EF Core, Repository)
+│   ├── Data/                        ← DbContext and EF config
+│   │   └── VictoryCenterDbContext.cs
+│   │
+│   ├── Entities/                    ← Domain Models (EF Entities)
+│   │   └── Page.cs
+│   │
+│   ├── Enums/               ← Enums
+│   │   └── PageType.cs
+│   │
+│   └── ...
+│
+├── VictoryCenter.UnitTests/           ← Unit tests (xUnit)
+│   ├── Tests/                        ← Tests
+│   │   └── PagesServiceTests.cs
+│   │
+│   ├── Configuration/                    ← Any possible helper setups
+│   │   └── DbContextMock.cs (for example)
+│   │
+│   ├── TestData/               ← Test data (optional)
+│   │   └── PageData.json
+│   │
+│   └── ...
+│
+├── VictoryCenter.IntegrationTests/           ← Integration tests 
+│   ├── Tests/                        ← Tests
+│   │   └── RequestTest.cs
+│   │
+│   ├── TestData/               ← Test data (optional)
+│   │   └── data.json
+│   │
+│   └── ...
+│
+└── VictoryCenter.sln                        ← Solution file
+```
 
 
 ## Web Layer 🌐
@@ -111,70 +183,6 @@ Cover every service in BLL with testcases.
 For example, for `PagesService.cs` create `PagesServiceTests.cs`, with testcase for each respective method.
 
 
-## Overoll folder structure:
-
-```
-VictoryCenter (Solution)
-│
-├── VictoryCenter/                        ← Presentation Layer (Web API)
-│   ├── Controllers/                  ← API endpoints
-│   │   └── PagesController.cs
-│   ├── Program.cs
-│   ├── appsettings.json
-│   └── ...
-│
-├── VictoryCenter.BLL/               ← Business Logic Layer (CQRS, Services, DTOs)
-│   ├── Commands/                    ← Write operations
-│   │   └── CreatePage/
-│   │       ├── CreatePageCommand.cs
-│   │       ├── CreatePageHandler.cs
-│   │       └── CreatePageValidator.cs (optional, with FluentValidation)
-│   │
-│   ├── Queries/                     ← Read operations
-│   │   └── GetAllPages/
-│   │       ├── GetAllPagesQuery.cs
-│   │       └── GetAllPagesHandler.cs
-│   │
-│   ├── Interfaces/                  ← Business layer contracts
-│   │   └── IPagesService.cs 
-|   |
-|   ├── Services/
-|   |   └── PagesService.cs         ← Business layer services
-│   │
-│   ├── DTOs/                        ← Data Transfer Objects
-│   │   └── PageDto.cs
-│   │
-│   └── ...
-│
-├── VictoryCenter.DAL/           ← Data Access Layer (EF Core, Repository)
-│   ├── Data/                        ← DbContext and EF config
-│   │   └── VictoryCenterDbContext.cs
-│   │
-│   ├── Entities/                    ← Domain Models (EF Entities)
-│   │   └── Page.cs
-│   │
-│   ├── Enums/               ← Enums
-│   │   └── PageType.cs
-│   │
-│   └── ...
-│
-├── VictoryCenter.Tests/           ← Unit tests (xUnit)
-│   ├── Tests/                        ← Tests
-│   │   └── PagesServiceTests.cs
-│   │
-│   ├── Configuration/                    ← Any possible helper setups
-│   │   └── DbContextMock.cs (for example)
-│   │
-│   ├── TestData/               ← Test data (optional)
-│   │   └── PageData.json
-│   │
-│   └── ...
-│
-└── VictoryCenter.sln                        ← Solution file
-```
-
-
-
 
 ## Recommendations 
 
@@ -188,9 +196,18 @@ Please, always thoroughly test your code before submitting PR. Test locally with
 
 Try to keep code test coverage at least 70%. Cover as much code as possible with unit tests in each PR 🧪.
 
+Document new feature that you develop, in .md files, and submit them with the PR. Link tickets, related to your work, in PR description.
+
 Contact @maxvonlancaster in case of any issues/questions/suggestions.
 
 Do not worry, be happy 🙂
 
 
 
+## Additional Suggestions
+
+After discussion with Maksym Lanchevych, some additional points raised:
+- Adding Nuke for build actions 
+- DbUpdate project for sql migrations: https://dbup.readthedocs.io/en/latest/
+- Adding appsettings.Local.json for local purposes
+- Set up code analysers: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions#tools-and-analyzers
