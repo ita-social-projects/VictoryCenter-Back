@@ -1,0 +1,31 @@
+using FluentResults;
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+
+namespace VictoryCenter.Controllers;
+
+[ApiController]
+[Route("api/[controller]/[action]")]
+public class BaseApiController : ControllerBase
+{
+    private IMediator? _mediator;
+
+    protected IMediator Mediator => _mediator ??=
+        HttpContext.RequestServices.GetService<IMediator>() !;
+    
+    protected ActionResult HandleResult<T>(Result<T> result)
+    {
+        if (result.IsSuccess)
+        {
+            return (result.Value is null) ?
+                NotFound("Not Found") : Ok(result.Value);
+        }
+
+        if (result.HasError(error => error.Message == "Unauthorized"))
+        {
+            return Unauthorized();
+        }
+
+        return BadRequest(result.Errors);
+    }
+}

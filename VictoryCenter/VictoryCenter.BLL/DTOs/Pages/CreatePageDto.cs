@@ -1,6 +1,6 @@
 namespace VictoryCenter.BLL.DTOs;
 
-public class PageDto
+public class CreatePageDto
 {
     
 }
