@@ -24,8 +24,12 @@ public class CreateTestDataHandler : IRequestHandler<CreateTestDataCommand, Resu
         {
             var testEntity = _mapper.Map<TestEntity>(request.CreateTestData);
             var createdTestEntity = await _repositoryWrapper.TestRepository.CreateAsync(testEntity);
-            await _repositoryWrapper.SaveChangesAsync();
-            return Result.Ok(_mapper.Map<TestDataDto>(createdTestEntity));
+            
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(_mapper.Map<TestDataDto>(createdTestEntity));
+            }
+            return Result.Fail("Failed to create test data");
         }
         catch (Exception ex)
         {

@@ -24,8 +24,12 @@ public class DeleteTestDataHandler : IRequestHandler<DeleteTestDataCommand, Resu
             }
             
             _repositoryWrapper.TestRepository.Delete(entityToDelete);
-            await _repositoryWrapper.SaveChangesAsync();
-            return Result.Ok(entityToDelete.Id);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+            return Result.Fail("Failed to delete test data");
         }
         catch (Exception ex)
         {

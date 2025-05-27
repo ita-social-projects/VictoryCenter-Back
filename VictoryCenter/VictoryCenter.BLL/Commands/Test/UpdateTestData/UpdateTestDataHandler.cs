@@ -29,9 +29,14 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
             }
             
             var testEntity = _mapper.Map<TestEntity>(request.UpdateTestData);
-            var updatedTestEntity = _repositoryWrapper.TestRepository.Update(testEntity);
-            await _repositoryWrapper.SaveChangesAsync();
-            return Result.Ok(_mapper.Map<TestDataDto>(updatedTestEntity.Entity));
+            _repositoryWrapper.TestRepository.Update(testEntity);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                var testDataDto = _mapper.Map<TestDataDto>(testEntity);
+                return Result.Ok(testDataDto);
+            }
+            return Result.Fail("Failed to update test data");
         }
         catch (Exception ex)
         {
