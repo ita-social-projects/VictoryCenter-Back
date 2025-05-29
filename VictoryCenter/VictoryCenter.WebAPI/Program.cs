@@ -1,4 +1,4 @@
-using VictoryCenter.Extensions;
+using VictoryCenter.WebAPI.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -3,7 +3,7 @@ using VictoryCenter.BLL.Commands.Pages.CreatePage;
 using VictoryCenter.BLL.DTOs;
 using VictoryCenter.BLL.Queries.Pages.GetAllPages;
 
-namespace VictoryCenter.Controllers.Pages;
+namespace VictoryCenter.WebAPI.Controllers.Pages;
 
 public class PagesController : BaseApiController
 {

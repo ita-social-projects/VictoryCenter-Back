@@ -7,7 +7,7 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 
-namespace VictoryCenter.Extensions;
+namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {

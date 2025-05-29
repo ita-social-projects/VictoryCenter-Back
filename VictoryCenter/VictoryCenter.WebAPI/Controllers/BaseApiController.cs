@@ -2,7 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace VictoryCenter.Controllers;
+namespace VictoryCenter.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]/[action]")]

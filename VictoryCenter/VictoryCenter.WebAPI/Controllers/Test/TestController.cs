@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.BLL.Queries.Test.GetAllTestData;
 using VictoryCenter.BLL.Queries.Test.GetTestData;
 
-namespace VictoryCenter.Controllers.Test;
+namespace VictoryCenter.WebAPI.Controllers.Test;
 
 public class TestController : BaseApiController
 {
