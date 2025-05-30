@@ -147,7 +147,79 @@ This project can also contain enums.
 
 ## More on database entities 
 
-Courtesy of @LanchevychMaxym (great thanks to Maksym for it! ❤️) we have an UML diagram you should start working with :)
+Initial uml for start.
+
+![uml](./vc-uml.png)
+
+| Entity       | Description                                                             |
+| ------------ | ----------------------------------------------------------------------- |
+| `Categories` | Represents teams like owners, sponsors, etc.                            |
+| `TeamMembers` | Members belonging to categories; includes photo, status, priority, etc. |
+| `Admins`      | Admin users managing the application and validation logic.              |
+| `Programs`    | Represents a program that contains events (added later).                |
+| `Events`      | Events assigned to both programs and team members (added later).        |
+
+`Categories`
+
+| Column      | Type          | Constraints  | Notes |
+| ----------- | ------------- | ------------ | ----- |
+| Id          | bigint        | PK, not null |       |
+| Name        | nvarchar(max) | not null     |       |
+| Description | nvarchar(max) | nullable     |       |
+| CreatedAt   | datetime      | not null     |       |
+
+`TeamMembers`
+
+| Column      | Type           | Constraints  | Notes                            |
+| ----------- | -------------- | ------------ | -------------------------------- |
+| Id          | bigint         | PK, not null |                                  |
+| FirstName   | nvarchar(max)  | not null     |                                  |
+| LastName    | nvarchar(max)  | not null     |                                  |
+| MiddleName  | nvarchar(max)  | nullable     |                                  |
+| CategoryId  | bigint         | FK, not null | Links to `Categories`            |
+| Priority    | bigint         | not null     | Determines order within category |
+| Status      | int (enum)     | not null     | Can be ‘Published’, etc.         |
+| Description | nvarchar(max)  | nullable     | Required for ‘Published’ status  |
+| Photo       | varbinary(max) | nullable     | Required for ‘Published’ status  |
+| Email       | nvarchar(max)  | nullable     |                                  |
+| CreatedAt   | datetime       | not null     |                                  |
+
+
+`Admins`
+| Column    | Type          | Constraints  | Notes |
+| --------- | ------------- | ------------ | ----- |
+| Id        | bigint        | PK, not null |       |
+| UserName  | nvarchar(max) | not null     |       |
+| Password  | nvarchar(max) | not null     |       |
+| CreatedAt | datetime      | not null     |       |
+
+
+`Programs`
+
+| Column      | Type          | Constraints  | Notes |
+| ----------- | ------------- | ------------ | ----- |
+| Id          | bigint        | PK, not null |       |
+| Name        | nvarchar(max) | not null     |       |
+| Description | nvarchar(max) | not null     |       |
+| CreatedAt   | datetime      | not null     |       |
+
+
+`Events`
+
+| Column       | Type          | Constraints  | Notes                 |
+| ------------ | ------------- | ------------ | --------------------- |
+| Id           | bigint        | PK, not null |                       |
+| Name         | nvarchar(max) | not null     |                       |
+| Description  | nvarchar(max) | not null     |                       |
+| Start        | datetime      | not null     |                       |
+| Finish       | datetime      | not null     |                       |
+| TeamMemberId | bigint        | FK, not null | Links to `TeamMembers` |
+| ProgramId    | bigint        | FK, not null | Links to `Programs`    |
+| CreatedAt    | datetime      | not null     |                       |
+
+
+
+Courtesy of @LanchevychMaxym (great thanks to Maksym for it! ❤️) we have an UML diagram you can start working on when we come to CMS implementation :)
 
 Here it is:
 
