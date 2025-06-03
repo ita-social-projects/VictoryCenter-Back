@@ -54,7 +54,7 @@
   https://visualstudio.microsoft.com/ru/downloads
 - .NET SDK (v 6.0.101)
   https://dotnet.microsoft.com/en-us/download/dotnet/6.0
-- NodeJS (v 16.13.2)
+- NodeJS (v 16.13.2) 
   https://nodejs.org
 
 ### Environment
@@ -91,8 +91,8 @@ $ bower install
 ### How to connect to db locally
 1. launch SQL Server management Studio
 2. In the pop-up window:
-  - enter **"localhost"** as the server name;
-  - select **"windows authentication"** as authentication mechanism;
+    - enter **"localhost"** as the server name;
+    - select **"windows authentication"** as authentication mechanism;
 3. After the connection has been established, right-click on the server (the first line with the icon), on the left-hand side of the UI
 4. In the the appeared window find and click on **"properties"**
 5. In the properties section, select **"security"** page
@@ -175,10 +175,10 @@ In case of any violations, pull request will be rejected.
 #### Step 1
 
 - **Option 1**
-  - 🍴 Fork this repo!
+   - 🍴 Fork this repo!
 
 - **Option 2**
-  - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
+   - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
 
 #### Step 2
 
@@ -196,8 +196,8 @@ In case of any violations, pull request will be rejected.
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
 [![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?s=100&v=4)](https://github.com/mehalyna)
-[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym)
-[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7)
+[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym) 
+[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7) 
 
 
 ---
@@ -209,7 +209,7 @@ In case of any violations, pull request will be rejected.
 ## FAQ
 
 - **Сan't  install .NET Core 6.0.0+ in Visual Studio?**
-  - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
+  -  Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
 
 ---
 
