@@ -21,5 +21,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.Run();
-
+// Temp comment just to summon codeRabbit
 public partial class Program { }
