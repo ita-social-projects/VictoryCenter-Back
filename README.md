@@ -175,10 +175,10 @@ In case of any violations, pull request will be rejected.
 #### Step 1
 
 - **Option 1**
-   - 🍴 Fork this repo!
+    - 🍴 Fork this repo!
 
 - **Option 2**
-   - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
+    - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
 
 #### Step 2
 
@@ -209,7 +209,7 @@ In case of any violations, pull request will be rejected.
 ## FAQ
 
 - **Сan't  install .NET Core 6.0.0+ in Visual Studio?**
-  -  Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
+    - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
 
 ---
 
