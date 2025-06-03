@@ -54,7 +54,7 @@
   https://visualstudio.microsoft.com/ru/downloads
 - .NET SDK (v 6.0.101)
   https://dotnet.microsoft.com/en-us/download/dotnet/6.0
-- NodeJS (v 16.13.2) 
+- NodeJS (v 16.13.2)
   https://nodejs.org
 
 ### Environment
@@ -88,9 +88,69 @@ $ bower install
 - For all the possible languages that support syntax highlithing on GitHub (which is basically all of them), refer <a href="https://github.com/github/linguist/blob/master/lib/linguist/languages.yml" target="_blank">here</a>.
 
 ### How to run local
+### How to connect to db locally
+1. launch SQL Server management Studio
+2. In the pop-up window:
+  - enter **"localhost"** as the server name;
+  - select **"windows authentication"** as authentication mechanism;
+3. After the connection has been established, right-click on the server (the first line with the icon), on the left-hand side of the UI
+4. In the the appeared window find and click on **"properties"**
+5. In the properties section, select **"security"** page
+6. Make sure that **"Server authentication"** radio-button is set to **"SQL Server and Windows Authentication mode"**
+7. Click "Ok"
+8. Then again, on the left-hand side of the UI find folder entitled **"Security"**, and expand it
+9. In unrolled list of options find folder "Logins", and expand it
+10. At this point, you should have **"sa"** as the last option.
+    If for some reason you do not see it, please refer to https://stackoverflow.com/questions/35753254/why-login-without-rights-can-see-sa-login
+11. Right-click on the "sa" item, select "properties"
+12. Change password to the default system one - **"Admin@1234"**. Don't forget to confirm it afterwards
+13. On the left-hand side select **"Status"** page, and set **"Login"** radio-button to **"Enabled"**
+14. Click "Ok"
+15. Right click on **"localhost"** server on the left-hand side of the UI and click **"Restart"**
+
+Now you can connect to your localhost instance with login (sa) and password (Admin@1234)!
+
 
 ### How to run Docker
+### how to connect to db via docker
+1. Install and set up Docker if you haven't already
+2. Open Docker Desktop
+3. Open a terminal (either inside or outside your IDE)
+4. Navigate to the project directory: .../VictoryCenter-Back/VictoryCenter
+5. Start the Docker containers:
+  ```text
+  docker compose up 
+  ```
+6. Wait for Docker to pull and set up the necessary images and containers.
+7. then open the appsettings.Development.json file and change Server to:
+```text
+  Server=localhost,1434;
+  ```
+The Docker-based database should now be running and ready for use!
+### Additioanal information
+1.The database container must be running whenever you're working on the backend. To start it:
+```text
+  docker compose up 
+  ```
+2.To stop the database:
+```text
+  docker compose down
+  ```
+Alternatively, you can use Docker Desktop:
+1. Open Docker Desktop.
+2. Go to the Containers tab
+3. Find victorycenter-back
+4. Start or stop it as needed
 
+### Troubleshooting
+If you encounter issues or want to reset the database:
+```text
+  docker compose down -v
+  ```
+Then recreate it using:
+```text
+  docker compose up
+  ```
 ---
 
 ## Usage
@@ -115,10 +175,10 @@ In case of any violations, pull request will be rejected.
 #### Step 1
 
 - **Option 1**
-    - 🍴 Fork this repo!
+  - 🍴 Fork this repo!
 
 - **Option 2**
-    - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
+  - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
 
 #### Step 2
 
@@ -136,9 +196,9 @@ In case of any violations, pull request will be rejected.
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
 [![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?s=100&v=4)](https://github.com/mehalyna)
-[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym) 
-[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7) 
- 
+[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym)
+[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7)
+
 
 ---
 
@@ -149,7 +209,7 @@ In case of any violations, pull request will be rejected.
 ## FAQ
 
 - **Сan't  install .NET Core 6.0.0+ in Visual Studio?**
-    - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
+  - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
 
 ---
 
