@@ -1,0 +1,7 @@
+reviews:
+  pull_requests: true
+  push_to_default_branch: false
+
+review_settings:
+  mode: suggestions
+  language: en
