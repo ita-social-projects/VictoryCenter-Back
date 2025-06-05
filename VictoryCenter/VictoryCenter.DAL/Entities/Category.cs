@@ -15,7 +15,7 @@ public class Category
     public string? Description { get; set; }
 
     [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
-    public ICollection<TeamMember> TeamMembers { get; set; } = default!;
+    public ICollection<TeamMember> TeamMembers { get; set; } = new List<TeamMember>();
 }

@@ -16,5 +16,5 @@ public class Admin
     public string Password { get; set; } = null!;
 
     [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 }

@@ -34,7 +34,7 @@ public class TeamMember
     public string? Email { get; set; }
 
     [Required]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     public Category Category { get; set; } = default!;
 }
