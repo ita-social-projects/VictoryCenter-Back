@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.Categories;
 using VictoryCenter.BLL.Commands.Categories.CreateCategory;
 using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Queries.Categories;
+using VictoryCenter.BLL.Queries.Categories.GetCategories;
 
 namespace VictoryCenter.WebAPI.Controllers.Categories;
 
