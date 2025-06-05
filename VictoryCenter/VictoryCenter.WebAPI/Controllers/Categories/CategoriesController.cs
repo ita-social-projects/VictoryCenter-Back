@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Categories.CreateCategory;
 using VictoryCenter.BLL.Commands.Categories.DeleteCategory;
+using VictoryCenter.BLL.Commands.Categories.UpdateCategory;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Queries.Categories.GetCategories;
 
@@ -18,6 +19,12 @@ public class CategoriesController : BaseApiController
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
     {
         return HandleResult(await Mediator.Send(new CreateCategoryCommand(createCategoryDto)));
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryDto updateCategoryDto)
+    {
+        return HandleResult(await Mediator.Send(new UpdateCategoryCommand(updateCategoryDto)));
     }
 
     [HttpDelete]
