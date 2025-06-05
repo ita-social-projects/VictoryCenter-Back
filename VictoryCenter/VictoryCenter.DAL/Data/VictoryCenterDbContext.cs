@@ -9,6 +9,7 @@ public class VictoryCenterDbContext : DbContext
         : base(options) {}
     
     public DbSet<TestEntity> TestEntities { get; set; }
+    public DbSet<Category> Categories { get; set; }
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
