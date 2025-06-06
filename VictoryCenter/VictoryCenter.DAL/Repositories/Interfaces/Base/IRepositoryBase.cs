@@ -15,4 +15,6 @@ public interface IRepositoryBase<T> where T : class
     EntityEntry<T> Update(T entity);
     
     void Delete(T entity);
+
+    Task<long> CountAsync(Expression<Func<T, bool>> predicate);
 }

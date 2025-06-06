@@ -50,4 +50,11 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         
         return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
     }
+    
+    public async Task<long> CountAsync(Expression<Func<T, bool>> predicate)
+    {
+        
+        return await _dbContext.Set<T>().CountAsync(predicate);
+        
+    }
 }
