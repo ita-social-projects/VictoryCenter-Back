@@ -3,6 +3,8 @@ on:
   push:
     branches:
       - master
+      - develop
+      - feature/**
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -18,12 +20,31 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Install dotnet-sonarscanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Install gitversion
+        run: dotnet tool install --global GitVersion.Tool --version 5.12.0
+
+      - name: Restore NuGet packages
+        run: dotnet restore VictoryCenter/VictoryCenter.sln
+
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@v4
         with:
           path: ~\sonar\cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache SonarQube Cloud scanner
         id: cache-sonar-scanner
         uses: actions/cache@v4
@@ -31,17 +52,37 @@ jobs:
           path: .\.sonar\scanner
           key: ${{ runner.os }}-sonar-scanner
           restore-keys: ${{ runner.os }}-sonar-scanner
+
       - name: Install SonarQube Cloud scanner
         if: steps.cache-sonar-scanner.outputs.cache-hit != 'true'
         shell: powershell
         run: |
           New-Item -Path .\.sonar\scanner -ItemType Directory
           dotnet tool update dotnet-sonarscanner --tool-path .\.sonar\scanner
-      - name: Build and analyze
+
+      - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         shell: powershell
         run: |
-          .\.sonar\scanner\dotnet-sonarscanner begin /k:"ita-social-projects_VictoryCenter-Back" /o:"ita-social-projects" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
-          dotnet build
+          .\.sonar\scanner\dotnet-sonarscanner begin `
+            /k:"ita-social-projects_VictoryCenter-Back" `
+            /o:"ita-social-projects" `
+            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
+            /d:sonar.host.url="https://sonarcloud.io" `
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+
+      - name: Build the solution
+        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental
+
+      - name: Run unit tests and generate coverage
+        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage.xml"
+
+      - name: Run integration tests and merge coverage
+        run: dotnet-coverage merge "coverage.xml" "dotnet-coverage collect \"dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release\" -f xml -o \"coverage2.xml\"" -o "coverage.xml"
+
+      - name: End SonarCloud analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
           .\.sonar\scanner\dotnet-sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
