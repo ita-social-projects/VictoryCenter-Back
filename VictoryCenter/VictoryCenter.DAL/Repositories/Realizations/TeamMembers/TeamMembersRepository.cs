@@ -1,5 +1,7 @@
-﻿using VictoryCenter.DAL.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -9,5 +11,34 @@ public class TeamMembersRepository : RepositoryBase<TeamMember>, ITeamMembersRep
 {
     public TeamMembersRepository(VictoryCenterDbContext context) : base(context)
     {
+    }
+
+    public async Task<List<TeamMember>> GetTeamMembersAsync(int offset, int limit, long? categoryIdFilter, Status? statusFilter)
+    {
+        var query = GetQueryable.AsNoTracking();
+
+        if (categoryIdFilter.HasValue)
+        {
+            query = query.Where(t => t.CategoryId == categoryIdFilter);
+        }
+
+        if (statusFilter.HasValue)
+        {
+            query = query.Where(t => t.Status == statusFilter);
+        }
+
+        if (offset > 0)
+        {
+            query = query.Skip(offset);
+        }
+
+        if (limit > 0)
+        {
+            query = query.Take(limit);
+        }
+
+        query = query.OrderBy(t => t.Priority);
+
+        return await query.ToListAsync();
     }
 }

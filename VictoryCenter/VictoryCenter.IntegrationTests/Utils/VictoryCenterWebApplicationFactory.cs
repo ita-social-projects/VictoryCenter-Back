@@ -31,6 +31,8 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T> wh
             
             TestDatabaseSeeder.DeleteExistingData(dbContext);
             TestDatabaseSeeder.SeedData(dbContext);
+            VictoryCenterDatabaseSeeder.DeleteExistingData(dbContext);
+            VictoryCenterDatabaseSeeder.SeedData(dbContext);
         });
     }
 

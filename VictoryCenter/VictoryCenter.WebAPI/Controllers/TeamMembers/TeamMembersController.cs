@@ -13,8 +13,7 @@ namespace VictoryCenter.Controllers.TeamMembers
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
         public async Task<IActionResult> GetTeamMembers([FromBody] TeamMembersFilterDto teamMembersFilterDto)
         {
-            // Create a separate dto for result?
-            return HandleResult(await Mediator.Send(new GetAllPagesQuery()));
+            return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
         }
 
         [HttpGet("{id:long}")]

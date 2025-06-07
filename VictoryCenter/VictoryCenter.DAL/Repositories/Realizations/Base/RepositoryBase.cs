@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -18,13 +19,13 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = default)
     {
-        var query = GetQueryable(predicate);
+        var query = predicate is not null ? GetFiltered(predicate) : _dbContext.Set<T>().AsNoTracking();
         return await query.ToListAsync();
     }
     
     public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>>? predicate = default)
     {
-        var query = GetQueryable(predicate);
+        var query = predicate is not null ? GetFiltered(predicate) : _dbContext.Set<T>().AsNoTracking();
         return await query.FirstOrDefaultAsync();
     }
 
@@ -44,10 +45,40 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         _dbContext.Set<T>().Remove(entity);
     }
 
-    private IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = default)
+    protected IQueryable<T> GetQueryable => _dbContext.Set<T>().AsQueryable();
+
+    protected IQueryable<T> GetFiltered(Expression<Func<T, bool>> predicate)
     {
         var query = _dbContext.Set<T>().AsNoTracking();
         
-        return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
+        return query.Where(predicate);
+    }
+
+    protected IQueryable<T> GetPaginated(int offset, int limit)
+    {
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        return query.Skip(offset).Take(limit);
+    }
+
+    protected IQueryable<T> GetOrderedByAscending(Expression<Func<T, object>> keySelector)
+    {
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        return query.OrderBy(keySelector);
+    }
+
+    protected IQueryable<T> GetOrderedByDescending(Expression<Func<T, object>> keySelector)
+    {
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        return query.OrderByDescending(keySelector);
+    }
+
+    protected IQueryable<T> GetSelected(Expression<Func<T, T>> selector)
+    {
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        return query.Select(selector);
     }
 }

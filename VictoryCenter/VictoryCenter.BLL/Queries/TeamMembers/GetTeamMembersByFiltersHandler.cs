@@ -22,12 +22,16 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
         _repository = repository;
     }
 
-    public Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
-        //var pageNumber = request.TeamMembersFilter.PageNumber > 0 ? request.TeamMembersFilter.PageNumber : null;
-        //var pageSize = request.TeamMembersFilter.PageSize > 0 ? request.TeamMembersFilter.PageSize : null;
-        //var status = request.TeamMembersFilter.Status;
-        //var categoryId = request.TeamMembersFilter.CategoryId;
-        throw new NotImplementedException();
+        var offset = request.TeamMembersFilter.PageNumber > 0 ? request.TeamMembersFilter.PageNumber : 0;
+        var limit = request.TeamMembersFilter.PageSize > 0 ? request.TeamMembersFilter.PageSize : 0;
+        var status = request.TeamMembersFilter.Status;
+        var categoryId = request.TeamMembersFilter.CategoryId;
+
+        var teamMembers = await _repository.TeamMembersRepository.GetTeamMembersAsync(offset, limit, categoryId, status);
+        var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+
+        return Result.Ok(teamMembersDto);
     }
 }
