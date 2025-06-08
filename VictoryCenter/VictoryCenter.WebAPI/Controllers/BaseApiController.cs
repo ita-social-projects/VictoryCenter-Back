@@ -1,6 +1,7 @@
 using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace VictoryCenter.WebAPI.Controllers;
 
@@ -15,17 +16,44 @@ public class BaseApiController : ControllerBase
     
     protected ActionResult HandleResult<T>(Result<T> result)
     {
+        var problemsFactory = HttpContext.RequestServices
+            .GetRequiredService<ProblemDetailsFactory>();
+
         if (result.IsSuccess)
         {
-            return (result.Value is null) ?
-                NotFound("Not Found") : Ok(result.Value);
+            if (result.Value is not null)
+            {
+                return Ok(result.Value);
+            }
+
+            var notFoundDetails = problemsFactory.CreateProblemDetails(
+                HttpContext,
+                statusCode: StatusCodes.Status404NotFound,
+                title: "Not Found",
+                detail: "Resource was not found."
+            );
+            return NotFound(notFoundDetails);
         }
 
         if (result.HasError(error => error.Message == "Unauthorized"))
         {
-            return Unauthorized();
+            var unauthorizedDetails = problemsFactory.CreateProblemDetails(
+                HttpContext,
+                statusCode: StatusCodes.Status401Unauthorized,
+                title: "Unauthorized",
+                detail: "You are not allowed to perform this action."
+            );
+            return Unauthorized(unauthorizedDetails);
         }
 
-        return BadRequest(result.Errors);
+        var errorDetail = string.Join("; ", result.Errors.Select(e => e.Message));
+        var badRequestDetails = problemsFactory.CreateProblemDetails(
+            HttpContext,
+            statusCode: StatusCodes.Status400BadRequest,
+            title: "Bad Request",
+            detail: errorDetail
+        );
+
+        return BadRequest(badRequestDetails);
     }
 }
