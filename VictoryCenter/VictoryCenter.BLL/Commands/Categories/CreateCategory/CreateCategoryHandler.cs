@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentResults;
+using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Entities;
@@ -11,17 +12,21 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IValidator<CreateCategoryCommand> _validator;
 
-    public CreateCategoryHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public CreateCategoryHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<CreateCategoryCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
+        _validator = validator;
     }
     
     public async Task<Result<CategoryDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            
             var entity = _mapper.Map<Category>(request.createCategoryDto);
             entity.CreatedAt = DateTime.Now;
             

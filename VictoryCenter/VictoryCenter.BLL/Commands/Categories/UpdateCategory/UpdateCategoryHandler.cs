@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentResults;
+using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Entities;
@@ -11,17 +12,21 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IValidator<UpdateCategoryCommand> _validator;
 
-    public UpdateCategoryHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public UpdateCategoryHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<UpdateCategoryCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
+        _validator = validator;
     }
     
     public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            
             var categoryEntity =
                 await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(entity =>
                     entity.Id == request.updateCategoryDto.Id);
