@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Categories.DeleteCategory;
 
-public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Result<int>>
+public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -13,7 +13,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
         _repositoryWrapper = repositoryWrapper;
     }
     
-    public async Task<Result<int>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<long>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -22,7 +22,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
 
             if (entityToDelete is null)
             {
-                return Result.Fail<int>("Entity not found");
+                return Result.Fail<long>("Entity not found");
             }
             
             _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
@@ -32,7 +32,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
         }
         catch (Exception ex)
         {
-            return Result.Fail<int>(ex.Message);
+            return Result.Fail<long>(ex.Message);
         }
     }
 }

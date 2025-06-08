@@ -3,5 +3,5 @@ using MediatR;
 
 namespace VictoryCenter.BLL.Commands.Categories.DeleteCategory;
 
-public record DeleteCategoryCommand(int id)
-    : IRequest<Result<int>>;
+public record DeleteCategoryCommand(long id)
+    : IRequest<Result<long>>;

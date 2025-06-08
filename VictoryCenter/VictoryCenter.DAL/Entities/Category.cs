@@ -1,20 +1,14 @@
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿namespace VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.DAL.Entities;
-
-[Table("categories")]
 public class Category
 {
-    [Key]
-    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public int Id { get; set; }
+    public long Id { get; set; }
 
-    [Required] 
-    public string Title { get; set; } = null!;
-    
+    public string Name { get; set; } = default!;
+
     public string? Description { get; set; }
-    
-    [Required]
+
     public DateTime CreatedAt { get; set; }
+
+    public ICollection<TeamMember> TeamMembers { get; set; } = new List<TeamMember>();
 }
