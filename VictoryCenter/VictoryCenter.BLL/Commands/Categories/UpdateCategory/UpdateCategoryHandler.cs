@@ -42,7 +42,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
             
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<Category, CategoryDto>(categoryEntity);
+                var resultDto = _mapper.Map<Category, CategoryDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }
             return Result.Fail<CategoryDto>("Failed to update category");

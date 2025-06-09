@@ -26,9 +26,12 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
             }
             
             _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
-            await _repositoryWrapper.SaveChangesAsync();
-            
-            return Result.Ok(entityToDelete.Id);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+            return Result.Fail<long>("Failed to delete category");
         }
         catch (Exception ex)
         {

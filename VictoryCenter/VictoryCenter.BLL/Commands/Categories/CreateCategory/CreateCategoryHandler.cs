@@ -31,11 +31,13 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
             entity.CreatedAt = DateTime.Now;
             
             await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
-            await _repositoryWrapper.SaveChangesAsync();
-            
-            var resultDto = _mapper.Map<CategoryDto>(entity);
-            
-            return Result.Ok(resultDto);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                var resultDto = _mapper.Map<CategoryDto>(entity);
+                return Result.Ok(resultDto);
+            }
+            return Result.Fail<CategoryDto>("Failed to create category");
         }
         catch (Exception ex)
         {
