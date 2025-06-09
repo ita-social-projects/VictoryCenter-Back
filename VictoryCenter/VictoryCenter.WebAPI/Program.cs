@@ -14,7 +14,7 @@ if (app.Environment.IsDevelopment())
 
 await app.ApplyMigrations();
 
-app.UseErrorLogging();
+app.UseRequestResponseLogging();
 app.UseCors();
 app.MapControllers();
 app.UseHttpsRedirection();
