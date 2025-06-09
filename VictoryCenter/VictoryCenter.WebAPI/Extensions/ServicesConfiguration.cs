@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
@@ -6,6 +7,7 @@ using VictoryCenter.BLL.Services;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.WebAPI.Factories;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -24,7 +26,7 @@ public static class ServicesConfiguration
             });
         });
     }
-    
+
     public static void AddCustomServices(this IServiceCollection services)
     {
         services.AddControllers();
@@ -32,7 +34,7 @@ public static class ServicesConfiguration
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
-        
+
         services.AddCors(opt =>
         {
             opt.AddDefaultPolicy(builder =>
@@ -42,9 +44,10 @@ public static class ServicesConfiguration
                        .AllowAnyHeader();
             });
         });
-        
+
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddScoped<IPagesService, PagesService>();
+        services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
     }
 
     private static void AddOpenApi(this IServiceCollection services)

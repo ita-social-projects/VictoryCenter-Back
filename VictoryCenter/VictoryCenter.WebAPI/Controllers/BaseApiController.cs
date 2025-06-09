@@ -28,9 +28,7 @@ public class BaseApiController : ControllerBase
 
             var notFoundDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
-                statusCode: StatusCodes.Status404NotFound,
-                title: "Not Found",
-                detail: "Resource was not found."
+                statusCode: StatusCodes.Status404NotFound
             );
             return NotFound(notFoundDetails);
         }
@@ -39,9 +37,7 @@ public class BaseApiController : ControllerBase
         {
             var unauthorizedDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
-                statusCode: StatusCodes.Status401Unauthorized,
-                title: "Unauthorized",
-                detail: "You are not allowed to perform this action."
+                statusCode: StatusCodes.Status401Unauthorized
             );
             return Unauthorized(unauthorizedDetails);
         }
@@ -50,7 +46,6 @@ public class BaseApiController : ControllerBase
         var badRequestDetails = problemsFactory.CreateProblemDetails(
             HttpContext,
             statusCode: StatusCodes.Status400BadRequest,
-            title: "Bad Request",
             detail: errorDetail
         );
 
