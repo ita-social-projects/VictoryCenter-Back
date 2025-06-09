@@ -7,13 +7,13 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
 
-public class CreateCategoryHandler : IRequestHandler<CreateTeamMemberCommand, Result<TeamMemberDto>>
+public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, Result<TeamMemberDto>>
 {
 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public CreateCategoryHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
@@ -29,11 +29,19 @@ public class CreateCategoryHandler : IRequestHandler<CreateTeamMemberCommand, Re
             entity.Priority = await _repositoryWrapper.TeamMembersRepository.CountAsync(x => x.CategoryId == entity.CategoryId) + 1;
 
             await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
-            await _repositoryWrapper.SaveChangesAsync();
 
-            var result = _mapper.Map<TeamMemberDto>(entity);
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                
+                var result = _mapper.Map<TeamMemberDto>(entity);
 
-            return Result.Ok(result);
+                return Result.Ok(result);
+            }
+            else
+            {
+                return Result.Fail("Failed to create new TeamMember");
+            }
+            
         }
         catch (Exception ex)
         {
