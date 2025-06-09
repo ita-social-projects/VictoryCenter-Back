@@ -1,24 +1,23 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.IntegrationTests.ControllerTests.Base;
 using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests;
 
+[Collection("SharedIntegrationTests")]
 public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
-    private readonly IServiceScope _scope;
     private readonly VictoryCenterDbContext _dbContext;
 
-    public TestControllerTests(VictoryCenterWebApplicationFactory<Program> factory)
+    public TestControllerTests(IntegrationTestDbFixture fixture)
     {
-        _client = factory.CreateClient();
-        _scope = factory.Services.CreateScope();
-        _dbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        _client = fixture.HttpClient;
+        _dbContext = fixture.DbContext;
     }
 
     [Fact]
