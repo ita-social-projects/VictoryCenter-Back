@@ -12,7 +12,7 @@ public class TeamMemberDto
 
     public string? MiddleName { get; set; }
 
-    public long CategoryId { get; set; }
+    public string CategoryName { get; set; } = null!;
 
     public long Priority { get; set; }
 

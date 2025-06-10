@@ -1,12 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection.Metadata;
-using System.Text;
-using System.Threading.Tasks;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.BLL.Queries.TeamMembers;
 using VictoryCenter.DAL.Entities;
@@ -45,7 +40,7 @@ public class GetTeamMembers
             = pageNumber,
             PageSize = pageSize,
             Status = null,
-            CategoryId = null
+            CategoryName = null
         };
 
         var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
@@ -57,6 +52,7 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
+            () => Assert.Equal(teamMemberDtoList.Count, result.Value.Count),
             () => Assert.Equal(teamMemberDtoList, result.Value));
     }
 
@@ -76,7 +72,7 @@ public class GetTeamMembers
             PageNumber = 0,
             PageSize = 0,
             Status = status,
-            CategoryId = null
+            CategoryName = null
         };
 
         var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
@@ -88,16 +84,17 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
+            () => Assert.NotEmpty(result.Value),
             () => Assert.Equal(teamMemberDtoList, result.Value));
     }
 
     [Fact]
-    public async Task ShouldReturnSuccessfully_FilterByCategoryId()
+    public async Task ShouldReturnSuccessfully_FilterByCategoryName()
     {
         // Arrange
-        var categoryId = 2;
+        var category = new Category { Id = 2, Name = "Category 2" };
         var teamMemberList = GetTeamMemberList();
-        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.CategoryId == categoryId).ToList();
+        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.CategoryName == category.Name).ToList();
 
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
@@ -107,7 +104,7 @@ public class GetTeamMembers
             PageNumber = 0,
             PageSize = 0,
             Status = null,
-            CategoryId = categoryId
+            CategoryName = category.Name
         };
 
         var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
@@ -119,17 +116,18 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
+            () => Assert.NotEmpty(result.Value),
             () => Assert.Equal(teamMemberDtoList, result.Value));
     }
 
     [Fact]
-    public async Task ShouldReturnSuccessfully_FilterByStatusAndCategoryId()
+    public async Task ShouldReturnSuccessfully_FilterByStatusAndCategoryName()
     {
         // Arrange
         var status = Status.Published;
-        var categoryId = 1;
+        var category = new Category { Id = 1, Name = "Category 1" };
         var teamMemberList = GetTeamMemberList();
-        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.Status == status && t.CategoryId == categoryId).ToList();
+        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.Status == status && t.CategoryName == category.Name).ToList();
 
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
@@ -139,7 +137,7 @@ public class GetTeamMembers
             PageNumber = 0,
             PageSize = 0,
             Status = status,
-            CategoryId = categoryId
+            CategoryName = category.Name
         };
 
         var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
@@ -151,6 +149,7 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
+            () => Assert.NotEmpty(result.Value),
             () => Assert.Equal(teamMemberDtoList, result.Value));
     }
 
@@ -163,18 +162,21 @@ public class GetTeamMembers
                 Id = 1,
                 Status = Status.Draft,
                 CategoryId = 1,
+                Category = new Category { Id = 1, Name = "Category 1" }
             },
             new TeamMember()
             {
                 Id = 2,
                 Status = Status.Draft,
                 CategoryId = 2,
+                Category = new Category { Id = 2, Name = "Category 2" }
             },
             new TeamMember()
             {
                 Id = 3,
                 Status = Status.Published,
                 CategoryId = 1,
+                Category = new Category { Id = 1, Name = "Category 1" }
             },
         };
 
@@ -188,14 +190,20 @@ public class GetTeamMembers
             new TeamMemberDto()
             {
                 Id = 1,
+                Status = Status.Draft,
+                CategoryName = "Category 1"
             },
             new TeamMemberDto()
             {
                 Id = 2,
+                Status = Status.Draft,
+                CategoryName = "Category 2"
             },
             new TeamMemberDto()
             {
                 Id = 3,
+                Status = Status.Published,
+                CategoryName = "Category 1"
             },
         };
 
@@ -205,12 +213,15 @@ public class GetTeamMembers
 
     private void SetupRepository(List<TeamMember> teamMembers)
     {
-        _mockRepository.Setup(x => x.TeamMembersRepository
-            .GetTeamMembersAsync(
-                It.IsAny<int>(),
-                It.IsAny<int>(),
-                It.IsAny<long?>(),
-                It.IsAny<Status?>()))
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.GetAllAsync(
+             It.IsAny<Func<IQueryable<TeamMember>, IIncludableQueryable<TeamMember, object>>>(),
+             It.IsAny<Expression<Func<TeamMember, bool>>>(),
+             It.IsAny<int>(),
+             It.IsAny<int>(),
+             It.IsAny<Expression<Func<TeamMember, object>>>(),
+             It.IsAny<Expression<Func<TeamMember, object>>>(),
+             It.IsAny<Expression<Func<TeamMember, TeamMember>>>())
+        )
             .ReturnsAsync(teamMembers);
     }
 

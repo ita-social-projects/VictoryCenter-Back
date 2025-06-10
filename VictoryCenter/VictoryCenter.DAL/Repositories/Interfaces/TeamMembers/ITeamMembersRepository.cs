@@ -6,5 +6,4 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 
 public interface ITeamMembersRepository : IRepositoryBase<TeamMember>
 {
-    Task<List<TeamMember>> GetTeamMembersAsync(int offset, int limit, long? categoryIdFilter, Status? statusFilter);
 }

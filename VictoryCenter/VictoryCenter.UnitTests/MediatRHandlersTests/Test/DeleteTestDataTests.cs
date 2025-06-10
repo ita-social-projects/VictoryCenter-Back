@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using VictoryCenter.BLL.Commands.Test.DeleteTestData;
 using VictoryCenter.DAL.Entities;
@@ -58,7 +59,8 @@ public class DeleteTestDataTests
     private void SetupRepositoryWrapper(TestEntity testEntityToDelete, int isSuccess)
     {
         _mockRepositoryWrapper.Setup(repository => repository.TestRepository.GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<TestEntity, bool>>>()))
+                It.IsAny<Expression<Func<TestEntity, bool>>>(),
+                It.IsAny<Func<IQueryable<TestEntity>, IIncludableQueryable<TestEntity, object>>>()))
             .ReturnsAsync(testEntityToDelete);
         
         _mockRepositoryWrapper.Setup(repository => repository.TestRepository.Delete(It.IsAny<TestEntity>()));

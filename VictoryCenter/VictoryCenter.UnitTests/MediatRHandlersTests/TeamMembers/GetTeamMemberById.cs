@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -98,7 +99,8 @@ public class GetTeamMemberById
     {
         _mockRepository.Setup(x => x.TeamMembersRepository
             .GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<TeamMember, bool>>>()))
+                It.IsAny<Expression<Func<TeamMember, bool>>>(),
+                It.IsAny<Func<IQueryable<TeamMember>, IIncludableQueryable<TeamMember, object>>>()))
             .ReturnsAsync(teamMember);
     }
 

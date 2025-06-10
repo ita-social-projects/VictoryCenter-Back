@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using FluentResults;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 

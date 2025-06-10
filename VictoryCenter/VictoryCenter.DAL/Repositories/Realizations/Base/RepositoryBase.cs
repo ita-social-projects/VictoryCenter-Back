@@ -16,16 +16,32 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
         _dbContext = context;
     }
-    
-    public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = default)
+
+    public async Task<IEnumerable<T>> GetAllAsync(
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default,
+        Expression<Func<T, bool>>? predicate = default,
+        int offset = 0,
+        int limit = 0,
+        Expression<Func<T, object>>? orderByASC = default,
+        Expression<Func<T, object>>? orderByDESC = default,
+        Expression<Func<T, T>>? selector = default)
     {
-        var query = predicate is not null ? GetFiltered(predicate) : _dbContext.Set<T>().AsNoTracking();
+        var query = _dbContext.Set<T>().AsNoTracking();
+        query = ApplyInclude(query, include);
+        query = ApplyPredicate(query, predicate);
+        query = ApplyPagination(query, offset, limit);
+        query = ApplyOrdering(query, orderByASC, orderByDESC);
+        query = ApplySelector(query, selector);
         return await query.ToListAsync();
     }
     
-    public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>>? predicate = default)
+    public async Task<T?> GetFirstOrDefaultAsync(
+        Expression<Func<T, bool>>? predicate = default,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default)
     {
-        var query = predicate is not null ? GetFiltered(predicate) : _dbContext.Set<T>().AsNoTracking();
+        var query = _dbContext.Set<T>().AsNoTracking();
+        query = ApplyInclude(query, include);
+        query = ApplyPredicate(query, predicate);
         return await query.FirstOrDefaultAsync();
     }
 
@@ -45,40 +61,42 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         _dbContext.Set<T>().Remove(entity);
     }
 
-    protected IQueryable<T> GetQueryable => _dbContext.Set<T>().AsQueryable();
-
-    protected IQueryable<T> GetFiltered(Expression<Func<T, bool>> predicate)
+    private static IQueryable<T> ApplyPredicate(IQueryable<T> query, Expression<Func<T, bool>>? predicate)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
-        
-        return query.Where(predicate);
+        return predicate != null ? query.Where(predicate) : query;
     }
 
-    protected IQueryable<T> GetPaginated(int offset, int limit)
+    private static IQueryable<T> ApplyInclude(IQueryable<T> query, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
-
-        return query.Skip(offset).Take(limit);
+        return include != null ? include(query) : query;
     }
 
-    protected IQueryable<T> GetOrderedByAscending(Expression<Func<T, object>> keySelector)
+    private static IQueryable<T> ApplyOrdering(
+        IQueryable<T> query,
+        Expression<Func<T, object>>? orderByASC,
+        Expression<Func<T, object>>? orderByDESC)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        if (orderByASC != null)
+            return query.OrderBy(orderByASC);
+        if (orderByDESC != null)
+            return query.OrderByDescending(orderByDESC);
 
-        return query.OrderBy(keySelector);
+        return query;
     }
 
-    protected IQueryable<T> GetOrderedByDescending(Expression<Func<T, object>> keySelector)
+    private static IQueryable<T> ApplySelector(IQueryable<T> query, Expression<Func<T, T>>? selector)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
-
-        return query.OrderByDescending(keySelector);
+        return selector != null ? query.Select(selector) : query;
     }
 
-    protected IQueryable<T> GetSelected(Expression<Func<T, T>> selector)
+    private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        if (offset > 0)
+            query = query.Skip(offset);
+        if (limit > 0)
+            query = query.Take(limit);
 
-        return query.Select(selector);
+        return query;
     }
+
 }

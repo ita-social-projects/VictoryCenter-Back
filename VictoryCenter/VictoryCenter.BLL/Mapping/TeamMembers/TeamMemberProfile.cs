@@ -8,6 +8,7 @@ public class TeamMemberProfile : Profile
 {
     public TeamMemberProfile()
     {
-        CreateMap<TeamMember, TeamMemberDto>().ReverseMap();
+        CreateMap<TeamMember, TeamMemberDto>()
+            .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category.Name));
     }
 }

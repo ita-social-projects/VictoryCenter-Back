@@ -12,33 +12,4 @@ public class TeamMembersRepository : RepositoryBase<TeamMember>, ITeamMembersRep
     public TeamMembersRepository(VictoryCenterDbContext context) : base(context)
     {
     }
-
-    public async Task<List<TeamMember>> GetTeamMembersAsync(int offset, int limit, long? categoryIdFilter, Status? statusFilter)
-    {
-        var query = GetQueryable.AsNoTracking();
-
-        if (categoryIdFilter.HasValue)
-        {
-            query = query.Where(t => t.CategoryId == categoryIdFilter);
-        }
-
-        if (statusFilter.HasValue)
-        {
-            query = query.Where(t => t.Status == statusFilter);
-        }
-
-        if (offset > 0)
-        {
-            query = query.Skip(offset);
-        }
-
-        if (limit > 0)
-        {
-            query = query.Take(limit);
-        }
-
-        query = query.OrderBy(t => t.Priority);
-
-        return await query.ToListAsync();
-    }
 }
