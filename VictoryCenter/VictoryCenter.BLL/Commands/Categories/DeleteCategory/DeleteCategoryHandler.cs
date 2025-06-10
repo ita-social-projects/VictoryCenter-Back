@@ -24,6 +24,11 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
             {
                 return Result.Fail<long>("Entity not found");
             }
+
+            if (entityToDelete.TeamMembers.Any())
+            {
+                return Result.Fail<long>("Can't delete category while assotiated with any team member");
+            }
             
             _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
 

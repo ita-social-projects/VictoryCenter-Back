@@ -77,7 +77,7 @@ public class CategoryControllerTests
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
         
-        var response = await _httpClient.PostAsync("api/Category/CreateCategory", new StringContent(
+        var response = await _httpClient.PostAsync("api/category/createCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         
         Assert.False(response.IsSuccessStatusCode);
@@ -99,7 +99,7 @@ public class CategoryControllerTests
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
         
-        var response = await _httpClient.PutAsync("api/Categories/UpdateCategory", new StringContent(
+        var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -125,7 +125,7 @@ public class CategoryControllerTests
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
         
-        var response = await _httpClient.PutAsync("api/Categories/UpdateCategory", new StringContent(
+        var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         
         Assert.False(response.IsSuccessStatusCode);
@@ -144,7 +144,7 @@ public class CategoryControllerTests
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
         
-        var response = await _httpClient.PutAsync("api/Categories/UpdateCategory", new StringContent(
+        var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         
         Assert.False(response.IsSuccessStatusCode);

@@ -37,6 +37,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
             }
             
             var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
+            entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
             
             _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
             
