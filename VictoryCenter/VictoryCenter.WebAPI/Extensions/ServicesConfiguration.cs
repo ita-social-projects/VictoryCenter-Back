@@ -53,6 +53,19 @@ public static class ServicesConfiguration
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
     }
 
+    private static void AddOpenApi(this IServiceCollection services)
+    {
+        services.AddEndpointsApiExplorer();
+        services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "VictoryCenter API",
+                Version = "v1"
+            });
+        });
+    }
+
     public static void MapOpenApi(this IApplicationBuilder app)
     {
         app.UseSwagger();
@@ -103,18 +116,5 @@ public static class ServicesConfiguration
         {
             logger.LogError(ex, "An error occurred during startup migration");
         }
-    }
-
-    private static void AddOpenApi(this IServiceCollection services)
-    {
-        services.AddEndpointsApiExplorer();
-        services.AddSwaggerGen(c =>
-        {
-            c.SwaggerDoc("v1", new OpenApiInfo
-            {
-                Title = "VictoryCenter API",
-                Version = "v1"
-            });
-        });
     }
 }
