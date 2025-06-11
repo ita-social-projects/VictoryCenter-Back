@@ -98,6 +98,93 @@ $ bower install
 ### How to run tests
 ### How to Checkstyle
 
+# 1. Prerequisites
+
+Before you begin, make sure you have:
+
+- SonarCloud access  
+  Contact your mentors to be added to the `ita-social-projects` organization in SonarCloud. You should also have **Browse** and **Execute Analysis** permissions on the `ita-social-projects_VictoryCenter-Back project`.
+
+- Personal SonarCloud token  
+  Go to SonarCloud → My Account → Security → Generate Tokens. Create a token named VS-SonarLint with analysis scope. Store it securely in your OS keychain or IDE credential manager.
+
+- Local repo clone of this project
+
+- IDE installed: Visual Studio (2019+), VS Code or Rider
+
+
+# 2. Set up .editorconfig
+
+At the root of the repo there is a .editorconfig file that enforces code formatting for all C# files. 
+To activate .editorconfig:
+
+**Visual Studio**
+No extra steps—VS 2019+ picks it up automatically when you open the solution.
+
+**VS Code**
+Ensure the C# extension (OmniSharp) is installed. In Settings, enable Editor: Format On Save and Editor: Detect Indentation.
+
+**Rider**
+In Settings → Editor → Code Style → C#, enable Enable EditorConfig support.
+
+# 3. Set up SonarLint 
+Choose your IDE and follow the steps:
+
+## 3.1 Visual Studio (2019/2022)
+Extensions → Manage Extensions → search “SonarLint” → Download → Restart IDE
+
+View → Other Windows → SonarLint Connected Mode → Connect…
+
+- Server URL: https://sonarcloud.io
+- Token: your personal token
+- Project Key: ita-social-projects_VictoryCenter-Back
+
+Right-click solution → Bind to SonarQube/SonarCloud → select project
+
+## 3.2 Visual Studio Code
+Ctrl+P → ext install SonarSource.sonarlint-vscode
+
+In .vscode/settings.json add:
+
+```
+{
+  "sonarlint.connectedMode.servers": [
+    {
+      "serverId": "sonarcloud",
+      "url": "https://sonarcloud.io",
+      "token": "{YOUR_TOKEN}"
+    }
+  ],
+  "sonarlint.connectedMode.projects": [
+    {
+      "serverId": "sonarcloud",
+      "projectKey": "ita-social-projects_VictoryCenter-Back"
+    }
+  ]
+}
+```
+
+## 3.3 Rider
+File → Settings → Plugins → search “SonarLint” → Install → Restart IDE
+
+View → Tool Windows → SonarLint → click + → Bind to SonarCloud
+
+
+- URL: https://sonarcloud.io
+- Token: your personal token
+- Project Key: ita-social-projects_VictoryCenter-Back
+
+
+Edit any .cs file → issues appear inline and in the SonarLint tool window
+
+# 4. Using this setup
+
+- As you code, violations from SonarCloud’s quality profile will appear in your IDE’s error/warning lists.
+- On save your code will be auto-formatted according to .editorconfig rules.
+- Before commit fix any highlighted issues locally to ensure CI will pass.
+
+You are ready to go!
+
 ---
 
 ## Documentation
