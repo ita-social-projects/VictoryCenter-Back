@@ -51,10 +51,16 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
     }
     
-    public async Task<long> CountAsync(Expression<Func<T, bool>> predicate)
+    public async Task<TKey> MaxAsync<TKey>(
+        Expression<Func<T, TKey>> selector,
+        Expression<Func<T, bool>>? filter = null)
+        where TKey : struct
     {
-        
-        return await _dbContext.Set<T>().CountAsync(predicate);
-        
+        var query = _dbContext.Set<T>().AsQueryable();
+
+        if (filter != null)
+            query = query.Where(filter);
+
+        return await query.MaxAsync(selector);
     }
 }

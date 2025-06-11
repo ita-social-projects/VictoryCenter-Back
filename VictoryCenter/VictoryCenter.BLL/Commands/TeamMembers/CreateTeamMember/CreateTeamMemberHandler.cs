@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using FluentResults;
+using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
@@ -12,11 +13,13 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IValidator<CreateTeamMemberCommand> _validator;
 
-    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
+        _validator = validator;
     }
 
     public async Task<Result<TeamMemberDto>> Handle(CreateTeamMemberCommand request , CancellationToken cancellationToken)
@@ -24,9 +27,12 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
         try
         {
+
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            
             var entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
             entity.CreatedAt = DateTime.Now;
-            entity.Priority = await _repositoryWrapper.TeamMembersRepository.CountAsync(x => x.CategoryId == entity.CategoryId) + 1;
+            entity.Priority = await _repositoryWrapper.TeamMembersRepository.MaxAsync<long>(u => u.Priority) + 1;
 
             await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 

@@ -10,7 +10,7 @@ public class CreateTeamMemberDto
 
     public string? MiddleName { get; set; }
     
-    public required int CategoryId { get; set; } 
+    public required long CategoryId { get; set; } 
     
     public Status Status { get; set; }
     
