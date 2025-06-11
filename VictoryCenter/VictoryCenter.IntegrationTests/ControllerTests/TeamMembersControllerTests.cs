@@ -1,5 +1,7 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
+using Azure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.TeamMember;
@@ -23,9 +25,9 @@ public class TeamMembersControllerTests : IClassFixture<VictoryCenterWebApplicat
     }
 
     [Fact]
-    public async Task GetAllTestData_ShouldReturnOk()
+    public async Task GetTeamMembers_ShouldReturnOk()
     {
-        var response = await _client.GetAsync("/api/TeamMembers/GetTeamMembers");
+        var response = await _client.GetAsync("api/TeamMembers/GetTeamMembers");
         var responseString = await response.Content.ReadAsStringAsync();
         
         var options = new JsonSerializerOptions
@@ -34,34 +36,36 @@ public class TeamMembersControllerTests : IClassFixture<VictoryCenterWebApplicat
         };
         var responseContent = JsonSerializer.Deserialize<List<TeamMemberDto>>(responseString, options);
         
-        response.EnsureSuccessStatusCode();
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
-        Assert.NotEmpty(responseContent);
     }
 
     [Fact]
     public async Task GetTestDataById_ShouldReturnOk()
     {
-        var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
+        var existingEntity = await _dbContext.TeamMembers.FirstOrDefaultAsync();
         
-        var response = await _client.GetAsync($"/api/TeamMembers/GetTeamMemberById/{existingEntity!.Id}");
+        var response = await _client.GetAsync($"api/TeamMembers/GetTeamMemberById/{existingEntity!.Id}");
         var responseString = await response.Content.ReadAsStringAsync();
         
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
-        var responseContent = JsonSerializer.Deserialize<TestDataDto>(responseString, options);
-        
-        response.EnsureSuccessStatusCode();
+        var responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, options);
+
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
     }
 
     [Fact]
     public async Task GetTestDataById_ShouldFail_NotFound()
     {
-        var response = await _client.GetAsync($"/api/Test/GetTestData/{-1}");
+        var response = await _client.GetAsync($"api/TeamMembers/GetTeamMemberById/{-1}");
         
         Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

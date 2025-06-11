@@ -11,7 +11,7 @@ namespace VictoryCenter.Controllers.TeamMembers
     {
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
-        public async Task<IActionResult> GetTeamMembers([FromBody] TeamMembersFilterDto teamMembersFilterDto)
+        public async Task<IActionResult> GetTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
         {
             return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
         }
