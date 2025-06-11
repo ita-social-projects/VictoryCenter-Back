@@ -16,5 +16,5 @@ public interface IRepositoryBase<T> where T : class
     
     void Delete(T entity);
 
-    public Task<TKey> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null) where TKey : struct;
+    Task<TKey> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null) where TKey : struct;
 }
