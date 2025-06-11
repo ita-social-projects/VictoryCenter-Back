@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -19,7 +20,9 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
 
     public async Task<Result<TeamMemberDto>> Handle(GetTeamMemberByIdQuery request, CancellationToken cancellationToken)
     {
-        var teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(tm => tm.Id == request.Id);
+        var teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(
+            tm => tm.Id == request.Id,
+            include: t => t.Include(t => t.Category));
 
         if (teamMember == null)
         {

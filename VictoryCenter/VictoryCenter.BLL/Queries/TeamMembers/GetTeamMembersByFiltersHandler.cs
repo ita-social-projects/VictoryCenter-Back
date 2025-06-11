@@ -2,15 +2,9 @@
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Queries.TeamMembers;

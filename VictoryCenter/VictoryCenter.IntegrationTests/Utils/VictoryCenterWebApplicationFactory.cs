@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 

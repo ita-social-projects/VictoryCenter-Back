@@ -1,6 +1,4 @@
 ﻿using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 

@@ -1,12 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore.Query;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.BLL.Queries.TeamMembers;
 using VictoryCenter.DAL.Entities;

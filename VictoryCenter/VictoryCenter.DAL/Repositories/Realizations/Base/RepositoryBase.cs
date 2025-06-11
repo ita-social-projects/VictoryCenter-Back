@@ -29,8 +29,8 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         var query = _dbContext.Set<T>().AsNoTracking();
         query = ApplyInclude(query, include);
         query = ApplyPredicate(query, predicate);
-        query = ApplyPagination(query, offset, limit);
         query = ApplyOrdering(query, orderByASC, orderByDESC);
+        query = ApplyPagination(query, offset, limit);
         query = ApplySelector(query, selector);
         return await query.ToListAsync();
     }
