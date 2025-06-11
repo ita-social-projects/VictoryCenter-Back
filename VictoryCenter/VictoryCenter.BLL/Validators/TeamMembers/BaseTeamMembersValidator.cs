@@ -12,15 +12,14 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     {
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("This field is required")
-            .MinimumLength(FirstNameMinLength).WithMessage("name must be longer than 2 characters");
+            .MinimumLength(FirstNameMinLength).WithMessage($"First name must be at least {FirstNameMinLength} characters long");
 
         RuleFor(x => x.CategoryId)
-            .NotNull().WithMessage("CategoryId can't be null")
             .GreaterThan(0).WithMessage("CategoryId must be positive value");
         RuleFor(x => x.Status)
-            .NotNull().WithMessage("Status cant be null");
+            .IsInEnum().WithMessage("Unknown status value");
         RuleFor(x => x.Description)
-            .MaximumLength(DescriptionNameMaxLength).WithMessage("the description length cannot exceed 200 characters");
+            .MaximumLength(DescriptionNameMaxLength).WithMessage($"the description length cannot exceed {DescriptionNameMaxLength} characters");
         
     }
 }

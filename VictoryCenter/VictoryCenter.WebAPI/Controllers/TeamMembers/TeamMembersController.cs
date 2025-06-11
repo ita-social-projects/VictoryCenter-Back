@@ -3,7 +3,7 @@ using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.WebAPI.Controllers;
 
-namespace VictoryCenter.TeamMembers;
+namespace VictoryCenter.Controllers.TeamMembers;
 
 
 public class TeamMembersController : BaseApiController

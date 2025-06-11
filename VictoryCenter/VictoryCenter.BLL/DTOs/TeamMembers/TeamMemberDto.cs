@@ -31,6 +31,4 @@ public class TeamMemberDto
 
     public string? Email { get; set; }
     
-    public required DateTime CreatedAt { get; set; }
-    
 }

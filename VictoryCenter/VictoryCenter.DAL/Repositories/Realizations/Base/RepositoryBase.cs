@@ -56,7 +56,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         Expression<Func<T, bool>>? filter = null)
         where TKey : struct
     {
-        var query = _dbContext.Set<T>().AsQueryable();
+        var query = _dbContext.Set<T>().AsNoTracking();
 
         if (filter != null)
             query = query.Where(filter);

@@ -38,7 +38,6 @@ public class CreateTeamMemberTests
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com",
-        CreatedAt = new DateTime(2025, 10, 10)
     };
 
     private readonly TeamMember _teamMember = new TeamMember()
@@ -76,7 +75,11 @@ public class CreateTeamMemberTests
         
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(result.Value, _teamMemberDto);
+        Assert.Equal(_teamMemberDto.FirstName, result.Value.FirstName);
+        Assert.Equal(_teamMemberDto.Email,     result.Value.Email);
+        Assert.Equal(_teamMemberDto.CategoryId, result.Value.CategoryId );
+        Assert.Equal(_teamMemberDto.Priority, result.Value.Priority);
+        Assert.Equal(_teamMemberDto.Description, result.Value.Description);
         
     }
 
