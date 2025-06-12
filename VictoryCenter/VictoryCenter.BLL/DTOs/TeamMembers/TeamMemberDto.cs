@@ -7,23 +7,23 @@ namespace VictoryCenter.BLL.DTOs.TeamMembers;
 public record TeamMemberDto
 {
     
-    public required long Id { get; set; }
+    public  long Id { get; set; }
     
-    public required string FirstName { get; set; } = null!;
+    public string FirstName { get; set; } = null!;
 
     
-    public required string LastName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
 
     public string? MiddleName { get; set; }
 
     
-    public required long CategoryId { get; set; }
+    public long CategoryId { get; set; }
 
     
-    public required long Priority { get; set; }
+    public long Priority { get; set; }
 
     
-    public required Status Status { get; set; }
+    public Status Status { get; set; }
 
     public string? Description { get; set; }
 
