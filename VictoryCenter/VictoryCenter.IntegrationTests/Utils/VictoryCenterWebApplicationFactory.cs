@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
@@ -18,7 +18,13 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T> wh
             config.AddJsonFile("appsettings.IntegrationTests.json", optional: false);
             config.AddEnvironmentVariables();
         });
-        
+
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddProvider(new InMemoryLoggerProvider());
+        });
+
         builder.ConfigureServices(services =>
         {
             RemoveExistingContext(services);
