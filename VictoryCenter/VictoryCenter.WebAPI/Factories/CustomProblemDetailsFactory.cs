@@ -69,7 +69,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
             403 => "Forbidden",
             404 => "Not Found",
             409 => "Conflict",
-            _ => "Bad Request"
+            _ => "Internal Server Error"
         };
 
     private static string GetDefaultDetail(int statusCode) =>

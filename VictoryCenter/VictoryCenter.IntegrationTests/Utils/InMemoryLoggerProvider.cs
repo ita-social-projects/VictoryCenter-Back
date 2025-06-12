@@ -1,10 +1,11 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
 public class InMemoryLoggerProvider : ILoggerProvider
 {
-    public List<LogEntry> Entries = [];
+    public ConcurrentBag<LogEntry> Entries = [];
 
     public ILogger CreateLogger(string categoryName)
     {
@@ -12,14 +13,16 @@ public class InMemoryLoggerProvider : ILoggerProvider
     }
 
     public void Dispose()
-    { }
+    {
+
+    }
 
     private class InMemoryLogger : ILogger
     {
-        private readonly List<LogEntry> _entries;
+        private readonly ConcurrentBag<LogEntry> _entries;
         private readonly string _category;
 
-        public InMemoryLogger(List<LogEntry> entries, string category)
+        public InMemoryLogger(ConcurrentBag<LogEntry> entries, string category)
         {
             _entries = entries;
             _category = category;

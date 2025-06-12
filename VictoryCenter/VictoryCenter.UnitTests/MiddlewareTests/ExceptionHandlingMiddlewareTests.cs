@@ -43,7 +43,7 @@ public class ExceptionHandlingMiddlewareTests
 
         //Assert
         context.Response.Body.Seek(0, SeekOrigin.Begin);
-        var responceBody = new StreamReader(context.Response.Body).ReadToEnd();
+        var responceBody = await new StreamReader(context.Response.Body).ReadToEndAsync();
         Assert.True(string.IsNullOrEmpty(responceBody));
         _loggerMock.VerifyNoOtherCalls();
 

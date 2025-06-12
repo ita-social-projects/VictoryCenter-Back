@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using VictoryCenter.WebAPI.Factories;
-using Xunit;
 
 namespace VictoryCenter.UnitTests.FactoriesTests;
 
@@ -25,7 +24,7 @@ public class CustomProblemDetailsFactoryTests
     [InlineData(403, "Forbidden", "You do not have permission to access this resource.")]
     [InlineData(404, "Not Found", "Resource was not found.")]
     [InlineData(409, "Conflict", "A conflict occurred with the current state of the resource.")]
-    [InlineData(500, "Bad Request", "Please, try again.")]
+    [InlineData(500, "Internal Server Error", "Please, try again.")]
     public void CreateProblemDetails_Defaults_ShouldUseDefaultValues(
         int statusCode,
         string expectedTitle,
