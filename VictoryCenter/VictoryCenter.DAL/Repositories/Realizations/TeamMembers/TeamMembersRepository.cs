@@ -13,7 +13,5 @@ public class TeamMembersRepository : RepositoryBase<TeamMember>, ITeamMembersRep
         : base(dbContext)
     {
     }
-
-    
     
 }

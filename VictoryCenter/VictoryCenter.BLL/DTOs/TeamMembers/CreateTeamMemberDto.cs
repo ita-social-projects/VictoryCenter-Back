@@ -2,7 +2,7 @@
 
 namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
-public class CreateTeamMemberDto
+public record CreateTeamMemberDto
 {
     public required string FirstName { get; set; }
     

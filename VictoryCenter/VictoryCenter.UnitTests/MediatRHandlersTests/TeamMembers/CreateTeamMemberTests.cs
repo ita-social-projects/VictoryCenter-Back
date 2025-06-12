@@ -75,11 +75,7 @@ public class CreateTeamMemberTests
         
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(_teamMemberDto.FirstName, result.Value.FirstName);
-        Assert.Equal(_teamMemberDto.Email,     result.Value.Email);
-        Assert.Equal(_teamMemberDto.CategoryId, result.Value.CategoryId );
-        Assert.Equal(_teamMemberDto.Priority, result.Value.Priority);
-        Assert.Equal(_teamMemberDto.Description, result.Value.Description);
+        Assert.Equal(_teamMemberDto, result.Value);
         
     }
 

@@ -31,9 +31,12 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             
             var entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
-            entity.CreatedAt = DateTime.Now;
+            entity.CreatedAt = DateTime.UtcNow;
             entity.Priority = await _repositoryWrapper.TeamMembersRepository.MaxAsync<long>(u => u.Priority) + 1;
-
+            
+            //TODO
+            // add check if category exists
+            
             await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
@@ -45,7 +48,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             }
             else
             {
-                return Result.Fail("Failed to create new TeamMember");
+                return Result.Fail<TeamMemberDto>("Failed to create new TeamMember");
             }
             
         }

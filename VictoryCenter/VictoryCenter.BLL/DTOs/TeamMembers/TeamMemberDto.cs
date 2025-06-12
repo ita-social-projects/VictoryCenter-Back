@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
-public class TeamMemberDto
+public record TeamMemberDto
 {
     
     public required long Id { get; set; }
