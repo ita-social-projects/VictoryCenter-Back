@@ -66,6 +66,6 @@ public class TeamMembersControllerTests : IClassFixture<VictoryCenterWebApplicat
         var response = await _client.GetAsync($"api/TeamMembers/GetTeamMemberById/{-1}");
         
         Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

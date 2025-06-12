@@ -15,10 +15,14 @@ public class BaseApiController : ControllerBase
     
     protected ActionResult HandleResult<T>(Result<T> result)
     {
-        if (result.IsSuccess)
+        if (result.IsSuccess && result.ValueOrDefault is not null)
         {
-            return (result.Value is null) ?
-                NotFound("Not Found") : Ok(result.Value);
+            return Ok(result.Value);
+        }
+
+        if (result.ValueOrDefault is null)
+        {
+            return NotFound("Not Found");
         }
 
         if (result.HasError(error => error.Message == "Unauthorized"))

@@ -2,7 +2,7 @@
 
 namespace VictoryCenter.BLL.DTOs.TeamMember;
 
-public class TeamMemberDto
+public record TeamMemberDto
 {
     public long Id { get; set; }
 

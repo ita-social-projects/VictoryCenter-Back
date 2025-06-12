@@ -2,7 +2,7 @@
 
 namespace VictoryCenter.BLL.DTOs.TeamMember;
 
-public class TeamMembersFilterDto
+public record TeamMembersFilterDto
 {
     public int PageNumber { get; set; }
 

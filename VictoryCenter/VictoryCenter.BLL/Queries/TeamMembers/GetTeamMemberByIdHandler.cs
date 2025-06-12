@@ -20,15 +20,22 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
 
     public async Task<Result<TeamMemberDto>> Handle(GetTeamMemberByIdQuery request, CancellationToken cancellationToken)
     {
-        var teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(
-            tm => tm.Id == request.Id,
-            include: t => t.Include(t => t.Category));
-
-        if (teamMember == null)
+        try
         {
-            return Result.Fail("Team member not fould");
-        }
+            var teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(
+                tm => tm.Id == request.Id,
+                include: t => t.Include(t => t.Category));
 
-        return Result.Ok(_mapper.Map<TeamMemberDto>(teamMember));
+            if (teamMember == null)
+            {
+                return Result.Fail("Team member not fould");
+            }
+
+            return Result.Ok(_mapper.Map<TeamMemberDto>(teamMember));
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail<TeamMemberDto>(ex.Message);
+        }
     }
 }

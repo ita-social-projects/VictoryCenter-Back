@@ -29,7 +29,11 @@ public class GetTeamMembers
     {
         // Arrange
         var teamMemberList = GetTeamMemberList();
-        var teamMemberDtoList = GetTeamMemberDtoList().Skip(pageNumber).Take(pageSize).ToList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .OrderBy(t => t.Priority)
+            .Skip(pageNumber)
+            .Take(pageSize)
+            .ToList();
 
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
@@ -49,9 +53,12 @@ public class GetTeamMembers
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
 
         // Assert
+        var teamMemberDtoListOld = GetTeamMemberDtoList();
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
+            () => Assert.NotEqual(teamMemberDtoListOld.Count, result.Value.Count),
+            () => Assert.NotEqual(teamMemberDtoListOld, result.Value),
             () => Assert.Equal(teamMemberDtoList.Count, result.Value.Count),
             () => Assert.Equal(teamMemberDtoList, result.Value));
     }
@@ -62,7 +69,9 @@ public class GetTeamMembers
         // Arrange
         var status = Status.Draft;
         var teamMemberList = GetTeamMemberList();
-        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.Status == status).ToList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .Where(t => t.Status == status)
+            .ToList();
 
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
@@ -94,7 +103,10 @@ public class GetTeamMembers
         // Arrange
         var category = new Category { Id = 2, Name = "Category 2" };
         var teamMemberList = GetTeamMemberList();
-        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.CategoryName == category.Name).ToList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .Where(t => t.CategoryName == category.Name)
+            .OrderBy(t => t.Priority)
+            .ToList();
 
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
@@ -127,7 +139,10 @@ public class GetTeamMembers
         var status = Status.Published;
         var category = new Category { Id = 1, Name = "Category 1" };
         var teamMemberList = GetTeamMemberList();
-        var teamMemberDtoList = GetTeamMemberDtoList().Where(t => t.Status == status && t.CategoryName == category.Name).ToList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .Where(t => t.Status == status && t.CategoryName == category.Name)
+            .OrderBy(t => t.Priority)
+            .ToList();
 
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
@@ -160,6 +175,7 @@ public class GetTeamMembers
             new TeamMember()
             {
                 Id = 1,
+                Priority = 1,
                 Status = Status.Draft,
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
@@ -167,6 +183,7 @@ public class GetTeamMembers
             new TeamMember()
             {
                 Id = 2,
+                Priority = 2,
                 Status = Status.Draft,
                 CategoryId = 2,
                 Category = new Category { Id = 2, Name = "Category 2" }
@@ -174,9 +191,26 @@ public class GetTeamMembers
             new TeamMember()
             {
                 Id = 3,
+                Priority = 3,
                 Status = Status.Published,
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
+            },
+            new TeamMember()
+            {
+                Id = 4,
+                Priority = 4,
+                Status = Status.Draft,
+                CategoryId = 1,
+                Category = new Category { Id = 1, Name = "Category 1" }
+            },
+            new TeamMember()
+            {
+                Id = 5,
+                Priority = 5,
+                Status = Status.Published,
+                CategoryId = 2,
+                Category = new Category { Id = 2, Name = "Category 2" }
             },
         };
 
@@ -190,20 +224,37 @@ public class GetTeamMembers
             new TeamMemberDto()
             {
                 Id = 1,
+                Priority = 1,
                 Status = Status.Draft,
                 CategoryName = "Category 1"
             },
             new TeamMemberDto()
             {
                 Id = 2,
+                Priority = 2,
                 Status = Status.Draft,
                 CategoryName = "Category 2"
             },
             new TeamMemberDto()
             {
                 Id = 3,
+                Priority = 3,
                 Status = Status.Published,
                 CategoryName = "Category 1"
+            },
+            new TeamMemberDto()
+            {
+                Id = 4,
+                Priority = 4,
+                Status = Status.Draft,
+                CategoryName = "Category 1"
+            },
+            new TeamMemberDto()
+            {
+                Id = 5,
+                Priority = 5,
+                Status = Status.Published,
+                CategoryName = "Category 2"
             },
         };
 
