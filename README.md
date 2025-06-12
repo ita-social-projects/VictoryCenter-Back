@@ -106,11 +106,11 @@ Before you begin, make sure you have:
   Contact your mentors to be added to the `ita-social-projects` organization in SonarCloud. You should also have **Browse** and **Execute Analysis** permissions on the `ita-social-projects_VictoryCenter-Back project`.
 
 - Personal SonarCloud token  
-  Go to SonarCloud → My Account → Security → Generate Tokens. Create a token named VS-SonarLint with analysis scope. Store it securely in your OS keychain or IDE credential manager.
+  Go to SonarCloud → My Account → Security → Generate Tokens. Create a token named VictoryCenter-Back with analysis scope.
 
 - Local repo clone of this project
 
-- IDE installed: Visual Studio (2019+), VS Code or Rider
+- IDE installed: Visual Studio 2022, VS Code or Rider
 
 
 # 2. Set up .editorconfig
@@ -118,64 +118,59 @@ Before you begin, make sure you have:
 At the root of the repo there is a .editorconfig file that enforces code formatting for all C# files. 
 To activate .editorconfig:
 
-**Visual Studio**
-No extra steps—VS 2019+ picks it up automatically when you open the solution.
+- **Visual Studio**
+No extra steps—VS picks it up automatically.
 
-**VS Code**
-Ensure the C# extension (OmniSharp) is installed. In Settings, enable Editor: Format On Save and Editor: Detect Indentation.
+- **VS Code**
+Ensure the C# extension is installed. In Settings, enable Editor: Format On Save and Editor: Detect Indentation.
 
-**Rider**
-In Settings → Editor → Code Style → C#, enable Enable EditorConfig support.
+- **Rider**
+No extra steps—Rider picks it up automatically.
 
 # 3. Set up SonarLint 
 Choose your IDE and follow the steps:
 
 ## 3.1 Visual Studio (2019/2022)
-Extensions → Manage Extensions → search “SonarLint” → Download → Restart IDE
+- Extensions → Manage Extensions → search “SonarQube (2022)” → Download → Restart IDE
 
-View → Other Windows → SonarLint Connected Mode → Connect…
+- Extensions → SonarQube → Connected Mode → Manage Binding
 
-- Server URL: https://sonarcloud.io
-- Token: your personal token
-- Project Key: ita-social-projects_VictoryCenter-Back
+- Manage Connections → New Connection → SonarQube Cloud → Next
 
-Right-click solution → Bind to SonarQube/SonarCloud → select project
+- Edit Authentiocation details → Enter your personal token 
+
+- Select SonarQube Cloud Organization → Choose Another Organization → Enter `ita-social-projects` → OK
+
+- Connection to bind → Choose `ita-social-projects`
+Select project → Choose `VictoryCenter-Back` → Bind
 
 ## 3.2 Visual Studio Code
-Ctrl+P → ext install SonarSource.sonarlint-vscode
+- Ctrl+P → ext install SonarSource.sonarlint-vscode → Install
 
-In .vscode/settings.json add:
+- Ctrl+Shift+P → SonarQube: Connect to SonarQube Cloud 
 
-```
-{
-  "sonarlint.connectedMode.servers": [
-    {
-      "serverId": "sonarcloud",
-      "url": "https://sonarcloud.io",
-      "token": "{YOUR_TOKEN}"
-    }
-  ],
-  "sonarlint.connectedMode.projects": [
-    {
-      "serverId": "sonarcloud",
-      "projectKey": "ita-social-projects_VictoryCenter-Back"
-    }
-  ]
-}
-```
+- Generate token → Copy → Paste into User Token Field 
+
+- Provide organization key → `ita-social-projects` → Connect
+
+- Choose new connection → Click `+`(Add project binding) → Choose `VictoryCenter-Back`
+
+- Restart IDE
 
 ## 3.3 Rider
-File → Settings → Plugins → search “SonarLint” → Install → Restart IDE
+- File → Settings → Plugins → search “SonarQube for IDE” → Install → Restart IDE
 
-View → Tool Windows → SonarLint → click + → Bind to SonarCloud
+- View → Tool Windows → SonarQube for IDE → click + → Bind to SonarCloud
 
+- Project Settings → Bind project to SonarQube
 
-- URL: https://sonarcloud.io
-- Token: your personal token
-- Project Key: ita-social-projects_VictoryCenter-Back
+- Configure th connection → Connection to SonarQube → Click on + → Choose `SonarQube Cloud` → Next
 
+- Authentiocation type: token → Enter your prsonal token → Next
 
-Edit any .cs file → issues appear inline and in the SonarLint tool window
+- Select another organization → `ita-social-projects` → Next → Create → OK
+
+- Connection → Choose your new connection → Project key → Enter `ita-social-projects_VictoryCenter-Back` → Save
 
 # 4. Using this setup
 
