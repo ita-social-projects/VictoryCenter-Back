@@ -21,11 +21,13 @@ public class BaseApiController : ControllerBase
 
         if (result.IsSuccess)
         {
-            if (result.Value is not null)
-            {
-                return Ok(result.Value);
-            }
+            return Ok(result.Value);
+        }
 
+        if (result.HasError(error
+            => error.Message.Contains("not found", StringComparison.CurrentCultureIgnoreCase)
+        ))
+        {
             var notFoundDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
                 statusCode: StatusCodes.Status404NotFound
