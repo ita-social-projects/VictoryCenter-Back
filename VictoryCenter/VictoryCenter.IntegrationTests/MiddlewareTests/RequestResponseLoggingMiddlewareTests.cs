@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.IntegrationTests.Utils;
@@ -13,12 +14,29 @@ public class RequestResponseLoggingMiddlewareTests
 
     public RequestResponseLoggingMiddlewareTests(VictoryCenterWebApplicationFactory<Program> factory)
     {
-        _loggerProvider = factory.Services
+        var customFactory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddProvider(new InMemoryLoggerProvider());
+            });
+
+            builder.ConfigureServices(services =>
+            {
+                services
+                    .AddControllers()
+                    .AddApplicationPart(typeof(FakeErrorController).Assembly)
+                    .AddControllersAsServices();
+            });
+        });
+
+        _client = customFactory.CreateClient();
+
+        _loggerProvider = customFactory.Services
             .GetServices<ILoggerProvider>()
             .OfType<InMemoryLoggerProvider>()
             .Single();
-
-        _client = factory.CreateClient();
     }
 
     [Fact]
@@ -48,7 +66,7 @@ public class RequestResponseLoggingMiddlewareTests
     [Fact]
     public async Task InvokeAsync_Status500_ShouldLogAtErrorLevel()
     {
-        var response = await _client.GetAsync("/api/test/internalservererror");
+        var response = await _client.GetAsync("/api/Test/Get500Response");
         Assert.Equal(500, (int)response.StatusCode);
 
         var categoryName = typeof(RequestResponseLoggingMiddleware).FullName;
