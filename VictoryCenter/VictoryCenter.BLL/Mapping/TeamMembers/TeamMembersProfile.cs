@@ -2,7 +2,7 @@
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.BLL.Mapping;
+namespace VictoryCenter.BLL.Mapping.TeamMembers;
 
 public class TeamMembersProfile : Profile
 {

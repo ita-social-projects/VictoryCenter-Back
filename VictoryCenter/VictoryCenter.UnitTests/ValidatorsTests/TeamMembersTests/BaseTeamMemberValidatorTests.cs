@@ -126,6 +126,7 @@ public class BaseTeamMembersValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
     
+    [Fact]
     public void BaseTeamMembersValidator_ShouldNotHaveErrors_ForValidPublishedModel()
     {
         var model = new CreateTeamMemberDto
