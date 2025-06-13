@@ -1,6 +1,6 @@
 namespace VictoryCenter.BLL.DTOs.Categories;
 
-public class CategoryDto
+public record CategoryDto
 {
     public required string Name { get; set; }
     public string? Description { get; set; }
