@@ -9,7 +9,7 @@ using VictoryCenter.IntegrationTests.Utils;
 namespace VictoryCenter.IntegrationTests.ControllerTests;
 
 [Collection("SharedIntegrationTests")]
-public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
+public class TestControllerTests
 {
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
