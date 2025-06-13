@@ -19,14 +19,14 @@ public class CreateCategoryTests
         Id = 1,
         Name = "Test Category",
         Description = "Test Category Description",
-        CreatedAt = DateTime.Now,
+        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
     };
 
     private readonly CategoryDto _testCategoryDto = new()
     {
         Name = "Test Category",
         Description = "Test Category Description",
-        CreatedAt = DateTime.Now,
+        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
     };
 
     public CreateCategoryTests()

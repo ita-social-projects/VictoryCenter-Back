@@ -22,7 +22,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>("Entity not found");
+                return Result.Fail<long>("Not found");
             }
 
             if (entityToDelete.TeamMembers.Any())
