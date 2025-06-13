@@ -29,34 +29,67 @@ Web Layer project should be Web Api template, BLL and DAL should be class librar
 ```
 VictoryCenter (Solution)
 │
-├── VictoryCenter/                        ← Presentation Layer (Web API)
+├── VictoryCenter.WebAPI/             ← Presentation Layer (Web API)
+|   ├── Properties/
+|   |   └── launchSettings.json
+|   |
 │   ├── Controllers/                  ← API endpoints
-│   │   └── PagesController.cs
+|   |   ├── Categories/
+│   │   |   └── CategoriesController.cs
+|   |   |
+|   |   └── BaseApiController.cs
+|   |
+|   ├── Factories/
+|   |   └── CustomProblemDetailsFactory.cs
+|   |
+|   ├── Extensions/
+|   |   ├── ApplicationConfiguration.cs
+|   |   └── ServicesConfiguration.cs
+|   |
+|   ├── Middleware/
+|   |
 │   ├── Program.cs
 │   ├── appsettings.json
+|   ├── appsettings.Development.json
+|   ├── appsettings.IntegrationTests.json
 │   └── ...
 │
 ├── VictoryCenter.BLL/               ← Business Logic Layer (CQRS, Services, DTOs)
 │   ├── Commands/                    ← Write operations
-│   │   └── CreatePage/
-│   │       ├── CreatePageCommand.cs
-│   │       ├── CreatePageHandler.cs
-│   │       └── CreatePageValidator.cs (optional, with FluentValidation)
+|   |   └── Categories/          
+│   │       ├── Create/
+│   │       |   ├── CreateCategoryCommand.cs
+│   │       |   ├── CreateCategoryHandler.cs
+│   │       |   └── CreateCategoryValidator.cs (optional, with FluentValidation)
+|   |       ├── Update/
+|   |       └── Delete/     
 │   │
 │   ├── Queries/                     ← Read operations
-│   │   └── GetAllPages/
-│   │       ├── GetAllPagesQuery.cs
-│   │       └── GetAllPagesHandler.cs
+|   |   └── Categories
+│   │       └── GetAll/
+│   │           ├── GetAllCategoriesQuery.cs
+│   │           └── GetAllCategoriesHandler.cs
 │   │
 │   ├── Interfaces/                  ← Business layer contracts
 │   │   └── IPagesService.cs 
 |   |
-|   ├── Services/
-|   |   └── PagesService.cs         ← Business layer services
+|   ├── Services/                    ← Business layer services
+|   |   └── Pages
+|   |       └── PagesService.cs   
 │   │
 │   ├── DTOs/                        ← Data Transfer Objects
-│   │   └── PageDto.cs
+|   |   └── Categories                
+│   │       └── CategoryDto.cs
+|   |
+|   ├── Mapping/
+|   |   └── Categories/
+|   |       └── CategoriesProfile.cs
 │   │
+|   ├── Validators/
+|   |   └── Categories/
+|   |       ├── BaseCategoriesValidator.cs
+|   |       ├── CreateCategoryValidator.cs
+|   |       └── UpdateCategoryValidator.cs
 │   └── ...
 │
 ├── VictoryCenter.DAL/           ← Data Access Layer (EF Core, Repository)
@@ -64,19 +97,40 @@ VictoryCenter (Solution)
 │   │   └── VictoryCenterDbContext.cs
 │   │
 │   ├── Entities/                    ← Domain Models (EF Entities)
-│   │   └── Page.cs
+│   │   └── Category.cs
 │   │
 │   ├── Enums/               ← Enums
 │   │   └── PageType.cs
+|   |
+|   ├── Repositories/
+|   |   ├── Interfaces/
+|   |   |   ├── Base/
+|   |   |   |   ├── IRepositoryBase.cs
+|   |   |   |   └── IRepositoryWrapper.cs
+|   |   |   └── Categories/
+|   |   |       └── ICategoriesRepository.cs
+|   |   |
+|   |   └── Realizations/
+|   |       ├── Base/
+|   |       |   ├── RepositoryBase.cs
+|   |       |   └── RepositoryWrapper.cs
+|   |       └── Categories/
+|   |           └── CategoriesRepository.cs
 │   │
 │   └── ...
 │
 ├── VictoryCenter.UnitTests/           ← Unit tests (xUnit)
-│   ├── Tests/                        ← Tests
-│   │   └── PagesServiceTests.cs
 │   │
 │   ├── Configuration/                    ← Any possible helper setups
 │   │   └── DbContextMock.cs (for example)
+|   |
+|   ├── MediatRHandlersTests/
+|   |
+|   ├── ValidatorsTests/
+|   |
+|   ├── ServicesTests/
+|   |
+|   ├── MiddlewareTests/
 │   │
 │   ├── TestData/               ← Test data (optional)
 │   │   └── PageData.json
@@ -84,9 +138,15 @@ VictoryCenter (Solution)
 │   └── ...
 │
 ├── VictoryCenter.IntegrationTests/           ← Integration tests 
-│   ├── Tests/                        ← Tests
-│   │   └── RequestTest.cs
+│   ├── ControllerTests/                        ← Tests
+|   |   ├── Base/
+│   │   └── Categories/
+|   |       ├── Create/
+|   |       ├── Delete/
+|   |       ├── GetAll/
+|   |       └── Update/
 │   │
+|   ├── Utils/
 │   ├── TestData/               ← Test data (optional)
 │   │   └── data.json
 │   │
