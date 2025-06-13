@@ -4,6 +4,8 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+        <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
     </PropertyGroup>
 
     <ItemGroup>
@@ -15,6 +17,7 @@
       <PackageReference Include="FluentResults" Version="3.16.0" />
       <PackageReference Include="MediatR" Version="12.5.0" />
       <PackageReference Include="MediatR.Contracts" Version="2.0.1" />
+      <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
     </ItemGroup>
 
     <ItemGroup>

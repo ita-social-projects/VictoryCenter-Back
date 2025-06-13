@@ -4,6 +4,8 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+        <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
     </PropertyGroup>
 
     <ItemGroup>
@@ -13,6 +15,7 @@
         <PrivateAssets>all</PrivateAssets>
       </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
+      <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
     </ItemGroup>
 
 </Project>
