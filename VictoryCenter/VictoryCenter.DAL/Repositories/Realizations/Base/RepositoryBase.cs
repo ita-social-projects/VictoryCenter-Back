@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Query;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -51,7 +50,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
     }
     
-    public async Task<TKey> MaxAsync<TKey>(
+    public async Task<TKey?> MaxAsync<TKey>(
         Expression<Func<T, TKey>> selector,
         Expression<Func<T, bool>>? filter = null)
         where TKey : struct
@@ -61,6 +60,11 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         if (filter != null)
             query = query.Where(filter);
 
-        return await query.MaxAsync(selector);
+        var projected = query.Select(selector);
+
+        if (!await projected.AnyAsync())
+            return null;
+
+        return await projected.MaxAsync();
     }
 }

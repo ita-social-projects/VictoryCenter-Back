@@ -32,7 +32,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             
             var entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
             entity.CreatedAt = DateTime.UtcNow;
-            entity.Priority = await _repositoryWrapper.TeamMembersRepository.MaxAsync<long>(u => u.Priority) + 1;
+            var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync<long>(u => u.Priority, u => u.CategoryId == entity.CategoryId);
+            entity.Priority = (maxPriority ?? 0) + 1; 
             
             //TODO
             // add check if category exists

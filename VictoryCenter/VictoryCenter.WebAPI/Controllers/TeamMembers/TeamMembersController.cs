@@ -5,7 +5,8 @@ using VictoryCenter.WebAPI.Controllers;
 
 namespace VictoryCenter.Controllers.TeamMembers;
 
-
+[ApiController]
+[Route("api/team-members")]
 public class TeamMembersController : BaseApiController
 {
 
