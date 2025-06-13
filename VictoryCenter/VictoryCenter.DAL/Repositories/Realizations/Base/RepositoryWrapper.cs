@@ -1,5 +1,6 @@
 using System.Transactions;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Repositories.Interfaces;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
@@ -18,6 +19,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ICategoriesRepository? _categoriesRepository;
     private ITeamMembersRepository? _teamMembersRepository;
 
+    private ITeamMemberRepository? _teamMemberRepository;
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
         _victoryCenterDbContext = context;
@@ -25,7 +27,7 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public ITestRepository TestRepository => _testRepository ??= new TestRepository(_victoryCenterDbContext);
     public ICategoriesRepository CategoriesRepository => _categoriesRepository ??= new CategoriesRepository(_victoryCenterDbContext);
-    public ITeamMembersRepository TeamMembersRepository => _teamMembersRepository ??= new TeamMembersRepository(_victoryCenterDbContext);
+    public ITeamMemberRepository TeamMemberRepository => _teamMemberRepository ??= new TeamMemberRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
