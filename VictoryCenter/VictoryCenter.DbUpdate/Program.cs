@@ -32,7 +32,7 @@ optionsBuilder
 
 try
 {
-    using var context = new VictoryCenterDbContext(optionsBuilder.Options);
+using var context = new VictoryCenterDbContext(optionsBuilder.Options);
     await context.Database.MigrateAsync();
 }
 catch (Exception ex)
