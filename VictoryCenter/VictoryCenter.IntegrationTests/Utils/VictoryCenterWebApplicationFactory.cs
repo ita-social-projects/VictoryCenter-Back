@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
@@ -31,6 +30,8 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T> wh
             
             TestDatabaseSeeder.DeleteExistingData(dbContext);
             TestDatabaseSeeder.SeedData(dbContext);
+            VictoryCenterDatabaseSeeder.DeleteExistingData(dbContext);
+            VictoryCenterDatabaseSeeder.SeedData(dbContext);
         });
     }
 

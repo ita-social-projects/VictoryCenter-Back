@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using VictoryCenter.BLL.Commands.Test.UpdateTestData;
 using VictoryCenter.BLL.DTOs.Test;
@@ -77,7 +78,8 @@ public class UpdateTestDataTests
     private void SetupRepositoryWrapper(TestEntity testEntity, int isSuccess)
     {
         _mockRepository.Setup(repository => repository.TestRepository.GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<TestEntity, bool>>>()))
+                It.IsAny<Expression<Func<TestEntity, bool>>>(),
+                It.IsAny<Func<IQueryable<TestEntity>, IIncludableQueryable<TestEntity, object>>>()))
             .ReturnsAsync(testEntity);
 
         _mockRepository.Setup(repository => repository.TestRepository

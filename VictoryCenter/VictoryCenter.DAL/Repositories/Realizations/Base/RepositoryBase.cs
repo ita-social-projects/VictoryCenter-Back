@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -15,16 +16,32 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
         _dbContext = context;
     }
-    
-    public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = default)
+
+    public async Task<IEnumerable<T>> GetAllAsync(
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default,
+        Expression<Func<T, bool>>? predicate = default,
+        int offset = 0,
+        int limit = 0,
+        Expression<Func<T, object>>? orderByASC = default,
+        Expression<Func<T, object>>? orderByDESC = default,
+        Expression<Func<T, T>>? selector = default)
     {
-        var query = GetQueryable(predicate);
+        var query = _dbContext.Set<T>().AsNoTracking();
+        query = ApplyInclude(query, include);
+        query = ApplyPredicate(query, predicate);
+        query = ApplyOrdering(query, orderByASC, orderByDESC);
+        query = ApplyPagination(query, offset, limit);
+        query = ApplySelector(query, selector);
         return await query.ToListAsync();
     }
     
-    public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>>? predicate = default)
+    public async Task<T?> GetFirstOrDefaultAsync(
+        Expression<Func<T, bool>>? predicate = default,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default)
     {
-        var query = GetQueryable(predicate);
+        var query = _dbContext.Set<T>().AsNoTracking();
+        query = ApplyInclude(query, include);
+        query = ApplyPredicate(query, predicate);
         return await query.FirstOrDefaultAsync();
     }
 
@@ -44,10 +61,42 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         _dbContext.Set<T>().Remove(entity);
     }
 
-    private IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = default)
+    private static IQueryable<T> ApplyPredicate(IQueryable<T> query, Expression<Func<T, bool>>? predicate)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
-        
-        return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
+        return predicate != null ? query.Where(predicate) : query;
     }
+
+    private static IQueryable<T> ApplyInclude(IQueryable<T> query, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include)
+    {
+        return include != null ? include(query) : query;
+    }
+
+    private static IQueryable<T> ApplyOrdering(
+        IQueryable<T> query,
+        Expression<Func<T, object>>? orderByASC,
+        Expression<Func<T, object>>? orderByDESC)
+    {
+        if (orderByASC != null)
+            return query.OrderBy(orderByASC);
+        if (orderByDESC != null)
+            return query.OrderByDescending(orderByDESC);
+
+        return query;
+    }
+
+    private static IQueryable<T> ApplySelector(IQueryable<T> query, Expression<Func<T, T>>? selector)
+    {
+        return selector != null ? query.Select(selector) : query;
+    }
+
+    private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)
+    {
+        if (offset > 0)
+            query = query.Skip(offset);
+        if (limit > 0)
+            query = query.Take(limit);
+
+        return query;
+    }
+
 }
