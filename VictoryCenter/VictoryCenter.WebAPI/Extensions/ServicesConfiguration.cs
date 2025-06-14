@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
@@ -14,7 +15,7 @@ public static class ServicesConfiguration
     public static void AddApplicationServices(this IServiceCollection services, ConfigurationManager configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
-        
+
         services.AddDbContext<VictoryCenterDbContext>(options =>
         {
             options.UseSqlServer(connectionString, opt =>
@@ -24,7 +25,7 @@ public static class ServicesConfiguration
             });
         });
     }
-    
+
     public static void AddCustomServices(this IServiceCollection services)
     {
         services.AddControllers();
@@ -32,7 +33,8 @@ public static class ServicesConfiguration
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
-        
+        services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
+
         services.AddCors(opt =>
         {
             opt.AddDefaultPolicy(builder =>
@@ -42,7 +44,7 @@ public static class ServicesConfiguration
                        .AllowAnyHeader();
             });
         });
-        
+
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddScoped<IPagesService, PagesService>();
     }
@@ -59,7 +61,7 @@ public static class ServicesConfiguration
             });
         });
     }
-    
+
     public static void MapOpenApi(this IApplicationBuilder app)
     {
         app.UseSwagger();
@@ -69,7 +71,7 @@ public static class ServicesConfiguration
             c.RoutePrefix = "swagger";
         });
     }
-    
+
     public static async Task ApplyMigrations(this WebApplication app)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
@@ -84,9 +86,9 @@ public static class ServicesConfiguration
             {
                 logger.LogInformation("Pending migrations: {PendingMigrations}", string.Join(", ", migrations));
                 var appliedMigrationsBefore = await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
-                
+
                 await victoryCenterDbContext.Database.MigrateAsync();
-                
+
                 logger.LogInformation("Migrations applied successfully.");
                 var appliedMigrationsAfter = await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
                 var newlyAppliedMigrations = appliedMigrationsAfter.Except(appliedMigrationsBefore);

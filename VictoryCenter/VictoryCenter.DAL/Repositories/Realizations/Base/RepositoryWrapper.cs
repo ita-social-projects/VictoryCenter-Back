@@ -1,5 +1,6 @@
 using System.Transactions;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Repositories.Interfaces;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.Test;
 using VictoryCenter.DAL.Repositories.Realizations.Test;
@@ -11,14 +12,14 @@ public class RepositoryWrapper : IRepositoryWrapper
     private readonly VictoryCenterDbContext _victoryCenterDbContext;
 
     private ITestRepository? _testRepository;
-
+    private ITeamMemberRepository? _teamMemberRepository;
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
         _victoryCenterDbContext = context;
     }
 
     public ITestRepository TestRepository => _testRepository ??= new TestRepository(_victoryCenterDbContext);
-
+    public ITeamMemberRepository TeamMemberRepository => _teamMemberRepository ??= new TeamMemberRepository(_victoryCenterDbContext);
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();
