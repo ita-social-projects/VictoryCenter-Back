@@ -4,6 +4,7 @@ using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Categories.UpdateCategory;
 using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.Validators.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 

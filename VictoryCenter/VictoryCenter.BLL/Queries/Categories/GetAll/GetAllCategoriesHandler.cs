@@ -4,20 +4,20 @@ using MediatR;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Queries.Categories.GetCategories;
+namespace VictoryCenter.BLL.Queries.Categories.GetAll;
 
-public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, Result<IEnumerable<CategoryDto>>>
+public class GetAllCategoriesHandler : IRequestHandler<GetAllCategoriesQuery, Result<IEnumerable<CategoryDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetCategoriesHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetAllCategoriesHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
     
-    public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
     {
         try
         {

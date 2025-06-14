@@ -5,84 +5,27 @@ using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests;
+namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Update;
 
 [Collection("SharedIntegrationTests")]
-public class CategoryControllerTests
+public class UpdateCategoryTests
 {
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
     
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public CategoryControllerTests(IntegrationTestDbFixture fixture)
+    public UpdateCategoryTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
         
-        _jsonOptions = new JsonSerializerOptions()
+        _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
-
-    [Fact]
-    public async Task GetCategories_ShouldReturnAllCategories()
-    {
-        var response = await _httpClient.GetAsync("/api/categories/getCategories");
-        var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<IEnumerable<CategoryDto>>(responseString, 
-            _jsonOptions);
-        
-        response.EnsureSuccessStatusCode();
-        Assert.NotNull(responseContent);
-        Assert.NotEmpty(responseContent);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task CreateCategory_ShouldCreateCategory(string testDescription)
-    {
-        var createCategoryDto = new CreateCategoryDto
-        {
-            Name = "Test Category",
-            Description = testDescription,
-        };
-        var serializedDto = JsonSerializer.Serialize(createCategoryDto);
-        
-        var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
-            serializedDto, Encoding.UTF8, @"application/json"));
-        var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
-        
-        response.EnsureSuccessStatusCode();
-        Assert.NotNull(responseContent);
-        Assert.Equal(createCategoryDto.Name, responseContent.Name);
-        Assert.Equal(createCategoryDto.Description, responseContent.Description);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task CreateCategory_ShouldNotCreateCategory_InvalidName(string testName)
-    {
-        var createCategoryDto = new CreateCategoryDto
-        {
-            Name = testName,
-            Description = "Test Description",
-        };
-        var serializedDto = JsonSerializer.Serialize(createCategoryDto);
-        
-        var response = await _httpClient.PostAsync("api/category/createCategory", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
-        
-        Assert.False(response.IsSuccessStatusCode);
-    }
-
+    
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -146,26 +89,6 @@ public class CategoryControllerTests
         
         var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
-        Assert.False(response.IsSuccessStatusCode);
-    }
-
-    [Fact]
-    public async Task DeleteCategory_ShouldDeleteCategory()
-    {
-        var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
-        
-        var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{existingEntity!.Id}");
-        
-        Assert.True(response.IsSuccessStatusCode);
-    }
-
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(0)]
-    public async Task DeleteCategory_ShouldNotDeleteCategory_NotFound(int testId)
-    {
-        var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{testId}");
         
         Assert.False(response.IsSuccessStatusCode);
     }

@@ -28,7 +28,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             
             var entity = _mapper.Map<Category>(request.createCategoryDto);
-            entity.CreatedAt = DateTime.Now;
+            entity.CreatedAt = DateTime.UtcNow;
             
             await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
 

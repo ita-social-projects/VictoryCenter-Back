@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Queries.Categories.GetCategories;
+using VictoryCenter.BLL.Queries.Categories.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -52,9 +52,9 @@ public class GetCategoriesTests
     public async Task Handle_ShouldReturnAllCategories()
     {
         SetupDependencies();
-        var handler = new GetCategoriesHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+        var handler = new GetAllCategoriesHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
         
-        var result = await handler.Handle(new GetCategoriesQuery(), CancellationToken.None);
+        var result = await handler.Handle(new GetAllCategoriesQuery(), CancellationToken.None);
         
         Assert.NotNull(result);
         Assert.NotEmpty(result.Value);

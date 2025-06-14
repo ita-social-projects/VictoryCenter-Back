@@ -3,7 +3,7 @@ using VictoryCenter.BLL.Commands.Categories.CreateCategory;
 using VictoryCenter.BLL.Commands.Categories.DeleteCategory;
 using VictoryCenter.BLL.Commands.Categories.UpdateCategory;
 using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Queries.Categories.GetCategories;
+using VictoryCenter.BLL.Queries.Categories.GetAll;
 
 namespace VictoryCenter.WebAPI.Controllers.Categories;
 
@@ -12,7 +12,7 @@ public class CategoriesController : BaseApiController
     [HttpGet]
     public async Task<IActionResult> GetCategories()
     {
-        return HandleResult(await Mediator.Send(new GetCategoriesQuery()));
+        return HandleResult(await Mediator.Send(new GetAllCategoriesQuery()));
     }
     
     [HttpPost]
@@ -28,8 +28,8 @@ public class CategoriesController : BaseApiController
     }
 
     [HttpDelete]
-    [Route("{id:int}")]
-    public async Task<IActionResult> DeleteCategory(int id)
+    [Route("{id:long}")]
+    public async Task<IActionResult> DeleteCategory(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteCategoryCommand(id)));
     }

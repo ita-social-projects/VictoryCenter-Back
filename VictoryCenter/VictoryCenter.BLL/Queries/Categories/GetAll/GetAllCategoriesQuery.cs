@@ -2,7 +2,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Categories;
 
-namespace VictoryCenter.BLL.Queries.Categories.GetCategories;
+namespace VictoryCenter.BLL.Queries.Categories.GetAll;
 
-public record GetCategoriesQuery()
+public record GetAllCategoriesQuery
     : IRequest<Result<IEnumerable<CategoryDto>>>;
