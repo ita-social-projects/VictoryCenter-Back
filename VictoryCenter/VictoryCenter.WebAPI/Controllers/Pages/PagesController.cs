@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Queries.Pages.GetAllPages;
 
 namespace VictoryCenter.WebAPI.Controllers.Pages;
 
+[Route("api/pages")]
 public class PagesController : BaseApiController
 {
     [HttpGet]

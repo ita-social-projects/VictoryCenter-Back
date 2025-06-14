@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Queries.Test.GetTestData;
 
 namespace VictoryCenter.WebAPI.Controllers.Test;
 
+[Route("api/test-data")]
 public class TestController : BaseApiController
 {
     [HttpGet]
