@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
@@ -28,9 +29,6 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T> wh
             using var scope = provider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
             dbContext.Database.EnsureCreated();
-            
-            TestDatabaseSeeder.DeleteExistingData(dbContext);
-            TestDatabaseSeeder.SeedData(dbContext);
         });
     }
 

@@ -1,4 +1,5 @@
 using System.Transactions;
+using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.Test;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -6,6 +7,7 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 public interface IRepositoryWrapper
 {
     public ITestRepository TestRepository { get; }
+    public ICategoriesRepository CategoriesRepository { get; }
     
     public int SaveChanges();
 
