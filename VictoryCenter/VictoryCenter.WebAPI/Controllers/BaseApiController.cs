@@ -17,8 +17,12 @@ public class BaseApiController : ControllerBase
     {
         if (result.IsSuccess)
         {
-            return (result.Value is null) ?
-                NotFound("Not Found") : Ok(result.Value);
+            return Ok(result.Value);
+        }
+
+        if (result.HasError(error => error.Message == "Not found"))
+        {
+            return NotFound("Not Found");
         }
 
         if (result.HasError(error => error.Message == "Unauthorized"))
