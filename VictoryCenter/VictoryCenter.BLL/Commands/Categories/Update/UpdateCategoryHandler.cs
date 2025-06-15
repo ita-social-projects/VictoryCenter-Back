@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Commands.Categories.UpdateCategory;
+namespace VictoryCenter.BLL.Commands.Categories.Update;
 
 public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Result<CategoryDto>>
 {

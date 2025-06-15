@@ -1,5 +1,5 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.Categories.UpdateCategory;
+using VictoryCenter.BLL.Commands.Categories.Update;
 
 namespace VictoryCenter.BLL.Validators.Categories;
 

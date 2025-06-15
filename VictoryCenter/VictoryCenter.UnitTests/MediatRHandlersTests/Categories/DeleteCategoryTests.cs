@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using Moq;
-using VictoryCenter.BLL.Commands.Categories.DeleteCategory;
+using VictoryCenter.BLL.Commands.Categories.Delete;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -26,10 +26,10 @@ public class DeleteCategoryTests
     [Fact]
     public async Task Handle_ShouldDeleteCategory()
     {
-        SetupRepositoryWrapper(1, _testExistingCategory);
+        SetupRepositoryWrapper(_testExistingCategory);
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
 
-        var result = await handler.Handle(new DeleteCategoryCommand(1), CancellationToken.None);
+        var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
         
         Assert.True(result.IsSuccess);
     }
@@ -48,17 +48,36 @@ public class DeleteCategoryTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotDeleteCategory_SaveChangesFails()
+    public async Task Handle_ShouldNotDeleteCategory_AnyTeamMemberDependsOnCategory()
     {
-        SetupRepositoryWrapper(-1, _testExistingCategory);
+        Category categoryWithDependencies = new()
+        {
+            Id = 1,
+            Name = "Test name",
+            Description = "Test description",
+            CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
+            TeamMembers = [new TeamMember()],
+        };
+        SetupRepositoryWrapper(categoryWithDependencies);
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
         
-        var result = await handler.Handle(new DeleteCategoryCommand(1), CancellationToken.None);
+        var result = await handler.Handle(new DeleteCategoryCommand(categoryWithDependencies.Id), CancellationToken.None);
         
         Assert.False(result.IsSuccess);
     }
 
-    private void SetupRepositoryWrapper(int saveResult = 1, Category? entityToDelete = null)
+    [Fact]
+    public async Task Handle_ShouldNotDeleteCategory_SaveChangesFails()
+    {
+        SetupRepositoryWrapper(_testExistingCategory, -1);
+        var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
+        
+        var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
+        
+        Assert.False(result.IsSuccess);
+    }
+
+    private void SetupRepositoryWrapper(Category? entityToDelete = null, int saveResult = 1)
     {
         _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Category, bool>>>()))

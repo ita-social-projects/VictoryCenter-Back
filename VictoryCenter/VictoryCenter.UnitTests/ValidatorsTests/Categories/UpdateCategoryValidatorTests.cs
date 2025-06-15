@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Categories.UpdateCategory;
+using VictoryCenter.BLL.Commands.Categories.Update;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 
@@ -14,10 +14,13 @@ public class UpdateCategoryValidatorTests
         _validator = new UpdateCategoryValidator();
     }
     
-    [Fact]
-    public void Validate_ShouldHaveError_When_Name_IsEmpty()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_When_Name_IsNotValid(string name)
     {
-        var command = new UpdateCategoryCommand(new UpdateCategoryDto { Name = string.Empty });
+        var command = new UpdateCategoryCommand(new UpdateCategoryDto { Name = name });
 
         var result = _validator.TestValidate(command);
 

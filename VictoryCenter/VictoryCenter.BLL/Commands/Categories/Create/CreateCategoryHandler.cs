@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Commands.Categories.CreateCategory;
+namespace VictoryCenter.BLL.Commands.Categories.Create;
 
 public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Result<CategoryDto>>
 {

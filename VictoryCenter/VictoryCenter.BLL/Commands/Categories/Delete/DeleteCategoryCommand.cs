@@ -1,7 +1,7 @@
 using FluentResults;
 using MediatR;
 
-namespace VictoryCenter.BLL.Commands.Categories.DeleteCategory;
+namespace VictoryCenter.BLL.Commands.Categories.Delete;
 
-public record DeleteCategoryCommand(long id)
+public record DeleteCategoryCommand(long Id)
     : IRequest<Result<long>>;

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.Categories.CreateCategory;
-using VictoryCenter.BLL.Commands.Categories.DeleteCategory;
-using VictoryCenter.BLL.Commands.Categories.UpdateCategory;
+using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Commands.Categories.Delete;
+using VictoryCenter.BLL.Commands.Categories.Update;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Queries.Categories.GetAll;
 
