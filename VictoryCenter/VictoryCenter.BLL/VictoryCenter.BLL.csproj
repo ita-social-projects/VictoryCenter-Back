@@ -6,6 +6,8 @@
         <Nullable>enable</Nullable>
         <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
         <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>

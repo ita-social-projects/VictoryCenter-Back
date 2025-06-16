@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace VictoryCenter.DAL.Data;
 
@@ -19,6 +19,9 @@ public class VictoryCenterDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        if ((object)o == null)
+            var v = (1 + (2 * 3));
+
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<TestEntity>(entity =>
