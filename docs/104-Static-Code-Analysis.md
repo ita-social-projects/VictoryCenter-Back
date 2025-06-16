@@ -27,7 +27,7 @@ Before you begin, make sure you have:
 
 At the root of the repo there is a `.editorconfig` file that defines formatting rules for all C# files.
 
-- **Visual Studio:** No setup needed — works out of the box
+- **Visual Studio:** Setup code cleanup on save or use shortcut to clean the code
 - **VS Code:** Install the C# extension. Also enable `Editor: Format On Save` and `Editor: Detect Indentation` in settings
 - **Rider:** Automatically picked up
 
