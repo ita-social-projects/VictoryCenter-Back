@@ -416,3 +416,5 @@ dotnet_diagnostic.SX1101.severity = error
 dotnet_diagnostic.SX1309.severity = error
 # Unnecessary using directives
 dotnet_diagnostic.IDE0005.severity = error
+# XML documentation required
+dotnet_diagnostic.CS1591.severity = none
