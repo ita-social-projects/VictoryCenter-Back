@@ -26,13 +26,13 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     {
         var response = await _client.GetAsync("/api/Test/GetAllTestData");
         var responseString = await response.Content.ReadAsStringAsync();
-        
+
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
         var responseContent = JsonSerializer.Deserialize<IEnumerable<TestDataDto>>(responseString, options);
-        
+
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
@@ -42,16 +42,16 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task GetTestDataById_ShouldReturnOk()
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
-        
+
         var response = await _client.GetAsync($"/api/Test/GetTestData/{existingEntity!.Id}");
         var responseString = await response.Content.ReadAsStringAsync();
-        
+
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
         var responseContent = JsonSerializer.Deserialize<TestDataDto>(responseString, options);
-        
+
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
     }
@@ -60,7 +60,7 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task GetTestDataById_ShouldFail_NotFound()
     {
         var response = await _client.GetAsync($"/api/Test/GetTestData/{-1}");
-        
+
         Assert.False(response.IsSuccessStatusCode);
     }
 
@@ -69,10 +69,10 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     {
         var createTestDataDto = new CreateTestDataDto() { TestName = "CreateTestName" };
         var serializedDto = JsonSerializer.Serialize(createTestDataDto);
-        
+
         var response = await _client.PostAsync("/api/Test/CreateTestData", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
@@ -82,10 +82,10 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
         var updateTestDataDto = new UpdateTestDataDto() { Id = existingEntity!.Id, TestName = "UpdateTestName" };
         var serializedDto = JsonSerializer.Serialize(updateTestDataDto);
-        
+
         var response = await _client.PutAsync("/api/Test/UpdateTestData", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
@@ -94,10 +94,10 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     {
         var updateTestDataDto = new UpdateTestDataDto() { Id = -1, TestName = "UpdateTestName" };
         var serializedDto = JsonSerializer.Serialize(updateTestDataDto);
-        
+
         var response = await _client.PutAsync("/api/Test/UpdateTestData", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.False(response.IsSuccessStatusCode);
     }
 
@@ -105,9 +105,9 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task DeleteTestData_ShouldReturnOk()
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
-        
+
         var response = await _client.DeleteAsync($"/api/Test/DeleteTestData/{existingEntity!.Id}");
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
@@ -115,7 +115,7 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task DeleteTestData_ShouldFail_NotFound()
     {
         var response = await _client.DeleteAsync($"/api/Test/DeleteTestData/{-1}");
-        
+
         Assert.False(response.IsSuccessStatusCode);
     }
 }

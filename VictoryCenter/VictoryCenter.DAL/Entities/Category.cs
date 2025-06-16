@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-
-namespace VictoryCenter.DAL.Entities;
+﻿namespace VictoryCenter.DAL.Entities;
 
 public class Category
 {

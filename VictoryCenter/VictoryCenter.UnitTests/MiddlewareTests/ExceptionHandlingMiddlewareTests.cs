@@ -22,7 +22,7 @@ public class ExceptionHandlingMiddlewareTests
     [Fact]
     public async Task InvokeAsync_NoException_ShouldCallNextWithoutLoggingOrWritingResponse()
     {
-        //Arrange
+        // Arrange
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
         var nextCalled = false;
@@ -35,16 +35,15 @@ public class ExceptionHandlingMiddlewareTests
         var middleware = new ExceptionHandlingMiddleware(
             nextDelegate,
             _loggerMock.Object,
-            _factoryMock.Object
-        );
+            _factoryMock.Object);
 
         // Act
         await middleware.InvokeAsync(context);
 
-        //Assert
+        // Assert
         context.Response.Body.Seek(0, SeekOrigin.Begin);
-        var responceBody = await new StreamReader(context.Response.Body).ReadToEndAsync();
-        Assert.True(string.IsNullOrEmpty(responceBody));
+        var responseBody = await new StreamReader(context.Response.Body).ReadToEndAsync();
+        Assert.True(string.IsNullOrEmpty(responseBody));
         _loggerMock.VerifyNoOtherCalls();
 
         Assert.True(nextCalled);
@@ -77,15 +76,13 @@ public class ExceptionHandlingMiddlewareTests
                 "Internal Server Error",
                 null,
                 "An error occurred while processing your request. Please try again!",
-                null
-            ))
+                null))
             .Returns(problemDetails);
 
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw exception,
             _loggerMock.Object,
-            _factoryMock.Object
-        );
+            _factoryMock.Object);
 
         // Act
         await middleware.InvokeAsync(context);
@@ -97,10 +94,8 @@ public class ExceptionHandlingMiddlewareTests
                 It.IsAny<EventId>(),
                 It.IsAny<It.IsAnyType>(),
                 It.IsAny<NotImplementedException>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()
-            ),
-            Times.Once
-        );
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
 
         _factoryMock.Verify(
             f => f.CreateProblemDetails(
@@ -109,10 +104,8 @@ public class ExceptionHandlingMiddlewareTests
                 "Internal Server Error",
                 null,
                 "An error occurred while processing your request. Please try again!",
-                null
-            ),
-            Times.Once
-        );
+                null),
+            Times.Once);
 
         Assert.Equal("application/problem+json", context.Response.ContentType);
         Assert.Equal(500, context.Response.StatusCode);

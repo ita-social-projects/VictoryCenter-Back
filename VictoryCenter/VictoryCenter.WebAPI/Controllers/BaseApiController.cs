@@ -12,8 +12,8 @@ public class BaseApiController : ControllerBase
     private IMediator? _mediator;
 
     protected IMediator Mediator => _mediator ??=
-        HttpContext.RequestServices.GetService<IMediator>() !;
-    
+        HttpContext.RequestServices.GetService<IMediator>()!;
+
     protected ActionResult HandleResult<T>(Result<T> result)
     {
         var problemsFactory = HttpContext.RequestServices
@@ -25,13 +25,11 @@ public class BaseApiController : ControllerBase
         }
 
         if (result.HasError(error
-            => error.Message.Contains("not found", StringComparison.CurrentCultureIgnoreCase)
-        ))
+            => error.Message.Contains("not found", StringComparison.CurrentCultureIgnoreCase)))
         {
             var notFoundDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
-                statusCode: StatusCodes.Status404NotFound
-            );
+                statusCode: StatusCodes.Status404NotFound);
             return NotFound(notFoundDetails);
         }
 
@@ -39,8 +37,7 @@ public class BaseApiController : ControllerBase
         {
             var unauthorizedDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
-                statusCode: StatusCodes.Status401Unauthorized
-            );
+                statusCode: StatusCodes.Status401Unauthorized);
             return Unauthorized(unauthorizedDetails);
         }
 
@@ -48,8 +45,7 @@ public class BaseApiController : ControllerBase
         var badRequestDetails = problemsFactory.CreateProblemDetails(
             HttpContext,
             statusCode: StatusCodes.Status400BadRequest,
-            detail: errorDetail
-        );
+            detail: errorDetail);
 
         return BadRequest(badRequestDetails);
     }

@@ -16,7 +16,7 @@ public class GetAllTestDataHandler : IRequestHandler<GetAllTestDataQuery, Result
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
-    
+
     public async Task<Result<IEnumerable<TestDataDto>>> Handle(GetAllTestDataQuery request, CancellationToken cancellationToken)
     {
         try

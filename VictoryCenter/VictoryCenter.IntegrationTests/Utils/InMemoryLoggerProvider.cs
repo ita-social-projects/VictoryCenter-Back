@@ -5,16 +5,19 @@ namespace VictoryCenter.IntegrationTests.Utils;
 
 public class InMemoryLoggerProvider : ILoggerProvider
 {
-    public ConcurrentBag<LogEntry> Entries = [];
-
+    private readonly ConcurrentBag<LogEntry> _entries = [];
+    public IReadOnlyCollection<LogEntry> Entries => [.. _entries];
     public ILogger CreateLogger(string categoryName)
-    {
-        return new InMemoryLogger(Entries, categoryName);
-    }
+        => new InMemoryLogger(_entries, categoryName);
 
     public void Dispose()
     {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 
+    protected virtual void Dispose(bool disposing)
+    {
     }
 
     private class InMemoryLogger : ILogger
@@ -28,10 +31,9 @@ public class InMemoryLoggerProvider : ILoggerProvider
             _category = category;
         }
 
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull
-        {
-            return NullScope.Instance;
-        }
+        public IDisposable BeginScope<TState>(TState state)
+            where TState : notnull
+            => NullScope.Instance;
 
         public bool IsEnabled(LogLevel logLevel) => true;
 
@@ -42,7 +44,10 @@ public class InMemoryLoggerProvider : ILoggerProvider
             Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            if (formatter == null) return;
+            if (formatter == null)
+            {
+                return;
+            }
 
             var message = formatter(state, exception);
             _entries.Add(new LogEntry
@@ -58,7 +63,16 @@ public class InMemoryLoggerProvider : ILoggerProvider
     private class NullScope : IDisposable
     {
         public static NullScope Instance { get; } = new();
-        public void Dispose() { }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+        }
     }
 }
 

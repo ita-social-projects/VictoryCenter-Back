@@ -52,8 +52,7 @@ public class CustomProblemDetailsFactoryTests
             _httpContext,
             statusCode: code,
             title: customTitle,
-            detail: customDetail
-        );
+            detail: customDetail);
 
         // Assert
         Assert.Equal(code, problemDetails.Status);
@@ -79,8 +78,7 @@ public class CustomProblemDetailsFactoryTests
         Assert.Equal("Bad Request", validationPD.Title);
         Assert.Equal(
             "One or more validation errors occurred.",
-            validationPD.Detail
-        );
+            validationPD.Detail);
 
         Assert.Contains("Error A occurred", validationPD.Errors["FieldA"]);
         Assert.Contains("Error B occurred", validationPD.Errors["FieldB"]);
@@ -104,8 +102,7 @@ public class CustomProblemDetailsFactoryTests
             ms,
             statusCode: code,
             title: customTitle,
-            detail: customDetail
-        );
+            detail: customDetail);
 
         // Assert
         Assert.Equal(code, validationPD.Status);

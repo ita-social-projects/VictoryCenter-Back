@@ -17,7 +17,7 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
-    
+
     public async Task<Result<TestDataDto>> Handle(UpdateTestDataCommand request, CancellationToken cancellationToken)
     {
         try
@@ -27,7 +27,7 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
             {
                 return Result.Fail("Entity not found");
             }
-            
+
             var testEntity = _mapper.Map<TestEntity>(request.UpdateTestData);
             _repositoryWrapper.TestRepository.Update(testEntity);
 
@@ -36,6 +36,7 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
                 var testDataDto = _mapper.Map<TestDataDto>(testEntity);
                 return Result.Ok(testDataDto);
             }
+
             return Result.Fail("Failed to update test data");
         }
         catch (Exception ex)

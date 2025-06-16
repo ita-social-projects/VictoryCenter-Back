@@ -1,13 +1,13 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Query;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
-public class RepositoryBase<T> : IRepositoryBase<T> where T : class
+public class RepositoryBase<T> : IRepositoryBase<T>
+    where T : class
 {
     private readonly VictoryCenterDbContext _dbContext;
 
@@ -15,13 +15,13 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     {
         _dbContext = context;
     }
-    
+
     public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = default)
     {
         var query = GetQueryable(predicate);
         return await query.ToListAsync();
     }
-    
+
     public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>>? predicate = default)
     {
         var query = GetQueryable(predicate);
@@ -47,7 +47,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     private IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = default)
     {
         var query = _dbContext.Set<T>().AsNoTracking();
-        
+
         return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
     }
 }

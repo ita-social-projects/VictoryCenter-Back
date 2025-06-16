@@ -7,7 +7,8 @@ using VictoryCenter.DAL.Data;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
-public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T> where T : class
+public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
+    where T : class
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -33,15 +34,17 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T> wh
         });
     }
 
-    private void RemoveExistingContext(IServiceCollection services)
+    private static void RemoveExistingContext(IServiceCollection services)
     {
         var descriptor = services.SingleOrDefault(
             d => d.ServiceType == typeof(DbContextOptions<VictoryCenterDbContext>));
         if (descriptor != null)
+        {
             services.Remove(descriptor);
+        }
     }
 
-    private void AddTestDbContext(IServiceCollection services)
+    private static void AddTestDbContext(IServiceCollection services)
     {
         var serviceProvider = services.BuildServiceProvider();
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();

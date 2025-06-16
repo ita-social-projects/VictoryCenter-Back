@@ -30,8 +30,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
             title: title ?? GetDefaultTitle(code),
             type: type,
             detail: detail ?? GetDefaultDetail(code),
-            instance: instance
-        );
+            instance: instance);
 
         return problemDetails;
     }
@@ -55,8 +54,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
                 title: title ?? GetDefaultTitle(code),
                 type: type,
                 detail: detail ?? GetDefaultDetail(code),
-                instance: instance
-            );
+                instance: instance);
 
         return validationProblemDetails;
     }

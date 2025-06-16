@@ -15,11 +15,12 @@ public class RequestResponseLoggingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        context.Response.OnStarting(state =>
+        context.Response.OnStarting(
+            state =>
         {
             var httpContext = (HttpContext)state;
             var status = httpContext.Response.StatusCode;
-            
+
             LogLevel level = status switch
             {
                 >= 500 => LogLevel.Error,
@@ -33,8 +34,8 @@ public class RequestResponseLoggingMiddleware
                 "HTTP {Method} {Path} got responded with {StatusCode}",
                 httpContext.Request.Method,
                 httpContext.Request.Path + httpContext.Request.QueryString,
-                status
-            );
+                status);
+
             return Task.CompletedTask;
         }, context);
 
