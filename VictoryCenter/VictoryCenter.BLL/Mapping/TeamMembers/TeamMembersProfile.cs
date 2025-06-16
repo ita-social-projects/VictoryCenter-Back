@@ -4,9 +4,9 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.TeamMembers;
 
-public class TeamMemberProfile : Profile
+public class TeamMembersProfile : Profile
 {
-    public TeamMemberProfile()
+    public TeamMembersProfile()
     {
         CreateMap<TeamMember, TeamMemberDto>()
             .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null));

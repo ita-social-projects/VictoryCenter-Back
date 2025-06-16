@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Queries.TeamMembers;
+namespace VictoryCenter.BLL.Queries.TeamMembers.GetById;
 
 public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, Result<TeamMemberDto>>
 {

@@ -7,7 +7,7 @@ using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Queries.TeamMembers;
+namespace VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 
 public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFiltersQuery, Result<List<TeamMemberDto>>>
 {
@@ -29,7 +29,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             var status = request.TeamMembersFilter.Status;
             var categoryName = request.TeamMembersFilter.CategoryName;
             Expression<Func<TeamMember, bool>> filter =
-                (TeamMember t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
+                (t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
 
             var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(
                 include: t => t.Include(t => t.Category),

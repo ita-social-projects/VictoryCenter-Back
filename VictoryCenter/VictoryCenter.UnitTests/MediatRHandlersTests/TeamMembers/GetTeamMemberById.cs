@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using System.Linq.Expressions;
 using VictoryCenter.BLL.DTOs.TeamMember;
-using VictoryCenter.BLL.Queries.TeamMembers;
+using VictoryCenter.BLL.Queries.TeamMembers.GetById;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.DTOs.TeamMember;
 using VictoryCenter.BLL.Queries.Pages.GetAllPages;
 using VictoryCenter.BLL.Queries.TeamMembers;
+using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
+using VictoryCenter.BLL.Queries.TeamMembers.GetById;
 using VictoryCenter.WebAPI.Controllers;
 
 namespace VictoryCenter.Controllers.TeamMembers
