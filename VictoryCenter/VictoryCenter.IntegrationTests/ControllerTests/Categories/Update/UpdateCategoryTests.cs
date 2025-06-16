@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +73,7 @@ public class UpdateCategoryTests
             serializedDto, Encoding.UTF8, "application/json"));
         
         Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
@@ -91,5 +93,6 @@ public class UpdateCategoryTests
             serializedDto, Encoding.UTF8, "application/json"));
         
         Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

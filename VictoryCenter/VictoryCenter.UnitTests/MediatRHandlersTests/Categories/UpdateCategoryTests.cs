@@ -52,7 +52,7 @@ public class UpdateCategoryTests
     {
         _testUpdatedCategory.Description = testDescription;
         _testUpdatedCategoryDto.Description = testDescription;
-        SetupDependencies();
+        SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
         
         var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
@@ -76,7 +76,7 @@ public class UpdateCategoryTests
     {
         _testUpdatedCategoryDto.Name = testName;
         _testUpdatedCategory.Name = testName;
-        SetupDependencies();
+        SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
@@ -87,6 +87,7 @@ public class UpdateCategoryTests
         }), CancellationToken.None);
         
         Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
     }
 
     [Theory]
@@ -105,12 +106,13 @@ public class UpdateCategoryTests
         }), CancellationToken.None);
         
         Assert.False(result.IsSuccess);
+        Assert.Equal("Not found", result.Errors[0].Message);
     }
 
     [Fact]
     public async Task Handle_ShouldNotUpdateEntity_SaveChangesFails()
     {
-        SetupDependencies(-1);
+        SetupDependencies(_testExistingCategory, -1);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
         
         var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
@@ -121,12 +123,13 @@ public class UpdateCategoryTests
         }), CancellationToken.None);
         
         Assert.False(result.IsSuccess);
+        Assert.Equal("Failed to update category", result.Errors[0].Message);
     }
 
-    private void SetupDependencies(int saveResult = 1)
+    private void SetupDependencies(Category? categoryToReturn = null, int saveResult = 1)
     {
         SetupMapper();
-        SetupRepositoryWrapper(saveResult);
+        SetupRepositoryWrapper(categoryToReturn, saveResult);
     }
 
     private void SetupMapper()
@@ -138,11 +141,11 @@ public class UpdateCategoryTests
             .Returns(_testUpdatedCategoryDto);
     }
 
-    private void SetupRepositoryWrapper(int saveResult)
+    private void SetupRepositoryWrapper(Category? categoryToReturn = null, int saveResult = 1)
     {
         _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Category, bool>>>()))
-            .ReturnsAsync(_testExistingCategory);
+            .ReturnsAsync(categoryToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);

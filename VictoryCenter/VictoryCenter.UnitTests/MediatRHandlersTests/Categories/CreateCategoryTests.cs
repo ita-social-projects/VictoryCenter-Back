@@ -1,3 +1,4 @@
+using System.Net;
 using AutoMapper;
 using FluentValidation;
 using Moq;
@@ -78,6 +79,7 @@ public class CreateCategoryTests
         }), CancellationToken.None);
         
         Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
     }
 
     [Fact]
@@ -93,6 +95,7 @@ public class CreateCategoryTests
         }), CancellationToken.None);
         
         Assert.False(result.IsSuccess);
+        Assert.Equal("Failed to create category", result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)

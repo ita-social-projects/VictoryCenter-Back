@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Categories;
@@ -60,9 +61,10 @@ public class CreateCategoryTests
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
         
-        var response = await _httpClient.PostAsync("api/category/createCategory", new StringContent(
+        var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         
         Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

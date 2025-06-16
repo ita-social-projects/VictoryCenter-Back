@@ -1,3 +1,4 @@
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
@@ -34,5 +35,6 @@ public class DeleteCategoryTests
         var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{testId}");
         
         Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
