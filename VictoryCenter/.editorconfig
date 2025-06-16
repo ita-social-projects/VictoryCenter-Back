@@ -280,8 +280,10 @@ dotnet_diagnostic.SA1006.severity = error
 dotnet_diagnostic.SA1007.severity = error
 # An opening parenthesis within a C# statement is not spaced correctly.
 dotnet_diagnostic.SA1008.severity = error
+#A closing parenthesis within a C# statement is not spaced correctly.
+dotnet_diagnostic.SA1009.severity = none
 # An opening square bracket within a C# statement is not spaced correctly.
-dotnet_diagnostic.SA1010.severity = error
+dotnet_diagnostic.SA1010.severity = none
 # A closing square bracket within a C# statement is not spaced correctly.
 dotnet_diagnostic.SA1011.severity = error
 # An opening brace within a C# element is not spaced correctly.

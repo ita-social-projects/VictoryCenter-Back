@@ -10,13 +10,13 @@ public class GetTestDataHandler : IRequestHandler<GetTestDataQuery, Result<TestD
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
-    
+
     public GetTestDataHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
-    
+
     public async Task<Result<TestDataDto>> Handle(GetTestDataQuery request, CancellationToken cancellationToken)
     {
         try
@@ -28,7 +28,7 @@ public class GetTestDataHandler : IRequestHandler<GetTestDataQuery, Result<TestD
             {
                 return Result.Fail("Test not found");
             }
-            
+
             return Result.Ok(_mapper.Map<TestDataDto>(testEntity));
         }
         catch (Exception ex)

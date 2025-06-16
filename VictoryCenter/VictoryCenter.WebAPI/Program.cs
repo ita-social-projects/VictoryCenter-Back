@@ -14,6 +14,7 @@ if (app.Environment.IsDevelopment())
 
 await app.ApplyMigrations();
 
+app.UseRequestResponseLogging();
 app.UseCors();
 app.MapControllers();
 app.UseHttpsRedirection();
@@ -22,4 +23,6 @@ app.UseAuthorization();
 
 app.Run();
 
-public partial class Program { }
+public partial class Program
+{
+}

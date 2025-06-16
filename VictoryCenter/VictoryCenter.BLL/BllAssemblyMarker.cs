@@ -1,3 +1,5 @@
 namespace VictoryCenter.BLL;
 
-public sealed class BllAssemblyMarker { }
+public sealed class BllAssemblyMarker
+{
+}

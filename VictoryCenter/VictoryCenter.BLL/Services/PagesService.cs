@@ -4,5 +4,4 @@ namespace VictoryCenter.BLL.Services;
 
 public class PagesService : IPagesService
 {
-    
 }
