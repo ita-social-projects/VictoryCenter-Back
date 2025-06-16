@@ -18,9 +18,6 @@
       </PackageReference>
       <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
       <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers"
-                      Version="9.0.0"
-                      PrivateAssets="All" />
     </ItemGroup>
 
 </Project>
