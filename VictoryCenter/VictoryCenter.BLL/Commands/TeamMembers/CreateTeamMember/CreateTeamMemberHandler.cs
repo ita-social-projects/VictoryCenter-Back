@@ -30,28 +30,29 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         {
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            
+            if (await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(c =>
+                    c.Id == request.createTeamMemberDto.CategoryId) == null)
+            {
+                return Result.Fail<TeamMemberDto>("There are no categories with this id");
+            }
 
             var entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
+            
+            using var scope = _repositoryWrapper.BeginTransaction();
+
             entity.CreatedAt = DateTime.UtcNow;
             var maxPriority =
                 await _repositoryWrapper.TeamMembersRepository.MaxAsync<long>(u => u.Priority,
                     u => u.CategoryId == entity.CategoryId);
             entity.Priority = (maxPriority ?? 0) + 1;
-
-
-            if (await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(c => c.Id == entity.CategoryId) ==
-                null)
-            {
-                return Result.Fail<TeamMemberDto>("There are no categories with this id");
-            }
-
+            
             await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-
+                scope.Complete();
                 var result = _mapper.Map<TeamMemberDto>(entity);
-
                 return Result.Ok(result);
             }
             else
@@ -59,6 +60,10 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 return Result.Fail<TeamMemberDto>("Failed to create new TeamMember");
             }
 
+        }
+        catch (DbUpdateException ex)
+        {
+            return Result.Fail<TeamMemberDto>("Fail to create new team member in database:" + ex.Message);
         }
         catch (Exception ex)
         {
