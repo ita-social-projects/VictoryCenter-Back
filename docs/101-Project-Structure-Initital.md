@@ -127,6 +127,7 @@ VictoryCenter (Solution)
 │   │   └── DbContextMock.cs (for example)
 |   |
 |   ├── FactoriesTests/
+|   |   └── CustomProblemDetailsFactoryTests.cs
 |   |
 |   ├── MediatRHandlersTests/
 |   |
@@ -135,6 +136,7 @@ VictoryCenter (Solution)
 |   ├── ServicesTests/
 |   |
 |   ├── MiddlewareTests/
+|   |   └── ExceptionHandlingMiddlewareTests.cs
 │   │
 │   ├── TestData/               ← Test data (optional)
 │   │   └── PageData.json
