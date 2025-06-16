@@ -5,8 +5,8 @@ namespace VictoryCenter.DAL.Data;
 
 public class VictoryCenterDbContext : DbContext
 {
-    public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options) 
-        : base(options) {}
+    public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
+        : base(options) { }
 
     public DbSet<TestEntity> TestEntities { get; set; }
 

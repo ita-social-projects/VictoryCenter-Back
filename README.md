@@ -156,7 +156,32 @@ Then recreate it using:
 ## Usage
 ### How to work with swagger UI
 ### How to run tests
-### How to Checkstyle
+
+---
+
+## Static Code Analysis
+
+To keep the codebase clean and maintainable, we use:
+
+- `.editorconfig` for unified code formatting
+- StyleCop analyzers across all projects
+- SonarCloud for static code analysis
+- SonarLint for IDE integration
+
+Supported editors: Visual Studio 2022 / VS Code / Rider
+
+### Quick Setup
+
+1. **.editorconfig**  
+Already included — most IDEs pick it up automatically.
+
+2. **SonarLint**  
+Set up SonarLint and bind it to the `VictoryCenter-Back` project of the `ita-social-projects` org using your personal SonarCloud token.
+
+3. **Fix issues locally**  
+Your IDE will highlight style/code issues in real time. Please, fix them before committing anything to avoid CI fails.
+
+**Detailed setup guide:** [docs/104-Static-Code-Analysis.md](docs/104-Static-Code-Analysis.md)
 
 ---
 
