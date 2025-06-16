@@ -19,7 +19,7 @@ public class TestController : BaseApiController
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetTestData(int id)
     {
-        return HandleResult(await Mediator.Send(new GetTestDataQuery(id)));;
+        return HandleResult(await Mediator.Send(new GetTestDataQuery(id)));
     }
 
     [HttpPost]

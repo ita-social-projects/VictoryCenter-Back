@@ -5,5 +5,4 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.Test;
 
 public interface ITestRepository : IRepositoryBase<TestEntity>
 {
-    
 }

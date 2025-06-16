@@ -13,20 +13,20 @@ public class UpdateCategoryTests
 {
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
-    
+
     private readonly JsonSerializerOptions _jsonOptions;
 
     public UpdateCategoryTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
-        
+
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
-    
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -42,12 +42,12 @@ public class UpdateCategoryTests
             Description = testDescription,
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
-        
+
         var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
-        
+
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(updateCategoryDto.Name, responseContent.Name);
@@ -68,10 +68,10 @@ public class UpdateCategoryTests
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
-        
+
         var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -88,10 +88,10 @@ public class UpdateCategoryTests
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
-        
+
         var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

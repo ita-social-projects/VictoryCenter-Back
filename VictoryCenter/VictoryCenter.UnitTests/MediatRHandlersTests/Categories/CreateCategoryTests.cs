@@ -1,4 +1,3 @@
-using System.Net;
 using AutoMapper;
 using FluentValidation;
 using Moq;
@@ -15,7 +14,7 @@ public class CreateCategoryTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly IValidator<CreateCategoryCommand> _validator;
-    
+
     private readonly Category _testEntity = new()
     {
         Id = 1,
@@ -49,13 +48,14 @@ public class CreateCategoryTests
         _testCategoryDto.Description = description;
         SetupDependencies();
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
-        
-        var result = await handler.Handle(new CreateCategoryCommand(new CreateCategoryDto()
+
+        var result = await handler.Handle(
+            new CreateCategoryCommand(new CreateCategoryDto
         {
             Name = "Test Category",
             Description = description,
         }), CancellationToken.None);
-        
+
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _testCategoryDto.Name);
         Assert.Equal(result.Value.Description, _testCategoryDto.Description);
@@ -71,13 +71,14 @@ public class CreateCategoryTests
         _testCategoryDto.Name = name;
         SetupDependencies();
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
-        
-        var result = await handler.Handle(new CreateCategoryCommand(new CreateCategoryDto()
+
+        var result = await handler.Handle(
+            new CreateCategoryCommand(new CreateCategoryDto
         {
             Name = name,
             Description = "Test Category Description",
         }), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -87,13 +88,14 @@ public class CreateCategoryTests
     {
         SetupDependencies(-1);
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
-        
-        var result = await handler.Handle(new CreateCategoryCommand(new CreateCategoryDto()
+
+        var result = await handler.Handle(
+            new CreateCategoryCommand(new CreateCategoryDto
         {
             Name = "Test Category",
             Description = "Test Category Description",
         }), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal("Failed to create category", result.Errors[0].Message);
     }

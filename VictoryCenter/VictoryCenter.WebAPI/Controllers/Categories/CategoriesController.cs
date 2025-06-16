@@ -14,7 +14,7 @@ public class CategoriesController : BaseApiController
     {
         return HandleResult(await Mediator.Send(new GetAllCategoriesQuery()));
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto createCategoryDto)
     {

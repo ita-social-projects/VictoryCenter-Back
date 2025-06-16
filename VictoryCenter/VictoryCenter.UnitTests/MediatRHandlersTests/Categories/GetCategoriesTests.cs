@@ -12,8 +12,8 @@ public class GetCategoriesTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    
-    private readonly IEnumerable<Category> _testCategoryEntities = new List<Category>()
+
+    private readonly IEnumerable<Category> _testCategoryEntities = new List<Category>
     {
         new ()
         {
@@ -28,7 +28,7 @@ public class GetCategoriesTests
             Description = "Test description2",
         },
     };
-    private readonly IEnumerable<CategoryDto> _testCategoryDtos = new List<CategoryDto>()
+    private readonly IEnumerable<CategoryDto> _testCategoryDtos = new List<CategoryDto>
     {
         new()
         {
@@ -53,9 +53,9 @@ public class GetCategoriesTests
     {
         SetupDependencies();
         var handler = new GetAllCategoriesHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
-        
+
         var result = await handler.Handle(new GetAllCategoriesQuery(), CancellationToken.None);
-        
+
         Assert.NotNull(result);
         Assert.NotEmpty(result.Value);
     }
@@ -65,7 +65,7 @@ public class GetCategoriesTests
         SetupMapper();
         SetupRepositoryWrapper();
     }
-    
+
     private void SetupMapper()
     {
         _mockMapper.Setup(x => x.Map<IEnumerable<CategoryDto>>(It.IsAny<IEnumerable<Category>>()))

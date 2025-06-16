@@ -12,7 +12,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
     {
         _repositoryWrapper = repositoryWrapper;
     }
-    
+
     public async Task<Result<long>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         try
@@ -29,13 +29,14 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
             {
                 return Result.Fail<long>("Can't delete category while assotiated with any team member");
             }
-            
+
             _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
                 return Result.Ok(entityToDelete.Id);
             }
+
             return Result.Fail<long>("Failed to delete category");
         }
         catch (Exception ex)

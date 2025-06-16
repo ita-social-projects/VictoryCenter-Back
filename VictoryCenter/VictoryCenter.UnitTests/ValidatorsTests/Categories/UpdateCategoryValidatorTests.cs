@@ -13,7 +13,7 @@ public class UpdateCategoryValidatorTests
     {
         _validator = new UpdateCategoryValidator();
     }
-    
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

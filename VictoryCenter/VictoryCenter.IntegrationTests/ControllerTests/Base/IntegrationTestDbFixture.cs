@@ -10,13 +10,14 @@ public class IntegrationTestDbFixture : IDisposable
 {
     public readonly HttpClient HttpClient;
     public readonly VictoryCenterDbContext DbContext;
+    public readonly VictoryCenterWebApplicationFactory<Program> Factory;
 
     public IntegrationTestDbFixture()
     {
-        var factory = new VictoryCenterWebApplicationFactory<Program>();
-        var scope = factory.Services.CreateScope();
+        Factory = new VictoryCenterWebApplicationFactory<Program>();
+        var scope = Factory.Services.CreateScope();
         DbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        HttpClient = factory.CreateClient();
+        HttpClient = Factory.CreateClient();
 
         DbContext.Database.EnsureDeleted();
         DbContext.Database.Migrate();

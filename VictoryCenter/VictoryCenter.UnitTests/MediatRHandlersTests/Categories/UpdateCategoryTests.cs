@@ -15,14 +15,14 @@ public class UpdateCategoryTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly IValidator<UpdateCategoryCommand> _validator;
-    
+
     private readonly Category _testExistingCategory = new ()
     {
         Id = 1,
         Name = "Test",
         Description = "Test description",
     };
-    
+
     private readonly Category _testUpdatedCategory = new ()
     {
         Id = 1,
@@ -54,14 +54,15 @@ public class UpdateCategoryTests
         _testUpdatedCategoryDto.Description = testDescription;
         SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
-        
-        var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
+
+        var result = await handler.Handle(
+            new UpdateCategoryCommand(new UpdateCategoryDto
         {
             Id = _testExistingCategory.Id,
             Name = "Updated Name",
             Description = testDescription,
         }), CancellationToken.None);
-        
+
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(_testUpdatedCategoryDto.Name, result.Value.Name);
@@ -79,13 +80,14 @@ public class UpdateCategoryTests
         SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
+        var result = await handler.Handle(
+            new UpdateCategoryCommand(new UpdateCategoryDto
         {
             Id = _testExistingCategory.Id,
             Name = testName,
             Description = "Updated Description",
         }), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -97,14 +99,15 @@ public class UpdateCategoryTests
     {
         SetupDependencies();
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
-        
-        var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
+
+        var result = await handler.Handle(
+            new UpdateCategoryCommand(new UpdateCategoryDto
         {
             Id = testId,
             Name = "Updated Name",
             Description = "Updated Description",
         }), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal("Not found", result.Errors[0].Message);
     }
@@ -114,14 +117,15 @@ public class UpdateCategoryTests
     {
         SetupDependencies(_testExistingCategory, -1);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
-        
-        var result = await handler.Handle(new UpdateCategoryCommand(new UpdateCategoryDto()
+
+        var result = await handler.Handle(
+            new UpdateCategoryCommand(new UpdateCategoryDto
         {
             Id = _testExistingCategory.Id,
             Name = "Updated Name",
             Description = "Updated Description",
         }), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal("Failed to update category", result.Errors[0].Message);
     }
@@ -136,7 +140,7 @@ public class UpdateCategoryTests
     {
         _mockMapper.Setup(x => x.Map<UpdateCategoryDto, Category>(It.IsAny<UpdateCategoryDto>()))
             .Returns(_testUpdatedCategory);
-        
+
         _mockMapper.Setup(x => x.Map<Category, CategoryDto>(It.IsAny<Category>()))
             .Returns(_testUpdatedCategoryDto);
     }

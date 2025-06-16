@@ -47,6 +47,8 @@ VictoryCenter (Solution)
 |   |   └── ServicesConfiguration.cs
 |   |
 |   ├── Middleware/
+|   |   ├── ExceptionHandlingMiddleware.cs
+|   |   └── RequestResponseLoggingMiddleware.cs
 |   |
 │   ├── Program.cs
 │   ├── appsettings.json
@@ -124,6 +126,9 @@ VictoryCenter (Solution)
 │   ├── Configuration/                    ← Any possible helper setups
 │   │   └── DbContextMock.cs (for example)
 |   |
+|   ├── FactoriesTests/
+|   |   └── CustomProblemDetailsFactoryTests.cs
+|   |
 |   ├── MediatRHandlersTests/
 |   |
 |   ├── ValidatorsTests/
@@ -131,6 +136,7 @@ VictoryCenter (Solution)
 |   ├── ServicesTests/
 |   |
 |   ├── MiddlewareTests/
+|   |   └── ExceptionHandlingMiddlewareTests.cs
 │   │
 │   ├── TestData/               ← Test data (optional)
 │   │   └── PageData.json
@@ -145,6 +151,10 @@ VictoryCenter (Solution)
 |   |       ├── Delete/
 |   |       ├── GetAll/
 |   |       └── Update/
+│   │
+│   ├── MiddlewareTests/
+|   |   ├── ExceptionHandlingMiddlewareTests.cs
+|   |   └── RequestResponseLoggingMiddlewareTests.cs
 │   │
 |   ├── Utils/
 │   ├── TestData/               ← Test data (optional)

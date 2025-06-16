@@ -26,7 +26,7 @@ internal static class CategoriesDataSeeder
             CreatedAt = DateTime.Now,
         },
     ];
-    
+
     public static void SeedData(VictoryCenterDbContext dbContext)
         => dbContext.AddRange(_categories);
 }

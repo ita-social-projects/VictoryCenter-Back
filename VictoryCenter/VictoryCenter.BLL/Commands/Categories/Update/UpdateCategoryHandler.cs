@@ -20,13 +20,13 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
     }
-    
+
     public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            
+
             var categoryEntity =
                 await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(entity =>
                     entity.Id == request.updateCategoryDto.Id);
@@ -35,17 +35,18 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
             {
                 return Result.Fail<CategoryDto>("Not found");
             }
-            
+
             var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
             entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
-            
+
             _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
-            
+
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
                 var resultDto = _mapper.Map<Category, CategoryDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }
+
             return Result.Fail<CategoryDto>("Failed to update category");
         }
         catch (Exception ex)

@@ -20,16 +20,16 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
     }
-    
+
     public async Task<Result<CategoryDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            
+
             var entity = _mapper.Map<Category>(request.createCategoryDto);
             entity.CreatedAt = DateTime.UtcNow;
-            
+
             await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
@@ -37,6 +37,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
                 var resultDto = _mapper.Map<CategoryDto>(entity);
                 return Result.Ok(resultDto);
             }
+
             return Result.Fail<CategoryDto>("Failed to create category");
         }
         catch (Exception ex)

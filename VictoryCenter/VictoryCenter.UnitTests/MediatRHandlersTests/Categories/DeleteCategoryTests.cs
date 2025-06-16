@@ -9,7 +9,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Categories;
 public class DeleteCategoryTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    
+
     private readonly Category _testExistingCategory = new ()
     {
         Id = 1,
@@ -30,7 +30,7 @@ public class DeleteCategoryTests
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
-        
+
         Assert.True(result.IsSuccess);
     }
 
@@ -41,9 +41,9 @@ public class DeleteCategoryTests
     {
         SetupRepositoryWrapper();
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
-        
+
         var result = await handler.Handle(new DeleteCategoryCommand(categoryId), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal("Not found", result.Errors[0].Message);
     }
@@ -61,9 +61,9 @@ public class DeleteCategoryTests
         };
         SetupRepositoryWrapper(categoryWithDependencies);
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
-        
+
         var result = await handler.Handle(new DeleteCategoryCommand(categoryWithDependencies.Id), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal("Can't delete category while assotiated with any team member", result.Errors[0].Message);
     }
@@ -73,9 +73,9 @@ public class DeleteCategoryTests
     {
         SetupRepositoryWrapper(_testExistingCategory, -1);
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
-        
+
         var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
-        
+
         Assert.False(result.IsSuccess);
         Assert.Equal("Failed to delete category", result.Errors[0].Message);
     }
@@ -85,7 +85,7 @@ public class DeleteCategoryTests
         _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<Expression<Func<Category, bool>>>()))
             .ReturnsAsync(entityToDelete);
-        
+
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

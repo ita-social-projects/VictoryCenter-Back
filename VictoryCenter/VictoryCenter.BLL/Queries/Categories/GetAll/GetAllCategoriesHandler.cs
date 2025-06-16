@@ -16,7 +16,7 @@ public class GetAllCategoriesHandler : IRequestHandler<GetAllCategoriesQuery, Re
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
-    
+
     public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
     {
         try

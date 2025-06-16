@@ -16,14 +16,14 @@ public class DeleteCategoryTests
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
     }
-    
+
     [Fact]
     public async Task DeleteCategory_ShouldDeleteCategory()
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
-        
+
         var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{existingEntity!.Id}");
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
@@ -33,7 +33,7 @@ public class DeleteCategoryTests
     public async Task DeleteCategory_ShouldNotDeleteCategory_NotFound(int testId)
     {
         var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{testId}");
-        
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

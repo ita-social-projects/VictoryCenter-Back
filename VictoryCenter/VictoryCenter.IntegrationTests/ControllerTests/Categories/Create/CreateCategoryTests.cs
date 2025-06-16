@@ -10,19 +10,19 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Create;
 public class CreateCategoryTests
 {
     private readonly HttpClient _httpClient;
-    
+
     private readonly JsonSerializerOptions _jsonOptions;
 
     public CreateCategoryTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
-        
+
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
-    
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -36,12 +36,12 @@ public class CreateCategoryTests
             Description = testDescription,
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
-        
+
         var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
             serializedDto, Encoding.UTF8, @"application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
-        
+
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(createCategoryDto.Name, responseContent.Name);
@@ -60,10 +60,10 @@ public class CreateCategoryTests
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
-        
+
         var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

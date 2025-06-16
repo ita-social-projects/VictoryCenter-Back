@@ -5,11 +5,11 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeder.TestSeeder;
 
 internal static class TestDataSeeder
 {
-    private static readonly List<TestEntity> _testEntities = 
+    private static readonly List<TestEntity> _testEntities =
     [
-        new () {TestName = "Test 1"},
-        new () {TestName = "Test 2"},
-        new () {TestName = "Test 3"},
+        new () { TestName = "Test 1" },
+        new () { TestName = "Test 2" },
+        new () { TestName = "Test 3" },
     ];
 
     public static void SeedData(VictoryCenterDbContext dbContext)
