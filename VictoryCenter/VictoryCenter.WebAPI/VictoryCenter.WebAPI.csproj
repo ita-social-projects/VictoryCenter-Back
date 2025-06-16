@@ -9,6 +9,8 @@
         <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <AssemblyName>VictoryCenter.WebAPI</AssemblyName>
+        <RootNamespace>VictoryCenter.WebAPI</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
