@@ -121,7 +121,7 @@ Set up SonarLint and bind it to the `VictoryCenter-Back` project of the `ita-soc
 3. **Fix issues locally**  
 Your IDE will highlight style/code issues in real time. Please, fix them before committing anything to avoid CI fails.
 
-**Detailed setup guide:** [docs/code-style-and-analysis.md](docs/code-style-and-analysis.md)
+**Detailed setup guide:** [docs/104-Static-Code-Analysis.md](docs/104-Static-Code-Analysis.md)
 
 ---
 
