@@ -96,89 +96,32 @@ $ bower install
 ## Usage
 ### How to work with swagger UI
 ### How to run tests
-### How to Checkstyle
 
-# 1. Prerequisites
+---
 
-Before you begin, make sure you have:
+## Static Code Analysis
 
-- SonarCloud access  
-  Contact your mentors to be added to the `ita-social-projects` organization in SonarCloud. You should also have **Browse** and **Execute Analysis** permissions on the `ita-social-projects_VictoryCenter-Back project`.
+To keep the codebase clean and maintainable, we use:
 
-- Personal SonarCloud token  
-  Go to SonarCloud → My Account → Security → Generate Tokens. Create a token named VictoryCenter-Back with analysis scope.
+- `.editorconfig` for unified code formatting
+- StyleCop analyzers across all projects
+- SonarCloud for static code analysis
+- SonarLint for IDE integration
 
-- Local repo clone of this project
+Supported editors: Visual Studio 2022 / VS Code / Rider
 
-- IDE installed: Visual Studio 2022, VS Code or Rider
+### Quick Setup
 
+1. **.editorconfig**  
+Already included — most IDEs pick it up automatically.
 
-# 2. Set up .editorconfig
+2. **SonarLint**  
+Set up SonarLint and bind it to the `VictoryCenter-Back` project of the `ita-social-projects` org using your personal SonarCloud token.
 
-At the root of the repo there is a .editorconfig file that enforces code formatting for all C# files. 
-To activate .editorconfig:
+3. **Fix issues locally**  
+Your IDE will highlight style/code issues in real time. Please, fix them before committing anything to avoid CI fails.
 
-- **Visual Studio**
-No extra steps—VS picks it up automatically.
-
-- **VS Code**
-Ensure the C# extension is installed. In Settings, enable Editor: Format On Save and Editor: Detect Indentation.
-
-- **Rider**
-No extra steps—Rider picks it up automatically.
-
-# 3. Set up SonarLint 
-Choose your IDE and follow the steps:
-
-## 3.1 Visual Studio (2019/2022)
-- Extensions → Manage Extensions → search “SonarQube (2022)” → Download → Restart IDE
-
-- Extensions → SonarQube → Connected Mode → Manage Binding
-
-- Manage Connections → New Connection → SonarQube Cloud → Next
-
-- Edit Authentiocation details → Enter your personal token 
-
-- Select SonarQube Cloud Organization → Choose Another Organization → Enter `ita-social-projects` → OK
-
-- Connection to bind → Choose `ita-social-projects`
-Select project → Choose `VictoryCenter-Back` → Bind
-
-## 3.2 Visual Studio Code
-- Ctrl+P → ext install SonarSource.sonarlint-vscode → Install
-
-- Ctrl+Shift+P → SonarQube: Connect to SonarQube Cloud 
-
-- Generate token → Copy → Paste into User Token Field 
-
-- Provide organization key → `ita-social-projects` → Connect
-
-- Choose new connection → Click `+`(Add project binding) → Choose `VictoryCenter-Back`
-
-- Restart IDE
-
-## 3.3 Rider
-- File → Settings → Plugins → search “SonarQube for IDE” → Install → Restart IDE
-
-- View → Tool Windows → SonarQube for IDE → click + → Bind to SonarCloud
-
-- Project Settings → Bind project to SonarQube
-
-- Configure th connection → Connection to SonarQube → Click on + → Choose `SonarQube Cloud` → Next
-
-- Authentiocation type: token → Enter your prsonal token → Next
-
-- Select another organization → `ita-social-projects` → Next → Create → OK
-
-- Connection → Choose your new connection → Project key → Enter `ita-social-projects_VictoryCenter-Back` → Save
-
-# 4. Using this setup
-
-- As you code, violations from SonarCloud’s quality profile will appear in your IDE’s error/warning lists.
-- On save your code will be auto-formatted according to .editorconfig rules.
-- Before commit fix any highlighted issues locally to ensure CI will pass.
-
-You are ready to go!
+**Detailed setup guide:** [docs/code-style-and-analysis.md](docs/code-style-and-analysis.md)
 
 ---
 
