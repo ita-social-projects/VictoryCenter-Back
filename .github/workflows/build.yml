@@ -72,8 +72,8 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
 
-      - name: Build the solution
-        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental
+      - name: Build the solution with Roslyn analyzers
+        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental -p:RunAnalyzersDuringBuild=true -p:EnableNETAnalyzers=true
 
       - name: Run unit tests and generate coverage
         run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage.xml"
