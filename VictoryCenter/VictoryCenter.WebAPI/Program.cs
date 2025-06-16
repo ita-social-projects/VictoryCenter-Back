@@ -4,6 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices();
+builder.AddOpenTelemetry();
 
 var app = builder.Build();
 

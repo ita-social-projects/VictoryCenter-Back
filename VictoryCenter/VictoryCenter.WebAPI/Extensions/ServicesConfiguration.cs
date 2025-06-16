@@ -1,11 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Logs;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.BLL.Services;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
+using OpenTelemetry.Instrumentation.Runtime;
+using OpenTelemetry.Metrics;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -68,6 +73,51 @@ public static class ServicesConfiguration
             c.SwaggerEndpoint("/swagger/v1/swagger.json", "VictoryCenter API V1");
             c.RoutePrefix = "swagger";
         });
+    }
+
+    public static void AddOpenTelemetry(this IHostApplicationBuilder builder)
+    {
+        var serviceName = "VictoryCenterBackendOpenTelemetryService";
+
+        var resourceBuilder = ResourceBuilder.CreateDefault()
+            .AddService(serviceName);
+        
+        builder.Logging.AddOpenTelemetry(options =>
+        {
+            options.SetResourceBuilder(resourceBuilder);
+            options.IncludeScopes = true;
+            options.IncludeFormattedMessage = true;
+            options.ParseStateValues = true;
+
+            options.AddOtlpExporter(otlpOptions =>
+            {
+                otlpOptions.Endpoint = new Uri("http://localhost:4318");
+            });
+        });
+        
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(tracer =>
+            {
+                tracer
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddAspNetCoreInstrumentation()
+                    .AddHttpClientInstrumentation()
+                    .AddSqlClientInstrumentation()
+                    .AddOtlpExporter(otlpOptions =>
+                    {
+                        otlpOptions.Endpoint = new Uri("http://localhost:4318");
+                    });
+            })
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .SetResourceBuilder(resourceBuilder)
+                    .AddRuntimeInstrumentation()
+                    .AddOtlpExporter(otlpOptions =>
+                    {
+                        otlpOptions.Endpoint = new Uri("http://localhost:4318");
+                    });
+            });
     }
     
     public static async Task ApplyMigrations(this WebApplication app)
