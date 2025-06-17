@@ -25,6 +25,7 @@ public class DeleteCategoryTests
         var response = await _httpClient.DeleteAsync($"api/categories/{existingEntity!.Id}");
 
         Assert.True(response.IsSuccessStatusCode);
+        Assert.Null(await _dbContext.Categories.FirstOrDefaultAsync(e => e.Id == existingEntity!.Id));
     }
 
     [Theory]
