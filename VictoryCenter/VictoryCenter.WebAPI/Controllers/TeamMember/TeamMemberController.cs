@@ -5,8 +5,8 @@ namespace VictoryCenter.WebAPI.Controllers.TeamMember;
 
 public class TeamMemberController : BaseApiController
 {
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> DeleteTeamMember(int id)
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> DeleteTeamMember(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteTeamMemberCommand(id)));
     }
