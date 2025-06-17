@@ -9,11 +9,9 @@ namespace VictoryCenter.Controllers.TeamMembers;
 [Route("api/team-members")]
 public class TeamMembersController : BaseApiController
 {
-
     [HttpPost]
     public async Task<IActionResult> CreateTeamMember([FromBody] CreateTeamMemberDto createTeamMemberDto)
     {
         return HandleResult(await Mediator.Send(new CreateTeamMemberCommand(createTeamMemberDto)));
     }
-    
 }
