@@ -2,7 +2,9 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Test;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.BLL.Queries.Test.GetTestData;
 
@@ -22,7 +24,10 @@ public class GetTestDataHandler : IRequestHandler<GetTestDataQuery, Result<TestD
         try
         {
             var testEntity =
-                await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(entity => entity.Id == request.Id);
+                await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(new QueryOptions<TestEntity>
+                {
+                    FilterPredicate = entity => entity.Id == request.Id
+                });
 
             if (testEntity is null)
             {

@@ -1,10 +1,10 @@
-using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Queries.Categories.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Categories;
 
@@ -75,7 +75,7 @@ public class GetCategoriesTests
     private void SetupRepositoryWrapper()
     {
         _mockRepositoryWrapper.Setup(repo => repo.CategoriesRepository.GetAllAsync(
-                It.IsAny<Expression<Func<Category, bool>>>()))
+                It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync(_testCategoryEntities);
     }
 }

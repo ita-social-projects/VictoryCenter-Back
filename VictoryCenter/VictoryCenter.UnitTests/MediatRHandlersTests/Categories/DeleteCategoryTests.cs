@@ -1,8 +1,8 @@
-using System.Linq.Expressions;
 using Moq;
 using VictoryCenter.BLL.Commands.Categories.Delete;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Categories;
 
@@ -83,7 +83,7 @@ public class DeleteCategoryTests
     private void SetupRepositoryWrapper(Category? entityToDelete = null, int saveResult = 1)
     {
         _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Category, bool>>>()))
+                It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync(entityToDelete);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync()).ReturnsAsync(saveResult);

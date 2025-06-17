@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using AutoMapper;
 using FluentValidation;
 using Moq;
@@ -7,6 +6,7 @@ using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Categories;
 
@@ -148,7 +148,7 @@ public class UpdateCategoryTests
     private void SetupRepositoryWrapper(Category? categoryToReturn = null, int saveResult = 1)
     {
         _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<Category, bool>>>()))
+                It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync(categoryToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())

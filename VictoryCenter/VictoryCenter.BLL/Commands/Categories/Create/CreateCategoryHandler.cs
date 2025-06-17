@@ -26,19 +26,26 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
 
     public async Task<Result<CategoryDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-        var entity = _mapper.Map<Category>(request.createCategoryDto);
-        entity.CreatedAt = DateTime.UtcNow;
-
-        await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
-
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        try
         {
-            var resultDto = _mapper.Map<CategoryDto>(entity);
-            return Result.Ok(resultDto);
-        }
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-        return Result.Fail<CategoryDto>("Failed to create category");
+            var entity = _mapper.Map<Category>(request.createCategoryDto);
+            entity.CreatedAt = DateTime.UtcNow;
+
+            await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                var resultDto = _mapper.Map<CategoryDto>(entity);
+                return Result.Ok(resultDto);
+            }
+
+            return Result.Fail<CategoryDto>("Failed to create category");
+        }
+        catch (ValidationException ex)
+        {
+            return Result.Fail<CategoryDto>(ex.Message);
+        }
     }
 }

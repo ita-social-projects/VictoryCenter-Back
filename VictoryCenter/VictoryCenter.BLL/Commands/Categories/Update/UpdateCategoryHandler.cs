@@ -5,6 +5,7 @@ using MediatR;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.BLL.Commands.Categories.Update;
 
@@ -26,28 +27,37 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
 
     public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
-        await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-        var categoryEntity =
-            await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(entity =>
-                entity.Id == request.updateCategoryDto.Id);
-
-        if (categoryEntity is null)
+        try
         {
-            return Result.Fail<CategoryDto>("Not found");
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            var categoryEntity =
+                await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
+                {
+                    FilterPredicate = entity => entity.Id == request.updateCategoryDto.Id
+                });
+
+            if (categoryEntity is null)
+            {
+                return Result.Fail<CategoryDto>("Not found");
+            }
+
+            var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
+            entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
+
+            _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                var resultDto = _mapper.Map<Category, CategoryDto>(entityToUpdate);
+                return Result.Ok(resultDto);
+            }
+
+            return Result.Fail<CategoryDto>("Failed to update category");
         }
-
-        var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
-        entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
-
-        _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
-
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        catch (ValidationException ex)
         {
-            var resultDto = _mapper.Map<Category, CategoryDto>(entityToUpdate);
-            return Result.Ok(resultDto);
+            return Result.Fail<CategoryDto>(ex.Message);
         }
-
-        return Result.Fail<CategoryDto>("Failed to update category");
     }
 }
