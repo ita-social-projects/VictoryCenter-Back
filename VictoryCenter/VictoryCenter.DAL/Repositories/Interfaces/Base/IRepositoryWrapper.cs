@@ -9,10 +9,10 @@ public interface IRepositoryWrapper
 {
     public ITestRepository TestRepository { get; }
 
-    public ITeamMembersRepository TeamMembersRepository { get;}
-    
+    public ITeamMembersRepository TeamMembersRepository { get; }
+
     public ICategoriesRepository CategoriesRepository { get; }
-    
+
     public int SaveChanges();
 
     public Task<int> SaveChangesAsync();

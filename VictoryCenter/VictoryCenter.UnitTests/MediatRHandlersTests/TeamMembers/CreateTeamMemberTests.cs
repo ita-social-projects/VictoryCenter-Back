@@ -9,7 +9,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
-
 public class CreateTeamMemberTests
 {
     private readonly Mock<IMapper> _mapperMock;
@@ -26,7 +25,7 @@ public class CreateTeamMemberTests
         Description = "Long description",
         Email = "Test@gmail.com",
     };
-    
+
     private readonly TeamMemberDto _teamMemberDto = new TeamMemberDto()
     {
         Id = 1,
@@ -54,8 +53,6 @@ public class CreateTeamMemberTests
         CreatedAt = new DateTime(2025, 10, 10)
     };
 
-    
-    
     public CreateTeamMemberTests()
     {
         _validator = new Mock<IValidator<CreateTeamMemberCommand>>();
@@ -63,20 +60,17 @@ public class CreateTeamMemberTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
     }
 
-
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnTeamMemberDto_WhenCreationIsValid()
     {
-        
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, 1 );
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
         var result = await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
-        
+
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(_teamMemberDto, result.Value);
-        
     }
 
     [Fact]
@@ -88,11 +82,10 @@ public class CreateTeamMemberTests
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
         var result = await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
-        
+
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal( failMessage, result.Errors[0].Message );
-
+        Assert.Equal(failMessage, result.Errors[0].Message );
     }
 
     [Fact]
@@ -108,13 +101,12 @@ public class CreateTeamMemberTests
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
         var result = await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
-        
+
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal( testMessage, result.Errors[0].Message); 
+        Assert.Equal(testMessage, result.Errors[0].Message);
     }
-    
-    
+
     private void SetupDependencies(CreateTeamMemberDto createMember, TeamMemberDto memberDto, TeamMember member, int isSuccess)
     {
         SetupMapper(createMember, memberDto, member);
@@ -127,12 +119,11 @@ public class CreateTeamMemberTests
         _mapperMock.Setup(mapper => mapper.Map<TeamMember>(It.IsAny<CreateTeamMemberDto>())).Returns(teamMember);
         _mapperMock.Setup(mapper => mapper.Map<TeamMemberDto>(It.IsAny<TeamMember>())).Returns(teamMemberDto);
     }
-    
+
     private void SetupValidator()
     {
         _validator.Setup(v => v.ValidateAsync(It.IsAny<CreateTeamMemberCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FluentValidation.Results.ValidationResult()); 
-
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
     }
 
     private void SetupRepositoryWrapper(TeamMember teamMember, int isSuccess)
@@ -140,9 +131,8 @@ public class CreateTeamMemberTests
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository
                 .CreateAsync(It.IsAny<TeamMember>()))
             .ReturnsAsync(teamMember);
-        
+
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.SaveChangesAsync())
             .ReturnsAsync(isSuccess);
     }
 }
-    

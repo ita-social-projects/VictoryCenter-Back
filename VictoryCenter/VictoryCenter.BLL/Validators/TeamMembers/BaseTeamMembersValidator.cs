@@ -9,7 +9,6 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     private const int NameMinLength = 2;
     private const int NameMaxLength = 50;
     private const int DescriptionNameMaxLength = 200;
-    
     public BaseTeamMembersValidator()
     {
         RuleFor(x => x.FirstName)
@@ -30,6 +29,5 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Description is required for publishing")
             .When(x => x.Status == Status.Published);
-
     }
 }

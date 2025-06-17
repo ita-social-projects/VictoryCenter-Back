@@ -5,16 +5,16 @@ namespace VictoryCenter.IntegrationTests.Utils;
 
 internal static class TestDatabaseSeeder
 {
-    private static readonly List<TestEntity> _testEntities = 
-    [
-        new () {TestName = "Test 1"},
-        new () {TestName = "Test 2"},
-        new () {TestName = "Test 3"},
-    ];
-
     public static void SeedData(VictoryCenterDbContext dbContext)
     {
-        dbContext.AddRange(_testEntities);
+        var testEntities = new List<TestEntity>
+        {
+            new() { TestName = "Test 1" },
+            new() { TestName = "Test 2" },
+            new() { TestName = "Test 3" },
+        };
+
+        dbContext.AddRange(testEntities);
         dbContext.SaveChanges();
     }
 

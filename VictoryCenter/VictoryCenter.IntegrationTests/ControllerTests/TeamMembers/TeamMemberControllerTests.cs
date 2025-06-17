@@ -11,24 +11,21 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers;
 
 public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
 {
-    
     private readonly HttpClient _client;
     private readonly IServiceScope _scope;
     private readonly VictoryCenterDbContext _dbContext;
-    
-    public  TeamMemberControllerTests(VictoryCenterWebApplicationFactory<Program> factory)
+
+    public TeamMemberControllerTests(VictoryCenterWebApplicationFactory<Program> factory)
     {
         _client = factory.CreateClient();
         _scope = factory.Services.CreateScope();
         _dbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
     }
-    
+
     [Fact]
     public async Task UpdateTestData_ShouldReturnOk()
     {
-        
         await VictoryCenterDatabaseSeeder.SeedDataAsync(_dbContext);
-
 
         var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Category 1");
         var createTeamMemberDto = new CreateTeamMemberDto
@@ -36,7 +33,7 @@ public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicati
             FirstName = "TestName",
             LastName = "TestLastName",
             MiddleName = "TestMiddleName",
-            CategoryId =  category.Id,
+            CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
             Email = "Test@gmail.com",
@@ -44,19 +41,16 @@ public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicati
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
 
-
         var response = await _client.PostAsync("/api/TeamMembers/CreateTeamMember", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
-    
+
     [Fact]
     public async Task UpdateTestData_ShouldFail_InvalidCategoryId()
     {
-        
         await VictoryCenterDatabaseSeeder.SeedDataAsync(_dbContext);
-
 
         var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Category 1");
         var createTeamMemberDto = new CreateTeamMemberDto
@@ -64,7 +58,7 @@ public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicati
             FirstName = "TestName",
             LastName = "TestLastName",
             MiddleName = "TestMiddleName",
-            CategoryId =  10000 ,
+            CategoryId = 10000,
             Status = Status.Draft,
             Description = "Long description",
             Email = "Test@gmail.com",
@@ -72,20 +66,16 @@ public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicati
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
 
-
         var response = await _client.PostAsync("/api/TeamMembers/CreateTeamMember", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.False(response.IsSuccessStatusCode);
     }
-    
-    
+
     [Fact]
     public async Task UpdateTestData_ShouldFail_InvalidFirstNameLength()
     {
-        
         await VictoryCenterDatabaseSeeder.SeedDataAsync(_dbContext);
-
 
         var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Category 1");
         var createTeamMemberDto = new CreateTeamMemberDto
@@ -93,7 +83,7 @@ public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicati
             FirstName = "A",
             LastName = "TestLastName",
             MiddleName = "TestMiddleName",
-            CategoryId =  category.Id ,
+            CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
             Email = "Test@gmail.com",
@@ -101,12 +91,8 @@ public class TeamMemberControllerTests : IClassFixture<VictoryCenterWebApplicati
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
 
-
         var response = await _client.PostAsync("/api/TeamMembers/CreateTeamMember", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
         Assert.False(response.IsSuccessStatusCode);
     }
-
-
 }

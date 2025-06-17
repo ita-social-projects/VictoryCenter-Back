@@ -13,7 +13,7 @@ public class PagesController : BaseApiController
     {
         return HandleResult(await Mediator.Send(new GetAllPagesQuery()));
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> CreatePage([FromBody] CreatePageDto createPageDto)
     {

@@ -14,5 +14,4 @@ public class TeamMembersProfile : Profile
         CreateMap<TeamMember, TeamMemberDto>()
             .ReverseMap();
     }
-    
 }

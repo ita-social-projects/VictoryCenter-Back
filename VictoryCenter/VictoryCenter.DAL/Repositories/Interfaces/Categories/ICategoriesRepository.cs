@@ -5,5 +5,4 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.Categories;
 
 public interface ICategoriesRepository : IRepositoryBase<Category>
 {
-
 }

@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
-using VictoryCenter.BLL.DTOs.TeamMembers;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;
 
@@ -10,5 +9,4 @@ public class CreateTeamMemberValidator : AbstractValidator<CreateTeamMemberComma
  {
   RuleFor(c => c.createTeamMemberDto).SetValidator(baseTeamMembersValidator);
  }
-    
 }

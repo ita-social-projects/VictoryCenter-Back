@@ -31,7 +31,7 @@ public class BaseTeamMembersValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
             .WithErrorMessage("First name must be at least 2 characters long");
     }
-    
+
     [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsTooLong()
     {
@@ -49,7 +49,7 @@ public class BaseTeamMembersValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.LastName)
             .WithErrorMessage("This field is required");
     }
-    
+
     [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenLastNameIsShort()
     {
@@ -58,7 +58,7 @@ public class BaseTeamMembersValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.LastName)
             .WithErrorMessage("Last name must be at least 2 characters long");
     }
-    
+
     [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenLastNameIsTooLong()
     {
@@ -108,8 +108,6 @@ public class BaseTeamMembersValidatorTests
             .WithErrorMessage("Description is required for publishing");
     }
 
-
-
     [Fact]
     public void BaseTeamMembersValidator_ShouldNotHaveErrors_ForValidDraftModel()
     {
@@ -125,7 +123,7 @@ public class BaseTeamMembersValidatorTests
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
-    
+
     [Fact]
     public void BaseTeamMembersValidator_ShouldNotHaveErrors_ForValidPublishedModel()
     {
@@ -141,6 +139,4 @@ public class BaseTeamMembersValidatorTests
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
-
 }
-

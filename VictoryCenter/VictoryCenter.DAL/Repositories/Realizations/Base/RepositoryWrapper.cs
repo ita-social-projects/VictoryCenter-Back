@@ -31,7 +31,7 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public ICategoriesRepository CategoriesRepository =>
         _categoriesRepository ??= new CategoriesRepository(_victoryCenterDbContext);
-    
+
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();
