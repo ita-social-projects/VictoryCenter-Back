@@ -24,7 +24,7 @@ public class GetAllCategoriesTests
     [Fact]
     public async Task GetAllCategories_ShouldReturnAllCategories()
     {
-        var response = await _httpClient.GetAsync("/api/categories/getCategories");
+        var response = await _httpClient.GetAsync("/api/categories");
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<IEnumerable<CategoryDto>>(
             responseString,

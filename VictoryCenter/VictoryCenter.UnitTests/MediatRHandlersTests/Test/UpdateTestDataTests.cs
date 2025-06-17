@@ -4,7 +4,7 @@ using VictoryCenter.BLL.Commands.Test.UpdateTestData;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Test;
 

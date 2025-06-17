@@ -4,7 +4,7 @@ using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Queries.Categories.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Categories;
 

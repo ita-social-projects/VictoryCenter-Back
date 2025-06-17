@@ -43,7 +43,7 @@ public class UpdateCategoryTests
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
+        var response = await _httpClient.PutAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -70,7 +70,7 @@ public class UpdateCategoryTests
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
+        var response = await _httpClient.PutAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -90,7 +90,7 @@ public class UpdateCategoryTests
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories/updateCategory", new StringContent(
+        var response = await _httpClient.PutAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

@@ -43,7 +43,7 @@ public class RequestResponseLoggingMiddlewareTests
     [Fact]
     public async Task InvokeAsync_Status200_ShouldLogAtInformationLevel()
     {
-        var response = await _client.GetAsync("/api/Test/GetAllTestData");
+        var response = await _client.GetAsync("/api/Test");
         Assert.Equal(200, (int)response.StatusCode);
 
         var categoryName = typeof(RequestResponseLoggingMiddleware).FullName;
@@ -55,7 +55,7 @@ public class RequestResponseLoggingMiddlewareTests
     [Fact]
     public async Task InvokeAsync_Status404_ShouldLogAtWarningLevel()
     {
-        var response = await _client.GetAsync("/api/Test/GetTestData/-1");
+        var response = await _client.GetAsync("/api/Test/-1");
         Assert.Equal(404, (int)response.StatusCode);
 
         var categoryName = typeof(RequestResponseLoggingMiddleware).FullName;

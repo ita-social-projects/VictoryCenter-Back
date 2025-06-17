@@ -37,7 +37,7 @@ public class CreateCategoryTests
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
+        var response = await _httpClient.PostAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -61,7 +61,7 @@ public class CreateCategoryTests
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
+        var response = await _httpClient.PostAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

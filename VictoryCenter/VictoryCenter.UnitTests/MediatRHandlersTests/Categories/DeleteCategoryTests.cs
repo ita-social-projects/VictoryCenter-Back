@@ -2,7 +2,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Categories.Delete;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Categories;
 

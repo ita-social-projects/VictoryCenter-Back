@@ -22,7 +22,7 @@ public class DeleteCategoryTests
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
 
-        var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{existingEntity!.Id}");
+        var response = await _httpClient.DeleteAsync($"api/categories/{existingEntity!.Id}");
 
         Assert.True(response.IsSuccessStatusCode);
     }
@@ -32,7 +32,7 @@ public class DeleteCategoryTests
     [InlineData(0)]
     public async Task DeleteCategory_ShouldNotDeleteCategory_NotFound(long testId)
     {
-        var response = await _httpClient.DeleteAsync($"api/categories/deleteCategory/{testId}");
+        var response = await _httpClient.DeleteAsync($"api/categories/{testId}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

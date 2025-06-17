@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 

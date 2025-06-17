@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
 
-namespace VictoryCenter.DAL.Repositories.Realizations.Base;
+namespace VictoryCenter.DAL.Repositories.Options;
 
 public class QueryOptions<T>
 {

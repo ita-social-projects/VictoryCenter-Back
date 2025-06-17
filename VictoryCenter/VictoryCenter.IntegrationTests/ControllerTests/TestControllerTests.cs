@@ -22,7 +22,7 @@ public class TestControllerTests
     [Fact]
     public async Task GetAllTestData_ShouldReturnOk()
     {
-        var response = await _client.GetAsync("/api/Test/GetAllTestData");
+        var response = await _client.GetAsync("/api/Test");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions
@@ -41,7 +41,7 @@ public class TestControllerTests
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
 
-        var response = await _client.GetAsync($"/api/Test/GetTestData/{existingEntity!.Id}");
+        var response = await _client.GetAsync($"/api/Test/{existingEntity!.Id}");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions
@@ -57,7 +57,7 @@ public class TestControllerTests
     [Fact]
     public async Task GetTestDataById_ShouldFail_NotFound()
     {
-        var response = await _client.GetAsync($"/api/Test/GetTestData/{-1}");
+        var response = await _client.GetAsync($"/api/Test/{-1}");
 
         Assert.False(response.IsSuccessStatusCode);
     }
@@ -68,7 +68,7 @@ public class TestControllerTests
         var createTestDataDto = new CreateTestDataDto() { TestName = "CreateTestName" };
         var serializedDto = JsonSerializer.Serialize(createTestDataDto);
 
-        var response = await _client.PostAsync("/api/Test/CreateTestData", new StringContent(
+        var response = await _client.PostAsync("/api/Test", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.True(response.IsSuccessStatusCode);
@@ -78,10 +78,10 @@ public class TestControllerTests
     public async Task UpdateTestData_ShouldReturnOk()
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
-        var updateTestDataDto = new UpdateTestDataDto() { Id = existingEntity!.Id, TestName = "UpdateTestName" };
+        var updateTestDataDto = new UpdateTestDataDto { Id = existingEntity!.Id, TestName = "UpdateTestName" };
         var serializedDto = JsonSerializer.Serialize(updateTestDataDto);
 
-        var response = await _client.PutAsync("/api/Test/UpdateTestData", new StringContent(
+        var response = await _client.PutAsync("/api/Test", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.True(response.IsSuccessStatusCode);
@@ -90,10 +90,10 @@ public class TestControllerTests
     [Fact]
     public async Task UpdateTestData_ShouldFail_NotFound()
     {
-        var updateTestDataDto = new UpdateTestDataDto() { Id = -1, TestName = "UpdateTestName" };
+        var updateTestDataDto = new UpdateTestDataDto { Id = -1, TestName = "UpdateTestName" };
         var serializedDto = JsonSerializer.Serialize(updateTestDataDto);
 
-        var response = await _client.PutAsync("/api/Test/UpdateTestData", new StringContent(
+        var response = await _client.PutAsync("/api/Test", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -104,7 +104,7 @@ public class TestControllerTests
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
 
-        var response = await _client.DeleteAsync($"/api/Test/DeleteTestData/{existingEntity!.Id}");
+        var response = await _client.DeleteAsync($"/api/Test/{existingEntity!.Id}");
 
         Assert.True(response.IsSuccessStatusCode);
     }
@@ -112,7 +112,7 @@ public class TestControllerTests
     [Fact]
     public async Task DeleteTestData_ShouldFail_NotFound()
     {
-        var response = await _client.DeleteAsync($"/api/Test/DeleteTestData/{-1}");
+        var response = await _client.DeleteAsync($"/api/Test/{-1}");
 
         Assert.False(response.IsSuccessStatusCode);
     }
