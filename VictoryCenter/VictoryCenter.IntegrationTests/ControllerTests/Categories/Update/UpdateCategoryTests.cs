@@ -55,6 +55,30 @@ public class UpdateCategoryTests
         Assert.Equal(updateCategoryDto.Description, responseContent.Description);
     }
 
+    [Fact]
+    public async Task UpdateCategory_ShouldUpdateCategory_SameInput()
+    {
+        var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
+        var updateCategoryDto = new UpdateCategoryDto
+        {
+            Id = existingEntity!.Id,
+            Name = existingEntity.Name,
+            Description = existingEntity.Description,
+        };
+        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+
+        var response = await _httpClient.PutAsync("api/categories", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+        var responseString = await response.Content.ReadAsStringAsync();
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateCategoryDto.Name, responseContent.Name);
+        Assert.Equal(updateCategoryDto.Description, responseContent.Description);
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
