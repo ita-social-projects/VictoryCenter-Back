@@ -4,6 +4,7 @@ using MediatR;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Test.UpdateTestData;
 
@@ -22,7 +23,11 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
     {
         try
         {
-            var existingEntity = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(entity => entity.Id == request.UpdateTestData.Id);
+            var existingEntity = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(new QueryOptions<TestEntity>
+            {
+                Filter = entity => entity.Id == request.UpdateTestData.Id
+            });
+
             if (existingEntity is null)
             {
                 return Result.Fail("Entity not found");

@@ -1,6 +1,6 @@
 ﻿using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.BLL.DTOs.TeamMember;
+namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
 public record TeamMembersFilterDto
 {

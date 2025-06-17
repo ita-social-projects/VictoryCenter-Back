@@ -1,11 +1,12 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
-using VictoryCenter.BLL.DTOs.TeamMember;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 
@@ -22,27 +23,22 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
     public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var offset = request.TeamMembersFilter.PageNumber > 0 ? request.TeamMembersFilter.PageNumber : 0;
-            var limit = request.TeamMembersFilter.PageSize > 0 ? request.TeamMembersFilter.PageSize : 0;
-            var status = request.TeamMembersFilter.Status;
-            var categoryName = request.TeamMembersFilter.CategoryName;
-            Expression<Func<TeamMember, bool>> filter =
-                (t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
+        var status = request.TeamMembersFilter.Status;
+        var categoryName = request.TeamMembersFilter.CategoryName;
+        Expression<Func<TeamMember, bool>> filter =
+            (t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
 
-            var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(
-                include: t => t.Include(t => t.Category),
-                offset: offset,
-                limit: limit,
-                predicate: filter);
-            var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
-
-            return Result.Ok(teamMembersDto);
-        }
-        catch (Exception ex)
+        var queryOptions = new QueryOptions<TeamMember>
         {
-            return Result.Fail<List<TeamMemberDto>>(ex.Message);
-        }
+            Offset = request.TeamMembersFilter.PageNumber > 0 ? request.TeamMembersFilter.PageNumber : 0,
+            Limit = request.TeamMembersFilter.PageSize > 0 ? request.TeamMembersFilter.PageSize : 0,
+            Filter = filter,
+            Include = t => t.Include(t => t.Category),
+        };
+
+        var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
+        var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+
+        return Result.Ok(teamMembersDto);
     }
 }

@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -34,6 +35,8 @@ public static class ServicesConfiguration
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
+
+        services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
         services.AddCors(opt =>
         {

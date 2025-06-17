@@ -1,11 +1,7 @@
 using System.Net;
-using System.Text;
 using System.Text.Json;
-using Azure;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using VictoryCenter.BLL.DTOs.TeamMember;
-using VictoryCenter.BLL.DTOs.Test;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.Utils;
 
@@ -27,7 +23,7 @@ public class GetTeamMembers : IClassFixture<VictoryCenterWebApplicationFactory<P
     [Fact]
     public async Task GetTeamMembers_ShouldReturnOk()
     {
-        var response = await _client.GetAsync("api/TeamMembers/GetTeamMembers");
+        var response = await _client.GetAsync("api/TeamMembers/");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions

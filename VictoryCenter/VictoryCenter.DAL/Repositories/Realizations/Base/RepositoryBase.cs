@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Query;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -17,31 +18,32 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         _dbContext = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync(
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default,
-        Expression<Func<T, bool>>? predicate = default,
-        int offset = 0,
-        int limit = 0,
-        Expression<Func<T, object>>? orderByASC = default,
-        Expression<Func<T, object>>? orderByDESC = default,
-        Expression<Func<T, T>>? selector = default)
+    public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
         var query = _dbContext.Set<T>().AsNoTracking();
-        query = ApplyInclude(query, include);
-        query = ApplyPredicate(query, predicate);
-        query = ApplyOrdering(query, orderByASC, orderByDESC);
-        query = ApplyPagination(query, offset, limit);
-        query = ApplySelector(query, selector);
+
+        if (queryOptions != null)
+        {
+            query = ApplyInclude(query, queryOptions.Include);
+            query = ApplyFilter(query, queryOptions.Filter);
+            query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
+            query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
+            query = ApplySelector(query, queryOptions.Selector);
+        }
+
         return await query.ToListAsync();
     }
 
-    public async Task<T?> GetFirstOrDefaultAsync(
-        Expression<Func<T, bool>>? predicate = default,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default)
+    public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
         var query = _dbContext.Set<T>().AsNoTracking();
-        query = ApplyInclude(query, include);
-        query = ApplyPredicate(query, predicate);
+
+        if (queryOptions != null)
+        {
+            query = ApplyInclude(query, queryOptions.Include);
+            query = ApplyFilter(query, queryOptions.Filter);
+        }
+
         return await query.FirstOrDefaultAsync();
     }
 
@@ -61,14 +63,14 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         _dbContext.Set<T>().Remove(entity);
     }
 
-    private static IQueryable<T> ApplyPredicate(IQueryable<T> query, Expression<Func<T, bool>>? predicate)
+    private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
     {
-        return predicate != null ? query.Where(predicate) : query;
+        return filter is not null ? query.Where(filter) : query;
     }
 
     private static IQueryable<T> ApplyInclude(IQueryable<T> query, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include)
     {
-        return include != null ? include(query) : query;
+        return include is not null ? include(query) : query;
     }
 
     private static IQueryable<T> ApplyOrdering(
@@ -108,5 +110,4 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
         return query;
     }
-
 }

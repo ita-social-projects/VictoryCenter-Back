@@ -1,6 +1,6 @@
 ﻿using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.BLL.DTOs.TeamMember;
+namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
 public record TeamMemberDto
 {
@@ -20,7 +20,9 @@ public record TeamMemberDto
 
     public string? Description { get; set; }
 
+#pragma warning disable SA1011
     public byte[]? Photo { get; set; }
+#pragma warning restore SA1011
 
     public string? Email { get; set; }
 }

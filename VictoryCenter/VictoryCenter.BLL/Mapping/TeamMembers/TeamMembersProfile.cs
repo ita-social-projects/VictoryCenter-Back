@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using VictoryCenter.BLL.DTOs.TeamMember;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.TeamMembers;

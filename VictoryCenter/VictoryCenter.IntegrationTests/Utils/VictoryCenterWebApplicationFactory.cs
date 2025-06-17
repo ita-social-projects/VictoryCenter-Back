@@ -28,11 +28,6 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
             using var scope = provider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
             dbContext.Database.EnsureCreated();
-
-            TestDatabaseSeeder.DeleteExistingData(dbContext);
-            TestDatabaseSeeder.SeedData(dbContext);
-            VictoryCenterDatabaseSeeder.DeleteExistingData(dbContext);
-            VictoryCenterDatabaseSeeder.SeedData(dbContext);
         });
     }
 

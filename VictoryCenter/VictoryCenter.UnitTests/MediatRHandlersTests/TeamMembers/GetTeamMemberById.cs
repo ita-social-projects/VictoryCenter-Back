@@ -1,11 +1,10 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore.Query;
 using Moq;
-using System.Linq.Expressions;
-using VictoryCenter.BLL.DTOs.TeamMember;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
@@ -94,8 +93,7 @@ public class GetTeamMemberById
     {
         _mockRepository.Setup(x => x.TeamMembersRepository
             .GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<TeamMember, bool>>>(),
-                It.IsAny<Func<IQueryable<TeamMember>, IIncludableQueryable<TeamMember, object>>>()))
+                It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMember);
     }
 

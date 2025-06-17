@@ -1,28 +1,23 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.DTOs.TeamMember;
-using VictoryCenter.BLL.Queries.Pages.GetAllPages;
-using VictoryCenter.BLL.Queries.TeamMembers;
+﻿using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
-using VictoryCenter.WebAPI.Controllers;
 
-namespace VictoryCenter.Controllers.TeamMembers
+namespace VictoryCenter.WebAPI.Controllers.TeamMembers;
+
+public class TeamMembersController : BaseApiController
 {
-    public class TeamMembersController : BaseApiController
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
+    public async Task<IActionResult> GetTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
     {
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
-        public async Task<IActionResult> GetTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
-        {
-            return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
-        }
+        return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
+    }
 
-        [HttpGet("{id:long}")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TeamMemberDto))]
-        public async Task<IActionResult> GetTeamMemberById(long id)
-        {
-            return HandleResult(await Mediator.Send(new GetTeamMemberByIdQuery(id)));
-        }
+    [HttpGet("{id:long}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TeamMemberDto))]
+    public async Task<IActionResult> GetTeamMemberById(long id)
+    {
+        return HandleResult(await Mediator.Send(new GetTeamMemberByIdQuery(id)));
     }
 }

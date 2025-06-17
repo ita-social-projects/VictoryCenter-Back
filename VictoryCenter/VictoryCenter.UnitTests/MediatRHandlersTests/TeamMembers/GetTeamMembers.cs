@@ -1,12 +1,11 @@
 ﻿using AutoMapper;
-using Microsoft.EntityFrameworkCore.Query;
 using Moq;
-using System.Linq.Expressions;
-using VictoryCenter.BLL.DTOs.TeamMember;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
@@ -38,8 +37,8 @@ public class GetTeamMembers
         SetupRepository(teamMemberList);
         SetupMapper(teamMemberDtoList);
 
-        var filtersDto = new TeamMembersFilterDto 
-        { 
+        var filtersDto = new TeamMembersFilterDto
+        {
             PageNumber
             = pageNumber,
             PageSize = pageSize,
@@ -172,7 +171,7 @@ public class GetTeamMembers
     {
         var teamMemberList = new List<TeamMember>()
         {
-            new TeamMember()
+            new()
             {
                 Id = 1,
                 Priority = 1,
@@ -180,7 +179,7 @@ public class GetTeamMembers
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
             },
-            new TeamMember()
+            new()
             {
                 Id = 2,
                 Priority = 2,
@@ -188,7 +187,7 @@ public class GetTeamMembers
                 CategoryId = 2,
                 Category = new Category { Id = 2, Name = "Category 2" }
             },
-            new TeamMember()
+            new()
             {
                 Id = 3,
                 Priority = 3,
@@ -196,7 +195,7 @@ public class GetTeamMembers
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
             },
-            new TeamMember()
+            new()
             {
                 Id = 4,
                 Priority = 4,
@@ -204,7 +203,7 @@ public class GetTeamMembers
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
             },
-            new TeamMember()
+            new()
             {
                 Id = 5,
                 Priority = 5,
@@ -221,35 +220,35 @@ public class GetTeamMembers
     {
         var teamMemberDtoList = new List<TeamMemberDto>()
         {
-            new TeamMemberDto()
+            new()
             {
                 Id = 1,
                 Priority = 1,
                 Status = Status.Draft,
                 CategoryName = "Category 1"
             },
-            new TeamMemberDto()
+            new()
             {
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
                 CategoryName = "Category 2"
             },
-            new TeamMemberDto()
+            new()
             {
                 Id = 3,
                 Priority = 3,
                 Status = Status.Published,
                 CategoryName = "Category 1"
             },
-            new TeamMemberDto()
+            new()
             {
                 Id = 4,
                 Priority = 4,
                 Status = Status.Draft,
                 CategoryName = "Category 1"
             },
-            new TeamMemberDto()
+            new()
             {
                 Id = 5,
                 Priority = 5,
@@ -261,18 +260,10 @@ public class GetTeamMembers
         return teamMemberDtoList;
     }
 
-
     private void SetupRepository(List<TeamMember> teamMembers)
     {
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.GetAllAsync(
-             It.IsAny<Func<IQueryable<TeamMember>, IIncludableQueryable<TeamMember, object>>>(),
-             It.IsAny<Expression<Func<TeamMember, bool>>>(),
-             It.IsAny<int>(),
-             It.IsAny<int>(),
-             It.IsAny<Expression<Func<TeamMember, object>>>(),
-             It.IsAny<Expression<Func<TeamMember, object>>>(),
-             It.IsAny<Expression<Func<TeamMember, TeamMember>>>())
-        )
+             It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMembers);
     }
 

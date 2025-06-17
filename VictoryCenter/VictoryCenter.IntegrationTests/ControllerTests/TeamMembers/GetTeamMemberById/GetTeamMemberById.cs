@@ -1,11 +1,8 @@
 using System.Net;
-using System.Text;
 using System.Text.Json;
-using Azure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using VictoryCenter.BLL.DTOs.TeamMember;
-using VictoryCenter.BLL.DTOs.Test;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.Utils;
 
@@ -29,7 +26,7 @@ public class GetTeamMemberById : IClassFixture<VictoryCenterWebApplicationFactor
     {
         var existingEntity = await _dbContext.TeamMembers.FirstOrDefaultAsync();
 
-        var response = await _client.GetAsync($"api/TeamMembers/GetTeamMemberById/{existingEntity!.Id}");
+        var response = await _client.GetAsync($"api/TeamMembers/{existingEntity!.Id}");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions
@@ -46,7 +43,7 @@ public class GetTeamMemberById : IClassFixture<VictoryCenterWebApplicationFactor
     [Fact]
     public async Task GetTestDataById_ShouldFail_NotFound()
     {
-        var response = await _client.GetAsync($"api/TeamMembers/GetTeamMemberById/{-1}");
+        var response = await _client.GetAsync($"api/TeamMembers/{-1}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

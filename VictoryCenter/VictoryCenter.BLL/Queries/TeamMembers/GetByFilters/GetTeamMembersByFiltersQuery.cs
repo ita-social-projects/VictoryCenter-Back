@@ -1,6 +1,6 @@
 ﻿using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.DTOs.TeamMember;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 
 namespace VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 

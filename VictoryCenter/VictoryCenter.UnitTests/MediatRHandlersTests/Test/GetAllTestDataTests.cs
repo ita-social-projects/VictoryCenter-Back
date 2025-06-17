@@ -1,11 +1,10 @@
-using System.Linq.Expressions;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.BLL.Queries.Test.GetAllTestData;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Test;
 
@@ -64,13 +63,7 @@ public class GetAllTestDataTests
     private void SetupRepositoryWrapper(IEnumerable<TestEntity> testEntities)
     {
         _mockRepositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.TestRepository.GetAllAsync(
-             It.IsAny<Func<IQueryable<TestEntity>, IIncludableQueryable<TestEntity, object>>>(),
-             It.IsAny<Expression<Func<TestEntity, bool>>>(),
-             It.IsAny<int>(),
-             It.IsAny<int>(),
-             It.IsAny<Expression<Func<TestEntity, object>>>(),
-             It.IsAny<Expression<Func<TestEntity, object>>>(),
-             It.IsAny<Expression<Func<TestEntity, TestEntity>>>()))
+                It.IsAny<QueryOptions<TestEntity>>()))
             .ReturnsAsync(testEntities);
     }
 }
