@@ -17,16 +17,11 @@ public class GetAllCategoriesHandler : IRequestHandler<GetAllCategoriesQuery, Re
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<IEnumerable<CategoryDto>>> Handle(GetAllCategoriesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<CategoryDto>>> Handle(
+        GetAllCategoriesQuery request,
+        CancellationToken cancellationToken)
     {
-        try
-        {
-            var entities = await _repositoryWrapper.CategoriesRepository.GetAllAsync();
-            return Result.Ok(_mapper.Map<IEnumerable<CategoryDto>>(entities));
-        }
-        catch (Exception ex)
-        {
-            return Result.Fail<IEnumerable<CategoryDto>>(ex.Message);
-        }
+        var entities = await _repositoryWrapper.CategoriesRepository.GetAllAsync();
+        return Result.Ok(_mapper.Map<IEnumerable<CategoryDto>>(entities));
     }
 }

@@ -14,7 +14,10 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateCategoryCommand> _validator;
 
-    public CreateCategoryHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<CreateCategoryCommand> validator)
+    public CreateCategoryHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper,
+        IValidator<CreateCategoryCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -23,26 +26,19 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
 
     public async Task<Result<CategoryDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        try
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var entity = _mapper.Map<Category>(request.createCategoryDto);
+        entity.CreatedAt = DateTime.UtcNow;
+
+        await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
+
+        if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var entity = _mapper.Map<Category>(request.createCategoryDto);
-            entity.CreatedAt = DateTime.UtcNow;
-
-            await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                var resultDto = _mapper.Map<CategoryDto>(entity);
-                return Result.Ok(resultDto);
-            }
-
-            return Result.Fail<CategoryDto>("Failed to create category");
+            var resultDto = _mapper.Map<CategoryDto>(entity);
+            return Result.Ok(resultDto);
         }
-        catch (Exception ex)
-        {
-            return Result.Fail<CategoryDto>(ex.Message);
-        }
+
+        return Result.Fail<CategoryDto>("Failed to create category");
     }
 }

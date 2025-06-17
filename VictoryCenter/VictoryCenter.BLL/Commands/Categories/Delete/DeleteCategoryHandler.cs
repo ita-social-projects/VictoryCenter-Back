@@ -15,33 +15,26 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
 
     public async Task<Result<long>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
-        try
+        var entityToDelete =
+            await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(entity => entity.Id == request.Id);
+
+        if (entityToDelete is null)
         {
-            var entityToDelete = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                entity => entity.Id == request.Id);
-
-            if (entityToDelete is null)
-            {
-                return Result.Fail<long>("Not found");
-            }
-
-            if (entityToDelete.TeamMembers.Count != 0)
-            {
-                return Result.Fail<long>("Can't delete category while assotiated with any team member");
-            }
-
-            _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                return Result.Ok(entityToDelete.Id);
-            }
-
-            return Result.Fail<long>("Failed to delete category");
+            return Result.Fail<long>("Not found");
         }
-        catch (Exception ex)
+
+        if (entityToDelete.TeamMembers.Count != 0)
         {
-            return Result.Fail<long>(ex.Message);
+            return Result.Fail<long>("Can't delete category while assotiated with any team member");
         }
+
+        _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
+
+        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        {
+            return Result.Ok(entityToDelete.Id);
+        }
+
+        return Result.Fail<long>("Failed to delete category");
     }
 }

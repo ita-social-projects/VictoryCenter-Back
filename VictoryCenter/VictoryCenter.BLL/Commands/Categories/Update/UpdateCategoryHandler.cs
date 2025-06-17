@@ -14,7 +14,10 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateCategoryCommand> _validator;
 
-    public UpdateCategoryHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<UpdateCategoryCommand> validator)
+    public UpdateCategoryHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper,
+        IValidator<UpdateCategoryCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -23,35 +26,28 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
 
     public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
-        try
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var categoryEntity =
+            await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(entity =>
+                entity.Id == request.updateCategoryDto.Id);
+
+        if (categoryEntity is null)
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var categoryEntity =
-                await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(entity =>
-                    entity.Id == request.updateCategoryDto.Id);
-
-            if (categoryEntity is null)
-            {
-                return Result.Fail<CategoryDto>("Not found");
-            }
-
-            var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
-            entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
-
-            _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                var resultDto = _mapper.Map<Category, CategoryDto>(entityToUpdate);
-                return Result.Ok(resultDto);
-            }
-
-            return Result.Fail<CategoryDto>("Failed to update category");
+            return Result.Fail<CategoryDto>("Not found");
         }
-        catch (Exception ex)
+
+        var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
+        entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
+
+        _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
+
+        if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
-            return Result.Fail<CategoryDto>(ex.Message);
+            var resultDto = _mapper.Map<Category, CategoryDto>(entityToUpdate);
+            return Result.Ok(resultDto);
         }
+
+        return Result.Fail<CategoryDto>("Failed to update category");
     }
 }

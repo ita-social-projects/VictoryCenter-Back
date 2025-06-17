@@ -50,6 +50,7 @@ public class UpdateCategoryTests
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
         Assert.Equal(updateCategoryDto.Name, responseContent.Name);
         Assert.Equal(updateCategoryDto.Description, responseContent.Description);
     }
