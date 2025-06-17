@@ -32,7 +32,7 @@ public class UpdateCategoryTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("Test Description")]
-    public async Task UpdateCategory_ShouldCreateCategory(string? testDescription)
+    public async Task UpdateCategory_ShouldUpdateCategory(string? testDescription)
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
