@@ -1,7 +1,7 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore.Query;
 using Moq;
-using System.Linq.Expressions;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.BLL.Queries.Test.GetAllTestData;
 using VictoryCenter.DAL.Entities;
@@ -70,8 +70,7 @@ public class GetAllTestDataTests
              It.IsAny<int>(),
              It.IsAny<Expression<Func<TestEntity, object>>>(),
              It.IsAny<Expression<Func<TestEntity, object>>>(),
-             It.IsAny<Expression<Func<TestEntity, TestEntity>>>())
-        )
+             It.IsAny<Expression<Func<TestEntity, TestEntity>>>()))
             .ReturnsAsync(testEntities);
     }
 }

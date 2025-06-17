@@ -6,13 +6,13 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 public interface IRepositoryWrapper
 {
-    public ITestRepository TestRepository { get; }
+    ITestRepository TestRepository { get; }
 
-    public ITeamMembersRepository TeamMembersRepository { get; }
-    
-    public int SaveChanges();
+    ITeamMembersRepository TeamMembersRepository { get; }
 
-    public Task<int> SaveChangesAsync();
+    int SaveChanges();
 
-    public TransactionScope BeginTransaction();
+    Task<int> SaveChangesAsync();
+
+    TransactionScope BeginTransaction();
 }

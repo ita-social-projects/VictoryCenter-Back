@@ -1,4 +1,3 @@
-using System;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -8,7 +7,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
-public class RepositoryBase<T> : IRepositoryBase<T> where T : class
+public class RepositoryBase<T> : IRepositoryBase<T>
+    where T : class
 {
     private readonly VictoryCenterDbContext _dbContext;
 
@@ -34,7 +34,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         query = ApplySelector(query, selector);
         return await query.ToListAsync();
     }
-    
+
     public async Task<T?> GetFirstOrDefaultAsync(
         Expression<Func<T, bool>>? predicate = default,
         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default)
@@ -77,9 +77,14 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
         Expression<Func<T, object>>? orderByDESC)
     {
         if (orderByASC != null)
+        {
             return query.OrderBy(orderByASC);
+        }
+
         if (orderByDESC != null)
+        {
             return query.OrderByDescending(orderByDESC);
+        }
 
         return query;
     }
@@ -92,9 +97,14 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class
     private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)
     {
         if (offset > 0)
+        {
             query = query.Skip(offset);
+        }
+
         if (limit > 0)
+        {
             query = query.Take(limit);
+        }
 
         return query;
     }

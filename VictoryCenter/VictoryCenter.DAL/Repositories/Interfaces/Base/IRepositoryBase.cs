@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-public interface IRepositoryBase<T> where T : class
+public interface IRepositoryBase<T>
+    where T : class
 {
     Task<IEnumerable<T>> GetAllAsync(
         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default,
@@ -14,14 +15,14 @@ public interface IRepositoryBase<T> where T : class
         Expression<Func<T, object>>? orderByASC = default,
         Expression<Func<T, object>>? orderByDESC = default,
         Expression<Func<T, T>>? selector = default);
-    
+
     Task<T?> GetFirstOrDefaultAsync(
         Expression<Func<T, bool>>? predicate = default,
         Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = default);
-    
+
     Task<T> CreateAsync(T entity);
-    
+
     EntityEntry<T> Update(T entity);
-    
+
     void Delete(T entity);
 }

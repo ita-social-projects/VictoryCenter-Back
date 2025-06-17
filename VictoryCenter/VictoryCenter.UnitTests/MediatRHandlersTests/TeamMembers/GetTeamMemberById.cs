@@ -48,7 +48,7 @@ public class GetTeamMemberById
     {
         // Arrange
         var teamMember = GetTeamMember();
-        var expectedError = "Team member not fould";
+        var expectedError = "Team member not found";
 
         SetupRepository(GetTeamMemberWithNotExistingId());
         SetupMapper(GetTeamDTOWithNotExistingId());

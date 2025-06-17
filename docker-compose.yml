@@ -1,0 +1,17 @@
+﻿services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: dev-sqlserver
+    ports:
+      - "1434:1433"
+    
+    environment: 
+      SA_PASSWORD: "Admin@1234"
+      ACCEPT_EULA: "Y"
+    volumes:
+      - sql_data:/var/opt/mssql
+      
+volumes: 
+  sql_data:
+
+    
