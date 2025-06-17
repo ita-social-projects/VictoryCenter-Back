@@ -1,29 +1,25 @@
 using System.Net;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.DAL.Data;
+using VictoryCenter.IntegrationTests.ControllerTests.Base;
 using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetTeamMembers;
 
-public class GetTeamMembers : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
+[Collection("SharedIntegrationTests")]
+public class GetTeamMembersTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
 {
-    private readonly HttpClient _client;
-    private readonly IServiceScope _scope;
-    private readonly VictoryCenterDbContext _dbContext;
+    private readonly HttpClient _httpClient;
 
-    public GetTeamMembers(VictoryCenterWebApplicationFactory<Program> factory)
+    public GetTeamMembersTests(IntegrationTestDbFixture fixture)
     {
-        _client = factory.CreateClient();
-        _scope = factory.Services.CreateScope();
-        _dbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        _httpClient = fixture.HttpClient;
     }
 
     [Fact]
     public async Task GetTeamMembers_ShouldReturnOk()
     {
-        var response = await _client.GetAsync("api/TeamMembers/");
+        var response = await _httpClient.GetAsync("api/TeamMembers/");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions
@@ -35,5 +31,6 @@ public class GetTeamMembers : IClassFixture<VictoryCenterWebApplicationFactory<P
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
+        Assert.NotEmpty(responseContent);
     }
 }
