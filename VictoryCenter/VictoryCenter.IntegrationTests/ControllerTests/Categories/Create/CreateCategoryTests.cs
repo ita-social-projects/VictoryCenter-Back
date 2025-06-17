@@ -28,7 +28,7 @@ public class CreateCategoryTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("Test Description")]
-    public async Task CreateCategory_ShouldCreateCategory(string testDescription)
+    public async Task CreateCategory_ShouldCreateCategory(string? testDescription)
     {
         var createCategoryDto = new CreateCategoryDto
         {
@@ -38,7 +38,7 @@ public class CreateCategoryTests
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
         var response = await _httpClient.PostAsync("api/categories/createCategory", new StringContent(
-            serializedDto, Encoding.UTF8, @"application/json"));
+            serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
 
@@ -52,7 +52,7 @@ public class CreateCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task CreateCategory_ShouldNotCreateCategory_InvalidName(string testName)
+    public async Task CreateCategory_ShouldNotCreateCategory_InvalidName(string? testName)
     {
         var createCategoryDto = new CreateCategoryDto
         {

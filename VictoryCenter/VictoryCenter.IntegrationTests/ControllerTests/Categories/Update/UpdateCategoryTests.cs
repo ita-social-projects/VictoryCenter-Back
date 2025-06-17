@@ -32,7 +32,7 @@ public class UpdateCategoryTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("Test Description")]
-    public async Task UpdateCategory_ShouldCreateCategory(string testDescription)
+    public async Task UpdateCategory_ShouldCreateCategory(string? testDescription)
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
@@ -58,7 +58,7 @@ public class UpdateCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string testName)
+    public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string? testName)
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
@@ -79,7 +79,7 @@ public class UpdateCategoryTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task UpdateCategory_ShouldNotUpdateCategory_NotFound(int testId)
+    public async Task UpdateCategory_ShouldNotUpdateCategory_NotFound(long testId)
     {
         var updateCategoryDto = new UpdateCategoryDto
         {

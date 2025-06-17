@@ -37,7 +37,7 @@ public class DeleteCategoryTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task Handle_ShouldNotDeleteCategory_CategoryNotFound(int categoryId)
+    public async Task Handle_ShouldNotDeleteCategory_CategoryNotFound(long categoryId)
     {
         SetupRepositoryWrapper();
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);

@@ -48,7 +48,7 @@ public class UpdateCategoryTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("Updated description")]
-    public async Task Handle_ShouldUpdateEntity(string testDescription)
+    public async Task Handle_ShouldUpdateEntity(string? testDescription)
     {
         _testUpdatedCategory.Description = testDescription;
         _testUpdatedCategoryDto.Description = testDescription;
@@ -73,7 +73,7 @@ public class UpdateCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Handle_ShouldNotUpdateEntity_IncorrectName(string testName)
+    public async Task Handle_ShouldNotUpdateEntity_IncorrectName(string? testName)
     {
         _testUpdatedCategoryDto.Name = testName;
         _testUpdatedCategory.Name = testName;
@@ -95,7 +95,7 @@ public class UpdateCategoryTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task Handle_ShouldNotUpdateEntity_NotFound(int testId)
+    public async Task Handle_ShouldNotUpdateEntity_NotFound(long testId)
     {
         SetupDependencies();
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
