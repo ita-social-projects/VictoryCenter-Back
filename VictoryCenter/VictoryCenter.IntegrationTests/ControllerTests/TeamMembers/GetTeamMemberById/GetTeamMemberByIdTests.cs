@@ -4,12 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetTeamMemberById;
 
 [Collection("SharedIntegrationTests")]
-public class GetTeamMemberByIdTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
+public class GetTeamMemberByIdTests
 {
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;

@@ -2,12 +2,11 @@ using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetTeamMembers;
 
 [Collection("SharedIntegrationTests")]
-public class GetTeamMembersTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
+public class GetTeamMembersTests
 {
     private readonly HttpClient _httpClient;
 
