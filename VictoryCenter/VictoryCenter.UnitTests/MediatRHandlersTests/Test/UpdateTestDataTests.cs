@@ -1,10 +1,10 @@
-using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Commands.Test.UpdateTestData;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Test;
 
@@ -75,7 +75,7 @@ public class UpdateTestDataTests
     private void SetupRepositoryWrapper(TestEntity? testEntity, int isSuccess)
     {
         _mockRepository.Setup(repository => repository.TestRepository.GetFirstOrDefaultAsync(
-                It.IsAny<Expression<Func<TestEntity, bool>>>()))
+                It.IsAny<QueryOptions<TestEntity>>()))
             .ReturnsAsync(testEntity);
 
         _mockRepository.Setup(repository => repository.TestRepository

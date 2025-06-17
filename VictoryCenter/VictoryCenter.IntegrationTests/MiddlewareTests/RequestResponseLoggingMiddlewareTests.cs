@@ -1,20 +1,21 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using VictoryCenter.IntegrationTests.ControllerTests.Base;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.WebAPI.Middleware;
 
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
+[Collection("SharedIntegrationTests")]
 public class RequestResponseLoggingMiddlewareTests
-    : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
     private readonly InMemoryLoggerProvider _loggerProvider;
 
-    public RequestResponseLoggingMiddlewareTests(VictoryCenterWebApplicationFactory<Program> factory)
+    public RequestResponseLoggingMiddlewareTests(IntegrationTestDbFixture fixture)
     {
-        var customFactory = factory.WithWebHostBuilder(builder =>
+        var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging =>
             {
@@ -42,7 +43,7 @@ public class RequestResponseLoggingMiddlewareTests
     [Fact]
     public async Task InvokeAsync_Status200_ShouldLogAtInformationLevel()
     {
-        var response = await _client.GetAsync("/api/Test/GetAllTestData");
+        var response = await _client.GetAsync("/api/Test");
         Assert.Equal(200, (int)response.StatusCode);
 
         var categoryName = typeof(RequestResponseLoggingMiddleware).FullName;
@@ -54,7 +55,7 @@ public class RequestResponseLoggingMiddlewareTests
     [Fact]
     public async Task InvokeAsync_Status404_ShouldLogAtWarningLevel()
     {
-        var response = await _client.GetAsync("/api/Test/GetTestData/-1");
+        var response = await _client.GetAsync("/api/Test/-1");
         Assert.Equal(404, (int)response.StatusCode);
 
         var categoryName = typeof(RequestResponseLoggingMiddleware).FullName;

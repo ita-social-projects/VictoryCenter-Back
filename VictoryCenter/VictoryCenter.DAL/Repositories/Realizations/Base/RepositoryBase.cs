@@ -1,8 +1,10 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Query;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -16,15 +18,29 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         _dbContext = context;
     }
 
-    public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>>? predicate = default)
+    public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = GetQueryable(predicate);
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        if (queryOptions is not null)
+        {
+            query = ApplyFilter(query, queryOptions.FilterPredicate);
+            query = ApplyInclude(query, queryOptions.Include);
+        }
+
         return await query.ToListAsync();
     }
 
-    public async Task<T?> GetFirstOrDefaultAsync(Expression<Func<T, bool>>? predicate = default)
+    public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = GetQueryable(predicate);
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        if (queryOptions is not null)
+        {
+            query = ApplyFilter(query, queryOptions.FilterPredicate);
+            query = ApplyInclude(query, queryOptions.Include);
+        }
+
         return await query.FirstOrDefaultAsync();
     }
 
@@ -44,10 +60,13 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         _dbContext.Set<T>().Remove(entity);
     }
 
-    private IQueryable<T> GetQueryable(Expression<Func<T, bool>>? predicate = default)
+    private IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        return filter is not null ? query.Where(filter) : query;
+    }
 
-        return predicate is not null ? query.Where(predicate) : query.AsNoTracking();
+    private IQueryable<T> ApplyInclude(IQueryable<T> query, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include)
+    {
+        return include is not null ? include(query) : query;
     }
 }
