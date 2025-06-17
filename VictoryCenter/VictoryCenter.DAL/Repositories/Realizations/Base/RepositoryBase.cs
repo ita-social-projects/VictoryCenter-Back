@@ -25,6 +25,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         if (queryOptions is not null)
         {
             query = ApplyFilter(query, queryOptions.FilterPredicate);
+            query = ApplyInclude(query, queryOptions.Include);
         }
 
         return await query.ToListAsync();
