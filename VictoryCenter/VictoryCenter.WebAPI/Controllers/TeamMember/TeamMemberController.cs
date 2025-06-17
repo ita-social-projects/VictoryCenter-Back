@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.TeamMember.DeleteTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers;
 
 namespace VictoryCenter.WebAPI.Controllers.TeamMember;
 
@@ -10,5 +10,4 @@ public class TeamMemberController : BaseApiController
     {
         return HandleResult(await Mediator.Send(new DeleteTeamMemberCommand(id)));
     }
-
 }
