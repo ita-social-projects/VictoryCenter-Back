@@ -2,31 +2,29 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Commands.TeamMember.DeleteTeamMember;
-
-public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, Result<Unit>>
+namespace VictoryCenter.BLL.Commands.TeamMember.DeleteTeamMember
 {
-    private readonly IRepositoryWrapper _repositoryWrapper;
-
-    public DeleteTeamMemberHandler(IRepositoryWrapper repositoryWrapper)
+    public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, Result<Unit>>
     {
-        _repositoryWrapper = repositoryWrapper;
-    }
+        private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public async Task<Result<Unit>> Handle(DeleteTeamMemberCommand request, CancellationToken cancellationToken)
-    {
-        var exists = await _repositoryWrapper.TeamMemberRepository.ExistsAsync(request.Id);
-        if (!exists)
+        public DeleteTeamMemberHandler(IRepositoryWrapper repositoryWrapper)
         {
-            return Result.Fail<Unit>($"Team member with ID {request.Id} not found.");
+            _repositoryWrapper = repositoryWrapper;
         }
 
-        var deleted = await _repositoryWrapper.TeamMemberRepository.DeleteAsync(request.Id);
-        if (!deleted)
+        public async Task<Result<Unit>> Handle(DeleteTeamMemberCommand request, CancellationToken cancellationToken)
         {
-            return Result.Fail<Unit>("Failed to delete the team member.");
-        }
+            var teamMember = await _repositoryWrapper.TeamMemberRepository
+                .GetFirstOrDefaultAsync(tm => tm.Id == request.Id);
 
-        return Result.Ok(Unit.Value);
+            if (teamMember is null)
+            {
+                return Result.Fail<Unit>($"Team member with ID {request.Id} not found.");
+            }
+
+            _repositoryWrapper.TeamMemberRepository.Delete(teamMember);
+            return Result.Ok(Unit.Value);
+        }
     }
 }
