@@ -1,0 +1,40 @@
+using FluentResults;
+using MediatR;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+
+namespace VictoryCenter.BLL.Commands.TeamMembers;
+
+public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, Result<long>>
+{
+    private readonly IRepositoryWrapper _repositoryWrapper;
+
+    public DeleteTeamMemberHandler(IRepositoryWrapper repositoryWrapper)
+    {
+        _repositoryWrapper = repositoryWrapper;
+    }
+
+    public async Task<Result<long>> Handle(DeleteTeamMemberCommand request, CancellationToken cancellationToken)
+    {
+        var entityToDelete =
+            await _repositoryWrapper.TeamMemberRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+            {
+                FilterPredicate = entity => entity.Id == request.Id,
+            });
+
+        if (entityToDelete is null)
+        {
+            return Result.Fail<long>($"Team member with ID {request.Id} not found.");
+        }
+
+        _repositoryWrapper.TeamMemberRepository.Delete(entityToDelete);
+
+        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        {
+            return Result.Ok(entityToDelete.Id);
+        }
+
+        return Result.Fail<long>("Failed to delete team member.");
+    }
+}

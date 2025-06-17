@@ -1,6 +1,5 @@
 using System.Transactions;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Repositories.Interfaces;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.Test;
