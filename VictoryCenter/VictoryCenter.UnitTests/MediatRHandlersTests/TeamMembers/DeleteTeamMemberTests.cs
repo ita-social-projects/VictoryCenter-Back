@@ -1,4 +1,3 @@
-using Azure.Core;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers;
 using VictoryCenter.DAL.Entities;
