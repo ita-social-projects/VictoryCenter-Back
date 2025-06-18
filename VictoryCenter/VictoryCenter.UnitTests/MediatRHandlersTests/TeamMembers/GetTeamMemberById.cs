@@ -20,7 +20,7 @@ public class GetTeamMemberById
     }
 
     [Fact]
-    public async Task ShouldReturnSuccessfully_ExistingId()
+    public async Task Handle_ShouldReturnSuccessfully_ExistingId()
     {
         // Arrange
         var teamMember = GetTeamMember();
@@ -43,7 +43,7 @@ public class GetTeamMemberById
     }
 
     [Fact]
-    public async Task ShouldReturnErrorResponse_NotExistingId()
+    public async Task Handle_ShouldReturnErrorResponse_NotExistingId()
     {
         // Arrange
         var teamMember = GetTeamMember();
