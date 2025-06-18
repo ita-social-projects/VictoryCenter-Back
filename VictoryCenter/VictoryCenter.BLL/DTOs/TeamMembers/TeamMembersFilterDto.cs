@@ -4,9 +4,9 @@ namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
 public record TeamMembersFilterDto
 {
-    public int PageNumber { get; set; }
+    public int Offset { get; set; }
 
-    public int PageSize { get; set; }
+    public int Limit { get; set; }
 
     public Status? Status { get; set; }
 

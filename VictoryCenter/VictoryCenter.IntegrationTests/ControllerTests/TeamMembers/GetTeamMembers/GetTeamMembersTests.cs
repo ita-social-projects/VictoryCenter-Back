@@ -27,7 +27,6 @@ public class GetTeamMembersTests
         };
         var responseContent = JsonSerializer.Deserialize<List<TeamMemberDto>>(responseString, options);
 
-        Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);

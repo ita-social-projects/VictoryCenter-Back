@@ -39,9 +39,9 @@ public class GetTeamMembers
 
         var filtersDto = new TeamMembersFilterDto
         {
-            PageNumber
+            Offset
             = pageNumber,
-            PageSize = pageSize,
+            Limit = pageSize,
             Status = null,
             CategoryName = null
         };
@@ -77,8 +77,8 @@ public class GetTeamMembers
 
         var filtersDto = new TeamMembersFilterDto
         {
-            PageNumber = 0,
-            PageSize = 0,
+            Offset = 0,
+            Limit = 0,
             Status = status,
             CategoryName = null
         };
@@ -112,8 +112,8 @@ public class GetTeamMembers
 
         var filtersDto = new TeamMembersFilterDto
         {
-            PageNumber = 0,
-            PageSize = 0,
+            Offset = 0,
+            Limit = 0,
             Status = null,
             CategoryName = category.Name
         };
@@ -148,8 +148,8 @@ public class GetTeamMembers
 
         var filtersDto = new TeamMembersFilterDto
         {
-            PageNumber = 0,
-            PageSize = 0,
+            Offset = 0,
+            Limit = 0,
             Status = status,
             CategoryName = category.Name
         };

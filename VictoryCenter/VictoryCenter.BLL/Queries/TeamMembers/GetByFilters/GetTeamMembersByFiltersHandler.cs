@@ -30,8 +30,8 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         var queryOptions = new QueryOptions<TeamMember>
         {
-            Offset = request.TeamMembersFilter.PageNumber > 0 ? request.TeamMembersFilter.PageNumber : 0,
-            Limit = request.TeamMembersFilter.PageSize > 0 ? request.TeamMembersFilter.PageSize : 0,
+            Offset = request.TeamMembersFilter.Offset > 0 ? request.TeamMembersFilter.Offset : 0,
+            Limit = request.TeamMembersFilter.Limit > 0 ? request.TeamMembersFilter.Limit : 0,
             Filter = filter,
             Include = t => t.Include(t => t.Category),
         };
