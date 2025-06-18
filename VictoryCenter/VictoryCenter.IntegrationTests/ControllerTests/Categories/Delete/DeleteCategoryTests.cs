@@ -20,7 +20,7 @@ public class DeleteCategoryTests
     [Fact]
     public async Task DeleteCategory_ShouldDeleteCategory()
     {
-        var existingEntity = (await _dbContext.Categories.ToListAsync()).Last();
+        var existingEntity = await _dbContext.Categories.LastOrDefaultAsync();
 
         var response = await _httpClient.DeleteAsync($"api/categories/{existingEntity!.Id}");
 
