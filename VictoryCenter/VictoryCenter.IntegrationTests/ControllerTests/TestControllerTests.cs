@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,7 @@ public class TestControllerTests
         var responseContent = JsonSerializer.Deserialize<TestDataDto>(responseString, options);
 
         response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
     }
 

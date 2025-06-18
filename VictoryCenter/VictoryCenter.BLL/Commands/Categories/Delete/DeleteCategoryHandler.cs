@@ -21,7 +21,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
         var entityToDelete =
             await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
             {
-                FilterPredicate = entity => entity.Id == request.Id,
+                Filter = entity => entity.Id == request.Id,
                 Include = query => query.Include(x => x.TeamMembers)
             });
 

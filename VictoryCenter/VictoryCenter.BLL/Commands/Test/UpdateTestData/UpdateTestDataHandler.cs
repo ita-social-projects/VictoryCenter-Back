@@ -25,7 +25,7 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
         {
             var existingEntity = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(new QueryOptions<TestEntity>
             {
-                FilterPredicate = entity => entity.Id == request.UpdateTestData.Id
+                Filter = entity => entity.Id == request.UpdateTestData.Id
             });
 
             if (existingEntity is null)
