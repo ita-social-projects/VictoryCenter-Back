@@ -9,7 +9,7 @@ public class TeamMembersController : BaseApiController
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
-    public async Task<IActionResult> GetTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
+    public async Task<IActionResult> GetFilteredTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
     {
         return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
     }

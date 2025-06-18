@@ -5,7 +5,7 @@ using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetTeamMemberById;
+namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetById;
 
 [Collection("SharedIntegrationTests")]
 public class GetTeamMemberByIdTests

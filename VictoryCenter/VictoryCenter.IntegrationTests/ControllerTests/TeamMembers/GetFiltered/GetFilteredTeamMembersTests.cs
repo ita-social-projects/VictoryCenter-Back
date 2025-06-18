@@ -3,14 +3,14 @@ using System.Text.Json;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetTeamMembers;
+namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetFiltered;
 
 [Collection("SharedIntegrationTests")]
-public class GetTeamMembersTests
+public class GetFilteredTeamMembersTests
 {
     private readonly HttpClient _httpClient;
 
-    public GetTeamMembersTests(IntegrationTestDbFixture fixture)
+    public GetFilteredTeamMembersTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
     }
