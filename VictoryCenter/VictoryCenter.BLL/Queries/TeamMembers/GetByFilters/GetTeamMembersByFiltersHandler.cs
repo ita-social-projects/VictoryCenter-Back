@@ -30,8 +30,10 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         var queryOptions = new QueryOptions<TeamMember>
         {
-            Offset = request.TeamMembersFilter.Offset > 0 ? request.TeamMembersFilter.Offset : 0,
-            Limit = request.TeamMembersFilter.Limit > 0 ? request.TeamMembersFilter.Limit : 0,
+            Offset = request.TeamMembersFilter.Offset is not null and > 0 ?
+            (int)request.TeamMembersFilter.Offset : 0,
+            Limit = request.TeamMembersFilter.Limit is not null and > 0 ?
+            (int)request.TeamMembersFilter.Limit : 0,
             Filter = filter,
             Include = t => t.Include(t => t.Category),
             OrderByASC = t => t.Priority,

@@ -10,7 +10,7 @@ internal static class TeamMemberSeeder
 
     public static void SeedData(VictoryCenterDbContext dbContext, List<Category> categories)
     {
-        for (var i = 0; i < TeamMemberCount; i++)
+        for (int i = 0; i < TeamMemberCount; i++)
         {
             var teamMember = new TeamMember
             {
