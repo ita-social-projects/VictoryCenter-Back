@@ -11,19 +11,31 @@ internal static class CategoriesDataSeeder
         {
             Name = "Test name1",
             Description = "Test description1",
-            CreatedAt = DateTime.Now,
+            CreatedAt = new DateTime(2025, 2, 10),
         },
         new ()
         {
             Name = "Test name2",
             Description = "Test description2",
-            CreatedAt = DateTime.Now,
+            CreatedAt = new DateTime(2025, 2, 10),
         },
         new ()
         {
             Name = "Test name3",
             Description = "Test description3",
-            CreatedAt = DateTime.Now,
+            CreatedAt = new DateTime(2025, 2, 10),
+        },
+        new ()
+        {
+            Name = "TestForDelete",
+            Description = "Test description",
+            CreatedAt = new DateTime(2025, 12, 10)
+        },
+        new ()
+        {
+            Name = "CreateMember",
+            Description = "Super Description",
+            CreatedAt = new DateTime(2025, 2, 2)
         },
     ];
 
