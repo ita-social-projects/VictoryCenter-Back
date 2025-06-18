@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
@@ -119,8 +120,8 @@ public class CreateTeamMemberTests
 
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                    It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(_category);
+                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync(_category);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
@@ -169,6 +170,7 @@ public class CreateTeamMemberTests
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
                 repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                    It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(_category);
+                    It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync(_category);
     }
 }

@@ -35,7 +35,9 @@ public static class ServicesConfiguration
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
+
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
+
         services.AddCors(opt =>
         {
             opt.AddDefaultPolicy(builder =>

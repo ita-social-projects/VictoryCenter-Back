@@ -3,20 +3,21 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using VictoryCenter.IntegrationTests.ControllerTests.Base;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.WebAPI.Middleware;
 
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
+[Collection("SharedIntegrationTests")]
 public class ExceptionHandlingMiddlewareTests
-    : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
 {
     private readonly HttpClient _client;
     private readonly InMemoryLoggerProvider _loggerProvider;
 
-    public ExceptionHandlingMiddlewareTests(VictoryCenterWebApplicationFactory<Program> factory)
+    public ExceptionHandlingMiddlewareTests(IntegrationTestDbFixture fixture)
     {
-        var customFactory = factory.WithWebHostBuilder(builder =>
+        var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging =>
             {

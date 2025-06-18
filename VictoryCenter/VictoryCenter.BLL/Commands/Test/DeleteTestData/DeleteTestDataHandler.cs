@@ -1,6 +1,8 @@
 using FluentResults;
 using MediatR;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Test.DeleteTestData;
 
@@ -17,7 +19,11 @@ public class DeleteTestDataHandler : IRequestHandler<DeleteTestDataCommand, Resu
     {
         try
         {
-            var entityToDelete = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(entity => entity.Id == request.Id);
+            var entityToDelete = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(new QueryOptions<TestEntity>
+            {
+                FilterPredicate = entity => entity.Id == request.Id
+            });
+
             if (entityToDelete is null)
             {
                 return Result.Fail("Entity not found");

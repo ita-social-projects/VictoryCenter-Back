@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
 
@@ -28,8 +29,13 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            if (await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(c =>
-                    c.Id == request.createTeamMemberDto.CategoryId) == null)
+            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Category>()
+                {
+                    FilterPredicate = c => c.Id == request.createTeamMemberDto.CategoryId
+                });
+
+            if (category == null)
             {
                 return Result.Fail<TeamMemberDto>("There are no categories with this id");
             }
