@@ -11,16 +11,14 @@ internal static class IntegrationTestsDatabaseSeeder
     {
         TestDataSeeder.SeedData(dbContext);
         CategoriesDataSeeder.SeedData(dbContext);
-        dbContext.SaveChanges();
         TeamMemberSeeder.SeedData(dbContext, dbContext.Categories.ToList());
     }
 
     public static void DeleteExistingData(VictoryCenterDbContext dbContext)
     {
-        dbContext.TestEntities.RemoveRange(dbContext.TestEntities);
         dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
         dbContext.Categories.RemoveRange(dbContext.Categories);
-
+        dbContext.TestEntities.RemoveRange(dbContext.TestEntities);
         dbContext.SaveChanges();
     }
 }

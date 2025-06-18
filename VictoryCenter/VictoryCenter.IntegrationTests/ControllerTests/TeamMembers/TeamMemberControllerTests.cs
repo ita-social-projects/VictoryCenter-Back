@@ -23,7 +23,7 @@ public class TeamMemberControllerTests
     [Fact]
     public async Task UpdateTestData_ShouldReturnOk()
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "CreateMember");
+        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Test name1");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "TestName",
@@ -46,7 +46,7 @@ public class TeamMemberControllerTests
     [Fact]
     public async Task UpdateTestData_ShouldFail_InvalidCategoryId()
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "CreateMember");
+        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Test name1");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "TestName",
@@ -69,7 +69,7 @@ public class TeamMemberControllerTests
     [Fact]
     public async Task UpdateTestData_ShouldFail_InvalidFirstNameLength()
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "CreateMember");
+        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Test name1");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "A",

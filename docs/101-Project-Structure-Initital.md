@@ -5,15 +5,16 @@ This is a documentation on initialization of VictoryCenter solution, it's struct
 ## Application Stack
 
 Technologies:
+
 - .Net Core 9
 - Entity Framework Core (Microsoft.EntityFrameworkCore, Microsoft.EntityFrameworkCore.SqlServer, Microsoft.EntityFrameworkCore.Tools)
 - MediatR (MediatR, MediatR.Extensions.Microsoft.DependencyInjection)
 - xUnit, Moq
 
-
 ## General Structure
 
 Application should consist of (at least) 4 projects.
+
 - Web Layer: `VictoryCenter` (Controllers, Models)
 - Buisness Logic Layer: `VictoryCenter.BLL` (Dtos, Services, Interfaces)
 - Data Access Layer: `VictoryCenter.DAL` (DbContext, Entities)
@@ -36,7 +37,8 @@ VictoryCenter (Solution)
 │   ├── Controllers/                  ← API endpoints
 |   |   ├── Categories/
 │   │   |   └── CategoriesController.cs
-|   |   |
+|   |   ├── TeamMembers/
+|   |   |   └── TeamMembersController.cs
 |   |   └── BaseApiController.cs
 |   |
 |   ├── Factories/
@@ -58,34 +60,46 @@ VictoryCenter (Solution)
 │
 ├── VictoryCenter.BLL/               ← Business Logic Layer (CQRS, Services, DTOs)
 │   ├── Commands/                    ← Write operations
-|   |   └── Categories/          
+|   |   └── Categories/
 │   │       ├── Create/
 │   │       |   ├── CreateCategoryCommand.cs
 │   │       |   ├── CreateCategoryHandler.cs
 │   │       |   └── CreateCategoryValidator.cs (optional, with FluentValidation)
 |   |       ├── Update/
-|   |       └── Delete/     
+|   |       └── Delete/
 │   │
 │   ├── Queries/                     ← Read operations
-|   |   └── Categories
-│   │       └── GetAll/
-│   │           ├── GetAllCategoriesQuery.cs
-│   │           └── GetAllCategoriesHandler.cs
-│   │
+|   |   ├── Categories/
+│   │   |   └── GetAll/
+│   │   |       ├── GetAllCategoriesQuery.cs
+│   │   |       └── GetAllCategoriesHandler.cs
+|   |   └── TeamMembers/
+│   │       ├── GetByFilters/
+│   │       |   ├── GetTeamMembersByFiltersQuery.cs
+│   │       |   └── GetTeamMembersByFiltersHandler.cs
+│   │       └── GetById/
+│   │           ├── GetTeamMemberByIdQuery.cs
+│   │           └── GetTeamMemberByIdHandler.cs
+|   |
 │   ├── Interfaces/                  ← Business layer contracts
-│   │   └── IPagesService.cs 
+│   │   └── IPagesService.cs
 |   |
 |   ├── Services/                    ← Business layer services
 |   |   └── Pages
-|   |       └── PagesService.cs   
+|   |       └── PagesService.cs
 │   │
 │   ├── DTOs/                        ← Data Transfer Objects
-|   |   └── Categories                
+|   |   ├── TeamMembers/
+│   │   │   ├── TeamMembersFilterDto.cs
+│   │   |   └── TeamMemberDto.cs
+|   |   └── Categories/
 │   │       └── CategoryDto.cs
 |   |
 |   ├── Mapping/
-|   |   └── Categories/
-|   |       └── CategoriesProfile.cs
+|   |   ├── Categories/
+|   |   |   └── CategoriesProfile.cs
+|   |   └── TeamMembers/
+|   |       └── TeamMembersProfile.cs
 │   │
 |   ├── Validators/
 |   |   └── Categories/
@@ -99,9 +113,11 @@ VictoryCenter (Solution)
 │   │   └── VictoryCenterDbContext.cs
 │   │
 │   ├── Entities/                    ← Domain Models (EF Entities)
-│   │   └── Category.cs
+│   │   ├── TeamMember.cs
+|   |   └── Category.cs
 │   │
 │   ├── Enums/               ← Enums
+|   |   ├── Status.cs
 │   │   └── PageType.cs
 |   |
 |   ├── Repositories/
@@ -109,15 +125,19 @@ VictoryCenter (Solution)
 |   |   |   ├── Base/
 |   |   |   |   ├── IRepositoryBase.cs
 |   |   |   |   └── IRepositoryWrapper.cs
-|   |   |   └── Categories/
-|   |   |       └── ICategoriesRepository.cs
+|   |   |   ├── Categories/
+|   |   |   |   └── ICategoriesRepository.cs
+|   |   |   └── TeamMembers/
+|   |   |       └── ITeamMembersRepository.cs
 |   |   |
 |   |   └── Realizations/
 |   |       ├── Base/
 |   |       |   ├── RepositoryBase.cs
 |   |       |   └── RepositoryWrapper.cs
-|   |       └── Categories/
-|   |           └── CategoriesRepository.cs
+|   |       ├── Categories/
+|   |       |   └── CategoriesRepository.cs
+|   |       └── TeamMembers/
+|   |           └── TeamMembersRepository.cs
 │   │
 │   └── ...
 │
@@ -130,6 +150,9 @@ VictoryCenter (Solution)
 |   |   └── CustomProblemDetailsFactoryTests.cs
 |   |
 |   ├── MediatRHandlersTests/
+|   |   └── TeamMembers/
+|   |       ├── GetTeamMemberById.cs
+|   |       └── GetTeamMembers.cs
 |   |
 |   ├── ValidatorsTests/
 |   |
@@ -143,14 +166,19 @@ VictoryCenter (Solution)
 │   │
 │   └── ...
 │
-├── VictoryCenter.IntegrationTests/           ← Integration tests 
+├── VictoryCenter.IntegrationTests/           ← Integration tests
 │   ├── ControllerTests/                        ← Tests
 |   |   ├── Base/
-│   │   └── Categories/
-|   |       ├── Create/
-|   |       ├── Delete/
-|   |       ├── GetAll/
-|   |       └── Update/
+│   │   ├── Categories/
+|   |   |   ├── Create/
+|   |   |   ├── Delete/
+|   |   |   ├── GetAll/
+|   |   |   └── Update/
+|   |   └── TeamMembers/
+|   |       ├── GetTeamMembers/
+|   |       |   └── GetTeamMembers.cs
+|   |       └── GetTeamMemberById/
+|   |           └── GetTeamMemberById.cs
 │   │
 │   ├── MiddlewareTests/
 |   |   ├── ExceptionHandlingMiddlewareTests.cs
@@ -164,7 +192,6 @@ VictoryCenter (Solution)
 │
 └── VictoryCenter.sln                        ← Solution file
 ```
-
 
 ## Web Layer 🌐
 
@@ -184,7 +211,6 @@ Consider enabling Swagger (OpenAPI) for auto-generating API documentation: https
 
 Up to your consideration: GraphQL endpoint (use HotChocolate if you decide to go down that route 🧙‍♂️)
 
-
 ## BLL 🧮
 
 Create folders Services and Interfaces. Services folder should contain services, that are responsible for buisness logic of application, Interfaces should contain all the interfaces for these services.
@@ -198,32 +224,31 @@ Also this project should contain: DTOs (example: `PageDto.cs`), helpers, etc.
 
 **CQRS** (would be nice to have, please consider): Create folders Commands and Queries. In them, you will be filling in commands, queries and handlers. Handlers will use services for Services folder, in services you will add any additional buisness logic. Services will use dbContext.
 
-*Get familliar with CQRS pattern:* https://medium.com/@cizu64/cqrs-in-net-core-a8eaeb1c6f06
-
+_Get familliar with CQRS pattern:_ https://medium.com/@cizu64/cqrs-in-net-core-a8eaeb1c6f06
 
 ## DAL 💾
 
 Should contain dbContext class (`VictoryCenterContext.cs`), entities (`Page.cs`), and migrations folder. Also generate sql scripts file containing schema.
 
-Please, generate migrations via command 
+Please, generate migrations via command
 
-`dotnet ef migrations add <MigrationName> -s <sln file location> --context VictoryCenterContext` 
+`dotnet ef migrations add <MigrationName> -s <sln file location> --context VictoryCenterContext`
 
-and update sql schema file via 
+and update sql schema file via
 
 `dotnet ef migrations script -s <sln file location> --context VictoryCenterContext -i -o  Schema.sql`
 
 This project can also contain enums.
 
-## More on database entities 
+## More on database entities
 
 Initial uml for start.
 
 ![uml](./vc-uml.png)
 
-| Entity       | Description                                                             |
-| ------------ | ----------------------------------------------------------------------- |
-| `Categories` | Represents teams like owners, sponsors, etc.                            |
+| Entity        | Description                                                             |
+| ------------- | ----------------------------------------------------------------------- |
+| `Categories`  | Represents teams like owners, sponsors, etc.                            |
 | `TeamMembers` | Members belonging to categories; includes photo, status, priority, etc. |
 | `Admins`      | Admin users managing the application and validation logic.              |
 | `Programs`    | Represents a program that contains events (added later).                |
@@ -254,15 +279,13 @@ Initial uml for start.
 | Email       | nvarchar(max)  | nullable     |                                  |
 | CreatedAt   | datetime       | not null     |                                  |
 
-
 `Admins`
-| Column    | Type          | Constraints  | Notes |
+| Column | Type | Constraints | Notes |
 | --------- | ------------- | ------------ | ----- |
-| Id        | bigint        | PK, not null |       |
-| UserName  | nvarchar(max) | not null     |       |
-| Password  | nvarchar(max) | not null     |       |
-| CreatedAt | datetime      | not null     |       |
-
+| Id | bigint | PK, not null | |
+| UserName | nvarchar(max) | not null | |
+| Password | nvarchar(max) | not null | |
+| CreatedAt | datetime | not null | |
 
 `Programs`
 
@@ -273,21 +296,18 @@ Initial uml for start.
 | Description | nvarchar(max) | not null     |       |
 | CreatedAt   | datetime      | not null     |       |
 
-
 `Events`
 
-| Column       | Type          | Constraints  | Notes                 |
-| ------------ | ------------- | ------------ | --------------------- |
-| Id           | bigint        | PK, not null |                       |
-| Name         | nvarchar(max) | not null     |                       |
-| Description  | nvarchar(max) | not null     |                       |
-| Start        | datetime      | not null     |                       |
-| Finish       | datetime      | not null     |                       |
+| Column       | Type          | Constraints  | Notes                  |
+| ------------ | ------------- | ------------ | ---------------------- |
+| Id           | bigint        | PK, not null |                        |
+| Name         | nvarchar(max) | not null     |                        |
+| Description  | nvarchar(max) | not null     |                        |
+| Start        | datetime      | not null     |                        |
+| Finish       | datetime      | not null     |                        |
 | TeamMemberId | bigint        | FK, not null | Links to `TeamMembers` |
 | ProgramId    | bigint        | FK, not null | Links to `Programs`    |
-| CreatedAt    | datetime      | not null     |                       |
-
-
+| CreatedAt    | datetime      | not null     |                        |
 
 Courtesy of @LanchevychMaxym (great thanks to Maksym for it! ❤️) we have an UML diagram you can start working on when we come to CMS implementation :)
 
@@ -297,15 +317,15 @@ Here it is:
 
 A bit more detailed description:
 
-| **Table Name**      | **Description**                                                   | **References**                                              | **Example Fields**                     |
-| ------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- | -------------------------------------- |
-| `page`              | Represents a web page entity.                                     | References `page_template` via `page_template_id`.          | `id` (not null), `created_at` , `updated_at`       |
+| **Table Name**      | **Description**                                                   | **References**                                              | **Example Fields**                                |
+| ------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| `page`              | Represents a web page entity.                                     | References `page_template` via `page_template_id`.          | `id` (not null), `created_at` , `updated_at`      |
 | `page_template`     | Defines layout structure for pages.                               | Referenced by `page` and `template`.                        | `id` (not null), `display`                        |
 | `template`          | Associates templates with content fields.                         | References `page_template`, `field`.                        | `id` (not null), `display`, `page_template_id`    |
 | `field`             | Stores content fields (e.g., text, image).                        | References `media_type` via `media_type_id`.                | `id` (not null), `name`, `value`                  |
 | `media_type`        | Defines types of media used in fields (e.g., text, image, video). | -                                                           | `id` (not null), `name`, `value`                  |
 | `content`           | Stores the actual content for fields.                             | References `template` and `field`.                          | `id` (not null), `created_at`                     |
-| `page_content`      | Connects pages to content blocks.                                 | References `page` and `content`.                            | `id`  (not null)                                 |
+| `page_content`      | Connects pages to content blocks.                                 | References `page` and `content`.                            | `id` (not null)                                   |
 | `page_locale`       | Represents a localized version of a page.                         | References `page` and `locale`.                             | `id` (not null), `title`                          |
 | `locale`            | Defines localization/country settings.                            | -                                                           | `id` (not null), `country`, `locale_code`         |
 | `page_version`      | Stores versioned data for localized pages.                        | References `page_locale` and `user` (as `author_id`).       | `id` (not null), `version_number`, `created_at`   |
@@ -313,7 +333,7 @@ A bit more detailed description:
 | `menu`              | Represents a navigational structure (e.g., sidebar, top menu).    | References `page_version`.                                  | `id` (not null), `order`                          |
 | `user`              | Application users (e.g., admins, editors).                        | Referenced by `page_version` (as `author_id`), `user_role`. | `id` (not null), `username`, `email`              |
 | `role`              | Defines roles (e.g., Admin, Editor).                              | Referenced by `user_role`.                                  | `id` (not null), `role`                           |
-| `user_role`         | Connects users to roles.                                          | References `user` and `role`.                               | `id` (not null)                                  |
+| `user_role`         | Connects users to roles.                                          | References `user` and `role`.                               | `id` (not null)                                   |
 
 In my opinion, a good starting point would be anything Page related (for example, endpoint for CRUD operations with Page, as well as data on PageTemplates and PageLocales)
 
@@ -321,12 +341,10 @@ In my opinion, a good starting point would be anything Page related (for example
 
 Should reference xUnit, Moq nuget packages. Suggestion: you may also use Fixture.
 
-Cover every service in BLL with testcases. 
+Cover every service in BLL with testcases.
 For example, for `PagesService.cs` create `PagesServiceTests.cs`, with testcase for each respective method.
 
-
-
-## Recommendations 
+## Recommendations
 
 Please, use standart C# code conventions:
 https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions
@@ -344,12 +362,11 @@ Contact @maxvonlancaster in case of any issues/questions/suggestions.
 
 Do not worry, be happy 🙂
 
-
-
 ## Additional Suggestions
 
 After discussion with Maksym Lanchevych, some additional points raised:
-- Adding Nuke for build actions 
+
+- Adding Nuke for build actions
 - DbUpdate project for sql migrations: https://dbup.readthedocs.io/en/latest/
 - Adding appsettings.Local.json for local purposes
 - Set up code analysers: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions#tools-and-analyzers

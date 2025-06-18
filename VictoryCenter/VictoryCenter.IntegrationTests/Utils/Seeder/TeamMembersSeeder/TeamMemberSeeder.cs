@@ -17,10 +17,10 @@ internal static class TeamMemberSeeder
                 FirstName = $"FirstName{i}",
                 LastName = $"LastName{i}",
                 MiddleName = $"MiddleName{i}",
-                CategoryId = categories[i % (categories.Count - 2)].Id,
+                CategoryId = categories[i % (categories.Count - 1)].Id,
                 Priority = i + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
-                CreatedAt = new DateTime(2025, 3, 30).AddDays(-i)
+                CreatedAt = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc).AddDays(-i)
             };
             dbContext.TeamMembers.Add(teamMember);
         }

@@ -22,10 +22,13 @@ public class RepositoryBase<T> : IRepositoryBase<T>
     {
         var query = _dbContext.Set<T>().AsNoTracking();
 
-        if (queryOptions is not null)
+        if (queryOptions != null)
         {
-            query = ApplyFilter(query, queryOptions.FilterPredicate);
             query = ApplyInclude(query, queryOptions.Include);
+            query = ApplyFilter(query, queryOptions.Filter);
+            query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
+            query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
+            query = ApplySelector(query, queryOptions.Selector);
         }
 
         return await query.ToListAsync();
@@ -35,10 +38,10 @@ public class RepositoryBase<T> : IRepositoryBase<T>
     {
         var query = _dbContext.Set<T>().AsNoTracking();
 
-        if (queryOptions is not null)
+        if (queryOptions != null)
         {
-            query = ApplyFilter(query, queryOptions.FilterPredicate);
             query = ApplyInclude(query, queryOptions.Include);
+            query = ApplyFilter(query, queryOptions.Filter);
         }
 
         return await query.FirstOrDefaultAsync();
@@ -82,13 +85,51 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return await projected.MaxAsync();
     }
 
-    private IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
+    private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
     {
         return filter is not null ? query.Where(filter) : query;
     }
 
-    private IQueryable<T> ApplyInclude(IQueryable<T> query, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include)
+    private static IQueryable<T> ApplyInclude(IQueryable<T> query, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include)
     {
         return include is not null ? include(query) : query;
+    }
+
+    private static IQueryable<T> ApplyOrdering(
+        IQueryable<T> query,
+        Expression<Func<T, object>>? orderByASC,
+        Expression<Func<T, object>>? orderByDESC)
+    {
+        if (orderByASC != null)
+        {
+            return query.OrderBy(orderByASC);
+        }
+
+        if (orderByDESC != null)
+        {
+            return query.OrderByDescending(orderByDESC);
+        }
+
+        return query;
+    }
+
+    private static IQueryable<T> ApplySelector(IQueryable<T> query, Expression<Func<T, T>>? selector)
+    {
+        return selector != null ? query.Select(selector) : query;
+    }
+
+    private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)
+    {
+        if (offset > 0)
+        {
+            query = query.Skip(offset);
+        }
+
+        if (limit > 0)
+        {
+            query = query.Take(limit);
+        }
+
+        return query;
     }
 }

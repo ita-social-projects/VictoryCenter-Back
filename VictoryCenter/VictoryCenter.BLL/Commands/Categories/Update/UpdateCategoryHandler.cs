@@ -34,7 +34,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
             var categoryEntity =
                 await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
                 {
-                    FilterPredicate = entity => entity.Id == request.updateCategoryDto.Id
+                    Filter = entity => entity.Id == request.updateCategoryDto.Id
                 });
 
             if (categoryEntity is null)

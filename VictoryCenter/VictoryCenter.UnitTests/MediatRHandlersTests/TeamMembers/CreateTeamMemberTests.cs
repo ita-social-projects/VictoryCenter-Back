@@ -53,7 +53,7 @@ public class CreateTeamMemberTests
         LastName = "TestLastName",
         MiddleName = "TestMiddleName",
         Priority = 1,
-        CategoryId = 1,
+        CategoryName = "Name",
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com"

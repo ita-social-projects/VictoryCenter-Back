@@ -13,5 +13,8 @@ public class TeamMembersProfile : Profile
 
         CreateMap<TeamMember, TeamMemberDto>()
             .ReverseMap();
+
+        CreateMap<TeamMember, TeamMemberDto>()
+            .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null));
     }
 }

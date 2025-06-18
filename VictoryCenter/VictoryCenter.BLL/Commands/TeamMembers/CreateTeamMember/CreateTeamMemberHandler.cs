@@ -32,7 +32,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>()
                 {
-                    FilterPredicate = c => c.Id == request.createTeamMemberDto.CategoryId
+                    Filter = c => c.Id == request.createTeamMemberDto.CategoryId
                 });
 
             if (category == null)
@@ -54,6 +54,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             {
                 scope.Complete();
                 TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
+                result.CategoryName = category.Name;
                 return Result.Ok(result);
             }
 
