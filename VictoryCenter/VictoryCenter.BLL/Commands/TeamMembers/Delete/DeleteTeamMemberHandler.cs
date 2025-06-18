@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Commands.TeamMembers;
+namespace VictoryCenter.BLL.Commands.TeamMembers.Delete;
 
 public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, Result<long>>
 {

@@ -1,5 +1,5 @@
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers;
+using VictoryCenter.BLL.Commands.TeamMembers.Delete;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

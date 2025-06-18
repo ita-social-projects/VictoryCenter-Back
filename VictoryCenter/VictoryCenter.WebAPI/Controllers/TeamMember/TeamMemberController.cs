@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.TeamMembers;
+using VictoryCenter.BLL.Commands.TeamMembers.Delete;
 
 namespace VictoryCenter.WebAPI.Controllers.TeamMember;
 
