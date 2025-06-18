@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250608150930_AddedMissedMigration")]
+    [Migration("20250610074421_AddedMissedMigration")]
     partial class AddedMissedMigration
     {
         /// <inheritdoc />

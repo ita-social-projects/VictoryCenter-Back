@@ -21,7 +21,7 @@ public class DeleteTestDataHandler : IRequestHandler<DeleteTestDataCommand, Resu
         {
             var entityToDelete = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(new QueryOptions<TestEntity>
             {
-                FilterPredicate = entity => entity.Id == request.Id
+                Filter = entity => entity.Id == request.Id
             });
 
             if (entityToDelete is null)

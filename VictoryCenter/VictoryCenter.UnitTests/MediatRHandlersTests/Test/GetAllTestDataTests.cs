@@ -12,6 +12,7 @@ public class GetAllTestDataTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+
     private readonly IEnumerable<TestEntity> _testEntities = [new TestEntity()];
     private readonly IEnumerable<TestDataDto> _testDataDtos = [new TestDataDto() { TestName = "TestName" }];
 
