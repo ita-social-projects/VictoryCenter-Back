@@ -20,7 +20,7 @@ internal static class TeamMemberSeeder
                 CategoryId = categories[i % (categories.Count - 2)].Id,
                 Priority = i + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
-                CreatedAt = new DateTime(2025, 2, 30 - i)
+                CreatedAt = new DateTime(2025, 3, 30).AddDays(-i)
             };
             dbContext.TeamMembers.Add(teamMember);
         }
