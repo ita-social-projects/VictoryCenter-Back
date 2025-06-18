@@ -42,14 +42,8 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 return Result.Fail<TeamMemberDto>("Not found");
             }
 
-            teamMemberEntity.FirstName = request.updateTeamMemberDto.FirstName;
-            teamMemberEntity.LastName = request.updateTeamMemberDto.LastName;
-            teamMemberEntity.MiddleName = request.updateTeamMemberDto.MiddleName;
-            teamMemberEntity.Description = request.updateTeamMemberDto.Description;
-            teamMemberEntity.Status = request.updateTeamMemberDto.Status;
-            teamMemberEntity.Photo = request.updateTeamMemberDto.Photo;
-            teamMemberEntity.Priority = request.updateTeamMemberDto.Order;
-            teamMemberEntity.CategoryId = request.updateTeamMemberDto.Category.Id;
+            var entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
+            entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
 
             _repositoryWrapper.TeamMemberRepository.Update(teamMemberEntity);
 
