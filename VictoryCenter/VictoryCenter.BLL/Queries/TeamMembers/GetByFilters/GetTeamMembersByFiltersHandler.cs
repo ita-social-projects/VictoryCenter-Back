@@ -34,6 +34,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             Limit = request.TeamMembersFilter.Limit > 0 ? request.TeamMembersFilter.Limit : 0,
             Filter = filter,
             Include = t => t.Include(t => t.Category),
+            OrderByASC = t => t.Priority,
         };
 
         var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);

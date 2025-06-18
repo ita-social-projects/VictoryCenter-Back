@@ -22,7 +22,8 @@ public class GetTeamMembers
 
     [Theory]
     [InlineData(0, 0)]
-    [InlineData(0, 2)]
+    [InlineData(0, 4)]
+    [InlineData(0, 3)]
     [InlineData(1, 2)]
     public async Task ShouldReturnSuccessfully_NoFilters(int pageNumber, int pageSize)
     {
@@ -39,8 +40,7 @@ public class GetTeamMembers
 
         var filtersDto = new TeamMembersFilterDto
         {
-            Offset
-            = pageNumber,
+            Offset = pageNumber,
             Limit = pageSize,
             Status = null,
             CategoryName = null
@@ -173,8 +173,8 @@ public class GetTeamMembers
         {
             new()
             {
-                Id = 1,
-                Priority = 1,
+                Id = 4,
+                Priority = 3,
                 Status = Status.Draft,
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
@@ -190,26 +190,26 @@ public class GetTeamMembers
             new()
             {
                 Id = 3,
-                Priority = 3,
+                Priority = 1,
                 Status = Status.Published,
-                CategoryId = 1,
-                Category = new Category { Id = 1, Name = "Category 1" }
-            },
-            new()
-            {
-                Id = 4,
-                Priority = 4,
-                Status = Status.Draft,
                 CategoryId = 1,
                 Category = new Category { Id = 1, Name = "Category 1" }
             },
             new()
             {
                 Id = 5,
-                Priority = 5,
+                Priority = 2,
                 Status = Status.Published,
                 CategoryId = 2,
                 Category = new Category { Id = 2, Name = "Category 2" }
+            },
+            new()
+            {
+                Id = 1,
+                Priority = 1,
+                Status = Status.Draft,
+                CategoryId = 1,
+                Category = new Category { Id = 1, Name = "Category 1" }
             },
         };
 
@@ -229,6 +229,13 @@ public class GetTeamMembers
             },
             new()
             {
+                Id = 3,
+                Priority = 1,
+                Status = Status.Published,
+                CategoryName = "Category 1"
+            },
+            new()
+            {
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
@@ -236,24 +243,17 @@ public class GetTeamMembers
             },
             new()
             {
-                Id = 3,
-                Priority = 3,
+                Id = 5,
+                Priority = 2,
                 Status = Status.Published,
-                CategoryName = "Category 1"
+                CategoryName = "Category 2"
             },
             new()
             {
                 Id = 4,
-                Priority = 4,
+                Priority = 3,
                 Status = Status.Draft,
                 CategoryName = "Category 1"
-            },
-            new()
-            {
-                Id = 5,
-                Priority = 5,
-                Status = Status.Published,
-                CategoryName = "Category 2"
             },
         };
 
