@@ -3,9 +3,9 @@ using VictoryCenter.BLL.Commands.TeamMembers.Update;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;
 
-public class UpdateCategoryValidator : AbstractValidator<UpdateTeamMemberCommand>
+public class UpdateTeamMemberValidator : AbstractValidator<UpdateTeamMemberCommand>
 {
-    public UpdateCategoryValidator()
+    public UpdateTeamMemberValidator()
     {
         RuleFor(command => command.updateTeamMemberDto.FirstName)
             .NotEmpty()

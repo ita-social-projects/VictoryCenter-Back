@@ -75,18 +75,18 @@ public class UpdateCategoryTests
     [InlineData(" ")]
     public async Task Handle_ShouldNotUpdateEntity_IncorrectName(string? testName)
     {
-        _testUpdatedCategoryDto.Name = testName;
-        _testUpdatedCategory.Name = testName;
+        _testUpdatedCategoryDto.Name = testName ?? string.Empty;
+        _testUpdatedCategory.Name = testName ?? string.Empty;
         SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
             new UpdateCategoryCommand(new UpdateCategoryDto
-        {
-            Id = _testExistingCategory.Id,
-            Name = testName,
-            Description = "Updated Description",
-        }), CancellationToken.None);
+            {
+                Id = _testExistingCategory.Id,
+                Name = testName ?? string.Empty,
+                Description = "Updated Description",
+            }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
