@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Transactions;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
@@ -33,34 +34,32 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 return Result.Fail<TeamMemberDto>("There are no categories with this id");
             }
 
-            var entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
-            using var scope = _repositoryWrapper.BeginTransaction();
+            TeamMember? entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
+            using TransactionScope scope = _repositoryWrapper.BeginTransaction();
 
             entity.CreatedAt = DateTime.UtcNow;
-            var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync<long>(
-                    u => u.Priority,
-                    u => u.CategoryId == entity.CategoryId);
+            var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
+                u => u.Priority,
+                u => u.CategoryId == entity.CategoryId);
             entity.Priority = (maxPriority ?? 0) + 1;
             await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
                 scope.Complete();
-                var result = _mapper.Map<TeamMemberDto>(entity);
+                TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
                 return Result.Ok(result);
             }
-            else
-            {
-                return Result.Fail<TeamMemberDto>("Failed to create new TeamMember");
-            }
+
+            return Result.Fail<TeamMemberDto>("Failed to create new TeamMember");
+        }
+        catch (ValidationException vex)
+        {
+            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException ex)
         {
             return Result.Fail<TeamMemberDto>("Fail to create new team member in database:" + ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return Result.Fail<TeamMemberDto>(ex.Message);
         }
     }
 }

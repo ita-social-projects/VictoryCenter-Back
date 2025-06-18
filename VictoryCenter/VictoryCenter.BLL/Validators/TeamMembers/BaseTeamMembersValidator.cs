@@ -12,11 +12,11 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     public BaseTeamMembersValidator()
     {
         RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("This field is required")
+            .NotEmpty().WithMessage("FirstName field is required")
             .MinimumLength(NameMinLength).WithMessage($"First name must be at least {NameMinLength} characters long")
             .MaximumLength(NameMaxLength).WithMessage($"First name must be no longer than {NameMaxLength} characters");
         RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("This field is required")
+            .NotEmpty().WithMessage("LastName field is required")
             .MinimumLength(NameMinLength).WithMessage($"Last name must be at least {NameMinLength} characters long")
             .MaximumLength(NameMaxLength).WithMessage($"Last name must be no longer than {NameMaxLength} characters");
         RuleFor(x => x.CategoryId)

@@ -1,5 +1,10 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using System.Transactions;
+using AutoMapper;
+using FluentResults;
 using FluentValidation;
+using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
 using VictoryCenter.BLL.DTOs.TeamMembers;
@@ -15,7 +20,7 @@ public class CreateTeamMemberTests
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<CreateTeamMemberCommand>> _validator;
 
-    private readonly CreateTeamMemberDto _createTeamMemberDto = new CreateTeamMemberDto()
+    private readonly CreateTeamMemberDto _createTeamMemberDto = new()
     {
         FirstName = "TestName",
         LastName = "TestLastName",
@@ -23,23 +28,10 @@ public class CreateTeamMemberTests
         CategoryId = 1,
         Status = Status.Draft,
         Description = "Long description",
-        Email = "Test@gmail.com",
+        Email = "Test@gmail.com"
     };
 
-    private readonly TeamMemberDto _teamMemberDto = new TeamMemberDto()
-    {
-        Id = 1,
-        FirstName = "TestName",
-        LastName = "TestLastName",
-        MiddleName = "TestMiddleName",
-        Priority = 1,
-        CategoryId = 1,
-        Status = Status.Draft,
-        Description = "Long description",
-        Email = "Test@gmail.com",
-    };
-
-    private readonly TeamMember _teamMember = new TeamMember()
+    private readonly TeamMember _teamMember = new()
     {
         Id = 1,
         FirstName = "TestName",
@@ -53,6 +45,26 @@ public class CreateTeamMemberTests
         CreatedAt = new DateTime(2025, 10, 10)
     };
 
+    private readonly TeamMemberDto _teamMemberDto = new()
+    {
+        Id = 1,
+        FirstName = "TestName",
+        LastName = "TestLastName",
+        MiddleName = "TestMiddleName",
+        Priority = 1,
+        CategoryId = 1,
+        Status = Status.Draft,
+        Description = "Long description",
+        Email = "Test@gmail.com"
+    };
+
+    private readonly Category _category = new()
+    {
+        Id = 1,
+        Name = "Test",
+        CreatedAt = new DateTime(2025, 10, 10)
+    };
+
     public CreateTeamMemberTests()
     {
         _validator = new Mock<IValidator<CreateTeamMemberCommand>>();
@@ -63,10 +75,11 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnTeamMemberDto_WhenCreationIsValid()
     {
-        SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, 1 );
+        SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, 1);
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
-        var result = await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
+        Result<TeamMemberDto> result =
+            await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -76,35 +89,47 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
     {
-        string failMessage = "Failed to create new TeamMember";
+        var failMessage = "Failed to create new TeamMember";
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, -1);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
-        var result = await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
+        Result<TeamMemberDto> result =
+            await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(failMessage, result.Errors[0].Message );
+        Assert.Equal(failMessage, result.Errors[0].Message);
     }
 
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenExceptionThrown()
     {
-        string testMessage = "test message";
+        var testMessage = "test message";
         SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);
         _repositoryWrapperMock
             .Setup(repositoryWrapperMock =>
                 repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>()))
-            .ThrowsAsync(new Exception(testMessage));
+            .ThrowsAsync(new DbUpdateException(testMessage));
+        _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
+            .ReturnsAsync(0L);
+
+        _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        _repositoryWrapperMock
+            .Setup(repositoryWrapper =>
+                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(_category);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
 
-        var result = await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
+        Result<TeamMemberDto> result =
+            await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(testMessage, result.Errors[0].Message);
+        Assert.Equal("Fail to create new team member in database:" + testMessage, result.Errors[0].Message);
     }
 
     private void SetupDependencies(CreateTeamMemberDto createMember, TeamMemberDto memberDto, TeamMember member, int isSuccess)
@@ -123,7 +148,7 @@ public class CreateTeamMemberTests
     private void SetupValidator()
     {
         _validator.Setup(v => v.ValidateAsync(It.IsAny<CreateTeamMemberCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+            .ReturnsAsync(new ValidationResult());
     }
 
     private void SetupRepositoryWrapper(TeamMember teamMember, int isSuccess)
@@ -132,7 +157,18 @@ public class CreateTeamMemberTests
                 .CreateAsync(It.IsAny<TeamMember>()))
             .ReturnsAsync(teamMember);
 
+        _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
+            .ReturnsAsync(0L);
+
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.SaveChangesAsync())
             .ReturnsAsync(isSuccess);
+
+        _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        _repositoryWrapperMock
+            .Setup(repositoryWrapper =>
+                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                    It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(_category);
     }
 }

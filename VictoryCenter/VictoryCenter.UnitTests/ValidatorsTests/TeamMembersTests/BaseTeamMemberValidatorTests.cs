@@ -20,7 +20,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FirstName = "", LastName = "Test", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage("This field is required");
+            .WithErrorMessage("FirstName field is required");
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FirstName = "John", LastName = "", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.LastName)
-            .WithErrorMessage("This field is required");
+            .WithErrorMessage("LastName field is required");
     }
 
     [Fact]
