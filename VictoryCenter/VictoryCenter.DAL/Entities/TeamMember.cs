@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using VictoryCenter.DAL.Enums;
+﻿using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
@@ -22,7 +20,9 @@ public class TeamMember
 
     public string? Description { get; set; }
 
+#pragma warning disable SA1011
     public byte[]? Photo { get; set; }
+#pragma warning restore SA1011
 
     public string? Email { get; set; }
 

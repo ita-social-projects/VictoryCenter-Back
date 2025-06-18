@@ -7,7 +7,8 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Test;
 
 public class TestRepository : RepositoryBase<TestEntity>, ITestRepository
 {
-    public TestRepository(VictoryCenterDbContext context) : base(context)
+    public TestRepository(VictoryCenterDbContext context)
+        : base(context)
     {
     }
 }

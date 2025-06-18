@@ -1,38 +1,36 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests;
 
-public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFactory<Program>>
+[Collection("SharedIntegrationTests")]
+public class TestControllerTests
 {
     private readonly HttpClient _client;
-    private readonly IServiceScope _scope;
     private readonly VictoryCenterDbContext _dbContext;
 
-    public TestControllerTests(VictoryCenterWebApplicationFactory<Program> factory)
+    public TestControllerTests(IntegrationTestDbFixture fixture)
     {
-        _client = factory.CreateClient();
-        _scope = factory.Services.CreateScope();
-        _dbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        _client = fixture.HttpClient;
+        _dbContext = fixture.DbContext;
     }
 
     [Fact]
     public async Task GetAllTestData_ShouldReturnOk()
     {
-        var response = await _client.GetAsync("/api/Test/GetAllTestData");
+        var response = await _client.GetAsync("/api/Test");
         var responseString = await response.Content.ReadAsStringAsync();
-        
+
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
         var responseContent = JsonSerializer.Deserialize<IEnumerable<TestDataDto>>(responseString, options);
-        
+
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
@@ -42,16 +40,16 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task GetTestDataById_ShouldReturnOk()
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
-        
-        var response = await _client.GetAsync($"/api/Test/GetTestData/{existingEntity!.Id}");
+
+        var response = await _client.GetAsync($"/api/Test/{existingEntity!.Id}");
         var responseString = await response.Content.ReadAsStringAsync();
-        
+
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
         var responseContent = JsonSerializer.Deserialize<TestDataDto>(responseString, options);
-        
+
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
     }
@@ -59,8 +57,8 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     [Fact]
     public async Task GetTestDataById_ShouldFail_NotFound()
     {
-        var response = await _client.GetAsync($"/api/Test/GetTestData/{-1}");
-        
+        var response = await _client.GetAsync($"/api/Test/{-1}");
+
         Assert.False(response.IsSuccessStatusCode);
     }
 
@@ -69,10 +67,10 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     {
         var createTestDataDto = new CreateTestDataDto() { TestName = "CreateTestName" };
         var serializedDto = JsonSerializer.Serialize(createTestDataDto);
-        
-        var response = await _client.PostAsync("/api/Test/CreateTestData", new StringContent(
+
+        var response = await _client.PostAsync("/api/Test", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
@@ -80,24 +78,24 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task UpdateTestData_ShouldReturnOk()
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
-        var updateTestDataDto = new UpdateTestDataDto() { Id = existingEntity!.Id, TestName = "UpdateTestName" };
+        var updateTestDataDto = new UpdateTestDataDto { Id = existingEntity!.Id, TestName = "UpdateTestName" };
         var serializedDto = JsonSerializer.Serialize(updateTestDataDto);
-        
-        var response = await _client.PutAsync("/api/Test/UpdateTestData", new StringContent(
+
+        var response = await _client.PutAsync("/api/Test", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
     [Fact]
     public async Task UpdateTestData_ShouldFail_NotFound()
     {
-        var updateTestDataDto = new UpdateTestDataDto() { Id = -1, TestName = "UpdateTestName" };
+        var updateTestDataDto = new UpdateTestDataDto { Id = -1, TestName = "UpdateTestName" };
         var serializedDto = JsonSerializer.Serialize(updateTestDataDto);
-        
-        var response = await _client.PutAsync("/api/Test/UpdateTestData", new StringContent(
+
+        var response = await _client.PutAsync("/api/Test", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        
+
         Assert.False(response.IsSuccessStatusCode);
     }
 
@@ -105,17 +103,17 @@ public class TestControllerTests : IClassFixture<VictoryCenterWebApplicationFact
     public async Task DeleteTestData_ShouldReturnOk()
     {
         var existingEntity = await _dbContext.TestEntities.FirstOrDefaultAsync();
-        
-        var response = await _client.DeleteAsync($"/api/Test/DeleteTestData/{existingEntity!.Id}");
-        
+
+        var response = await _client.DeleteAsync($"/api/Test/{existingEntity!.Id}");
+
         Assert.True(response.IsSuccessStatusCode);
     }
 
     [Fact]
     public async Task DeleteTestData_ShouldFail_NotFound()
     {
-        var response = await _client.DeleteAsync($"/api/Test/DeleteTestData/{-1}");
-        
+        var response = await _client.DeleteAsync($"/api/Test/{-1}");
+
         Assert.False(response.IsSuccessStatusCode);
     }
 }

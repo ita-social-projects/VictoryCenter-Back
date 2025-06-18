@@ -4,6 +4,7 @@ using MediatR;
 using VictoryCenter.BLL.DTOs.Test;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Test.UpdateTestData;
 
@@ -17,17 +18,21 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
-    
+
     public async Task<Result<TestDataDto>> Handle(UpdateTestDataCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var existingEntity = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(entity => entity.Id == request.UpdateTestData.Id);
+            var existingEntity = await _repositoryWrapper.TestRepository.GetFirstOrDefaultAsync(new QueryOptions<TestEntity>
+            {
+                FilterPredicate = entity => entity.Id == request.UpdateTestData.Id
+            });
+
             if (existingEntity is null)
             {
                 return Result.Fail("Entity not found");
             }
-            
+
             var testEntity = _mapper.Map<TestEntity>(request.UpdateTestData);
             _repositoryWrapper.TestRepository.Update(testEntity);
 
@@ -36,6 +41,7 @@ public class UpdateTestDataHandler : IRequestHandler<UpdateTestDataCommand, Resu
                 var testDataDto = _mapper.Map<TestDataDto>(testEntity);
                 return Result.Ok(testDataDto);
             }
+
             return Result.Fail("Failed to update test data");
         }
         catch (Exception ex)
