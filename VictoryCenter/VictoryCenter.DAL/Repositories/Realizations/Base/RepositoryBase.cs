@@ -63,6 +63,23 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         _dbContext.Set<T>().Remove(entity);
     }
 
+    public async Task<TKey?> MaxAsync<TKey>(
+        Expression<Func<T, TKey>> selector,
+        Expression<Func<T, bool>>? filter = null)
+        where TKey : struct
+    {
+        var query = _dbContext.Set<T>().AsNoTracking();
+
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
+
+        var projected = query.Select(selector);
+
+        return await projected.DefaultIfEmpty().MaxAsync();
+    }
+
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
     {
         return filter is not null ? query.Where(filter) : query;
