@@ -50,6 +50,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
                 var memberId = orderedIds[i];
                 var member = reorderedMembers.First(m => m.Id == memberId);
                 member.Priority = i;
+                _repositoryWrapper.TeamMembersRepository.Update(member);
             }
 
             // Assign subsequent priority values to the remaining members
@@ -57,6 +58,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             foreach (var member in unchangedMembers.OrderBy(m => m.Priority)) // Preserving original order
             {
                 member.Priority = nextPosition++;
+                _repositoryWrapper.TeamMembersRepository.Update(member);
             }
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
