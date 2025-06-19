@@ -26,13 +26,14 @@ var loggerFactory = LoggerFactory.Create(builder =>
 });
 
 var optionsBuilder = new DbContextOptionsBuilder<VictoryCenterDbContext>();
+
 optionsBuilder
     .UseSqlServer(connectionString)
     .UseLoggerFactory(loggerFactory);
 
 try
 {
-using var context = new VictoryCenterDbContext(optionsBuilder.Options);
+    using var context = new VictoryCenterDbContext(optionsBuilder.Options);
     await context.Database.MigrateAsync();
 }
 catch (Exception ex)
