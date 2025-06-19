@@ -54,7 +54,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             {
                 scope.Complete();
                 TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
-                result.CategoryName = category.Name;
+                result.CategoryId = category.Id;
                 return Result.Ok(result);
             }
 

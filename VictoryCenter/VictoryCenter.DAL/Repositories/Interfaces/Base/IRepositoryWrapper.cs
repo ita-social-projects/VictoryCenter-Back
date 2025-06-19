@@ -10,7 +10,7 @@ public interface IRepositoryWrapper
 {
     ICategoriesRepository CategoriesRepository { get; }
     ITestRepository TestRepository { get; }
-    ITeamMemberRepository TeamMemberRepository { get; }
+    ITeamMembersRepository TeamMembersRepository { get; }
 
     int SaveChanges();
 

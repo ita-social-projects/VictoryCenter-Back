@@ -18,9 +18,9 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
     public async Task<Result<long>> Handle(DeleteTeamMemberCommand request, CancellationToken cancellationToken)
     {
         var entityToDelete =
-            await _repositoryWrapper.TeamMemberRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+            await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
             {
-                FilterPredicate = entity => entity.Id == request.Id,
+                Filter = entity => entity.Id == request.Id
             });
 
         if (entityToDelete is null)
@@ -30,7 +30,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
 
         entityToDelete.Category = null!; // Clear the reference to the Category to avoid foreign key constraint issues
 
-        _repositoryWrapper.TeamMemberRepository.Delete(entityToDelete);
+        _repositoryWrapper.TeamMembersRepository.Delete(entityToDelete);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {

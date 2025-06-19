@@ -32,9 +32,9 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var teamMemberEntity =
-                await _repositoryWrapper.TeamMemberRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+                await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
                 {
-                    FilterPredicate = entity => entity.Id == request.updateTeamMemberDto.Id
+                    Filter = entity => entity.Id == request.updateTeamMemberDto.Id
                 });
 
             if (teamMemberEntity is null)
@@ -45,7 +45,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             var entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
 
-            _repositoryWrapper.TeamMemberRepository.Update(entityToUpdate);
+            _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
