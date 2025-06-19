@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.TeamMembers;
@@ -6,24 +7,24 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers;
+namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Create;
 
 [Collection("SharedIntegrationTests")]
-public class TeamMemberControllerTests
+public class CreateTeamMemberTest
 {
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
 
-    public TeamMemberControllerTests(IntegrationTestDbFixture fixture)
+    public CreateTeamMemberTest(IntegrationTestDbFixture fixture)
     {
         _client = fixture.HttpClient;
         _dbContext = fixture.DbContext;
     }
 
     [Fact]
-    public async Task UpdateTestData_ShouldReturnOk()
+    public async Task CreateTeamMember_ShouldReturnOk()
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Test name1");
+        var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "TestName",
@@ -40,13 +41,13 @@ public class TeamMemberControllerTests
         var response = await _client.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.IsSuccessStatusCode);
     }
 
     [Fact]
-    public async Task UpdateTestData_ShouldFail_InvalidCategoryId()
+    public async Task CreateTeamMember_ShouldFail_InvalidCategoryId()
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Test name1");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "TestName",
@@ -62,14 +63,14 @@ public class TeamMemberControllerTests
 
         var response = await _client.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.False(response.IsSuccessStatusCode);
     }
 
     [Fact]
-    public async Task UpdateTestData_ShouldFail_InvalidFirstNameLength()
+    public async Task CreateTeamMember_ShouldFail_InvalidFirstNameLength()
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync(x => x.Name == "Test name1");
+        var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "A",
@@ -85,6 +86,8 @@ public class TeamMemberControllerTests
 
         var response = await _client.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.False(response.IsSuccessStatusCode);
     }
 }

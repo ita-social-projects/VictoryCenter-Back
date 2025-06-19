@@ -25,7 +25,7 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
             .IsInEnum().WithMessage("Unknown status value");
         RuleFor(x => x.Description)
             .MaximumLength(DescriptionNameMaxLength)
-            .WithMessage($"the description length cannot exceed {DescriptionNameMaxLength} characters");
+            .WithMessage($"The description length cannot exceed {DescriptionNameMaxLength} characters");
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage("Description is required for publishing")
             .When(x => x.Status == Status.Published);

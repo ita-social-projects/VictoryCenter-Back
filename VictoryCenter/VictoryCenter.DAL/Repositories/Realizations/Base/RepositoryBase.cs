@@ -77,12 +77,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
         var projected = query.Select(selector);
 
-        if (!await projected.AnyAsync())
-        {
-            return null;
-        }
-
-        return await projected.MaxAsync();
+        return await projected.DefaultIfEmpty().MaxAsync();
     }
 
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)

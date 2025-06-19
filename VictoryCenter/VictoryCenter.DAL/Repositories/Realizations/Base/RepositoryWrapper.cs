@@ -15,7 +15,6 @@ public class RepositoryWrapper : IRepositoryWrapper
     private readonly VictoryCenterDbContext _victoryCenterDbContext;
 
     private ITestRepository? _testRepository;
-
     private ICategoriesRepository? _categoriesRepository;
     private ITeamMembersRepository? _teamMembersRepository;
 

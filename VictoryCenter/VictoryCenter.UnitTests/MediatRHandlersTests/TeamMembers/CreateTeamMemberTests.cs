@@ -43,7 +43,7 @@ public class CreateTeamMemberTests
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com",
-        CreatedAt = new DateTime(2025, 10, 10)
+        CreatedAt = DateTime.UtcNow.AddMinutes(-10)
     };
 
     private readonly TeamMemberDto _teamMemberDto = new()
@@ -63,7 +63,7 @@ public class CreateTeamMemberTests
     {
         Id = 1,
         Name = "Test",
-        CreatedAt = new DateTime(2025, 10, 10)
+        CreatedAt = DateTime.UtcNow.AddMinutes(-10)
     };
 
     public CreateTeamMemberTests()

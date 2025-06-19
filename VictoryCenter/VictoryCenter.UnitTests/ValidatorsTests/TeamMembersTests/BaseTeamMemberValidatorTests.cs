@@ -89,7 +89,7 @@ public class BaseTeamMembersValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage("the description length cannot exceed 200 characters");
+            .WithErrorMessage("The description length cannot exceed 200 characters");
     }
 
     [Fact]

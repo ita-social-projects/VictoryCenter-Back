@@ -8,11 +8,9 @@ public class TeamMembersProfile : Profile
 {
     public TeamMembersProfile()
     {
-        CreateMap<CreateTeamMemberDto, TeamMember>()
-            .ReverseMap();
+        CreateMap<CreateTeamMemberDto, TeamMember>();
 
-        CreateMap<TeamMember, TeamMemberDto>()
-            .ReverseMap();
+        CreateMap<TeamMember, TeamMemberDto>();
 
         CreateMap<TeamMember, TeamMemberDto>()
             .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null));
