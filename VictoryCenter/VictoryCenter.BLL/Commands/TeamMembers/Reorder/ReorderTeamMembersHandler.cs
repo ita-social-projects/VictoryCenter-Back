@@ -1,6 +1,7 @@
 ﻿using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -58,9 +59,12 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
                 member.Priority = nextPosition++;
             }
 
-            await _repositoryWrapper.SaveChangesAsync();
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok();
+            }
 
-            return Result.Ok();
+            return Result.Fail<Unit>("Failed to update TeamMembers order");
         }
         catch (ValidationException ex)
         {
