@@ -6,13 +6,15 @@ using VictoryCenter.DAL.Data;
 var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Local";
 
 var config = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
+    .SetBasePath(AppContext.BaseDirectory)
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
     .AddEnvironmentVariables("VICTORYCENTER_")
     .Build();
 
-var connectionString = config.GetConnectionString("DefaultConnection");
+var connectionString = config.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'DefaultConnection' was not found.");
 
 Console.WriteLine($"Using connection string: {connectionString}");
 
@@ -28,6 +30,13 @@ optionsBuilder
     .UseSqlServer(connectionString)
     .UseLoggerFactory(loggerFactory);
 
-using var context = new VictoryCenterDbContext(optionsBuilder.Options);
-
-context.Database.Migrate();
+try
+{
+    using var context = new VictoryCenterDbContext(optionsBuilder.Options);
+    context.Database.Migrate();
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine($"Migration failed: {ex}");
+    Environment.ExitCode = 1;
+}
