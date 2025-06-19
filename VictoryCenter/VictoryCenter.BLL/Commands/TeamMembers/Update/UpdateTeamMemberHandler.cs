@@ -45,11 +45,11 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             var entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
 
-            _repositoryWrapper.TeamMemberRepository.Update(teamMemberEntity);
+            _repositoryWrapper.TeamMemberRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(teamMemberEntity);
+                var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }
 

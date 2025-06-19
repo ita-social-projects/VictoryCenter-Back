@@ -36,7 +36,6 @@ public class UpdateTeamMemberTests
     public async Task UpdateTeamMember_ShouldUpdateTeamMember(string? testDescription)
     {
         var existingEntity = await _dbContext.TeamMembers
-            .Include(tm => tm.Category)
             .FirstOrDefaultAsync();
 
         // Check if existingEntity is null
@@ -87,7 +86,7 @@ public class UpdateTeamMemberTests
             Status = existingEntity.Status,
             Description = existingEntity.Description,
             Photo = existingEntity.Photo,
-            Email = existingEntity.Email,
+            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -122,7 +121,7 @@ public class UpdateTeamMemberTests
             Status = existingEntity.Status,
             Description = "Test Description",
             Photo = existingEntity.Photo,
-            Email = existingEntity.Email,
+            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -148,7 +147,7 @@ public class UpdateTeamMemberTests
             Status = Status.Published,
             Description = "Test Description",
             Photo = null,
-            Email = "test@email.com",
+            Email = "test@email.com"
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 

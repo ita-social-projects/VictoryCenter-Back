@@ -13,7 +13,7 @@ internal static class TeamMembersDataSeeder
             FirstName = "John",
             LastName = "Doe",
             MiddleName = "A.",
-            CategoryId = 1,
+            CategoryId = 2,
             Priority = 1,
             Status = Status.Published,
             Description = "First test team member",
