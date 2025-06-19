@@ -10,7 +10,7 @@ public class ReorderTeamMembersValidatorTests
     private readonly ReorderTeamMembersValidator _validator = new();
 
     [Fact]
-    public void Validate_ShouldNotHaveError_When_InputIsValid()
+    public void Validate_ValidCommand_ShouldNotHaveErrors()
     {
         // Arrange
         var dto = new ReorderTeamMembersDto
@@ -28,7 +28,7 @@ public class ReorderTeamMembersValidatorTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public void Validate_ShouldHaveError_When_CategoryId_IsNotValid(long categoryId)
+    public void Validate_CategoryIdIsNotPositive_ShouldHaveError(long categoryId)
     {
         var dto = new ReorderTeamMembersDto
         {
@@ -42,7 +42,7 @@ public class ReorderTeamMembersValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_When_OrderedIds_IsNull()
+    public void Validate_OrderedIdsIsNull_ShouldHaveError()
     {
         var dto = new ReorderTeamMembersDto
         {
@@ -56,7 +56,7 @@ public class ReorderTeamMembersValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_When_OrderedIds_IsEmpty()
+    public void Validate_OrderedIdsIsEmpty_ShouldHaveError()
     {
         var dto = new ReorderTeamMembersDto
         {
@@ -70,7 +70,7 @@ public class ReorderTeamMembersValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_When_OrderedIds_ContainsDuplicates()
+    public void Validate_OrderedIdsContainsDuplicates_ShouldHaveError()
     {
         var dto = new ReorderTeamMembersDto
         {
@@ -86,7 +86,7 @@ public class ReorderTeamMembersValidatorTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public void Validate_ShouldHaveError_When_OrderedIds_ContainsInvalidId(long memberId)
+    public void Validate_OrderedIdsContainInvalidId_ShouldHaveError(long memberId)
     {
         var dto = new ReorderTeamMembersDto
         {
