@@ -9,6 +9,7 @@ internal static class IntegrationTestsDatabaseSeeder
 {
     public static void SeedData(VictoryCenterDbContext dbContext)
     {
+        TeamMembersDataSeeder.SeedData(dbContext);
         TestDataSeeder.SeedData(dbContext);
         CategoriesDataSeeder.SeedData(dbContext);
         TeamMemberSeeder.SeedData(dbContext, dbContext.Categories.ToList());
