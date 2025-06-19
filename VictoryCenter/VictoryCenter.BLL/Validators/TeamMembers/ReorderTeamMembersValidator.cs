@@ -12,6 +12,7 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
             .WithMessage("CategoryId must be greater than 0");
 
         RuleFor(x => x.ReorderTeamMembersDto.OrderedIds)
+            .Cascade(CascadeMode.Stop)
             .NotNull()
             .WithMessage("OrderedIds must be provided")
             .Must(ids => ids.Count > 0)
