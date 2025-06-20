@@ -5,10 +5,8 @@ namespace VictoryCenter.BLL.Validators.TeamMembers;
 
 public class UpdateTeamMemberValidator : AbstractValidator<UpdateTeamMemberCommand>
 {
-    public UpdateTeamMemberValidator()
+    public UpdateTeamMemberValidator(BaseTeamMembersValidator baseTeamMembersValidator)
     {
-        RuleFor(command => command.updateTeamMemberDto.FirstName)
-            .NotEmpty()
-            .WithMessage("Name can't be empty");
+        RuleFor(c => c.updateTeamMemberDto).SetValidator(baseTeamMembersValidator);
     }
 }

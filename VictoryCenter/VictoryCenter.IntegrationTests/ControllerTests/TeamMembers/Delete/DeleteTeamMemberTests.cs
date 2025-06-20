@@ -22,10 +22,14 @@ public class DeleteTeamMemberTests
     {
         var existingEntity = await _dbContext.TeamMembers.FirstOrDefaultAsync();
 
-        var response = await _httpClient.DeleteAsync($"api/teammember/{existingEntity!.Id}");
+        if (existingEntity == null)
+        {
+            throw new InvalidOperationException("No TeamMember entity exists in the database.");
+        }
 
+        var response = await _httpClient.DeleteAsync($"/api/TeamMembers/{existingEntity.Id}");
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await _dbContext.TeamMembers.FirstOrDefaultAsync(e => e.Id == existingEntity!.Id));
+        Assert.Null(await _dbContext.TeamMembers.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]
@@ -33,8 +37,7 @@ public class DeleteTeamMemberTests
     [InlineData(0)]
     public async Task DeleteTeamMember_ShouldNotDeleteTeamMember_NotFound(long testId)
     {
-        var response = await _httpClient.DeleteAsync($"api/teammember/{testId}");
-
+        var response = await _httpClient.DeleteAsync($"/api/TeamMembers/{testId}");
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

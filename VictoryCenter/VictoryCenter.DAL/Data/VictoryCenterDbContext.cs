@@ -66,6 +66,11 @@ public class VictoryCenterDbContext : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
+
+            entity.HasMany(e => e.TeamMembers)
+                .WithOne(e => e.Category)
+                .HasForeignKey(e => e.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<TeamMember>(entity =>
@@ -103,10 +108,6 @@ public class VictoryCenterDbContext : DbContext
 
             entity.HasIndex(e => new { e.CategoryId, e.Priority })
                 .IsUnique();
-            entity.HasOne(e => e.Category)
-               .WithMany(e => e.TeamMembers)
-               .HasForeignKey(e => e.CategoryId)
-               .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

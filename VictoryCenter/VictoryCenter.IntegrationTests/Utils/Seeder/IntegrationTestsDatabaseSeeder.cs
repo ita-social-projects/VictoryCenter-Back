@@ -9,7 +9,6 @@ internal static class IntegrationTestsDatabaseSeeder
 {
     public static void SeedData(VictoryCenterDbContext dbContext)
     {
-        TeamMembersDataSeeder.SeedData(dbContext);
         TestDataSeeder.SeedData(dbContext);
         CategoriesDataSeeder.SeedData(dbContext);
         TeamMemberSeeder.SeedData(dbContext, dbContext.Categories.ToList());
@@ -18,8 +17,7 @@ internal static class IntegrationTestsDatabaseSeeder
     public static async Task DeleteExistingData(VictoryCenterDbContext dbContext)
     {
         dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
-        dbContext.SaveChanges();
-        await Task.Delay(100); // Ensure the deletion is processed
+        await dbContext.SaveChangesAsync();
         dbContext.Categories.RemoveRange(dbContext.Categories);
         dbContext.TestEntities.RemoveRange(dbContext.TestEntities);
         dbContext.SaveChanges();

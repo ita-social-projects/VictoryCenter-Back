@@ -69,7 +69,7 @@ public class DeleteTeamMemeberTests
 
     private void SetupRepositoryWrapper(TeamMember? entityToDelete = null, int saveResult = 1)
     {
-        _mockRepositoryWrapper.Setup(x => x.TeamMemberRepository.GetFirstOrDefaultAsync(
+        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(entityToDelete);
 
