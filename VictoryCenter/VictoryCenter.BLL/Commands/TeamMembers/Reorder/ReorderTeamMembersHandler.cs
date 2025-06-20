@@ -1,10 +1,7 @@
 ﻿using FluentResults;
 using FluentValidation;
 using MediatR;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.TeamMembers.Reorder;
 
@@ -30,15 +27,19 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
             var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
-            var allCategoryMembers = await GetAllMembersInCategoryAsync(categoryId);
+            var allCategoryMembers = await _repositoryWrapper.TeamMembersRepository.GetByCategoryIdAsync(categoryId);
 
             if (!allCategoryMembers.Any())
+            {
                 return Result.Fail<Unit>("Category not found or contains no team members");
+            }
 
             // Ensure all provided IDs exist within the selected category
             var notFoundIds = orderedIds.Except(allCategoryMembers.Select(m => m.Id)).ToList();
             if (notFoundIds.Any())
+            {
                 return Result.Fail<Unit>($"Invalid member IDs found: {string.Join(", ", notFoundIds)}");
+            }
 
             // Split members into two groups: those being reordered, and those left unchanged
             var reorderedMembers = allCategoryMembers.Where(m => orderedIds.Contains(m.Id)).ToList();
@@ -50,15 +51,13 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
                 var memberId = orderedIds[i];
                 var member = reorderedMembers.First(m => m.Id == memberId);
                 member.Priority = i;
-                _repositoryWrapper.TeamMembersRepository.Update(member);
             }
 
-            // Assign subsequent priority values to the remaining members
+            // Assign subsequent priority values to the remaining members, preserving original order
             var nextPosition = orderedIds.Count;
-            foreach (var member in unchangedMembers.OrderBy(m => m.Priority)) // Preserving original order
+            foreach (var member in unchangedMembers.OrderBy(m => m.Priority))
             {
                 member.Priority = nextPosition++;
-                _repositoryWrapper.TeamMembersRepository.Update(member);
             }
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
@@ -72,16 +71,5 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         {
             return Result.Fail<Unit>(ex.Message);
         }
-    }
-
-
-    private async Task<List<TeamMember>> GetAllMembersInCategoryAsync(long categoryId)
-    {
-        var queryOptions = new QueryOptions<TeamMember>
-        {
-            Filter = x => x.CategoryId == categoryId,
-        };
-
-        return (await _repositoryWrapper.TeamMembersRepository.GetAllAsync(queryOptions)).ToList();
     }
 }

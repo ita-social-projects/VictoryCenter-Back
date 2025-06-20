@@ -5,7 +5,6 @@ using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
@@ -373,8 +372,8 @@ public class ReorderTeamMembers
 
     private void SetupRepositoryWrapper(List<TeamMember> membersToReturn, int saveResult = 1)
     {
-        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetAllAsync(
-                It.IsAny<QueryOptions<TeamMember>>()))
+        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetByCategoryIdAsync(
+                It.IsAny<long>()))
             .ReturnsAsync(membersToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
