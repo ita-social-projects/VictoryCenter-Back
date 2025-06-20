@@ -26,7 +26,7 @@ public class UpdateTeamMemberTests
         Priority = 1,
         Status = Status.Published,
         Description = "Test description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
+        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
         Category = new Category
         {
             Id = 1,
@@ -40,7 +40,7 @@ public class UpdateTeamMemberTests
     private readonly TeamMember _testUpdatedTeamMember = new ()
     {
         Id = 1,
-        FirstName = "Test updated",
+        FirstName = "Updated Name",
         LastName = "Member",
         MiddleName = "Middle",
         CategoryId = 1,
@@ -102,8 +102,8 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task Handle_ShouldNotUpdateEntity_IncorrectName(string? testName)
     {
-        _testUpdatedTeamMemberDto.FirstName = testName ?? string.Empty;
-        _testUpdatedTeamMember.FirstName = testName ?? string.Empty;
+        _testUpdatedTeamMemberDto.FirstName = testName!;
+        _testUpdatedTeamMember.FirstName = testName!;
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator.Object);
 
