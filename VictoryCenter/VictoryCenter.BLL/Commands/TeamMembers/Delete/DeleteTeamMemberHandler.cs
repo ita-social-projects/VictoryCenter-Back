@@ -28,7 +28,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
             return Result.Fail<long>($"Team member with ID {request.Id} not found.");
         }
 
-        entityToDelete.Category = null!; // Clear the reference to the Category to avoid foreign key constraint issues
+        entityToDelete.Category = null!;
 
         _repositoryWrapper.TeamMembersRepository.Delete(entityToDelete);
 

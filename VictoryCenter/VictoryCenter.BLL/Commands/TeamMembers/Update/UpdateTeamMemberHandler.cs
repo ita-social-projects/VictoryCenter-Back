@@ -29,11 +29,6 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(request.updateTeamMemberDto.FirstName))
-            {
-                return Result.Fail<TeamMemberDto>("FirstName field is required");
-            }
-
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var teamMemberEntity =
