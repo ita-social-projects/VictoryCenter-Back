@@ -1,4 +1,5 @@
-﻿using VictoryCenter.DAL.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
@@ -10,5 +11,10 @@ public class TeamMembersRepository : RepositoryBase<TeamMember>, ITeamMembersRep
     public TeamMembersRepository(VictoryCenterDbContext dbContext)
         : base(dbContext)
     {
+    }
+
+    public async Task<List<TeamMember>> GetByCategoryIdAsync(long categoryId)
+    {
+        return await _dbContext.TeamMembers.Where(member => member.CategoryId == categoryId).ToListAsync();
     }
 }
