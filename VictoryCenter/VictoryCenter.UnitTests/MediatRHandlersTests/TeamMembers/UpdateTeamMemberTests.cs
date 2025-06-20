@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Validators.TeamMembers;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
@@ -14,7 +15,7 @@ public class UpdateTeamMemberTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IValidator<UpdateTeamMemberCommand>> _validator;
+    private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
     private readonly TeamMember _testExistingTeamMember = new ()
     {
@@ -66,9 +67,10 @@ public class UpdateTeamMemberTests
 
     public UpdateTeamMemberTests()
     {
+        BaseTeamMembersValidator baseTeamMembersValidator = new BaseTeamMembersValidator();
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _validator = new Mock<IValidator<UpdateTeamMemberCommand>>();
+        _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
     }
 
     [Theory]
@@ -80,13 +82,15 @@ public class UpdateTeamMemberTests
         _testUpdatedTeamMember.Description = testDescription;
         _testUpdatedTeamMemberDto.Description = testDescription;
         SetupDependencies(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
             {
                 Id = _testExistingTeamMember.Id,
                 FirstName = "Updated Name",
+                LastName = "Member",
+                CategoryId = _testExistingTeamMember.CategoryId,
                 Description = testDescription,
             }), CancellationToken.None);
 
@@ -105,13 +109,13 @@ public class UpdateTeamMemberTests
         _testUpdatedTeamMemberDto.FirstName = testName!;
         _testUpdatedTeamMember.FirstName = testName!;
         SetupDependencies(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
             {
                 Id = _testExistingTeamMember.Id,
-                FirstName = testName ?? string.Empty,
+                FirstName = testName!,
                 Description = "Updated Description",
             }), CancellationToken.None);
 
@@ -125,14 +129,16 @@ public class UpdateTeamMemberTests
     public async Task Handle_ShouldNotUpdateEntity_NotFound(long testId)
     {
         SetupDependencies();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
         {
             Id = testId,
             FirstName = "Updated Name",
+            LastName = "Member",
             Description = "Updated Description",
+            CategoryId = _testExistingTeamMember.CategoryId,
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
@@ -143,14 +149,16 @@ public class UpdateTeamMemberTests
     public async Task Handle_ShouldNotUpdateEntity_SaveChangesFails()
     {
         SetupDependencies(_testExistingTeamMember, -1);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
         {
             Id = _testExistingTeamMember.Id,
             FirstName = "Updated Name",
+            LastName = "Member",
             Description = "Updated Description",
+            CategoryId = _testExistingTeamMember.CategoryId,
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);

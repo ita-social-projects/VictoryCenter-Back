@@ -39,7 +39,6 @@ public class UpdateTeamMemberTests
             .Include(tm => tm.Category)
             .FirstOrDefaultAsync();
 
-        // Check if existingEntity is null
         if (existingEntity == null)
         {
             throw new InvalidOperationException("No TeamMember entity exists in the database.");
