@@ -20,12 +20,8 @@ public class DeleteTeamMemberTests
     [Fact]
     public async Task DeleteTeamMember_ShouldDeleteTeamMember()
     {
-        var existingEntity = await _dbContext.TeamMembers.FirstOrDefaultAsync();
-
-        if (existingEntity == null)
-        {
-            throw new InvalidOperationException("No TeamMember entity exists in the database.");
-        }
+        var existingEntity = await _dbContext.TeamMembers.FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
         var response = await _httpClient.DeleteAsync($"/api/TeamMembers/{existingEntity.Id}");
         Assert.True(response.IsSuccessStatusCode);

@@ -37,12 +37,8 @@ public class UpdateTeamMemberTests
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
-            .FirstOrDefaultAsync();
-
-        if (existingEntity == null)
-        {
-            throw new InvalidOperationException("No TeamMember entity exists in the database.");
-        }
+            .FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
@@ -74,12 +70,8 @@ public class UpdateTeamMemberTests
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
-            .FirstOrDefaultAsync();
-
-        if (existingEntity == null)
-        {
-            throw new InvalidOperationException("No TeamMember entity exists in the database.");
-        }
+            .FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
@@ -114,12 +106,8 @@ public class UpdateTeamMemberTests
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
-            .FirstOrDefaultAsync();
-
-        if (existingEntity == null)
-        {
-            throw new InvalidOperationException("No TeamMember entity exists in the database.");
-        }
+            .FirstOrDefaultAsync()
+            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
