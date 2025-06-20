@@ -26,21 +26,20 @@ public class ReorderTeamMemberTests
         // Arrange
         var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
 
-        var originalTeamMemberIds = await _dbContext.TeamMembers
+        var originalTeamMemberIdsOrder = await _dbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
+            .OrderBy(x => x.Priority)
             .Select(x => x.Id)
-            .OrderBy(x => x)
             .ToListAsync();
 
         // Reverse the order for testing
-        var sortedTeamMembersIds = originalTeamMemberIds
-            .OrderByDescending(x => x)
-            .ToList();
+        var reverseTeamMembersIdsOrder = originalTeamMemberIdsOrder.ToList();
+        reverseTeamMembersIdsOrder.Reverse();
 
         var reorderDto = new ReorderTeamMembersDto
         {
             CategoryId = categoryId,
-            OrderedIds = sortedTeamMembersIds
+            OrderedIds = reverseTeamMembersIdsOrder
         };
 
         var serializedDto = JsonSerializer.Serialize(reorderDto);
@@ -52,13 +51,13 @@ public class ReorderTeamMemberTests
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var updatedTeamMembersIds = await _dbContext.TeamMembers
+        var updatedTeamMembersIdsOrder = await _dbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
+            .OrderBy(x => x.Priority)
             .Select(x => x.Id)
-            .OrderBy(x => x)
             .ToListAsync();
 
-        Assert.Equal(originalTeamMemberIds, updatedTeamMembersIds);
+        Assert.Equal(reverseTeamMembersIdsOrder, updatedTeamMembersIdsOrder);
     }
 
     [Fact]
@@ -67,14 +66,14 @@ public class ReorderTeamMemberTests
         // Arrange
         var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
 
-        var allTeamMemberIds = await _dbContext.TeamMembers
+        var allTeamMemberIdsOrder = await _dbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
+            .OrderBy(x => x.Priority)
             .Select(x => x.Id)
-            .OrderBy(x => x)
             .ToListAsync();
 
         // Take only first 2 members for partial reorder
-        var partialIds = allTeamMemberIds.Take(2).Reverse().ToList();
+        var partialIds = allTeamMemberIdsOrder.Take(2).Reverse().ToList();
 
         var reorderDto = new ReorderTeamMembersDto
         {
@@ -160,8 +159,7 @@ public class ReorderTeamMemberTests
 
         if (existingIds.Count < 2)
         {
-            Assert.True(true, "Not enough team members in category for duplicate test");
-            return;
+            Assert.Fail("Not enough team members in category for duplicate test");
         }
 
         var reorderDto = new ReorderTeamMembersDto
@@ -250,8 +248,7 @@ public class ReorderTeamMemberTests
 
         if (categories.Count < 2)
         {
-            Assert.True(false, "Need at least 2 categories for this test");
-            return;
+            Assert.Fail("Need at least 2 categories for this test");
         }
 
         var firstCategoryId = categories[0].Id;
@@ -270,8 +267,7 @@ public class ReorderTeamMemberTests
 
         if (!firstCategoryMemberIds.Any() || !secondCategoryMemberIds.Any())
         {
-            Assert.True(false, "Categories don't have enough members for this test");
-            return;
+            Assert.Fail("Categories don't have enough members for this test");
         }
 
         var reorderDto = new ReorderTeamMembersDto
