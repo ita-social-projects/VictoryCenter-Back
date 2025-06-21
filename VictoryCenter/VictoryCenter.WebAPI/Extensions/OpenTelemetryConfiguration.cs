@@ -1,4 +1,5 @@
 using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
@@ -14,15 +15,28 @@ public static class OpenTelemetryConfiguration
         ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(ServiceName, ServiceVersion);
 
         services.AddOpenTelemetry()
-            .WithTracing(tracerProviderBuilder =>
-            {
-                tracerProviderBuilder
-                    .SetResourceBuilder(resourceBuilder)
-                    .AddAspNetCoreInstrumentation()
-                    .AddHttpClientInstrumentation()
-                    .AddSqlClientInstrumentation()
-                    .AddConsoleExporter();
-            });
+            .WithTracing(t => t
+                .SetResourceBuilder(resourceBuilder)
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddSqlClientInstrumentation()
+                .AddOtlpExporter(o =>
+                {
+                    o.Endpoint = new Uri("http://host.docker.internal:4317");
+                    o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+                }));
+
+        // .WithMetrics(m => m
+        //     .SetResourceBuilder(resourceBuilder)
+        //     .AddAspNetCoreInstrumentation()
+        //     .AddHttpClientInstrumentation()
+        //     .AddSqlClientInstrumentation()
+        //     .AddRuntimeInstrumentation()
+        //     .AddOtlpExporter(o =>
+        //     {
+        //         o.Endpoint = new Uri("http://localhost:4318");
+        //         o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+        //     }));
     }
 
     public static void AddOpenTelemetryLogging(this ILoggingBuilder logging)
