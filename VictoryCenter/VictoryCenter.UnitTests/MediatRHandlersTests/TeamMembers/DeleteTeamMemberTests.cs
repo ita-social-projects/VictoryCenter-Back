@@ -31,7 +31,7 @@ public class DeleteTeamMemberTests
     }
 
     [Fact]
-    public async Task Handle_ShouldDeleteTeamMember()
+    public async Task Handle_TeamMemberExists_ShouldDeleteTeamMember()
     {
         SetupRepositoryWrapper(_testExistingTeamMember);
         var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);
@@ -44,7 +44,7 @@ public class DeleteTeamMemberTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task Handle_ShouldNotDeleteTeamMember_TeamMemberNotFound(long teamMemberId)
+    public async Task Handle_TeamMemberNotFound_ShouldReturnFailure(long teamMemberId)
     {
         SetupRepositoryWrapper();
         var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);
@@ -56,7 +56,7 @@ public class DeleteTeamMemberTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotDeleteTeamMember_SaveChangesFails()
+    public async Task Handle_SaveChangesFails_ShouldReturnFailure()
     {
         SetupRepositoryWrapper(_testExistingTeamMember, -1);
         var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);

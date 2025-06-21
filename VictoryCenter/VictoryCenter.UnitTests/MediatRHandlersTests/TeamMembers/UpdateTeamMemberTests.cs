@@ -77,7 +77,7 @@ public class UpdateTeamMemberTests
     [InlineData("Valid Name")]
     [InlineData("Updated Name")]
     [InlineData("A")]
-    public async Task Handle_ShouldUpdateEntity(string testDescription)
+    public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity(string testDescription)
     {
         _testUpdatedTeamMember.Description = testDescription;
         _testUpdatedTeamMemberDto.Description = testDescription;
@@ -96,6 +96,11 @@ public class UpdateTeamMemberTests
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
+        Assert.Equal(_testUpdatedTeamMemberDto.LastName, result.Value.LastName);
+        Assert.Equal(_testUpdatedTeamMemberDto.MiddleName, result.Value.MiddleName);
+        Assert.Equal(_testUpdatedTeamMemberDto.CategoryName, result.Value.CategoryName);
+        Assert.Equal(_testUpdatedTeamMemberDto.Priority, result.Value.Priority);
+        Assert.Equal(_testUpdatedTeamMemberDto.Status, result.Value.Status);
         Assert.Equal(_testUpdatedTeamMemberDto.FirstName, result.Value.FirstName);
         Assert.Equal(_testUpdatedTeamMemberDto.Description, result.Value.Description);
     }
@@ -104,7 +109,7 @@ public class UpdateTeamMemberTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Handle_ShouldNotUpdateEntity_IncorrectName(string? testName)
+    public async Task Handle_InvalidFirstName_ShouldReturnValidationError(string? testName)
     {
         _testUpdatedTeamMemberDto.FirstName = testName!;
         _testUpdatedTeamMember.FirstName = testName!;
@@ -126,7 +131,7 @@ public class UpdateTeamMemberTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task Handle_ShouldNotUpdateEntity_NotFound(long testId)
+    public async Task Handle_TeamMemberNotFound_ShouldReturnNotFoundError(long testId)
     {
         SetupDependencies();
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
@@ -146,7 +151,7 @@ public class UpdateTeamMemberTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotUpdateEntity_SaveChangesFails()
+    public async Task Handle_SaveChangesFails_ShouldReturnFailureError()
     {
         SetupDependencies(_testExistingTeamMember, -1);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
