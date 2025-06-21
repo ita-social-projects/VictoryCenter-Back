@@ -79,9 +79,48 @@ public class UpdateTeamMemberTests
     [InlineData("A")]
     public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity(string testDescription)
     {
-        _testUpdatedTeamMember.Description = testDescription;
-        _testUpdatedTeamMemberDto.Description = testDescription;
-        SetupDependencies(_testExistingTeamMember);
+        var testUpdatedTeamMember = new TeamMember
+        {
+            Id = 1,
+            FirstName = "Updated Name",
+            LastName = "Member",
+            MiddleName = "Middle",
+            CategoryId = 1,
+            Priority = 1,
+            Status = Status.Published,
+            Description = testDescription,
+            CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+            Category = new Category
+            {
+                Id = 1,
+                Name = "Test Category",
+                Description = "Test category description",
+            },
+            Email = "test@gmail.com",
+            Photo = null,
+        };
+
+        var testUpdatedTeamMemberDto = new TeamMemberDto
+        {
+            FirstName = "Updated Name",
+            LastName = "Member",
+            MiddleName = "Middle",
+            CategoryName = "Test Category",
+            Priority = 1,
+            Status = Status.Published,
+            Description = testDescription,
+            Email = "test@gmail.com",
+            Photo = null,
+            Id = 1
+        };
+
+        _mockMapper.Setup(x => x.Map<UpdateTeamMemberDto, TeamMember>(It.IsAny<UpdateTeamMemberDto>()))
+            .Returns(testUpdatedTeamMember);
+
+        _mockMapper.Setup(x => x.Map<TeamMember, TeamMemberDto>(It.IsAny<TeamMember>()))
+            .Returns(testUpdatedTeamMemberDto);
+
+        SetupRepositoryWrapper(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
@@ -96,13 +135,13 @@ public class UpdateTeamMemberTests
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(_testUpdatedTeamMemberDto.LastName, result.Value.LastName);
-        Assert.Equal(_testUpdatedTeamMemberDto.MiddleName, result.Value.MiddleName);
-        Assert.Equal(_testUpdatedTeamMemberDto.CategoryName, result.Value.CategoryName);
-        Assert.Equal(_testUpdatedTeamMemberDto.Priority, result.Value.Priority);
-        Assert.Equal(_testUpdatedTeamMemberDto.Status, result.Value.Status);
-        Assert.Equal(_testUpdatedTeamMemberDto.FirstName, result.Value.FirstName);
-        Assert.Equal(_testUpdatedTeamMemberDto.Description, result.Value.Description);
+        Assert.Equal(testUpdatedTeamMemberDto.LastName, result.Value.LastName);
+        Assert.Equal(testUpdatedTeamMemberDto.MiddleName, result.Value.MiddleName);
+        Assert.Equal(testUpdatedTeamMemberDto.CategoryName, result.Value.CategoryName);
+        Assert.Equal(testUpdatedTeamMemberDto.Priority, result.Value.Priority);
+        Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
+        Assert.Equal(testUpdatedTeamMemberDto.FirstName, result.Value.FirstName);
+        Assert.Equal(testUpdatedTeamMemberDto.Description, result.Value.Description);
     }
 
     [Theory]
