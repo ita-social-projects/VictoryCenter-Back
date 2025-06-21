@@ -14,9 +14,10 @@ internal static class IntegrationTestsDatabaseSeeder
         TeamMemberSeeder.SeedData(dbContext, dbContext.Categories.ToList());
     }
 
-    public static void DeleteExistingData(VictoryCenterDbContext dbContext)
+    public static async Task DeleteExistingData(VictoryCenterDbContext dbContext)
     {
         dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
+        await dbContext.SaveChangesAsync();
         dbContext.Categories.RemoveRange(dbContext.Categories);
         dbContext.TestEntities.RemoveRange(dbContext.TestEntities);
         dbContext.SaveChanges();
