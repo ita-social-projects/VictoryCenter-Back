@@ -48,7 +48,7 @@ public class UpdateTeamMemberTests
         Priority = 1,
         Status = Status.Published,
         Description = "Test updated description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
+        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
         Category = new Category
         {
             Id = 1,
