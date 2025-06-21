@@ -60,9 +60,14 @@ public class UpdateTeamMemberTests
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
-        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateTeamMemberDto.Id, responseContent.Id);
         Assert.Equal(updateTeamMemberDto.FirstName, responseContent.FirstName);
+        Assert.Equal(updateTeamMemberDto.LastName, responseContent.LastName);
+        Assert.Equal(updateTeamMemberDto.MiddleName, responseContent.MiddleName);
+        Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
+        Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
+        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Fact]
@@ -93,9 +98,14 @@ public class UpdateTeamMemberTests
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
-        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateTeamMemberDto.Id, responseContent.Id);
         Assert.Equal(updateTeamMemberDto.FirstName, responseContent.FirstName);
+        Assert.Equal(updateTeamMemberDto.LastName, responseContent.LastName);
+        Assert.Equal(updateTeamMemberDto.MiddleName, responseContent.MiddleName);
+        Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
+        Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
+        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Theory]
@@ -108,6 +118,15 @@ public class UpdateTeamMemberTests
             .Include(tm => tm.Category)
             .FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
+
+        var originalFirstName = existingEntity.FirstName;
+        var originalLastName = existingEntity.LastName;
+        var originalMiddleName = existingEntity.MiddleName;
+        var originalCategoryId = existingEntity.CategoryId;
+        var originalStatus = existingEntity.Status;
+        var originalDescription = existingEntity.Description;
+        var originalEmail = existingEntity.Email;
+        var originalPriority = existingEntity.Priority;
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
@@ -127,6 +146,19 @@ public class UpdateTeamMemberTests
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var reloadedEntity = await _dbContext.TeamMembers
+       .AsNoTracking()
+       .FirstOrDefaultAsync(tm => tm.Id == existingEntity.Id);
+        Assert.NotNull(reloadedEntity);
+        Assert.Equal(originalFirstName, reloadedEntity.FirstName);
+        Assert.Equal(originalLastName, reloadedEntity.LastName);
+        Assert.Equal(originalMiddleName, reloadedEntity.MiddleName);
+        Assert.Equal(originalCategoryId, reloadedEntity.CategoryId);
+        Assert.Equal(originalStatus, reloadedEntity.Status);
+        Assert.Equal(originalDescription, reloadedEntity.Description);
+        Assert.Equal(originalEmail, reloadedEntity.Email);
+        Assert.Equal(originalPriority, reloadedEntity.Priority);
     }
 
     [Theory]
