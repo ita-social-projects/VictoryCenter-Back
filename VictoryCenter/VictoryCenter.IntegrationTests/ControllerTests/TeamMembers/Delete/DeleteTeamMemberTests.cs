@@ -18,20 +18,21 @@ public class DeleteTeamMemberTests
     }
 
     [Fact]
-    public async Task DeleteTeamMember_ShouldDeleteTeamMember()
+    public async Task DeleteTeamMember_ValidRequest_ShouldDeleteTeamMember()
     {
         var existingEntity = await _dbContext.TeamMembers.FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
         var response = await _httpClient.DeleteAsync($"/api/TeamMembers/{existingEntity.Id}");
         Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Null(await _dbContext.TeamMembers.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task DeleteTeamMember_ShouldNotDeleteTeamMember_NotFound(long testId)
+    public async Task DeleteTeamMember_InvalidId_ShouldReturnNotFound(long testId)
     {
         var response = await _httpClient.DeleteAsync($"/api/TeamMembers/{testId}");
         Assert.False(response.IsSuccessStatusCode);

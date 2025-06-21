@@ -33,7 +33,7 @@ public class UpdateTeamMemberTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData("Test Description")]
-    public async Task UpdateTeamMember_ShouldUpdateTeamMember(string? testDescription)
+    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
@@ -71,7 +71,7 @@ public class UpdateTeamMemberTests
     }
 
     [Fact]
-    public async Task UpdateTeamMember_ShouldUpdateTeamMember_SameInput()
+    public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
@@ -112,7 +112,7 @@ public class UpdateTeamMemberTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task UpdateTeamMember_ShouldNotUpdateTeamMember_InvalidName(string? testName)
+    public async Task UpdateTeamMember_InvalidName_ShouldNotUpdateTeamMember(string? testName)
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
@@ -164,7 +164,7 @@ public class UpdateTeamMemberTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task UpdateTeamMember_ShouldNotUpdateTeamMember_NotFound(long testId)
+    public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
     {
         var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
 

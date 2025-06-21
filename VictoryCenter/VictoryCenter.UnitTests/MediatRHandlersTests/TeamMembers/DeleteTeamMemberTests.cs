@@ -7,7 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
-public class DeleteTeamMemeberTests
+public class DeleteTeamMemberTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
@@ -25,7 +25,7 @@ public class DeleteTeamMemeberTests
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
     };
 
-    public DeleteTeamMemeberTests()
+    public DeleteTeamMemberTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
     }
