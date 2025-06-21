@@ -55,9 +55,9 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             return Result.Fail<TeamMemberDto>("Failed to update team member");
         }
-        catch (ValidationException ex)
+        catch (ValidationException vex)
         {
-            return Result.Fail<TeamMemberDto>(ex.Message);
+            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
     }
 }

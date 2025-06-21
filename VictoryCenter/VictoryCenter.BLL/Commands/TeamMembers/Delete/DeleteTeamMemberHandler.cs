@@ -1,6 +1,7 @@
 using FluentResults;
 using MediatR;
 using VictoryCenter.DAL.Entities;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -20,7 +21,8 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
         var entityToDelete =
             await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
             {
-                Filter = entity => entity.Id == request.Id
+                Filter = entity => entity.Id == request.Id,
+                Include = query => query.Include(tm => tm.Category)
             });
 
         if (entityToDelete is null)
