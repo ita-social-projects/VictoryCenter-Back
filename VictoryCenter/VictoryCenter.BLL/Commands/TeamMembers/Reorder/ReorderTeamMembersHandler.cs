@@ -27,7 +27,8 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
             var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
-            var allCategoryMembers = await _repositoryWrapper.TeamMembersRepository.GetByCategoryIdAsync(categoryId);
+            var allCategoryMembers = await _repositoryWrapper.TeamMembersRepository
+                .GetByCategoryIdAsync(categoryId, orderByPriority: false);
 
             if (!allCategoryMembers.Any())
             {
@@ -42,20 +43,20 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             }
 
             // Split members into two groups: those being reordered, and those left unchanged
-            var reorderedMembers = allCategoryMembers.Where(m => orderedIds.Contains(m.Id)).ToList();
-            var unchangedMembers = allCategoryMembers.Where(m => !orderedIds.Contains(m.Id)).ToList();
+            var reorderedMembers = allCategoryMembers.Where(m => orderedIds.Contains(m.Id)).ToDictionary(x => x.Id, x => x);
+            var unchangedMembers = allCategoryMembers.Where(m => !orderedIds.Contains(m.Id)).OrderBy(m => m.Priority).ToList();
 
             // Assign new priority values to the reordered members based on their new positions
             for (int i = 0; i < orderedIds.Count; i++)
             {
                 var memberId = orderedIds[i];
-                var member = reorderedMembers.First(m => m.Id == memberId);
+                var member = reorderedMembers[memberId];
                 member.Priority = i;
             }
 
             // Assign subsequent priority values to the remaining members, preserving original order
             var nextPosition = orderedIds.Count;
-            foreach (var member in unchangedMembers.OrderBy(m => m.Priority))
+            foreach (var member in unchangedMembers)
             {
                 member.Priority = nextPosition++;
             }

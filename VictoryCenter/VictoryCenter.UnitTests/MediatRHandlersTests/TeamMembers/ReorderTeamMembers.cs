@@ -373,7 +373,8 @@ public class ReorderTeamMembers
     private void SetupRepositoryWrapper(List<TeamMember> membersToReturn, int saveResult = 1)
     {
         _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetByCategoryIdAsync(
-                It.IsAny<long>()))
+                It.IsAny<long>(),
+                It.IsAny<bool>()))
             .ReturnsAsync(membersToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
