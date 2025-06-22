@@ -70,17 +70,20 @@ jobs:
             /o:"ita-social-projects" `
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage.xml"
+            /d:sonar.cs.cobertura.reportsPaths="coverage.xml"
 
       - name: Build the solution
         run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental
 
       - name: Run unit tests and generate coverage
-        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage.xml"
+        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o coverage1.xml
 
-      - name: Run integration tests and merge coverage
-        run: dotnet-coverage merge "coverage.xml" "dotnet-coverage collect \"dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release\" -f xml -o \"coverage2.xml\"" -o "coverage.xml"
+      - name: Run integration tests and generate coverage
+        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release" -f xml -o coverage2.xml
 
+      - name: Merge coverage reports
+        run: dotnet-coverage merge coverage1.xml coverage2.xml -o coverage.xml
+      
       - name: End SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
