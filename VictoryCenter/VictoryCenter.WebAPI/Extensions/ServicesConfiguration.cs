@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -6,6 +7,7 @@ using VictoryCenter.BLL;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.BLL.Services;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
@@ -26,6 +28,10 @@ public static class ServicesConfiguration
                 opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
             });
         });
+
+        services.AddIdentity<Admin, IdentityRole<int>>()
+            .AddEntityFrameworkStores<VictoryCenterDbContext>()
+            .AddDefaultTokenProviders();
     }
 
     public static void AddCustomServices(this IServiceCollection services)

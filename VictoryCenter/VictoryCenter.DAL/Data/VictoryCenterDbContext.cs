@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data;
 
-public class VictoryCenterDbContext : DbContext
+public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>, int>
 {
     public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
         : base(options)
@@ -11,8 +13,6 @@ public class VictoryCenterDbContext : DbContext
     }
 
     public DbSet<TestEntity> TestEntities { get; set; }
-
-    public DbSet<Admin> Admins { get; set; }
 
     public DbSet<Category> Categories { get; set; }
 
@@ -33,23 +33,6 @@ public class VictoryCenterDbContext : DbContext
             entity.Property(e => e.TestName)
                 .IsRequired()
                 .HasMaxLength(100);
-        });
-
-        modelBuilder.Entity<Admin>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.UserName)
-                .IsRequired();
-
-            entity.Property(e => e.Password)
-                .IsRequired();
-
-            entity.Property(e => e.CreatedAt)
-                .IsRequired();
         });
 
         modelBuilder.Entity<Category>(entity =>
