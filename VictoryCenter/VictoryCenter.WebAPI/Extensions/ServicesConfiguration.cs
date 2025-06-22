@@ -1,4 +1,5 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,12 @@ public static class ServicesConfiguration
         services.AddIdentity<Admin, IdentityRole<int>>()
             .AddEntityFrameworkStores<VictoryCenterDbContext>()
             .AddDefaultTokenProviders();
+
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(configuration);
+            });
     }
 
     public static void AddCustomServices(this IServiceCollection services)
