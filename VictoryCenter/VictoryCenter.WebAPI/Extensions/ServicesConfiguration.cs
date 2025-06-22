@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Interfaces;
+using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -57,6 +58,11 @@ public static class ServicesConfiguration
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddScoped<IPagesService, PagesService>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+
+        services.AddOptions<JwtOptions>()
+            .BindConfiguration(JwtOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
