@@ -13,8 +13,15 @@ public class TeamMembersRepository : RepositoryBase<TeamMember>, ITeamMembersRep
     {
     }
 
-    public async Task<List<TeamMember>> GetByCategoryIdAsync(long categoryId)
+    public async Task<List<TeamMember>> GetByCategoryIdAsync(long categoryId, bool orderByPriority = true)
     {
-        return await _dbContext.TeamMembers.Where(member => member.CategoryId == categoryId).ToListAsync();
+        var query = _dbContext.TeamMembers.Where(member => member.CategoryId == categoryId);
+
+        if (orderByPriority)
+        {
+            query = query.OrderBy(member => member.Priority);
+        }
+
+        return await query.ToListAsync();
     }
 }
