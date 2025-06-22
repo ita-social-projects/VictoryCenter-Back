@@ -5,6 +5,8 @@ namespace VictoryCenter.BLL.Validators.TeamMembers;
 
 public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersCommand>
 {
+    private const int MaxTeamMemberIds = 500;
+
     public ReorderTeamMembersValidator()
     {
         RuleFor(x => x.ReorderTeamMembersDto.CategoryId)
@@ -17,6 +19,8 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
             .WithMessage("OrderedIds must be provided")
             .Must(ids => ids.Count > 0)
             .WithMessage("OrderedIds cannot be empty")
+            .Must(ids => ids.Count <= MaxTeamMemberIds)
+            .WithMessage($"OrderedIds cannot contain more than {MaxTeamMemberIds} elements")
             .Must(ids => ids.Distinct().Count() == ids.Count)
             .WithMessage("OrderedIds must contain unique values");
 

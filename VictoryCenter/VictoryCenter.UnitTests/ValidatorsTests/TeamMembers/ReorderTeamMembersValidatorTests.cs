@@ -12,7 +12,6 @@ public class ReorderTeamMembersValidatorTests
     [Fact]
     public void Validate_ValidCommand_ShouldNotHaveErrors()
     {
-        // Arrange
         var dto = new ReorderTeamMembersDto
         {
             CategoryId = 1,
@@ -20,7 +19,6 @@ public class ReorderTeamMembersValidatorTests
         };
         var command = new ReorderTeamMembersCommand(dto);
 
-        // Act & Assert
         var result = _validator.TestValidate(command);
         result.ShouldNotHaveAnyValidationErrors();
     }
@@ -97,5 +95,20 @@ public class ReorderTeamMembersValidatorTests
 
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor("ReorderTeamMembersDto.OrderedIds[1]");
+    }
+
+    [Fact]
+    public void Validate_OrderedIdsExceedsMaxLimit_ShouldHaveError()
+    {
+        var idsCount = 501;
+        var dto = new ReorderTeamMembersDto
+        {
+            CategoryId = 1,
+            OrderedIds = Enumerable.Range(1, idsCount).Select(i => (long)i).ToList()
+        };
+        var command = new ReorderTeamMembersCommand(dto);
+
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(x => x.ReorderTeamMembersDto.OrderedIds);
     }
 }
