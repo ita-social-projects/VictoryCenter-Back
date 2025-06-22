@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -15,4 +16,7 @@ public interface IRepositoryBase<T>
     EntityEntry<T> Update(T entity);
 
     void Delete(T entity);
+
+    Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
+        where TKey : struct;
 }

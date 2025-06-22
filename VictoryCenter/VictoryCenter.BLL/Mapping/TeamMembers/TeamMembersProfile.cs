@@ -8,7 +8,13 @@ public class TeamMembersProfile : Profile
 {
     public TeamMembersProfile()
     {
+        CreateMap<CreateTeamMemberDto, TeamMember>();
+
+        CreateMap<TeamMember, TeamMemberDto>();
+
         CreateMap<TeamMember, TeamMemberDto>()
             .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null));
+
+        CreateMap<UpdateTeamMemberDto, TeamMember>();
     }
 }
