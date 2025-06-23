@@ -24,6 +24,8 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
+            using var transactionScope = _repositoryWrapper.BeginTransaction();
+
             var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
             var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
@@ -46,6 +48,15 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             var reorderedMembers = allCategoryMembers.Where(m => orderedIds.Contains(m.Id)).ToDictionary(x => x.Id, x => x);
             var unchangedMembers = allCategoryMembers.Where(m => !orderedIds.Contains(m.Id)).OrderBy(m => m.Priority).ToList();
 
+            // Temporarily assign negative priorities to avoid unique constraint conflicts during update
+            long tempPriority = -1;
+            foreach (var member in allCategoryMembers)
+            {
+                member.Priority = tempPriority--;
+            }
+
+            await _repositoryWrapper.SaveChangesAsync();
+
             // Assign new priority values to the reordered members based on their new positions
             for (int i = 0; i < orderedIds.Count; i++)
             {
@@ -61,16 +72,15 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
                 member.Priority = nextPosition++;
             }
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                return Result.Ok();
-            }
+            await _repositoryWrapper.SaveChangesAsync();
 
-            return Result.Fail<Unit>("Failed to update TeamMembers order");
+            transactionScope.Complete();
+
+            return Result.Ok();
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<Unit>(ex.Message);
+            return Result.Fail(ex.Message);
         }
     }
 }

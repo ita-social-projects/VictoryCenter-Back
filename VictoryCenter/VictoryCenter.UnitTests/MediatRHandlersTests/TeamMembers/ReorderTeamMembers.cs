@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Transactions;
+using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
 using VictoryCenter.BLL.DTOs.TeamMembers;
@@ -142,22 +143,6 @@ public class ReorderTeamMembers
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("Invalid member IDs found: 99", result.Errors[0].Message);
-    }
-
-    [Fact]
-    public async Task Handle_SaveChangesFails_ShouldReturnError()
-    {
-        // Arrange
-        SetupDependencies(_testCategoryMembers, saveResult: 0);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(_testValidReorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Failed to update TeamMembers order", result.Errors[0].Message);
     }
 
     [Theory]
@@ -376,6 +361,8 @@ public class ReorderTeamMembers
                 It.IsAny<long>(),
                 It.IsAny<bool>()))
             .ReturnsAsync(membersToReturn);
+
+        _mockRepositoryWrapper.Setup(x => x.BeginTransaction()).Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);
