@@ -1,7 +1,9 @@
 ﻿using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.TeamMembers.Reorder;
 
@@ -29,8 +31,11 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
             var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
-            var allCategoryMembers = await _repositoryWrapper.TeamMembersRepository
-                .GetByCategoryIdAsync(categoryId, orderByPriority: false);
+            var allCategoryMembers = (await _repositoryWrapper.TeamMembersRepository
+                .GetAllAsync(new QueryOptions<TeamMember>()
+                {
+                    Filter = x => x.CategoryId == categoryId
+                })).ToList();
 
             if (!allCategoryMembers.Any())
             {
@@ -53,6 +58,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             foreach (var member in allCategoryMembers)
             {
                 member.Priority = tempPriority--;
+                _repositoryWrapper.TeamMembersRepository.Update(member);
             }
 
             await _repositoryWrapper.SaveChangesAsync();
@@ -61,8 +67,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             for (int i = 0; i < orderedIds.Count; i++)
             {
                 var memberId = orderedIds[i];
-                var member = reorderedMembers[memberId];
-                member.Priority = i;
+                reorderedMembers[memberId].Priority = i;
             }
 
             // Assign subsequent priority values to the remaining members, preserving original order
