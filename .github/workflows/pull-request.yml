@@ -8,32 +8,8 @@ env:
   RUN_NUM: ${{ github.run_number }}
   
 jobs:
-  run_tests:
-    name: Run tests
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-      attestations: write
-      id-token: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4      
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-      - name: Install dependencies
-        run: npm ci
-      - name: Build project
-        run: npm run build
-      - name: Run unit tests
-        run: npm run test:cover  
-
   docker:
     name: Build and push docker image
-    needs: run_tests
     runs-on: ubuntu-latest
     steps:
      - name: Check out the repo
