@@ -17,7 +17,6 @@ internal static class IntegrationTestsDatabaseSeeder
         dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
         await dbContext.SaveChangesAsync();
         dbContext.Categories.RemoveRange(dbContext.Categories);
-        dbContext.TestEntities.RemoveRange(dbContext.TestEntities);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync();
     }
 }
