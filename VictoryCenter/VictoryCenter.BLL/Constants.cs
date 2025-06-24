@@ -10,6 +10,8 @@ public static class Constants
     {
         private static TokenValidationParameters? _tokenValidationParameters;
 
+        public static TimeSpan RefreshTokenLifeTime => TimeSpan.FromDays(7);
+
         public static TokenValidationParameters GetDefaultTokenValidationParameters(IConfiguration configuration)
         {
             return _tokenValidationParameters ??= new TokenValidationParameters

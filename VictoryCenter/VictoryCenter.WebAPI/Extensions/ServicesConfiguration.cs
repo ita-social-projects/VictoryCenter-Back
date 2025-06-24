@@ -70,6 +70,8 @@ public static class ServicesConfiguration
             .BindConfiguration(JwtOptions.Position)
             .ValidateDataAnnotations()
             .ValidateOnStart();
+
+        services.AddSingleton<ITokenService, TokenService>();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
