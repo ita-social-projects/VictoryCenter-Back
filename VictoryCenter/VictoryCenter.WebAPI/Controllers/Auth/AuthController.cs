@@ -8,12 +8,14 @@ namespace VictoryCenter.WebAPI.Controllers.Auth;
 public class AuthController : BaseApiController
 {
     [HttpPost("login")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
     public async Task<IActionResult> LoginAsync(LoginRequest request)
     {
         return HandleResult(await Mediator.Send(new LoginCommand(request)));
     }
 
     [HttpPost("refresh-token")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
     public async Task<IActionResult> RefreshTokenAsync(RefreshTokenRequest request)
     {
         return HandleResult(await Mediator.Send(new RefreshTokenCommand(request)));
