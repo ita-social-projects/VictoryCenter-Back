@@ -21,7 +21,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
     public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var principal = _tokenService.GetClaimsFromExpiredToken(request.ExpiredAccessToken);
+        var principal = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
         var email = principal.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
@@ -34,7 +34,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail("Admin with given email was not found");
         }
 
-        if (admin.RefreshToken != request.RefreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
+        if (admin.RefreshToken != request.Request.RefreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
         {
             return Result.Fail("Refresh token is invalid");
         }

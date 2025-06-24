@@ -21,13 +21,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
     public async Task<Result<AuthResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var admin = await _userManager.FindByEmailAsync(request.Email);
+        var admin = await _userManager.FindByEmailAsync(request.Request.Email);
         if (admin is null)
         {
             return Result.Fail("Admin with given email was not found");
         }
 
-        var result = await _userManager.CheckPasswordAsync(admin, request.Password);
+        var result = await _userManager.CheckPasswordAsync(admin, request.Request.Password);
         if (!result)
         {
             return Result.Fail("Incorrect password");
@@ -35,7 +35,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
-            new Claim(ClaimTypes.Email, request.Email)
+            new Claim(ClaimTypes.Email, request.Request.Email)
         ]);
         var refreshToken = _tokenService.CreateRefreshToken();
 
