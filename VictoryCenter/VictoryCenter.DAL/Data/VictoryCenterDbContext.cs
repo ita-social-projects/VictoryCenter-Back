@@ -1,18 +1,14 @@
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data;
 
-public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>, int>
+public class VictoryCenterDbContext : DbContext
 {
     public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
         : base(options)
     {
     }
-
-    public DbSet<TestEntity> TestEntities { get; set; }
 
     public DbSet<Category> Categories { get; set; }
 
@@ -21,19 +17,6 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        modelBuilder.Entity<TestEntity>(entity =>
-        {
-            entity.ToTable("test_entities");
-
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Id)
-                .ValueGeneratedOnAdd();
-
-            entity.Property(e => e.TestName)
-                .IsRequired()
-                .HasMaxLength(100);
-        });
 
         modelBuilder.Entity<Category>(entity =>
         {

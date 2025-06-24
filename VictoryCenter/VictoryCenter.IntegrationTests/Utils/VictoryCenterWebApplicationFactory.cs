@@ -1,3 +1,4 @@
+using dotenv.net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -12,11 +13,22 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        var envPath = Path.GetFullPath("../../../../VictoryCenter.WebApi/.env");
+
+        DotEnv.Load(new DotEnvOptions(envFilePaths: new[] { envPath }));
+        var str = Environment.GetEnvironmentVariable("INTEGRATION_TESTS_DB_CONNECTION_STRING");
+
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.Sources.Clear();
             config.AddJsonFile("appsettings.IntegrationTests.json", optional: false);
             config.AddEnvironmentVariables();
+            var dict = new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("INTEGRATION_TESTS_DB_CONNECTION_STRING")
+            };
+
+            config.AddInMemoryCollection(dict);
         });
 
         builder.ConfigureServices(services =>
