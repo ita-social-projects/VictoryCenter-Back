@@ -126,6 +126,33 @@ public static class ServicesConfiguration
         }
     }
 
+    public static async Task CreateInitialAdmin(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
+        var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL") ?? throw new InvalidOperationException("Invalid initial admin configuration");
+        if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
+        {
+            var admin = new Admin()
+            {
+                UserName = initialAdminEmail,
+                Email = initialAdminEmail,
+                CreatedAt = DateTime.UtcNow,
+
+                // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
+                RefreshToken = Guid.NewGuid().ToString()
+            };
+
+            var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD") ?? throw new InvalidOperationException("Invalid initial admin configuration");
+            var identityResult = await userManager.CreateAsync(admin, initialUserPassword);
+
+            if (!identityResult.Succeeded)
+            {
+                throw new InvalidOperationException("Error creating initial admin");
+            }
+        }
+    }
+
     private static void AddOpenApi(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();

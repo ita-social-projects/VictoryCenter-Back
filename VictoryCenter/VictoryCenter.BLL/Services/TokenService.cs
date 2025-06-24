@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -31,9 +30,8 @@ public class TokenService : ITokenService
         claims =
         [
             ..claims,
-            new Claim(JwtRegisteredClaimNames.Aud, _jwtOptions.Value.Audience),
             new Claim(JwtRegisteredClaimNames.Iss, _jwtOptions.Value.Issuer),
-            new Claim(JwtRegisteredClaimNames.Iat, issuedAt.ToString(CultureInfo.InvariantCulture), ClaimValueTypes.DateTime),
+            new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(issuedAt).ToString(), ClaimValueTypes.Integer64),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         ];
 
@@ -64,7 +62,7 @@ public class TokenService : ITokenService
 
         var principal = _jwtSecurityTokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters, out var securityToken);
 
-        if (securityToken is not JwtSecurityToken jwtSecutiryToken || jwtSecutiryToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCulture))
+        if (securityToken is not JwtSecurityToken jwtSecutiryToken || !jwtSecutiryToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCulture))
         {
             throw new InvalidOperationException("Invalid Token");
         }

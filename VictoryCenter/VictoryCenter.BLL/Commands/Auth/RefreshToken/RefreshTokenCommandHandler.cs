@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.BLL.Commands.Auth.RefrehsToken;
+namespace VictoryCenter.BLL.Commands.Auth.RefreshToken;
 
 public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResponse>>
 {

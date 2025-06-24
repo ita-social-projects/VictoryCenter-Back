@@ -18,6 +18,7 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.ApplyMigrations();
+await app.CreateInitialAdmin();
 
 app.UseRequestResponseLogging();
 app.UseCors();

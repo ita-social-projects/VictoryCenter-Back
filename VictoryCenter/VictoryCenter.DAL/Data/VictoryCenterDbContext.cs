@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data;
 
-public class VictoryCenterDbContext : DbContext
+public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>, int>
 {
     public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
         : base(options)
