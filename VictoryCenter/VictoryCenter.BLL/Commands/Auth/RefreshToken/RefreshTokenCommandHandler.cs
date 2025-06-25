@@ -57,8 +57,10 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         admin.RefreshToken = refreshToken;
         admin.RefreshTokenValidTo = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime);
 
-        await _userManager.UpdateAsync(admin);
+        var result = await _userManager.UpdateAsync(admin);
 
-        return Result.Ok(new AuthResponse(accessToken, refreshToken));
+        return result.Succeeded
+            ? Result.Ok(new AuthResponse(accessToken, refreshToken))
+            : Result.Fail(result.Errors.First().Description);
     }
 }
