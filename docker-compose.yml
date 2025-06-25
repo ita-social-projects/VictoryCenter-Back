@@ -31,10 +31,17 @@
       - "3100:3100"
 
   mimir:
-    image: grafana/mimir
-    command: ["-target=all"]
+    image: grafana/mimir:latest
+    container_name: victorycenter-back-mimir
+    hostname: mimir
     ports:
+      - "8080:8080"
       - "9009:9009"
+    volumes:
+      - ./mimir.yaml:/etc/mimir.yaml
+      - mimir_data:/tmp/mimir
+    command:
+      - -config.file=/etc/mimir.yaml
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib
@@ -47,5 +54,4 @@
       
 volumes: 
   sql_data:
-
-    
+  mimir_data:

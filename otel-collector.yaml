@@ -17,8 +17,10 @@ exporters:
     endpoint: "http://loki:3100"
     tls:
       insecure: true
-  otlp/mimir:
-    endpoint: "http://mimir:9009"
+  prometheusremotewrite/mimir:
+    endpoint: "http://mimir:9009/api/v1/push"
+    headers:
+      X-Scope-OrgID: anonymous
     tls:
       insecure: true
 
@@ -31,11 +33,11 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [otlp/tempo, debug]
-    # logs:
-    #   receivers: [otlp]
-    #   processors: [batch]
-    #   exporters: [otlp/loki, debug]
-    # metrics:
-    #   receivers: [otlp]
-    #   processors: [batch]
-    #   exporters: [otlp/mimir, debug]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/loki, debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheusremotewrite/mimir, debug]

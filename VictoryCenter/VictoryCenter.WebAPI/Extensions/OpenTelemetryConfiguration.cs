@@ -22,21 +22,20 @@ public static class OpenTelemetryConfiguration
                 .AddSqlClientInstrumentation()
                 .AddOtlpExporter(o =>
                 {
-                    o.Endpoint = new Uri("http://host.docker.internal:4317");
+                    o.Endpoint = new Uri("http://localhost:4317");
                     o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-                }));
-
-        // .WithMetrics(m => m
-        //     .SetResourceBuilder(resourceBuilder)
-        //     .AddAspNetCoreInstrumentation()
-        //     .AddHttpClientInstrumentation()
-        //     .AddSqlClientInstrumentation()
-        //     .AddRuntimeInstrumentation()
-        //     .AddOtlpExporter(o =>
-        //     {
-        //         o.Endpoint = new Uri("http://localhost:4318");
-        //         o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-        //     }));
+                }))
+            .WithMetrics(m => m
+            .SetResourceBuilder(resourceBuilder)
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri("http://localhost:4317");
+                o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+            }));
     }
 
     public static void AddOpenTelemetryLogging(this ILoggingBuilder logging)
@@ -49,7 +48,10 @@ public static class OpenTelemetryConfiguration
             loggingOptions.SetResourceBuilder(resourceBuilder);
             loggingOptions.IncludeScopes = true;
             loggingOptions.IncludeFormattedMessage = true;
-            loggingOptions.AddConsoleExporter();
+            loggingOptions.AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri("http://localhost:4317");
+            });
         });
     }
 }
