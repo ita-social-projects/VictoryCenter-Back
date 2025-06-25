@@ -87,10 +87,10 @@ public class TokenServiceTest
     {
         var expiredToken = CreateExpiredToken();
 
-        var principal = _tokenService.GetClaimsFromExpiredToken(expiredToken);
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(expiredToken);
 
-        var nameClaim = principal.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Name);
-        Assert.NotNull(principal);
+        var nameClaim = principalResult.Value.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Name);
+        Assert.NotNull(principalResult);
         Assert.True(nameClaim is { Value: "TestUser" });
     }
 
@@ -99,9 +99,9 @@ public class TokenServiceTest
     {
         var invalidToken = "invalid token";
 
-        var exception = Assert.Throws<InvalidOperationException>(() => { _tokenService.GetClaimsFromExpiredToken(invalidToken); });
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(invalidToken);
 
-        Assert.Equal("Invalid Token", exception.Message);
+        Assert.Equal("Invalid Token", principalResult.Errors[0].Message);
     }
 
     [Fact]
@@ -124,8 +124,8 @@ public class TokenServiceTest
         var token = tokenHandler.CreateToken(tokenDescriptor);
         var jwt = tokenHandler.WriteToken(token);
 
-        var exception = Assert.Throws<InvalidOperationException>(() => _tokenService.GetClaimsFromExpiredToken(jwt));
-        Assert.Equal("Invalid Token", exception.Message);
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(jwt);
+        Assert.Equal("Invalid Token", principalResult.Errors[0].Message);
     }
 
     private string CreateExpiredToken()

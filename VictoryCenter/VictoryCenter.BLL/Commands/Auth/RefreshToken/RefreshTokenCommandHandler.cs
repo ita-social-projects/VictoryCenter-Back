@@ -30,8 +30,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail(validationResult.Errors[0].ErrorMessage);
         }
 
-        var principal = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
-        var email = principal.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email);
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
+        if (principalResult.IsFailed)
+        {
+            return Result.Fail(principalResult.Errors[0].Message);
+        }
+
+        var email = principalResult.Value.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
             return Result.Fail("Invalid token");

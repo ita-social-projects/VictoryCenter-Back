@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using FluentResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -66,6 +67,20 @@ public class RefreshTokenTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Invalid token", result.Errors[0].Message);
+        _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_GivenInvalidExpiredAccessToken_ReturnsFail()
+    {
+        var cmd = new RefreshTokenCommand(new RefreshTokenRequest("expired_access_token", "refresh_token"));
+
+        _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("expired_access_token")).Returns(Result.Fail("Invalid Token"));
+
+        var result = await _handler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Invalid Token", result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
     }
 

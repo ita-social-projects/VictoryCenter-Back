@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using FluentResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -56,7 +57,7 @@ public class TokenService : ITokenService
         return Convert.ToBase64String(randomNumber);
     }
 
-    public ClaimsPrincipal GetClaimsFromExpiredToken(string expiredAccessToken)
+    public Result<ClaimsPrincipal> GetClaimsFromExpiredToken(string expiredAccessToken)
     {
         var tokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(_configuration);
         tokenValidationParameters.ValidateLifetime = false;
@@ -67,14 +68,14 @@ public class TokenService : ITokenService
             var principal = _jwtSecurityTokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters, out var securityToken);
             if (securityToken is not JwtSecurityToken jwtSecutiryToken || !jwtSecutiryToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCulture))
             {
-                throw new InvalidOperationException("Invalid Token");
+                return Result.Fail("Invalid Token");
             }
 
             return principal;
         }
         catch (Exception)
         {
-            throw new InvalidOperationException("Invalid Token");
+            return Result.Fail("Invalid token");
         }
     }
 }

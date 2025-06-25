@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.Seeder;
 
@@ -22,11 +24,32 @@ public class IntegrationTestDbFixture : IDisposable
         DbContext.Database.EnsureDeleted();
         DbContext.Database.Migrate();
         IntegrationTestsDatabaseSeeder.SeedData(DbContext);
+        EnsureTestAdminUser(scope.ServiceProvider).GetAwaiter().GetResult();
     }
 
     public void Dispose()
     {
         IntegrationTestsDatabaseSeeder.DeleteExistingData(DbContext);
         DbContext.Dispose();
+    }
+
+    private async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
+    {
+        var userManager = serviceProvider.GetService(typeof(UserManager<Admin>)) as UserManager<Admin>;
+        const string TestEmail = "testadmin@victorycenter.com";
+        const string TestPassword = "TestPassword123!";
+        var existing = await userManager.FindByEmailAsync(TestEmail);
+        if (existing == null)
+        {
+            var admin = new Admin
+            {
+                UserName = TestEmail,
+                Email = TestEmail,
+                EmailConfirmed = true,
+                CreatedAt = DateTime.UtcNow,
+                RefreshToken = "refresh_token"
+            };
+            await userManager.CreateAsync(admin, TestPassword);
+        }
     }
 }
