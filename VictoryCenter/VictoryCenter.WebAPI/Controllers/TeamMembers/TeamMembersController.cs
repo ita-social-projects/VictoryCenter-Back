@@ -2,6 +2,7 @@
 using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
 using VictoryCenter.BLL.Commands.TeamMembers.Delete;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
+using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
@@ -40,5 +41,12 @@ public class TeamMembersController : BaseApiController
     public async Task<IActionResult> UpdateTeamMember([FromBody] UpdateTeamMemberDto updateTeamMemberDto)
     {
         return HandleResult(await Mediator.Send(new UpdateTeamMemberCommand(updateTeamMemberDto)));
+    }
+
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReorderTeamMembers([FromBody] ReorderTeamMembersDto dto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderTeamMembersCommand(dto)));
     }
 }
