@@ -27,7 +27,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return Result.Fail(validationResult.Errors.First().ErrorMessage);
+            return Result.Fail(validationResult.Errors[0].ErrorMessage);
         }
 
         var principal = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
