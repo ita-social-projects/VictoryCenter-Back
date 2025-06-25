@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentResults;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.DTOs.Auth;
@@ -12,15 +13,23 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
+    private readonly IValidator<LoginCommand> _validator;
 
-    public LoginCommandHandler(ITokenService tokenService, UserManager<Admin> userManager)
+    public LoginCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<LoginCommand> validator)
     {
         _tokenService = tokenService;
         _userManager = userManager;
+        _validator = validator;
     }
 
     public async Task<Result<AuthResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return Result.Fail(validationResult.Errors.First().ErrorMessage);
+        }
+
         var admin = await _userManager.FindByEmailAsync(request.Request.Email);
         if (admin is null)
         {

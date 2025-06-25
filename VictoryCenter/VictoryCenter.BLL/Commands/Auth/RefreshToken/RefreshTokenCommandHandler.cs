@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentResults;
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.DTOs.Auth;
@@ -12,15 +13,23 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
+    private readonly IValidator<RefreshTokenCommand> _validator;
 
-    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<Admin> userManager)
+    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<RefreshTokenCommand> validator)
     {
         _tokenService = tokenService;
         _userManager = userManager;
+        _validator = validator;
     }
 
     public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
+        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return Result.Fail(validationResult.Errors.First().ErrorMessage);
+        }
+
         var principal = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
         var email = principal.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
