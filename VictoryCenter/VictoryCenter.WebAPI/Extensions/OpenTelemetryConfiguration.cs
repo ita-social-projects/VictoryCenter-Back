@@ -26,16 +26,16 @@ public static class OpenTelemetryConfiguration
                     o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
                 }))
             .WithMetrics(m => m
-            .SetResourceBuilder(resourceBuilder)
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddSqlClientInstrumentation()
-            .AddRuntimeInstrumentation()
-            .AddOtlpExporter(o =>
-            {
-                o.Endpoint = new Uri("http://localhost:4317");
-                o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
-            }));
+                .SetResourceBuilder(resourceBuilder)
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddSqlClientInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddOtlpExporter(o =>
+                {
+                    o.Endpoint = new Uri("http://localhost:4317");
+                    o.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.Grpc;
+                }));
     }
 
     public static void AddOpenTelemetryLogging(this ILoggingBuilder logging)
