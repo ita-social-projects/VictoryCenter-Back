@@ -59,14 +59,22 @@ public class TokenService : ITokenService
     public ClaimsPrincipal GetClaimsFromExpiredToken(string expiredAccessToken)
     {
         var tokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(_configuration);
+        tokenValidationParameters.ValidateLifetime = false;
+        tokenValidationParameters.ValidateIssuerSigningKey = false;
+        tokenValidationParameters.SignatureValidator = (token, parameters) => new JwtSecurityToken(token);
+        try
+        {
+            var principal = _jwtSecurityTokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters, out var securityToken);
+            if (securityToken is not JwtSecurityToken jwtSecutiryToken || !jwtSecutiryToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCulture))
+            {
+                throw new InvalidOperationException("Invalid Token");
+            }
 
-        var principal = _jwtSecurityTokenHandler.ValidateToken(expiredAccessToken, tokenValidationParameters, out var securityToken);
-
-        if (securityToken is not JwtSecurityToken jwtSecutiryToken || !jwtSecutiryToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCulture))
+            return principal;
+        }
+        catch (Exception)
         {
             throw new InvalidOperationException("Invalid Token");
         }
-
-        return principal;
     }
 }
