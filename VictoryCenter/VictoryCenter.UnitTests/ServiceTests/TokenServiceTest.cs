@@ -101,7 +101,7 @@ public class TokenServiceTest
 
         var principalResult = _tokenService.GetClaimsFromExpiredToken(invalidToken);
 
-        Assert.Equal("Invalid Token", principalResult.Errors[0].Message);
+        Assert.Equal("Invalid token", principalResult.Errors[0].Message);
     }
 
     [Fact]
