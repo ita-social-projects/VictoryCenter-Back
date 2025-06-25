@@ -10,48 +10,6 @@
       ACCEPT_EULA: "Y"
     volumes:
       - sql_data:/var/opt/mssql
-
-  grafana:
-    image: grafana/grafana-oss
-    ports:
-      - "4000:3000"
-    depends_on: [tempo, loki, mimir]
-
-  tempo:
-    image: grafana/tempo
-    command: ["-config.file=/etc/tempo.yaml"]
-    volumes:
-      - ./tempo.yaml:/etc/tempo.yaml
-    ports:
-      - "3200:3200"
-
-  loki:
-    image: grafana/loki
-    ports:
-      - "3100:3100"
-
-  mimir:
-    image: grafana/mimir:latest
-    container_name: victorycenter-back-mimir
-    hostname: mimir
-    ports:
-      - "8080:8080"
-      - "9009:9009"
-    volumes:
-      - ./mimir.yaml:/etc/mimir.yaml
-      - mimir_data:/tmp/mimir
-    command:
-      - -config.file=/etc/mimir.yaml
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib
-    volumes:
-      - ./otel-collector.yaml:/etc/otel/config.yaml
-    command: ["--config=/etc/otel/config.yaml"]
-    ports:
-      - "4317:4317"
-      - "4318:4318"
       
 volumes: 
   sql_data:
-  mimir_data:
