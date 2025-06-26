@@ -1,6 +1,11 @@
+using System.Net.Http.Headers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Services;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
@@ -25,12 +30,22 @@ public class IntegrationTestDbFixture : IDisposable
         DbContext.Database.Migrate();
         IntegrationTestsDatabaseSeeder.SeedData(DbContext);
         EnsureTestAdminUser(scope.ServiceProvider).GetAwaiter().GetResult();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(scope.ServiceProvider));
     }
 
     public void Dispose()
     {
         IntegrationTestsDatabaseSeeder.DeleteExistingData(DbContext);
         DbContext.Dispose();
+    }
+
+    private string GetAuthorizationToken(IServiceProvider serviceProvider)
+    {
+        var jwtOptions = serviceProvider.GetRequiredService<IOptions<JwtOptions>>();
+        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        var tokenService = new TokenService(jwtOptions, configuration);
+
+        return tokenService.CreateAccessToken([]);
     }
 
     private async Task EnsureTestAdminUser(IServiceProvider serviceProvider)

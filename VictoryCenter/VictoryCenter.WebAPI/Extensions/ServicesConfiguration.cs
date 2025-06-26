@@ -35,7 +35,12 @@ public static class ServicesConfiguration
             .AddEntityFrameworkStores<VictoryCenterDbContext>()
             .AddDefaultTokenProviders();
 
-        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options => { options.TokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(configuration); });
     }
 

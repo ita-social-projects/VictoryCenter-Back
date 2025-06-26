@@ -25,7 +25,8 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
             config.AddEnvironmentVariables();
             var dict = new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("INTEGRATION_TESTS_DB_CONNECTION_STRING")
+                ["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("INTEGRATION_TESTS_DB_CONNECTION_STRING"),
+                ["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_SECRETKEY")
             };
 
             config.AddInMemoryCollection(dict);
