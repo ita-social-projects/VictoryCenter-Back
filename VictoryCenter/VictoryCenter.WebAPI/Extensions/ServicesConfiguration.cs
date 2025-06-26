@@ -36,10 +36,7 @@ public static class ServicesConfiguration
             .AddDefaultTokenProviders();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(configuration);
-            });
+            .AddJwtBearer(options => { options.TokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(configuration); });
     }
 
     public static void AddCustomServices(this IServiceCollection services)
@@ -57,8 +54,8 @@ public static class ServicesConfiguration
             opt.AddDefaultPolicy(builder =>
             {
                 builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             });
         });
 
@@ -130,9 +127,16 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
-        var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL") ?? throw new InvalidOperationException("Invalid initial admin configuration");
+        var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
+                                ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
+        if (!initialAdminEmail.Contains('@'))
+        {
+            throw new InvalidOperationException("INITIAL_ADMIN_EMAIL must be a valid email address");
+        }
+
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
+            var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
             var admin = new Admin()
             {
                 UserName = initialAdminEmail,
@@ -140,15 +144,17 @@ public static class ServicesConfiguration
                 CreatedAt = DateTime.UtcNow,
 
                 // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
-                RefreshToken = Guid.NewGuid().ToString()
+                RefreshToken = tokenService.CreateRefreshToken()
             };
 
-            var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD") ?? throw new InvalidOperationException("Invalid initial admin configuration");
+            var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD")
+                                      ?? throw new InvalidOperationException("INITIAL_ADMIN_PASSWORD environment variable is required");
             var identityResult = await userManager.CreateAsync(admin, initialUserPassword);
 
             if (!identityResult.Succeeded)
             {
-                throw new InvalidOperationException("Error creating initial admin");
+                var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
+                throw new InvalidOperationException($"Failed to create initial admin: {errors}");
             }
         }
     }

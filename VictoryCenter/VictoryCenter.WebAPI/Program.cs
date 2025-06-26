@@ -6,6 +6,7 @@ DotEnv.Load();
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
+builder.Configuration["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_SECRETKEY");
 
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices();

@@ -117,6 +117,7 @@ public class LoginTests
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.CreateRefreshToken(), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
     }
 
     [Fact]
@@ -140,5 +141,6 @@ public class LoginTests
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.CreateRefreshToken(), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
     }
 }

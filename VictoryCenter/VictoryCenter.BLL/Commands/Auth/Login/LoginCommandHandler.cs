@@ -27,7 +27,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return Result.Fail(validationResult.Errors[0].ErrorMessage);
+            return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
         }
 
         var admin = await _userManager.FindByEmailAsync(request.Request.Email);

@@ -35,7 +35,7 @@ public class IntegrationTestDbFixture : IDisposable
 
     private async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
     {
-        var userManager = serviceProvider.GetService(typeof(UserManager<Admin>)) as UserManager<Admin>;
+        var userManager = serviceProvider.GetRequiredService<UserManager<Admin>>();
         const string TestEmail = "testadmin@victorycenter.com";
         const string TestPassword = "TestPassword123!";
         var existing = await userManager.FindByEmailAsync(TestEmail);
@@ -49,7 +49,11 @@ public class IntegrationTestDbFixture : IDisposable
                 CreatedAt = DateTime.UtcNow,
                 RefreshToken = "refresh_token"
             };
-            await userManager.CreateAsync(admin, TestPassword);
+            var result = await userManager.CreateAsync(admin, TestPassword);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException($"Failed to create test admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            }
         }
     }
 }
