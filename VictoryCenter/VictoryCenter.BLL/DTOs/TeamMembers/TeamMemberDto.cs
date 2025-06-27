@@ -8,10 +8,6 @@ public record TeamMemberDto
 
     public string FirstName { get; set; } = null!;
 
-    public string LastName { get; set; } = null!;
-
-    public string? MiddleName { get; set; }
-
     public string CategoryName { get; set; } = null!;
 
     public long Priority { get; set; }

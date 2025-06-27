@@ -15,10 +15,6 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
             .NotEmpty().WithMessage("FirstName field is required")
             .MinimumLength(NameMinLength).WithMessage($"First name must be at least {NameMinLength} characters long")
             .MaximumLength(NameMaxLength).WithMessage($"First name must be no longer than {NameMaxLength} characters");
-        RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("LastName field is required")
-            .MinimumLength(NameMinLength).WithMessage($"Last name must be at least {NameMinLength} characters long")
-            .MaximumLength(NameMaxLength).WithMessage($"Last name must be no longer than {NameMaxLength} characters");
         RuleFor(x => x.CategoryId)
             .GreaterThan(0).WithMessage("CategoryId must be positive value");
         RuleFor(x => x.Status)

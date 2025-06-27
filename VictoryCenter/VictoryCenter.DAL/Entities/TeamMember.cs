@@ -8,10 +8,6 @@ public class TeamMember
 
     public string FirstName { get; set; } = null!;
 
-    public string LastName { get; set; } = null!;
-
-    public string? MiddleName { get; set; }
-
     public long CategoryId { get; set; }
 
     public long Priority { get; set; }

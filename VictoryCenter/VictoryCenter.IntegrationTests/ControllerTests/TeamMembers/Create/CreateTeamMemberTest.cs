@@ -28,8 +28,6 @@ public class CreateTeamMemberTest
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "TestName",
-            LastName = "TestLastName",
-            MiddleName = "TestMiddleName",
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
@@ -51,8 +49,6 @@ public class CreateTeamMemberTest
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "TestName",
-            LastName = "TestLastName",
-            MiddleName = "TestMiddleName",
             CategoryId = 10000,
             Status = Status.Draft,
             Description = "Long description",
@@ -74,8 +70,6 @@ public class CreateTeamMemberTest
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FirstName = "A",
-            LastName = "TestLastName",
-            MiddleName = "TestMiddleName",
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",

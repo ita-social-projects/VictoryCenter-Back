@@ -15,8 +15,6 @@ public class DeleteTeamMemberTests
     {
         Id = 1,
         FirstName = "Test name",
-        LastName = "Test last name",
-        MiddleName = "Test middle name",
         CategoryId = 1,
         Priority = 1,
         Status = Status.Published,

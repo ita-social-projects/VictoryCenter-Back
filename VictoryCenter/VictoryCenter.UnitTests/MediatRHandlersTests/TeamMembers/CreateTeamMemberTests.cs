@@ -24,8 +24,6 @@ public class CreateTeamMemberTests
     private readonly CreateTeamMemberDto _createTeamMemberDto = new()
     {
         FirstName = "TestName",
-        LastName = "TestLastName",
-        MiddleName = "TestMiddleName",
         CategoryId = 1,
         Status = Status.Draft,
         Description = "Long description",
@@ -36,8 +34,6 @@ public class CreateTeamMemberTests
     {
         Id = 1,
         FirstName = "TestName",
-        LastName = "TestLastName",
-        MiddleName = "TestMiddleName",
         Priority = 1,
         CategoryId = 1,
         Status = Status.Draft,
@@ -50,8 +46,6 @@ public class CreateTeamMemberTests
     {
         Id = 1,
         FirstName = "TestName",
-        LastName = "TestLastName",
-        MiddleName = "TestMiddleName",
         Priority = 1,
         CategoryName = "Name",
         Status = Status.Draft,

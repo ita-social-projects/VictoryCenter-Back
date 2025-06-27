@@ -21,8 +21,6 @@ public class UpdateTeamMemberTests
     {
         Id = 1,
         FirstName = "Test",
-        LastName = "Member",
-        MiddleName = "Middle",
         CategoryId = 1,
         Priority = 1,
         Status = Status.Published,
@@ -42,8 +40,6 @@ public class UpdateTeamMemberTests
     {
         Id = 1,
         FirstName = "Updated Name",
-        LastName = "Member",
-        MiddleName = "Middle",
         CategoryId = 1,
         Priority = 1,
         Status = Status.Published,
@@ -83,8 +79,6 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             FirstName = "Updated Name",
-            LastName = "Member",
-            MiddleName = "Middle",
             CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
@@ -103,8 +97,6 @@ public class UpdateTeamMemberTests
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {
             FirstName = "Updated Name",
-            LastName = "Member",
-            MiddleName = "Middle",
             CategoryName = "Test Category",
             Priority = 1,
             Status = Status.Published,
@@ -128,15 +120,12 @@ public class UpdateTeamMemberTests
             {
                 Id = _testExistingTeamMember.Id,
                 FirstName = "Updated Name",
-                LastName = "Member",
                 CategoryId = _testExistingTeamMember.CategoryId,
                 Description = testDescription,
             }), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(testUpdatedTeamMemberDto.LastName, result.Value.LastName);
-        Assert.Equal(testUpdatedTeamMemberDto.MiddleName, result.Value.MiddleName);
         Assert.Equal(testUpdatedTeamMemberDto.CategoryName, result.Value.CategoryName);
         Assert.Equal(testUpdatedTeamMemberDto.Priority, result.Value.Priority);
         Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
@@ -180,7 +169,6 @@ public class UpdateTeamMemberTests
         {
             Id = testId,
             FirstName = "Updated Name",
-            LastName = "Member",
             Description = "Updated Description",
             CategoryId = _testExistingTeamMember.CategoryId,
         }), CancellationToken.None);
@@ -200,7 +188,6 @@ public class UpdateTeamMemberTests
         {
             Id = _testExistingTeamMember.Id,
             FirstName = "Updated Name",
-            LastName = "Member",
             Description = "Updated Description",
             CategoryId = _testExistingTeamMember.CategoryId,
         }), CancellationToken.None);
