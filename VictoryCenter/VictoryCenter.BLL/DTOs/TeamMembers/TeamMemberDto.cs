@@ -6,7 +6,7 @@ public record TeamMemberDto
 {
     public long Id { get; set; }
 
-    public string FirstName { get; set; } = null!;
+    public string FullName { get; set; } = null!;
 
     public string CategoryName { get; set; } = null!;
 

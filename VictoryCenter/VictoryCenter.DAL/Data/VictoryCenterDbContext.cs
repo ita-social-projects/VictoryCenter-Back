@@ -65,7 +65,7 @@ public class VictoryCenterDbContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd();
 
-            entity.Property(e => e.FirstName)
+            entity.Property(e => e.FullName)
                 .IsRequired();
 
             entity.Property(e => e.CategoryId)

@@ -14,7 +14,7 @@ internal static class TeamMemberSeeder
         {
             var teamMember = new TeamMember
             {
-                FirstName = $"FirstName{i}",
+                FullName = $"FirstName{i} LastName{i}",
                 CategoryId = categories[i % (categories.Count - 1)].Id,
                 Priority = i + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),

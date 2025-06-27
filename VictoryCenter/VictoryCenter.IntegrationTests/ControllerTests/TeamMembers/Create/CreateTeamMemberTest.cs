@@ -27,7 +27,7 @@ public class CreateTeamMemberTest
         var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
-            FirstName = "TestName",
+            FullName = "TestName",
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
@@ -48,7 +48,7 @@ public class CreateTeamMemberTest
     {
         var createTeamMemberDto = new CreateTeamMemberDto
         {
-            FirstName = "TestName",
+            FullName = "TestName",
             CategoryId = 10000,
             Status = Status.Draft,
             Description = "Long description",
@@ -59,17 +59,18 @@ public class CreateTeamMemberTest
 
         var response = await _client.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.False(response.IsSuccessStatusCode);
     }
 
     [Fact]
-    public async Task CreateTeamMember_ShouldFail_InvalidFirstNameLength()
+    public async Task CreateTeamMember_ShouldFail_InvalidFullNameLength()
     {
         var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
-            FirstName = "A",
+            FullName = "A",
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",

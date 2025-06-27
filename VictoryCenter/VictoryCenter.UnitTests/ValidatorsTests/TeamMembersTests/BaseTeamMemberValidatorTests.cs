@@ -15,36 +15,36 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsEmpty()
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameIsEmpty()
     {
-        var model = new CreateTeamMemberDto { FirstName = "", CategoryId = 1 };
+        var model = new CreateTeamMemberDto { FullName = "", CategoryId = 1 };
         var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage("FirstName field is required");
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage("FullName field is required");
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsShort()
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameIsShort()
     {
-        var model = new CreateTeamMemberDto { FirstName = "A", CategoryId = 1 };
+        var model = new CreateTeamMemberDto { FullName = "A", CategoryId = 1 };
         var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage("First name must be at least 2 characters long");
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage("Full name must be at least 2 characters long");
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsTooLong()
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameIsTooLong()
     {
-        var model = new CreateTeamMemberDto { FirstName = new string('A', 51), CategoryId = 1 };
+        var model = new CreateTeamMemberDto { FullName = new string('A', 101), CategoryId = 1 };
         var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.FirstName)
-            .WithErrorMessage($"First name must be no longer than 50 characters");
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage("Full name must be no longer than 100 characters");
     }
 
     [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenCategoryIdIsZero()
     {
-        var model = new CreateTeamMemberDto { FirstName = "John Doe", CategoryId = 0 };
+        var model = new CreateTeamMemberDto { FullName = "John Doe", CategoryId = 0 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.CategoryId)
             .WithErrorMessage("CategoryId must be positive value");
@@ -55,7 +55,7 @@ public class BaseTeamMembersValidatorTests
     {
         var model = new CreateTeamMemberDto
         {
-            FirstName = "John",
+            FullName = "John Doe",
             CategoryId = 1,
             Description = new string('A', 201)
         };
@@ -69,7 +69,7 @@ public class BaseTeamMembersValidatorTests
     {
         var model = new CreateTeamMemberDto
         {
-            FirstName = "John",
+            FullName = "John Doe",
             CategoryId = 1,
             Status = Status.Published,
             Description = ""
@@ -84,7 +84,7 @@ public class BaseTeamMembersValidatorTests
     {
         var model = new CreateTeamMemberDto
         {
-            FirstName = "Anna",
+            FullName = "Anna",
             CategoryId = 1,
             Status = Status.Draft,
             Description = "",
@@ -99,7 +99,7 @@ public class BaseTeamMembersValidatorTests
     {
         var model = new CreateTeamMemberDto
         {
-            FirstName = "Anna",
+            FullName = "Anna",
             CategoryId = 1,
             Status = Status.Published,
             Description = "Desc",
