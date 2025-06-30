@@ -39,7 +39,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail("Refresh token is not present");
         }
 
-        var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
         if (principalResult.IsFailed)
         {
             return Result.Fail(principalResult.Errors[0].Message);
