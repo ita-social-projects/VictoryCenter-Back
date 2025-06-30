@@ -33,7 +33,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail(validationResult.Errors[0].ErrorMessage);
         }
 
-        var principalResult = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
+        var refreshTokenRetrieved = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
+        if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return Result.Fail("Refresh token is not present");
+        }
+
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
         if (principalResult.IsFailed)
         {
             return Result.Fail(principalResult.Errors[0].Message);
@@ -51,7 +57,6 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail("Admin with given email was not found");
         }
 
-        var refreshTokenRetrieved = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
         if (!refreshTokenRetrieved || admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
         {
             return Result.Fail("Refresh token is invalid");
