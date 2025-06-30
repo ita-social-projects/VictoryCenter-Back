@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
-using VictoryCenter.BLL.Interfaces;
-using VictoryCenter.BLL.Services;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
@@ -49,7 +47,6 @@ public static class ServicesConfiguration
         });
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
-        services.AddScoped<IPagesService, PagesService>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
     }
 

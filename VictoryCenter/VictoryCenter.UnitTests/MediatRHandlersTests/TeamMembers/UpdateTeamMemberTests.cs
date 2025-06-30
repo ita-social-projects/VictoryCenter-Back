@@ -3,11 +3,11 @@ using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.DAL.Enums;
+using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Validators.TeamMembers;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
@@ -20,9 +20,7 @@ public class UpdateTeamMemberTests
     private readonly TeamMember _testExistingTeamMember = new ()
     {
         Id = 1,
-        FirstName = "Test",
-        LastName = "Member",
-        MiddleName = "Middle",
+        FullName = "Test",
         CategoryId = 1,
         Priority = 1,
         Status = Status.Published,
@@ -41,9 +39,7 @@ public class UpdateTeamMemberTests
     private readonly TeamMember _testUpdatedTeamMember = new ()
     {
         Id = 1,
-        FirstName = "Updated Name",
-        LastName = "Member",
-        MiddleName = "Middle",
+        FullName = "Updated Name",
         CategoryId = 1,
         Priority = 1,
         Status = Status.Published,
@@ -61,13 +57,13 @@ public class UpdateTeamMemberTests
 
     private readonly TeamMemberDto _testUpdatedTeamMemberDto = new ()
     {
-        FirstName = "Updated Name",
+        FullName = "Updated Name",
         Description = "Updated Description",
     };
 
     public UpdateTeamMemberTests()
     {
-        BaseTeamMembersValidator baseTeamMembersValidator = new BaseTeamMembersValidator();
+        var baseTeamMembersValidator = new BaseTeamMembersValidator();
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
@@ -82,9 +78,7 @@ public class UpdateTeamMemberTests
         var testUpdatedTeamMember = new TeamMember
         {
             Id = 1,
-            FirstName = "Updated Name",
-            LastName = "Member",
-            MiddleName = "Middle",
+            FullName = "Updated Name",
             CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
@@ -102,9 +96,7 @@ public class UpdateTeamMemberTests
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {
-            FirstName = "Updated Name",
-            LastName = "Member",
-            MiddleName = "Middle",
+            FullName = "Updated Name",
             CategoryName = "Test Category",
             Priority = 1,
             Status = Status.Published,
@@ -127,20 +119,17 @@ public class UpdateTeamMemberTests
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
             {
                 Id = _testExistingTeamMember.Id,
-                FirstName = "Updated Name",
-                LastName = "Member",
+                FullName = "Updated Name",
                 CategoryId = _testExistingTeamMember.CategoryId,
                 Description = testDescription,
             }), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(testUpdatedTeamMemberDto.LastName, result.Value.LastName);
-        Assert.Equal(testUpdatedTeamMemberDto.MiddleName, result.Value.MiddleName);
         Assert.Equal(testUpdatedTeamMemberDto.CategoryName, result.Value.CategoryName);
         Assert.Equal(testUpdatedTeamMemberDto.Priority, result.Value.Priority);
         Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
-        Assert.Equal(testUpdatedTeamMemberDto.FirstName, result.Value.FirstName);
+        Assert.Equal(testUpdatedTeamMemberDto.FullName, result.Value.FullName);
         Assert.Equal(testUpdatedTeamMemberDto.Description, result.Value.Description);
     }
 
@@ -148,10 +137,10 @@ public class UpdateTeamMemberTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Handle_InvalidFirstName_ShouldReturnValidationError(string? testName)
+    public async Task Handle_InvalidFullName_ShouldReturnValidationError(string? testName)
     {
-        _testUpdatedTeamMemberDto.FirstName = testName!;
-        _testUpdatedTeamMember.FirstName = testName!;
+        _testUpdatedTeamMemberDto.FullName = testName!;
+        _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
@@ -159,12 +148,12 @@ public class UpdateTeamMemberTests
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
             {
                 Id = _testExistingTeamMember.Id,
-                FirstName = testName!,
+                FullName = testName!,
                 Description = "Updated Description",
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("FirstName field is required", result.Errors[0].Message);
+        Assert.Contains("FullName field is required", result.Errors[0].Message);
     }
 
     [Theory]
@@ -179,8 +168,7 @@ public class UpdateTeamMemberTests
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
         {
             Id = testId,
-            FirstName = "Updated Name",
-            LastName = "Member",
+            FullName = "Updated Name",
             Description = "Updated Description",
             CategoryId = _testExistingTeamMember.CategoryId,
         }), CancellationToken.None);
@@ -199,8 +187,7 @@ public class UpdateTeamMemberTests
             new UpdateTeamMemberCommand(new UpdateTeamMemberDto
         {
             Id = _testExistingTeamMember.Id,
-            FirstName = "Updated Name",
-            LastName = "Member",
+            FullName = "Updated Name",
             Description = "Updated Description",
             CategoryId = _testExistingTeamMember.CategoryId,
         }), CancellationToken.None);

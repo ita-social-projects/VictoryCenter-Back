@@ -14,9 +14,7 @@ public class DeleteTeamMemberTests
     private readonly TeamMember _testExistingTeamMember = new ()
     {
         Id = 1,
-        FirstName = "Test name",
-        LastName = "Test last name",
-        MiddleName = "Test middle name",
+        FullName = "Test name",
         CategoryId = 1,
         Priority = 1,
         Status = Status.Published,

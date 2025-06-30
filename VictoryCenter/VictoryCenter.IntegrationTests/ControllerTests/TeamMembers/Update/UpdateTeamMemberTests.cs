@@ -43,9 +43,7 @@ public class UpdateTeamMemberTests
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             Id = existingEntity.Id,
-            FirstName = "Test Name",
-            LastName = existingEntity.LastName,
-            MiddleName = existingEntity.MiddleName,
+            FullName = "Test Name",
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = testDescription,
@@ -61,9 +59,7 @@ public class UpdateTeamMemberTests
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(updateTeamMemberDto.Id, responseContent.Id);
-        Assert.Equal(updateTeamMemberDto.FirstName, responseContent.FirstName);
-        Assert.Equal(updateTeamMemberDto.LastName, responseContent.LastName);
-        Assert.Equal(updateTeamMemberDto.MiddleName, responseContent.MiddleName);
+        Assert.Equal(updateTeamMemberDto.FullName, responseContent.FullName);
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
@@ -81,9 +77,7 @@ public class UpdateTeamMemberTests
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             Id = existingEntity.Id,
-            FirstName = existingEntity.FirstName,
-            LastName = existingEntity.LastName,
-            MiddleName = existingEntity.MiddleName,
+            FullName = existingEntity.FullName,
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = existingEntity.Description,
@@ -99,9 +93,7 @@ public class UpdateTeamMemberTests
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(updateTeamMemberDto.Id, responseContent.Id);
-        Assert.Equal(updateTeamMemberDto.FirstName, responseContent.FirstName);
-        Assert.Equal(updateTeamMemberDto.LastName, responseContent.LastName);
-        Assert.Equal(updateTeamMemberDto.MiddleName, responseContent.MiddleName);
+        Assert.Equal(updateTeamMemberDto.FullName, responseContent.FullName);
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
@@ -112,16 +104,14 @@ public class UpdateTeamMemberTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task UpdateTeamMember_InvalidName_ShouldNotUpdateTeamMember(string? testName)
+    public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
     {
         var existingEntity = await _dbContext.TeamMembers
             .Include(tm => tm.Category)
             .FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
-        var originalFirstName = existingEntity.FirstName;
-        var originalLastName = existingEntity.LastName;
-        var originalMiddleName = existingEntity.MiddleName;
+        var originalFullName = existingEntity.FullName;
         var originalCategoryId = existingEntity.CategoryId;
         var originalStatus = existingEntity.Status;
         var originalDescription = existingEntity.Description;
@@ -131,9 +121,7 @@ public class UpdateTeamMemberTests
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             Id = existingEntity.Id,
-            FirstName = testName,
-            LastName = existingEntity.LastName,
-            MiddleName = existingEntity.MiddleName,
+            FullName = testName,
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = "Test Description",
@@ -151,9 +139,7 @@ public class UpdateTeamMemberTests
        .AsNoTracking()
        .FirstOrDefaultAsync(tm => tm.Id == existingEntity.Id);
         Assert.NotNull(reloadedEntity);
-        Assert.Equal(originalFirstName, reloadedEntity.FirstName);
-        Assert.Equal(originalLastName, reloadedEntity.LastName);
-        Assert.Equal(originalMiddleName, reloadedEntity.MiddleName);
+        Assert.Equal(originalFullName, reloadedEntity.FullName);
         Assert.Equal(originalCategoryId, reloadedEntity.CategoryId);
         Assert.Equal(originalStatus, reloadedEntity.Status);
         Assert.Equal(originalDescription, reloadedEntity.Description);
@@ -171,9 +157,7 @@ public class UpdateTeamMemberTests
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             Id = testId,
-            FirstName = "Test Name",
-            LastName = "Test LastName",
-            MiddleName = "Test MiddleName",
+            FullName = "Test Name",
             CategoryId = category.Id,
             Status = Status.Published,
             Description = "Test Description",
