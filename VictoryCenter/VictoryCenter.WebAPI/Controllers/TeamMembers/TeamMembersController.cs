@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.Commands.TeamMembers.Delete;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
