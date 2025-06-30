@@ -25,7 +25,7 @@ public class GetTeamMembers
     [InlineData(0, 4)]
     [InlineData(0, 3)]
     [InlineData(1, 2)]
-    public async Task Handle_ShouldReturnSuccessfully_NoFilters(int pageNumber, int pageSize)
+    public async Task Handle_NoFilters_ShouldReturnSuccessfully(int pageNumber, int pageSize)
     {
         // Arrange
         var teamMemberList = GetTeamMemberList();
@@ -63,7 +63,7 @@ public class GetTeamMembers
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByStatus()
+    public async Task Handle_FilterByStatus_ShouldReturnSuccessfully()
     {
         // Arrange
         var status = Status.Draft;
@@ -97,7 +97,7 @@ public class GetTeamMembers
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByCategoryName()
+    public async Task Handle_FilterByCategoryName_ShouldReturnSuccessfully()
     {
         // Arrange
         var category = new Category { Id = 2, Name = "Category 2" };
@@ -132,7 +132,7 @@ public class GetTeamMembers
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByStatusAndCategoryName()
+    public async Task Handle_FilterByStatusAndCategoryName_ShouldReturnSuccessfully()
     {
         // Arrange
         var status = Status.Published;

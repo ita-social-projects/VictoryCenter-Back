@@ -164,7 +164,7 @@ public class UpdateTeamMemberTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
+    public async Task UpdateTeamMember_WhenTeamMemberNotFound_ShouldNotUpdateTeamMember(long testId)
     {
         var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
 

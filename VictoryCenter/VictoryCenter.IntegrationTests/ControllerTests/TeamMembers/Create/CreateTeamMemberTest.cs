@@ -46,7 +46,7 @@ public class CreateTeamMemberTest
     }
 
     [Fact]
-    public async Task CreateTeamMember_ShouldFail_InvalidCategoryId()
+    public async Task CreateTeamMember_WhenInvalidCategoryId_ShouldFail()
     {
         var createTeamMemberDto = new CreateTeamMemberDto
         {
@@ -68,7 +68,7 @@ public class CreateTeamMemberTest
     }
 
     [Fact]
-    public async Task CreateTeamMember_ShouldFail_InvalidFirstNameLength()
+    public async Task CreateTeamMember_WhenInvalidFirstNameLength_ShouldFail()
     {
         var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto

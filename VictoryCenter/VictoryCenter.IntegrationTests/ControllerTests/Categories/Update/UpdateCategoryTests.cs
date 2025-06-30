@@ -56,7 +56,7 @@ public class UpdateCategoryTests
     }
 
     [Fact]
-    public async Task UpdateCategory_ShouldUpdateCategory_SameInput()
+    public async Task UpdateCategory_WhenSameInput_ShouldUpdateCategory()
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
@@ -83,7 +83,7 @@ public class UpdateCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string? testName)
+    public async Task UpdateCategory_WhenNameInvalid_ShouldNotUpdateCategory(string? testName)
     {
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
@@ -104,7 +104,7 @@ public class UpdateCategoryTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task UpdateCategory_ShouldNotUpdateCategory_NotFound(long testId)
+    public async Task UpdateCategory_WhenCategoryNotFound_ShouldNotUpdateCategory(long testId)
     {
         var updateCategoryDto = new UpdateCategoryDto
         {

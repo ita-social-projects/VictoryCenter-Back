@@ -31,7 +31,7 @@ public class DeleteCategoryTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task DeleteCategory_ShouldNotDeleteCategory_NotFound(long testId)
+    public async Task DeleteCategory_WhenCategoryNotFound_ShouldNotDeleteCategory(long testId)
     {
         var response = await _httpClient.DeleteAsync($"api/categories/{testId}");
 

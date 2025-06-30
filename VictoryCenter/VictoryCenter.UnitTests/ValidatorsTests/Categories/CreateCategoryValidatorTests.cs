@@ -18,7 +18,7 @@ public class CreateCategoryValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Validate_ShouldHaveError_When_Name_IsNotValid(string? name)
+    public void Validate_WhenNameIsNotValid_ShouldHaveError(string? name)
     {
         var command = new CreateCategoryCommand(new CreateCategoryDto { Name = name });
 
@@ -29,7 +29,7 @@ public class CreateCategoryValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_When_Name_IsValid()
+    public void Validate_WhenNameIsValid_ShouldNotHaveError()
     {
         var command = new CreateCategoryCommand(new CreateCategoryDto { Name = "Valid Name" });
 

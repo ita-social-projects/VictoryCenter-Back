@@ -32,7 +32,7 @@ public class DeleteTeamMemberTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task DeleteTeamMember_InvalidId_ShouldReturnNotFound(long testId)
+    public async Task DeleteTeamMember_WhenInvalidId_ShouldReturnNotFound(long testId)
     {
         var response = await _httpClient.DeleteAsync($"/api/TeamMembers/{testId}");
         Assert.False(response.IsSuccessStatusCode);

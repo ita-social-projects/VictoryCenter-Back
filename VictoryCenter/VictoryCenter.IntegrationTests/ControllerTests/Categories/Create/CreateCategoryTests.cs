@@ -52,7 +52,7 @@ public class CreateCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task CreateCategory_ShouldNotCreateCategory_InvalidName(string? testName)
+    public async Task CreateCategory_InvalidName_ShouldNotCreateCategory(string? testName)
     {
         var createCategoryDto = new CreateCategoryDto
         {

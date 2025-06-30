@@ -37,7 +37,7 @@ public class DeleteCategoryTests
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
-    public async Task Handle_ShouldNotDeleteCategory_CategoryNotFound(long categoryId)
+    public async Task Handle_CategoryNotFound_ShouldNotDeleteCategory(long categoryId)
     {
         SetupRepositoryWrapper();
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);
@@ -49,7 +49,7 @@ public class DeleteCategoryTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotDeleteCategory_AnyTeamMemberDependsOnCategory()
+    public async Task Handle_AnyTeamMemberDependsOnCategory_ShouldNotDeleteCategory()
     {
         Category categoryWithDependencies = new()
         {
@@ -69,7 +69,7 @@ public class DeleteCategoryTests
     }
 
     [Fact]
-    public async Task Handle_ShouldNotDeleteCategory_SaveChangesFails()
+    public async Task Handle_SaveChangesFails_ShouldNotDeleteCategory()
     {
         SetupRepositoryWrapper(_testExistingCategory, -1);
         var handler = new DeleteCategoryHandler(_mockRepositoryWrapper.Object);

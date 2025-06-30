@@ -74,7 +74,7 @@ public class CreateTeamMemberTests
     }
 
     [Fact]
-    public async Task CreateTeamMemberHandle_ShouldReturnTeamMemberDto_WhenCreationIsValid()
+    public async Task CreateTeamMemberHandle_WhenCreationIsValid_ShouldReturnTeamMemberDto()
     {
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, 1);
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
@@ -88,7 +88,7 @@ public class CreateTeamMemberTests
     }
 
     [Fact]
-    public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
+    public async Task CreateTeamMemberHandle_WhenSaveChangeFails_ShouldReturnFailure()
     {
         var failMessage = "Failed to create new TeamMember";
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, -1);
@@ -104,7 +104,7 @@ public class CreateTeamMemberTests
     }
 
     [Fact]
-    public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenExceptionThrown()
+    public async Task CreateTeamMemberHandle_WhenExceptionThrown_ShouldReturnFailure()
     {
         var testMessage = "test message";
         SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);

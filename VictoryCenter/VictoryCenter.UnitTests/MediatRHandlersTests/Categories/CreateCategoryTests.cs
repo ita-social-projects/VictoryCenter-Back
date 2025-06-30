@@ -42,7 +42,7 @@ public class CreateCategoryTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Handle_ShouldCreateCategory(string? description)
+    public async Task Handle_WhenValidData_ShouldCreateCategory(string? description)
     {
         _testEntity.Description = description;
         _testCategoryDto.Description = description;
@@ -65,7 +65,7 @@ public class CreateCategoryTests
     [InlineData("")]
     [InlineData(" ")]
     [InlineData(null)]
-    public async Task Handle_ShouldFail_InvalidName(string? name)
+    public async Task Handle_InvalidName_ShouldFail(string? name)
     {
         _testEntity.Name = name;
         _testCategoryDto.Name = name;
@@ -84,7 +84,7 @@ public class CreateCategoryTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_SaveChangesFails()
+    public async Task Handle_SaveChangesFails_ShouldFail()
     {
         SetupDependencies(-1);
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);

@@ -15,7 +15,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsEmpty()
+    public void BaseTeamMembersValidator_WhenFirstNameIsEmpty_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = "", LastName = "Test", CategoryId = 1 };
         var result = _validator.TestValidate(model);
@@ -24,7 +24,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsShort()
+    public void BaseTeamMembersValidator_WhenFirstNameIsShort_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = "A", LastName = "Test", CategoryId = 1 };
         var result = _validator.TestValidate(model);
@@ -33,7 +33,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFirstNameIsTooLong()
+    public void BaseTeamMembersValidator_WhenFirstNameIsTooLong_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = new string('A', 51), LastName = "Test", CategoryId = 1 };
         var result = _validator.TestValidate(model);
@@ -42,7 +42,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenLastNameIsEmpty()
+    public void BaseTeamMembersValidator_WhenLastNameIsEmpty_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = "John", LastName = "", CategoryId = 1 };
         var result = _validator.TestValidate(model);
@@ -51,7 +51,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenLastNameIsShort()
+    public void BaseTeamMembersValidator_WhenLastNameIsShort_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = "Test", LastName = "T", CategoryId = 1 };
         var result = _validator.TestValidate(model);
@@ -60,7 +60,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenLastNameIsTooLong()
+    public void BaseTeamMembersValidator_WhenLastNameIsTooLong_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = "Test", LastName = new string('A', 51), CategoryId = 1 };
         var result = _validator.TestValidate(model);
@@ -69,7 +69,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenCategoryIdIsZero()
+    public void BaseTeamMembersValidator_WhenCategoryIdIsZero_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto { FirstName = "John", LastName = "Doe", CategoryId = 0 };
         var result = _validator.TestValidate(model);
@@ -78,7 +78,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenDescriptionIsTooLong()
+    public void BaseTeamMembersValidator_WhenDescriptionIsTooLong_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto
         {
@@ -93,7 +93,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenDescriptionEmptyForPublished()
+    public void BaseTeamMembersValidator_WhenDescriptionEmptyForPublished_ShouldHaveError()
     {
         var model = new CreateTeamMemberDto
         {
@@ -109,7 +109,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldNotHaveErrors_ForValidDraftModel()
+    public void BaseTeamMembersValidator_ValidDraftModel_ShouldNotHaveErrors()
     {
         var model = new CreateTeamMemberDto
         {
@@ -125,7 +125,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldNotHaveErrors_ForValidPublishedModel()
+    public void BaseTeamMembersValidator_ValidPublishedModel_ShouldNotHaveErrors()
     {
         var model = new CreateTeamMemberDto
         {

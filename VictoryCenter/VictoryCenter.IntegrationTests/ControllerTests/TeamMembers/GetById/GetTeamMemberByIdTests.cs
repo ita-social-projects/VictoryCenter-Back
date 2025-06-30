@@ -53,7 +53,7 @@ public class GetTeamMemberByIdTests
     }
 
     [Fact]
-    public async Task GetTeamMemberById_ShouldFail_NotFound()
+    public async Task GetTeamMemberById_WhenTeamMemberNotFound_ShouldFail()
     {
         var response = await _httpClient.GetAsync($"api/TeamMembers/{-1}");
 
