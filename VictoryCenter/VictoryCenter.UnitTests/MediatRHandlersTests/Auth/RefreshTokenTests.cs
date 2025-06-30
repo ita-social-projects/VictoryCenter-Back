@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using FluentResults;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,6 +18,7 @@ public class RefreshTokenTests
     private readonly RefreshTokenCommandHandler _handler;
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<Admin>> _mockUserManager;
+    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
 
     public RefreshTokenTests()
     {
@@ -31,7 +33,8 @@ public class RefreshTokenTests
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<IServiceProvider>().Object,
             new Mock<ILogger<UserManager<Admin>>>().Object);
-        _handler = new RefreshTokenCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new RefreshTokenCommandValidator());
+        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        _handler = new RefreshTokenCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new RefreshTokenCommandValidator(), _mockHttpContextAccessor.Object);
     }
 
     [Fact]

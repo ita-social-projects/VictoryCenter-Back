@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,7 +17,7 @@ public class LoginTests
     private readonly LoginCommandHandler _commandHandler;
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<Admin>> _mockUserManager;
-
+    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     public LoginTests()
     {
         _mockUserManager = new Mock<UserManager<Admin>>(
@@ -30,7 +31,8 @@ public class LoginTests
             new Mock<IServiceProvider>().Object,
             new Mock<ILogger<UserManager<Admin>>>().Object);
         _mockTokenService = new Mock<ITokenService>();
-        _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator());
+        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator(), _mockHttpContextAccessor.Object);
     }
 
     [Fact]

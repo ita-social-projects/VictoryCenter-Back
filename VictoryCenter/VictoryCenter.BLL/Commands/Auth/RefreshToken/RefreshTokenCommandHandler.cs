@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces;
@@ -14,12 +15,14 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
     private readonly IValidator<RefreshTokenCommand> _validator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<RefreshTokenCommand> validator)
+    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<RefreshTokenCommand> validator, IHttpContextAccessor httpContextAccessor)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _validator = validator;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -48,7 +51,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail("Admin with given email was not found");
         }
 
-        if (admin.RefreshToken != request.Request.RefreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
+        var refreshTokenRetrieved = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
+        if (!refreshTokenRetrieved || admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
         {
             return Result.Fail("Refresh token is invalid");
         }
@@ -57,15 +61,24 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             .. await _userManager.GetClaimsAsync(admin),
             email
         ]);
-        var refreshToken = _tokenService.CreateRefreshToken();
+        var newRefreshToken = _tokenService.CreateRefreshToken();
 
-        admin.RefreshToken = refreshToken;
+        _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime),
+            Path = "/api/auth/refresh-token"
+        });
+
+        admin.RefreshToken = newRefreshToken;
         admin.RefreshTokenValidTo = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime);
 
         var result = await _userManager.UpdateAsync(admin);
 
         return result.Succeeded
-            ? Result.Ok(new AuthResponse(accessToken, refreshToken))
+            ? Result.Ok(new AuthResponse(accessToken, newRefreshToken))
             : Result.Fail(result.Errors.First().Description);
     }
 }

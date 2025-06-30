@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces;
@@ -14,12 +15,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
     private readonly IValidator<LoginCommand> _validator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public LoginCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<LoginCommand> validator)
+    public LoginCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<LoginCommand> validator, IHttpContextAccessor httpContextAccessor)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _validator = validator;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result<AuthResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -47,6 +50,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             new Claim(ClaimTypes.Email, request.Request.Email)
         ]);
         var refreshToken = _tokenService.CreateRefreshToken();
+        _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions()
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime),
+            Path = "/api/auth/refresh-token"
+        });
 
         admin.RefreshToken = refreshToken;
         admin.RefreshTokenValidTo = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime);
