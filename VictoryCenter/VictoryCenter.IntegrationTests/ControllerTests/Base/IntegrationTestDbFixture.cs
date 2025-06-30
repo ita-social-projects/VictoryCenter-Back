@@ -29,7 +29,7 @@ public class IntegrationTestDbFixture : IDisposable
         DbContext.Database.EnsureDeleted();
         DbContext.Database.Migrate();
         IntegrationTestsDatabaseSeeder.SeedData(DbContext);
-        EnsureTestAdminUser(scope.ServiceProvider).GetAwaiter().GetResult();
+        EnsureTestAdminUser(scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(scope.ServiceProvider));
     }
 
