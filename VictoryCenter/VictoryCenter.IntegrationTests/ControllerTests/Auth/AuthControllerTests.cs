@@ -25,7 +25,8 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         response.EnsureSuccessStatusCode();
         var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.False(string.IsNullOrEmpty(authResponse.AccessToken));
-        Assert.False(string.IsNullOrEmpty(authResponse.RefreshToken));
+        var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(h => h.StartsWith("refreshToken="));
+        Assert.False(string.IsNullOrEmpty(setCookie));
     }
 
     [Fact]
@@ -42,21 +43,29 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         var loginRequest = new LoginRequest(TestEmail, TestPassword);
         var loginResponse = await _fixture.HttpClient.PostAsJsonAsync("/api/auth/login", loginRequest);
         loginResponse.EnsureSuccessStatusCode();
-        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponse>();
 
-        var refreshRequest = new RefreshTokenRequest(authResponse.AccessToken, authResponse.RefreshToken);
-        var refreshResponse = await _fixture.HttpClient.PostAsJsonAsync("/api/auth/refresh-token", refreshRequest);
+        var setCookieHeaders = loginResponse.Headers.TryGetValues("Set-Cookie", out var values) ? values : null;
+        var refreshTokenCookie = setCookieHeaders?.FirstOrDefault(h => h.StartsWith("refreshToken="));
+        Assert.False(string.IsNullOrEmpty(refreshTokenCookie));
+
+        var cookieHeader = refreshTokenCookie!.Split(';')[0];
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
+        request.Headers.Add("Cookie", cookieHeader);
+
+        var refreshResponse = await _fixture.HttpClient.SendAsync(request);
         refreshResponse.EnsureSuccessStatusCode();
         var refreshAuthResponse = await refreshResponse.Content.ReadFromJsonAsync<AuthResponse>();
         Assert.False(string.IsNullOrEmpty(refreshAuthResponse.AccessToken));
-        Assert.False(string.IsNullOrEmpty(refreshAuthResponse.RefreshToken));
     }
 
     [Fact]
     public async Task RefreshToken_Failure_ReturnsUnauthorized()
     {
-        var refreshRequest = new RefreshTokenRequest("invalidAccessToken", "invalidRefreshToken");
-        var response = await _fixture.HttpClient.PostAsJsonAsync("/api/auth/refresh-token", refreshRequest);
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh-token");
+        request.Headers.Add("Cookie", "refreshToken=invalidRefreshToken");
+
+        var response = await _fixture.HttpClient.SendAsync(request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

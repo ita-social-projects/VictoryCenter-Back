@@ -109,11 +109,24 @@ public class LoginTests
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
         _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Success);
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        var mockHttpContext = new Mock<HttpContext>();
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal("access_token", result.Value.AccessToken);
+        Assert.Equal("refresh_token", admin.RefreshToken);
+        Assert.True(admin.RefreshTokenValidTo > DateTime.UtcNow);
+        mockResponseCookies.Verify(
+            c => c.Append(
+            It.Is<string>(s => s == "refreshToken"),
+            It.Is<string>(s => s == "refresh_token"),
+            It.IsAny<CookieOptions>()), Times.Once);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
@@ -131,8 +144,14 @@ public class LoginTests
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
-        _mockTokenService.Setup(x => x.CreateRefreshToken()).Returns("refresh_token");
+        _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
         _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(new IdentityError() { Description = "Failed" }));
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        var mockHttpContext = new Mock<HttpContext>();
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -141,7 +160,7 @@ public class LoginTests
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
-        _mockTokenService.Verify(x => x.CreateRefreshToken(), Times.Once);
+        _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
     }
 }

@@ -27,7 +27,9 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
                 ["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("INTEGRATION_TESTS_DB_CONNECTION_STRING")
                                                           ?? throw new InvalidOperationException("INTEGRATION_TESTS_DB_CONNECTION_STRING is not set in enviroment variables"),
                 ["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_SECRETKEY")
-                                           ?? throw new InvalidOperationException("JWTOPTIONS_SECRETKEY is not set in enviroment variables")
+                                           ?? throw new InvalidOperationException("JWTOPTIONS_SECRETKEY is not set in enviroment variables"),
+                ["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY")
+                                                       ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration")
             };
 
             config.AddInMemoryCollection(dict);

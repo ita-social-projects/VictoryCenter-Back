@@ -34,7 +34,8 @@ public class TokenServiceTest
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
             LifetimeInMinutes = 1440,
-            SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2"
+            SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
+            RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2"
         };
 
         var mockJwtOptions = new Mock<IOptions<JwtOptions>>();
@@ -77,7 +78,7 @@ public class TokenServiceTest
     [Fact]
     public void CreateRefreshToken_SuccessfullyCreatesRefreshToken()
     {
-        var refreshToken = _tokenService.CreateRefreshToken();
+        var refreshToken = _tokenService.CreateRefreshToken([]);
 
         Assert.NotEmpty(refreshToken);
     }

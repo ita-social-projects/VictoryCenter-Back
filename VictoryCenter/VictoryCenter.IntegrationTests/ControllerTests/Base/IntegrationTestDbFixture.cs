@@ -62,7 +62,8 @@ public class IntegrationTestDbFixture : IDisposable
                 Email = TestEmail,
                 EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
-                RefreshToken = "refresh_token"
+                RefreshToken = "refresh_token",
+                RefreshTokenValidTo = DateTime.MaxValue
             };
             var result = await userManager.CreateAsync(admin, TestPassword);
             if (!result.Succeeded)
