@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250626131636_UpdateRefreshToken")]
+    [Migration("20250701083016_UpdateRefreshToken")]
     partial class UpdateRefreshToken
     {
         /// <inheritdoc />
@@ -207,8 +207,7 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("RefreshToken")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RefreshTokenValidTo")
                         .HasColumnType("datetime2");

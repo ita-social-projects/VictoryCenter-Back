@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using FluentResults;
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -14,32 +13,24 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
-    private readonly IValidator<RefreshTokenCommand> _validator;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<RefreshTokenCommand> validator, IHttpContextAccessor httpContextAccessor)
+    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IHttpContextAccessor httpContextAccessor)
     {
         _tokenService = tokenService;
         _userManager = userManager;
-        _validator = validator;
         _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var validationResult = await _validator.ValidateAsync(request, cancellationToken);
-        if (!validationResult.IsValid)
-        {
-            return Result.Fail(validationResult.Errors[0].ErrorMessage);
-        }
-
         var refreshTokenRetrieved = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
             return Result.Fail("Refresh token is not present");
         }
 
-        var principalResult = _tokenService.GetClaimsFromExpiredToken(request.Request.ExpiredAccessToken);
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
         if (principalResult.IsFailed)
         {
             return Result.Fail(principalResult.Errors[0].Message);
@@ -66,13 +57,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             .. await _userManager.GetClaimsAsync(admin),
             email
         ]);
-        var newRefreshToken = _tokenService.CreateRefreshToken();
+        var newRefreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, admin.Email!)]);
 
         _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions()
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime),
             Path = "/api/auth/refresh-token"
         });
@@ -83,7 +74,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var result = await _userManager.UpdateAsync(admin);
 
         return result.Succeeded
-            ? Result.Ok(new AuthResponse(accessToken, newRefreshToken))
+            ? Result.Ok(new AuthResponse(accessToken))
             : Result.Fail(result.Errors.First().Description);
     }
 }

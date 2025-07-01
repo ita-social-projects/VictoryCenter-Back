@@ -204,8 +204,7 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("RefreshToken")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("RefreshTokenValidTo")
                         .HasColumnType("datetime2");

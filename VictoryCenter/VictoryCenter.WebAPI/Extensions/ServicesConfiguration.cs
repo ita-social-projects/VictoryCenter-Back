@@ -147,9 +147,10 @@ public static class ServicesConfiguration
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
                 CreatedAt = DateTime.UtcNow,
+                RefreshTokenValidTo = DateTime.MaxValue,
 
                 // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
-                RefreshToken = tokenService.CreateRefreshToken()
+                RefreshToken = tokenService.CreateRefreshToken([])
             };
 
             var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD")

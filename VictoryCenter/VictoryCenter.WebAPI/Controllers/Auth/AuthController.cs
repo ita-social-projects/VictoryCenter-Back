@@ -18,8 +18,8 @@ public class AuthController : BaseApiController
     [HttpPost("refresh-token")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
-    public async Task<IActionResult> RefreshTokenAsync(RefreshTokenRequest request)
+    public async Task<IActionResult> RefreshTokenAsync()
     {
-        return HandleResult(await Mediator.Send(new RefreshTokenCommand(request)));
+        return HandleResult(await Mediator.Send(new RefreshTokenCommand()));
     }
 }

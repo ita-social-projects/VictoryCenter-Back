@@ -1,4 +1,5 @@
 using dotenv.net;
+using Microsoft.AspNetCore.CookiePolicy;
 using VictoryCenter.WebAPI.Extensions;
 
 DotEnv.Load();
@@ -10,8 +11,17 @@ builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEn
 builder.Configuration["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_SECRETKEY")
                                                 ?? throw new InvalidOperationException("JWTOPTIONS_SECRETKEY is not set in configuration");
 
+builder.Configuration["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY")
+                                                            ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration");
+
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices();
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.Secure = CookieSecurePolicy.Always;
+    options.HttpOnly = HttpOnlyPolicy.Always;
+});
 
 var app = builder.Build();
 
@@ -27,6 +37,7 @@ app.UseRequestResponseLogging();
 app.UseCors();
 app.MapControllers();
 app.UseHttpsRedirection();
+app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 

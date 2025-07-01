@@ -49,12 +49,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             .. await _userManager.GetClaimsAsync(admin),
             new Claim(ClaimTypes.Email, request.Request.Email)
         ]);
-        var refreshToken = _tokenService.CreateRefreshToken();
+        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.Request.Email)]);
         _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions()
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.Strict,
+            SameSite = SameSiteMode.None,
             Expires = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime),
             Path = "/api/auth/refresh-token"
         });
@@ -66,6 +66,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         return !updateResult.Succeeded
             ? Result.Fail(updateResult.Errors.Select(x => x.Description))
-            : Result.Ok(new AuthResponse(accessToken, refreshToken));
+            : Result.Ok(new AuthResponse(accessToken));
     }
 }

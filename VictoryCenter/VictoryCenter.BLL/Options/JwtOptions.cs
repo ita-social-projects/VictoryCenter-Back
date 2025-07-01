@@ -17,4 +17,7 @@ public class JwtOptions
 
     [Required]
     public string SecretKey { get; init; } = null!;
+
+    [Required]
+    public string RefreshTokenSecretKey { get; init; } = null!;
 }

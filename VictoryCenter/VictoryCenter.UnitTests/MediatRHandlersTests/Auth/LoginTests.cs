@@ -107,18 +107,17 @@ public class LoginTests
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
-        _mockTokenService.Setup(x => x.CreateRefreshToken()).Returns("refresh_token");
+        _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
         _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Success);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal("access_token", result.Value.AccessToken);
-        Assert.Equal("refresh_token", result.Value.RefreshToken);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
-        _mockTokenService.Verify(x => x.CreateRefreshToken(), Times.Once);
+        _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
     }
 
