@@ -3,9 +3,11 @@ using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
 using VictoryCenter.BLL.Commands.TeamMembers.Delete;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
+using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
+using VictoryCenter.BLL.Queries.TeamMembers.GetPublic;
 
 namespace VictoryCenter.WebAPI.Controllers.TeamMembers;
 
@@ -16,6 +18,13 @@ public class TeamMembersController : BaseApiController
     public async Task<IActionResult> GetFilteredTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
     {
         return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
+    }
+
+    [HttpGet("public")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublicCategoryWithTeamMembersDto>))]
+    public async Task<IActionResult> GetPublicTeamMembers()
+    {
+        return HandleResult(await Mediator.Send(new GetPublicTeamMembersQuery()));
     }
 
     [HttpGet("{id:long}")]
