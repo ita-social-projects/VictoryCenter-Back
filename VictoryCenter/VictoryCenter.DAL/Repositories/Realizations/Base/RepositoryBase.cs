@@ -11,7 +11,7 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 public class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    private readonly VictoryCenterDbContext _dbContext;
+    protected readonly VictoryCenterDbContext _dbContext;
 
     protected RepositoryBase(VictoryCenterDbContext context)
     {

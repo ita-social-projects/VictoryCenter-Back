@@ -48,13 +48,8 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd();
 
-            entity.Property(e => e.FirstName)
+            entity.Property(e => e.FullName)
                 .IsRequired();
-
-            entity.Property(e => e.LastName)
-                .IsRequired();
-
-            entity.Property(e => e.MiddleName);
 
             entity.Property(e => e.CategoryId)
                 .IsRequired();

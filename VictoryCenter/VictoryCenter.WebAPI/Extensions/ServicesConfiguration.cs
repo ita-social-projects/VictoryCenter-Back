@@ -77,18 +77,7 @@ public static class ServicesConfiguration
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
-        services.AddCors(opt =>
-        {
-            opt.AddDefaultPolicy(builder =>
-            {
-                builder.AllowAnyOrigin()
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-        });
-
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
-        services.AddScoped<IPagesService, PagesService>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
 
         services.AddOptions<JwtOptions>()

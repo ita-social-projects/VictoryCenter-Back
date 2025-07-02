@@ -18,6 +18,9 @@ builder.Configuration["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvir
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices();
 
+builder.Services.AddOpenTelemetryTracing();
+builder.Logging.AddOpenTelemetryLogging();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

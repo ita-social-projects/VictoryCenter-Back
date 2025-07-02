@@ -6,19 +6,15 @@ namespace VictoryCenter.BLL.Validators.TeamMembers;
 
 public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
 {
-    private const int NameMinLength = 2;
-    private const int NameMaxLength = 50;
+    private const int FullNameMinLength = 2;
+    private const int FullNameMaxLength = 100;
     private const int DescriptionNameMaxLength = 200;
     public BaseTeamMembersValidator()
     {
-        RuleFor(x => x.FirstName)
-            .NotEmpty().WithMessage("FirstName field is required")
-            .MinimumLength(NameMinLength).WithMessage($"First name must be at least {NameMinLength} characters long")
-            .MaximumLength(NameMaxLength).WithMessage($"First name must be no longer than {NameMaxLength} characters");
-        RuleFor(x => x.LastName)
-            .NotEmpty().WithMessage("LastName field is required")
-            .MinimumLength(NameMinLength).WithMessage($"Last name must be at least {NameMinLength} characters long")
-            .MaximumLength(NameMaxLength).WithMessage($"Last name must be no longer than {NameMaxLength} characters");
+        RuleFor(x => x.FullName)
+            .NotEmpty().WithMessage("FullName field is required")
+            .MinimumLength(FullNameMinLength).WithMessage($"Full name must be at least {FullNameMinLength} characters long")
+            .MaximumLength(FullNameMaxLength).WithMessage($"Full name must be no longer than {FullNameMaxLength} characters");
         RuleFor(x => x.CategoryId)
             .GreaterThan(0).WithMessage("CategoryId must be positive value");
         RuleFor(x => x.Status)
