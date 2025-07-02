@@ -18,7 +18,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices();
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.MinimumSameSitePolicy = SameSiteMode.None;
+    options.MinimumSameSitePolicy = SameSiteMode.Strict;
     options.Secure = CookieSecurePolicy.Always;
     options.HttpOnly = HttpOnlyPolicy.Always;
 });

@@ -5,6 +5,8 @@ using FluentResults;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.BLL.Options;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
@@ -59,7 +61,7 @@ public class TokenService : ITokenService
         var token = new JwtSecurityToken(
             audience: _jwtOptions.Value.Audience,
             issuer: _jwtOptions.Value.Issuer,
-            expires: issuedAt.Add(Constants.Authentication.RefreshTokenLifeTime),
+            expires: issuedAt.Add(AuthConstants.RefreshTokenLifeTime),
             notBefore: issuedAt,
             claims: claims,
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.RefreshTokenSecretKey)), SecurityAlgorithms.HmacSha256));
@@ -69,10 +71,9 @@ public class TokenService : ITokenService
 
     public Result<ClaimsPrincipal> GetClaimsFromExpiredToken(string refreshToken)
     {
-        var tokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(_configuration).Clone();
+        var tokenValidationParameters = AuthHelper.GetTokenValidationParameters(_configuration).Clone();
         tokenValidationParameters.ValidateLifetime = false;
-        tokenValidationParameters.ValidateIssuerSigningKey = false;
-        tokenValidationParameters.SignatureValidator = (token, parameters) => new JwtSecurityToken(token);
+        tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.RefreshTokenSecretKey));
         try
         {
             var principal = _jwtSecurityTokenHandler.ValidateToken(refreshToken, tokenValidationParameters, out var securityToken);
@@ -86,6 +87,10 @@ public class TokenService : ITokenService
         catch (ArgumentException e)
         {
             return Result.Fail("Invalid token");
+        }
+        catch (SecurityTokenException e)
+        {
+            return Result.Fail("Invalid token signature");
         }
     }
 }

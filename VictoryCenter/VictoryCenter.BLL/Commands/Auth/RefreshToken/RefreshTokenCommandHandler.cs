@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.DAL.Entities;
@@ -36,7 +37,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail(principalResult.Errors[0].Message);
         }
 
-        var email = principalResult.Value.Claims.SingleOrDefault(x => x.Type == ClaimTypes.Email);
+        var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
             return Result.Fail("Invalid token");
@@ -48,7 +49,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail("Admin with given email was not found");
         }
 
-        if (!refreshTokenRetrieved || admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
+        if (admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
         {
             return Result.Fail("Refresh token is invalid");
         }
@@ -63,13 +64,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime),
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime),
             Path = "/api/auth/refresh-token"
         });
 
         admin.RefreshToken = newRefreshToken;
-        admin.RefreshTokenValidTo = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime);
+        admin.RefreshTokenValidTo = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime);
 
         var result = await _userManager.UpdateAsync(admin);
 

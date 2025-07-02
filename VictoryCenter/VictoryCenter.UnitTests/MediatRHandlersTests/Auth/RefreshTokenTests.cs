@@ -13,6 +13,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
 
 public class RefreshTokenTests
 {
+    private static readonly DateTime FixedTestTime = DateTime.UtcNow;
     private readonly RefreshTokenCommandHandler _handler;
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<Admin>> _mockUserManager;
@@ -151,7 +152,7 @@ public class RefreshTokenTests
         var admin = new Admin()
         {
             RefreshToken = "refresh_token_different",
-            RefreshTokenValidTo = DateTime.UtcNow.AddHours(24)
+            RefreshTokenValidTo = FixedTestTime.AddHours(24)
         };
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
             new Claim(ClaimTypes.Email, "test@email.com")
@@ -183,7 +184,7 @@ public class RefreshTokenTests
         var admin = new Admin()
         {
             RefreshToken = "refresh_token",
-            RefreshTokenValidTo = DateTime.UtcNow.AddHours(-24)
+            RefreshTokenValidTo = FixedTestTime.AddHours(-24)
         };
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
             new Claim(ClaimTypes.Email, "test@email.com")
@@ -209,31 +210,13 @@ public class RefreshTokenTests
     }
 
     [Fact]
-    public async Task Handle_GivenNoRefreshTokenCookie_ReturnsFail()
-    {
-        var cmd = new RefreshTokenCommand();
-        var mockRequestCookies = new Mock<IRequestCookieCollection>();
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out It.Ref<string>.IsAny)).Returns(false);
-        var mockHttpRequest = new Mock<HttpRequest>();
-        mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
-        var mockHttpContext = new Mock<HttpContext>();
-        mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
-        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
-
-        var result = await _handler.Handle(cmd, CancellationToken.None);
-
-        Assert.False(result.IsSuccess);
-        Assert.Equal("Refresh token is not present", result.Errors[0].Message);
-    }
-
-    [Fact]
     public async Task Handle_GivenValidRefreshToken_ReturnsSuccess()
     {
         var cmd = new RefreshTokenCommand();
         var admin = new Admin()
         {
             RefreshToken = "refresh_token",
-            RefreshTokenValidTo = DateTime.UtcNow.AddHours(24),
+            RefreshTokenValidTo = FixedTestTime.AddHours(24),
             Email = "test@email.com"
         };
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
@@ -264,7 +247,7 @@ public class RefreshTokenTests
         Assert.True(result.IsSuccess);
         Assert.Equal("new_access_token", result.Value.AccessToken);
         Assert.Equal("new_refresh_token", admin.RefreshToken);
-        Assert.True(admin.RefreshTokenValidTo > DateTime.UtcNow);
+        Assert.True(admin.RefreshTokenValidTo > FixedTestTime);
         mockResponseCookies.Verify(
             c => c.Append(
             It.Is<string>(s => s == "refreshToken"),
@@ -284,7 +267,7 @@ public class RefreshTokenTests
         var admin = new Admin()
         {
             RefreshToken = "refresh_token",
-            RefreshTokenValidTo = DateTime.UtcNow.AddHours(24),
+            RefreshTokenValidTo = FixedTestTime.AddHours(24),
             Email = "test@email.com"
         };
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([

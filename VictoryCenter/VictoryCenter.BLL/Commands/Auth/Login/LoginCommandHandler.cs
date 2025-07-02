@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.DAL.Entities;
@@ -54,13 +55,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         {
             HttpOnly = true,
             Secure = true,
-            SameSite = SameSiteMode.None,
-            Expires = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime),
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime),
             Path = "/api/auth/refresh-token"
         });
 
         admin.RefreshToken = refreshToken;
-        admin.RefreshTokenValidTo = DateTime.UtcNow.Add(Constants.Authentication.RefreshTokenLifeTime);
+        admin.RefreshTokenValidTo = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime);
 
         var updateResult = await _userManager.UpdateAsync(admin);
 

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services;
@@ -41,7 +42,7 @@ public static class ServicesConfiguration
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddJwtBearer(options => { options.TokenValidationParameters = Constants.Authentication.GetDefaultTokenValidationParameters(configuration); });
+            .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
     }
 
     public static void AddCustomServices(this IServiceCollection services)

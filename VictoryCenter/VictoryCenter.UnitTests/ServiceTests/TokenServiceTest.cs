@@ -126,7 +126,7 @@ public class TokenServiceTest
         var jwt = tokenHandler.WriteToken(token);
 
         var principalResult = _tokenService.GetClaimsFromExpiredToken(jwt);
-        Assert.Equal("Invalid Token", principalResult.Errors[0].Message);
+        Assert.Equal("Invalid token signature", principalResult.Errors[0].Message);
     }
 
     private string CreateExpiredToken()
