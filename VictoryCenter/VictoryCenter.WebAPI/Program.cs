@@ -1,10 +1,11 @@
 using dotenv.net;
-using Microsoft.AspNetCore.CookiePolicy;
 using VictoryCenter.WebAPI.Extensions;
 
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.ConfigureApplication(builder);
 
 builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                                                                ?? throw new InvalidOperationException("DB_CONNECTION_STRING is not set in configuration");
@@ -16,12 +17,6 @@ builder.Configuration["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvir
 
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices();
-builder.Services.Configure<CookiePolicyOptions>(options =>
-{
-    options.MinimumSameSitePolicy = SameSiteMode.Strict;
-    options.Secure = CookieSecurePolicy.Always;
-    options.HttpOnly = HttpOnlyPolicy.Always;
-});
 
 var app = builder.Build();
 

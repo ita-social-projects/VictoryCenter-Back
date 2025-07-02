@@ -1,13 +1,31 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "https": {
+    "VictoryCenter_Local": {
       "commandName": "Project",
-      "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "VICTORYCENTER_ENVIRONMENT": "Local",
+        "ASPNETCORE_ENVIRONMENT": "Local"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5000;https://localhost:5001"
+    },
+    "VictoryCenter_Dev": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    },
+    "VictoryCenter_IntegTests": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "environmentVariables": {
+        "VICTORYCENTER_ENVIRONMENT": "IntegrationTests"
       }
     }
   }

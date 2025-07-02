@@ -1,5 +1,6 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
+using VictoryCenter.WebAPI.Utils;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -43,6 +45,26 @@ public static class ServicesConfiguration
                 options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
+
+        services.Configure<CookiePolicyOptions>(options =>
+        {
+            options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            options.Secure = CookieSecurePolicy.Always;
+            options.HttpOnly = HttpOnlyPolicy.Always;
+        });
+
+        var corsSettings = SettingsExtractor.GetCorsSettings(configuration);
+        services.AddCors(opt =>
+        {
+            opt.AddDefaultPolicy(policy =>
+            {
+                policy.WithOrigins(corsSettings.AllowedOrigins)
+                    .WithHeaders(corsSettings.AllowedHeaders)
+                    .WithMethods(corsSettings.AllowedMethods)
+                    .WithExposedHeaders(corsSettings.ExposedHeaders)
+                    .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
+            });
+        });
     }
 
     public static void AddCustomServices(this IServiceCollection services)
