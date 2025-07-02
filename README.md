@@ -4,7 +4,7 @@
 
 > Subtitle or Short Description Goes Here
 
-> ideally one sentence
+> Ideally one sentence
 
 > include terms/tags that can be searched
 
