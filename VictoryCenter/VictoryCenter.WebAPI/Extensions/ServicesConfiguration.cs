@@ -159,7 +159,7 @@ public static class ServicesConfiguration
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
                 CreatedAt = DateTime.UtcNow,
-                RefreshTokenValidTo = DateTime.MaxValue,
+                RefreshTokenValidTo = DateTime.UtcNow.AddDays(30),
 
                 // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
                 RefreshToken = tokenService.CreateRefreshToken([])

@@ -12,7 +12,7 @@ public static class SettingsExtractor
             AllowedMethods = GetAllowedCorsValues(configuration, "AllowedMethods"),
             AllowedOrigins = GetAllowedCorsValues(configuration, "AllowedOrigins"),
             ExposedHeaders = GetAllowedCorsValues(configuration, "ExposedHeaders"),
-            PreflightMaxAge = int.Parse(configuration.GetValue<string>("CORS:PreflightMaxAge") ?? "600"),
+            PreflightMaxAge = int.TryParse(configuration.GetValue<string>("CORS:PreflightMaxAge"), out var preflightMaxAge) ? preflightMaxAge : 600
         };
     }
 

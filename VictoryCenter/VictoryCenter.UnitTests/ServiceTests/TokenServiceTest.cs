@@ -106,6 +106,16 @@ public class TokenServiceTest
     }
 
     [Fact]
+    public void GetClaimsFromExpiredToken_GivenEmptyToken_ThrowsAnInvalidOperationException()
+    {
+        var invalidToken = "";
+
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(invalidToken);
+
+        Assert.Equal("Refresh token cannot be null or empty", principalResult.Errors[0].Message);
+    }
+
+    [Fact]
     public void GetClaimsFromExpiredToken_GivenTokenWithWrongAlgorithm_ThrowsAnInvalidOperationException()
     {
         var rsa = RSA.Create();

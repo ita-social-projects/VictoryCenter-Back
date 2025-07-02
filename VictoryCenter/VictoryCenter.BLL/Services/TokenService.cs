@@ -71,6 +71,11 @@ public class TokenService : ITokenService
 
     public Result<ClaimsPrincipal> GetClaimsFromExpiredToken(string refreshToken)
     {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return Result.Fail("Refresh token cannot be null or empty");
+        }
+
         var tokenValidationParameters = AuthHelper.GetTokenValidationParameters(_configuration).Clone();
         tokenValidationParameters.ValidateLifetime = false;
         tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.RefreshTokenSecretKey));
