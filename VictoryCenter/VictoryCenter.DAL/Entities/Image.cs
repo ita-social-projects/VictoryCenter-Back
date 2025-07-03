@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace VictoryCenter.DAL.Entities.Images;
+
+namespace VictoryCenter.DAL.Entities;
 
 [Table("images", Schema = "media")]
 public class Image
