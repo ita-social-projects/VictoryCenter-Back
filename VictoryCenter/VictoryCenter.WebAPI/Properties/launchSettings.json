@@ -3,6 +3,7 @@
   "profiles": {
     "VictoryCenter_Local": {
       "commandName": "Project",
+      "console": true,
       "launchBrowser": false,
       "environmentVariables": {
         "VICTORYCENTER_ENVIRONMENT": "Local",
@@ -12,6 +13,7 @@
       "applicationUrl": "http://localhost:5000;https://localhost:5001"
     },
     "VictoryCenter_Dev": {
+      "console": true,
       "commandName": "Project",
       "launchBrowser": false,
       "launchUrl": "swagger",
