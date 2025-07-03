@@ -32,10 +32,10 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var teamMemberEntity =
+            TeamMember? teamMemberEntity =
                 await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
                 {
-                    Filter = entity => entity.Id == request.updateTeamMemberDto.Id
+                    Filter = entity => entity.Id == request.id
                 });
 
             if (teamMemberEntity is null)
@@ -43,14 +43,16 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 return Result.Fail<TeamMemberDto>("Not found");
             }
 
-            var entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
+            TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
+            entityToUpdate.Id = request.id;
             using TransactionScope scope = _repositoryWrapper.BeginTransaction();
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
 
-            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
-            {
-                Filter = entity => entity.Id == request.updateTeamMemberDto.CategoryId
-            });
+            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Category>
+                {
+                    Filter = entity => entity.Id == request.updateTeamMemberDto.CategoryId
+                });
             if (category is null)
             {
                 return Result.Fail<TeamMemberDto>("Category not found");
@@ -73,7 +75,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
                 scope.Complete();
-                var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+                TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }
 

@@ -1,5 +1,6 @@
 using System.Transactions;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
@@ -16,9 +17,15 @@ public class UpdateTeamMemberTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
-    private readonly TeamMember _testExistingTeamMember = new ()
+    private readonly Category _testCategory = new()
+    {
+        Id = 1,
+        Name = "Test Category",
+        Description = "Sample test category"
+    };
+
+    private readonly TeamMember _testExistingTeamMember = new()
     {
         Id = 1,
         FullName = "Test",
@@ -31,13 +38,13 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             Name = "Test Category",
-            Description = "Test category description",
+            Description = "Test category description"
         },
         Email = "test@gmail.com",
-        Photo = null,
+        Photo = null
     };
 
-    private readonly TeamMember _testUpdatedTeamMember = new ()
+    private readonly TeamMember _testUpdatedTeamMember = new()
     {
         Id = 1,
         FullName = "Updated Name",
@@ -50,17 +57,19 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             Name = "Test Category",
-            Description = "Test category description",
+            Description = "Test category description"
         },
         Email = "test@gmail.com",
-        Photo = null,
+        Photo = null
     };
 
-    private readonly TeamMemberDto _testUpdatedTeamMemberDto = new ()
+    private readonly TeamMemberDto _testUpdatedTeamMemberDto = new()
     {
         FullName = "Updated Name",
-        Description = "Updated Description",
+        Description = "Updated Description"
     };
+
+    private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
     public UpdateTeamMemberTests()
     {
@@ -89,10 +98,10 @@ public class UpdateTeamMemberTests
             {
                 Id = 1,
                 Name = "Test Category",
-                Description = "Test category description",
+                Description = "Test category description"
             },
             Email = "test@gmail.com",
-            Photo = null,
+            Photo = null
         };
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
@@ -116,14 +125,15 @@ public class UpdateTeamMemberTests
         SetupRepositoryWrapper(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var result = await handler.Handle(
-            new UpdateTeamMemberCommand(new UpdateTeamMemberDto
-            {
-                Id = _testExistingTeamMember.Id,
-                FullName = "Updated Name",
-                CategoryId = _testExistingTeamMember.CategoryId,
-                Description = testDescription,
-            }), CancellationToken.None);
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = "Updated Name",
+                    CategoryId = _testExistingTeamMember.CategoryId,
+                    Description = testDescription
+                },
+                _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -145,13 +155,13 @@ public class UpdateTeamMemberTests
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var result = await handler.Handle(
-            new UpdateTeamMemberCommand(new UpdateTeamMemberDto
-            {
-                Id = _testExistingTeamMember.Id,
-                FullName = testName!,
-                Description = "Updated Description",
-            }), CancellationToken.None);
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = testName!,
+                    Description = "Updated Description"
+                }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains("FullName field is required", result.Errors[0].Message);
@@ -165,14 +175,14 @@ public class UpdateTeamMemberTests
         SetupDependencies();
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var result = await handler.Handle(
-            new UpdateTeamMemberCommand(new UpdateTeamMemberDto
-        {
-            Id = testId,
-            FullName = "Updated Name",
-            Description = "Updated Description",
-            CategoryId = _testExistingTeamMember.CategoryId,
-        }), CancellationToken.None);
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = "Updated Name",
+                    Description = "Updated Description",
+                    CategoryId = _testExistingTeamMember.CategoryId
+                }, testId), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Not found", result.Errors[0].Message);
@@ -184,14 +194,14 @@ public class UpdateTeamMemberTests
         SetupDependencies(_testExistingTeamMember, -1);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var result = await handler.Handle(
-            new UpdateTeamMemberCommand(new UpdateTeamMemberDto
-        {
-            Id = _testExistingTeamMember.Id,
-            FullName = "Updated Name",
-            Description = "Updated Description",
-            CategoryId = _testExistingTeamMember.CategoryId,
-        }), CancellationToken.None);
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = "Updated Name",
+                    Description = "Updated Description",
+                    CategoryId = _testExistingTeamMember.CategoryId
+                }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Failed to update team member", result.Errors[0].Message);
@@ -214,7 +224,8 @@ public class UpdateTeamMemberTests
 
     private void SetupRepositoryWrapper(TeamMember? teamMemberToReturn = null, int saveResult = 1)
     {
-        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
+        _mockRepositoryWrapper.Setup(x =>
+                x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMemberToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
@@ -222,5 +233,9 @@ public class UpdateTeamMemberTests
 
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        _mockRepositoryWrapper
+            .Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync(_testCategory);
     }
 }
