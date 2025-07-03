@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Moq;
@@ -97,7 +98,7 @@ public class UpdateTeamMemberTests
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {
             FullName = "Updated Name",
-            CategoryName = "Test Category",
+            CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
             Description = testDescription,
@@ -126,7 +127,7 @@ public class UpdateTeamMemberTests
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(testUpdatedTeamMemberDto.CategoryName, result.Value.CategoryName);
+        Assert.Equal(testUpdatedTeamMemberDto.CategoryId, result.Value.CategoryId);
         Assert.Equal(testUpdatedTeamMemberDto.Priority, result.Value.Priority);
         Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
         Assert.Equal(testUpdatedTeamMemberDto.FullName, result.Value.FullName);
@@ -213,11 +214,13 @@ public class UpdateTeamMemberTests
 
     private void SetupRepositoryWrapper(TeamMember? teamMemberToReturn = null, int saveResult = 1)
     {
-        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetFirstOrDefaultAsync(
-                It.IsAny<QueryOptions<TeamMember>>()))
+        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMemberToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);
+
+        _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 }

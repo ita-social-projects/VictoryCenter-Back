@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -43,12 +44,26 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             }
 
             var entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
+            using TransactionScope scope = _repositoryWrapper.BeginTransaction();
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
+
+            if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
+            {
+                entityToUpdate.Priority = teamMemberEntity.Priority;
+            }
+            else
+            {
+                var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
+                    u => u.Priority,
+                    u => u.CategoryId == entityToUpdate.CategoryId);
+                entityToUpdate.Priority = (maxPriority ?? 0) + 1;
+            }
 
             _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                scope.Complete();
                 var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }

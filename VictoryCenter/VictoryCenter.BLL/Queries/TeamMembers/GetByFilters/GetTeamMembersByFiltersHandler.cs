@@ -24,9 +24,9 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
     public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
         var status = request.TeamMembersFilter.Status;
-        var categoryName = request.TeamMembersFilter.CategoryName;
+        var categoryId = request.TeamMembersFilter.CategoryId;
         Expression<Func<TeamMember, bool>> filter =
-            (t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
+            (t) => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
 
         var queryOptions = new QueryOptions<TeamMember>
         {

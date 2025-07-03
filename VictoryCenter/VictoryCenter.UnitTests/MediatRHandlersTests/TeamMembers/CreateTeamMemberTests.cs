@@ -6,7 +6,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -47,7 +47,7 @@ public class CreateTeamMemberTests
         Id = 1,
         FullName = "TestName",
         Priority = 1,
-        CategoryName = "Name",
+        CategoryId = 1,
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com"
