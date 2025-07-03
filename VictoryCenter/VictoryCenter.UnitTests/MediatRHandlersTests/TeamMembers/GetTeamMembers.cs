@@ -97,7 +97,7 @@ public class GetTeamMembers
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByCategoryName()
+    public async Task Handle_ShouldReturnSuccessfully_FilterByCategoryId()
     {
         // Arrange
         var category = new Category { Id = 2, Name = "Category 2" };
@@ -132,7 +132,7 @@ public class GetTeamMembers
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByStatusAndCategoryName()
+    public async Task Handle_ShouldReturnSuccessfully_FilterByStatusAndCategoryId()
     {
         // Arrange
         var status = Status.Published;
