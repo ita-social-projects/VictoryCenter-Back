@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-namespace VictoryCenter.DAL.Entities.Images;
+namespace VictoryCenter.DAL.Entities;
 
 [Table("images", Schema = "media")]
 public class Image
@@ -21,5 +21,6 @@ public class Image
     public string? MimeType { get; set; }
 
     [Required]
+    public long? TeamMemberId { get; set; }
     public TeamMember? TeamMember { get; set; }
 }
