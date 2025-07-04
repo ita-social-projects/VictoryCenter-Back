@@ -22,10 +22,6 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Create .env file from variable
-        run: |
-          echo "INTEGRATION_TESTS_DB_CONNECTION_STRING=\"${{ vars.INTEGRATION_TESTS_DB_CONNECTION_STRING }}\"" >> .env
-
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
@@ -93,6 +89,8 @@ jobs:
         run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage1.xml"
 
       - name: Run integration tests and generate coverage
+        env:
+          INTEGRATION_TESTS_DB_CONNECTION_STRING: ${{ vars.INTEGRATION_TESTS_DB_CONNECTION_STRING }}
         run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release" -f xml -o "coverage2.xml"
 
       - name: Merge coverage reports
