@@ -183,14 +183,14 @@ public class UpdateTeamMemberTests
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = "Test Name",
-            CategoryId = int.MaxValue,
+            CategoryId = wrongId,
             Status = Status.Published,
             Description = "Test Description",
             Email = "test@email.com"
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{int.MaxValue}", new StringContent(
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{wrongId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
