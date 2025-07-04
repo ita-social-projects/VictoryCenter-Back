@@ -42,9 +42,7 @@ public class GetTeamMemberByIdTests
         Assert.NotNull(responseContent);
         Assert.Multiple(
             () => Assert.Equal(existingEntity.Id, responseContent.Id),
-            () => Assert.Equal(existingEntity.FirstName, responseContent.FirstName),
-            () => Assert.Equal(existingEntity.LastName, responseContent.LastName),
-            () => Assert.Equal(existingEntity.MiddleName, responseContent.MiddleName),
+            () => Assert.Equal(existingEntity.FullName, responseContent.FullName),
             () => Assert.Equal(existingEntity.Category.Name, responseContent.CategoryName),
             () => Assert.Equal(existingEntity.Description, responseContent.Description),
             () => Assert.Equal(existingEntity.Email, responseContent.Email),
