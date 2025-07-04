@@ -10,5 +10,5 @@ public record TeamMembersFilterDto
 
     public Status? Status { get; set; }
 
-    public string? CategoryName { get; set; }
+    public long? CategoryId { get; set; }
 }

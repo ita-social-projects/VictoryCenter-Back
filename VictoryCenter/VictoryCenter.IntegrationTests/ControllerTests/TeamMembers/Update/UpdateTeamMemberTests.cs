@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
@@ -12,8 +13,8 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
 [Collection("SharedIntegrationTests")]
 public class UpdateTeamMemberTests
 {
-    private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
+    private readonly HttpClient _httpClient;
 
     private readonly JsonSerializerOptions _jsonOptions;
 
@@ -35,30 +36,30 @@ public class UpdateTeamMemberTests
     [InlineData("Test Description")]
     public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
     {
-        var existingEntity = await _dbContext.TeamMembers
-            .Include(tm => tm.Category)
-            .FirstOrDefaultAsync()
-            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
+        TeamMember existingEntity = await _dbContext.TeamMembers
+                                        .Include(tm => tm.Category)
+                                        .FirstOrDefaultAsync()
+                                    ?? throw new InvalidOperationException(
+                                        "No TeamMember entity exists in the database.");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
-            Id = existingEntity.Id,
             FullName = "Test Name",
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = testDescription,
-            Email = existingEntity.Email,
+            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        var response = await _httpClient.PutAsync("/api/TeamMembers/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+                serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, _jsonOptions);
+        TeamMemberDto? responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, _jsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
-        Assert.Equal(updateTeamMemberDto.Id, responseContent.Id);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
         Assert.Equal(updateTeamMemberDto.FullName, responseContent.FullName);
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
@@ -69,14 +70,14 @@ public class UpdateTeamMemberTests
     [Fact]
     public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
     {
-        var existingEntity = await _dbContext.TeamMembers
-            .Include(tm => tm.Category)
-            .FirstOrDefaultAsync()
-            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
+        TeamMember existingEntity = await _dbContext.TeamMembers
+                                        .Include(tm => tm.Category)
+                                        .FirstOrDefaultAsync()
+                                    ?? throw new InvalidOperationException(
+                                        "No TeamMember entity exists in the database.");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
-            Id = existingEntity.Id,
             FullName = existingEntity.FullName,
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
@@ -85,14 +86,14 @@ public class UpdateTeamMemberTests
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        var response = await _httpClient.PutAsync("/api/TeamMembers/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+                serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, _jsonOptions);
+        TeamMemberDto? responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, _jsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
-        Assert.Equal(updateTeamMemberDto.Id, responseContent.Id);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
         Assert.Equal(updateTeamMemberDto.FullName, responseContent.FullName);
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
@@ -106,21 +107,21 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
     {
-        var existingEntity = await _dbContext.TeamMembers
-            .Include(tm => tm.Category)
-            .FirstOrDefaultAsync()
-            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
+        TeamMember existingEntity = await _dbContext.TeamMembers
+                                        .Include(tm => tm.Category)
+                                        .FirstOrDefaultAsync()
+                                    ?? throw new InvalidOperationException(
+                                        "No TeamMember entity exists in the database.");
 
         var originalFullName = existingEntity.FullName;
         var originalCategoryId = existingEntity.CategoryId;
-        var originalStatus = existingEntity.Status;
+        Status originalStatus = existingEntity.Status;
         var originalDescription = existingEntity.Description;
         var originalEmail = existingEntity.Email;
         var originalPriority = existingEntity.Priority;
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
-            Id = existingEntity.Id,
             FullName = testName,
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
@@ -129,15 +130,15 @@ public class UpdateTeamMemberTests
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        var response = await _httpClient.PutAsync("/api/TeamMembers/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+                serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        var reloadedEntity = await _dbContext.TeamMembers
-       .AsNoTracking()
-       .FirstOrDefaultAsync(tm => tm.Id == existingEntity.Id);
+        TeamMember? reloadedEntity = await _dbContext.TeamMembers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(tm => tm.Id == existingEntity.Id);
         Assert.NotNull(reloadedEntity);
         Assert.Equal(originalFullName, reloadedEntity.FullName);
         Assert.Equal(originalCategoryId, reloadedEntity.CategoryId);
@@ -152,11 +153,11 @@ public class UpdateTeamMemberTests
     [InlineData(0)]
     public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
     {
-        var category = await _dbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        Category category = await _dbContext.Categories.FirstOrDefaultAsync() ??
+                            throw new InvalidOperationException("Couldn't setup existing entity");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
-            Id = testId,
             FullName = "Test Name",
             CategoryId = category.Id,
             Status = Status.Published,
@@ -165,7 +166,31 @@ public class UpdateTeamMemberTests
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        var response = await _httpClient.PutAsync("/api/TeamMembers/", new StringContent(
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{testId}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateTeamMember_InvalidCategoryId_ShouldNotUpdateTeamMember()
+    {
+        Category category = await _dbContext.Categories.FirstOrDefaultAsync() ??
+                            throw new InvalidOperationException("Couldn't setup existing entity");
+
+        var wrongId = int.MaxValue;
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = "Test Name",
+            CategoryId = wrongId,
+            Status = Status.Published,
+            Description = "Test Description",
+            Email = "test@email.com"
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{wrongId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

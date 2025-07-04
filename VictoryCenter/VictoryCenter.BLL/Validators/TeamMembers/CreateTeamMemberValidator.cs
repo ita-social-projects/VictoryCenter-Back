@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers.Create;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;
 

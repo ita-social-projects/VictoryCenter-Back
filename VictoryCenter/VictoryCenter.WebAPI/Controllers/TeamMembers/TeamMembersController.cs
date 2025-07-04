@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.Commands.TeamMembers.Delete;
-using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
+using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
@@ -37,10 +37,10 @@ public class TeamMembersController : BaseApiController
         return HandleResult(await Mediator.Send(new DeleteTeamMemberCommand(id)));
     }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateTeamMember([FromBody] UpdateTeamMemberDto updateTeamMemberDto)
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> UpdateTeamMember([FromBody] UpdateTeamMemberDto updateTeamMemberDto, long id)
     {
-        return HandleResult(await Mediator.Send(new UpdateTeamMemberCommand(updateTeamMemberDto)));
+        return HandleResult(await Mediator.Send(new UpdateTeamMemberCommand(updateTeamMemberDto, id)));
     }
 
     [HttpPut("reorder")]
