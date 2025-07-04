@@ -79,7 +79,12 @@ public class VictoryCenterDbContext : DbContext
 
             entity.Property(e => e.Description);
 
+            // 1-to-1 relationship for Photo
             entity.Property(e => e.Photo);
+
+            entity.HasIndex(e => e.Photo)
+                .IsUnique()
+                .HasFilter("[Photo] IS NOT NULL");
 
             entity.Property(e => e.Email);
 
