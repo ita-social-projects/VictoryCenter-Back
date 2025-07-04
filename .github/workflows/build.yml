@@ -82,8 +82,8 @@ jobs:
             /o:"ita-social-projects" \
             /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.branch.name=main\
-            /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml     
+            /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
+            /d:sonar.exclusions="**/Migrations/**"
 
       - name: Run unit tests and generate coverage
         run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage1.xml"
