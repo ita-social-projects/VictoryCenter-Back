@@ -23,7 +23,7 @@ public class GetTeamMemberByIdTests
     public async Task GetTeamMemberById_ShouldReturnOk()
     {
         // Arrange
-        var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
+        var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).OrderByDescending(tm => tm.Id).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("Couldn't setup existing entity");
 
         // Act
