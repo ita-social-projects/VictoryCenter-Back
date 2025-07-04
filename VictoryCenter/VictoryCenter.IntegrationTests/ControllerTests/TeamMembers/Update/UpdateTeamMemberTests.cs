@@ -172,4 +172,28 @@ public class UpdateTeamMemberTests
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task UpdateTeamMember_InvalidCategoryId_ShouldNotUpdateTeamMember()
+    {
+        Category category = await _dbContext.Categories.FirstOrDefaultAsync() ??
+                            throw new InvalidOperationException("Couldn't setup existing entity");
+
+        var wrongId = int.MaxValue;
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = "Test Name",
+            CategoryId = int.MaxValue,
+            Status = Status.Published,
+            Description = "Test Description",
+            Email = "test@email.com"
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{int.MaxValue}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }

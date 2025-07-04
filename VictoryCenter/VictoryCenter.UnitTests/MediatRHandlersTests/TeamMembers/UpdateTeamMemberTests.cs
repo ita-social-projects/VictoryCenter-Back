@@ -167,6 +167,33 @@ public class UpdateTeamMemberTests
         Assert.Contains("FullName field is required", result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_InvalidCategoryId_ShouldReturnValidationError()
+    {
+        _testUpdatedTeamMember.CategoryId = 10000;
+
+        _mockRepositoryWrapper.Setup(x =>
+                x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(_testExistingTeamMember);
+        _mockRepositoryWrapper
+            .Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync((Category?)null);
+        SetupMapper();
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = "test1",
+                    CategoryId = 10000,
+                    Description = "Updated Description"
+                }, _testExistingTeamMember.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Category not found", result.Errors[0].Message);
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]

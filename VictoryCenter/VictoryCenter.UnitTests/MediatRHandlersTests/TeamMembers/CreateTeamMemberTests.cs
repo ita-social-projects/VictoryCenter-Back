@@ -98,6 +98,25 @@ public class CreateTeamMemberTests
     }
 
     [Fact]
+    public async Task CreateTeamMemberHandle_WhenCategoryIdIsInvalid_ShouldReturnFailure()
+    {
+        _repositoryWrapperMock
+            .Setup(repositoryWrapper =>
+                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync((Category?)null);
+        SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);
+        SetupValidator();
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+
+        Result<TeamMemberDto> result =
+            await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Null(result.ValueOrDefault);
+        Assert.Equal("There are no categories with this id", result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenExceptionThrown()
     {
         var testMessage = "test message";
