@@ -42,7 +42,7 @@ jobs:
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@v4
         with:
-          path: ~/sonar/cache
+          path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
@@ -61,16 +61,20 @@ jobs:
           mkdir -p ./.sonar/scanner
           dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
 
-      - name: Build the solution
-        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental
-
       - name: Set up Docker Compose
         run: docker compose -f docker-compose.yml up -d
 
       - name: Wait for SQL Server to be ready
         run: |
           echo "Waiting for SQL Server to start..."
-          sleep 20
+          for i in {1..30}; do
+            if docker exec dev-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Admin@1234' -Q "SELECT 1" > /dev/null 2>&1; then
+              echo "SQL Server is ready!"
+              break
+            fi
+            echo "Attempt $i: SQL Server not ready, waiting..."
+            sleep 2
+          done
 
       - name: Begin SonarCloud analysis
         env:
@@ -84,6 +88,9 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
             /d:sonar.exclusions="**/Migrations/**"
+
+      - name: Build the solution
+        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental
 
       - name: Run unit tests and generate coverage
         run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage1.xml"
