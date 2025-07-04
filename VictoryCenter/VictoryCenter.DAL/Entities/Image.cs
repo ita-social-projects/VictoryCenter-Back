@@ -21,5 +21,6 @@ public class Image
     public string? MimeType { get; set; }
 
     [Required]
+    public long? TeamMemberId { get; set; }
     public TeamMember? TeamMember { get; set; }
 }
