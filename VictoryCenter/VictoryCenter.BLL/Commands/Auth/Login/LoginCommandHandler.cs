@@ -11,7 +11,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Auth.Login;
 
-public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResponse>>
+public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResponseDto>>
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
@@ -26,7 +26,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Result<AuthResponse>> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
@@ -34,13 +34,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
         }
 
-        var admin = await _userManager.FindByEmailAsync(request.Request.Email);
+        var admin = await _userManager.FindByEmailAsync(request.RequestDto.Email);
         if (admin is null)
         {
             return Result.Fail("Admin with given email was not found");
         }
 
-        var result = await _userManager.CheckPasswordAsync(admin, request.Request.Password);
+        var result = await _userManager.CheckPasswordAsync(admin, request.RequestDto.Password);
         if (!result)
         {
             return Result.Fail("Incorrect password");
@@ -48,16 +48,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
-            new Claim(ClaimTypes.Email, request.Request.Email)
+            new Claim(ClaimTypes.Email, request.RequestDto.Email)
         ]);
-        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.Request.Email)]);
-        _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions()
+        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.RequestDto.Email)]);
+        _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, refreshToken, new CookieOptions()
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime),
-            Path = "/api/auth/refresh-token"
+            Path = AuthConstants.RefreshTokenCookiePath
         });
 
         admin.RefreshToken = refreshToken;
@@ -67,6 +67,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         return !updateResult.Succeeded
             ? Result.Fail(updateResult.Errors.Select(x => x.Description))
-            : Result.Ok(new AuthResponse(accessToken));
+            : Result.Ok(new AuthResponseDto(accessToken));
     }
 }

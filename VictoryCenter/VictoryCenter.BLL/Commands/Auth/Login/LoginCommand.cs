@@ -4,4 +4,4 @@ using VictoryCenter.BLL.DTOs.Auth;
 
 namespace VictoryCenter.BLL.Commands.Auth.Login;
 
-public record LoginCommand(LoginRequest Request) : IRequest<Result<AuthResponse>>;
+public record LoginCommand(LoginRequestDto RequestDto) : IRequest<Result<AuthResponseDto>>;

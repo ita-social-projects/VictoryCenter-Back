@@ -9,15 +9,15 @@ public class AuthController : BaseApiController
 {
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
-    public async Task<IActionResult> LoginAsync(LoginRequest request)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponseDto))]
+    public async Task<IActionResult> LoginAsync(LoginRequestDto requestDto)
     {
-        return HandleResult(await Mediator.Send(new LoginCommand(request)));
+        return HandleResult(await Mediator.Send(new LoginCommand(requestDto)));
     }
 
     [HttpPost("refresh-token")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponse))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponseDto))]
     public async Task<IActionResult> RefreshTokenAsync()
     {
         return HandleResult(await Mediator.Send(new RefreshTokenCommand()));

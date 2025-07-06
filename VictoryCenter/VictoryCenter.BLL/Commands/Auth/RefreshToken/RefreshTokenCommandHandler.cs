@@ -10,7 +10,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Auth.RefreshToken;
 
-public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResponse>>
+public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResponseDto>>
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<Admin> _userManager;
@@ -23,9 +23,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<Result<AuthResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var refreshTokenRetrieved = _httpContextAccessor.HttpContext.Request.Cookies.TryGetValue("refreshToken", out var refreshToken);
+        var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
             return Result.Fail("Refresh token is not present");
@@ -60,13 +60,13 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         ]);
         var newRefreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, admin.Email!)]);
 
-        _httpContextAccessor.HttpContext?.Response.Cookies.Append("refreshToken", newRefreshToken, new CookieOptions()
+        _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, newRefreshToken, new CookieOptions()
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
             Expires = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime),
-            Path = "/api/auth/refresh-token"
+            Path = AuthConstants.RefreshTokenCookiePath
         });
 
         admin.RefreshToken = newRefreshToken;
@@ -75,7 +75,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var result = await _userManager.UpdateAsync(admin);
 
         return result.Succeeded
-            ? Result.Ok(new AuthResponse(accessToken))
+            ? Result.Ok(new AuthResponseDto(accessToken))
             : Result.Fail(result.Errors.First().Description);
     }
 }

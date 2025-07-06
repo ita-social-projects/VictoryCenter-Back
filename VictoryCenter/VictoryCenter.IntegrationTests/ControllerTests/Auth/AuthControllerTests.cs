@@ -20,10 +20,10 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
     [Fact]
     public async Task Login_Success_ReturnsAuthResponse()
     {
-        var request = new LoginRequest(TestEmail, TestPassword);
+        var request = new LoginRequestDto(TestEmail, TestPassword);
         var response = await _fixture.HttpClient.PostAsJsonAsync("/api/auth/login", request);
         response.EnsureSuccessStatusCode();
-        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponse>();
+        var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
         Assert.False(string.IsNullOrEmpty(authResponse.AccessToken));
         var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(h => h.StartsWith("refreshToken="));
         Assert.False(string.IsNullOrEmpty(setCookie));
@@ -32,7 +32,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
     [Fact]
     public async Task Login_Failure_ReturnsUnauthorized()
     {
-        var request = new LoginRequest(TestEmail, "WrongPassword!");
+        var request = new LoginRequestDto(TestEmail, "WrongPassword!");
         var response = await _fixture.HttpClient.PostAsJsonAsync("/api/auth/login", request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -40,7 +40,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
     [Fact]
     public async Task RefreshToken_Success_ReturnsAuthResponse()
     {
-        var loginRequest = new LoginRequest(TestEmail, TestPassword);
+        var loginRequest = new LoginRequestDto(TestEmail, TestPassword);
         var loginResponse = await _fixture.HttpClient.PostAsJsonAsync("/api/auth/login", loginRequest);
         loginResponse.EnsureSuccessStatusCode();
 
@@ -55,7 +55,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
 
         var refreshResponse = await _fixture.HttpClient.SendAsync(request);
         refreshResponse.EnsureSuccessStatusCode();
-        var refreshAuthResponse = await refreshResponse.Content.ReadFromJsonAsync<AuthResponse>();
+        var refreshAuthResponse = await refreshResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
         Assert.False(string.IsNullOrEmpty(refreshAuthResponse.AccessToken));
     }
 

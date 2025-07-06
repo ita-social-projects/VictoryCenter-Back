@@ -38,7 +38,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_GivenRequestWithInvalidEmail_ReturnsFail()
     {
-        var cmd = new LoginCommand(new LoginRequest("invalid email", "Pa$$w0rd!"));
+        var cmd = new LoginCommand(new LoginRequestDto("invalid email", "Pa$$w0rd!"));
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -49,7 +49,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_GivenRequestWithEmptyEmail_ReturnsFail()
     {
-        var cmd = new LoginCommand(new LoginRequest("", "Pa$$w0rd!"));
+        var cmd = new LoginCommand(new LoginRequestDto("", "Pa$$w0rd!"));
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -60,7 +60,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_GivenRequestWithEmptyPassword_ReturnsFail()
     {
-        var cmd = new LoginCommand(new LoginRequest("admin@gmail.com", ""));
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", ""));
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -71,7 +71,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_AdminWithGivenEmailDoesNotExist_ReturnsFail()
     {
-        var cmd = new LoginCommand(new LoginRequest("admin@gmail.com", "Pa$$w0rd!"));
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync((Admin?)null);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
@@ -84,7 +84,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_GivenIncorrectPassword_ReturnsFail()
     {
-        var cmd = new LoginCommand(new LoginRequest("admin@gmail.com", "Pa$$w0rd!"));
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
         var admin = new Admin();
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(false);
@@ -100,7 +100,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_GivenValidData_UpdatesSuccessfully()
     {
-        var cmd = new LoginCommand(new LoginRequest("admin@gmail.com", "Pa$$w0rd!"));
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
         var admin = new Admin();
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
@@ -137,7 +137,7 @@ public class LoginTests
     [Fact]
     public async Task Handle_GivenValidData_UpdatesUnsuccessfully()
     {
-        var cmd = new LoginCommand(new LoginRequest("admin@gmail.com", "Pa$$w0rd!"));
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
         var admin = new Admin();
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);

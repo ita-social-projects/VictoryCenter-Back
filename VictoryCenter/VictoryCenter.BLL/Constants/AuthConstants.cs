@@ -2,5 +2,9 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class AuthConstants
 {
-        public static TimeSpan RefreshTokenLifeTime => TimeSpan.FromDays(7);
+    public const string RefreshTokenCookieName = "refreshToken";
+
+    public const string RefreshTokenCookiePath = "/api/auth/refresh-token";
+
+    public static TimeSpan RefreshTokenLifeTime => TimeSpan.FromDays(7);
 }

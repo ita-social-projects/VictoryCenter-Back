@@ -14,7 +14,6 @@ namespace VictoryCenter.WebAPI.Controllers.TeamMembers;
 public class TeamMembersController : BaseApiController
 {
     [HttpGet]
-    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
     public async Task<IActionResult> GetFilteredTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
     {

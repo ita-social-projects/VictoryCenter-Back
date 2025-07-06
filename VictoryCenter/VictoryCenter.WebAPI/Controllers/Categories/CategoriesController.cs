@@ -12,7 +12,6 @@ namespace VictoryCenter.WebAPI.Controllers.Categories;
 public class CategoriesController : BaseApiController
 {
     [HttpGet]
-    [AllowAnonymous]
     public async Task<IActionResult> GetCategories()
     {
         return HandleResult(await Mediator.Send(new GetAllCategoriesQuery()));
