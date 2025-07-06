@@ -33,7 +33,6 @@ public class UpdateTeamMemberTests
             Description = "Test category description",
         },
         Email = "test@gmail.com",
-        Photo = null,
     };
 
     private readonly TeamMember _testUpdatedTeamMember = new ()
@@ -52,7 +51,6 @@ public class UpdateTeamMemberTests
             Description = "Test category description",
         },
         Email = "test@gmail.com",
-        Photo = null,
     };
 
     private readonly TeamMemberDto _testUpdatedTeamMemberDto = new ()
@@ -91,7 +89,6 @@ public class UpdateTeamMemberTests
                 Description = "Test category description",
             },
             Email = "test@gmail.com",
-            Photo = null,
         };
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
@@ -102,7 +99,6 @@ public class UpdateTeamMemberTests
             Status = Status.Published,
             Description = testDescription,
             Email = "test@gmail.com",
-            Photo = null,
             Id = 1
         };
 

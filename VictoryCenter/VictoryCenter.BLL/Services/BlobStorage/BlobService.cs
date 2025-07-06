@@ -24,17 +24,10 @@ public class BlobService : IBlobService
         byte[] imageBytes = ConvertBase64ToBytes(base64);
         string extension = GetExtensionFromMimeType(mimeType);
 
-        string createdFileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{name}"
-            .Replace(" ", "_")
-            .Replace(".", "_")
-            .Replace(":", "_");
-
-        string hashBlobStorageName = HashFunction(createdFileName);
-
         Directory.CreateDirectory(_blobPath);
-        EncryptFile(imageBytes, extension, hashBlobStorageName);
+        EncryptFile(imageBytes, extension, name);
 
-        return $"{hashBlobStorageName}.{extension}";
+        return $"{name}.{extension}";
     }
 
     public MemoryStream FindFileInStorageAsMemoryStream(string? name)
@@ -101,13 +94,6 @@ public class BlobService : IBlobService
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
-    }
-
-    private string HashFunction(string input)
-    {
-        using var hash = SHA256.Create();
-        byte[] result = hash.ComputeHash(Encoding.UTF8.GetBytes(input));
-        return BitConverter.ToString(result).Replace("-", "").ToLower();
     }
 
     private string GetExtensionFromMimeType(string mimeType)

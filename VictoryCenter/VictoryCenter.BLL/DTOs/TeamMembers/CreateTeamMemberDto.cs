@@ -14,7 +14,7 @@ public record CreateTeamMemberDto
 #pragma warning disable SA1011
 
     // Change private set to set when photo logic is added
-    public byte[]? Photo { get; private set; }
+    public long ImageId { get; set; }
 #pragma warning restore SA1011
 
     public string? Email { get; set; }

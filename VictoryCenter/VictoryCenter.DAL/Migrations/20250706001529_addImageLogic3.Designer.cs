@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250706001529_addImageLogic3")]
+    partial class addImageLogic3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,7 +133,9 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ImageId");
+                    b.HasIndex("ImageId")
+                        .IsUnique()
+                        .HasFilter("[ImageId] IS NOT NULL");
 
                     b.HasIndex("ImageId1")
                         .IsUnique()
