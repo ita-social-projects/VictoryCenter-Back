@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Images.Create;
+using VictoryCenter.BLL.Commands.Images.Update;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Queries.Images.GetById;
 using VictoryCenter.BLL.Queries.Images.GetByName;
@@ -24,5 +25,11 @@ public class ImageController : BaseApiController
     public async Task<ActionResult> GetImage(long id)
     {
         return HandleResult(await Mediator.Send(new GetImageByIdQuery(id)));
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult> UpdateImage(long id, [FromBody] UpdateImageDTO request)
+    {
+        return HandleResult(await Mediator.Send(new UpdateImageCommand(request)));
     }
 }
