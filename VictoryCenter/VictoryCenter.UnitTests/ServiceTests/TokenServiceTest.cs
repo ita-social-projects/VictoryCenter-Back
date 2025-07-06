@@ -6,9 +6,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
-using VictoryCenter.BLL.Interfaces;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
-using VictoryCenter.BLL.Services;
+using VictoryCenter.BLL.Services.TokenService;
 
 namespace VictoryCenter.UnitTests.ServiceTests;
 

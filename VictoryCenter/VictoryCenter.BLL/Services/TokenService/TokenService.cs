@@ -7,11 +7,11 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
-using VictoryCenter.BLL.Interfaces;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
-namespace VictoryCenter.BLL.Services;
+namespace VictoryCenter.BLL.Services.TokenService;
 
 public class TokenService : ITokenService
 {

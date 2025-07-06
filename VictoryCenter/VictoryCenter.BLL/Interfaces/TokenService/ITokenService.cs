@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using FluentResults;
 
-namespace VictoryCenter.BLL.Interfaces;
+namespace VictoryCenter.BLL.Interfaces.TokenService;
 
 public interface ITokenService
 {

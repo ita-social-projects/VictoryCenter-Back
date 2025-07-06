@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
-using VictoryCenter.BLL.Interfaces;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Auth.RefreshToken;

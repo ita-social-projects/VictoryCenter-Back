@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Auth.Login;
 using VictoryCenter.BLL.DTOs.Auth;
-using VictoryCenter.BLL.Interfaces;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Validators.Auth;
 using VictoryCenter.DAL.Entities;
 

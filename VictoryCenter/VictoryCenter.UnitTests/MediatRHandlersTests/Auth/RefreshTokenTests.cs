@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Auth.RefreshToken;
-using VictoryCenter.BLL.Interfaces;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
