@@ -7,7 +7,8 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Media;
 
 public class ImageRepository : RepositoryBase<Image>, IImageRepository
 {
-    public ImageRepository(VictoryCenterDbContext dbContext) : base(dbContext)
+    public ImageRepository(VictoryCenterDbContext dbContext)
+        : base(dbContext)
     {
     }
 }
