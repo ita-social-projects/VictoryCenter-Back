@@ -2,10 +2,10 @@
 
 namespace VictoryCenter.BLL.DTOs.Categories;
 
-public record PublicCategoryWithTeamMembersDto
+public record CategoryWithPublishedTeamMembersDto
 {
     public long Id { get; set; }
     public string CategoryName { get; set; } = null!;
     public string? Description { get; set; }
-    public List<PublicTeamMemberDto> TeamMembers { get; set; } = [];
+    public List<PublishedTeamMembersDto> TeamMembers { get; set; } = [];
 }

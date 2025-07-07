@@ -12,7 +12,7 @@ public class CategoriesProfile : Profile
         CreateMap<Category, CategoryDto>();
         CreateMap<UpdateCategoryDto, Category>();
 
-        CreateMap<Category, PublicCategoryWithTeamMembersDto>()
+        CreateMap<Category, CategoryWithPublishedTeamMembersDto>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Name));
     }
 }

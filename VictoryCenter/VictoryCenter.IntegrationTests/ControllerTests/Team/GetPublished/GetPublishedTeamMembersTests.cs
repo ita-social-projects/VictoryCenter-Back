@@ -7,16 +7,18 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetPublic;
+namespace VictoryCenter.IntegrationTests.ControllerTests.Team.GetPublished;
 
 [Collection("SharedIntegrationTests")]
-public class GetPublicTeamMembersTests
+public class GetPublishedTeamMembersTests
 {
+    private const string _requestUri = "/api/Team/published";
+
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public GetPublicTeamMembersTests(IntegrationTestDbFixture fixture)
+    public GetPublishedTeamMembersTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
@@ -38,9 +40,9 @@ public class GetPublicTeamMembersTests
         }
 
         // Act
-        var response = await _httpClient.GetAsync("/api/TeamMembers/public");
+        var response = await _httpClient.GetAsync(_requestUri);
         var responseString = await response.Content.ReadAsStringAsync();
-        var actualCategoryDtos = JsonSerializer.Deserialize<List<PublicCategoryWithTeamMembersDto>>(responseString, _jsonOptions);
+        var actualCategoryDtos = JsonSerializer.Deserialize<List<CategoryWithPublishedTeamMembersDto>>(responseString, _jsonOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -62,11 +64,12 @@ public class GetPublicTeamMembersTests
             Assert.Equal(expectedMembers.Count, actualCategoryDto.TeamMembers.Count);
 
             // Validate each member in the category
-            for (int i = 0; i < expectedMembers.Count; i++)
+            for (var i = 0; i < expectedMembers.Count; i++)
             {
                 var actualMemberDto = actualCategoryDto.TeamMembers[i];
                 var expectedMember = expectedMembers[i];
 
+                Assert.Equal(Status.Published, expectedMember.Status);
                 Assert.Equal(expectedMember.Id, actualMemberDto.Id);
                 Assert.Equal(expectedMember.FullName, actualMemberDto.FullName);
                 Assert.Equal(expectedMember.Description, actualMemberDto.Description);

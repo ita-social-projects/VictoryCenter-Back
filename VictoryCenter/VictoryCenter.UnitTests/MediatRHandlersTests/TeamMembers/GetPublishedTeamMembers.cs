@@ -2,7 +2,7 @@
 using Moq;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Queries.TeamMembers.GetPublic;
+using VictoryCenter.BLL.Queries.TeamMembers.GetPublished;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -10,12 +10,12 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
-public class GetPublicTeamMembers
+public class GetPublishedTeamMembers
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
 
-    public GetPublicTeamMembers()
+    public GetPublishedTeamMembers()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
@@ -31,8 +31,8 @@ public class GetPublicTeamMembers
         SetupRepository(categories);
         SetupMapper(expectedDto);
 
-        var handler = new GetPublicTeamMembersHandler(_mockMapper.Object, _mockRepository.Object);
-        var query = new GetPublicTeamMembersQuery();
+        var handler = new GetPublishedTeamMembersHandler(_mockMapper.Object, _mockRepository.Object);
+        var query = new GetPublishedTeamMembersQuery();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -99,25 +99,25 @@ public class GetPublicTeamMembers
         ];
     }
 
-    private static List<PublicCategoryWithTeamMembersDto> GetPublicCategoryWithTeamMembersDtoList()
+    private static List<CategoryWithPublishedTeamMembersDto> GetPublicCategoryWithTeamMembersDtoList()
     {
         return
         [
-            new PublicCategoryWithTeamMembersDto
+            new CategoryWithPublishedTeamMembersDto
             {
                 Id = 1,
                 CategoryName = "Cool category 1",
                 Description = "This is a cool group of a few guys",
                 TeamMembers =
                 [
-                    new PublicTeamMemberDto
+                    new PublishedTeamMembersDto
                     {
                         Id = 1,
                         FullName = "John Doe",
                         Description = "Senior Developer"
                     },
 
-                    new PublicTeamMemberDto
+                    new PublishedTeamMembersDto
                     {
                         Id = 2,
                         FullName = "Jane Smith",
@@ -126,14 +126,14 @@ public class GetPublicTeamMembers
 
                 ]
             },
-            new PublicCategoryWithTeamMembersDto
+            new CategoryWithPublishedTeamMembersDto
             {
                 Id = 2,
                 CategoryName = "Cool category 2",
                 Description = "This is another cool group of a few guys",
                 TeamMembers =
                 [
-                    new PublicTeamMemberDto
+                    new PublishedTeamMembersDto
                     {
                         Id = 3,
                         FullName = "Mike Johnson",
@@ -153,10 +153,10 @@ public class GetPublicTeamMembers
             .ReturnsAsync(categories);
     }
 
-    private void SetupMapper(List<PublicCategoryWithTeamMembersDto> expectedDto)
+    private void SetupMapper(List<CategoryWithPublishedTeamMembersDto> expectedDto)
     {
         _mockMapper
-            .Setup(x => x.Map<IEnumerable<PublicCategoryWithTeamMembersDto>>(It.IsAny<IEnumerable<Category>>()))
+            .Setup(x => x.Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(It.IsAny<IEnumerable<Category>>()))
             .Returns(expectedDto);
     }
 }

@@ -8,20 +8,20 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.TeamMembers.GetPublic;
+namespace VictoryCenter.BLL.Queries.TeamMembers.GetPublished;
 
-public class GetPublicTeamMembersHandler : IRequestHandler<GetPublicTeamMembersQuery, Result<List<PublicCategoryWithTeamMembersDto>>>
+public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMembersQuery, Result<List<CategoryWithPublishedTeamMembersDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repository;
 
-    public GetPublicTeamMembersHandler(IMapper mapper, IRepositoryWrapper repository)
+    public GetPublishedTeamMembersHandler(IMapper mapper, IRepositoryWrapper repository)
     {
         _mapper = mapper;
         _repository = repository;
     }
 
-    public async Task<Result<List<PublicCategoryWithTeamMembersDto>>> Handle(GetPublicTeamMembersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<CategoryWithPublishedTeamMembersDto>>> Handle(GetPublishedTeamMembersQuery request, CancellationToken cancellationToken)
     {
         var queryOptions = new QueryOptions<Category>
         {
@@ -33,10 +33,10 @@ public class GetPublicTeamMembersHandler : IRequestHandler<GetPublicTeamMembersQ
 
         var categoriesWithPublishedMembers = await _repository.CategoriesRepository.GetAllAsync(queryOptions);
 
-        var publicCategoriesDto = _mapper
-            .Map<IEnumerable<PublicCategoryWithTeamMembersDto>>(categoriesWithPublishedMembers)
+        var publishedCategoriesDto = _mapper
+            .Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(categoriesWithPublishedMembers)
             .ToList();
 
-        return Result.Ok(publicCategoriesDto);
+        return Result.Ok(publishedCategoriesDto);
     }
 }

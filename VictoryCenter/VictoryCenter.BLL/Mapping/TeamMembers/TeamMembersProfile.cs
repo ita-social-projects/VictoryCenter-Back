@@ -15,6 +15,6 @@ public class TeamMembersProfile : Profile
 
         CreateMap<UpdateTeamMemberDto, TeamMember>();
 
-        CreateMap<TeamMember, PublicTeamMemberDto>();
+        CreateMap<TeamMember, PublishedTeamMembersDto>();
     }
 }
