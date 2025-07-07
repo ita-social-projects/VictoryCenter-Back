@@ -39,14 +39,14 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
 
             if (!allCategoryMembers.Any())
             {
-                return Result.Fail<Unit>("Category not found or contains no team members");
+                return Result.Fail<Unit>(TeamMemberConstants.CategoryNotFoundOrContainsNoTeamMembers);
             }
 
             // Ensure all provided IDs exist within the selected category
             var notFoundIds = orderedIds.Except(allCategoryMembers.Select(m => m.Id)).ToList();
             if (notFoundIds.Any())
             {
-                return Result.Fail<Unit>($"Invalid member IDs found: {string.Join(", ", notFoundIds)}");
+                return Result.Fail<Unit>(TeamMemberConstants.InvalidTeamMembersIdsFound(notFoundIds));
             }
 
             // Split members into two groups: those being reordered, and those left unchanged

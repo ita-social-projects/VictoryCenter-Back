@@ -39,7 +39,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
 
             if (categoryEntity is null)
             {
-                return Result.Fail<CategoryDto>(ErrorMessagesConstants.NotFound);
+                return Result.Fail<CategoryDto>(ErrorMessagesConstants.NotFound(request.updateCategoryDto.Id, typeof(Category)));
             }
 
             var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);

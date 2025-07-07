@@ -27,7 +27,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound);
+            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(Category)));
         }
 
         if (entityToDelete.TeamMembers.Count != 0)

@@ -37,7 +37,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (category == null)
             {
-                return Result.Fail<TeamMemberDto>("There are no categories with this id");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.createTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             TeamMember? entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
@@ -57,7 +57,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 return Result.Ok(result);
             }
 
-            return Result.Fail<TeamMemberDto>("Failed to create new TeamMember");
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMember);
         }
         catch (ValidationException vex)
         {
@@ -65,7 +65,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         }
         catch (DbUpdateException ex)
         {
-            return Result.Fail<TeamMemberDto>("Fail to create new team member in database:" + ex.Message);
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + ex.Message);
         }
     }
 }

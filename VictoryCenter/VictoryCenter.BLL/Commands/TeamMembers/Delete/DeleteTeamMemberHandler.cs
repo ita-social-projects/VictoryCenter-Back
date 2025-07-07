@@ -27,7 +27,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>($"Team member with ID {request.Id} not found.");
+            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
         }
 
         entityToDelete.Category = null!;
@@ -39,6 +39,6 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
             return Result.Ok(entityToDelete.Id);
         }
 
-        return Result.Fail<long>("Failed to delete team member.");
+        return Result.Fail<long>(TeamMemberConstants.FailedToDeleteTeamMember);
     }
 }
