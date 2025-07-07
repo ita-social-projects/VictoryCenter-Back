@@ -41,7 +41,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<CategoryDto>("Failed to create category");
+            return Result.Fail<CategoryDto>(CategoryConstants.FailedToCreateCategory);
         }
         catch (ValidationException ex)
         {

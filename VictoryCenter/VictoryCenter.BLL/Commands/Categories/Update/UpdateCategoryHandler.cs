@@ -39,7 +39,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
 
             if (categoryEntity is null)
             {
-                return Result.Fail<CategoryDto>("Not found");
+                return Result.Fail<CategoryDto>(ErrorMessagesConstants.NotFound);
             }
 
             var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
@@ -53,7 +53,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<CategoryDto>("Failed to update category");
+            return Result.Fail<CategoryDto>(CategoryConstants.FailedToUpdateategory);
         }
         catch (ValidationException ex)
         {

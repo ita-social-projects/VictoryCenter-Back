@@ -27,12 +27,12 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>("Not found");
+            return Result.Fail<long>(ErrorMessagesConstants.NotFound);
         }
 
         if (entityToDelete.TeamMembers.Count != 0)
         {
-            return Result.Fail<long>("Can't delete category while assotiated with any team member");
+            return Result.Fail<long>(CategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyTeamMember);
         }
 
         _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
@@ -42,6 +42,6 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
             return Result.Ok(entityToDelete.Id);
         }
 
-        return Result.Fail<long>("Failed to delete category");
+        return Result.Fail<long>(CategoryConstants.FailedToDeleteCategory);
     }
 }
