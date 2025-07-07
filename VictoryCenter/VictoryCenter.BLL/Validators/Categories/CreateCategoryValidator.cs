@@ -9,6 +9,6 @@ public class CreateCategoryValidator : AbstractValidator<CreateCategoryCommand>
     {
         RuleFor(command => command.createCategoryDto.Name)
             .NotEmpty()
-            .WithMessage("Name can't be empty");
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 }

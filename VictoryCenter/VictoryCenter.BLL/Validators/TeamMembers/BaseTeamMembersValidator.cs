@@ -12,18 +12,18 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     public BaseTeamMembersValidator()
     {
         RuleFor(x => x.FullName)
-            .NotEmpty().WithMessage("FullName field is required")
-            .MinimumLength(FullNameMinLength).WithMessage($"Full name must be at least {FullNameMinLength} characters long")
-            .MaximumLength(FullNameMaxLength).WithMessage($"Full name must be no longer than {FullNameMaxLength} characters");
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired("Full Name"))
+            .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLenghtOfNCharacters("Full Name", FullNameMinLength))
+            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Full Name", FullNameMaxLength));
         RuleFor(x => x.CategoryId)
-            .GreaterThan(0).WithMessage("CategoryId must be positive value");
+            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage("Unknown status value");
+            .IsInEnum().WithMessage(TeamMemberConstants.UnknownStatusValue);
         RuleFor(x => x.Description)
             .MaximumLength(DescriptionNameMaxLength)
-            .WithMessage($"The description length cannot exceed {DescriptionNameMaxLength} characters");
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Description", DescriptionNameMaxLength));
         RuleFor(x => x.Description)
-            .NotEmpty().WithMessage("Description is required for publishing")
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired("Description"))
             .When(x => x.Status == Status.Published);
     }
 }

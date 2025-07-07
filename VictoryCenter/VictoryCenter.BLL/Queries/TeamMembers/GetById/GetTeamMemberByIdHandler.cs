@@ -32,7 +32,7 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
 
         if (teamMember == null)
         {
-            return Result.Fail<TeamMemberDto>("Team member not found");
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
         }
 
         return Result.Ok(_mapper.Map<TeamMemberDto>(teamMember));

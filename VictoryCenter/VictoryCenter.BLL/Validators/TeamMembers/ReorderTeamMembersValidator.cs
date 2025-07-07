@@ -11,21 +11,21 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
     {
         RuleFor(x => x.ReorderTeamMembersDto.CategoryId)
             .GreaterThan(0)
-            .WithMessage("CategoryId must be greater than 0");
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
 
         RuleFor(x => x.ReorderTeamMembersDto.OrderedIds)
             .Cascade(CascadeMode.Stop)
             .NotNull()
-            .WithMessage("OrderedIds must be provided")
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Ordered Ids"))
             .Must(ids => ids.Count > 0)
-            .WithMessage("OrderedIds cannot be empty")
+            .WithMessage(TeamMemberConstants.OrderedIdsCannotBeEmpty)
             .Must(ids => ids.Count <= MaxTeamMemberIds)
-            .WithMessage($"OrderedIds cannot contain more than {MaxTeamMemberIds} elements")
+            .WithMessage(TeamMemberConstants.OrderedidsCannotContainMoreThanNElements(MaxTeamMemberIds))
             .Must(ids => ids.Distinct().Count() == ids.Count)
-            .WithMessage("OrderedIds must contain unique values");
+            .WithMessage(TeamMemberConstants.OrderedIdsMustContainUniqueValues);
 
         RuleForEach(x => x.ReorderTeamMembersDto.OrderedIds)
             .GreaterThan(0)
-            .WithMessage("Each ID in OrderedIds must be greater than 0");
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThan("Each ID in OrderedIDS", 0));
     }
 }
