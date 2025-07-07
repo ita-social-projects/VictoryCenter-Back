@@ -1,6 +1,7 @@
 ﻿using System.Transactions;
 using FluentValidation;
 using Moq;
+using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
@@ -121,7 +122,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal("Category not found or contains no team members", result.Errors[0].Message);
+        Assert.Equal(TeamMemberConstants.CategoryNotFoundOrContainsNoTeamMembers, result.Errors[0].Message);
     }
 
     [Fact]
@@ -143,7 +144,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Invalid member IDs found: 99", result.Errors[0].Message);
+        Assert.Contains(TeamMemberConstants.InvalidTeamMembersIdsFound([99]), result.Errors[0].Message);
     }
 
     [Theory]
@@ -167,7 +168,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("CategoryId must be greater than 0", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"), result.Errors[0].Message);
     }
 
     [Fact]
@@ -189,7 +190,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("OrderedIds cannot be empty", result.Errors[0].Message);
+        Assert.Contains(TeamMemberConstants.OrderedIdsCannotBeEmpty, result.Errors[0].Message);
     }
 
     [Fact]
@@ -211,7 +212,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("OrderedIds must contain unique values", result.Errors[0].Message);
+        Assert.Contains(TeamMemberConstants.OrderedIdsMustContainUniqueValues, result.Errors[0].Message);
     }
 
     [Theory]
@@ -235,7 +236,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Each ID in OrderedIds must be greater than 0", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyMustBeGreaterThan("Each ID in OrderedIDS", 0), result.Errors[0].Message);
     }
 
     [Fact]
@@ -335,7 +336,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Invalid member IDs found: 3", result.Errors[0].Message);
+        Assert.Contains(TeamMemberConstants.InvalidTeamMembersIdsFound([3]), result.Errors[0].Message);
 
         // Verify no priorities were changed since operation failed
         var member1 = _testMixedCategoryMembers.First(m => m.Id == 1);

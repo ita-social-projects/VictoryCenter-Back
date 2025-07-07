@@ -1,4 +1,5 @@
 ﻿using FluentValidation.TestHelper;
+using VictoryCenter.BLL;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Enums;
@@ -20,7 +21,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = "", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage("FullName field is required");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Full Name"));
     }
 
     [Fact]
@@ -29,7 +30,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = "A", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage("Full name must be at least 2 characters long");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLenghtOfNCharacters("Full Name", 2));
     }
 
     [Fact]
@@ -38,7 +39,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = new string('A', 101), CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage("Full name must be no longer than 100 characters");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Full Name", 100));
     }
 
     [Fact]
@@ -47,7 +48,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = "John Doe", CategoryId = 0 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.CategoryId)
-            .WithErrorMessage("CategoryId must be positive value");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class BaseTeamMembersValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage("The description length cannot exceed 200 characters");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Description", 200));
     }
 
     [Fact]
@@ -76,7 +77,7 @@ public class BaseTeamMembersValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage("Description is required for publishing");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Description"));
     }
 
     [Fact]

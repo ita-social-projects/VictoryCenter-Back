@@ -3,6 +3,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using Moq;
+using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
@@ -164,7 +165,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("FullName field is required", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired("Full Name"), result.Errors[0].Message);
     }
 
     [Fact]
@@ -191,7 +192,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Category not found", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.NotFound(_testUpdatedTeamMember.CategoryId, typeof(Category)), result.Errors[0].Message);
     }
 
     [Theory]
@@ -212,7 +213,7 @@ public class UpdateTeamMemberTests
                 }, testId), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not found", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(testId, typeof(TeamMember)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -231,7 +232,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Failed to update team member", result.Errors[0].Message);
+        Assert.Equal(TeamMemberConstants.FailedToUpdateTeamMember, result.Errors[0].Message);
     }
 
     private void SetupDependencies(TeamMember? teamMemberToReturn = null, int saveResult = 1)

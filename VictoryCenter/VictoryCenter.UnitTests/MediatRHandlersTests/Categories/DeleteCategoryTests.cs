@@ -1,4 +1,5 @@
 using Moq;
+using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.Categories.Delete;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -45,7 +46,7 @@ public class DeleteCategoryTests
         var result = await handler.Handle(new DeleteCategoryCommand(categoryId), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not found", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(categoryId, typeof(Category)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public class DeleteCategoryTests
         var result = await handler.Handle(new DeleteCategoryCommand(categoryWithDependencies.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Can't delete category while assotiated with any team member", result.Errors[0].Message);
+        Assert.Equal(CategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyTeamMember, result.Errors[0].Message);
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public class DeleteCategoryTests
         var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Failed to delete category", result.Errors[0].Message);
+        Assert.Equal(CategoryConstants.FailedToDeleteCategory, result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(Category? entityToDelete = null, int saveResult = 1)
