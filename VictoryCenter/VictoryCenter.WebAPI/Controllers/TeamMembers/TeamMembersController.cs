@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
+using VictoryCenter.BLL.Queries.TeamMembers.Search;
 
 namespace VictoryCenter.WebAPI.Controllers.TeamMembers;
 
@@ -16,6 +17,13 @@ public class TeamMembersController : BaseApiController
     public async Task<IActionResult> GetFilteredTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
     {
         return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
+    public async Task<IActionResult> SearchTeamMembers([FromQuery] SearchTeamMemberDto searchTeamMemberDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchTeamMemberQuery(searchTeamMemberDto)));
     }
 
     [HttpGet("{id:long}")]
