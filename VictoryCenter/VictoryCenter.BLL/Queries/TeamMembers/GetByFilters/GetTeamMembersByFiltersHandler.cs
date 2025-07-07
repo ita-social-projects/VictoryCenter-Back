@@ -2,7 +2,6 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -35,7 +34,6 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             Limit = request.TeamMembersFilter.Limit is not null and > 0 ?
             (int)request.TeamMembersFilter.Limit : 0,
             Filter = filter,
-            Include = t => t.Include(t => t.Category),
             OrderByASC = t => t.Priority,
         };
 
