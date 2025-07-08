@@ -50,19 +50,21 @@ public class BlobService : IBlobService
         return Convert.ToBase64String(stream.ToArray());
     }
 
-    public string UpdateFileInStorage(string? previousBlobName, string base64Format, string newBlobName, string mimeType)
+    public string UpdateFileInStorage(string? previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(previousBlobName);
 
-        DeleteFileInStorage(previousBlobName);
-        return SaveFileInStorage(base64Format, newBlobName, mimeType);
+        DeleteFileInStorage(previousBlobName, previousMimeType);
+        SaveFileInStorage(base64Format, newBlobName, mimeType);
+        return newBlobName;
     }
 
-    public void DeleteFileInStorage(string? name)
+    public void DeleteFileInStorage(string? name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
 
-        string filePath = Path.Combine(_blobPath, name);
+        var fullName = name + "." + GetExtensionFromMimeType(mimeType);
+        string filePath = Path.Combine(_blobPath, fullName);
         if (File.Exists(filePath))
         {
             File.Delete(filePath);
@@ -71,7 +73,6 @@ public class BlobService : IBlobService
 
     private byte[] ConvertBase64ToBytes(string base64)
     {
-        // Видаляємо data URL prefix якщо є
         if (base64.Contains(','))
         {
             base64 = base64.Split(',')[1];
@@ -103,7 +104,6 @@ public class BlobService : IBlobService
             "image/jpeg" => "jpg",
             "image/jpg" => "jpg",
             "image/png" => "png",
-            "image/gif" => "gif",
             "image/webp" => "webp",
             _ => "jpg"
         };

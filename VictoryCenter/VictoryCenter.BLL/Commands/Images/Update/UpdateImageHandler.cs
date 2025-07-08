@@ -36,7 +36,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
             var imageEntity =
                 await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
-                    Filter = entity => entity.Id == request.updateImageDto.Id
+                    Filter = entity => entity.Id == request.id
                 });
 
             if (imageEntity is null)
@@ -48,13 +48,15 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (!string.IsNullOrEmpty(request.updateImageDto.Base64) && !string.IsNullOrEmpty(request.updateImageDto.MimeType))
             {
-                var newBlobName = imageEntity.BlobName.Split('.')[0];
                 var updatedBlobName = _blobService.UpdateFileInStorage(
                     imageEntity.BlobName,
+                    imageEntity.MimeType,
                     request.updateImageDto.Base64,
-                    newBlobName,
+                    imageEntity.BlobName,
                     request.updateImageDto.MimeType);
+
                 imageEntity.BlobName = updatedBlobName;
+                imageEntity.MimeType = request.updateImageDto.MimeType;
             }
 
             _mapper.Map(request.updateImageDto, imageEntity);

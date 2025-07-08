@@ -35,7 +35,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
         if (!string.IsNullOrEmpty(entityToDelete.BlobName))
         {
-            _blobService.DeleteFileInStorage(entityToDelete.BlobName);
+            _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
         }
 
         _repositoryWrapper.ImageRepository.Delete(entityToDelete);
