@@ -38,9 +38,7 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
             return Result.Fail<ImageDTO>("image not found");
         }
 
-        var extension = image.MimeType.Split("/").Last();
-        var fullPath = image.BlobName + "." + extension;
-        image.Base64 = _blobService.FindFileInStorageAsBase64(fullPath);
+        image.Base64 = _blobService.FindFileInStorageAsBase64(image.BlobName, image.MimeType);
         var result = _mapper.Map<ImageDTO>(image);
         return Result.Ok(result);
     }

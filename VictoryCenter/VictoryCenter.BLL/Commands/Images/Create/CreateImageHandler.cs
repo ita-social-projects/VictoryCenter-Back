@@ -31,6 +31,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var fileName = Guid.NewGuid().ToString().Replace("-", "");
             var fileNewName = _blobService.SaveFileInStorage(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
+
             var image = _mapper.Map<Image>(request.CreateImageDto);
             image.BlobName = fileName;
 
@@ -48,7 +49,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         }
         catch (IOException)
         {
-            return Result.Fail<ImageDTO>("Fail creating the file");
+            return Result.Fail<ImageDTO>("File creating Fail");
         }
     }
 }

@@ -30,23 +30,17 @@ public class BlobService : IBlobService
         return $"{name}.{extension}";
     }
 
-    public MemoryStream FindFileInStorageAsMemoryStream(string? name)
+    public MemoryStream FindFileInStorageAsMemoryStream(string? name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
-
-        string[] splitedName = name.Split('.');
-        if (splitedName.Length != 2)
-        {
-            throw new ArgumentException("Invalid file name format");
-        }
-
-        byte[] decodedBytes = DecryptFile(splitedName[0], splitedName[1]);
+        byte[] decodedBytes = DecryptFile(name, GetExtensionFromMimeType(mimeType));
         return new MemoryStream(decodedBytes);
     }
 
-    public string FindFileInStorageAsBase64(string name)
+    public string FindFileInStorageAsBase64(string name, string mimeType)
     {
-        using var stream = FindFileInStorageAsMemoryStream(name);
+        var fullName = name + "." + GetExtensionFromMimeType(mimeType);
+        using var stream = FindFileInStorageAsMemoryStream(name, GetExtensionFromMimeType(mimeType));
         return Convert.ToBase64String(stream.ToArray());
     }
 
