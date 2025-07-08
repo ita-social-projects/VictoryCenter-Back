@@ -31,7 +31,7 @@ public class ImageController : BaseApiController
     [HttpPut("{id}")]
     public async Task<ActionResult> UpdateImage(long id, [FromBody] UpdateImageDTO request)
     {
-        return HandleResult(await Mediator.Send(new UpdateImageCommand(request)));
+        return HandleResult(await Mediator.Send(new UpdateImageCommand(request, id)));
     }
 
     [HttpDelete("{id:long}")]

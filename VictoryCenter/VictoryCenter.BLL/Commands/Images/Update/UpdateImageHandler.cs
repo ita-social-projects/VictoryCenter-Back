@@ -29,12 +29,10 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
             var imageEntity =
                 await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
-                    Filter = entity => entity.Id == request.updateImageDto.Id
+                    Filter = entity => entity.Id == request.id
                 });
 
             if (imageEntity is null)
@@ -42,8 +40,11 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDTO>("Not found");
             }
 
-            var entityToUpdate = _mapper.Map<UpdateImageCommand, Image>(request);
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            var entityToUpdate = _mapper.Map<Image>(request.updateImageDto);
             entityToUpdate.Id = imageEntity.Id; // Ensure the ID remains unchanged
+            entityToUpdate.BlobName = imageEntity.BlobName;
 
             _repositoryWrapper.ImageRepository.Update(entityToUpdate);
 

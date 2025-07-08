@@ -1,14 +1,14 @@
 using FluentValidation;
+using VictoryCenter.BLL.Commands.Images.Update;
 
 // using VictoryCenter.BLL.Commands.Images.Update;
-using VictoryCenter.BLL.Commands.Images.Update;
 
 namespace VictoryCenter.BLL.Validators.Images;
 
 public class UpdateImageValidator : AbstractValidator<UpdateImageCommand>
 {
     private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
-    public UpdateImageValidator(BaseImageValidator baseImageValidator)
+    public UpdateImageValidator()
     {
         _ = RuleFor(x => x.updateImageDto.Base64)
             .NotEmpty().WithMessage("Base64 content is required")
