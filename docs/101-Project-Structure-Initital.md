@@ -35,6 +35,8 @@ VictoryCenter (Solution)
 |   |   └── launchSettings.json
 |   |
 │   ├── Controllers/                  ← API endpoints
+|   |   ├── Auth/
+|   |   |   └── AuthController.cs
 |   |   ├── Categories/
 │   │   |   └── CategoriesController.cs
 |   |   ├── TeamMembers/
@@ -56,10 +58,20 @@ VictoryCenter (Solution)
 │   ├── appsettings.json
 |   ├── appsettings.Development.json
 |   ├── appsettings.IntegrationTests.json
+|   ├── appsettings.Local.json
+|   ├── appsettings.Production.json
 │   └── ...
 │
 ├── VictoryCenter.BLL/               ← Business Logic Layer (CQRS, Services, DTOs)
 │   ├── Commands/                    ← Write operations
+|   |   ├── Auth/
+|   |   |   ├── Login/
+|   |   |   |   ├── LoginCommand.cs
+|   |   |   |   └── LoginCommandHandler.cs
+|   |   |   └── RefreshToken/
+|   |   |       ├── RefreshTokenCommand.cs
+|   |   |       └── RefreshTokenCommandHandler.cs
+|   |   |
 |   |   └── Categories/
 │   │       ├── Create/
 │   │       |   ├── CreateCategoryCommand.cs
@@ -82,16 +94,19 @@ VictoryCenter (Solution)
 │   │           └── GetTeamMemberByIdHandler.cs
 |   |
 │   ├── Interfaces/                  ← Business layer contracts
-│   │   └── IPagesService.cs
-|   |
+│   │   └── TokenService/
+|   |       └── ITokenService.cs
 |   ├── Services/                    ← Business layer services
-|   |   └── Pages
-|   |       └── PagesService.cs
+|   |   └── TokenService
+|   |       └── TokenService.cs
 │   │
 │   ├── DTOs/                        ← Data Transfer Objects
 |   |   ├── TeamMembers/
 │   │   │   ├── TeamMembersFilterDto.cs
 │   │   |   └── TeamMemberDto.cs
+|   |   ├── Auth/
+│   │   │   ├── AuthResponseDto.cs
+│   │   |   └── LoginRequestDto.cs
 |   |   └── Categories/
 │   │       └── CategoryDto.cs
 |   |
@@ -102,6 +117,8 @@ VictoryCenter (Solution)
 |   |       └── TeamMembersProfile.cs
 │   │
 |   ├── Validators/
+|   |   ├── Auth/
+|   |   |   └── LoginCommandValidator.cs
 |   |   └── Categories/
 |   |       ├── BaseCategoriesValidator.cs
 |   |       ├── CreateCategoryValidator.cs
@@ -113,6 +130,7 @@ VictoryCenter (Solution)
 │   │   └── VictoryCenterDbContext.cs
 │   │
 │   ├── Entities/                    ← Domain Models (EF Entities)
+│   │   ├── Admin.cs
 │   │   ├── TeamMember.cs
 |   |   └── Category.cs
 │   │
