@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Categories.Create;
 using VictoryCenter.BLL.Commands.Categories.Delete;
@@ -7,6 +8,7 @@ using VictoryCenter.BLL.Queries.Categories.GetAll;
 
 namespace VictoryCenter.WebAPI.Controllers.Categories;
 
+[Authorize]
 public class CategoriesController : BaseApiController
 {
     [HttpGet]
