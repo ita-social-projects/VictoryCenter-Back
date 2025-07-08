@@ -46,10 +46,9 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            // Оновлення файлу у blob storage, якщо передано новий base64
             if (!string.IsNullOrEmpty(request.updateImageDto.Base64) && !string.IsNullOrEmpty(request.updateImageDto.MimeType))
             {
-                var newBlobName = imageEntity.BlobName.Split('.')[0]; // залишаємо стару назву без розширення
+                var newBlobName = imageEntity.BlobName.Split('.')[0];
                 var updatedBlobName = _blobService.UpdateFileInStorage(
                     imageEntity.BlobName,
                     request.updateImageDto.Base64,
@@ -58,7 +57,6 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 imageEntity.BlobName = updatedBlobName;
             }
 
-            // Оновлення інших полів (наприклад, MimeType)
             _mapper.Map(request.updateImageDto, imageEntity);
 
             _repositoryWrapper.ImageRepository.Update(imageEntity);

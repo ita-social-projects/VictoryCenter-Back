@@ -4,16 +4,19 @@ using VictoryCenter.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 
 namespace VictoryCenter.BLL.Commands.Images.Delete;
 
 public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IBlobService _blobService;
 
-    public DeleteImageHandler(IRepositoryWrapper repositoryWrapper)
+    public DeleteImageHandler(IRepositoryWrapper repositoryWrapper, IBlobService blobService)
     {
         _repositoryWrapper = repositoryWrapper;
+        _blobService = blobService;
     }
 
     public async Task<Result<long>> Handle(DeleteImageCommand request, CancellationToken cancellationToken)
@@ -28,6 +31,11 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
         if (entityToDelete is null)
         {
             return Result.Fail<long>($"Image with ID {request.Id} not found.");
+        }
+
+        if (!string.IsNullOrEmpty(entityToDelete.BlobName))
+        {
+            _blobService.DeleteFileInStorage(entityToDelete.BlobName);
         }
 
         _repositoryWrapper.ImageRepository.Delete(entityToDelete);
