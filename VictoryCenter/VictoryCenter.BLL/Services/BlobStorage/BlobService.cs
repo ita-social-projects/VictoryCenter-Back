@@ -19,6 +19,8 @@ public class BlobService : IBlobService
         _blobPath = _environment.BlobStorePath;
     }
 
+    public string BlobPath => _blobPath;
+
     public string SaveFileInStorage(string base64, string name, string mimeType)
     {
         byte[] imageBytes = ConvertBase64ToBytes(base64);
