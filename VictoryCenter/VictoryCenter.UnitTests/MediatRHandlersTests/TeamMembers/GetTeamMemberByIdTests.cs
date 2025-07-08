@@ -8,12 +8,12 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
-public class GetTeamMemberById
+public class GetTeamMemberByIdTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
 
-    public GetTeamMemberById()
+    public GetTeamMemberByIdTests()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();

@@ -2,6 +2,7 @@
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Services.Search;
@@ -35,14 +36,15 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
 
             var searchTerm = new SearchTerm<TeamMember>
             {
-                TermSelector = tm => tm.FullName,
-                TermValue = dto.FullName,
+                TermSelector = tm => tm.FullName.ToLower(),
+                TermValue = dto.FullName.ToLower(),
                 SearchLogic = SearchLogic.Prefix,
             };
 
             var searchExpression = _searchService.CreateSearchExpression(searchTerm);
-            var teamMembers = await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+            var teamMembers = await _repositoryWrapper.TeamMembersRepository.GetAllAsync(new QueryOptions<TeamMember>
             {
+                Include = tm => tm.Include(tm => tm.Category),
                 Filter = searchExpression,
             });
             var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);

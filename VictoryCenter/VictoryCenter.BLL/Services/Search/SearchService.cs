@@ -46,6 +46,7 @@ public class SearchService<T> : ISearchService<T>
                     throw new NotSupportedException($"Unsupported search logic: {term.SearchLogic}");
             }
 
+            // TODO: implement OR/AND logic
             combined = combined == null ? body : Expression.AndAlso(combined, body);
         }
 

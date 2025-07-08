@@ -1,14 +1,14 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Queries.TeamMembers.Search;
 
-namespace VictoryCenter.BLL.Validators.TeamMembers.Search;
+namespace VictoryCenter.BLL.Validators.TeamMembers;
 
-public class SearchValidator : AbstractValidator<SearchTeamMemberQuery>
+public class SearchTeamMemberValidator : AbstractValidator<SearchTeamMemberQuery>
 {
     private const int FullNameMinLength = 2;
     private const int FullNameMaxLength = 100;
 
-    public SearchValidator()
+    public SearchTeamMemberValidator()
     {
         RuleFor(x => x.SearchTeamMemberDto.FullName)
             .NotEmpty().WithMessage("FullName field is required")
