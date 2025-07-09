@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Interfaces.Search;
+using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
@@ -48,6 +50,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)

@@ -5,7 +5,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.Search;
-using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,14 +16,18 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<SearchTeamMemberQuery> _validator;
-    private readonly SearchService<TeamMember> _searchService;
+    private readonly ISearchService<TeamMember> _searchService;
 
-    public SearchTeamMemberHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<SearchTeamMemberQuery> validator)
+    public SearchTeamMemberHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper,
+        IValidator<SearchTeamMemberQuery> validator,
+        ISearchService<TeamMember> searchService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
-        _searchService = new SearchService<TeamMember>();
+        _searchService = searchService;
     }
 
     public async Task<Result<List<TeamMemberDto>>> Handle(SearchTeamMemberQuery request, CancellationToken cancellationToken)

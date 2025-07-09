@@ -2,6 +2,7 @@
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Queries.TeamMembers.Search;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
@@ -15,6 +16,7 @@ public class SearchTeamMemberTests
 {
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
+    private readonly Mock<ISearchService<TeamMember>> _searchServiceMock;
     private readonly IValidator<SearchTeamMemberQuery> _validator;
 
     private readonly List<TeamMember> _teamMembers = [
@@ -49,6 +51,7 @@ public class SearchTeamMemberTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _validator = new SearchTeamMemberValidator();
+        _searchServiceMock = new Mock<ISearchService<TeamMember>>();
     }
 
     [Fact]
@@ -59,7 +62,7 @@ public class SearchTeamMemberTests
         SetupRepositoryWrapper(_teamMembers);
         var dto = new SearchTeamMemberDto { FullName = "TestName" };
         var query = new SearchTeamMemberQuery(dto);
-        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -78,7 +81,7 @@ public class SearchTeamMemberTests
         SetupRepositoryWrapper([]);
         var dto = new SearchTeamMemberDto { FullName = "Nonexistent fullname" };
         var query = new SearchTeamMemberQuery(dto);
-        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -97,7 +100,7 @@ public class SearchTeamMemberTests
         SetupRepositoryWrapper([]);
         var dto = new SearchTeamMemberDto { FullName = "" };
         var query = new SearchTeamMemberQuery(dto);
-        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

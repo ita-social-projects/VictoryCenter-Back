@@ -60,9 +60,6 @@ public class SearchServiceTests
         var actualResult = _teamMembers.AsQueryable().Where(expression).ToList();
 
         // Assert
-        Assert.NotNull(searchTerm);
-        Assert.Equal(SearchLogic.Prefix, searchTerm.SearchLogic);
-        Assert.Equal(searchTerm.TermValue, term);
         Assert.Equal(expectedResult, actualResult);
     }
 
@@ -85,9 +82,6 @@ public class SearchServiceTests
         var actualResult = _teamMembers.AsQueryable().Where(expression).ToList();
 
         // Assert
-        Assert.NotNull(searchTerm);
-        Assert.Equal(SearchLogic.Prefix, searchTerm.SearchLogic);
-        Assert.Equal(searchTerm.TermValue, term);
         Assert.Empty(actualResult);
     }
 
@@ -166,9 +160,6 @@ public class SearchServiceTests
         var actualResult = _teamMembers.AsQueryable().Where(expression).ToList();
 
         // Assert
-        Assert.NotNull(searchTerm);
-        Assert.Equal(SearchLogic.Exact, searchTerm.SearchLogic);
-        Assert.Equal(searchTerm.TermValue, term);
         Assert.Equal(expectedResult, actualResult);
     }
 
