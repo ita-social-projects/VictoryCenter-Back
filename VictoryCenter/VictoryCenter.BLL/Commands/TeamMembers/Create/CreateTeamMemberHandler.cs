@@ -11,7 +11,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+namespace VictoryCenter.BLL.Commands.TeamMembers.Create;
 
 public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, Result<TeamMemberDto>>
 {
@@ -73,7 +73,6 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 }
 
                 scope.Complete();
-
                 return Result.Ok(result);
             }
 

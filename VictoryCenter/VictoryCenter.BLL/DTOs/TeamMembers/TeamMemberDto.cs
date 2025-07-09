@@ -9,7 +9,7 @@ public record TeamMemberDto
 
     public string FullName { get; set; } = null!;
 
-    public string CategoryName { get; set; } = null!;
+    public long CategoryId { get; set; }
 
     public long Priority { get; set; }
 
@@ -17,9 +17,7 @@ public record TeamMemberDto
 
     public string? Description { get; set; }
 
-#pragma warning disable SA1011
-    public ImageDTO? Image { get; set; }
-#pragma warning restore SA1011
-
     public string? Email { get; set; }
+
+    public ImageDTO? Image { get; set; }
 }

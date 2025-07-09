@@ -12,7 +12,7 @@ public record CreateTeamMemberDto
 
     public string? Description { get; set; }
 
-    public long? ImageId { get; set; }
-
     public string? Email { get; set; }
+
+    public long? ImageId { get; set; }
 }

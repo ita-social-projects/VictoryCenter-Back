@@ -6,7 +6,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -49,7 +49,7 @@ public class CreateTeamMemberTests
         Id = 1,
         FullName = "TestName",
         Priority = 1,
-        CategoryName = "Name",
+        CategoryId = 1,
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com"
@@ -98,6 +98,25 @@ public class CreateTeamMemberTests
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
         Assert.Equal(failMessage, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task CreateTeamMemberHandle_WhenCategoryIdIsInvalid_ShouldReturnFailure()
+    {
+        _repositoryWrapperMock
+            .Setup(repositoryWrapper =>
+                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync((Category?)null);
+        SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);
+        SetupValidator();
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _blobService.Object);
+
+        Result<TeamMemberDto> result =
+            await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Null(result.ValueOrDefault);
+        Assert.Equal("There are no categories with this id", result.Errors[0].Message);
     }
 
     [Fact]
