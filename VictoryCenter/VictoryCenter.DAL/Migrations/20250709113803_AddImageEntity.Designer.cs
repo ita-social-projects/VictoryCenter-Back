@@ -12,8 +12,8 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250705235822_addImageLogic")]
-    partial class addImageLogic
+    [Migration("20250709113803_AddImageEntity")]
+    partial class AddImageEntity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -122,9 +122,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<long?>("ImageId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ImageId1")
-                        .HasColumnType("bigint");
-
                     b.Property<long>("Priority")
                         .HasColumnType("bigint");
 
@@ -133,13 +130,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ImageId")
-                        .IsUnique()
-                        .HasFilter("[ImageId] IS NOT NULL");
-
-                    b.HasIndex("ImageId1")
-                        .IsUnique()
-                        .HasFilter("[ImageId1] IS NOT NULL");
+                    b.HasIndex("ImageId");
 
                     b.HasIndex("CategoryId", "Priority")
                         .IsUnique();
@@ -156,12 +147,8 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.TeamMember", "ImageId");
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", null)
-                        .WithOne("TeamMember")
-                        .HasForeignKey("VictoryCenter.DAL.Entities.TeamMember", "ImageId1");
+                        .WithMany()
+                        .HasForeignKey("ImageId");
 
                     b.Navigation("Category");
 
@@ -171,11 +158,6 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Category", b =>
                 {
                     b.Navigation("TeamMembers");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
-                {
-                    b.Navigation("TeamMember");
                 });
 #pragma warning restore 612, 618
         }

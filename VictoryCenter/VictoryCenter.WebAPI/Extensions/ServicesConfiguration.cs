@@ -21,7 +21,7 @@ public static class ServicesConfiguration
             options.UseSqlServer(connectionString, opt =>
             {
                 opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
-                opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
+                opt.MigrationsHistoryTable("__EFMigrationsHistory", "entity_framework");
             });
         });
     }
@@ -30,7 +30,10 @@ public static class ServicesConfiguration
     {
         services.AddControllers();
         services.AddOpenApi();
-        services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
+        services.AddAutoMapper(
+            cfg => { cfg.ConstructServicesUsing(type => services.BuildServiceProvider().GetRequiredService(type)); },
+            typeof(BllAssemblyMarker).Assembly);
+
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
@@ -41,8 +44,8 @@ public static class ServicesConfiguration
             opt.AddDefaultPolicy(builder =>
             {
                 builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             });
         });
 
@@ -62,24 +65,27 @@ public static class ServicesConfiguration
 
     public static async Task ApplyMigrations(this WebApplication app)
     {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
         try
         {
             using IServiceScope localScope = app.Services.CreateScope();
-            var victoryCenterDbContext = localScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            var pendingMigrations = await victoryCenterDbContext.Database.GetPendingMigrationsAsync();
+            VictoryCenterDbContext victoryCenterDbContext =
+                localScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            IEnumerable<string> pendingMigrations = await victoryCenterDbContext.Database.GetPendingMigrationsAsync();
             var migrations = pendingMigrations.ToList();
 
             if (migrations.Any())
             {
                 logger.LogInformation("Pending migrations: {PendingMigrations}", string.Join(", ", migrations));
-                var appliedMigrationsBefore = await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
+                IEnumerable<string> appliedMigrationsBefore =
+                    await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
 
                 await victoryCenterDbContext.Database.MigrateAsync();
 
                 logger.LogInformation("Migrations applied successfully.");
-                var appliedMigrationsAfter = await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
-                var newlyAppliedMigrations = appliedMigrationsAfter.Except(appliedMigrationsBefore);
+                IEnumerable<string> appliedMigrationsAfter =
+                    await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
+                IEnumerable<string> newlyAppliedMigrations = appliedMigrationsAfter.Except(appliedMigrationsBefore);
                 var appliedMigrations = newlyAppliedMigrations.ToList();
 
                 if (appliedMigrations.Any())

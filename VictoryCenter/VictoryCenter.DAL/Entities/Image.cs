@@ -9,15 +9,14 @@ public class Image
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public long Id { get; set; }
 
+    [Required]
+    [MaxLength(100)]
+    public string BlobName { get; set; } = null!;
+
     [NotMapped]
     public string? Base64 { get; set; }
 
     [Required]
     [MaxLength(10)]
-    public string? MimeType { get; set; }
-    public TeamMember? TeamMember { get; set; }
-
-    [Required]
-    [MaxLength(100)]
-    public string? BlobName { get; set; }
+    public string MimeType { get; set; } = null!;
 }

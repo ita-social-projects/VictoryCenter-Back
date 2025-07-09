@@ -39,8 +39,7 @@ public class BlobService : IBlobService
 
     public string FindFileInStorageAsBase64(string name, string mimeType)
     {
-        var fullName = name + "." + GetExtensionFromMimeType(mimeType);
-        using var stream = FindFileInStorageAsMemoryStream(name, GetExtensionFromMimeType(mimeType));
+        using var stream = FindFileInStorageAsMemoryStream(name, mimeType);
         return Convert.ToBase64String(stream.ToArray());
     }
 

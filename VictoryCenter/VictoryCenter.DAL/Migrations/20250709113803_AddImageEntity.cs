@@ -5,7 +5,7 @@
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class addImageLogic2 : Migration
+    public partial class AddImageEntity : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -23,12 +23,6 @@ namespace VictoryCenter.DAL.Migrations
                 type: "bigint",
                 nullable: true);
 
-            migrationBuilder.AddColumn<long>(
-                name: "ImageId1",
-                table: "TeamMembers",
-                type: "bigint",
-                nullable: true);
-
             migrationBuilder.CreateTable(
                 name: "images",
                 schema: "media",
@@ -36,8 +30,8 @@ namespace VictoryCenter.DAL.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MimeType = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    BlobName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false)
+                    BlobName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    MimeType = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -47,29 +41,12 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_TeamMembers_ImageId",
                 table: "TeamMembers",
-                column: "ImageId",
-                unique: true,
-                filter: "[ImageId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_TeamMembers_ImageId1",
-                table: "TeamMembers",
-                column: "ImageId1",
-                unique: true,
-                filter: "[ImageId1] IS NOT NULL");
+                column: "ImageId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_TeamMembers_images_ImageId",
                 table: "TeamMembers",
                 column: "ImageId",
-                principalSchema: "media",
-                principalTable: "images",
-                principalColumn: "Id");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_TeamMembers_images_ImageId1",
-                table: "TeamMembers",
-                column: "ImageId1",
                 principalSchema: "media",
                 principalTable: "images",
                 principalColumn: "Id");
@@ -82,10 +59,6 @@ namespace VictoryCenter.DAL.Migrations
                 name: "FK_TeamMembers_images_ImageId",
                 table: "TeamMembers");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_TeamMembers_images_ImageId1",
-                table: "TeamMembers");
-
             migrationBuilder.DropTable(
                 name: "images",
                 schema: "media");
@@ -94,16 +67,8 @@ namespace VictoryCenter.DAL.Migrations
                 name: "IX_TeamMembers_ImageId",
                 table: "TeamMembers");
 
-            migrationBuilder.DropIndex(
-                name: "IX_TeamMembers_ImageId1",
-                table: "TeamMembers");
-
             migrationBuilder.DropColumn(
                 name: "ImageId",
-                table: "TeamMembers");
-
-            migrationBuilder.DropColumn(
-                name: "ImageId1",
                 table: "TeamMembers");
 
             migrationBuilder.AddColumn<byte[]>(

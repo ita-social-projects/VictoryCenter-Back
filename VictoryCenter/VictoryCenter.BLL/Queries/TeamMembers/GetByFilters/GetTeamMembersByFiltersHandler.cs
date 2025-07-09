@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -23,24 +24,22 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
     public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
-        var status = request.TeamMembersFilter.Status;
+        Status? status = request.TeamMembersFilter.Status;
         var categoryName = request.TeamMembersFilter.CategoryName;
         Expression<Func<TeamMember, bool>> filter =
-            (t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
+            t => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
 
         var queryOptions = new QueryOptions<TeamMember>
         {
-            Offset = request.TeamMembersFilter.Offset is not null and > 0 ?
-            (int)request.TeamMembersFilter.Offset : 0,
-            Limit = request.TeamMembersFilter.Limit is not null and > 0 ?
-            (int)request.TeamMembersFilter.Limit : 0,
+            Offset = request.TeamMembersFilter.Offset is not null and > 0 ? (int)request.TeamMembersFilter.Offset : 0,
+            Limit = request.TeamMembersFilter.Limit is not null and > 0 ? (int)request.TeamMembersFilter.Limit : 0,
             Filter = filter,
-            Include = t => t.Include(t => t.Category),
-            OrderByASC = t => t.Priority,
+            Include = t => t.Include(t => t.Image),
+            OrderByASC = t => t.Priority
         };
 
-        var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
-        var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+        IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
+        List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
 
         return Result.Ok(teamMembersDto);
     }

@@ -1,7 +1,6 @@
 using FluentResults;
 using MediatR;
 using VictoryCenter.DAL.Entities;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -25,7 +24,6 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
             await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
                 Filter = entity => entity.Id == request.Id,
-                Include = query => query.Include(img => img.TeamMember!)
             });
 
         if (entityToDelete is null)
