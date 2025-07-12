@@ -10,8 +10,9 @@ public class TeamMembersProfile : Profile
     {
         CreateMap<CreateTeamMemberDto, TeamMember>();
 
-        CreateMap<TeamMember, TeamMemberDto>();
-
         CreateMap<UpdateTeamMemberDto, TeamMember>();
+
+        CreateMap<TeamMember, TeamMemberDto>()
+            .ForMember(dest => dest.Image, opt => opt.MapFrom<TeamMemberImageResolver>());
     }
 }

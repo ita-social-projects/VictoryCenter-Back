@@ -3,7 +3,9 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -15,15 +17,18 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateTeamMemberCommand> _validator;
+    private readonly IBlobService _blobService;
 
     public UpdateTeamMemberHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateTeamMemberCommand> validator)
+        IValidator<UpdateTeamMemberCommand> validator,
+        IBlobService blobService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _blobService = blobService;
     }
 
     public async Task<Result<TeamMemberDto>> Handle(UpdateTeamMemberCommand request, CancellationToken cancellationToken)
@@ -32,7 +37,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            TeamMember? teamMemberEntity =
+            var teamMemberEntity =
                 await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
                 {
                     Filter = entity => entity.Id == request.id
@@ -74,8 +79,27 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+                if (entityToUpdate.ImageId != null)
+                {
+                    Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                        new QueryOptions<Image>()
+                        {
+                            Filter = i => i.Id == entityToUpdate.ImageId
+                        });
+                    if (image != null)
+                    {
+                        image.Base64 = _blobService.FindFileInStorageAsBase64(image.BlobName, image.MimeType);
+                    }
+                    else
+                    {
+                        return Result.Fail<TeamMemberDto>("Fail to find TeamMember photo");
+                    }
+
+                    resultDto.Image = _mapper.Map<ImageDTO>(image);
+                }
+
                 scope.Complete();
-                TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }
 

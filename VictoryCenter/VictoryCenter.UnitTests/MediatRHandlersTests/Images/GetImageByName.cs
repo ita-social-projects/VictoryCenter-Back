@@ -1,0 +1,124 @@
+﻿using AutoMapper;
+using Moq;
+using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Queries.Images.GetByName;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
+
+public class GetImageByNameHandlerTests
+{
+    private readonly Mock<IBlobService> _mockBlobService;
+    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IMapper> _mockMapper;
+
+    private readonly Image _testImage = new()
+    {
+        Id = 1,
+        BlobName = "testblob.png",
+        MimeType = "image/png"
+    };
+
+    private readonly ImageDTO _testImageDto = new()
+    {
+        Id = 1,
+        BlobName = "testblob.png",
+        MimeType = "image/png",
+        Base64 = "dGVzdA=="
+    };
+
+    public GetImageByNameHandlerTests()
+    {
+        _mockBlobService = new Mock<IBlobService>();
+        _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockMapper = new Mock<IMapper>();
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_ShouldReturnImageDto()
+    {
+        // Arrange
+        var command = new GetImageByNameQuery("testblob.png");
+
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(_testImage);
+
+        _mockBlobService.Setup(x => x.FindFileInStorageAsBase64(_testImage.BlobName, _testImage.MimeType))
+            .Returns(_testImageDto.Base64);
+
+        _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
+            .Returns(_testImageDto);
+
+        var handler = new GetImageByNameHandler(
+            _mockBlobService.Object,
+            _mockRepositoryWrapper.Object,
+            _mockMapper.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(_testImageDto.Id, result.Value.Id);
+        Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
+        Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
+        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        _mockBlobService.Verify(x => x.FindFileInStorageAsBase64(_testImage.BlobName, _testImage.MimeType), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ImageNotFound_ShouldReturnNotFound()
+    {
+        // Arrange
+        var command = new GetImageByNameQuery("notfound.png");
+
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync((Image?)null);
+
+        var handler = new GetImageByNameHandler(
+            _mockBlobService.Object,
+            _mockRepositoryWrapper.Object,
+            _mockMapper.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("image not found", result.Errors[0].Message);
+        _mockBlobService.Verify(x => x.FindFileInStorageAsBase64(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_BlobNameIsNull_ShouldReturnNotFound()
+    {
+        // Arrange
+        var imageWithoutBlob = new Image
+        {
+            Id = 2,
+            BlobName = null,
+            MimeType = "image/png"
+        };
+        var command = new GetImageByNameQuery("nullblob.png");
+
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(imageWithoutBlob);
+
+        var handler = new GetImageByNameHandler(
+            _mockBlobService.Object,
+            _mockRepositoryWrapper.Object,
+            _mockMapper.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("image not found", result.Errors[0].Message);
+        _mockBlobService.Verify(x => x.FindFileInStorageAsBase64(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+}

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
@@ -21,16 +23,19 @@ public static class ServicesConfiguration
             options.UseSqlServer(connectionString, opt =>
             {
                 opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
-                opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
+                opt.MigrationsHistoryTable("__EFMigrationsHistory", "entity_framework");
             });
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services)
+    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
-        services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
+        services.AddAutoMapper(
+            cfg => { cfg.ConstructServicesUsing(type => services.BuildServiceProvider().GetRequiredService(type)); },
+            typeof(BllAssemblyMarker).Assembly);
+
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
@@ -41,13 +46,14 @@ public static class ServicesConfiguration
             opt.AddDefaultPolicy(builder =>
             {
                 builder.AllowAnyOrigin()
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
             });
         });
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.ConfigureBlob(configuration);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
@@ -62,24 +68,27 @@ public static class ServicesConfiguration
 
     public static async Task ApplyMigrations(this WebApplication app)
     {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        ILogger<Program> logger = app.Services.GetRequiredService<ILogger<Program>>();
         try
         {
             using IServiceScope localScope = app.Services.CreateScope();
-            var victoryCenterDbContext = localScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            var pendingMigrations = await victoryCenterDbContext.Database.GetPendingMigrationsAsync();
+            VictoryCenterDbContext victoryCenterDbContext =
+                localScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            IEnumerable<string> pendingMigrations = await victoryCenterDbContext.Database.GetPendingMigrationsAsync();
             var migrations = pendingMigrations.ToList();
 
             if (migrations.Any())
             {
                 logger.LogInformation("Pending migrations: {PendingMigrations}", string.Join(", ", migrations));
-                var appliedMigrationsBefore = await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
+                IEnumerable<string> appliedMigrationsBefore =
+                    await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
 
                 await victoryCenterDbContext.Database.MigrateAsync();
 
                 logger.LogInformation("Migrations applied successfully.");
-                var appliedMigrationsAfter = await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
-                var newlyAppliedMigrations = appliedMigrationsAfter.Except(appliedMigrationsBefore);
+                IEnumerable<string> appliedMigrationsAfter =
+                    await victoryCenterDbContext.Database.GetAppliedMigrationsAsync();
+                IEnumerable<string> newlyAppliedMigrations = appliedMigrationsAfter.Except(appliedMigrationsBefore);
                 var appliedMigrations = newlyAppliedMigrations.ToList();
 
                 if (appliedMigrations.Any())
@@ -113,5 +122,29 @@ public static class ServicesConfiguration
                 Version = "v1"
             });
         });
+    }
+
+    private static IServiceCollection ConfigureBlob(this IServiceCollection services, IConfiguration configuration)
+    {
+        var blobSection = configuration.GetSection("BlobEnvironmentVariables");
+        var serviceType = blobSection.GetValue<string>("ServiceType");
+
+        switch (serviceType)
+        {
+            case "Local":
+                services.Configure<BlobEnvironmentVariables>(blobSection.GetSection("Local"));
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            case "Azure":
+                services.Configure<BlobEnvironmentVariables>(blobSection.GetSection("Azure"));
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported Blob Service Type: {serviceType}");
+        }
+
+        return services;
     }
 }

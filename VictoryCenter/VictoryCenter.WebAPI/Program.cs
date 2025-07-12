@@ -5,11 +5,12 @@ DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// builder.Host.ConfigureApplication(builder);
 builder.Configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-
 builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddCustomServices();
 
+// builder.Services.ConfigureBlob(builder);
+builder.Services.AddCustomServices(builder.Configuration);
 builder.Services.AddOpenTelemetryTracing();
 builder.Logging.AddOpenTelemetryLogging();
 
