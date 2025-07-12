@@ -11,10 +11,10 @@ namespace VictoryCenter.BLL.Commands.Images.Create;
 
 public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<ImageDTO>>
 {
-    private IBlobService _blobService;
-    private IRepositoryWrapper _repositoryWrapper;
-    private IMapper _mapper;
-    private IValidator<CreateImageCommand> _validator;
+    private readonly IBlobService _blobService;
+    private readonly IMapper _mapper;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IValidator<CreateImageCommand> _validator;
 
     public CreateImageHandler(IBlobService blobService, IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateImageCommand> validator)
     {
@@ -30,26 +30,29 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var fileName = Guid.NewGuid().ToString().Replace("-", "");
-            var fileNewName = _blobService.SaveFileInStorage(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
+            try
+            {
+                var fileNewName = _blobService.SaveFileInStorage(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
+            }
+            catch (Exception e)
+            {
+                return Result.Fail<ImageDTO>("File creating Fail");
+            }
 
-            var image = _mapper.Map<Image>(request.CreateImageDto);
+            Image? image = _mapper.Map<Image>(request.CreateImageDto);
             image.BlobName = fileName;
 
-            var result = await _repositoryWrapper.ImageRepository.CreateAsync(image);
+            Image result = await _repositoryWrapper.ImageRepository.CreateAsync(image);
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
                 return Result.Ok(_mapper.Map<ImageDTO>(result));
             }
 
-            return Result.Fail("something go wrong");
+            return Result.Fail<ImageDTO>("something go wrong");
         }
         catch (ValidationException vex)
         {
             return Result.Fail<ImageDTO>(vex.Errors.Select(e => e.ErrorMessage));
-        }
-        catch (IOException)
-        {
-            return Result.Fail<ImageDTO>("File creating Fail");
         }
     }
 }

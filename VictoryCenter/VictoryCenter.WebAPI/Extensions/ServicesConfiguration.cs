@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
@@ -26,7 +28,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services)
+    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
@@ -51,6 +53,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.ConfigureBlob(configuration);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
@@ -119,5 +122,29 @@ public static class ServicesConfiguration
                 Version = "v1"
             });
         });
+    }
+
+    private static IServiceCollection ConfigureBlob(this IServiceCollection services, IConfiguration configuration)
+    {
+        var blobSection = configuration.GetSection("BlobEnvironmentVariables");
+        var serviceType = blobSection.GetValue<string>("ServiceType");
+
+        switch (serviceType)
+        {
+            case "Local":
+                services.Configure<BlobEnvironmentVariables>(blobSection.GetSection("Local"));
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            case "Azure":
+                services.Configure<BlobEnvironmentVariables>(blobSection.GetSection("Azure"));
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported Blob Service Type: {serviceType}");
+        }
+
+        return services;
     }
 }

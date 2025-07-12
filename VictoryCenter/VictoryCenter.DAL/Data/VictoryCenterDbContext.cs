@@ -81,7 +81,6 @@ public class VictoryCenterDbContext : DbContext
 
             entity.Property(e => e.Description);
 
-            // 1-to-1 relationship for
             entity.Property(e => e.ImageId);
 
             entity.HasOne(e => e.Image)
