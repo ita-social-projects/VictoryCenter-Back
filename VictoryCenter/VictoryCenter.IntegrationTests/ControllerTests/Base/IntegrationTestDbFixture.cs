@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services.TokenService;
@@ -43,7 +44,8 @@ public class IntegrationTestDbFixture : IDisposable
     {
         var jwtOptions = serviceProvider.GetRequiredService<IOptions<JwtOptions>>();
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-        var tokenService = new TokenService(jwtOptions, configuration);
+        var logger = serviceProvider.GetRequiredService<ILogger<TokenService>>();
+        var tokenService = new TokenService(jwtOptions, configuration, logger);
 
         return tokenService.CreateAccessToken([]);
     }

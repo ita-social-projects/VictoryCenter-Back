@@ -20,4 +20,7 @@ public class JwtOptions
 
     [Required]
     public string RefreshTokenSecretKey { get; init; } = null!;
+
+    [Required]
+    public int RefreshTokenLifetimeInDays { get; init; }
 }

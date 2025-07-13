@@ -17,7 +17,7 @@ public class LoginCommandValidatorTests
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Should_Have_Error_When_Email_Is_Empty(string? email)
+    public void Validate_EmailIsEmpty_ShouldHaveValidationError(string? email)
     {
         var command = new LoginCommand(new LoginRequestDto(email, "password"));
         var result = _validator.TestValidate(command);
@@ -27,7 +27,7 @@ public class LoginCommandValidatorTests
 
     [Theory]
     [InlineData("not-an-email")]
-    public void Should_Have_Error_When_Email_Is_Invalid(string email)
+    public void Validate_EmailIsInvalid_ShouldHaveValidationError(string email)
     {
         var command = new LoginCommand(new LoginRequestDto(email, "password"));
         var result = _validator.TestValidate(command);
@@ -38,7 +38,7 @@ public class LoginCommandValidatorTests
     [Theory]
     [InlineData("")]
     [InlineData(null)]
-    public void Should_Have_Error_When_Password_Is_Empty(string? password)
+    public void Validate_PasswordIsEmpty_ShouldHaveValidationError(string? password)
     {
         var command = new LoginCommand(new LoginRequestDto("user@email.com", password));
         var result = _validator.TestValidate(command);
@@ -47,7 +47,7 @@ public class LoginCommandValidatorTests
     }
 
     [Fact]
-    public void Should_Not_Have_Error_When_Valid_Input()
+    public void Validate_InputIsValid_ShouldNotHaveValidationErrors()
     {
         var command = new LoginCommand(new LoginRequestDto("user@email.com", "password123"));
         var result = _validator.TestValidate(command);

@@ -7,6 +7,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Auth.Login;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Validators.Auth;
 using VictoryCenter.DAL.Entities;
 
@@ -18,6 +19,8 @@ public class LoginTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<Admin>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+    private readonly JwtOptions _jwtOptions;
+
     public LoginTests()
     {
         _mockUserManager = new Mock<UserManager<Admin>>(
@@ -30,9 +33,24 @@ public class LoginTests
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<IServiceProvider>().Object,
             new Mock<ILogger<UserManager<Admin>>>().Object);
+        var jwtOptions = new JwtOptions()
+        {
+            Audience = "UnitTests.Client",
+            Issuer = "UnitTests.Tested",
+            LifetimeInMinutes = 1440,
+            SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
+            RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
+            RefreshTokenLifetimeInDays = 7
+        };
+
+        var mockJwtOptions = new Mock<IOptions<JwtOptions>>();
+        mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
+        IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
+
+        _jwtOptions = jwtOptions;
         _mockTokenService = new Mock<ITokenService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator(), _mockHttpContextAccessor.Object);
+        _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator(), _mockHttpContextAccessor.Object, jwtOptions1);
     }
 
     [Fact]

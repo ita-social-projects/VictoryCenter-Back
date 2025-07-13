@@ -3,9 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using FluentResults;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
@@ -18,11 +18,13 @@ public class TokenService : ITokenService
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<TokenService> _logger;
 
-    public TokenService(IOptions<JwtOptions> jwtOptions, IConfiguration configuration)
+    public TokenService(IOptions<JwtOptions> jwtOptions, IConfiguration configuration, ILogger<TokenService> logger)
     {
         _jwtOptions = jwtOptions;
         _configuration = configuration;
+        _logger = logger;
         _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
     }
 
@@ -61,7 +63,7 @@ public class TokenService : ITokenService
         var token = new JwtSecurityToken(
             audience: _jwtOptions.Value.Audience,
             issuer: _jwtOptions.Value.Issuer,
-            expires: issuedAt.Add(AuthConstants.RefreshTokenLifeTime),
+            expires: issuedAt.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays)),
             notBefore: issuedAt,
             claims: claims,
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.RefreshTokenSecretKey)), SecurityAlgorithms.HmacSha256));
@@ -91,10 +93,12 @@ public class TokenService : ITokenService
         }
         catch (ArgumentException e)
         {
+            _logger.LogError(e, "An error occured in the {ServiceName}: {ErrorMessage}", nameof(TokenService), e.Message);
             return Result.Fail("Invalid token");
         }
         catch (SecurityTokenException e)
         {
+            _logger.LogError(e, "An error occured in the {ServiceName}: {ErrorMessage}", nameof(TokenService), e.Message);
             return Result.Fail("Invalid token signature");
         }
     }

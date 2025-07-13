@@ -4,9 +4,11 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Auth.Login;
@@ -17,13 +19,15 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private readonly UserManager<Admin> _userManager;
     private readonly IValidator<LoginCommand> _validator;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IOptions<JwtOptions> _jwtOptions;
 
-    public LoginCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<LoginCommand> validator, IHttpContextAccessor httpContextAccessor)
+    public LoginCommandHandler(ITokenService tokenService, UserManager<Admin> userManager, IValidator<LoginCommand> validator, IHttpContextAccessor httpContextAccessor, IOptions<JwtOptions> jwtOptions)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _validator = validator;
         _httpContextAccessor = httpContextAccessor;
+        _jwtOptions = jwtOptions;
     }
 
     public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -51,17 +55,18 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             new Claim(ClaimTypes.Email, request.RequestDto.Email)
         ]);
         var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.RequestDto.Email)]);
+        var refreshTokenExppires = DateTime.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
         _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, refreshToken, new CookieOptions()
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime),
+            Expires = refreshTokenExppires,
             Path = AuthConstants.RefreshTokenCookiePath
         });
 
         admin.RefreshToken = refreshToken;
-        admin.RefreshTokenValidTo = DateTime.UtcNow.Add(AuthConstants.RefreshTokenLifeTime);
+        admin.RefreshTokenValidTo = refreshTokenExppires;
 
         var updateResult = await _userManager.UpdateAsync(admin);
 

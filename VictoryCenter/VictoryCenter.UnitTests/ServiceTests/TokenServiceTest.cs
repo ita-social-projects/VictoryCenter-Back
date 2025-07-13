@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
@@ -17,9 +18,11 @@ public class TokenServiceTest
     private readonly ITokenService _tokenService;
     private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
     private readonly JwtOptions _jwtOptions;
+    private readonly Mock<ILogger<TokenService>> _mockLogger;
 
     public TokenServiceTest()
     {
+        _mockLogger = new Mock<ILogger<TokenService>>();
         IConfiguration configuration = new ConfigurationBuilder()
             .AddInMemoryCollection([
                 new("JwtOptions:Audience", "UnitTests.Client"),
@@ -35,15 +38,15 @@ public class TokenServiceTest
             Issuer = "UnitTests.Tested",
             LifetimeInMinutes = 1440,
             SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
-            RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2"
+            RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
+            RefreshTokenLifetimeInDays = 7
         };
 
         var mockJwtOptions = new Mock<IOptions<JwtOptions>>();
         mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
         IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
-
         _jwtOptions = jwtOptions;
-        _tokenService = new TokenService(jwtOptions1, configuration);
+        _tokenService = new TokenService(jwtOptions1, configuration, _mockLogger.Object);
         _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
     }
 
