@@ -67,14 +67,7 @@ jobs:
       - name: Wait for SQL Server to be ready
         run: |
           echo "Waiting for SQL Server to start..."
-          for i in {1..30}; do
-            if docker exec dev-sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'Admin@1234' -Q "SELECT 1" > /dev/null 2>&1; then
-              echo "SQL Server is ready!"
-              break
-            fi
-            echo "Attempt $i: SQL Server not ready, waiting..."
-            sleep 2
-          done
+          sleep 30
 
       - name: Begin SonarCloud analysis
         env:
