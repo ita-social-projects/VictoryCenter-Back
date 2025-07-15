@@ -21,7 +21,7 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
             .Must(ids => ids.Count > 0)
             .WithMessage(TeamMemberConstants.OrderedIdsCannotBeEmpty)
             .Must(ids => ids.Count <= MaxTeamMemberIds)
-            .WithMessage(TeamMemberConstants.OrderedidsCannotContainMoreThanNElements(MaxTeamMemberIds))
+            .WithMessage(TeamMemberConstants.OrderedIdsCannotContainMoreThanNElements(MaxTeamMemberIds))
             .Must(ids => ids.Distinct().Count() == ids.Count)
             .WithMessage(TeamMemberConstants.OrderedIdsMustContainUniqueValues);
 

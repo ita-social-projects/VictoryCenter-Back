@@ -144,7 +144,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(TeamMemberConstants.InvalidTeamMembersIdsFound([99]), result.Errors[0].Message);
+        Assert.Contains(TeamMemberConstants.InvalidTeamMemberIdsFound([99]), result.Errors[0].Message);
     }
 
     [Theory]
@@ -336,7 +336,7 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(TeamMemberConstants.InvalidTeamMembersIdsFound([3]), result.Errors[0].Message);
+        Assert.Contains(TeamMemberConstants.InvalidTeamMemberIdsFound([3]), result.Errors[0].Message);
 
         // Verify no priorities were changed since operation failed
         var member1 = _testMixedCategoryMembers.First(m => m.Id == 1);

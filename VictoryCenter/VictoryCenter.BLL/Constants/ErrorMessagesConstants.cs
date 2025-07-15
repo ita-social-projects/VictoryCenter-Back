@@ -9,17 +9,22 @@ public static class ErrorMessagesConstants
 
     public static string NotFound(object? id, Type entityType)
     {
+        if (entityType == null)
+        {
+            throw new ArgumentNullException(nameof(entityType));
+        }
+
         return $"Entity {entityType.Name} with id '{id}' was not found";
     }
 
-    public static string PropertyMustHaveAMinimumLenghtOfNCharacters(string property, int lenght)
+    public static string PropertyMustHaveAMinimumLengthOfNCharacters(string property, int length)
     {
-        return $"{property} field must have a minimum lenght of {lenght} characters";
+        return $"{property} field must have a minimum length of {length} characters";
     }
 
-    public static string PropertyMustHaveAMaximumLenghtOfNCharacters(string property, int lenght)
+    public static string PropertyMustHaveAMaximumLengthOfNCharacters(string property, int length)
     {
-        return $"{property} field must have a maximum lenght of {lenght} characters";
+        return $"{property} field must have a maximum length of {length} characters";
     }
 
     public static string PropertyMustBeGreaterThan(string property, int value)

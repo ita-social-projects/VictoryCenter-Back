@@ -30,7 +30,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = "A", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLenghtOfNCharacters("Full Name", 2));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Full Name", 2));
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = new string('A', 101), CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Full Name", 100));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Full Name", 100));
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public class BaseTeamMembersValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Description", 200));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Description", 200));
     }
 
     [Fact]

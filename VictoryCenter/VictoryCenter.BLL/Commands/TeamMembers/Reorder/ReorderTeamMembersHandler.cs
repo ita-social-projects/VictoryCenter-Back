@@ -47,7 +47,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             var notFoundIds = orderedIds.Except(allCategoryMembers.Select(m => m.Id)).ToList();
             if (notFoundIds.Any())
             {
-                return Result.Fail<Unit>(TeamMemberConstants.InvalidTeamMembersIdsFound(notFoundIds));
+                return Result.Fail<Unit>(TeamMemberConstants.InvalidTeamMemberIdsFound(notFoundIds));
             }
 
             // Split members into two groups: those being reordered, and those left unchanged

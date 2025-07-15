@@ -14,15 +14,15 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     {
         RuleFor(x => x.FullName)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired("Full Name"))
-            .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLenghtOfNCharacters("Full Name", FullNameMinLength))
-            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Full Name", FullNameMaxLength));
+            .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Full Name", FullNameMinLength))
+            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Full Name", FullNameMaxLength));
         RuleFor(x => x.CategoryId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage(TeamMemberConstants.UnknownStatusValue);
         RuleFor(x => x.Description)
             .MaximumLength(DescriptionNameMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLenghtOfNCharacters("Description", DescriptionNameMaxLength));
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Description", DescriptionNameMaxLength));
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired("Description"))
             .When(x => x.Status == Status.Published);
