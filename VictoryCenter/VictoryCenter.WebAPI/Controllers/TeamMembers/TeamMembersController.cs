@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.Commands.TeamMembers.Delete;
 using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
@@ -9,6 +10,7 @@ using VictoryCenter.BLL.Queries.TeamMembers.GetById;
 
 namespace VictoryCenter.WebAPI.Controllers.TeamMembers;
 
+[Authorize]
 public class TeamMembersController : BaseApiController
 {
     [HttpGet]
