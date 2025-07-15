@@ -4,8 +4,8 @@ namespace VictoryCenter.BLL.DTOs.Categories;
 
 public record CategoryWithPublishedTeamMembersDto
 {
-    public long Id { get; set; }
-    public string CategoryName { get; set; } = null!;
-    public string? Description { get; set; }
-    public List<PublishedTeamMembersDto> TeamMembers { get; set; } = [];
+    public long Id { get; init; }
+    public string CategoryName { get; init; } = null!;
+    public string? Description { get; init; }
+    public List<PublishedTeamMembersDto> TeamMembers { get; init; } = [];
 }

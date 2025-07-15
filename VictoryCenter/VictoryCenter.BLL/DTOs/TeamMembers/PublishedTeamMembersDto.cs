@@ -2,7 +2,7 @@
 
 public record PublishedTeamMembersDto
 {
-    public long Id { get; set; }
-    public string FullName { get; set; } = null!;
-    public string? Description { get; set; }
+    public long Id { get; init; }
+    public string FullName { get; init; } = null!;
+    public string? Description { get; init; }
 }
