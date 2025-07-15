@@ -2,14 +2,14 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class TeamMemberConstants
 {
-    public const string FailedToCreateNewTeamMember = "Failed to create new TeamMember";
-    public const string FailedToCreateNewTeamMemberInTheDatabase = "Failed to create new team member in database:";
-    public const string FailedToDeleteTeamMember = "Failed to delete team member";
-    public const string CategoryNotFoundOrContainsNoTeamMembers = "Category not found or contains no team members";
-    public const string FailedToUpdateTeamMember = "Failed to update team member";
-    public const string UnknownStatusValue = "Unknown status value";
-    public const string OrderedIdsCannotBeEmpty = "Ordered Ids cannot be empty";
-    public const string OrderedIdsMustContainUniqueValues = "OrderedIds must contain unique values";
+    public static readonly string FailedToCreateNewTeamMember = "Failed to create new TeamMember";
+    public static readonly string FailedToCreateNewTeamMemberInTheDatabase = "Failed to create new team member in database:";
+    public static readonly string FailedToDeleteTeamMember = "Failed to delete team member";
+    public static readonly string CategoryNotFoundOrContainsNoTeamMembers = "Category not found or contains no team members";
+    public static readonly string FailedToUpdateTeamMember = "Failed to update team member";
+    public static readonly string UnknownStatusValue = "Unknown status value";
+    public static readonly string OrderedIdsCannotBeEmpty = "Ordered Ids cannot be empty";
+    public static readonly string OrderedIdsMustContainUniqueValues = "OrderedIds must contain unique values";
 
     public static string OrderedIdsCannotContainMoreThanNElements(int numberOfElements)
     {
