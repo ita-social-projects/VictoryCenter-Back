@@ -1,0 +1,184 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Validators.Auth;
+using VictoryCenter.DAL.Entities;
+
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
+
+public class LoginTests
+{
+    private readonly LoginCommandHandler _commandHandler;
+    private readonly Mock<ITokenService> _mockTokenService;
+    private readonly Mock<UserManager<Admin>> _mockUserManager;
+    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+    private readonly JwtOptions _jwtOptions;
+
+    public LoginTests()
+    {
+        _mockUserManager = new Mock<UserManager<Admin>>(
+            new Mock<IUserStore<Admin>>().Object,
+            new Mock<IOptions<IdentityOptions>>().Object,
+            new Mock<IPasswordHasher<Admin>>().Object,
+            new IUserValidator<Admin>[0],
+            new IPasswordValidator<Admin>[0],
+            new Mock<ILookupNormalizer>().Object,
+            new Mock<IdentityErrorDescriber>().Object,
+            new Mock<IServiceProvider>().Object,
+            new Mock<ILogger<UserManager<Admin>>>().Object);
+        var jwtOptions = new JwtOptions()
+        {
+            Audience = "UnitTests.Client",
+            Issuer = "UnitTests.Tested",
+            LifetimeInMinutes = 1440,
+            SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
+            RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
+            RefreshTokenLifetimeInDays = 7
+        };
+
+        var mockJwtOptions = new Mock<IOptions<JwtOptions>>();
+        mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
+        IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
+
+        _jwtOptions = jwtOptions;
+        _mockTokenService = new Mock<ITokenService>();
+        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+        _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator(), _mockHttpContextAccessor.Object, jwtOptions1);
+    }
+
+    [Fact]
+    public async Task Handle_GivenRequestWithInvalidEmail_ReturnsFail()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("invalid email", "Pa$$w0rd!"));
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Email address must be in a valid format", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_GivenRequestWithEmptyEmail_ReturnsFail()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("", "Pa$$w0rd!"));
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Email cannot be empty", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_GivenRequestWithEmptyPassword_ReturnsFail()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", ""));
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Password cannot be empty", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_AdminWithGivenEmailDoesNotExist_ReturnsFail()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync((Admin?)null);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Admin with given email was not found", result.Errors[0].Message);
+        _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_GivenIncorrectPassword_ReturnsFail()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        var admin = new Admin();
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(false);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Incorrect password", result.Errors[0].Message);
+        _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
+        _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_GivenValidData_UpdatesSuccessfully()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        var admin = new Admin();
+
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
+        _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
+        _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
+        _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
+        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Success);
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        var mockHttpContext = new Mock<HttpContext>();
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("access_token", result.Value.AccessToken);
+        Assert.Equal("refresh_token", admin.RefreshToken);
+        Assert.True(admin.RefreshTokenValidTo > DateTime.UtcNow);
+        mockResponseCookies.Verify(
+            c => c.Append(
+            It.Is<string>(s => s == "refreshToken"),
+            It.Is<string>(s => s == "refresh_token"),
+            It.IsAny<CookieOptions>()), Times.Once);
+        _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
+        _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
+        _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
+        _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_GivenValidData_UpdatesUnsuccessfully()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        var admin = new Admin();
+
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
+        _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
+        _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
+        _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
+        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(new IdentityError() { Description = "Failed" }));
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        var mockHttpContext = new Mock<HttpContext>();
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Failed", result.Errors[0].Message);
+        _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
+        _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
+        _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
+        _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
+    }
+}
