@@ -17,6 +17,8 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
 
         DotEnv.Load(new DotEnvOptions(envFilePaths: new[] { envPath }));
 
+        SetEnvironmentalVariables();
+
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.Sources.Clear();
@@ -45,6 +47,13 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
             var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
             dbContext.Database.EnsureCreated();
         });
+    }
+
+    private void SetEnvironmentalVariables()
+    {
+        Environment.SetEnvironmentVariable("JWTOPTIONS_SECRETKEY", "FFE4F83F-5D19-4FFD-831E-673B27DFB103");
+        Environment.SetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY", "1F9845EF-067D-4BEE-AD41-43EB8C089977");
+        Environment.SetEnvironmentVariable("DB_CONNECTION_STRING", "Server=localhost,1434;Database=VictoryCenter_IntegrationTests_Db;User Id=sa;Password=Admin@1234;MultipleActiveResultSets=True;TrustServerCertificate=true");
     }
 
     private static void RemoveExistingContext(IServiceCollection services)
