@@ -13,5 +13,7 @@ public class TeamMembersProfile : Profile
         CreateMap<TeamMember, TeamMemberDto>();
 
         CreateMap<UpdateTeamMemberDto, TeamMember>();
+
+        CreateMap<TeamMember, PublishedTeamMembersDto>();
     }
 }
