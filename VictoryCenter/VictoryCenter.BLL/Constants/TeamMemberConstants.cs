@@ -1,4 +1,4 @@
-namespace VictoryCenter.BLL;
+namespace VictoryCenter.BLL.Constants;
 
 public static class TeamMemberConstants
 {

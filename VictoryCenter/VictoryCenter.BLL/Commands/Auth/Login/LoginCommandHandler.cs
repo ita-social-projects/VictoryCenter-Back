@@ -41,13 +41,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var admin = await _userManager.FindByEmailAsync(request.RequestDto.Email);
         if (admin is null)
         {
-            return Result.Fail("Admin with given email was not found");
+            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
         var result = await _userManager.CheckPasswordAsync(admin, request.RequestDto.Password);
         if (!result)
         {
-            return Result.Fail("Incorrect password");
+            return Result.Fail(AuthConstants.IncorrectPassword);
         }
 
         var accessToken = _tokenService.CreateAccessToken([

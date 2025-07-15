@@ -1,4 +1,4 @@
-namespace VictoryCenter.BLL;
+namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
 {
@@ -35,5 +35,12 @@ public static class ErrorMessagesConstants
     public static string PropertyMustBePositive(string property)
     {
         return $"{property} must be positive";
+    }
+
+    public static string PropertyMustBeInAValidFormat(string property, string? format = null)
+    {
+        return format is null
+            ? $"{property} must be in a valid format"
+            : $"{property} must be in a valid format of {format}";
     }
 }

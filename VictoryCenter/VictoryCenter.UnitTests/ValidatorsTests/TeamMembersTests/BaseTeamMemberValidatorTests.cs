@@ -1,5 +1,5 @@
 ﻿using FluentValidation.TestHelper;
-using VictoryCenter.BLL;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Enums;

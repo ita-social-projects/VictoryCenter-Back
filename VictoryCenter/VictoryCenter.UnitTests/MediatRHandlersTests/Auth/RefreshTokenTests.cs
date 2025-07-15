@@ -108,7 +108,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Invalid token", result.Errors[0].Message);
+        Assert.Equal("Invalid Token", result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
     }
 

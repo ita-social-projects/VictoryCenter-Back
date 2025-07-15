@@ -1,5 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Categories.Update;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.Categories;
 
