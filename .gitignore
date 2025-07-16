@@ -154,6 +154,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+*.DotSettings.user
 *idea/
 *bin/
 *obj/
