@@ -3,6 +3,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -40,7 +41,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             if (teamMemberEntity is null)
             {
-                return Result.Fail<TeamMemberDto>("Not found");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.id, typeof(TeamMember)));
             }
 
             TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
@@ -55,7 +56,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 });
             if (category is null)
             {
-                return Result.Fail<TeamMemberDto>("Category not found");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.updateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
@@ -79,7 +80,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<TeamMemberDto>("Failed to update team member");
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToUpdateTeamMember);
         }
         catch (ValidationException vex)
         {

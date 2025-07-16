@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Validators.Auth;
 
@@ -22,7 +23,7 @@ public class LoginCommandValidatorTests
         var command = new LoginCommand(new LoginRequestDto(email, "password"));
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.RequestDto.Email)
-            .WithErrorMessage("Email cannot be empty");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Email"));
     }
 
     [Theory]
@@ -32,7 +33,7 @@ public class LoginCommandValidatorTests
         var command = new LoginCommand(new LoginRequestDto(email, "password"));
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.RequestDto.Email)
-            .WithErrorMessage("Email address must be in a valid format");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat("Email"));
     }
 
     [Theory]
@@ -43,7 +44,7 @@ public class LoginCommandValidatorTests
         var command = new LoginCommand(new LoginRequestDto("user@email.com", password));
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.RequestDto.Password)
-            .WithErrorMessage("Password cannot be empty");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Password"));
     }
 
     [Fact]

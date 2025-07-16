@@ -60,7 +60,7 @@ public class CreateTeamMemberTest
         var response = await _client.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         Assert.False(response.IsSuccessStatusCode);
     }
 

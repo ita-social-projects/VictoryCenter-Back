@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
@@ -61,7 +62,7 @@ public class LoginTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Email address must be in a valid format", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.PropertyMustBeInAValidFormat("Email"), result.Errors[0].Message);
     }
 
     [Fact]
@@ -72,7 +73,7 @@ public class LoginTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Email cannot be empty", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.PropertyIsRequired("Email"), result.Errors[0].Message);
     }
 
     [Fact]
@@ -83,7 +84,7 @@ public class LoginTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Password cannot be empty", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.PropertyIsRequired("Password"), result.Errors[0].Message);
     }
 
     [Fact]

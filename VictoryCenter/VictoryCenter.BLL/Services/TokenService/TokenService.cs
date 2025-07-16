@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
@@ -75,7 +76,7 @@ public class TokenService : ITokenService
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
         {
-            return Result.Fail("Refresh token cannot be null or empty");
+            return Result.Fail(AuthConstants.RefreshTokenCannotBeNullOrEmpty);
         }
 
         var tokenValidationParameters = AuthHelper.GetTokenValidationParameters(_configuration).Clone();
@@ -86,7 +87,7 @@ public class TokenService : ITokenService
             var principal = _jwtSecurityTokenHandler.ValidateToken(refreshToken, tokenValidationParameters, out var securityToken);
             if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCulture))
             {
-                return Result.Fail("Invalid Token");
+                return Result.Fail(AuthConstants.InvalidToken);
             }
 
             return principal;
@@ -94,12 +95,12 @@ public class TokenService : ITokenService
         catch (ArgumentException e)
         {
             _logger.LogError(e, "An error occured in the {ServiceName}: {ErrorMessage}", nameof(TokenService), e.Message);
-            return Result.Fail("Invalid token");
+            return Result.Fail(AuthConstants.InvalidToken);
         }
         catch (SecurityTokenException e)
         {
             _logger.LogError(e, "An error occured in the {ServiceName}: {ErrorMessage}", nameof(TokenService), e.Message);
-            return Result.Fail("Invalid token signature");
+            return Result.Fail(AuthConstants.InvalidTokenSignature);
         }
     }
 }
