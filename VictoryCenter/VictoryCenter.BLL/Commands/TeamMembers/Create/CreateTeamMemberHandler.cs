@@ -67,7 +67,14 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                         });
                     if (imageResult is not null)
                     {
-                        imageResult.Base64 = await _blobService.FindFileInStorageAsBase64Async(imageResult.BlobName, imageResult.MimeType);
+                        try
+                        {
+                            imageResult.Base64 = await _blobService.FindFileInStorageAsBase64Async(imageResult.BlobName, imageResult.MimeType);
+                        }
+                        catch(Exception)
+                        {
+                            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
+                        }
                     }
 
                     result.Image = _mapper.Map<ImageDTO>(imageResult);

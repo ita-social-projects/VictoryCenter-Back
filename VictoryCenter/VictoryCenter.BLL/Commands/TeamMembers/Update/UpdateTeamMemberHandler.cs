@@ -90,11 +90,19 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                         });
                     if (image != null)
                     {
-                        image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
+                        try
+                        {
+                            image.Base64 =
+                                await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
+                        }
+                        catch(Exception)
+                        {
+                            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
+                        }
                     }
                     else
                     {
-                        return Result.Fail<TeamMemberDto>("Fail to find TeamMember photo");
+                        return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
                     }
 
                     resultDto.Image = _mapper.Map<ImageDTO>(image);

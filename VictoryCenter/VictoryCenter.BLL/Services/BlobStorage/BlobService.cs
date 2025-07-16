@@ -32,7 +32,7 @@ public class BlobService : IBlobService
         return $"{name}.{extension}";
     }
 
-    public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string? name, string mimeType)
+    public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
         byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
@@ -45,7 +45,7 @@ public class BlobService : IBlobService
         return Convert.ToBase64String(stream.ToArray());
     }
 
-    public async Task<string> UpdateFileInStorageAsync(string? previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
+    public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(previousBlobName);
 
@@ -54,7 +54,7 @@ public class BlobService : IBlobService
         return newBlobName;
     }
 
-    public async void DeleteFileInStorage(string? name, string mimeType)
+    public void DeleteFileInStorage(string name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
 

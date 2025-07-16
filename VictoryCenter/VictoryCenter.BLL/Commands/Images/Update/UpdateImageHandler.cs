@@ -33,6 +33,8 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
     {
         try
         {
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
             Image? imageEntity =
                 await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
@@ -43,8 +45,6 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
             {
                 return Result.Fail<ImageDTO>("Not found");
             }
-
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             if (!string.IsNullOrEmpty(request.updateImageDto.Base64) &&
                 !string.IsNullOrEmpty(request.updateImageDto.MimeType))

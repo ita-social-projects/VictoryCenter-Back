@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Commands.Images.Create;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.Images;
 
@@ -8,15 +9,15 @@ public class CreateImageValidator : AbstractValidator<CreateImageCommand>
     private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
     public CreateImageValidator()
     {
-        RuleFor(x => x.CreateImageDto).NotEmpty().WithMessage("CreateImageDto cannot be null");
+        RuleFor(x => x.CreateImageDto).NotEmpty().WithMessage(ImageConstants.CreateImageDtoCantBeNull);
         RuleFor(x => x.CreateImageDto.Base64)
-            .NotEmpty().WithMessage("Base64 content is required")
-            .Must(IsValidBase64).WithMessage("Base64 content is invalid");
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("Base64 content"))
+            .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
 
         RuleFor(x => x.CreateImageDto.MimeType)
-            .NotEmpty().WithMessage("MimeType is required")
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("MimeType"))
             .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
-            .WithMessage($"MimeType must be one of the following: {string.Join(", ", AllowedMimeTypes)}");
+            .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }
 
     private bool IsValidBase64(string? base64)
