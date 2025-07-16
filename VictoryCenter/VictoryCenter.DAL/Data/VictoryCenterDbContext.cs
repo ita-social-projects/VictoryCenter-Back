@@ -84,8 +84,8 @@ public class VictoryCenterDbContext : DbContext
             entity.Property(e => e.ImageId);
 
             entity.HasOne(e => e.Image)
-                .WithMany()
-                .HasForeignKey(e => e.ImageId);
+                .WithOne(i => i.TeamMember)
+                .HasForeignKey<TeamMember>(e => e.ImageId);
 
             entity.Property(e => e.Email);
 

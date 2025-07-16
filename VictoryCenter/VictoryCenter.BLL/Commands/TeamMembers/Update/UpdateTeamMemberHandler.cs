@@ -89,7 +89,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                         });
                     if (image != null)
                     {
-                        image.Base64 = _blobService.FindFileInStorageAsBase64(image.BlobName, image.MimeType);
+                        image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
                     }
                     else
                     {

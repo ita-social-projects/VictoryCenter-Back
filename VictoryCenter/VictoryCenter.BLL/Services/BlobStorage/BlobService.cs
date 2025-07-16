@@ -21,40 +21,40 @@ public class BlobService : IBlobService
 
     public string BlobPath => _blobPath;
 
-    public string SaveFileInStorage(string base64, string name, string mimeType)
+    public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
     {
         byte[] imageBytes = ConvertBase64ToBytes(base64);
         string extension = GetExtensionFromMimeType(mimeType);
 
         Directory.CreateDirectory(_blobPath);
-        EncryptFile(imageBytes, extension, name);
+        await EncryptFileAsync(imageBytes, extension, name);
 
         return $"{name}.{extension}";
     }
 
-    public MemoryStream FindFileInStorageAsMemoryStream(string? name, string mimeType)
+    public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string? name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
-        byte[] decodedBytes = DecryptFile(name, GetExtensionFromMimeType(mimeType));
+        byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
         return new MemoryStream(decodedBytes);
     }
 
-    public string FindFileInStorageAsBase64(string name, string mimeType)
+    public async Task<string> FindFileInStorageAsBase64Async(string name, string mimeType)
     {
-        using var stream = FindFileInStorageAsMemoryStream(name, mimeType);
+        using var stream = await FindFileInStorageAsMemoryStreamAsync(name, mimeType);
         return Convert.ToBase64String(stream.ToArray());
     }
 
-    public string UpdateFileInStorage(string? previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
+    public async Task<string> UpdateFileInStorageAsync(string? previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(previousBlobName);
 
         DeleteFileInStorage(previousBlobName, previousMimeType);
-        SaveFileInStorage(base64Format, newBlobName, mimeType);
+        await SaveFileInStorageAsync(base64Format, newBlobName, mimeType);
         return newBlobName;
     }
 
-    public void DeleteFileInStorage(string? name, string mimeType)
+    public async void DeleteFileInStorage(string? name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
 
@@ -104,7 +104,7 @@ public class BlobService : IBlobService
         };
     }
 
-    private void EncryptFile(byte[] imageBytes, string type, string name)
+    private async Task EncryptFileAsync(byte[] imageBytes, string type, string name)
     {
         string filePath = Path.Combine(_blobPath, $"{name}.{type}");
         byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
@@ -135,9 +135,11 @@ public class BlobService : IBlobService
         {
             ArrayPool<byte>.Shared.Return(buffer);
         }
+
+        await cryptoStream.FlushAsync();
     }
 
-    private byte[] DecryptFile(string fileName, string type)
+    private async Task<byte[]> DecryptFileAsync(string fileName, string type)
     {
         string filePath = Path.Combine(_blobPath, $"{fileName}.{type}");
 
@@ -146,7 +148,7 @@ public class BlobService : IBlobService
             throw new FileNotFoundException($"File not found: {filePath}");
         }
 
-        using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+        await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
         byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
 
         byte[] iv = new byte[16];
@@ -160,8 +162,8 @@ public class BlobService : IBlobService
         aes.Key = keyBytes;
         aes.IV = iv;
 
-        using var cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-        using var memoryStream = new MemoryStream();
+        await using var cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
+        await using var memoryStream = new MemoryStream();
 
         int bufferSize = 4096;
         byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
@@ -171,7 +173,7 @@ public class BlobService : IBlobService
             int bytesRead;
             while ((bytesRead = cryptoStream.Read(buffer, 0, buffer.Length)) > 0)
             {
-                memoryStream.Write(buffer, 0, bytesRead);
+                await memoryStream.WriteAsync(buffer, 0, bytesRead);
             }
 
             return memoryStream.ToArray();

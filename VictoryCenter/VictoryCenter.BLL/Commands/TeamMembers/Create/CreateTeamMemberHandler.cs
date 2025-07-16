@@ -66,7 +66,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                         });
                     if (imageResult is not null)
                     {
-                        imageResult.Base64 = _blobService.FindFileInStorageAsBase64(imageResult.BlobName, imageResult.MimeType);
+                        imageResult.Base64 = await _blobService.FindFileInStorageAsBase64Async(imageResult.BlobName, imageResult.MimeType);
                     }
 
                     result.Image = _mapper.Map<ImageDTO>(imageResult);

@@ -17,4 +17,6 @@ public class Image
     [Required] [MaxLength(10)] public string MimeType { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
+
+    public TeamMember? TeamMember { get; set; }
 }

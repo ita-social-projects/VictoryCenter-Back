@@ -4,6 +4,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Images.Update;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -27,7 +28,8 @@ public class UpdateImageHandlerTests
     {
         Id = 1,
         BlobName = "testblob.png",
-        MimeType = "image/png"
+        MimeType = "image/png",
+        CreatedAt = new DateTime(2025, 7, 16, 14, 30, 0, DateTimeKind.Utc )
     };
 
     private readonly ImageDTO _testImageDto = new()
@@ -35,7 +37,8 @@ public class UpdateImageHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        Base64 = "dGVzdA=="
+        Base64 = "dGVzdA==",
+        CreatedAt = DateTime.UtcNow
     };
 
     public UpdateImageHandlerTests()
@@ -43,7 +46,7 @@ public class UpdateImageHandlerTests
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockBlobService = new Mock<IBlobService>();
-        _validator = new InlineValidator<UpdateImageCommand>();
+        _validator = new UpdateImageValidator();
     }
 
     [Fact]
@@ -54,13 +57,13 @@ public class UpdateImageHandlerTests
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync(_testImage);
 
-        _mockBlobService.Setup(x => x.UpdateFileInStorage(
+        _mockBlobService.Setup(x => x.UpdateFileInStorageAsync(
                 _testImage.BlobName,
                 _testImage.MimeType,
                 _testUpdateImageDto.Base64,
                 _testImage.BlobName,
                 _testUpdateImageDto.MimeType))
-            .Returns(_testImage.BlobName);
+            .ReturnsAsync(_testImage.BlobName);
 
         _mockMapper.Setup(x => x.Map<UpdateImageDTO, Image>(It.IsAny<UpdateImageDTO>()))
             .Returns(_testImage);
@@ -88,7 +91,7 @@ public class UpdateImageHandlerTests
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
         Assert.Equal(_testImageDto.Base64, result.Value.Base64);
         _mockBlobService.Verify(
-            x => x.UpdateFileInStorage(
+            x => x.UpdateFileInStorageAsync(
             _testImage.BlobName,
             _testImage.MimeType,
             _testUpdateImageDto.Base64,
@@ -118,7 +121,7 @@ public class UpdateImageHandlerTests
         Assert.False(result.IsSuccess);
         Assert.Contains("Not found", result.Errors[0].Message);
         _mockBlobService.Verify(
-            x => x.UpdateFileInStorage(
+            x => x.UpdateFileInStorageAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -131,13 +134,13 @@ public class UpdateImageHandlerTests
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync(_testImage);
 
-        _mockBlobService.Setup(x => x.UpdateFileInStorage(
+        _mockBlobService.Setup(x => x.UpdateFileInStorageAsync(
                 _testImage.BlobName,
                 _testImage.MimeType,
                 _testUpdateImageDto.Base64,
                 _testImage.BlobName,
                 _testUpdateImageDto.MimeType))
-            .Returns(_testImage.BlobName);
+            .ReturnsAsync(_testImage.BlobName);
 
         _mockMapper.Setup(x => x.Map<UpdateImageDTO, Image>(It.IsAny<UpdateImageDTO>()))
             .Returns(_testImage);

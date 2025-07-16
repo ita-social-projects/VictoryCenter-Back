@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.Images.GetById;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -12,7 +13,7 @@ public class GetImageByIdHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IMapper> _mockMapper;
-
+    private readonly Mock<IBlobService> _blobservice;
     private readonly Image _testImage = new()
     {
         Id = 1,
@@ -32,6 +33,7 @@ public class GetImageByIdHandlerTests
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
+        _blobservice = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -48,7 +50,8 @@ public class GetImageByIdHandlerTests
 
         var handler = new GetImageByIdHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object);
+            _mockMapper.Object,
+            _blobservice.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -73,7 +76,8 @@ public class GetImageByIdHandlerTests
 
         var handler = new GetImageByIdHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object);
+            _mockMapper.Object,
+            _blobservice.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -100,7 +104,8 @@ public class GetImageByIdHandlerTests
 
         var handler = new GetImageByIdHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object);
+            _mockMapper.Object,
+            _blobservice.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

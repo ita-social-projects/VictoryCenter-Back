@@ -43,7 +43,9 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_TeamMembers_ImageId",
                 table: "TeamMembers",
-                column: "ImageId");
+                column: "ImageId",
+                unique: true,
+                filter: "[ImageId] IS NOT NULL");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_TeamMembers_Images_ImageId",

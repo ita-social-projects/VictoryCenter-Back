@@ -12,7 +12,6 @@ public class TeamMembersProfile : Profile
 
         CreateMap<UpdateTeamMemberDto, TeamMember>();
 
-        CreateMap<TeamMember, TeamMemberDto>()
-            .ForMember(dest => dest.Image, opt => opt.MapFrom<TeamMemberImageResolver>());
+        CreateMap<TeamMember, TeamMemberDto>();
     }
 }

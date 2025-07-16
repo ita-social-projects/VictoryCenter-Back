@@ -25,28 +25,28 @@ public class BlobServiceTests : IDisposable
     }
 
     [Fact]
-    public void SaveFileInStorage_ShouldCreateFile()
+    public async Task SaveFileInStorage_ShouldCreateFile()
     {
-        var blobName = _blobService.SaveFileInStorage(_base64, _fileName, _mimeType);
+        var blobName = await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
         var filePath = Path.Combine(_tempDir, $"{_fileName}.png");
         Assert.True(File.Exists(filePath));
         Assert.Equal($"{_fileName}.png", blobName);
     }
 
     [Fact]
-    public void FindFileInStorageAsMemoryStream_ShouldReturnOriginalContent()
+    public async Task FindFileInStorageAsMemoryStream_ShouldReturnOriginalContent()
     {
-        _blobService.SaveFileInStorage(_base64, _fileName, _mimeType);
-        using var stream = _blobService.FindFileInStorageAsMemoryStream(_fileName, _mimeType);
+        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
+        using var stream = await _blobService.FindFileInStorageAsMemoryStreamAsync(_fileName, _mimeType);
         var content = Encoding.UTF8.GetString(stream.ToArray());
         Assert.Equal("test image content", content);
     }
 
     [Fact]
-    public void FindFileInStorageAsBase64_ShouldReturnOriginalBase64()
+    public async Task FindFileInStorageAsBase64_ShouldReturnOriginalBase64()
     {
         // Arrange
-        var blobName = _blobService.SaveFileInStorage(_base64, _fileName, _mimeType);
+        var blobName = await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
         Assert.NotNull(blobName); // Ensure blobName is not null
 
         // Construct the expected file path using _blobPath
@@ -59,7 +59,7 @@ public class BlobServiceTests : IDisposable
         Assert.True(File.Exists(filePath), $"The file '{filePath}' was not created as expected.");
 
         // Act
-        var base64 = _blobService.FindFileInStorageAsBase64(_fileName, _mimeType);
+        var base64 = await _blobService.FindFileInStorageAsBase64Async(_fileName, _mimeType);
         var content = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
 
         // Assert
@@ -67,21 +67,21 @@ public class BlobServiceTests : IDisposable
     }
 
     [Fact]
-    public void UpdateFileInStorage_ShouldReplaceFile()
+    public async Task UpdateFileInStorage_ShouldReplaceFile()
     {
-        _blobService.SaveFileInStorage(_base64, _fileName, _mimeType);
+        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
         var newContent = Convert.ToBase64String(Encoding.UTF8.GetBytes("new content"));
-        _blobService.UpdateFileInStorage(_fileName, _mimeType, newContent, _fileName, _mimeType);
+        await _blobService.UpdateFileInStorageAsync(_fileName, _mimeType, newContent, _fileName, _mimeType);
 
-        using var stream = _blobService.FindFileInStorageAsMemoryStream(_fileName, _mimeType);
+        using var stream = await _blobService.FindFileInStorageAsMemoryStreamAsync(_fileName, _mimeType);
         var content = Encoding.UTF8.GetString(stream.ToArray());
         Assert.Equal("new content", content);
     }
 
     [Fact]
-    public void DeleteFileInStorage_ShouldRemoveFile()
+    public async Task DeleteFileInStorage_ShouldRemoveFile()
     {
-        _blobService.SaveFileInStorage(_base64, _fileName, _mimeType);
+        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
         _blobService.DeleteFileInStorage(_fileName, _mimeType);
         var filePath = Path.Combine(_tempDir, $"{_fileName}.png");
         Assert.False(File.Exists(filePath));

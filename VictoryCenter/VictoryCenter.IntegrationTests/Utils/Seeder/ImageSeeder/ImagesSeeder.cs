@@ -25,13 +25,13 @@ public class ImagesDataSeeder
 
     ];
 
-    public static void SeedData(VictoryCenterDbContext dbContext, IBlobService service)
+    public static async Task SeedData(VictoryCenterDbContext dbContext, IBlobService service)
     {
         dbContext.Images.AddRange(_images);
         dbContext.SaveChanges();
         foreach (Image image in _images)
         {
-            service.SaveFileInStorage(image.Base64, image.BlobName, image.MimeType);
+            await service.SaveFileInStorageAsync(image.Base64, image.BlobName, image.MimeType);
         }
     }
 }

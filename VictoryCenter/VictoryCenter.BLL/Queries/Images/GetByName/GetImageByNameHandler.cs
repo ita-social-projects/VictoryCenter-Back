@@ -2,6 +2,7 @@
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -12,11 +13,13 @@ public class GetImageByNameHandler : IRequestHandler<GetImageByNameQuery, Result
 {
     private IRepositoryWrapper _repositoryWrapper;
     private IMapper _mapper;
+    private IBlobService _blobService;
 
-    public GetImageByNameHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public GetImageByNameHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IBlobService blobService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
+        _blobService = blobService;
     }
 
     public async Task<Result<ImageDTO>> Handle(GetImageByNameQuery request, CancellationToken cancellationToken)
@@ -36,6 +39,7 @@ public class GetImageByNameHandler : IRequestHandler<GetImageByNameQuery, Result
         }
 
         var result = _mapper.Map<ImageDTO>(image);
+        result.Base64 = await _blobService.FindFileInStorageAsBase64Async(result.BlobName, result.MimeType);
         return Result.Ok(result);
     }
 }

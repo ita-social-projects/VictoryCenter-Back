@@ -32,7 +32,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
             var fileName = Guid.NewGuid().ToString().Replace("-", "");
             try
             {
-                var fileNewName = _blobService.SaveFileInStorage(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
+                var fileNewName = await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
             }
             catch (Exception e)
             {
@@ -46,7 +46,9 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
             Image result = await _repositoryWrapper.ImageRepository.CreateAsync(image);
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                return Result.Ok(_mapper.Map<ImageDTO>(result));
+                var responce = _mapper.Map<ImageDTO>(result);
+                responce.Base64 = await _blobService.FindFileInStorageAsBase64Async(responce.BlobName, responce.MimeType);
+                return Result.Ok(responce);
             }
 
             return Result.Fail<ImageDTO>("something go wrong");

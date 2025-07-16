@@ -130,7 +130,9 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ImageId");
+                    b.HasIndex("ImageId")
+                        .IsUnique()
+                        .HasFilter("[ImageId] IS NOT NULL");
 
                     b.HasIndex("CategoryId", "Priority")
                         .IsUnique();
@@ -147,8 +149,8 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired();
 
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageId");
+                        .WithOne("TeamMember")
+                        .HasForeignKey("VictoryCenter.DAL.Entities.TeamMember", "ImageId");
 
                     b.Navigation("Category");
 
@@ -158,6 +160,11 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Category", b =>
                 {
                     b.Navigation("TeamMembers");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
+                {
+                    b.Navigation("TeamMember");
                 });
 #pragma warning restore 612, 618
         }

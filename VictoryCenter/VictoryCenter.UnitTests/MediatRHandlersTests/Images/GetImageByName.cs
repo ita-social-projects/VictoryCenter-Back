@@ -11,9 +11,9 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
 public class GetImageByNameHandlerTests
 {
-    private readonly Mock<IBlobService> _mockBlobService;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IBlobService> _blobService;
 
     private readonly Image _testImage = new()
     {
@@ -32,7 +32,7 @@ public class GetImageByNameHandlerTests
 
     public GetImageByNameHandlerTests()
     {
-        _mockBlobService = new Mock<IBlobService>();
+        _blobService = new Mock<IBlobService>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
     }
@@ -46,15 +46,16 @@ public class GetImageByNameHandlerTests
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync(_testImage);
 
-        _mockBlobService.Setup(x => x.FindFileInStorageAsBase64(_testImage.BlobName, _testImage.MimeType))
-            .Returns(_testImageDto.Base64);
+        _blobService.Setup(x => x.FindFileInStorageAsBase64Async(_testImage.BlobName, _testImage.MimeType))
+            .ReturnsAsync(_testImageDto.Base64);
 
         _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
             .Returns(_testImageDto);
 
         var handler = new GetImageByNameHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object);
+            _mockMapper.Object,
+            _blobService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -79,7 +80,8 @@ public class GetImageByNameHandlerTests
 
         var handler = new GetImageByNameHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object);
+            _mockMapper.Object,
+            _blobService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -87,7 +89,7 @@ public class GetImageByNameHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("image not found", result.Errors[0].Message);
-        _mockBlobService.Verify(x => x.FindFileInStorageAsBase64(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -107,7 +109,8 @@ public class GetImageByNameHandlerTests
 
         var handler = new GetImageByNameHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object);
+            _mockMapper.Object,
+            _blobService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -115,6 +118,6 @@ public class GetImageByNameHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("image not found", result.Errors[0].Message);
-        _mockBlobService.Verify(x => x.FindFileInStorageAsBase64(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 }

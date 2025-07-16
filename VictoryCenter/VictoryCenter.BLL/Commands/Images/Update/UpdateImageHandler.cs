@@ -49,7 +49,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
             if (!string.IsNullOrEmpty(request.updateImageDto.Base64) &&
                 !string.IsNullOrEmpty(request.updateImageDto.MimeType))
             {
-                var updatedBlobName = _blobService.UpdateFileInStorage(
+                var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
                     imageEntity.BlobName,
                     imageEntity.MimeType,
                     request.updateImageDto.Base64,
@@ -60,14 +60,13 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 imageEntity.MimeType = request.updateImageDto.MimeType;
             }
 
-            Image? image = _mapper.Map(request.updateImageDto, imageEntity);
-            image.CreatedAt = imageEntity.CreatedAt;
-
-            _repositoryWrapper.ImageRepository.Update(image);
+            var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                ImageDTO? resultDto = _mapper.Map<Image, ImageDTO>(image);
+                ImageDTO? resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
+                resultDto.Base64 =
+                    await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
                 return Result.Ok(resultDto);
             }
 

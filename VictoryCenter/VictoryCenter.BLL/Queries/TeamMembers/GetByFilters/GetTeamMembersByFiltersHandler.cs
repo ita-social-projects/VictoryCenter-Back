@@ -4,6 +4,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -14,11 +15,13 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repository;
+    private readonly IBlobService _blobService;
 
-    public GetTeamMembersByFiltersHandler(IMapper mapper, IRepositoryWrapper repository)
+    public GetTeamMembersByFiltersHandler(IMapper mapper, IRepositoryWrapper repository, IBlobService blobService)
     {
         _mapper = mapper;
         _repository = repository;
+        _blobService = blobService;
     }
 
     public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
@@ -41,6 +44,14 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+
+        foreach (var member in teamMembersDto)
+        {
+            if (member.Image is not null)
+            {
+                member.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
+            }
+        }
 
         return Result.Ok(teamMembersDto);
     }

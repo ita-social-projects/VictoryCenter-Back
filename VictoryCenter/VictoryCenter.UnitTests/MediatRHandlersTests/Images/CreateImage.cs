@@ -52,8 +52,8 @@ public class CreateImageHandlerTests
         // Arrange
         var fileName = "testblob";
         var fileWithExtension = "testblob.png";
-        _mockBlobService.Setup(x => x.SaveFileInStorage(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType))
-            .Returns(fileWithExtension);
+        _mockBlobService.Setup(x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType))
+            .ReturnsAsync(fileWithExtension);
 
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDTO>()))
             .Returns(_testImage);
@@ -112,8 +112,8 @@ public class CreateImageHandlerTests
     public async Task Handle_SaveChangesFails_ShouldReturnFailure()
     {
         // Arrange
-        _mockBlobService.Setup(x => x.SaveFileInStorage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("testblob.png");
+        _mockBlobService.Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync("testblob.png");
 
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDTO>()))
             .Returns(_testImage);
@@ -144,7 +144,7 @@ public class CreateImageHandlerTests
     public async Task Handle_ThrowsIOException_ShouldReturnFileCreatingFail()
     {
         // Arrange
-        _mockBlobService.Setup(x => x.SaveFileInStorage(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _mockBlobService.Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws<IOException>();
 
         var handler = new CreateImageHandler(
