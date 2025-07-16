@@ -9,7 +9,7 @@ public class ImagesProfile : Profile
     public ImagesProfile()
     {
         CreateMap<CreateImageDTO, Image>();
-        CreateMap<Image, ImageDTO>();
         CreateMap<UpdateImageDTO, Image>();
+        CreateMap<Image, ImageDTO>().ForMember(d => d.Base64, o => o.MapFrom<BlobTobase64Resolver>());
     }
 }

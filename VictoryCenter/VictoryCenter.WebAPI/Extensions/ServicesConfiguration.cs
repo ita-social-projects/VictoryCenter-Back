@@ -132,12 +132,14 @@ public static class ServicesConfiguration
         switch (serviceType)
         {
             case "Local":
-                services.Configure<BlobEnvironmentVariables>(blobSection.GetSection("Local"));
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations();
                 services.AddScoped<IBlobService, BlobService>();
                 break;
 
             case "Azure":
-                services.Configure<BlobEnvironmentVariables>(blobSection.GetSection("Azure"));
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Azure"))
+                    .ValidateDataAnnotations();
                 services.AddScoped<IBlobService, BlobService>();
                 break;
 

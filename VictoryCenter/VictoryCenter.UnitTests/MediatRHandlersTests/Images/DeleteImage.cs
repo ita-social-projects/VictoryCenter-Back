@@ -14,7 +14,7 @@ public class DeleteImageHandlerTests
 
     private readonly Image _testImage = new()
     {
-        Id = 1,
+        Id = 1L,
         BlobName = "testblob.png",
         MimeType = "image/png"
     };
@@ -61,7 +61,7 @@ public class DeleteImageHandlerTests
         var handler = new DeleteImageHandler(_mockRepositoryWrapper.Object, _mockBlobService.Object);
 
         // Fix: Use the constructor to initialize the required parameter 'Id'
-        var command = new DeleteImageCommand(123);
+        var command = new DeleteImageCommand(123L);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

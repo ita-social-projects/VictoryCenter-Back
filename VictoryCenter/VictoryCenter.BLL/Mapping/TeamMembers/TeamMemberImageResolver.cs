@@ -6,7 +6,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.TeamMembers;
 
-public class TeamMemberImageResolver : IValueResolver<TeamMember, TeamMemberDto, ImageDTO>
+public class TeamMemberImageResolver : IValueResolver<TeamMember, TeamMemberDto, ImageDTO?>
 {
     private readonly IBlobService _blobService;
 
@@ -15,7 +15,7 @@ public class TeamMemberImageResolver : IValueResolver<TeamMember, TeamMemberDto,
         _blobService = blobService;
     }
 
-    public ImageDTO Resolve(TeamMember source, TeamMemberDto destination, ImageDTO destMember, ResolutionContext context)
+    public ImageDTO? Resolve(TeamMember source, TeamMemberDto destination, ImageDTO? destMember, ResolutionContext context)
     {
         if (source.Image == null)
         {

@@ -53,7 +53,6 @@ public class GetImageByNameHandlerTests
             .Returns(_testImageDto);
 
         var handler = new GetImageByNameHandler(
-            _mockBlobService.Object,
             _mockRepositoryWrapper.Object,
             _mockMapper.Object);
 
@@ -67,7 +66,6 @@ public class GetImageByNameHandlerTests
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
         Assert.Equal(_testImageDto.Base64, result.Value.Base64);
-        _mockBlobService.Verify(x => x.FindFileInStorageAsBase64(_testImage.BlobName, _testImage.MimeType), Times.Once);
     }
 
     [Fact]
@@ -80,7 +78,6 @@ public class GetImageByNameHandlerTests
             .ReturnsAsync((Image?)null);
 
         var handler = new GetImageByNameHandler(
-            _mockBlobService.Object,
             _mockRepositoryWrapper.Object,
             _mockMapper.Object);
 
@@ -109,7 +106,6 @@ public class GetImageByNameHandlerTests
             .ReturnsAsync(imageWithoutBlob);
 
         var handler = new GetImageByNameHandler(
-            _mockBlobService.Object,
             _mockRepositoryWrapper.Object,
             _mockMapper.Object);
 
