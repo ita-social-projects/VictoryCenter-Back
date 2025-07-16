@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -41,7 +42,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<CategoryDto>("Failed to create category");
+            return Result.Fail<CategoryDto>(CategoryConstants.FailedToCreateCategory);
         }
         catch (ValidationException ex)
         {

@@ -4,6 +4,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -37,7 +38,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var teamMemberEntity =
+            TeamMember? teamMemberEntity =
                 await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
                 {
                     Filter = entity => entity.Id == request.id
@@ -45,7 +46,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             if (teamMemberEntity is null)
             {
-                return Result.Fail<TeamMemberDto>("Not found");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.id, typeof(TeamMember)));
             }
 
             TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
@@ -60,7 +61,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 });
             if (category is null)
             {
-                return Result.Fail<TeamMemberDto>("Category not found");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.updateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
@@ -103,7 +104,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<TeamMemberDto>("Failed to update team member");
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToUpdateTeamMember);
         }
         catch (ValidationException vex)
         {

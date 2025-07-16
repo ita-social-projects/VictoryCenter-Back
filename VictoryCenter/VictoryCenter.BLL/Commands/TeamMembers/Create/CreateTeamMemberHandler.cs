@@ -5,6 +5,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -41,7 +42,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (category == null)
             {
-                return Result.Fail<TeamMemberDto>("There are no categories with this id");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.createTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             TeamMember? entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
@@ -56,6 +57,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                scope.Complete();
                 TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
                 if (entity.ImageId != null)
                 {
@@ -76,7 +78,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 return Result.Ok(result);
             }
 
-            return Result.Fail<TeamMemberDto>("Failed to create new TeamMember");
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMember);
         }
         catch (ValidationException vex)
         {
@@ -84,7 +86,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         }
         catch (DbUpdateException ex)
         {
-            return Result.Fail<TeamMemberDto>("Fail to create new team member in database:" + ex.Message);
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + ex.Message);
         }
     }
 }

@@ -33,6 +33,7 @@ public class RequestResponseLoggingMiddlewareTests
         });
 
         _client = customFactory.CreateClient();
+        _client.DefaultRequestHeaders.Authorization = fixture.HttpClient.DefaultRequestHeaders.Authorization;
 
         _loggerProvider = customFactory.Services
             .GetServices<ILoggerProvider>()

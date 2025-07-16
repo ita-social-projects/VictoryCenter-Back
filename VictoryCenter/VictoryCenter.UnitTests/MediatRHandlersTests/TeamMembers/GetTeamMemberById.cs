@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
@@ -49,7 +50,7 @@ public class GetTeamMemberById
     {
         // Arrange
         var teamMember = GetTeamMember();
-        var expectedError = "Team member not found";
+        var expectedError = ErrorMessagesConstants.NotFound(teamMember.Id, typeof(TeamMember));
 
         SetupRepository(GetTeamMemberWithNotExistingId());
         SetupMapper(GetTeamDTOWithNotExistingId());

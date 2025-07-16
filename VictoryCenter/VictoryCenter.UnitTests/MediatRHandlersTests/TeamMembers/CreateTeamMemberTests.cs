@@ -7,6 +7,7 @@ using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Create;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -87,7 +88,7 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
     {
-        var failMessage = "Failed to create new TeamMember";
+        var failMessage = TeamMemberConstants.FailedToCreateNewTeamMember;
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, -1);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _blobService.Object);
@@ -116,7 +117,7 @@ public class CreateTeamMemberTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal("There are no categories with this id", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(Category)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -146,7 +147,7 @@ public class CreateTeamMemberTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal("Fail to create new team member in database:" + testMessage, result.Errors[0].Message);
+        Assert.Equal(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + testMessage, result.Errors[0].Message);
     }
 
     private void SetupDependencies(CreateTeamMemberDto createMember, TeamMemberDto memberDto, TeamMember member, int isSuccess)

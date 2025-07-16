@@ -1,5 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Categories.Update;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.Categories;
 
@@ -9,6 +10,6 @@ public class UpdateCategoryValidator : AbstractValidator<UpdateCategoryCommand>
     {
         RuleFor(command => command.updateCategoryDto.Name)
             .NotEmpty()
-            .WithMessage("Name can't be empty");
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 }

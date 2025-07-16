@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Categories.Update;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 using VictoryCenter.DAL.Entities;
@@ -109,7 +110,7 @@ public class UpdateCategoryTests
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not found", result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(testId, typeof(Category)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -127,7 +128,7 @@ public class UpdateCategoryTests
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Failed to update category", result.Errors[0].Message);
+        Assert.Equal(CategoryConstants.FailedToUpdateCategory, result.Errors[0].Message);
     }
 
     private void SetupDependencies(Category? categoryToReturn = null, int saveResult = 1)
