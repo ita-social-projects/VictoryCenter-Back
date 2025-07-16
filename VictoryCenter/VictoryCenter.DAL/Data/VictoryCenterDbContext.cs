@@ -97,6 +97,8 @@ public class VictoryCenterDbContext : DbContext
         });
         modelBuilder.Entity<Image>(entity =>
         {
+            entity.ToTable("Images", "media");
+
             entity.HasKey(e => e.Id);
 
             entity.Property(e => e.Id)
@@ -106,6 +108,9 @@ public class VictoryCenterDbContext : DbContext
                 .IsRequired();
 
             entity.Property(e => e.MimeType)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
                 .IsRequired();
         });
     }

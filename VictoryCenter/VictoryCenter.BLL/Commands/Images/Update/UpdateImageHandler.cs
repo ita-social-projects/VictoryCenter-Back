@@ -12,10 +12,10 @@ namespace VictoryCenter.BLL.Commands.Images.Update;
 
 public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<ImageDTO>>
 {
+    private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateImageCommand> _validator;
-    private readonly IBlobService _blobService;
 
     public UpdateImageHandler(
         IMapper mapper,
@@ -33,7 +33,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
     {
         try
         {
-            var imageEntity =
+            Image? imageEntity =
                 await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
                     Filter = entity => entity.Id == request.id
@@ -46,7 +46,8 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            if (!string.IsNullOrEmpty(request.updateImageDto.Base64) && !string.IsNullOrEmpty(request.updateImageDto.MimeType))
+            if (!string.IsNullOrEmpty(request.updateImageDto.Base64) &&
+                !string.IsNullOrEmpty(request.updateImageDto.MimeType))
             {
                 var updatedBlobName = _blobService.UpdateFileInStorage(
                     imageEntity.BlobName,
@@ -59,13 +60,14 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 imageEntity.MimeType = request.updateImageDto.MimeType;
             }
 
-            _mapper.Map(request.updateImageDto, imageEntity);
+            Image? image = _mapper.Map(request.updateImageDto, imageEntity);
+            image.CreatedAt = imageEntity.CreatedAt;
 
-            _repositoryWrapper.ImageRepository.Update(imageEntity);
+            _repositoryWrapper.ImageRepository.Update(image);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
+                ImageDTO? resultDto = _mapper.Map<Image, ImageDTO>(image);
                 return Result.Ok(resultDto);
             }
 

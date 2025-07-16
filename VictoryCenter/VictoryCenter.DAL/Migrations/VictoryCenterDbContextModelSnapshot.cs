@@ -82,6 +82,9 @@ namespace VictoryCenter.DAL.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("MimeType")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -89,7 +92,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("images", "media");
+                    b.ToTable("Images", "media");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
