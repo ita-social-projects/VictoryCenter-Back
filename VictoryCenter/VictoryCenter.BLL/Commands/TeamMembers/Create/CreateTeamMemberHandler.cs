@@ -57,7 +57,6 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                scope.Complete();
                 TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
                 if (entity.ImageId != null)
                 {
