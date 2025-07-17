@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Commands.Images.Update;
 
@@ -43,7 +44,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (imageEntity is null)
             {
-                return Result.Fail<ImageDTO>("Not found");
+                return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.id));
             }
 
             if (!string.IsNullOrEmpty(request.updateImageDto.Base64) &&
@@ -70,7 +71,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<ImageDTO>("Failed to update image");
+            return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
         }
         catch (ValidationException vex)
         {

@@ -69,7 +69,7 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
             entity.Property(e => e.ImageId);
 
             entity.HasOne(e => e.Image)
-                .WithOne(i => i.TeamMember)
+                .WithOne()
                 .HasForeignKey<TeamMember>(e => e.ImageId);
 
             entity.Property(e => e.Email);

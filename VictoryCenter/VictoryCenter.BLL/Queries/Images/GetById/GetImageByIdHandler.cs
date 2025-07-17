@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -28,18 +29,20 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
         {
             Filter = e => e.Id == request.id
         });
+
         if (image is null)
         {
-            return Result.Fail<ImageDTO>("image not found");
+            return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.id));
         }
 
         if (image.BlobName == null)
         {
-            return Result.Fail<ImageDTO>("image not found");
+            return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.id));
         }
 
         var result = _mapper.Map<ImageDTO>(image);
         result.Base64 = await _blobService.FindFileInStorageAsBase64Async(result.BlobName, result.MimeType);
+
         return Result.Ok(result);
     }
 }

@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.Images.GetById;
@@ -68,8 +69,10 @@ public class GetImageByIdHandlerTests
     [Fact]
     public async Task Handle_ImageNotFound_ShouldReturnNotFound()
     {
+        const long id = 123;
+
         // Arrange
-        var command = new GetImageByIdQuery(id: 123);
+        var command = new GetImageByIdQuery(id: id);
 
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((Image?)null);
@@ -84,7 +87,7 @@ public class GetImageByIdHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("image not found", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message);
     }
 
     [Fact]
@@ -112,6 +115,6 @@ public class GetImageByIdHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("image not found", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageNotFound(imageWithoutBlob.Id), result.Errors[0].Message);
     }
 }
