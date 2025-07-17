@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentResults;
 using MediatR;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -24,18 +25,19 @@ public class GetImageByNameHandler : IRequestHandler<GetImageByNameQuery, Result
 
     public async Task<Result<ImageDTO>> Handle(GetImageByNameQuery request, CancellationToken cancellationToken)
     {
-        var image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>()
+        var image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
         {
             Filter = e => e.BlobName == request.name
         });
+
         if (image is null)
         {
-            return Result.Fail<ImageDTO>("image not found");
+            return Result.Fail<ImageDTO>(ImageConstants.ImageNotFoundGeneric);
         }
 
         if (image.BlobName == null)
         {
-            return Result.Fail<ImageDTO>("image not found");
+            return Result.Fail<ImageDTO>(ImageConstants.ImageBlobNameIsNull);
         }
 
         var result = _mapper.Map<ImageDTO>(image);

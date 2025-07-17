@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -14,11 +15,13 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repository;
+    private readonly IBlobService _blobService;
 
-    public GetPublishedTeamMembersHandler(IMapper mapper, IRepositoryWrapper repository)
+    public GetPublishedTeamMembersHandler(IMapper mapper, IRepositoryWrapper repository, IBlobService blobService)
     {
         _mapper = mapper;
         _repository = repository;
+        _blobService = blobService;
     }
 
     public async Task<Result<List<CategoryWithPublishedTeamMembersDto>>> Handle(GetPublishedTeamMembersQuery request, CancellationToken cancellationToken)
@@ -29,6 +32,7 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
             Include = categories => categories.Include(category => category.TeamMembers
                 .Where(member => member.Status == Status.Published)
                 .OrderBy(members => members.Priority))
+                .ThenInclude(member => member.Image)
         };
 
         var categoriesWithPublishedMembers = await _repository.CategoriesRepository.GetAllAsync(queryOptions);
@@ -36,6 +40,19 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
         var publishedCategoriesDto = _mapper
             .Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(categoriesWithPublishedMembers)
             .ToList();
+
+        foreach (var category in publishedCategoriesDto)
+        {
+            foreach (var teamMember in category.TeamMembers)
+            {
+                if (teamMember.Image is not null)
+                {
+                    teamMember.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
+                        teamMember.Image.BlobName,
+                        teamMember.Image.MimeType);
+                }
+            }
+        }
 
         return Result.Ok(publishedCategoriesDto);
     }

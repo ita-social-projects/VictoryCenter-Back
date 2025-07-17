@@ -10,6 +10,8 @@ public static class ImageConstants
     public static readonly string FailToUpdateImage = "Failed to update image";
     public static readonly string InvalidBase64String = "Invalid Base64 string.";
     public static readonly string InvalidIVLength = "Invalid IV length";
+    public static readonly string ImageNotFoundGeneric = "Image not found";
+    public static readonly string ImageBlobNameIsNull = "Image blob name is null";
     public static string FieldIsRequired(string name)
     {
         return $"{name} is required";
