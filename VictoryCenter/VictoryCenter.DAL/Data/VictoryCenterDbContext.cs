@@ -17,6 +17,8 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     public DbSet<Image> Images { get; set; }
+    public DbSet<ProgramCategory> ProgramCategories { get; set; }
+    public DbSet<Program> Programs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -95,6 +97,29 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
+        });
+        modelBuilder.Entity<ProgramCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Name)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+        });
+        modelBuilder.Entity<Program>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+            entity.Property(e => e.Name)
+                .IsRequired();
+            entity.Property(e => e.Description);
+            entity.Property(e => e.ImageId);
         });
     }
 }

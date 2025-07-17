@@ -6,8 +6,7 @@ public class Program
     public string Name { get; set; }
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; }
-#pragma warning disable SA1011
-    public byte[]? Photo { get; set; }
-#pragma warning restore SA1011
+    public long? ImageId { get; set; }
     public ICollection<ProgramCategory> Categories { get; set; } = new List<ProgramCategory>();
+    public Image? Image { get; set; }
 }
