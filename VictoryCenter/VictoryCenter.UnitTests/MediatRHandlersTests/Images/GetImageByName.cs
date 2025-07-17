@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.Images.GetByName;
@@ -88,7 +89,7 @@ public class GetImageByNameHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("image not found", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageNotFoundGeneric, result.Errors[0].Message);
         _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
@@ -117,7 +118,7 @@ public class GetImageByNameHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("image not found", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageBlobNameIsNull, result.Errors[0].Message);
         _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 }

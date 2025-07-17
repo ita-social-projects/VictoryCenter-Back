@@ -2,6 +2,7 @@
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Images.Update;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.Images;
@@ -102,8 +103,10 @@ public class UpdateImageHandlerTests
     [Fact]
     public async Task Handle_ImageNotFound_ShouldReturnNotFound()
     {
+        const long id = 123;
+
         // Arrange
-        var command = new UpdateImageCommand(_testUpdateImageDto, 123);
+        var command = new UpdateImageCommand(_testUpdateImageDto, id);
 
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((Image?)null);
@@ -119,7 +122,7 @@ public class UpdateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Not found", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message);
         _mockBlobService.Verify(
             x => x.UpdateFileInStorageAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
@@ -159,6 +162,6 @@ public class UpdateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Failed to update image", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.FailToUpdateImage, result.Errors[0].Message);
     }
 }
