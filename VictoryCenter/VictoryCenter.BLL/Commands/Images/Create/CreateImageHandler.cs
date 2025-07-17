@@ -2,6 +2,7 @@
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -36,7 +37,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
             }
             catch (Exception e)
             {
-                return Result.Fail<ImageDTO>("File creating Fail");
+                return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInStorage);
             }
 
             Image? image = _mapper.Map<Image>(request.CreateImageDto);
@@ -51,7 +52,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
                 return Result.Ok(responce);
             }
 
-            return Result.Fail<ImageDTO>("something go wrong");
+            return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInDatabase);
         }
         catch (ValidationException vex)
         {

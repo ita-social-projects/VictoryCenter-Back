@@ -2,6 +2,7 @@
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Images.Create;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -137,7 +138,7 @@ public class CreateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("something go wrong", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.FailToSaveImageInDatabase, result.Errors[0].Message);
     }
 
     [Fact]
@@ -160,6 +161,6 @@ public class CreateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("File creating Fail", result.Errors[0].Message);
+        Assert.Contains(ImageConstants.FailToSaveImageInStorage, result.Errors[0].Message);
     }
 }

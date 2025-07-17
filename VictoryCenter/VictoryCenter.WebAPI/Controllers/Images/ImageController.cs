@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Images.Create;
 using VictoryCenter.BLL.Commands.Images.Update;
 using VictoryCenter.BLL.Commands.Images.Delete;
@@ -8,6 +9,7 @@ using VictoryCenter.BLL.Queries.Images.GetByName;
 
 namespace VictoryCenter.WebAPI.Controllers.Images;
 
+[Authorize]
 public class ImageController : BaseApiController
 {
     [HttpPost]
