@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
 
@@ -79,7 +80,7 @@ public class BlobService : IBlobService
         {
             if (!Convert.TryFromBase64String(base64, buffer, out int bytesWritten))
             {
-                throw new FormatException("Invalid Base64 string.");
+                throw new FormatException(ImageConstants.InvalidBase64String);
             }
 
             byte[] result = new byte[bytesWritten];
@@ -145,7 +146,7 @@ public class BlobService : IBlobService
 
         if (!File.Exists(filePath))
         {
-            throw new FileNotFoundException($"File not found: {filePath}");
+            throw new FileNotFoundException(ImageConstants.FileNotFound(filePath));
         }
 
         await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
@@ -154,7 +155,7 @@ public class BlobService : IBlobService
         byte[] iv = new byte[16];
         if (fileStream.Read(iv, 0, iv.Length) != iv.Length)
         {
-            throw new IOException("Invalid IV length");
+            throw new IOException(ImageConstants.InvalidIVLength);
         }
 
         using var aes = Aes.Create();

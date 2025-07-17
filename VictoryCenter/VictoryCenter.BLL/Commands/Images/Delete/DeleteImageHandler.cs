@@ -4,6 +4,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Commands.Images.Delete;
 
@@ -28,7 +29,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>($"Image with ID {request.Id} not found.");
+            return Result.Fail<long>(ImageConstants.ImageNotFound(request.Id));
         }
 
         if (!string.IsNullOrEmpty(entityToDelete.BlobName))
@@ -43,6 +44,6 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
             return Result.Ok(entityToDelete.Id);
         }
 
-        return Result.Fail<long>("Failed to delete image.");
+        return Result.Fail<long>(ImageConstants.FailToDeleteImage);
     }
 }
