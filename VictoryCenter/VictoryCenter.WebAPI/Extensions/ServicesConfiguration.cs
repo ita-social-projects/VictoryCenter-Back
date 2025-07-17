@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
@@ -68,18 +70,32 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services)
+    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
-        services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
+        services.AddAutoMapper(
+            cfg => { cfg.ConstructServicesUsing(type => services.BuildServiceProvider().GetRequiredService(type)); },
+            typeof(BllAssemblyMarker).Assembly);
+
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
+        services.AddCors(opt =>
+        {
+            opt.AddDefaultPolicy(builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            });
+        });
+
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.ConfigureBlob(configuration);
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
@@ -188,31 +204,32 @@ public static class ServicesConfiguration
                 Title = "VictoryCenter API",
                 Version = "v1"
             });
-
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-            {
-                Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
-                Name = "Authorization",
-                In = ParameterLocation.Header,
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT"
-            });
-
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    []
-                }
-            });
         });
+    }
+
+    private static IServiceCollection ConfigureBlob(this IServiceCollection services, IConfiguration configuration)
+    {
+        var blobSection = configuration.GetSection("BlobEnvironmentVariables");
+        var serviceType = blobSection.GetValue<string>("ServiceType");
+
+        switch (serviceType)
+        {
+            case "Local":
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations();
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            case "Azure":
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Azure"))
+                    .ValidateDataAnnotations();
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported Blob Service Type: {serviceType}");
+        }
+
+        return services;
     }
 }

@@ -4,8 +4,10 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,12 +19,14 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateTeamMemberCommand> _validator;
+    private readonly IBlobService _blobService;
 
-    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberCommand> validator)
+    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberCommand> validator, IBlobService blobService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _blobService = blobService;
     }
 
     public async Task<Result<TeamMemberDto>> Handle(CreateTeamMemberCommand request, CancellationToken cancellationToken)
@@ -53,8 +57,30 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                scope.Complete();
                 TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
+                if (entity.ImageId != null)
+                {
+                    Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                        new QueryOptions<Image>()
+                        {
+                            Filter = i => i.Id == entity.ImageId
+                        });
+                    if (imageResult is not null)
+                    {
+                        try
+                        {
+                            imageResult.Base64 = await _blobService.FindFileInStorageAsBase64Async(imageResult.BlobName, imageResult.MimeType);
+                        }
+                        catch(Exception)
+                        {
+                            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
+                        }
+                    }
+
+                    result.Image = _mapper.Map<ImageDTO>(imageResult);
+                }
+
+                scope.Complete();
                 return Result.Ok(result);
             }
 

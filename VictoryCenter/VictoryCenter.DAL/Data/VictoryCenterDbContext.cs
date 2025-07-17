@@ -16,6 +16,8 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
     public DbSet<TeamMember> TeamMembers { get; set; }
 
+    public DbSet<Image> Images { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -62,7 +64,11 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
             entity.Property(e => e.Description);
 
-            entity.Property(e => e.Photo);
+            entity.Property(e => e.ImageId);
+
+            entity.HasOne(e => e.Image)
+                .WithOne(i => i.TeamMember)
+                .HasForeignKey<TeamMember>(e => e.ImageId);
 
             entity.Property(e => e.Email);
 
@@ -71,6 +77,24 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
             entity.HasIndex(e => new { e.CategoryId, e.Priority })
                 .IsUnique();
+        });
+        modelBuilder.Entity<Image>(entity =>
+        {
+            entity.ToTable("Images", "media");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.BlobName)
+                .IsRequired();
+
+            entity.Property(e => e.MimeType)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
         });
     }
 }

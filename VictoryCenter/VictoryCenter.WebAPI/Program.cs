@@ -16,8 +16,8 @@ builder.Configuration["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvir
                                                             ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration");
 
 builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddCustomServices();
 
+builder.Services.AddCustomServices(builder.Configuration);
 builder.Services.AddOpenTelemetryTracing();
 builder.Logging.AddOpenTelemetryLogging();
 
