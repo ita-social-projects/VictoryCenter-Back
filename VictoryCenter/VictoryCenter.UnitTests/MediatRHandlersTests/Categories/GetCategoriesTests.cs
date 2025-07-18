@@ -1,7 +1,7 @@
 using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Queries.Categories.GetAll;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
+using VictoryCenter.BLL.Queries.Admin.Categories.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;

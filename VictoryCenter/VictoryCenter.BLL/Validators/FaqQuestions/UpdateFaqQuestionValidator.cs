@@ -1,5 +1,5 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.FaqQuestions.Update;
+using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 
 namespace VictoryCenter.BLL.Validators.FaqQuestions;
 

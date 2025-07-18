@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 

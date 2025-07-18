@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;

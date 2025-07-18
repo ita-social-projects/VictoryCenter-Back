@@ -2,7 +2,7 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;

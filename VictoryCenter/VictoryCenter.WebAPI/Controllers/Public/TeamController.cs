@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Queries.TeamMembers.GetPublished;
+using VictoryCenter.BLL.DTOs.Public.TeamPage;
+using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 

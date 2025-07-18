@@ -52,13 +52,13 @@ public class IntegrationTestDbFixture : IDisposable
 
     private async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
     {
-        var userManager = serviceProvider.GetRequiredService<UserManager<Admin>>();
+        var userManager = serviceProvider.GetRequiredService<UserManager<AdminUser>>();
         const string TestEmail = "testadmin@victorycenter.com";
         const string TestPassword = "TestPassword123!";
         var existing = await userManager.FindByEmailAsync(TestEmail);
         if (existing == null)
         {
-            var admin = new Admin
+            var admin = new AdminUser
             {
                 UserName = TestEmail,
                 Email = TestEmail,

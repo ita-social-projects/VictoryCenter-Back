@@ -1,9 +1,9 @@
 ﻿using System.Transactions;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

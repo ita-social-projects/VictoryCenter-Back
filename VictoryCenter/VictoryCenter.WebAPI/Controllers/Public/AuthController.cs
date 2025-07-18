@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.Auth.Login;
-using VictoryCenter.BLL.Commands.Auth.RefreshToken;
-using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.Commands.Public.Auth.Login;
+using VictoryCenter.BLL.Commands.Public.Auth.RefreshToken;
+using VictoryCenter.BLL.DTOs.Public.Auth;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 

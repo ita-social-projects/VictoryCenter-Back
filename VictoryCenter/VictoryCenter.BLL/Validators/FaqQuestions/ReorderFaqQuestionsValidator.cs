@@ -1,7 +1,7 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.FaqQuestions.Reorder;
+using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.FaqQuestions;
+using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 
 namespace VictoryCenter.BLL.Validators.FaqQuestions;
 

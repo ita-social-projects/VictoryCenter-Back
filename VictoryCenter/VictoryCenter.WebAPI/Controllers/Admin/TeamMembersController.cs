@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.TeamMembers.Create;
-using VictoryCenter.BLL.Commands.TeamMembers.Delete;
-using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
-using VictoryCenter.BLL.Commands.TeamMembers.Update;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
-using VictoryCenter.BLL.Queries.TeamMembers.GetById;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Delete;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetById;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;

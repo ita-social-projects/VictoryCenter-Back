@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.Categories.Create;
-using VictoryCenter.BLL.Commands.Categories.Delete;
-using VictoryCenter.BLL.Commands.Categories.Update;
-using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Queries.Categories.GetAll;
+using VictoryCenter.BLL.Commands.Admin.Categories.Create;
+using VictoryCenter.BLL.Commands.Admin.Categories.Delete;
+using VictoryCenter.BLL.Commands.Admin.Categories.Update;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
+using VictoryCenter.BLL.Queries.Admin.Categories.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;

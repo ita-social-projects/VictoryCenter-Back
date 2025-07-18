@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;

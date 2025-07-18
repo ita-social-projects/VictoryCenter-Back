@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Categories.Update;
+using VictoryCenter.BLL.Commands.Admin.Categories.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Categories;

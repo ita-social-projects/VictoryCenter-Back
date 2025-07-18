@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;

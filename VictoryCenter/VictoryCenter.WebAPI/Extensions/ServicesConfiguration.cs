@@ -34,7 +34,7 @@ public static class ServicesConfiguration
             });
         });
 
-        services.AddIdentity<Admin, IdentityRole<int>>()
+        services.AddIdentity<AdminUser, IdentityRole<int>>()
             .AddEntityFrameworkStores<VictoryCenterDbContext>()
             .AddDefaultTokenProviders();
 
@@ -144,7 +144,7 @@ public static class ServicesConfiguration
     public static async Task CreateInitialAdmin(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
+        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
                                 ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
         if (!initialAdminEmail.Contains('@'))
@@ -155,7 +155,7 @@ public static class ServicesConfiguration
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
             var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
-            var admin = new Admin()
+            var admin = new AdminUser()
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Create;

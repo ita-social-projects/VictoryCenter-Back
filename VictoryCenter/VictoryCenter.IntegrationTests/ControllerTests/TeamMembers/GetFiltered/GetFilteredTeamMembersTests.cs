@@ -1,6 +1,6 @@
 using System.Net;
 using System.Text.Json;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetFiltered;

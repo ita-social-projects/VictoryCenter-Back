@@ -1,6 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.FaqQuestions;
+using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 
 namespace VictoryCenter.BLL.Validators.FaqQuestions;
 

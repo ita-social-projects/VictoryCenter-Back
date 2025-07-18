@@ -2,7 +2,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 

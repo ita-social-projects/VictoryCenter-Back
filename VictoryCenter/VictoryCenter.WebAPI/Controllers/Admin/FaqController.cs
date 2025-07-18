@@ -1,19 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.FaqQuestions.Create;
-using VictoryCenter.BLL.Commands.FaqQuestions.Delete;
-using VictoryCenter.BLL.Commands.FaqQuestions.Reorder;
-using VictoryCenter.BLL.Commands.FaqQuestions.Update;
-using VictoryCenter.BLL.DTOs.FaqQuestions;
-using VictoryCenter.BLL.Queries.FaqQuestions.GetByFilters;
-using VictoryCenter.BLL.Queries.FaqQuestions.GetById;
-using VictoryCenter.BLL.Queries.Pages.GetAll;
+using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Create;
+using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
+using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
+using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
+using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
+using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetById;
+using VictoryCenter.BLL.Queries.Admin.Pages.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class FaqController : AuthorizedApiController
 {
-    [HttpGet]
+    [HttpGet("pages")]
     public async Task<IActionResult> GetAllPages()
     {
         return HandleResult(await Mediator.Send(new GetAllPagesQuery()));

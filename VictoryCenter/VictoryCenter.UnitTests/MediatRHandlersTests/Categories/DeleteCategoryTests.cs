@@ -1,5 +1,5 @@
 using Moq;
-using VictoryCenter.BLL.Commands.Categories.Delete;
+using VictoryCenter.BLL.Commands.Admin.Categories.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

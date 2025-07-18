@@ -1,9 +1,9 @@
 using AutoMapper;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Commands.Admin.Categories.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
