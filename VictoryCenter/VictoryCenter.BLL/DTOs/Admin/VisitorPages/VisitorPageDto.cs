@@ -1,6 +1,6 @@
-namespace VictoryCenter.BLL.DTOs.Admin.Pages;
+namespace VictoryCenter.BLL.DTOs.Admin.VisitorPages;
 
-public record PageDto
+public record VisitorPageDto
 {
     public long Id { get; set; }
 

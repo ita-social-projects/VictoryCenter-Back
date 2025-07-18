@@ -1,6 +1,6 @@
 namespace VictoryCenter.BLL.Constants;
 
-public static class FaqQuestionConstants
+public static class FaqConstants
 {
-    public static readonly string PageNotFoundOrContainsNoFaqQuestions = "Page not found or does not contain FAQ question";
+    public static readonly string PageNotFoundOrContainsNoFaqQuestions = "VisitorPage not found or does not contain FaqQuestions";
 }

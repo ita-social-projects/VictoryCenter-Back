@@ -1,10 +1,10 @@
 namespace VictoryCenter.DAL.Entities;
 
-public class FaqPageQuestion
+public class FaqPlacement
 {
     public long PageId { get; set; }
 
-    public Page Page { get; set; } = default!;
+    public VisitorPage Page { get; set; } = default!;
 
     public long QuestionId { get; set; }
 

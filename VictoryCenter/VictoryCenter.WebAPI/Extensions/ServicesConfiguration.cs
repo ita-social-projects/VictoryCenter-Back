@@ -141,6 +141,26 @@ public static class ServicesConfiguration
         }
     }
 
+    public static async Task SeedVisitorPagesAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        if (!await dbContext.VisitorPages.AnyAsync())
+        {
+            var createdAt = DateTime.UtcNow;
+            var pages = new List<VisitorPage>
+            {
+                new() { Title = "Home", Slug = "home", CreatedAt = createdAt },
+                new() { Title = "About", Slug = "about", CreatedAt = createdAt },
+                new() { Title = "Contact", Slug = "contact", CreatedAt = createdAt }
+            };
+
+            dbContext.VisitorPages.AddRange(pages);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
     public static async Task CreateInitialAdmin(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();

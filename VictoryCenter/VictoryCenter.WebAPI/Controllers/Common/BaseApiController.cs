@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
-namespace VictoryCenter.WebAPI.Controllers;
+namespace VictoryCenter.WebAPI.Controllers.Common;
 
 [ApiController]
 [Route("api/[controller]")]

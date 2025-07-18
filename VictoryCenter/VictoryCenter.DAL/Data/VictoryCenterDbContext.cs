@@ -14,9 +14,9 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<Category> Categories { get; set; }
 
-    public DbSet<Page> Pages { get; set; }
+    public DbSet<VisitorPage> VisitorPages { get; set; }
 
-    public DbSet<FaqPageQuestion> FaqPageQuestions { get; set; }
+    public DbSet<FaqPlacement> FaqPlacements { get; set; }
 
     public DbSet<FaqQuestion> FaqQuestions { get; set; }
 
@@ -47,7 +47,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Page>(entity =>
+        modelBuilder.Entity<VisitorPage>(entity =>
         {
             entity.HasKey(e => e.Id);
 
@@ -70,7 +70,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
                 .IsRequired();
         });
 
-        modelBuilder.Entity<FaqPageQuestion>(entity =>
+        modelBuilder.Entity<FaqPlacement>(entity =>
         {
             entity.HasKey(e => new { e.PageId, e.QuestionId });
 
@@ -80,7 +80,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(e => e.Question)
-                .WithMany(e => e.Pages)
+                .WithMany(e => e.Placements)
                 .HasForeignKey(e => e.PageId)
                 .OnDelete(DeleteBehavior.Restrict);
 

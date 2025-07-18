@@ -29,6 +29,7 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.ApplyMigrations();
+await app.SeedVisitorPagesAsync();
 await app.CreateInitialAdmin();
 
 app.UseRequestResponseLogging();
