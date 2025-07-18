@@ -341,7 +341,7 @@ dotnet_diagnostic.SA1126.severity = error
 # The partial element does not have an access modifier defined.
 dotnet_diagnostic.SA1205.severity = error
 # The keywords within the declaration of an element do not follow a standard ordering scheme.
-dotnet_diagnostic.SA1206.severity = error
+dotnet_diagnostic.SA1206.severity = none
 # The keyword protected is positioned after the keyword internal within the declaration of a protected internal C# element, or the keyword private is positioned after the keyword protected.
 dotnet_diagnostic.SA1207.severity = error
 # The name of a field in C# does not begin with a lower-case letter.
