@@ -86,6 +86,11 @@ public class CreateImageHandlerTests
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
         Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        _mockBlobService.Verify(x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.CreateAsync(It.IsAny<Image>()), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _mockMapper.Verify(x => x.Map<Image>(It.IsAny<CreateImageDTO>()), Times.Once);
+        _mockMapper.Verify(x => x.Map<ImageDTO>(It.IsAny<Image>()), Times.Once);
     }
 
     [Fact]
@@ -145,6 +150,7 @@ public class CreateImageHandlerTests
     public async Task Handle_ThrowsIOException_ShouldReturnFileCreatingFail()
     {
         // Arrange
+        _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDTO>())).Returns(_testImage);
         _mockBlobService.Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Throws<IOException>();
 

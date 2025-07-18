@@ -11,7 +11,7 @@ public class UpdateImageValidator : AbstractValidator<UpdateImageCommand>
     private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
     public UpdateImageValidator()
     {
-        RuleFor(x => x.updateImageDto).NotEmpty().WithMessage("CreateImageDto cannot be null");
+        RuleFor(x => x.updateImageDto).NotEmpty().WithMessage("UreateImageDto cannot be null");
         RuleFor(x => x.updateImageDto.Base64)
             .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("Base64 content"))
             .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);

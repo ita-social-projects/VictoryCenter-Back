@@ -31,6 +31,9 @@ public class BlobServiceTests : IDisposable
         var filePath = Path.Combine(_tempDir, $"{_fileName}.png");
         Assert.True(File.Exists(filePath));
         Assert.Equal($"{_fileName}.png", blobName);
+        var encryptedContent = File.ReadAllBytes(filePath);
+        var originalContent = Convert.FromBase64String(_base64);
+        Assert.NotEqual(originalContent, encryptedContent);
     }
 
     [Fact]
@@ -86,6 +89,13 @@ public class BlobServiceTests : IDisposable
         var filePath = Path.Combine(_tempDir, $"{_fileName}.png");
         Assert.False(File.Exists(filePath));
     }
+
+    [Fact]
+    public void DeleteFileInStorage_NonExistentFile_ShouldNotThrow()
+        {
+            var exception = Record.Exception(() => _blobService.DeleteFileInStorage("nonexistent", _mimeType));
+            Assert.Null(exception);
+        }
 
     public void Dispose()
     {

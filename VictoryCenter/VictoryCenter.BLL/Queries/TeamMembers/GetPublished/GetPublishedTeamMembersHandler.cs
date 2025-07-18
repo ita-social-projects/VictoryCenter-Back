@@ -41,18 +41,22 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
             .Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(categoriesWithPublishedMembers)
             .ToList();
 
-        foreach (var category in publishedCategoriesDto)
-        {
-            foreach (var teamMember in category.TeamMembers)
+        var imageLoadTasks = publishedCategoriesDto
+            .SelectMany(category => category.TeamMembers)
+            .Where(teamMembers => teamMembers.Image is not null)
+            .Select(async teamMember =>
             {
-                if (teamMember.Image is not null)
+                try
                 {
-                    teamMember.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
-                        teamMember.Image.BlobName,
-                        teamMember.Image.MimeType);
+                    teamMember.Image.Base64 =
+                        await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
                 }
-            }
-        }
+                catch (Exception e)
+                {
+                    teamMember.Image.Base64 = string.Empty;
+                }
+            });
+        await Task.WhenAll(imageLoadTasks);
 
         return Result.Ok(publishedCategoriesDto);
     }

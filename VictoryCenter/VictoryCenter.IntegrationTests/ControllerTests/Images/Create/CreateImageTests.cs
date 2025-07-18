@@ -37,18 +37,18 @@ public class CreateImageTests
 
         var serializedDto = JsonSerializer.Serialize(createImageDto);
 
-        HttpResponseMessage responce = await _httpClient.PostAsync("api/Image", new StringContent(
+        HttpResponseMessage response = await _httpClient.PostAsync("api/Image", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
-        var responceString = await responce.Content.ReadAsStringAsync();
-        ImageDTO? responceContext = JsonSerializer.Deserialize<ImageDTO>(responceString, _jsonOptions);
-        string extension = responceContext.MimeType.Split("/")[1];
-        string path = _blobEnvironment.BlobStorePath + responceContext.BlobName + "." + extension;
+        var responseString = await response.Content.ReadAsStringAsync();
+        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+        string extension = responseContext.MimeType.Split("/")[1];
+        string path = _blobEnvironment.BlobStorePath + responseContext.BlobName + "." + extension;
 
-        Assert.True(responce.IsSuccessStatusCode);
-        Assert.Equal(createImageDto.Base64, responceContext.Base64);
-        Assert.Equal(createImageDto.MimeType, responceContext.MimeType);
-        Assert.Equal(createImageDto.Base64, responceContext.Base64);
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(createImageDto.Base64, responseContext.Base64);
+        Assert.Equal(createImageDto.MimeType, responseContext.MimeType);
+        Assert.Equal(createImageDto.Base64, responseContext.Base64);
         Assert.True(File.Exists(path));
     }
 
@@ -68,13 +68,13 @@ public class CreateImageTests
 
         var serializedDto = JsonSerializer.Serialize(createImageDto);
 
-        HttpResponseMessage responce = await _httpClient.PostAsync("api/Image", new StringContent(
+        HttpResponseMessage response = await _httpClient.PostAsync("api/Image", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
-        var responceString = await responce.Content.ReadAsStringAsync();
-        ImageDTO? responceContext = JsonSerializer.Deserialize<ImageDTO>(responceString, _jsonOptions);
+        var responseString = await response.Content.ReadAsStringAsync();
+        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
-        Assert.False(responce.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, responce.StatusCode);
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

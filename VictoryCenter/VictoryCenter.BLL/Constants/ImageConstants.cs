@@ -3,9 +3,9 @@
 public static class ImageConstants
 {
     public static readonly string Base64ValidationError = "Base64 content is invalid";
-    public static readonly string CreateImageDtoCantBeNull = "public static readonly string CreateImageDtoCantBeNull";
-    public static readonly string FailToSaveImageInStorage = "An error occurred while saving the photo in storage";
-    public static readonly string FailToSaveImageInDatabase = "An error occurred while saving the photo in database";
+    public static readonly string CreateImageDtoCantBeNull = "CreateImageDto cannot be null";
+    public static readonly string FailToSaveImageInStorage = "An error occurred while saving the image in storage";
+    public static readonly string FailToSaveImageInDatabase = "An error occurred while saving the image in database";
     public static readonly string FailToDeleteImage = "Failed to delete image.";
     public static readonly string FailToUpdateImage = "Failed to update image";
     public static readonly string InvalidBase64String = "Invalid Base64 string.";

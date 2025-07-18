@@ -87,7 +87,8 @@ public class GetImageByIdHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
     }
 
     [Fact]
@@ -115,6 +116,7 @@ public class GetImageByIdHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.ImageNotFound(imageWithoutBlob.Id), result.Errors[0].Message);
+        Assert.Contains(ImageConstants.ImageNotFound(imageWithoutBlob.Id), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
@@ -35,9 +36,9 @@ public class DeleteImageTests
         string extension = image.MimeType.Split("/")[1];
         string path = _blobEnvironment.BlobStorePath + image.BlobName + "." + extension;
 
-        HttpResponseMessage responce = await _client.DeleteAsync($"api/Image/{id}");
+        HttpResponseMessage response = await _client.DeleteAsync($"api/Image/{id}");
 
-        Assert.True(responce.IsSuccessStatusCode);
+        Assert.True(response.IsSuccessStatusCode);
         Assert.Null(await _dbContext.Images.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id));
         Assert.False(File.Exists(path));
     }
@@ -47,8 +48,9 @@ public class DeleteImageTests
     {
         var id = int.MaxValue;
 
-        HttpResponseMessage responce = await _client.DeleteAsync($"api/Image/{id}");
+        HttpResponseMessage response = await _client.DeleteAsync($"api/Image/{id}");
 
-        Assert.False(responce.IsSuccessStatusCode);
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

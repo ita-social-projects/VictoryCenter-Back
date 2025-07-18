@@ -74,9 +74,7 @@ public static class ServicesConfiguration
     {
         services.AddControllers();
         services.AddOpenApi();
-        services.AddAutoMapper(
-            cfg => { cfg.ConstructServicesUsing(type => services.BuildServiceProvider().GetRequiredService(type)); },
-            typeof(BllAssemblyMarker).Assembly);
+        services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
 
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));

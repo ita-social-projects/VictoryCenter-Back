@@ -31,12 +31,12 @@ public class GetImageByIdTest
         Image? image = await _dbContext.Images.FirstOrDefaultAsync();
         var id = image.Id;
 
-        HttpResponseMessage responce = await _client.GetAsync($"api/Image/{id}");
+        HttpResponseMessage response = await _client.GetAsync($"api/Image/{id}");
 
-        var responceString = await responce.Content.ReadAsStringAsync();
-        ImageDTO? result = JsonSerializer.Deserialize<ImageDTO>(responceString, _jsonOptions);
+        var responseString = await response.Content.ReadAsStringAsync();
+        ImageDTO? result = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
-        Assert.True(responce.IsSuccessStatusCode);
+        Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(result.BlobName, image.BlobName);
         Assert.Equal(result.Id, image.Id);
     }
@@ -46,12 +46,9 @@ public class GetImageByIdTest
     {
         var id = int.MaxValue;
 
-        HttpResponseMessage responce = await _client.GetAsync($"api/Image/{id}");
+        HttpResponseMessage response = await _client.GetAsync($"api/Image/{id}");
 
-        var responceString = await responce.Content.ReadAsStringAsync();
-        ImageDTO? result = JsonSerializer.Deserialize<ImageDTO>(responceString, _jsonOptions);
-
-        Assert.False(responce.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, responce.StatusCode);
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

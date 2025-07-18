@@ -45,13 +45,19 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
         var teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
 
-        foreach (var member in teamMembersDto)
-        {
-            if (member.Image is not null)
+        var imageLoadTasks = teamMembersDto.Where(member => member.Image is not null)
+           .Select(async member =>
+            {
+            try
             {
                 member.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
             }
-        }
+            catch (Exception ex)
+            {
+             member.Image.Base64 = string.Empty;
+            }
+            });
+        await Task.WhenAll(imageLoadTasks);
 
         return Result.Ok(teamMembersDto);
     }
