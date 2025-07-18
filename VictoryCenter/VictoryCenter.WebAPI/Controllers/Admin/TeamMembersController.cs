@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.Commands.TeamMembers.Delete;
@@ -7,11 +6,11 @@ using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.TeamMembers.GetById;
+using VictoryCenter.WebAPI.Controllers.Common;
 
-namespace VictoryCenter.WebAPI.Controllers.TeamMembers;
+namespace VictoryCenter.WebAPI.Controllers.Admin;
 
-[Authorize]
-public class TeamMembersController : BaseApiController
+public class TeamMembersController : AuthorizedApiController
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]

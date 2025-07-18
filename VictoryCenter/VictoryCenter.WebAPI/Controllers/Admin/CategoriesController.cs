@@ -1,15 +1,14 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Categories.Create;
 using VictoryCenter.BLL.Commands.Categories.Delete;
 using VictoryCenter.BLL.Commands.Categories.Update;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Queries.Categories.GetAll;
+using VictoryCenter.WebAPI.Controllers.Common;
 
-namespace VictoryCenter.WebAPI.Controllers.Categories;
+namespace VictoryCenter.WebAPI.Controllers.Admin;
 
-[Authorize]
-public class CategoriesController : BaseApiController
+public class CategoriesController : AuthorizedApiController
 {
     [HttpGet]
     public async Task<IActionResult> GetCategories()
