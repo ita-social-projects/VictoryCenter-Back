@@ -57,12 +57,13 @@ public class UpdateCategoryTests
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
-            new UpdateCategoryCommand(new UpdateCategoryDto
-        {
-            Id = _testExistingCategory.Id,
-            Name = "Updated Name",
-            Description = testDescription,
-        }), CancellationToken.None);
+            new UpdateCategoryCommand(
+                new UpdateCategoryDto
+            {
+                Name = "Updated Name",
+                Description = testDescription,
+            },
+                _testExistingCategory.Id), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -82,12 +83,12 @@ public class UpdateCategoryTests
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
-            new UpdateCategoryCommand(new UpdateCategoryDto
+            new UpdateCategoryCommand(
+                new UpdateCategoryDto
         {
-            Id = _testExistingCategory.Id,
             Name = testName,
             Description = "Updated Description",
-        }), CancellationToken.None);
+        }, _testExistingCategory.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
@@ -102,12 +103,12 @@ public class UpdateCategoryTests
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
-            new UpdateCategoryCommand(new UpdateCategoryDto
+            new UpdateCategoryCommand(
+                new UpdateCategoryDto
         {
-            Id = testId,
             Name = "Updated Name",
             Description = "Updated Description",
-        }), CancellationToken.None);
+        }, testId), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(testId, typeof(Category)), result.Errors[0].Message);
@@ -120,12 +121,12 @@ public class UpdateCategoryTests
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         var result = await handler.Handle(
-            new UpdateCategoryCommand(new UpdateCategoryDto
+            new UpdateCategoryCommand(
+                new UpdateCategoryDto
         {
-            Id = _testExistingCategory.Id,
             Name = "Updated Name",
             Description = "Updated Description",
-        }), CancellationToken.None);
+        }, _testExistingCategory.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(CategoryConstants.FailedToUpdateCategory, result.Errors[0].Message);
