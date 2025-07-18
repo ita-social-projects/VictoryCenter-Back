@@ -14,6 +14,12 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
     public DbSet<Category> Categories { get; set; }
 
+    public DbSet<Page> Pages { get; set; }
+
+    public DbSet<FaqPageQuestion> FaqPageQuestions { get; set; }
+
+    public DbSet<FaqQuestion> FaqQuestions { get; set; }
+
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -39,6 +45,67 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
                 .WithOne(e => e.Category)
                 .HasForeignKey(e => e.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Page>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Slug)
+                .IsRequired();
+
+            entity.HasIndex(e => e.Slug)
+                .IsUnique();
+
+            entity.Property(e => e.Title)
+                .IsRequired();
+
+            entity.HasIndex(e => e.Title)
+                .IsUnique();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+        });
+
+        modelBuilder.Entity<FaqPageQuestion>(entity =>
+        {
+            entity.HasKey(e => new { e.PageId, e.QuestionId });
+
+            entity.HasOne(e => e.Page)
+                .WithMany(e => e.Questions)
+                .HasForeignKey(e => e.PageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Question)
+                .WithMany(e => e.Pages)
+                .HasForeignKey(e => e.PageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.PageId, e.Priority })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<FaqQuestion>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.QuestionText)
+                .IsRequired();
+
+            entity.Property(e => e.AnswerText)
+                .IsRequired();
+
+            entity.Property(e => e.Status)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
         });
 
         modelBuilder.Entity<TeamMember>(entity =>
