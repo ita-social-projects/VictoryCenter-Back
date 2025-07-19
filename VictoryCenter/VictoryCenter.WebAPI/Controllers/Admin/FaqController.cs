@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.DTOs.Admin.VisitorPages;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetById;
 using VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
@@ -14,7 +15,8 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class FaqController : AuthorizedApiController
 {
     [HttpGet("pages")]
-    public async Task<IActionResult> GetAllPages()
+    [ProducesResponseType(typeof(VisitorPageDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllVisitorPages()
     {
         return HandleResult(await Mediator.Send(new GetAllVisitorPagesQuery()));
     }
