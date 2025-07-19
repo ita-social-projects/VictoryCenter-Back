@@ -80,7 +80,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToUpdateTeamMember);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
         }
         catch (ValidationException vex)
         {

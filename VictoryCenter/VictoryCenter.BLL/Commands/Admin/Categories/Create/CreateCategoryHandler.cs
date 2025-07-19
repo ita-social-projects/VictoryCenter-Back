@@ -42,7 +42,7 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<CategoryDto>(CategoryConstants.FailedToCreateCategory);
+            return Result.Fail<CategoryDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(Category)));
         }
         catch (ValidationException ex)
         {

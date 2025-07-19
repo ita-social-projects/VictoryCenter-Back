@@ -54,7 +54,7 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<CategoryDto>(CategoryConstants.FailedToUpdateCategory);
+            return Result.Fail<CategoryDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Category)));
         }
         catch (ValidationException ex)
         {

@@ -128,7 +128,7 @@ public class UpdateCategoryTests
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(CategoryConstants.FailedToUpdateCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Category)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(Category? categoryToReturn = null, int saveResult = 1)

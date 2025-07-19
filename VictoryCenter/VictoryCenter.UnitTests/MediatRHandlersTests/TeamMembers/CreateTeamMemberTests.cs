@@ -85,7 +85,7 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
     {
-        var failMessage = TeamMemberConstants.FailedToCreateNewTeamMember;
+        var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember));
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, -1);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
@@ -144,7 +144,7 @@ public class CreateTeamMemberTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + testMessage, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)) + testMessage, result.Errors[0].Message);
     }
 
     private void SetupDependencies(CreateTeamMemberDto createMember, TeamMemberDto memberDto, TeamMember member, int isSuccess)

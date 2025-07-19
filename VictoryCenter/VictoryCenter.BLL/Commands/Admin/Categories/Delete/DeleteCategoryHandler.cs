@@ -43,6 +43,6 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
             return Result.Ok(entityToDelete.Id);
         }
 
-        return Result.Fail<long>(CategoryConstants.FailedToDeleteCategory);
+        return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Category)));
     }
 }

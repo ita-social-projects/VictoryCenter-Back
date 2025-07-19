@@ -98,7 +98,7 @@ public class CreateCategoryTests
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(CategoryConstants.FailedToCreateCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Category)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)

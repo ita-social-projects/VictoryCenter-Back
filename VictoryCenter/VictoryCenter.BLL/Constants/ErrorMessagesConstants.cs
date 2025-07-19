@@ -23,11 +23,11 @@ public static class ErrorMessagesConstants
         return $"Failed to create new {entityType.Name}";
     }
 
-    public static string FailedToCreateEntityInTheDatabase(Type entityType)
+    public static string FailedToCreateEntityInDatabase(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
-        return $"Failed to create new {entityType.Name} in database";
+        return $"Failed to create new {entityType.Name} in the database";
     }
 
     public static string FailedToUpdateEntity(Type entityType)
@@ -93,7 +93,7 @@ public static class ErrorMessagesConstants
         return $"{collection} cannot contain more than {numberOfElements} elements";
     }
 
-    public static string CollectionContainsDuplicateValues(string collection)
+    public static string CollectionMustContainUniqueValues(string collection)
     {
         return $"{collection} must contain unique values";
     }

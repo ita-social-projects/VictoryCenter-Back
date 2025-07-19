@@ -58,7 +58,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 return Result.Ok(result);
             }
 
-            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMember);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.
+                FailedToCreateEntity(typeof(TeamMember)));
         }
         catch (ValidationException vex)
         {
@@ -66,7 +67,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         }
         catch (DbUpdateException ex)
         {
-            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + ex.Message);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.
+                FailedToCreateEntityInDatabase(typeof(TeamMember)) + ex.Message);
         }
     }
 }

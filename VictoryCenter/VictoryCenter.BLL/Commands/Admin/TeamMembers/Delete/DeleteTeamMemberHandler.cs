@@ -40,6 +40,6 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
             return Result.Ok(entityToDelete.Id);
         }
 
-        return Result.Fail<long>(TeamMemberConstants.FailedToDeleteTeamMember);
+        return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)));
     }
 }

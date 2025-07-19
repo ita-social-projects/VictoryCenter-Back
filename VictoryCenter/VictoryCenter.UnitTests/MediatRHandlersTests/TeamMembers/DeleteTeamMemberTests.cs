@@ -63,7 +63,7 @@ public class DeleteTeamMemberTests
         var result = await handler.Handle(new DeleteTeamMemberCommand(_testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(TeamMemberConstants.FailedToDeleteTeamMember, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(TeamMember? entityToDelete = null, int saveResult = 1)

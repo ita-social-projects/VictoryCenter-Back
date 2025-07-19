@@ -78,7 +78,7 @@ public class DeleteCategoryTests
         var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(CategoryConstants.FailedToDeleteCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Category)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(Category? entityToDelete = null, int saveResult = 1)

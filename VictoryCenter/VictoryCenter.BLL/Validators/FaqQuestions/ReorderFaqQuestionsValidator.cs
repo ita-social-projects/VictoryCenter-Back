@@ -9,11 +9,11 @@ public class ReorderFaqQuestionsValidator : AbstractValidator<ReorderFaqQuestion
 {
     private const int MaxFaqQuestionIds = 500;
 
-    public ReorderFaqQuestionsValidator(BaseFaqQuestionValidator baseFaqQuestionValidator)
+    public ReorderFaqQuestionsValidator()
     {
         RuleFor(x => x.ReorderFaqQuestionsDto.PageId)
             .GreaterThan(0)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("PageId"));
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReorderFaqQuestionsDto.PageId)));
 
         RuleFor(x => x.ReorderFaqQuestionsDto.OrderedIds)
             .Cascade(CascadeMode.Stop)
@@ -26,7 +26,7 @@ public class ReorderFaqQuestionsValidator : AbstractValidator<ReorderFaqQuestion
                 .CollectionCannotContainMoreThan(nameof(ReorderFaqQuestionsDto.OrderedIds), MaxFaqQuestionIds))
             .Must(ids => ids.Distinct().Count() == ids.Count)
             .WithMessage(ErrorMessagesConstants
-                .CollectionContainsDuplicateValues(nameof(ReorderFaqQuestionsDto.OrderedIds)));
+                .CollectionMustContainUniqueValues(nameof(ReorderFaqQuestionsDto.OrderedIds)));
 
         RuleForEach(x => x.ReorderFaqQuestionsDto.OrderedIds)
             .GreaterThan(0)
