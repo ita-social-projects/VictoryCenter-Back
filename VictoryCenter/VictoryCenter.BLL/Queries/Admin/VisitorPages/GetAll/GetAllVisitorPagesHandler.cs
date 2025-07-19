@@ -2,18 +2,26 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Admin.VisitorPages;
-using VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
-namespace VictoryCenter.BLL.Queries.Admin.Pages.GetAll;
+namespace VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
 
 public class GetAllPagesHandler : IRequestHandler<GetAllVisitorPagesQuery, Result<List<VisitorPageDto>>>
 {
     private readonly IMapper _mapper;
-    private readonly IRepositoryWrapper _repository;
+    private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public Task<Result<List<VisitorPageDto>>> Handle(GetAllVisitorPagesQuery request, CancellationToken cancellationToken)
+    public GetAllPagesHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
-        throw new NotImplementedException();
+        _mapper = mapper;
+        _repositoryWrapper = repositoryWrapper;
+    }
+
+    public async Task<Result<List<VisitorPageDto>>> Handle(
+        GetAllVisitorPagesQuery request,
+        CancellationToken cancellationToken)
+    {
+        var entities = await _repositoryWrapper.VisitorPagesRepository.GetAllAsync();
+        return Result.Ok(_mapper.Map<List<VisitorPageDto>>(entities));
     }
 }
