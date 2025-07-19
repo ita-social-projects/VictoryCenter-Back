@@ -28,12 +28,17 @@ public class FaqController : AuthorizedApiController
     }
 
     [HttpGet("{id:long}")]
+    [ProducesResponseType(typeof(FaqQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetQuestionById([FromRoute] long id)
     {
         return HandleResult(await Mediator.Send(new GetFaqQuestionByIdQuery(id)));
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(FaqQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateQuestion([FromBody] CreateFaqQuestionDto createFaqQuestionDto)
     {
         return HandleResult(await Mediator.Send(new CreateFaqQuestionCommand(createFaqQuestionDto)));
