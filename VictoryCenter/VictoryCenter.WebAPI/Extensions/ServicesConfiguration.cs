@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
@@ -81,8 +80,7 @@ public static class ServicesConfiguration
 
     public static void AddCustomServices(this IServiceCollection services)
     {
-        services.AddControllers()
-            .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
+        services.AddControllers();
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
