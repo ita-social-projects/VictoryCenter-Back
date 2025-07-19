@@ -151,9 +151,9 @@ public static class ServicesConfiguration
             var createdAt = DateTime.UtcNow;
             var pages = new List<VisitorPage>
             {
-                new() { Title = "Home", Slug = "home", CreatedAt = createdAt },
-                new() { Title = "About", Slug = "about", CreatedAt = createdAt },
-                new() { Title = "Contact", Slug = "contact", CreatedAt = createdAt }
+                new() { Title = "Програми", Slug = "program-page", CreatedAt = createdAt },
+                new() { Title = "Про іпотерапію", Slug = "about-hippotherapy", CreatedAt = createdAt },
+                new() { Title = "Донати", Slug = "donate-page", CreatedAt = createdAt }
             };
 
             dbContext.VisitorPages.AddRange(pages);
