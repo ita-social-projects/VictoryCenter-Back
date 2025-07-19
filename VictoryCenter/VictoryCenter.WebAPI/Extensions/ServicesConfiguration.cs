@@ -146,18 +146,21 @@ public static class ServicesConfiguration
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
-        if (!await dbContext.VisitorPages.AnyAsync())
+        var createdAt = DateTime.UtcNow;
+        var pages = new List<VisitorPage>
         {
-            var createdAt = DateTime.UtcNow;
-            var pages = new List<VisitorPage>
-            {
-                new() { Title = "Програми", Slug = "program-page", CreatedAt = createdAt },
-                new() { Title = "Про іпотерапію", Slug = "about-hippotherapy", CreatedAt = createdAt },
-                new() { Title = "Донати", Slug = "donate-page", CreatedAt = createdAt }
-            };
+            new() { Title = "Програми", Slug = "program-page", CreatedAt = createdAt },
+            new() { Title = "Про іпотерапію", Slug = "about-hippotherapy", CreatedAt = createdAt },
+            new() { Title = "Донати", Slug = "donate-page", CreatedAt = createdAt }
+        };
 
-            dbContext.VisitorPages.AddRange(pages);
-            await dbContext.SaveChangesAsync();
+        foreach (var page in pages)
+        {
+            if (!await dbContext.VisitorPages.AnyAsync(p => p.Slug == page.Slug && p.Title == page.Title))
+            {
+                dbContext.VisitorPages.Add(page);
+                await dbContext.SaveChangesAsync();
+            }
         }
     }
 
