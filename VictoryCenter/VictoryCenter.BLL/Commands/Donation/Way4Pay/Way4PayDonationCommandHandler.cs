@@ -40,7 +40,8 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
             ProductCount = [1],
             ProductName = [PaymentConstants.ProductName],
             ProductPrice = [request.Request.Amount],
-            MerchantSignature = merchantSignature
+            MerchantSignature = merchantSignature,
+            ReturnUrl = request.Request.ReturnUrl
         };
 
         if (request.Request.IsSubscription)
@@ -72,6 +73,11 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
             keyValues["regularMode"] = purchaseRequest.RegularMode!;
             keyValues["regularBehavior"] = purchaseRequest.RegularBehavior!;
             keyValues["regularCount"] = "12";
+        }
+
+        if (!string.IsNullOrWhiteSpace(purchaseRequest.ReturnUrl))
+        {
+            keyValues["returnUrl"] = purchaseRequest.ReturnUrl;
         }
 
         var content = new FormUrlEncodedContent(keyValues);

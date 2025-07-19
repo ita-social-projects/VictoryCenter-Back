@@ -6,4 +6,5 @@ public record DonationRequestDto
     public string Currency { get; init; } = null!;
     public bool IsSubscription { get; init; }
     public PaymentSystem PaymentSystem { get; init; }
+    public string? ReturnUrl { get; init; }
 }
