@@ -48,4 +48,9 @@ public static class ErrorMessagesConstants
             ? $"{property} must be in a valid format"
             : $"{property} must be in a valid format of {format}";
     }
+
+    public static string PropertyMustHaveALengthOfNCharacters(string property, int length)
+    {
+        return $"{property} must have a length of {length} characters";
+    }
 }

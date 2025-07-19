@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Text.Json.Serialization;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
@@ -6,9 +8,14 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Commands.Donation.Common;
+using VictoryCenter.BLL.Factories.Donation.Interfaces;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Options.Donation;
+using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -58,19 +65,24 @@ public static class ServicesConfiguration
         {
             opt.AddDefaultPolicy(policy =>
             {
-                policy.WithOrigins(corsSettings.AllowedOrigins)
-                    .WithHeaders(corsSettings.AllowedHeaders)
-                    .WithMethods(corsSettings.AllowedMethods)
-                    .WithExposedHeaders(corsSettings.ExposedHeaders)
-                    .AllowCredentials()
-                    .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
+                // policy.WithOrigins(corsSettings.AllowedOrigins)
+                //     .WithHeaders(corsSettings.AllowedHeaders)
+                //     .WithMethods(corsSettings.AllowedMethods)
+                //     .WithExposedHeaders(corsSettings.ExposedHeaders)
+                //     .AllowCredentials()
+                //     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
+
+                policy.AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowAnyOrigin();
             });
         });
     }
 
     public static void AddCustomServices(this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()); });
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
         services.AddMediatR(cfg =>
@@ -86,7 +98,23 @@ public static class ServicesConfiguration
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<Way4PayOptions>()
+            .BindConfiguration(Way4PayOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient("Way4PayClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+            {
+                AllowAutoRedirect = false
+            });
+
         services.AddSingleton<ITokenService, TokenService>();
+
+        services.AddScoped<IDonationService, DonationService>();
+
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IDonationFactory), ServiceLifetime.Scoped);
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IDonationCommandHandler<,>), ServiceLifetime.Scoped);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
@@ -214,5 +242,15 @@ public static class ServicesConfiguration
                 }
             });
         });
+    }
+
+    private static void ScanInterfacesAndRegisterImplementations(this IServiceCollection services, Assembly assembly, Type interfaceType, ServiceLifetime lifetime)
+    {
+        var implementations = assembly.GetTypes().Where(x => !x.IsAbstract && x.IsClass && interfaceType.IsAssignableFrom(x));
+
+        foreach (Type implementation in implementations)
+        {
+            services.Add(new ServiceDescriptor(interfaceType, implementation, lifetime));
+        }
     }
 }

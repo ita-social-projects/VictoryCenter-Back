@@ -42,7 +42,7 @@ public static class OpenTelemetryConfiguration
     {
         ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(ServiceName, ServiceVersion);
 
-        logging.ClearProviders();
+        // logging.ClearProviders();
         logging.AddOpenTelemetry(loggingOptions =>
         {
             loggingOptions.SetResourceBuilder(resourceBuilder);
