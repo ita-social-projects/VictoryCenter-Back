@@ -54,8 +54,8 @@ namespace VictoryCenter.DAL.Migrations
                 {
                     table.PrimaryKey("PK_FaqPlacements", x => new { x.PageId, x.QuestionId });
                     table.ForeignKey(
-                        name: "FK_FaqPlacements_FaqQuestions_PageId",
-                        column: x => x.PageId,
+                        name: "FK_FaqPlacements_FaqQuestions_QuestionId",
+                        column: x => x.QuestionId,
                         principalTable: "FaqQuestions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -72,6 +72,11 @@ namespace VictoryCenter.DAL.Migrations
                 table: "FaqPlacements",
                 columns: new[] { "PageId", "Priority" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FaqPlacements_QuestionId",
+                table: "FaqPlacements",
+                column: "QuestionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_VisitorPages_Slug",

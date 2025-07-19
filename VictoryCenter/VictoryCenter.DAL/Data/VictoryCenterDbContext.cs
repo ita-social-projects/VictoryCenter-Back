@@ -81,7 +81,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
             entity.HasOne(e => e.Question)
                 .WithMany(e => e.Placements)
-                .HasForeignKey(e => e.PageId)
+                .HasForeignKey(e => e.QuestionId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(e => new { e.PageId, e.Priority })

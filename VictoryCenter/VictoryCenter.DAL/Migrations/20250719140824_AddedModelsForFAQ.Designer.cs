@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250719082244_AddedModelsForFAQ")]
+    [Migration("20250719140824_AddedModelsForFAQ")]
     partial class AddedModelsForFAQ
     {
         /// <inheritdoc />
@@ -271,6 +271,8 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("PageId", "QuestionId");
 
+                    b.HasIndex("QuestionId");
+
                     b.HasIndex("PageId", "Priority")
                         .IsUnique();
 
@@ -428,15 +430,15 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.FaqQuestion", "Question")
-                        .WithMany("Placements")
+                    b.HasOne("VictoryCenter.DAL.Entities.VisitorPage", "Page")
+                        .WithMany("Questions")
                         .HasForeignKey("PageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("VictoryCenter.DAL.Entities.VisitorPage", "Page")
-                        .WithMany("Questions")
-                        .HasForeignKey("PageId")
+                    b.HasOne("VictoryCenter.DAL.Entities.FaqQuestion", "Question")
+                        .WithMany("Placements")
+                        .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

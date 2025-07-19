@@ -13,7 +13,8 @@ public class FaqQuestionsProfile : Profile
 
         CreateMap<UpdateFaqQuestionDto, FaqQuestion>();
 
-        CreateMap<FaqQuestion, FaqQuestionDto>();
+        CreateMap<FaqQuestion, FaqQuestionDto>()
+            .ForMember(dest => dest.PageIds, opt => opt.MapFrom(src => src.Placements.Select(p => p.PageId)));
 
         CreateMap<FaqQuestion, PublishedFaqQuestionDto>();
     }

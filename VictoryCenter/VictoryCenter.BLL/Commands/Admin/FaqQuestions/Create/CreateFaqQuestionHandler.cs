@@ -44,23 +44,14 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
                     return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(pageId, typeof(VisitorPage)));
                 }
 
-                // var maxPriority = await _repositoryWrapper.FaqPlacementsRepository.MaxAsync(
-                //         place => place.Priority,
-                //         place => place.PageId == pageId);
-
-                // entity.Placements.Add(new FaqPlacement
-                // {
-                //     PageId = pageId,
-                //     Priority = (maxPriority ?? 0) + 1
-                // });
-
-                var maxPriority = (await _repositoryWrapper.FaqPlacementsRepository
-                    .GetAllAsync()).Where(p => p.PageId == pageId).MaxBy(p => p.Priority)?.Priority ?? 0;
+                var maxPriority = await _repositoryWrapper.FaqPlacementsRepository.MaxAsync(
+                        place => place.Priority,
+                        place => place.PageId == pageId);
 
                 entity.Placements.Add(new FaqPlacement
                 {
                     PageId = pageId,
-                    Priority = maxPriority + 1
+                    Priority = (maxPriority ?? 0) + 1
                 });
             }
 
