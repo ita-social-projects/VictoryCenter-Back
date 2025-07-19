@@ -6,7 +6,7 @@ using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetById;
-using VictoryCenter.BLL.Queries.Admin.Pages.GetAll;
+using VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -16,7 +16,7 @@ public class FaqController : AuthorizedApiController
     [HttpGet("pages")]
     public async Task<IActionResult> GetAllPages()
     {
-        return HandleResult(await Mediator.Send(new GetAllPagesQuery()));
+        return HandleResult(await Mediator.Send(new GetAllVisitorPagesQuery()));
     }
 
     [HttpGet]
@@ -52,8 +52,8 @@ public class FaqController : AuthorizedApiController
     }
 
     [HttpPut("reorder")]
-    public async Task<IActionResult> ReorderQuestions([FromBody] ReorderFaqQuestionsDto dto)
+    public async Task<IActionResult> ReorderQuestions([FromBody] ReorderFaqQuestionsDto reorderFaqQuestionsDto)
     {
-        return HandleResult(await Mediator.Send(new ReorderFaqQuestionsCommand(dto)));
+        return HandleResult(await Mediator.Send(new ReorderFaqQuestionsCommand(reorderFaqQuestionsDto)));
     }
 }
