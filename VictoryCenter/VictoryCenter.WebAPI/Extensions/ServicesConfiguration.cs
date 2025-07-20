@@ -62,7 +62,6 @@ public static class ServicesConfiguration
                     .WithHeaders(corsSettings.AllowedHeaders)
                     .WithMethods(corsSettings.AllowedMethods)
                     .WithExposedHeaders(corsSettings.ExposedHeaders)
-                    .AllowCredentials()
                     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
             });
         });
