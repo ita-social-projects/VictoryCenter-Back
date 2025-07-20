@@ -35,4 +35,5 @@ WORKDIR /app
 COPY --from=publish /app/publish ./
 
 LABEL atom="VictoryCenter"
+ENV ASPNETCORE_ENVIRONMENT=Production
 ENTRYPOINT ["dotnet", "VictoryCenter.WebAPI.dll"]
