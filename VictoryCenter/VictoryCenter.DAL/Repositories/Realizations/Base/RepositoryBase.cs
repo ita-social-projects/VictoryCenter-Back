@@ -53,14 +53,44 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return tmp.Entity;
     }
 
+    public async Task CreateRangeAsync(params T[] entities)
+    {
+        await _dbContext.Set<T>().AddRangeAsync(entities);
+    }
+
+    public async Task CreateRangeAsync(IEnumerable<T> entities)
+    {
+        await _dbContext.Set<T>().AddRangeAsync(entities);
+    }
+
     public EntityEntry<T> Update(T entity)
     {
         return _dbContext.Set<T>().Update(entity);
     }
 
+    public void UpdateRange(params T[] entities)
+    {
+        _dbContext.Set<T>().UpdateRange(entities);
+    }
+
+    public void UpdateRange(IEnumerable<T> entities)
+    {
+        _dbContext.Set<T>().UpdateRange(entities);
+    }
+
     public void Delete(T entity)
     {
         _dbContext.Set<T>().Remove(entity);
+    }
+
+    public void DeleteRange(params T[] entities)
+    {
+        _dbContext.Set<T>().RemoveRange(entities);
+    }
+
+    public void DeleteRange(IEnumerable<T> entities)
+    {
+        _dbContext.Set<T>().RemoveRange(entities);
     }
 
     public async Task<TKey?> MaxAsync<TKey>(
