@@ -33,15 +33,15 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>()
                 {
-                    Filter = c => c.Id == request.createTeamMemberDto.CategoryId
+                    Filter = c => c.Id == request.CreateTeamMemberDto.CategoryId
                 });
 
             if (category == null)
             {
-                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.createTeamMemberDto.CategoryId, typeof(Category)));
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
-            TeamMember? entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
+            TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
             using TransactionScope scope = _repositoryWrapper.BeginTransaction();
 
             entity.CreatedAt = DateTime.UtcNow;

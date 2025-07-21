@@ -7,6 +7,6 @@ public class CreateTeamMemberValidator : AbstractValidator<CreateTeamMemberComma
 {
     public CreateTeamMemberValidator(BaseTeamMembersValidator baseTeamMembersValidator)
     {
-        RuleFor(c => c.createTeamMemberDto).SetValidator(baseTeamMembersValidator);
+        RuleFor(c => c.CreateTeamMemberDto).SetValidator(baseTeamMembersValidator);
     }
 }
