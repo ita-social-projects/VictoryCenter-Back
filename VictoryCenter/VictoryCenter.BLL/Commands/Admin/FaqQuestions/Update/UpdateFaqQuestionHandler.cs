@@ -51,6 +51,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
             entityToUpdate.CreatedAt = faqQuestionEntity.CreatedAt;
 
             using TransactionScope scope = _repositoryWrapper.BeginTransaction();
+
             int affectedRows = 0;
 
             _repositoryWrapper.FaqQuestionsRepository.Update(entityToUpdate);
@@ -64,63 +65,62 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                 })).ToList();
 
             var pageIds = questionPlacements.Select(fp => fp.PageId).ToList();
-            var deletedIds = pageIds.Except(request.UpdateFaqQuestionDto.PageIds).ToList();
-            var addedIds = request.UpdateFaqQuestionDto.PageIds.Except(pageIds).ToList();
+            var removedPageIds = pageIds.Except(request.UpdateFaqQuestionDto.PageIds).ToList();
+            var addedPageIds = request.UpdateFaqQuestionDto.PageIds.Except(pageIds).ToList();
 
-            if (deletedIds.Count > 0)
+            if (removedPageIds.Count > 0)
             {
                 var affectedPages = await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
                     new QueryOptions<FaqPlacement>
                     {
-                        Filter = fp => deletedIds.Contains(fp.PageId),
+                        Filter = fp => removedPageIds.Contains(fp.PageId),
                     });
                 var pageGroups = affectedPages.GroupBy(p => p.PageId).ToList();
 
-                var deleted = questionPlacements.Where(p => deletedIds.Contains(p.PageId)).ToList();
+                var deleted = questionPlacements.Where(p => removedPageIds.Contains(p.PageId)).ToList();
                 _repositoryWrapper.FaqPlacementsRepository.DeleteRange(deleted);
                 affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-                var t = (await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync()).Where(x => x.PageId == 3).ToList();
-
-                foreach (var id in deletedIds)
+                foreach (var id in removedPageIds)
                 {
-                    var group = pageGroups.FirstOrDefault(g => g.Key == id)?.ToList() ?? throw new InvalidOperationException();
-                    var question = questionPlacements.FirstOrDefault(q => q.PageId == id) ?? throw new InvalidOperationException();
+                    var question = questionPlacements.Single(q => q.PageId == id && q.QuestionId == request.Id);
+                    var group = pageGroups
+                        .Single(g => g.Key == id)
+                        .OrderBy(q => q.Priority)
+                        .Skip((int)question.Priority)
+                        .ToList();
 
-                    for (int i = (int)question.Priority; i < group.Count; i++)
+                    foreach (var faq in group)
                     {
-                        // Workaround to avoid duplicate values
-                        group[i].Priority = -(group[i].Priority - 1);
+                        faq.Priority = -(faq.Priority - 1);
                     }
 
-                    _repositoryWrapper.FaqPlacementsRepository.UpdateRange(group.Skip((int)question.Priority));
+                    _repositoryWrapper.FaqPlacementsRepository.UpdateRange(group);
                     affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-                    for (int i = (int)question.Priority; i < group.Count; i++)
+                    foreach (var faq in group)
                     {
-                        // Get back to the normal state
-                        group[i].Priority = -group[i].Priority;
+                        faq.Priority = -faq.Priority;
                     }
 
-                    _repositoryWrapper.FaqPlacementsRepository.UpdateRange(group.Skip((int)question.Priority));
                     affectedRows += await _repositoryWrapper.SaveChangesAsync();
                 }
             }
 
-            if (addedIds.Count > 0)
+            if (addedPageIds.Count > 0)
             {
                 var affectedPages = await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
                     new QueryOptions<FaqPlacement>
                     {
-                        Filter = fp => addedIds.Contains(fp.PageId),
+                        Filter = fp => addedPageIds.Contains(fp.PageId),
                     });
                 var pageGroups = affectedPages.GroupBy(p => p.PageId).ToList();
 
                 var newPlacements = new List<FaqPlacement>();
 
-                foreach (var id in addedIds)
+                foreach (var id in addedPageIds)
                 {
-                    var group = pageGroups.FirstOrDefault(g => g.Key == id)?.ToList() ?? throw new InvalidOperationException();
+                    var group = pageGroups.Single(g => g.Key == id).ToList();
                     var maxPriority = group.Max(fp => fp.Priority);
                     var newPlacement = new FaqPlacement
                     {
@@ -153,6 +153,10 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
         catch (ValidationException vex)
         {
             return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Result.Fail<FaqQuestionDto>(ex.Message);
         }
     }
 }

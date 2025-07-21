@@ -35,7 +35,7 @@ public class GetFaqQuestionsByFiltersHandler : IRequestHandler<GetFaqQuestionsBy
             Limit = request.FaqQuestionsFilterDto.Limit is not null and > 0 ?
             (int)request.FaqQuestionsFilterDto.Limit : 0,
             Filter = filter,
-            OrderByASC = t => t.Placements.First().Priority,
+            OrderByASC = pageId != null ? t => t.Placements.FirstOrDefault(p => p.PageId == pageId)!.Priority : null,
         };
 
         var teamMembers = await _repository.FaqQuestionsRepository.GetAllAsync(queryOptions);
