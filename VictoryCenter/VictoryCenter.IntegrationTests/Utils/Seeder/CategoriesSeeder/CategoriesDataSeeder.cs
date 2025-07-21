@@ -1,14 +1,28 @@
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
-internal static class CategoriesDataSeeder
+public class CategoriesSeeder : BaseSeeder<Category>
 {
-    public static void SeedData(VictoryCenterDbContext dbContext)
+    public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger)
+        : base(dbContext, logger)
     {
-        List<Category> categories =
-        [
+    }
+
+    public override string Name => "CategoriesSeeder";
+    public override int Order => 1;
+
+    protected override Task<bool> ShouldSkipAsync()
+    {
+        return Task.FromResult(_dbContext.Categories.Any());
+    }
+
+    protected override Task<List<Category>> GenerateEntitiesAsync()
+    {
+        var categories = new List<Category>
+        {
             new()
             {
                 Name = "Test name1",
@@ -26,9 +40,9 @@ internal static class CategoriesDataSeeder
                 Name = "Test name3",
                 Description = "Test description3",
                 CreatedAt = DateTime.UtcNow
-            },
-        ];
-        dbContext.Categories.AddRange(categories);
-        dbContext.SaveChanges();
+            }
+        };
+
+        return Task.FromResult(categories);
     }
 }

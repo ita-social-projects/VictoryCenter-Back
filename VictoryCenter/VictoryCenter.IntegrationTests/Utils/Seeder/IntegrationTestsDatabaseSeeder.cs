@@ -1,22 +1,49 @@
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
+using VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeder;
 
-internal static class IntegrationTestsDatabaseSeeder
+public class SeederManager
 {
-    public static void SeedData(VictoryCenterDbContext dbContext)
+    private readonly VictoryCenterDbContext _dbContext;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly List<ISeeder> _seeders;
+
+    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory)
     {
-        CategoriesDataSeeder.SeedData(dbContext);
-        TeamMemberSeeder.SeedData(dbContext, dbContext.Categories.ToList());
+        _dbContext = dbContext;
+        _loggerFactory = loggerFactory;
+
+        _seeders = new List<ISeeder>
+        {
+            new CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder>()),
+            new TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder>())
+        }
+        .OrderBy(s => s.Order)
+        .ToList();
     }
 
-    public static async Task DeleteExistingData(VictoryCenterDbContext dbContext)
+    public async Task<bool> SeedAllAsync()
     {
-        dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
-        await dbContext.SaveChangesAsync();
-        dbContext.Categories.RemoveRange(dbContext.Categories);
-        await dbContext.SaveChangesAsync();
+        foreach (var seeder in _seeders)
+        {
+            var result = await seeder.SeedAsync();
+            if (!result.Success)
+            {
+                await DisposeAllAsync();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public async Task DisposeAllAsync()
+    {
+        foreach (var seeder in _seeders.OrderByDescending(s => s.Order))
+        {
+            await seeder.DisposeAsync();
+        }
     }
 }

@@ -1,28 +1,54 @@
-﻿using VictoryCenter.DAL.Data;
+﻿using Microsoft.Extensions.Logging;
+using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
+using Microsoft.EntityFrameworkCore;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
-internal static class TeamMemberSeeder
+public class TeamMembersSeeder : BaseSeeder<TeamMember>
 {
     private const int TeamMemberCount = 8;
 
-    public static void SeedData(VictoryCenterDbContext dbContext, List<Category> categories)
+    public TeamMembersSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMembersSeeder> logger)
+        : base(dbContext, logger)
     {
+    }
+
+    public override string Name => "TeamMembersSeeder";
+
+    public override int Order => 2;
+
+    protected override async Task<bool> ShouldSkipAsync()
+    {
+        return await _dbContext.TeamMembers.CountAsync() >= TeamMemberCount;
+    }
+
+    protected override async Task<List<TeamMember>> GenerateEntitiesAsync()
+    {
+        var categories = await _dbContext.Categories.ToListAsync();
+        if (categories.Count < 2)
+        {
+            throw new InvalidOperationException("At least 2 categories required to seed team members.");
+        }
+
+        var selectedCategories = categories.Take(2).ToList();
+
+        var teamMembers = new List<TeamMember>();
+
         for (int i = 0; i < TeamMemberCount; i++)
         {
-            var teamMember = new TeamMember
+            var category = selectedCategories[i % selectedCategories.Count];
+            teamMembers.Add(new TeamMember
             {
                 FullName = $"FirstName{i} LastName{i}",
-                CategoryId = categories[i % (categories.Count - 1)].Id,
+                CategoryId = category.Id,
                 Priority = i + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
                 CreatedAt = DateTime.UtcNow.AddMinutes(-10 * i)
-            };
-            dbContext.TeamMembers.Add(teamMember);
+            });
         }
 
-        dbContext.SaveChanges();
+        return teamMembers;
     }
 }

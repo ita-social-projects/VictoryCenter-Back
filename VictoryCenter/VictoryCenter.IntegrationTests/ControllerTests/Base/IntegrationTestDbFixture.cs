@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,25 +20,33 @@ public class IntegrationTestDbFixture : IDisposable
     public readonly HttpClient HttpClient;
     public readonly VictoryCenterDbContext DbContext;
     public readonly VictoryCenterWebApplicationFactory<Program> Factory;
+    private readonly IServiceScope _scope;
+    private readonly SeederManager _seederManager;
 
     public IntegrationTestDbFixture()
     {
         Factory = new VictoryCenterWebApplicationFactory<Program>();
-        var scope = Factory.Services.CreateScope();
-        DbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        _scope = Factory.Services.CreateScope();
+        DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         HttpClient = Factory.CreateClient();
+
+        var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        _seederManager = new SeederManager(DbContext, loggerFactory);
 
         DbContext.Database.EnsureDeleted();
         DbContext.Database.Migrate();
-        IntegrationTestsDatabaseSeeder.SeedData(DbContext);
-        EnsureTestAdminUser(scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(scope.ServiceProvider));
+        _seederManager.SeedAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
+
+        HttpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
     }
 
     public void Dispose()
     {
-        IntegrationTestsDatabaseSeeder.DeleteExistingData(DbContext);
+        _seederManager.DisposeAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         DbContext.Dispose();
+        _scope.Dispose();
     }
 
     private string GetAuthorizationToken(IServiceProvider serviceProvider)
@@ -47,7 +56,7 @@ public class IntegrationTestDbFixture : IDisposable
         var logger = serviceProvider.GetRequiredService<ILogger<TokenService>>();
         var tokenService = new TokenService(jwtOptions, configuration, logger);
 
-        return tokenService.CreateAccessToken([]);
+        return tokenService.CreateAccessToken(Array.Empty<Claim>());
     }
 
     private async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
@@ -70,7 +79,8 @@ public class IntegrationTestDbFixture : IDisposable
             var result = await userManager.CreateAsync(admin, TestPassword);
             if (!result.Succeeded)
             {
-                throw new InvalidOperationException($"Failed to create test admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                throw new InvalidOperationException(
+                    $"Failed to create test admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
             }
         }
     }
