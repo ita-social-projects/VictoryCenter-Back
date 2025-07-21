@@ -28,7 +28,6 @@ public class RepositoryBase<T> : IRepositoryBase<T>
             query = ApplyFilter(query, queryOptions.Filter);
             query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
             query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
-            query = ApplySelector(query, queryOptions.Selector);
         }
 
         return await query.ToListAsync();
@@ -136,11 +135,6 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         }
 
         return query;
-    }
-
-    private static IQueryable<T> ApplySelector(IQueryable<T> query, Expression<Func<T, T>>? selector)
-    {
-        return selector != null ? query.Select(selector) : query;
     }
 
     private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)
