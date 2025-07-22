@@ -5,6 +5,7 @@ using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
@@ -108,7 +109,12 @@ public class UpdateTeamMemberTests
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {
             FullName = "Updated Name",
-            CategoryId = 1,
+            Category = new CategoryDto
+            {
+                Id = 1,
+                Name = "Test Category",
+                Description = "Test category description"
+            },
             Priority = 1,
             Status = Status.Published,
             Description = testDescription,
@@ -138,7 +144,7 @@ public class UpdateTeamMemberTests
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(testUpdatedTeamMemberDto.CategoryId, result.Value.CategoryId);
+        Assert.Equal(testUpdatedTeamMemberDto.Category.Id, result.Value.Category.Id);
         Assert.Equal(testUpdatedTeamMemberDto.Priority, result.Value.Priority);
         Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
         Assert.Equal(testUpdatedTeamMemberDto.FullName, result.Value.FullName);
