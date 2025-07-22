@@ -17,8 +17,7 @@ public class DonationRequestValidator : AbstractValidator<DonationRequestDto>
 
         RuleFor(x => x.Currency)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(DonationRequestDto.Currency)))
-            .Matches(CurrencyExpression).WithMessage(InvalidCurrencyCode)
-            .Length(CurrencyCodeLenght).WithMessage(ErrorMessagesConstants.PropertyMustHaveALengthOfNCharacters(nameof(DonationRequestDto.Currency), CurrencyCodeLenght));
+            .Matches(CurrencyExpression).WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(DonationRequestDto.Currency), "3 uppercase letters"));
 
         RuleFor(x => x.PaymentSystem)
             .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(DonationRequestDto.PaymentSystem)));

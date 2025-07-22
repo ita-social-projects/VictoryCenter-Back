@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Donation.Way4Pay;
@@ -15,7 +16,8 @@ public class Way4PayDonationFactoryTests
     {
         var optionsMock = new Mock<IOptions<Way4PayOptions>>();
         var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        _donationFactory = new Way4PayDonationFactory(optionsMock.Object, httpClientFactoryMock.Object);
+        var loggerMock = new Mock<ILogger<Way4PayDonationCommandHandler>>();
+        _donationFactory = new Way4PayDonationFactory(optionsMock.Object, httpClientFactoryMock.Object, loggerMock.Object);
     }
 
     [Fact]

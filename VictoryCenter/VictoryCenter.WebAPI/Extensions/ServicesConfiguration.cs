@@ -244,11 +244,27 @@ public static class ServicesConfiguration
 
     private static void ScanInterfacesAndRegisterImplementations(this IServiceCollection services, Assembly assembly, Type interfaceType, ServiceLifetime lifetime)
     {
-        var implementations = assembly.GetTypes().Where(x => !x.IsAbstract && x.IsClass && interfaceType.IsAssignableFrom(x));
+        var types = assembly.GetTypes().Where(x => !x.IsAbstract && x.IsClass);
 
-        foreach (Type implementation in implementations)
+        foreach (var type in types)
         {
-            services.Add(new ServiceDescriptor(interfaceType, implementation, lifetime));
+            var interfaces = type.GetInterfaces();
+
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                var matchingInterfaces = interfaces.Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
+                foreach (var matchingInterface in matchingInterfaces)
+                {
+                    services.Add(new ServiceDescriptor(matchingInterface, type, lifetime));
+                }
+            }
+            else
+            {
+                if (interfaces.Contains(interfaceType))
+                {
+                    services.Add(new ServiceDescriptor(interfaceType, type, lifetime));
+                }
+            }
         }
     }
 }

@@ -93,17 +93,6 @@ public class DonationRequestValidatorTests
     }
 
     [Fact]
-    public void Validate_PaymentSystemIsNull_ShouldHaveValidationError()
-    {
-        var dto = new DonationRequestDto
-        {
-            Amount = 10,
-            Currency = "USD",
-            PaymentSystem = (PaymentSystem)0
-        };
-    }
-
-    [Fact]
     public void Validate_AllFieldsValid_ShouldNotHaveAnyValidationErrors()
     {
         var dto = new DonationRequestDto

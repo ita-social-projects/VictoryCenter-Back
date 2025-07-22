@@ -3,6 +3,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using FluentResults;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Commands.Donation.Common;
 using VictoryCenter.BLL.Constants;
@@ -16,11 +17,13 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
 {
     private readonly IOptions<Way4PayOptions> _way4PayOptions;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<Way4PayDonationCommandHandler> _logger;
 
-    public Way4PayDonationCommandHandler(IOptions<Way4PayOptions> way4PayOptions, IHttpClientFactory httpClientFactory)
+    public Way4PayDonationCommandHandler(IOptions<Way4PayOptions> way4PayOptions, IHttpClientFactory httpClientFactory, ILogger<Way4PayDonationCommandHandler> logger)
     {
         _way4PayOptions = way4PayOptions;
         _httpClientFactory = httpClientFactory;
+        _logger = logger;
     }
 
     public async Task<Result<DonationResponseDto>> Handle(DonationCommand request, CancellationToken cancellationToken)
@@ -46,9 +49,9 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
 
         if (request.Request.IsSubscription)
         {
-            purchaseRequest.RegularBehavior = "preset";
+            purchaseRequest.RegularBehavior = PaymentConstants.RegularPaymentBehaviour;
             purchaseRequest.RegularAmount = request.Request.Amount;
-            purchaseRequest.RegularMode = "monthly";
+            purchaseRequest.RegularMode = PaymentConstants.RegularPaymentMode;
             purchaseRequest.RegularOn = true;
         }
 
@@ -69,10 +72,10 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
         if (purchaseRequest.RegularOn.HasValue && purchaseRequest.RegularOn.Value)
         {
             keyValues["regularOn"] = "1";
-            keyValues["regularAmount"] = purchaseRequest.RegularAmount?.ToString()!;
+            keyValues["regularAmount"] = purchaseRequest.RegularAmount?.ToString(CultureInfo.InvariantCulture) ?? purchaseRequest.Amount.ToString(CultureInfo.InvariantCulture);
             keyValues["regularMode"] = purchaseRequest.RegularMode!;
             keyValues["regularBehavior"] = purchaseRequest.RegularBehavior!;
-            keyValues["regularCount"] = "12";
+            keyValues["regularCount"] = PaymentConstants.RegularPaymentCount;
         }
 
         if (!string.IsNullOrWhiteSpace(purchaseRequest.ReturnUrl))
@@ -91,21 +94,34 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
             Content = content
         };
 
-        var response = await client.SendAsync(httpRequestMessage, cancellationToken);
-
-        if (response.StatusCode is HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.Moved)
+        try
         {
-            var redirectUrl = response.Headers.Location?.ToString();
-            if (!string.IsNullOrEmpty(redirectUrl))
-            {
-                return Result.Ok(new DonationResponseDto()
-                {
-                    PaymentUrl = redirectUrl
-                });
-            }
-        }
+            var response = await client.SendAsync(httpRequestMessage, cancellationToken);
 
-        return Result.Fail(response.ReasonPhrase);
+            if (response.StatusCode is HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.Moved)
+            {
+                var redirectUrl = response.Headers.Location?.ToString();
+                if (!string.IsNullOrEmpty(redirectUrl))
+                {
+                    return Result.Ok(new DonationResponseDto()
+                    {
+                        PaymentUrl = redirectUrl
+                    });
+                }
+            }
+
+            return Result.Fail(response.ReasonPhrase ?? PaymentConstants.PaymentRequestFailedWithStatus(response.StatusCode));
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error occured when processing payment request: {ErrorMessage}", ex.Message);
+            return Result.Fail(PaymentConstants.FailedToCommunicateWithPaymentGateway(ex.Message));
+        }
+        catch (TaskCanceledException ex)
+        {
+            _logger.LogError(ex, PaymentConstants.PaymentRequestWasCancelledOrTimedOut);
+            return Result.Fail(PaymentConstants.PaymentRequestWasCancelledOrTimedOut);
+        }
     }
 
     private string GenerateMerchantSignature(DonationCommand request, Guid orderReference, long orderDate)
@@ -116,11 +132,11 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
             _way4PayOptions.Value.MerchantDomainName,
             orderReference,
             orderDate,
-            request.Request.Amount,
+            request.Request.Amount.ToString(CultureInfo.InvariantCulture),
             request.Request.Currency,
             PaymentConstants.ProductName,
             1,
-            request.Request.Amount);
+            request.Request.Amount.ToString(CultureInfo.InvariantCulture));
 
         var secretKeyBytes = Encoding.UTF8.GetBytes(_way4PayOptions.Value.MerchantSecretKey);
         var signatureBytes = Encoding.UTF8.GetBytes(concatenatedValues);
@@ -128,7 +144,7 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
         using var hmac = new HMACMD5(secretKeyBytes);
 
         var bytes = hmac.ComputeHash(signatureBytes);
-        var sb = new StringBuilder();
+        var sb = new StringBuilder(bytes.Length * 2);
         foreach (var b in bytes)
         {
             sb.Append(b.ToString("x2"));

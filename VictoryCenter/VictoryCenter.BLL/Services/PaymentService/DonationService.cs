@@ -35,6 +35,6 @@ public class DonationService : IDonationService
 
         var commandHandler = donationFactory.GetRequestHandler();
 
-        return await commandHandler.Handle(new DonationCommand(request), CancellationToken.None);
+        return await commandHandler.Handle(new DonationCommand(request), cancellationToken);
     }
 }

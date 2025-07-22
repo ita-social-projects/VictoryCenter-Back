@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Payment.Donation;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 
@@ -19,9 +20,14 @@ public class PaymentsController : BaseApiController
         var result = await _donationService.CreateDonation(request, cancellationToken);
         if (result.IsSuccess)
         {
+            if (string.IsNullOrWhiteSpace(result.Value.PaymentUrl))
+            {
+                return BadRequest(PaymentConstants.PaymentUrlIsNotAvailable);
+            }
+
             return Redirect(result.Value.PaymentUrl);
         }
 
-        return BadRequest("Unable to conduct donation");
+        return BadRequest(result.Errors[0].Message ?? PaymentConstants.UnableToConductDonation);
     }
 }

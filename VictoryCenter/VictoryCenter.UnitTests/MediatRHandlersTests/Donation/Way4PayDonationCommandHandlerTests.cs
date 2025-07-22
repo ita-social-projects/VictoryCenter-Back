@@ -1,9 +1,11 @@
 using System.Net;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
 using VictoryCenter.BLL.Commands.Donation.Common;
 using VictoryCenter.BLL.Commands.Donation.Way4Pay;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Payment;
 using VictoryCenter.BLL.DTOs.Payment.Donation;
 using VictoryCenter.BLL.Options.Donation;
@@ -24,7 +26,8 @@ public class Way4PayDonationCommandHandlerTests
         var (httpClient, mockHttpMessageHandler) = CreateMockHttpClient(response);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(f => f.CreateClient("Way4PayClient")).Returns(httpClient);
-        var handler = new Way4PayDonationCommandHandler(options, httpClientFactory.Object);
+        var logger = new Mock<ILogger<Way4PayDonationCommandHandler>>();
+        var handler = new Way4PayDonationCommandHandler(options, httpClientFactory.Object, logger.Object);
         var command = new DonationCommand(new DonationRequestDto
         {
             Amount = 100,
@@ -57,7 +60,8 @@ public class Way4PayDonationCommandHandlerTests
         var (httpClient, mockHttpMessageHandler) = CreateMockHttpClient(response);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(f => f.CreateClient("Way4PayClient")).Returns(httpClient);
-        var handler = new Way4PayDonationCommandHandler(options, httpClientFactory.Object);
+        var logger = new Mock<ILogger<Way4PayDonationCommandHandler>>();
+        var handler = new Way4PayDonationCommandHandler(options, httpClientFactory.Object, logger.Object);
         var command = new DonationCommand(new DonationRequestDto
         {
             Amount = 100,
@@ -88,10 +92,14 @@ public class Way4PayDonationCommandHandlerTests
         {
             Headers = { Location = new Uri(paymentUrl) }
         };
+
         var (httpClient, mockHttpMessageHandler) = CreateMockHttpClient(response);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(f => f.CreateClient("Way4PayClient")).Returns(httpClient);
-        var handler = new Way4PayDonationCommandHandler(options, httpClientFactory.Object);
+
+        var logger = new Mock<ILogger<Way4PayDonationCommandHandler>>();
+        var handler = new Way4PayDonationCommandHandler(options, httpClientFactory.Object, logger.Object);
+
         var command = new DonationCommand(new DonationRequestDto
         {
             Amount = 100,
@@ -100,17 +108,33 @@ public class Way4PayDonationCommandHandlerTests
             PaymentSystem = PaymentSystem.Way4Pay
         });
 
+        HttpRequestMessage? capturedRequest = null;
+
+        mockHttpMessageHandler.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) => { capturedRequest = req; })
+            .ReturnsAsync(response);
+
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(paymentUrl, result.Value.PaymentUrl);
         httpClientFactory.Verify(x => x.CreateClient("Way4PayClient"), Times.Once);
-        mockHttpMessageHandler.Protected()
-            .Verify(
-                "SendAsync",
-                Times.Once(),
-                ItExpr.Is<HttpRequestMessage>(x => x.Method == HttpMethod.Post),
-                ItExpr.IsAny<CancellationToken>());
+
+        Assert.NotNull(capturedRequest);
+        Assert.Equal(HttpMethod.Post, capturedRequest.Method);
+
+        var contentString = await capturedRequest.Content.ReadAsStringAsync();
+        var parsed = System.Web.HttpUtility.ParseQueryString(contentString);
+
+        Assert.Equal("1", parsed["regularOn"]);
+        Assert.Equal("100", parsed["regularAmount"]);
+        Assert.Equal(PaymentConstants.RegularPaymentMode, parsed["regularMode"]);
+        Assert.Equal(PaymentConstants.RegularPaymentBehaviour, parsed["regularBehavior"]);
+        Assert.Equal(PaymentConstants.RegularPaymentCount, parsed["regularCount"]);
     }
 
     private Way4PayOptions GetDefaultOptions() => new()
