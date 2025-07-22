@@ -22,6 +22,7 @@ public class FaqController : AuthorizedApiController
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(List<FaqQuestionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFilteredQuestions([FromQuery] FaqQuestionsFilterDto faqQuestionsFilterDto)
     {
         return HandleResult(await Mediator.Send(new GetFaqQuestionsByFiltersQuery(faqQuestionsFilterDto)));
@@ -45,12 +46,18 @@ public class FaqController : AuthorizedApiController
     }
 
     [HttpDelete("{id:long}")]
+    [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteQuestion([FromRoute] long id)
     {
         return HandleResult(await Mediator.Send(new DeleteFaqQuestionCommand(id)));
     }
 
     [HttpPut("{id:long}")]
+    [ProducesResponseType(typeof(FaqQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateQuestion(
         [FromBody] UpdateFaqQuestionDto updateFaqQuestionDto,
         [FromRoute] long id)
@@ -59,6 +66,9 @@ public class FaqController : AuthorizedApiController
     }
 
     [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReorderQuestions([FromBody] ReorderFaqQuestionsDto reorderFaqQuestionsDto)
     {
         return HandleResult(await Mediator.Send(new ReorderFaqQuestionsCommand(reorderFaqQuestionsDto)));

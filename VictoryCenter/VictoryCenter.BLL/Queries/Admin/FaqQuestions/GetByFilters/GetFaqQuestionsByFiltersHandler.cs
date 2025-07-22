@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
+
 public class GetFaqQuestionsByFiltersHandler : IRequestHandler<GetFaqQuestionsByFiltersQuery, Result<List<FaqQuestionDto>>>
 {
     private readonly IMapper _mapper;
@@ -35,7 +36,7 @@ public class GetFaqQuestionsByFiltersHandler : IRequestHandler<GetFaqQuestionsBy
             Limit = request.FaqQuestionsFilterDto.Limit is not null and > 0 ?
             (int)request.FaqQuestionsFilterDto.Limit : 0,
             Filter = filter,
-            OrderByASC = pageId != null ? t => t.Placements.FirstOrDefault(p => p.PageId == pageId)!.Priority : null,
+            OrderByASC = pageId != null ? t => t.Placements.Single(p => p.PageId == pageId).Priority : null,
         };
 
         var teamMembers = await _repository.FaqQuestionsRepository.GetAllAsync(queryOptions);

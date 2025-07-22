@@ -52,10 +52,9 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
             long minPriorityToSet = questionsToReorder.MinBy(e => e.Priority)!.Priority;
 
             // Temporarily assign negative priorities to avoid unique constraint conflicts during update
-            long tempPriority = -1;
             foreach (var faq in questionsToReorder)
             {
-                faq.Priority = tempPriority--;
+                faq.Priority = -faq.Priority;
             }
 
             _repositoryWrapper.FaqPlacementsRepository.UpdateRange(questionsToReorder);
