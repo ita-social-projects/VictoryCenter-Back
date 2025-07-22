@@ -116,6 +116,11 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     });
                 var pageGroups = affectedPages.GroupBy(p => p.PageId).ToList();
 
+                if (pageGroups.Count != addedPageIds.Count)
+                {
+                    return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
+                }
+
                 var newPlacements = new List<FaqPlacement>();
 
                 foreach (var id in addedPageIds)
