@@ -4,7 +4,7 @@ using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.UnitTests.ValidatorsTests.TeamMembersTests;
+namespace VictoryCenter.UnitTests.ValidatorsTests.TeamMembers;
 
 public class BaseTeamMembersValidatorTests
 {

@@ -236,7 +236,10 @@ public class ReorderTeamMembers
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyMustBeGreaterThan("Each ID in OrderedIDS", 0), result.Errors[0].Message);
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyMustBePositive(
+            $"Each {nameof(ReorderTeamMembersDto.OrderedIds)} element"),
+            result.Errors[0].Message);
     }
 
     [Fact]
