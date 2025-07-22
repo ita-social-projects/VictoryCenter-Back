@@ -13,17 +13,17 @@ namespace VictoryCenter.BLL.Commands.Admin.FaqQuestions.Create;
 
 public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand, Result<FaqQuestionDto>>
 {
-    private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IMapper _mapper;
     private readonly IValidator<CreateFaqQuestionCommand> _validator;
 
     public CreateFaqQuestionHandler(
-        IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
+        IMapper mapper,
         IValidator<CreateFaqQuestionCommand> validator)
     {
-        _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
+        _mapper = mapper;
         _validator = validator;
     }
 
