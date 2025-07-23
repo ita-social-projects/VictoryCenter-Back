@@ -36,46 +36,54 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            Image? imageEntity =
-                await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
-                {
-                    Filter = entity => entity.Id == request.id
-                });
+            Image? imageEntity = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+            {
+                Filter = entity => entity.Id == request.id
+            });
 
             if (imageEntity is null)
             {
                 return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.id));
             }
 
-            if (!string.IsNullOrEmpty(request.updateImageDto.Base64) &&
-                !string.IsNullOrEmpty(request.updateImageDto.MimeType))
-            {
-                var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
-                    imageEntity.BlobName,
-                    imageEntity.MimeType,
-                    request.updateImageDto.Base64,
-                    imageEntity.BlobName,
-                    request.updateImageDto.MimeType);
+            using var transaction = _repositoryWrapper.BeginTransaction();
 
-                imageEntity.BlobName = updatedBlobName;
-                imageEntity.MimeType = request.updateImageDto.MimeType;
-            }
+            // Спочатку оновлюємо дані в БД
+            imageEntity.MimeType = request.updateImageDto.MimeType!;
 
             var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                ImageDTO? resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
-                resultDto.Base64 =
-                    await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
-                return Result.Ok(resultDto);
+                return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
             }
 
-            return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
+            // Потім оновлюємо файл в blob storage
+            var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
+                imageEntity.BlobName,
+                imageEntity.MimeType,
+                request.updateImageDto.Base64!,
+                imageEntity.BlobName,
+                request.updateImageDto.MimeType!);
+
+            imageEntity.BlobName = updatedBlobName;
+
+            // Повертаємо результат з завантаженим Base64
+            ImageDTO resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
+            resultDto.Base64 = await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
+
+            // Комітимо транзакцію перед поверненням
+            transaction.Complete();
+
+            return Result.Ok(resultDto);
         }
         catch (ValidationException vex)
         {
             return Result.Fail<ImageDTO>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (Exception e)
+        {
+            return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
         }
     }
 }

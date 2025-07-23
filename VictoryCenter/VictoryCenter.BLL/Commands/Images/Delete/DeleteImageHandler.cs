@@ -21,29 +21,42 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
     public async Task<Result<long>> Handle(DeleteImageCommand request, CancellationToken cancellationToken)
     {
-        var entityToDelete =
-            await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+        try
+        {
+            var entityToDelete = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
                 Filter = entity => entity.Id == request.Id,
             });
 
-        if (entityToDelete is null)
-        {
-            return Result.Fail<long>(ImageConstants.ImageNotFound(request.Id));
-        }
+            if (entityToDelete is null)
+            {
+                return Result.Fail<long>(ImageConstants.ImageNotFound(request.Id));
+            }
 
-        if (!string.IsNullOrEmpty(entityToDelete.BlobName))
-        {
-            _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
-        }
+            using var transaction = _repositoryWrapper.BeginTransaction();
 
-        _repositoryWrapper.ImageRepository.Delete(entityToDelete);
+            // Спочатку видаляємо з БД
+            _repositoryWrapper.ImageRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
-        {
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            {
+                return Result.Fail<long>(ImageConstants.FailToDeleteImage);
+            }
+
+            // Потім видаляємо з blob storage
+            if (!string.IsNullOrEmpty(entityToDelete.BlobName))
+            {
+                 _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
+            }
+
+            // Комітимо транзакцію перед поверненням
+            transaction.Complete();
+
             return Result.Ok(entityToDelete.Id);
         }
-
-        return Result.Fail<long>(ImageConstants.FailToDeleteImage);
+        catch (Exception e)
+        {
+            return Result.Fail<long>(ImageConstants.FailToDeleteImage);
+        }
     }
 }

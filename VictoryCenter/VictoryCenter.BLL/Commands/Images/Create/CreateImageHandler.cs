@@ -35,49 +35,37 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            try
+            // Спочатку зберігаємо в базу даних
+            Image image = _mapper.Map<Image>(request.CreateImageDto);
+            image.BlobName = fileName;
+            image.CreatedAt = DateTime.UtcNow;
+
+            Image createdImage = await _repositoryWrapper.ImageRepository.CreateAsync(image);
+
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                // Спочатку зберігаємо в базу даних
-                Image image = _mapper.Map<Image>(request.CreateImageDto);
-                image.BlobName = fileName;
-                image.CreatedAt = DateTime.UtcNow;
-
-                Image createdImage = await _repositoryWrapper.ImageRepository.CreateAsync(image);
-
-                if (await _repositoryWrapper.SaveChangesAsync() <= 0)
-                {
-                    return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInDatabase);
-                }
-
-                // Пробуєм тут зберегти файл в blob storage
-                try
-                {
-                    await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
-                }
-                catch (Exception e)
-                {
-                    // Транзакція автоматично зробить rollback при dispose
-                    return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInStorage);
-                }
-
-                // Якщо все пройшло успішно, комітимо транзакцію
-                transaction.Complete();
-
-                // Повертаємо результат з завантаженим Base64
-                var response = _mapper.Map<ImageDTO>(createdImage);
-                response.Base64 = await _blobService.FindFileInStorageAsBase64Async(response.BlobName, response.MimeType);
-
-                return Result.Ok(response);
+                return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInDatabase);
             }
-            catch (Exception e)
-            {
-                // Транзакція автоматично зробить rollback при dispose
-                return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInStorage);
-            }
+
+            // Потім зберігаємо файл в blob storage
+            await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
+
+            // Повертаємо результат з завантаженим Base64
+            var response = _mapper.Map<ImageDTO>(createdImage);
+            response.Base64 = await _blobService.FindFileInStorageAsBase64Async(response.BlobName, response.MimeType);
+
+            // Комітимо транзакцію прямо перед поверненням
+            transaction.Complete();
+
+            return Result.Ok(response);
         }
         catch (ValidationException vex)
         {
             return Result.Fail<ImageDTO>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (Exception e)
+        {
+            return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInStorage);
         }
     }
 }
