@@ -12,6 +12,12 @@ public static class ImageConstants
     public static readonly string InvalidIVLength = "Invalid IV length";
     public static readonly string ImageNotFoundGeneric = "Image not found";
     public static readonly string ImageBlobNameIsNull = "Image blob name is null";
+    public static readonly string EncryptionFailed = "Encryption failed.";
+    public static readonly string DecryptionFailed = "Decryption failed.";
+    public static readonly string FailedToWriteEncryptedFile = "Failed to write encrypted file.";
+    public static readonly string FailedToReadOrDecryptFile = "Failed to read or decrypt file.";
+    public static readonly string UnexpectedBlobReadError = "Unexpected error during file retrieval.";
+
     public static string FieldIsRequired(string name)
     {
         return $"{name} is required";

@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
 
@@ -24,20 +25,42 @@ public class BlobService : IBlobService
 
     public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
     {
-        byte[] imageBytes = ConvertBase64ToBytes(base64);
-        string extension = GetExtensionFromMimeType(mimeType);
+        try
+        {
+            byte[] imageBytes = ConvertBase64ToBytes(base64);
+            string extension = GetExtensionFromMimeType(mimeType);
 
-        Directory.CreateDirectory(_blobPath);
-        await EncryptFileAsync(imageBytes, extension, name);
+            Directory.CreateDirectory(_blobPath);
+            await EncryptFileAsync(imageBytes, extension, name);
 
-        return $"{name}.{extension}";
+            return $"{name}.{extension}";
+        }
+        catch (InvalidBase64FormatException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new BlobFileSystemException(_blobPath, ImageConstants.FailToSaveImageInStorage, ex);
+        }
     }
 
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
         ArgumentNullException.ThrowIfNull(name);
-        byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
-        return new MemoryStream(decodedBytes);
+        try
+        {
+            byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
+            return new MemoryStream(decodedBytes);
+        }
+        catch (BlobStorageException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new BlobFileSystemException(_blobPath, ImageConstants.UnexpectedBlobReadError, ex);
+        }
     }
 
     public async Task<string> FindFileInStorageAsBase64Async(string name, string mimeType)
@@ -61,9 +84,16 @@ public class BlobService : IBlobService
 
         var fullName = name + "." + GetExtensionFromMimeType(mimeType);
         string filePath = Path.Combine(_blobPath, fullName);
-        if (File.Exists(filePath))
+        try
         {
-            File.Delete(filePath);
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new BlobFileSystemException(filePath, ImageConstants.FailToDeleteImage, ex);
         }
     }
 
@@ -80,7 +110,7 @@ public class BlobService : IBlobService
         {
             if (!Convert.TryFromBase64String(base64, buffer, out int bytesWritten))
             {
-                throw new FormatException(ImageConstants.InvalidBase64String);
+                throw new InvalidBase64FormatException(ImageConstants.InvalidBase64String);
             }
 
             byte[] result = new byte[bytesWritten];
@@ -110,34 +140,45 @@ public class BlobService : IBlobService
         string filePath = Path.Combine(_blobPath, $"{name}.{type}");
         byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
 
-        using var aes = Aes.Create();
-        aes.KeySize = 256;
-        aes.Key = keyBytes;
-        aes.GenerateIV();
-
-        using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-        fileStream.Write(aes.IV, 0, aes.IV.Length);
-
-        using var cryptoStream = new CryptoStream(fileStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
-
-        int bufferSize = 4096;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-
         try
         {
-            using var memoryStream = new MemoryStream(imageBytes);
-            int bytesRead;
-            while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
-            {
-                cryptoStream.Write(buffer, 0, bytesRead);
-            }
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(buffer);
-        }
+            using var aes = Aes.Create();
+            aes.KeySize = 256;
+            aes.Key = keyBytes;
+            aes.GenerateIV();
 
-        await cryptoStream.FlushAsync();
+            using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
+            fileStream.Write(aes.IV, 0, aes.IV.Length);
+
+            using var cryptoStream = new CryptoStream(fileStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
+
+            int bufferSize = 4096;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+            try
+            {
+                using var memoryStream = new MemoryStream(imageBytes);
+                int bytesRead;
+                while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    cryptoStream.Write(buffer, 0, bytesRead);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
+            await cryptoStream.FlushAsync();
+        }
+        catch (CryptographicException ex)
+        {
+            throw new BlobCryptographyException(filePath, ImageConstants.EncryptionFailed, ex);
+        }
+        catch (IOException ex)
+        {
+            throw new BlobFileSystemException(filePath, ImageConstants.FailedToWriteEncryptedFile, ex);
+        }
     }
 
     private async Task<byte[]> DecryptFileAsync(string fileName, string type)
@@ -146,42 +187,53 @@ public class BlobService : IBlobService
 
         if (!File.Exists(filePath))
         {
-            throw new FileNotFoundException(ImageConstants.FileNotFound(filePath));
+            throw new BlobNotFoundException(fileName, ImageConstants.FileNotFound(filePath));
         }
-
-        await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-        byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
-
-        byte[] iv = new byte[16];
-        if (fileStream.Read(iv, 0, iv.Length) != iv.Length)
-        {
-            throw new IOException(ImageConstants.InvalidIVLength);
-        }
-
-        using var aes = Aes.Create();
-        aes.KeySize = 256;
-        aes.Key = keyBytes;
-        aes.IV = iv;
-
-        await using var cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-        await using var memoryStream = new MemoryStream();
-
-        int bufferSize = 4096;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
 
         try
         {
-            int bytesRead;
-            while ((bytesRead = cryptoStream.Read(buffer, 0, buffer.Length)) > 0)
+            await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
+
+            byte[] iv = new byte[16];
+            if (fileStream.Read(iv, 0, iv.Length) != iv.Length)
             {
-                await memoryStream.WriteAsync(buffer, 0, bytesRead);
+                throw new BlobCryptographyException(fileName, ImageConstants.InvalidIVLength);
             }
 
-            return memoryStream.ToArray();
+            using var aes = Aes.Create();
+            aes.KeySize = 256;
+            aes.Key = keyBytes;
+            aes.IV = iv;
+
+            await using var cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
+            await using var memoryStream = new MemoryStream();
+
+            int bufferSize = 4096;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
+
+            try
+            {
+                int bytesRead;
+                while ((bytesRead = cryptoStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    await memoryStream.WriteAsync(buffer, 0, bytesRead);
+                }
+
+                return memoryStream.ToArray();
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
-        finally
+        catch (CryptographicException ex)
         {
-            ArrayPool<byte>.Shared.Return(buffer);
+            throw new BlobCryptographyException(fileName, ImageConstants.DecryptionFailed, ex);
+        }
+        catch (IOException ex)
+        {
+            throw new BlobFileSystemException(filePath, ImageConstants.FailedToReadOrDecryptFile, ex);
         }
     }
 }
