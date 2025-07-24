@@ -6,12 +6,12 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
 
-public class GetAllPagesHandler : IRequestHandler<GetAllVisitorPagesQuery, Result<List<VisitorPageDto>>>
+public class GetAllVisitorPagesHandler : IRequestHandler<GetAllVisitorPagesQuery, Result<List<VisitorPageDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetAllPagesHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetAllVisitorPagesHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
