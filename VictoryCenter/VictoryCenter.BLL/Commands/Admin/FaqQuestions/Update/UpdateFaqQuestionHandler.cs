@@ -64,7 +64,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     OrderByASC = fp => fp.Priority,
                 })).ToList();
 
-            var pageIds = questionPlacements.Select(fp => fp.PageId).ToList();
+            var pageIds = (await _repositoryWrapper.VisitorPagesRepository.GetAllAsync()).Select(p => p.Id).ToList();
             var removedPageIds = pageIds.Except(request.UpdateFaqQuestionDto.PageIds).ToList();
             var addedPageIds = request.UpdateFaqQuestionDto.PageIds.Except(pageIds).ToList();
 
@@ -102,13 +102,19 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     {
                         faq.Priority = -faq.Priority;
                     }
-
-                    affectedRows += await _repositoryWrapper.SaveChangesAsync();
                 }
             }
 
             if (addedPageIds.Count > 0)
             {
+                foreach (var addedId in addedPageIds)
+                {
+                    if (!pageIds.Contains(addedId))
+                    {
+                        return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
+                    }
+                }
+
                 var affectedPages = await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
                     new QueryOptions<FaqPlacement>
                     {
@@ -116,17 +122,12 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     });
                 var pageGroups = affectedPages.GroupBy(p => p.PageId).ToList();
 
-                if (pageGroups.Count != addedPageIds.Count)
-                {
-                    return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
-                }
-
                 var newPlacements = new List<FaqPlacement>();
 
                 foreach (var id in addedPageIds)
                 {
-                    var group = pageGroups.Single(g => g.Key == id).ToList();
-                    var maxPriority = group.Max(fp => fp.Priority);
+                    var group = pageGroups.FirstOrDefault(g => g.Key == id)?.ToList();
+                    var maxPriority = group != null ? group.Max(fp => fp.Priority) : 0;
                     var newPlacement = new FaqPlacement
                     {
                         PageId = id,
