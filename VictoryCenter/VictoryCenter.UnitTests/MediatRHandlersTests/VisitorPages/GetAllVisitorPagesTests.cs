@@ -13,16 +13,16 @@ public class GetAllVisitorPagesTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
 
-    private readonly List<VisitorPage> _testPageEntities = new()
-    {
+    private readonly List<VisitorPage> _testPageEntities =
+    [
         new() { Id = 1, Title = "Програми", Slug = "program-page" },
         new() { Id = 2, Title = "Донати", Slug = "donate-page" }
-    };
-    private readonly List<VisitorPageDto> _testPageDtos = new()
-    {
+    ];
+    private readonly List<VisitorPageDto> _testPageDtos =
+    [
         new() { Id = 1, Title = "Програми", Slug = "program-page" },
         new() { Id = 2, Title = "Донати", Slug = "donate-page" }
-    };
+    ];
 
     public GetAllVisitorPagesTests()
     {
