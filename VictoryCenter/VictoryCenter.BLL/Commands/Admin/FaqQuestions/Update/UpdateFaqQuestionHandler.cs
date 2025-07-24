@@ -43,7 +43,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (faqQuestionEntity is null)
             {
-                return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestionDto)));
+                return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
             }
 
             FaqQuestion? entityToUpdate = _mapper.Map<UpdateFaqQuestionDto, FaqQuestion>(request.UpdateFaqQuestionDto);
@@ -64,9 +64,10 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     OrderByASC = fp => fp.Priority,
                 })).ToList();
 
-            var pageIds = (await _repositoryWrapper.VisitorPagesRepository.GetAllAsync()).Select(p => p.Id).ToList();
-            var removedPageIds = pageIds.Except(request.UpdateFaqQuestionDto.PageIds).ToList();
-            var addedPageIds = request.UpdateFaqQuestionDto.PageIds.Except(pageIds).ToList();
+            var allPageIds = (await _repositoryWrapper.VisitorPagesRepository.GetAllAsync()).Select(p => p.Id).ToList();
+            var existingPageIds = questionPlacements.Select(p => p.PageId).ToList();
+            var removedPageIds = existingPageIds.Except(request.UpdateFaqQuestionDto.PageIds).ToList();
+            var addedPageIds = request.UpdateFaqQuestionDto.PageIds.Except(existingPageIds).ToList();
 
             if (removedPageIds.Count > 0)
             {
@@ -109,7 +110,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
             {
                 foreach (var addedId in addedPageIds)
                 {
-                    if (!pageIds.Contains(addedId))
+                    if (!allPageIds.Contains(addedId))
                     {
                         return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
                     }

@@ -20,7 +20,7 @@ public class UpdateFaqQuestionTests
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly IValidator<UpdateFaqQuestionCommand> _validator;
 
-    private readonly FaqQuestion _testExistingFaqQuestion = new()
+    private readonly FaqQuestion _existingFaqQuestion = new()
     {
         Id = 1,
         QuestionText = new('Q', 15),
@@ -33,7 +33,7 @@ public class UpdateFaqQuestionTests
         CreatedAt = DateTime.UtcNow.AddMinutes(-20)
     };
 
-    private readonly FaqQuestion _updatedFaqQuestion = new()
+    private readonly FaqQuestion _updateFaqQuestion = new()
     {
         Id = 1,
         QuestionText = new('G', 20),
@@ -46,7 +46,7 @@ public class UpdateFaqQuestionTests
         CreatedAt = DateTime.UtcNow.AddMinutes(-20)
     };
 
-    private readonly FaqQuestionDto _updatedFaqQuestionDto = new()
+    private readonly FaqQuestionDto _faqQuestionDto = new()
     {
         Id = 1,
         QuestionText = new('G', 20),
@@ -89,23 +89,55 @@ public class UpdateFaqQuestionTests
     [InlineData(1L, 2L, 3L)]
     public async Task Handle_ValidRequestWithDifferentPageIds_ShouldUpdateEntity(params long[] pageIds)
     {
-        var existingFaqQuestion = _testExistingFaqQuestion;
-        var updatedFaqQuestion = _updatedFaqQuestion;
-        updatedFaqQuestion.Placements =
-            pageIds.Select(id => new FaqPlacement { PageId = id, QuestionId = updatedFaqQuestion.Id, Priority = 1 }).ToList();
-        var validUpdatedFaqQuestionDto = _updatedFaqQuestionDto with
-        { PageIds = pageIds.ToList() };
+        var existingFaqQuestion = _existingFaqQuestion;
+
+        var updateFaqQuestion = _updateFaqQuestion;
+        updateFaqQuestion.Placements =
+            pageIds.Select(id => new FaqPlacement { PageId = id, QuestionId = updateFaqQuestion.Id, Priority = 1 }).ToList();
+
         var validUpdateFaqQuestionDto = _updateFaqQuestionDto with
         { PageIds = pageIds.ToList() };
-        SetupDependencies(existingFaqQuestion, updatedFaqQuestion);
+
+        var validResultFaqQuestionDto = _faqQuestionDto with
+        { PageIds = pageIds.ToList() };
+
+        SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
+        SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<FaqQuestionDto> result = await handler.Handle(
-            new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _testExistingFaqQuestion.Id), CancellationToken.None);
+            new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(validUpdatedFaqQuestionDto, result.Value);
+        Assert.Equal(validResultFaqQuestionDto, result.Value);
+    }
+
+    [Theory]
+    [InlineData(1L, 2L, 3L, 4L)]
+    public async Task Handle_InvalidRequestWithInvalidPageIds_ShouldReturnNotFound(params long[] pageIds)
+    {
+        var existingFaqQuestion = _existingFaqQuestion;
+
+        var updateFaqQuestion = _updateFaqQuestion;
+        updateFaqQuestion.Placements =
+            pageIds.Select(id => new FaqPlacement { PageId = id, QuestionId = updateFaqQuestion.Id, Priority = 1 }).ToList();
+
+        var validUpdateFaqQuestionDto = _updateFaqQuestionDto with
+        { PageIds = pageIds.ToList() };
+
+        var validResultFaqQuestionDto = _faqQuestionDto with
+        { PageIds = pageIds.ToList() };
+
+        SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
+        SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        Result<FaqQuestionDto> result = await handler.Handle(
+            new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(FaqConstants.SomePagesNotFound, result.Errors[0].Message);
     }
 
     [Theory]
@@ -113,15 +145,14 @@ public class UpdateFaqQuestionTests
     [InlineData("")]
     public async Task Handle_InvalidData_ShouldReturnValidationError(string? questionText)
     {
-        var invalidUpdatedFaqQuestionDto = _updatedFaqQuestionDto with
-        { QuestionText = questionText! };
         var invalidUpdateFaqQuestionDto = _updateFaqQuestionDto with
         { QuestionText = questionText! };
-        SetupDependencies(_testExistingFaqQuestion);
+        SetupRepositoryWrapper(null, null);
+
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<FaqQuestionDto> result = await handler.Handle(
-            new UpdateFaqQuestionCommand(invalidUpdateFaqQuestionDto, _testExistingFaqQuestion.Id), CancellationToken.None);
+            new UpdateFaqQuestionCommand(invalidUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateFaqQuestionDto.QuestionText)), result.Errors[0].Message);
@@ -132,7 +163,7 @@ public class UpdateFaqQuestionTests
     [InlineData(0)]
     public async Task Handle_FaqQuestionNotFound_ShouldReturnNotFoundError(long testId)
     {
-        SetupDependencies();
+        SetupRepositoryWrapper(null, null);
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<FaqQuestionDto> result = await handler.Handle(
@@ -145,32 +176,27 @@ public class UpdateFaqQuestionTests
     [Fact]
     public async Task Handle_SaveChangesFails_ShouldReturnFailureError()
     {
-        SetupDependencies(_testExistingFaqQuestion, _testExistingFaqQuestion, -1);
+        SetupRepositoryWrapper(_existingFaqQuestion, _existingFaqQuestion, -1);
+        SetupMapper(_existingFaqQuestion, _faqQuestionDto);
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<FaqQuestionDto> result = await handler.Handle(
-            new UpdateFaqQuestionCommand(_updateFaqQuestionDto, _testExistingFaqQuestion.Id), CancellationToken.None);
+            new UpdateFaqQuestionCommand(_updateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
-    private void SetupDependencies(FaqQuestion? faqQuestionToFind = null, FaqQuestion? faqQuestionToReturn = null, int saveResult = 1)
-    {
-        SetupMapper();
-        SetupRepositoryWrapper(faqQuestionToFind, faqQuestionToReturn, saveResult);
-    }
-
-    private void SetupMapper()
+    private void SetupMapper(FaqQuestion updateFaqQuestion, FaqQuestionDto updatedFaqQuestionDto)
     {
         _mockMapper.Setup(x => x.Map<UpdateFaqQuestionDto, FaqQuestion>(It.IsAny<UpdateFaqQuestionDto>()))
-            .Returns(_updatedFaqQuestion);
+            .Returns(updateFaqQuestion);
 
         _mockMapper.Setup(x => x.Map<FaqQuestion, FaqQuestionDto>(It.IsAny<FaqQuestion>()))
-            .Returns(_updatedFaqQuestionDto);
+            .Returns(updatedFaqQuestionDto);
     }
 
-    private void SetupRepositoryWrapper(FaqQuestion? faqQuestionToFind = null, FaqQuestion? faqQuestionToReturn = null, int saveResult = 1)
+    private void SetupRepositoryWrapper(FaqQuestion? faqQuestionToFind, FaqQuestion? faqQuestionToReturn, int saveResult = 1)
     {
         _mockRepositoryWrapper.SetupSequence(x => x.FaqQuestionsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<FaqQuestion>>()))
             .ReturnsAsync(faqQuestionToFind)
