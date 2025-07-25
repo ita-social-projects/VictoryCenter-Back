@@ -145,7 +145,13 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialAdmin(this WebApplication app)
+    public static async Task CreateInitialData(this WebApplication app)
+    {
+        await app.CreateInitialAdmin();
+        await app.CreateInitialCategories();
+    }
+
+    private static async Task CreateInitialAdmin(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
@@ -178,6 +184,42 @@ public static class ServicesConfiguration
             {
                 var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to create initial admin: {errors}");
+            }
+        }
+    }
+
+    private static async Task CreateInitialCategories(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var categories = new List<Category>
+        {
+            new()
+            {
+                Name = "Основна команда",
+                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "Наглядова рада",
+                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "Радники",
+                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг. " +
+                "Їхні поради — наш додатковий компас.",
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        foreach (var category in categories)
+        {
+            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+            {
+                dbContext.Categories.Add(category);
+                await dbContext.SaveChangesAsync();
             }
         }
     }
