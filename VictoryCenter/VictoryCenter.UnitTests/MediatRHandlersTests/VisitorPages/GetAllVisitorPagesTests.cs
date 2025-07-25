@@ -46,10 +46,8 @@ public class GetAllVisitorPagesTests
         var result = await handler.Handle(new GetAllVisitorPagesQuery(), CancellationToken.None);
 
         // Assert
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(_testPageDtos, result.Value));
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(result.Value, _testPageDtos);
     }
 }
