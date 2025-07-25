@@ -67,7 +67,7 @@ public class GetPublishedFaqQuestionsBySlugTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnOk_WhenPageExistsAndIsNotEmpty()
+    public async Task Handle_PageExistsAndIsNotEmpty_ShouldReturnOk()
     {
         // Arrange
         SetupRepository(_testPlacementEntities);
@@ -79,15 +79,13 @@ public class GetPublishedFaqQuestionsBySlugTests
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.True(result.IsSuccess),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(_testPlacementDtos, result.Value));
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(_testPlacementDtos, result.Value);
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFail_WhenPageDoesNotExistOrIsEmpty()
+    public async Task Handle_PageDoesNotExistOrIsEmpty_ShouldReturnFail()
     {
         // Arrange
         SetupRepository([]);
@@ -99,10 +97,9 @@ public class GetPublishedFaqQuestionsBySlugTests
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.True(result.IsFailed),
-            () => Assert.Equal(FaqConstants.PageNotFoundOrContainsNoFaqQuestions, result.Errors[0].Message));
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Equal(FaqConstants.PageNotFoundOrContainsNoFaqQuestions, result.Errors[0].Message);
     }
 
     private void SetupRepository(List<FaqPlacement> entities)
