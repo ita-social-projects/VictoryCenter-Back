@@ -10,15 +10,13 @@ namespace VictoryCenter.BLL.Services.BlobStorage;
 
 public class BlobService : IBlobService
 {
-    private readonly BlobEnvironmentVariables _environment;
     private readonly string _keyCrypt;
     private readonly string _blobPath;
 
     public BlobService(IOptions<BlobEnvironmentVariables> environment)
     {
-        _environment = environment.Value;
-        _keyCrypt = _environment.BlobStoreKey;
-        _blobPath = _environment.BlobStorePath;
+        _keyCrypt = environment.Value.BlobStoreKey;
+        _blobPath = environment.Value.BlobStorePath;
     }
 
     public string BlobPath => _blobPath;
@@ -35,44 +33,33 @@ public class BlobService : IBlobService
 
             return $"{name}.{extension}";
         }
-        catch (InvalidBase64FormatException)
+        catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new BlobFileSystemException(_blobPath, ImageConstants.FailToSaveImageInStorage, ex);
+            throw new BlobFileSystemException(BlobPath, ex.Message, ex);
         }
     }
 
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
-        ArgumentNullException.ThrowIfNull(name);
-        try
-        {
             byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
             return new MemoryStream(decodedBytes);
-        }
-        catch (BlobStorageException)
-        {
-            throw;
-        }
-        catch (Exception ex)
-        {
-            throw new BlobFileSystemException(_blobPath, ImageConstants.UnexpectedBlobReadError, ex);
-        }
     }
 
     public async Task<string> FindFileInStorageAsBase64Async(string name, string mimeType)
     {
-        using var stream = await FindFileInStorageAsMemoryStreamAsync(name, mimeType);
-        return Convert.ToBase64String(stream.ToArray());
+        try
+        {
+            using var stream = await FindFileInStorageAsMemoryStreamAsync(name, mimeType);
+            return Convert.ToBase64String(stream.ToArray());
+        }
+        catch (Exception ex) when (ex is not BlobStorageException)
+        {
+            throw new InvalidBase64FormatException(ex.Message, ex);
+        }
     }
 
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
-        ArgumentNullException.ThrowIfNull(previousBlobName);
-
         DeleteFileInStorage(previousBlobName, previousMimeType);
         await SaveFileInStorageAsync(base64Format, newBlobName, mimeType);
         return newBlobName;
@@ -80,8 +67,6 @@ public class BlobService : IBlobService
 
     public void DeleteFileInStorage(string name, string mimeType)
     {
-        ArgumentNullException.ThrowIfNull(name);
-
         var fullName = name + "." + GetExtensionFromMimeType(mimeType);
         string filePath = Path.Combine(_blobPath, fullName);
         try
@@ -116,6 +101,10 @@ public class BlobService : IBlobService
             byte[] result = new byte[bytesWritten];
             Array.Copy(buffer, result, bytesWritten);
             return result;
+        }
+        catch (Exception ex) when (ex is not InvalidBase64FormatException)
+        {
+            throw new InvalidBase64FormatException(ImageConstants.FailedToConvertBase64);
         }
         finally
         {
@@ -171,13 +160,9 @@ public class BlobService : IBlobService
 
             await cryptoStream.FlushAsync();
         }
-        catch (CryptographicException ex)
+        catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new BlobCryptographyException(filePath, ImageConstants.EncryptionFailed, ex);
-        }
-        catch (IOException ex)
-        {
-            throw new BlobFileSystemException(filePath, ImageConstants.FailedToWriteEncryptedFile, ex);
+            throw new BlobCryptographyException($"{name}.{type}", ImageConstants.EncryptionFailed, ex);
         }
     }
 
@@ -227,13 +212,9 @@ public class BlobService : IBlobService
                 ArrayPool<byte>.Shared.Return(buffer);
             }
         }
-        catch (CryptographicException ex)
+        catch (Exception ex) when (ex is not BlobStorageException)
         {
             throw new BlobCryptographyException(fileName, ImageConstants.DecryptionFailed, ex);
-        }
-        catch (IOException ex)
-        {
-            throw new BlobFileSystemException(filePath, ImageConstants.FailedToReadOrDecryptFile, ex);
         }
     }
 }

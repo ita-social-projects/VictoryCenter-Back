@@ -37,9 +37,6 @@ public class BlobNotFoundException : BlobStorageException
     public string FileName { get; }
 }
 
-/// <summary>
-/// Виняток для помилок шифрування/дешифрування в blob storage
-/// </summary>
 public class BlobCryptographyException : BlobStorageException
 {
     public BlobCryptographyException(string fileName, string message)

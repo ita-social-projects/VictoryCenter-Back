@@ -51,7 +51,7 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
                     teamMember.Image.Base64 =
                         await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     teamMember.Image.Base64 = string.Empty;
                 }

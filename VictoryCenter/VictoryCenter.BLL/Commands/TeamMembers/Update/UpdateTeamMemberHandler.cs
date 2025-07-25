@@ -6,6 +6,7 @@ using MediatR;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -113,6 +114,10 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             }
 
             return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToUpdateTeamMember);
+        }
+        catch (BlobStorageException e)
+        {
+            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}" );
         }
         catch (ValidationException vex)
         {

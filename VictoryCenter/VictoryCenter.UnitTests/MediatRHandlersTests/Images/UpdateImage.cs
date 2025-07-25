@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Transactions;
+using AutoMapper;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Images.Update;
@@ -74,6 +75,9 @@ public class UpdateImageHandlerTests
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(1);
+
+        _mockRepositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         var handler = new UpdateImageHandler(
             _mockMapper.Object,

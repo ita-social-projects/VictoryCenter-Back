@@ -43,7 +43,7 @@ public class IntegrationTestDbFixture : IDisposable
 
     public void Dispose()
     {
-        IntegrationTestsDatabaseSeeder.DeleteExistingData(DbContext);
+        IntegrationTestsDatabaseSeeder.DeleteExistingData(DbContext, BlobVariables);
         DbContext.Dispose();
     }
 

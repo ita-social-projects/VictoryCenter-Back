@@ -52,7 +52,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             {
                 member.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
              member.Image.Base64 = string.Empty;
             }

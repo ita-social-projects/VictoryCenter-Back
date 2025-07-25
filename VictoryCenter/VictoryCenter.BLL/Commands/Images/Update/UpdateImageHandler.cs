@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Images.Update;
 
@@ -48,7 +49,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            // Спочатку оновлюємо дані в БД
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅ
             imageEntity.MimeType = request.updateImageDto.MimeType!;
 
             var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
@@ -58,7 +59,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
             }
 
-            // Потім оновлюємо файл в blob storage
+            // пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ blob storage
             var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
                 imageEntity.BlobName,
                 imageEntity.MimeType,
@@ -68,11 +69,11 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             imageEntity.BlobName = updatedBlobName;
 
-            // Повертаємо результат з завантаженим Base64
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Base64
             ImageDTO resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
             resultDto.Base64 = await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
 
-            // Комітимо транзакцію перед поверненням
+            // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
             transaction.Complete();
 
             return Result.Ok(resultDto);
@@ -81,7 +82,11 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         {
             return Result.Fail<ImageDTO>(vex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (Exception e)
+        catch (BlobStorageException e)
+        {
+            return Result.Fail<ImageDTO>($"BlobStorage error: {e.Message}" );
+        }
+        catch (Exception)
         {
             return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
         }

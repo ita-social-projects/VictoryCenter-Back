@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -93,6 +94,10 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         catch (ValidationException vex)
         {
             return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (BlobStorageException e)
+        {
+            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}" );
         }
         catch (DbUpdateException ex)
         {

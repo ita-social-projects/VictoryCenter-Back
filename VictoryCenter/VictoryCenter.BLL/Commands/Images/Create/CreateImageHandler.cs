@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -63,7 +64,11 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         {
             return Result.Fail<ImageDTO>(vex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (Exception e)
+        catch (BlobStorageException e)
+        {
+            return Result.Fail<ImageDTO>($"BlobStorage error: {e.Message}" );
+        }
+        catch (Exception)
         {
             return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInStorage);
         }

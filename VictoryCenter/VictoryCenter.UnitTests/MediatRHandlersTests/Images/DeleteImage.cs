@@ -1,4 +1,5 @@
-﻿using Moq;
+﻿using System.Transactions;
+using Moq;
 using VictoryCenter.BLL.Commands.Images.Delete;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -34,6 +35,9 @@ public class DeleteImageHandlerTests
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(1);
+
+        _mockRepositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         var handler = new DeleteImageHandler(_mockRepositoryWrapper.Object, _mockBlobService.Object);
 
@@ -84,6 +88,9 @@ public class DeleteImageHandlerTests
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(0);
 
+        _mockRepositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
         var handler = new DeleteImageHandler(_mockRepositoryWrapper.Object, _mockBlobService.Object);
 
         // Fix: Use the constructor to initialize the required parameter 'Id'
@@ -95,7 +102,6 @@ public class DeleteImageHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("Failed to delete image", result.Errors[0].Message);
-        _mockBlobService.Verify(x => x.DeleteFileInStorage(_testImage.BlobName, _testImage.MimeType), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.Delete(_testImage), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
     }

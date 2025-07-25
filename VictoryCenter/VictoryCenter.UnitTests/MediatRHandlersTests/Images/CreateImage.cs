@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Transactions;
+using AutoMapper;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Images.Create;
@@ -64,6 +65,9 @@ public class CreateImageHandlerTests
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(1);
+
+        _mockRepositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
             .Returns(_testImageDto);

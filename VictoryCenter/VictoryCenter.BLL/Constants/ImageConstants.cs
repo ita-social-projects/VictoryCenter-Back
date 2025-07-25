@@ -9,6 +9,7 @@ public static class ImageConstants
     public static readonly string FailToDeleteImage = "Failed to delete image.";
     public static readonly string FailToUpdateImage = "Failed to update image";
     public static readonly string InvalidBase64String = "Invalid Base64 string.";
+    public static readonly string FailedToConvertBase64 = "Failed to convert Base64";
     public static readonly string InvalidIVLength = "Invalid IV length";
     public static readonly string ImageNotFoundGeneric = "Image not found";
     public static readonly string ImageBlobNameIsNull = "Image blob name is null";

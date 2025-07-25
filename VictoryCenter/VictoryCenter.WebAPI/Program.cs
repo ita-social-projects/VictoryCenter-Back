@@ -14,6 +14,8 @@ builder.Configuration["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariab
 
 builder.Configuration["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY")
                                                             ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration");
+builder.Configuration["BlobEnvironmentVariables:Local:BlobStoreKey"] = Environment.GetEnvironmentVariable("BLOB_LOCAL_STORE_KEY")
+                                                            ?? throw new InvalidOperationException("BLOB_LOCAL_STORE_KEY is not set in environment variables");
 
 builder.Services.AddApplicationServices(builder.Configuration);
 

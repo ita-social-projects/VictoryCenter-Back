@@ -30,7 +30,7 @@ public class DeleteImageTests
     [Fact]
     public async Task DeleteImage_ShouldDeleteImage()
     {
-        Image? image = await _dbContext.Images.FirstOrDefaultAsync();
+        Image? image = await _dbContext.Images.OrderByDescending(i => i.Id).FirstOrDefaultAsync();
         var id = image.Id;
 
         string extension = image.MimeType.Split("/")[1];

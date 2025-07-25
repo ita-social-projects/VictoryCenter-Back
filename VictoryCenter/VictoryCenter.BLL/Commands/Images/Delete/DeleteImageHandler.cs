@@ -5,6 +5,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Images.Delete;
 
@@ -35,7 +36,6 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            // Спочатку видаляємо з БД
             _repositoryWrapper.ImageRepository.Delete(entityToDelete);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
@@ -43,18 +43,20 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
                 return Result.Fail<long>(ImageConstants.FailToDeleteImage);
             }
 
-            // Потім видаляємо з blob storage
             if (!string.IsNullOrEmpty(entityToDelete.BlobName))
             {
                  _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
             }
 
-            // Комітимо транзакцію перед поверненням
             transaction.Complete();
 
             return Result.Ok(entityToDelete.Id);
         }
-        catch (Exception e)
+        catch (BlobStorageException e)
+        {
+            return Result.Fail<long>($"BlobStorage error: {e.Message}" );
+        }
+        catch (Exception)
         {
             return Result.Fail<long>(ImageConstants.FailToDeleteImage);
         }
