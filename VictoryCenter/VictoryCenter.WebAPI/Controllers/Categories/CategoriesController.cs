@@ -23,10 +23,10 @@ public class CategoriesController : BaseApiController
         return HandleResult(await Mediator.Send(new CreateCategoryCommand(createCategoryDto)));
     }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryDto updateCategoryDto)
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryDto updateCategoryDto, long id)
     {
-        return HandleResult(await Mediator.Send(new UpdateCategoryCommand(updateCategoryDto)));
+        return HandleResult(await Mediator.Send(new UpdateCategoryCommand(updateCategoryDto, id)));
     }
 
     [HttpDelete]

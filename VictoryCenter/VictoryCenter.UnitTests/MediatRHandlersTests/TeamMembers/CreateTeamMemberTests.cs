@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Create;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -48,7 +49,7 @@ public class CreateTeamMemberTests
         Id = 1,
         FullName = "TestName",
         Priority = 1,
-        CategoryId = 1,
+        Category = new CategoryDto { Id = 1, Name = "Test Category", Description = "Test category description" },
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com"
