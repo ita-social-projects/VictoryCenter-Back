@@ -29,7 +29,7 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.ApplyMigrations();
-await app.CreateInitialAdmin();
+await app.CreateInitialData();
 
 app.UseRequestResponseLogging();
 app.UseCors();
