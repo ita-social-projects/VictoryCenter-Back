@@ -25,7 +25,7 @@ public class GetFaqQuestionsByFilters
     [InlineData(0, 4)]
     [InlineData(0, 3)]
     [InlineData(1, 2)]
-    public async Task Handle_ShouldReturnSuccessfully_NoFilters(int pageNumber, int pageSize)
+    public async Task Handle_NoFilters_ShouldReturnSuccessfully(int pageNumber, int pageSize)
     {
         // Arrange
         var faqQuestionList = GetFaqQuestionList();
@@ -62,7 +62,7 @@ public class GetFaqQuestionsByFilters
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByStatus()
+    public async Task Handle_FilterByStatus_ShouldReturnSuccessfully()
     {
         // Arrange
         var status = Status.Draft;
@@ -96,7 +96,7 @@ public class GetFaqQuestionsByFilters
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByPageId()
+    public async Task Handle_FilterByPageId_ShouldReturnSuccessfully()
     {
         // Arrange
         var page = new VisitorPage { Id = 2, Title = "Page 2" };
@@ -132,7 +132,7 @@ public class GetFaqQuestionsByFilters
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterByStatusAndPageId()
+    public async Task Handle_FilterByStatusAndPageId_ShouldReturnSuccessfully()
     {
         // Arrange
         var status = Status.Draft;

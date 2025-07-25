@@ -62,7 +62,7 @@ public class CreateFaqQuestionTests
     }
 
     [Fact]
-    public async Task CreateFaqQuestionHandle_ShouldReturnFaqQuestionDto_WhenCreationIsValid()
+    public async Task Handle_WhenCreationIsValid_ShouldReturnFaqQuestionDto()
     {
         SetupDependencies(_faqQuestionDto, _faqQuestion, 1);
         var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
@@ -76,7 +76,7 @@ public class CreateFaqQuestionTests
     }
 
     [Fact]
-    public async Task CreateFaqQuestionHandle_ShouldReturnFailure_WhenSaveChangeFails()
+    public async Task Handle_WhenSaveChangeFails_ShouldReturnFailure()
     {
         var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(FaqQuestion));
         SetupDependencies(_faqQuestionDto, _faqQuestion, -1);
@@ -92,7 +92,7 @@ public class CreateFaqQuestionTests
     }
 
     [Fact]
-    public async Task CreateFaqQuestionHandle_WhenPageIdIsInvalid_ShouldReturnFailure()
+    public async Task Handle_WhenPageIdIsInvalid_ShouldReturnFailure()
     {
         SetupDependencies(_faqQuestionDto, _faqQuestion, -1);
         _repositoryWrapperMock
@@ -112,7 +112,7 @@ public class CreateFaqQuestionTests
     }
 
     [Fact]
-    public async Task CreateFaqQuestionHandle_ShouldReturnFailure_WhenDbExceptionThrown()
+    public async Task Handle_WhenDbExceptionThrown_ShouldReturnFailure()
     {
         var testMessage = "test message";
         SetupDependencies(_faqQuestionDto, _faqQuestion, -1);
