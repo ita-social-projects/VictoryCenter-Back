@@ -45,7 +45,16 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
             var notFoundIds = orderedIds.Except(questionsToReorder.Select(f => f.QuestionId));
             if (notFoundIds.Any())
             {
-                return Result.Fail<Unit>(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(TeamMember), notFoundIds));
+                return Result.Fail<Unit>(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(FaqQuestion), notFoundIds));
+            }
+
+            var prioritiesFound = questionsToReorder.Select(q => q.Priority).OrderBy(p => p).ToList();
+            for (var i = 1; i < prioritiesFound.Count; i++)
+            {
+                if (prioritiesFound[i] - prioritiesFound[i - 1] != 1)
+                {
+                    return Result.Fail<Unit>(FaqConstants.IdsAreNonConsecutive);
+                }
             }
 
             using var transactionScope = _repositoryWrapper.BeginTransaction();

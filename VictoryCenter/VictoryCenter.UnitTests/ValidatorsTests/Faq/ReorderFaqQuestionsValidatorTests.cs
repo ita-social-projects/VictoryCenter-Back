@@ -42,21 +42,6 @@ public class ReorderFaqQuestionsValidatorTests
     }
 
     [Fact]
-    public void Validate_OrderedIdsIsNull_ShouldHaveError()
-    {
-        var dto = new ReorderFaqQuestionsDto
-        {
-            PageId = 1,
-            OrderedIds = null!
-        };
-        var command = new ReorderFaqQuestionsCommand(dto);
-
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.ReorderFaqQuestionsDto.OrderedIds)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ReorderFaqQuestionsDto.OrderedIds)));
-    }
-
-    [Fact]
     public void Validate_OrderedIdsIsEmpty_ShouldHaveError()
     {
         var dto = new ReorderFaqQuestionsDto

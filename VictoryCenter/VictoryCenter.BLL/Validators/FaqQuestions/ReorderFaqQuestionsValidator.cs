@@ -17,8 +17,6 @@ public class ReorderFaqQuestionsValidator : AbstractValidator<ReorderFaqQuestion
 
         RuleFor(x => x.ReorderFaqQuestionsDto.OrderedIds)
             .Cascade(CascadeMode.Stop)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ReorderFaqQuestionsDto.OrderedIds)))
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(ReorderFaqQuestionsDto.OrderedIds)))
             .Must(ids => ids.Count <= MaxFaqQuestionIds)
