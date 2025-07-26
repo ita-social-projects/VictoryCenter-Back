@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace VictoryCenter.BLL.Interfaces.Search;
+namespace VictoryCenter.BLL.Services.Search.Helpers;
 
 public class ReplaceParameterVisitor : ExpressionVisitor
 {

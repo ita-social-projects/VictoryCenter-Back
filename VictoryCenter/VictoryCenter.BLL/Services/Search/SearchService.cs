@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using VictoryCenter.BLL.Interfaces.Search;
+using VictoryCenter.BLL.Services.Search.Helpers;
 
 namespace VictoryCenter.BLL.Services.Search;
 
@@ -13,18 +14,23 @@ public class SearchService<T> : ISearchService<T>
     // Generic method to create any search expressions
     public Expression<Func<T, bool>> CreateSearchExpression(params SearchTerm<T>[] searchTerms)
     {
+        // Represents the value e in e => e.Name
         var parameter = Expression.Parameter(typeof(T), "e");
         Expression? combined = null;
 
         foreach (var term in searchTerms)
         {
+            // Skip empty values
             if (string.IsNullOrEmpty(term.TermValue))
             {
                 continue;
             }
 
+            // Replace the parameter in the term selector with the correct parameter a => a.Name ==> e => e.Name
             var member = new ReplaceParameterVisitor(term.TermSelector.Parameters[0], parameter)
-                .Visit(term.TermSelector.Body)!;
+                .Visit(term.TermSelector.Body);
+
+            // Represents the value to search in the expression
             var constant = Expression.Constant(term.TermValue, typeof(string));
 
             Expression body;
