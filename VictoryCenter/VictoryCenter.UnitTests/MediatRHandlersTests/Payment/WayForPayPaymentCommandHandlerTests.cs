@@ -10,7 +10,7 @@ using VictoryCenter.BLL.DTOs.Payment;
 using VictoryCenter.BLL.DTOs.Payment.Common;
 using VictoryCenter.BLL.Options.Payment;
 
-namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donation;
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.Payment;
 
 public class WayForPayPaymentCommandHandlerTests
 {
@@ -135,7 +135,7 @@ public class WayForPayPaymentCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_NoRedirectOrNoLocation_ReturnsFail()
+    public async Task Handle_NoRedirectHappened_ReturnsFail()
     {
         var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
         {

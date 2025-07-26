@@ -14,13 +14,13 @@ public class PaymentServiceTest
 {
     private readonly Mock<IValidator<PaymentRequestDto>> _validatorMock;
     private readonly Mock<IPaymentCommandHandler<PaymentCommand, Result<PaymentResponseDto>>> _handlerMock;
-    private readonly Mock<IDonationFactory> _factoryMock;
+    private readonly Mock<IPaymentFactory> _factoryMock;
 
     public PaymentServiceTest()
     {
         _validatorMock = new Mock<IValidator<PaymentRequestDto>>();
         _handlerMock = new Mock<IPaymentCommandHandler<PaymentCommand, Result<PaymentResponseDto>>>();
-        _factoryMock = new Mock<IDonationFactory>();
+        _factoryMock = new Mock<IPaymentFactory>();
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class PaymentServiceTest
         _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<PaymentRequestDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult(new[]
             {
-                new FluentValidation.Results.ValidationFailure("Amount", "Amount is required")
+                new FluentValidation.Results.ValidationFailure(nameof(PaymentRequestDto.Amount), ErrorMessagesConstants.PropertyIsRequired(nameof(PaymentRequestDto.Amount)))
             }));
         var service = new PaymentService([], _validatorMock.Object);
         var request = new PaymentRequestDto { Amount = 0, Currency = Currency.USD, PaymentSystem = PaymentSystem.WayForPay };
@@ -37,7 +37,7 @@ public class PaymentServiceTest
         var result = await service.CreatePayment(request, CancellationToken.None);
 
         Assert.True(result.IsFailed);
-        Assert.Contains("Amount is required", result.Errors.Select(e => e.Message));
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(PaymentRequestDto.Amount)), result.Errors.Select(e => e.Message));
         _validatorMock.Verify(x => x.ValidateAsync(It.IsAny<PaymentRequestDto>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 

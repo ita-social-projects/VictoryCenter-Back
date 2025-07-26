@@ -10,13 +10,13 @@ using VictoryCenter.BLL.Options.Payment;
 
 namespace VictoryCenter.BLL.Factories.Payment.Implementations;
 
-public class WayForPayDonationFactory : IDonationFactory
+public class WayForPayPaymentFactory : IPaymentFactory
 {
     private readonly IOptions<WayForPayOptions> _way4PayOptions;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<WayForPayPaymentCommandHandler> _logger;
 
-    public WayForPayDonationFactory(IOptions<WayForPayOptions> way4PayOptions, IHttpClientFactory httpClientFactory, ILogger<WayForPayPaymentCommandHandler> logger)
+    public WayForPayPaymentFactory(IOptions<WayForPayOptions> way4PayOptions, IHttpClientFactory httpClientFactory, ILogger<WayForPayPaymentCommandHandler> logger)
     {
         _way4PayOptions = way4PayOptions;
         _httpClientFactory = httpClientFactory;

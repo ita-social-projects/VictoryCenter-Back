@@ -10,10 +10,10 @@ namespace VictoryCenter.BLL.Services.PaymentService;
 
 public class PaymentService : IPaymentService
 {
-    private readonly IEnumerable<IDonationFactory> _donationFactories;
+    private readonly IEnumerable<IPaymentFactory> _donationFactories;
     private readonly IValidator<PaymentRequestDto> _validator;
 
-    public PaymentService(IEnumerable<IDonationFactory> donationFactories, IValidator<PaymentRequestDto> validator)
+    public PaymentService(IEnumerable<IPaymentFactory> donationFactories, IValidator<PaymentRequestDto> validator)
     {
         _donationFactories = donationFactories;
         _validator = validator;

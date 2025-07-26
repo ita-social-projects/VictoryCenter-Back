@@ -111,7 +111,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IPaymentService, PaymentService>();
 
-        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IDonationFactory), ServiceLifetime.Scoped);
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
     }
 

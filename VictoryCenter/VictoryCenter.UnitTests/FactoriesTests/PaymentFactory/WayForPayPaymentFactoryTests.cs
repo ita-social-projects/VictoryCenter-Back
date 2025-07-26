@@ -6,27 +6,27 @@ using VictoryCenter.BLL.DTOs.Payment;
 using VictoryCenter.BLL.Factories.Payment.Implementations;
 using VictoryCenter.BLL.Options.Payment;
 
-namespace VictoryCenter.UnitTests.FactoriesTests.DonationFactory;
+namespace VictoryCenter.UnitTests.FactoriesTests.PaymentFactory;
 
-public class WayForPayDonationFactoryTests
+public class WayForPayPaymentFactoryTests
 {
     private readonly Mock<IOptions<WayForPayOptions>> _optionsMock;
     private readonly Mock<IHttpClientFactory> _httpClientFactoryMock;
     private readonly Mock<ILogger<WayForPayPaymentCommandHandler>> _loggerMock;
-    private readonly WayForPayDonationFactory _donationFactory;
+    private readonly WayForPayPaymentFactory _paymentFactory;
 
-    public WayForPayDonationFactoryTests()
+    public WayForPayPaymentFactoryTests()
     {
         _optionsMock = new Mock<IOptions<WayForPayOptions>>();
         _httpClientFactoryMock = new Mock<IHttpClientFactory>();
         _loggerMock = new Mock<ILogger<WayForPayPaymentCommandHandler>>();
-        _donationFactory = new WayForPayDonationFactory(_optionsMock.Object, _httpClientFactoryMock.Object, _loggerMock.Object);
+        _paymentFactory = new WayForPayPaymentFactory(_optionsMock.Object, _httpClientFactoryMock.Object, _loggerMock.Object);
     }
 
     [Fact]
     public void PaymentSystem_Called_ReturnsWay4Pay()
     {
-        var paymentSystem = _donationFactory.PaymentSystem;
+        var paymentSystem = _paymentFactory.PaymentSystem;
 
         Assert.Equal(PaymentSystem.WayForPay, paymentSystem);
     }
@@ -34,7 +34,7 @@ public class WayForPayDonationFactoryTests
     [Fact]
     public void GetRequestHandler_Called_ReturnsWay4PayDonationCommandHandler()
     {
-        var handler = _donationFactory.GetRequestHandler();
+        var handler = _paymentFactory.GetRequestHandler();
 
         Assert.NotNull(handler);
         Assert.IsType<WayForPayPaymentCommandHandler>(handler);

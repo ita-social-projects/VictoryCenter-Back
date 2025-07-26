@@ -5,7 +5,7 @@ using VictoryCenter.BLL.DTOs.Payment.Common;
 
 namespace VictoryCenter.BLL.Factories.Payment.Interfaces;
 
-public interface IDonationFactory
+public interface IPaymentFactory
 {
     PaymentSystem PaymentSystem { get; }
     IPaymentCommandHandler<PaymentCommand, Result<PaymentResponseDto>> GetRequestHandler();
