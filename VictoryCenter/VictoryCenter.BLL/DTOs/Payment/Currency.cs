@@ -3,7 +3,9 @@ using System.Text.Json.Serialization;
 namespace VictoryCenter.BLL.DTOs.Payment;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
-public enum PaymentSystem
+public enum Currency
 {
-    WayForPay
+    UAH,
+    USD,
+    EUR
 }

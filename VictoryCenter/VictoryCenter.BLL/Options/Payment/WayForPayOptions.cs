@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace VictoryCenter.BLL.Options.Donation;
+namespace VictoryCenter.BLL.Options.Payment;
 
-public class Way4PayOptions
+public class WayForPayOptions
 {
     public const string Position = "PaymentSystemsConfigurations:Way4Pay";
 

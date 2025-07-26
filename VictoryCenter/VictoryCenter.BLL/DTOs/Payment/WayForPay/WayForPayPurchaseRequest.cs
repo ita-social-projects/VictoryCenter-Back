@@ -1,6 +1,6 @@
-namespace VictoryCenter.BLL.DTOs.Payment.Way4Pay;
+namespace VictoryCenter.BLL.DTOs.Payment.WayForPay;
 
-public class Way4PayPurchaseRequest
+public class WayForPayPurchaseRequest
 {
     required public string MerchantAccount { get; init; }
     required public string MerchantDomainName { get; init; }
@@ -8,7 +8,7 @@ public class Way4PayPurchaseRequest
     required public string OrderReference { get; init; }
     required public long OrderDate { get; init; }
     required public decimal Amount { get; init; }
-    required public string Currency { get; init; }
+    required public Currency Currency { get; init; }
     required public string[] ProductName { get; init; }
     required public decimal[] ProductPrice { get; init; }
     required public int[] ProductCount { get; init; }

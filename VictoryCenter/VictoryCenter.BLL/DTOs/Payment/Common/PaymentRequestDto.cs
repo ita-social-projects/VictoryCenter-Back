@@ -1,9 +1,9 @@
-namespace VictoryCenter.BLL.DTOs.Payment.Donation;
+namespace VictoryCenter.BLL.DTOs.Payment.Common;
 
-public record DonationRequestDto
+public record PaymentRequestDto
 {
     public decimal Amount { get; init; }
-    public string Currency { get; init; } = null!;
+    public Currency Currency { get; init; }
     public bool IsSubscription { get; init; }
     public PaymentSystem PaymentSystem { get; init; }
     public string? ReturnUrl { get; init; }

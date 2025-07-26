@@ -6,7 +6,7 @@ using Moq.Protected;
 using VictoryCenter.BLL.DTOs.Payment;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests;
+namespace VictoryCenter.IntegrationTests.ControllerTests.Payments;
 
 [Collection("SharedIntegrationTests")]
 public class PaymentsControllerTests
@@ -64,7 +64,7 @@ public class PaymentsControllerTests
             ["Amount"] = "100",
             ["Currency"] = "USD",
             ["IsSubscription"] = "false",
-            ["PaymentSystem"] = ((int)PaymentSystem.Way4Pay).ToString()
+            ["PaymentSystem"] = ((int)PaymentSystem.WayForPay).ToString()
         };
         var content = new FormUrlEncodedContent(request);
 
@@ -82,7 +82,7 @@ public class PaymentsControllerTests
             ["Amount"] = "0",
             ["Currency"] = "USD",
             ["IsSubscription"] = "false",
-            ["PaymentSystem"] = ((int)PaymentSystem.Way4Pay).ToString()
+            ["PaymentSystem"] = ((int)PaymentSystem.WayForPay).ToString()
         };
         var content = new FormUrlEncodedContent(request);
 

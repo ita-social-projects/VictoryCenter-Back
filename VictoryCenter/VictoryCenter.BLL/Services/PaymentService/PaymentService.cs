@@ -1,25 +1,25 @@
 using FluentResults;
 using FluentValidation;
-using VictoryCenter.BLL.Commands.Donation.Common;
+using VictoryCenter.BLL.Commands.Payment.Common;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Payment.Donation;
-using VictoryCenter.BLL.Factories.Donation.Interfaces;
+using VictoryCenter.BLL.DTOs.Payment.Common;
+using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 
 namespace VictoryCenter.BLL.Services.PaymentService;
 
-public class DonationService : IDonationService
+public class PaymentService : IPaymentService
 {
     private readonly IEnumerable<IDonationFactory> _donationFactories;
-    private readonly IValidator<DonationRequestDto> _validator;
+    private readonly IValidator<PaymentRequestDto> _validator;
 
-    public DonationService(IEnumerable<IDonationFactory> donationFactories, IValidator<DonationRequestDto> validator)
+    public PaymentService(IEnumerable<IDonationFactory> donationFactories, IValidator<PaymentRequestDto> validator)
     {
         _donationFactories = donationFactories;
         _validator = validator;
     }
 
-    public async Task<Result<DonationResponseDto>> CreateDonation(DonationRequestDto request, CancellationToken cancellationToken)
+    public async Task<Result<PaymentResponseDto>> CreatePayment(PaymentRequestDto request, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
@@ -35,6 +35,6 @@ public class DonationService : IDonationService
 
         var commandHandler = donationFactory.GetRequestHandler();
 
-        return await commandHandler.Handle(new DonationCommand(request), cancellationToken);
+        return await commandHandler.Handle(new PaymentCommand(request), cancellationToken);
     }
 }

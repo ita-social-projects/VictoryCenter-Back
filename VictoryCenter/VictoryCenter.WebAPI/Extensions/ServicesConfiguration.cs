@@ -7,13 +7,13 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
-using VictoryCenter.BLL.Commands.Donation.Common;
-using VictoryCenter.BLL.Factories.Donation.Interfaces;
+using VictoryCenter.BLL.Commands.Payment.Common;
+using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
-using VictoryCenter.BLL.Options.Donation;
+using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
@@ -96,8 +96,8 @@ public static class ServicesConfiguration
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
-        services.AddOptions<Way4PayOptions>()
-            .BindConfiguration(Way4PayOptions.Position)
+        services.AddOptions<WayForPayOptions>()
+            .BindConfiguration(WayForPayOptions.Position)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -109,10 +109,10 @@ public static class ServicesConfiguration
 
         services.AddSingleton<ITokenService, TokenService>();
 
-        services.AddScoped<IDonationService, DonationService>();
+        services.AddScoped<IPaymentService, PaymentService>();
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IDonationFactory), ServiceLifetime.Scoped);
-        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IDonationCommandHandler<,>), ServiceLifetime.Scoped);
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)

@@ -5,34 +5,34 @@ using System.Text;
 using FluentResults;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Commands.Donation.Common;
+using VictoryCenter.BLL.Commands.Payment.Common;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Payment.Donation;
-using VictoryCenter.BLL.DTOs.Payment.Way4Pay;
-using VictoryCenter.BLL.Options.Donation;
+using VictoryCenter.BLL.DTOs.Payment.Common;
+using VictoryCenter.BLL.DTOs.Payment.WayForPay;
+using VictoryCenter.BLL.Options.Payment;
 
-namespace VictoryCenter.BLL.Commands.Donation.Way4Pay;
+namespace VictoryCenter.BLL.Commands.Payment.WayForPay;
 
-public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCommand, Result<DonationResponseDto>>
+public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentCommand, Result<PaymentResponseDto>>
 {
-    private readonly IOptions<Way4PayOptions> _way4PayOptions;
+    private readonly IOptions<WayForPayOptions> _way4PayOptions;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<Way4PayDonationCommandHandler> _logger;
+    private readonly ILogger<WayForPayPaymentCommandHandler> _logger;
 
-    public Way4PayDonationCommandHandler(IOptions<Way4PayOptions> way4PayOptions, IHttpClientFactory httpClientFactory, ILogger<Way4PayDonationCommandHandler> logger)
+    public WayForPayPaymentCommandHandler(IOptions<WayForPayOptions> way4PayOptions, IHttpClientFactory httpClientFactory, ILogger<WayForPayPaymentCommandHandler> logger)
     {
         _way4PayOptions = way4PayOptions;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
     }
 
-    public async Task<Result<DonationResponseDto>> Handle(DonationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<PaymentResponseDto>> Handle(PaymentCommand request, CancellationToken cancellationToken)
     {
         var orderReference = Guid.CreateVersion7();
         var orderDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var merchantSignature = GenerateMerchantSignature(request, orderReference, orderDate);
 
-        var purchaseRequest = new Way4PayPurchaseRequest()
+        var purchaseRequest = new WayForPayPurchaseRequest()
         {
             Amount = request.Request.Amount,
             Currency = request.Request.Currency,
@@ -47,13 +47,14 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
             ReturnUrl = request.Request.ReturnUrl
         };
 
-        if (request.Request.IsSubscription)
-        {
-            purchaseRequest.RegularBehavior = PaymentConstants.RegularPaymentBehaviour;
-            purchaseRequest.RegularAmount = request.Request.Amount;
-            purchaseRequest.RegularMode = PaymentConstants.RegularPaymentMode;
-            purchaseRequest.RegularOn = true;
-        }
+        // regular payment is going to be supported in the future
+        // if (request.Request.IsSubscription)
+        // {
+        //     purchaseRequest.RegularBehavior = PaymentConstants.RegularPaymentBehaviour;
+        //     purchaseRequest.RegularAmount = request.Request.Amount;
+        //     purchaseRequest.RegularMode = PaymentConstants.RegularPaymentMode;
+        //     purchaseRequest.RegularOn = true;
+        // }
 
         var keyValues = new Dictionary<string, string>
         {
@@ -62,21 +63,22 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
             ["orderReference"] = purchaseRequest.OrderReference,
             ["orderDate"] = purchaseRequest.OrderDate.ToString(),
             ["amount"] = purchaseRequest.Amount.ToString(CultureInfo.InvariantCulture),
-            ["currency"] = purchaseRequest.Currency,
+            ["currency"] = purchaseRequest.Currency.ToString(),
             ["productName[]"] = purchaseRequest.ProductName[0],
             ["productCount[]"] = purchaseRequest.ProductCount[0].ToString(CultureInfo.InvariantCulture),
             ["productPrice[]"] = purchaseRequest.ProductPrice[0].ToString(CultureInfo.InvariantCulture),
             ["merchantSignature"] = purchaseRequest.MerchantSignature,
         };
 
-        if (purchaseRequest.RegularOn.HasValue && purchaseRequest.RegularOn.Value)
-        {
-            keyValues["regularOn"] = "1";
-            keyValues["regularAmount"] = purchaseRequest.RegularAmount?.ToString(CultureInfo.InvariantCulture) ?? purchaseRequest.Amount.ToString(CultureInfo.InvariantCulture);
-            keyValues["regularMode"] = purchaseRequest.RegularMode!;
-            keyValues["regularBehavior"] = purchaseRequest.RegularBehavior!;
-            keyValues["regularCount"] = PaymentConstants.RegularPaymentCount;
-        }
+        // regular payment is going to be supported in the future
+        // if (purchaseRequest.RegularOn.HasValue && purchaseRequest.RegularOn.Value)
+        // {
+        //     keyValues["regularOn"] = "1";
+        //     keyValues["regularAmount"] = purchaseRequest.RegularAmount?.ToString(CultureInfo.InvariantCulture) ?? purchaseRequest.Amount.ToString(CultureInfo.InvariantCulture);
+        //     keyValues["regularMode"] = purchaseRequest.RegularMode!;
+        //     keyValues["regularBehavior"] = purchaseRequest.RegularBehavior!;
+        //     keyValues["regularCount"] = PaymentConstants.RegularPaymentCount;
+        // }
 
         if (!string.IsNullOrWhiteSpace(purchaseRequest.ReturnUrl))
         {
@@ -100,12 +102,12 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
 
             if (response.StatusCode is HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.Moved)
             {
-                var redirectUrl = response.Headers.Location?.ToString();
-                if (!string.IsNullOrEmpty(redirectUrl))
+                var paymentUrl = response.Headers.Location?.ToString();
+                if (!string.IsNullOrEmpty(paymentUrl))
                 {
-                    return Result.Ok(new DonationResponseDto()
+                    return Result.Ok(new PaymentResponseDto()
                     {
-                        PaymentUrl = redirectUrl
+                        PaymentUrl = paymentUrl
                     });
                 }
             }
@@ -124,7 +126,7 @@ public class Way4PayDonationCommandHandler : IDonationCommandHandler<DonationCom
         }
     }
 
-    private string GenerateMerchantSignature(DonationCommand request, Guid orderReference, long orderDate)
+    private string GenerateMerchantSignature(PaymentCommand request, Guid orderReference, long orderDate)
     {
         var concatenatedValues = string.Join(
             ';',

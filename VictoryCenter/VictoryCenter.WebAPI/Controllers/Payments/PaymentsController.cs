@@ -1,23 +1,23 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Payment.Donation;
+using VictoryCenter.BLL.DTOs.Payment.Common;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 
-namespace VictoryCenter.WebAPI.Controllers.Donations;
+namespace VictoryCenter.WebAPI.Controllers.Payments;
 
 public class PaymentsController : BaseApiController
 {
-    private readonly IDonationService _donationService;
+    private readonly IPaymentService _paymentService;
 
-    public PaymentsController(IDonationService donationService)
+    public PaymentsController(IPaymentService paymentService)
     {
-        _donationService = donationService;
+        _paymentService = paymentService;
     }
 
     [HttpPost("donate")]
-    public async Task<IActionResult> Donate([FromForm] DonationRequestDto request, CancellationToken cancellationToken)
+    public async Task<IActionResult> Donate([FromForm] PaymentRequestDto request, CancellationToken cancellationToken)
     {
-        var result = await _donationService.CreateDonation(request, cancellationToken);
+        var result = await _paymentService.CreatePayment(request, cancellationToken);
         if (result.IsSuccess)
         {
             if (string.IsNullOrWhiteSpace(result.Value.PaymentUrl))
