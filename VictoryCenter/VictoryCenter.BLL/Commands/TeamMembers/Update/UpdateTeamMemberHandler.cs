@@ -1,7 +1,9 @@
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -31,29 +33,54 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var teamMemberEntity =
+            TeamMember? teamMemberEntity =
                 await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
                 {
-                    Filter = entity => entity.Id == request.updateTeamMemberDto.Id
+                    Filter = entity => entity.Id == request.Id
                 });
 
             if (teamMemberEntity is null)
             {
-                return Result.Fail<TeamMemberDto>("Not found");
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
             }
 
-            var entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
+            TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.UpdateTeamMemberDto);
+            entityToUpdate.Id = request.Id;
+            using TransactionScope scope = _repositoryWrapper.BeginTransaction();
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
+
+            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Category>
+                {
+                    Filter = entity => entity.Id == request.UpdateTeamMemberDto.CategoryId
+                });
+            if (category is null)
+            {
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(Category)));
+            }
+
+            if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
+            {
+                entityToUpdate.Priority = teamMemberEntity.Priority;
+            }
+            else
+            {
+                var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
+                    u => u.Priority,
+                    u => u.CategoryId == entityToUpdate.CategoryId);
+                entityToUpdate.Priority = (maxPriority ?? 0) + 1;
+            }
 
             _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+                scope.Complete();
+                TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
                 return Result.Ok(resultDto);
             }
 
-            return Result.Fail<TeamMemberDto>("Failed to update team member");
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToUpdateTeamMember);
         }
         catch (ValidationException vex)
         {

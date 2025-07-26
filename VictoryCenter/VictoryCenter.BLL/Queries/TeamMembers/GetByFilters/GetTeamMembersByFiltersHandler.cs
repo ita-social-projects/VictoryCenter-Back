@@ -24,18 +24,18 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
     public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
         var status = request.TeamMembersFilter.Status;
-        var categoryName = request.TeamMembersFilter.CategoryName;
+        var categoryId = request.TeamMembersFilter.CategoryId;
         Expression<Func<TeamMember, bool>> filter =
-            (t) => (status == null || t.Status == status) && (categoryName == null || t.Category.Name == categoryName);
+            (t) => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
 
         var queryOptions = new QueryOptions<TeamMember>
         {
+            Include = t => t.Include(tm => tm.Category),
             Offset = request.TeamMembersFilter.Offset is not null and > 0 ?
             (int)request.TeamMembersFilter.Offset : 0,
             Limit = request.TeamMembersFilter.Limit is not null and > 0 ?
             (int)request.TeamMembersFilter.Limit : 0,
             Filter = filter,
-            Include = t => t.Include(t => t.Category),
             OrderByASC = t => t.Priority,
         };
 

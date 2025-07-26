@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Categories.Create;
 using VictoryCenter.BLL.Commands.Categories.Delete;
@@ -7,6 +8,7 @@ using VictoryCenter.BLL.Queries.Categories.GetAll;
 
 namespace VictoryCenter.WebAPI.Controllers.Categories;
 
+[Authorize]
 public class CategoriesController : BaseApiController
 {
     [HttpGet]
@@ -21,10 +23,10 @@ public class CategoriesController : BaseApiController
         return HandleResult(await Mediator.Send(new CreateCategoryCommand(createCategoryDto)));
     }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryDto updateCategoryDto)
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryDto updateCategoryDto, long id)
     {
-        return HandleResult(await Mediator.Send(new UpdateCategoryCommand(updateCategoryDto)));
+        return HandleResult(await Mediator.Send(new UpdateCategoryCommand(updateCategoryDto, id)));
     }
 
     [HttpDelete]

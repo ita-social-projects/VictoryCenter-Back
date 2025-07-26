@@ -39,7 +39,6 @@ public class SearchTeamMemberTests
             Id = 1,
             FullName = "TestName",
             Priority = 1,
-            CategoryName = "Name",
             Status = Status.Draft,
             Description = "Long description",
             Email = "Test@gmail.com"

@@ -12,9 +12,8 @@ public class TeamMembersProfile : Profile
 
         CreateMap<TeamMember, TeamMemberDto>();
 
-        CreateMap<TeamMember, TeamMemberDto>()
-            .ForMember(d => d.CategoryName, o => o.MapFrom(s => s.Category != null ? s.Category.Name : null));
-
         CreateMap<UpdateTeamMemberDto, TeamMember>();
+
+        CreateMap<TeamMember, PublishedTeamMembersDto>();
     }
 }

@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 
@@ -25,7 +26,7 @@ public class CreateCategoryValidatorTests
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor(c => c.createCategoryDto.Name)
-            .WithErrorMessage("Name can't be empty");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 
     [Fact]

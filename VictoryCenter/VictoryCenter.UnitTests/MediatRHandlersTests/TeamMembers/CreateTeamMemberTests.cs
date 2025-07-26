@@ -6,7 +6,9 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.CreateTeamMember;
+using VictoryCenter.BLL.Commands.TeamMembers.Create;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -47,7 +49,7 @@ public class CreateTeamMemberTests
         Id = 1,
         FullName = "TestName",
         Priority = 1,
-        CategoryName = "Name",
+        Category = new CategoryDto { Id = 1, Name = "Test Category", Description = "Test category description" },
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com"
@@ -84,7 +86,7 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
     {
-        var failMessage = "Failed to create new TeamMember";
+        var failMessage = TeamMemberConstants.FailedToCreateNewTeamMember;
         SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, -1);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
@@ -95,6 +97,25 @@ public class CreateTeamMemberTests
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
         Assert.Equal(failMessage, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task CreateTeamMemberHandle_WhenCategoryIdIsInvalid_ShouldReturnFailure()
+    {
+        _repositoryWrapperMock
+            .Setup(repositoryWrapper =>
+                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync((Category?)null);
+        SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);
+        SetupValidator();
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+
+        Result<TeamMemberDto> result =
+            await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Null(result.ValueOrDefault);
+        Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(Category)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -124,7 +145,7 @@ public class CreateTeamMemberTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal("Fail to create new team member in database:" + testMessage, result.Errors[0].Message);
+        Assert.Equal(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + testMessage, result.Errors[0].Message);
     }
 
     private void SetupDependencies(CreateTeamMemberDto createMember, TeamMemberDto memberDto, TeamMember member, int isSuccess)

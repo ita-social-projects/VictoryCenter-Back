@@ -1,4 +1,5 @@
-﻿using VictoryCenter.DAL.Enums;
+﻿using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
@@ -8,7 +9,7 @@ public record TeamMemberDto
 
     public string FullName { get; set; } = null!;
 
-    public string CategoryName { get; set; } = null!;
+    public CategoryDto Category { get; set; }
 
     public long Priority { get; set; }
 

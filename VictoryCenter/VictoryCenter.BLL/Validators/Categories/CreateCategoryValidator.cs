@@ -1,5 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.Categories;
 
@@ -9,6 +10,6 @@ public class CreateCategoryValidator : AbstractValidator<CreateCategoryCommand>
     {
         RuleFor(command => command.createCategoryDto.Name)
             .NotEmpty()
-            .WithMessage("Name can't be empty");
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 }

@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 using VictoryCenter.DAL.Entities;
@@ -27,7 +28,6 @@ public class CreateCategoryTests
     {
         Name = "Test Category",
         Description = "Test Category Description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
     };
 
     public CreateCategoryTests()
@@ -97,7 +97,7 @@ public class CreateCategoryTests
         }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Failed to create category", result.Errors[0].Message);
+        Assert.Equal(CategoryConstants.FailedToCreateCategory, result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)

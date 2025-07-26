@@ -23,7 +23,7 @@ public class GetTeamMemberByIdTests
     public async Task GetTeamMemberById_ShouldReturnOk()
     {
         // Arrange
-        var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
+        var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).OrderByDescending(tm => tm.Id).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("Couldn't setup existing entity");
 
         // Act
@@ -43,7 +43,7 @@ public class GetTeamMemberByIdTests
         Assert.Multiple(
             () => Assert.Equal(existingEntity.Id, responseContent.Id),
             () => Assert.Equal(existingEntity.FullName, responseContent.FullName),
-            () => Assert.Equal(existingEntity.Category.Name, responseContent.CategoryName),
+            () => Assert.Equal(existingEntity.Category.Id, responseContent.Category.Id),
             () => Assert.Equal(existingEntity.Description, responseContent.Description),
             () => Assert.Equal(existingEntity.Email, responseContent.Email),
             () => Assert.Equal(existingEntity.Status, responseContent.Status),
