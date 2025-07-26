@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentValidation;
 using Moq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Queries.TeamMembers.Search;
@@ -106,7 +107,7 @@ public class SearchTeamMemberTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("FullName field is required", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchTeamMemberDto.FullName)), result.Errors[0].Message);
     }
 
     private void SetupMapper(List<TeamMemberDto> teamMemberDtos)

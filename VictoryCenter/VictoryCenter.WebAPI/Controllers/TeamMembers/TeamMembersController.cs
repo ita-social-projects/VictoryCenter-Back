@@ -23,7 +23,7 @@ public class TeamMembersController : BaseApiController
 
     [HttpGet("search")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
-    public async Task<IActionResult> SearchTeamMembers([FromQuery(Name = "fullname")] string fullName)
+    public async Task<IActionResult> SearchTeamMembers([FromQuery] string fullName)
     {
         return HandleResult(await Mediator.Send(new SearchTeamMemberQuery(new SearchTeamMemberDto { FullName = fullName })));
     }

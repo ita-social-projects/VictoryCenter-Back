@@ -1,4 +1,6 @@
 ﻿using FluentValidation;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.Search;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;
@@ -11,8 +13,10 @@ public class SearchTeamMemberValidator : AbstractValidator<SearchTeamMemberQuery
     public SearchTeamMemberValidator()
     {
         RuleFor(x => x.SearchTeamMemberDto.FullName)
-            .NotEmpty().WithMessage("FullName field is required")
-            .MinimumLength(FullNameMinLength).WithMessage($"Full name must be at least {FullNameMinLength} characters long")
-            .MaximumLength(FullNameMaxLength).WithMessage($"Full name must be no longer than {FullNameMaxLength} characters");
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchTeamMemberDto.FullName)))
+            .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants
+            .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(SearchTeamMemberDto.FullName), FullNameMinLength))
+            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants
+            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(SearchTeamMemberDto.FullName), FullNameMaxLength));
     }
 }
