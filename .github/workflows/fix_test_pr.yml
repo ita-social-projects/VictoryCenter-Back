@@ -64,6 +64,8 @@ jobs:
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
       run: docker system prune -f
+    - name: Check tag
+      run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
     - name: Set up enviroments and Deploy
       env:
         INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
