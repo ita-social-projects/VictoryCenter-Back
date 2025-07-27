@@ -35,3 +35,47 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
           labels: ${{ steps.meta.outputs.labels }}
+  manual_approval_deploy:
+    needs: dokcer 
+    environment: test 
+    runs-on: ubuntu-latest
+    outputs:
+      comment: ${{ steps.set_env.outputs.comment }}
+    steps:
+     - name: "Get approval message for Stage deploy"
+       id: set_env
+       run: |
+          echo "comment=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+               -H "Accept: application/vnd.github+json" \
+                https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals \
+              | jq '.[] | {user: .user.login, comment: .comment, environments: [.environments[].name]}' \
+               | jq -r '.comment')" >> $GITHUB_OUTPUT
+  stage_deploy:
+   needs: manual_approval_deploy
+   if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
+   runs-on: ubuntu-latest
+   steps:
+    - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
+    - name: Deploy stage
+      run: echo "Deploy stage commands"
+  manual_approval_rollback:
+    needs: stage_deploy
+    environment: test 
+    runs-on: ubuntu-latest
+    outputs:
+      comment: ${{ steps.set_comment_rollback.outputs.comment }}
+    steps:
+     - name: "Get rollback message for Stage deploy"
+       id: set_comment_rollback
+       run: |
+              echo "comment=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github+json" \
+                https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals \
+                | jq -r '.[0].comment')" >> $GITHUB_OUTPUT    
+  stage_rollback:
+   needs: [manual_approval_rollback, stage_deploy]
+   if: contains(needs.manual_approval_rollback.outputs.comment, 'approve')
+   runs-on: ubuntu-latest
+   steps:
+    - name: Rollback tag
+      run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
