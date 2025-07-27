@@ -44,11 +44,11 @@ jobs:
   stage_deploy:
    needs: manual_approval_deploy
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
-   runs-on: ubuntu-latest
+   runs-on: self-hosted
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
-      run: echo "Deploy stage commands"
+      run: docker ps
   manual_approval_rollback:
     needs: stage_deploy
     environment: test 
