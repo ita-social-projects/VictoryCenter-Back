@@ -62,6 +62,22 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Stop all containers
+      run: docker stop nginx certbot frontend backend 
+    - name: Delete additon info
+      run: docker system prune -f
+    - name: Set up enviroments
+      run: |
+            export INITIAL_ADMIN_EMAIL=${{ secrets.INITIAL_ADMIN_EMAIL }}
+            export INITIAL_ADMIN_PASSWORD=${{ secrets.INITIAL_ADMIN_PASSWORD }}
+            export JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}
+            export JWTOPTIONS_REFRESH_TOKEN_SECRETKEY=${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+            export DOCKER_TAG_FRONTEND=1.0.0.42
+            export DOCKER_TAG_BACKEND=1.0.0.23
+            export DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+    - name: Deploy Stage
+      run: docker compose up -d
+      
   manual_approval_rollback:
     needs: stage_deploy
     environment: stage 
@@ -85,7 +101,26 @@ jobs:
       run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
     - name: Rollback tags
       run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
-
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Stop all containers
+      run: docker stop nginx certbot frontend backend 
+    - name: Delete additon info
+      run: docker system prune -f
+    - name: Set up enviroments
+      run: |
+            export INITIAL_ADMIN_EMAIL=${{ secrets.INITIAL_ADMIN_EMAIL }}
+            export INITIAL_ADMIN_PASSWORD=${{ secrets.INITIAL_ADMIN_PASSWORD }}
+            export JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}
+            export JWTOPTIONS_REFRESH_TOKEN_SECRETKEY=${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+            export DOCKER_TAG_FRONTEND=${{ needs.stage_deploy.outputs.frontend_tag }}
+            export DOCKER_TAG_BACKEND=${{ needs.stage_deploy.outputs.backend_tag }}
+            export DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+    - name: Deploy Stage
+      run: docker compose up -d
+      
  # post_action:
  #
 #    runs-on: ubuntu-latest
