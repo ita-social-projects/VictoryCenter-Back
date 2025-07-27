@@ -1,6 +1,8 @@
 name: Final version
 on:
   push:
+    branches:
+      - 'fix/**'
 
 env:
   RUN_NUM: ${{ github.run_number }}
@@ -16,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Run tests"
-        run: echo "some tests:)"
+        run: echo "some tests"
 
   dokcer:
     needs: [init, run_tests] 
