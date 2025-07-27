@@ -24,7 +24,7 @@ jobs:
   stage_deploy:
    needs: manual_approval_deploy
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
-   runs-on: stageVictoryCenter-Back
+   runs-on: ubuntu-latest
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
