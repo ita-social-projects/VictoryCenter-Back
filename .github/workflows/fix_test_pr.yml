@@ -36,7 +36,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
           labels: ${{ steps.meta.outputs.labels }}
   manual_approval_deploy:
-    needs: dokcer 
+    needs: docker 
     environment: test 
     runs-on: ubuntu-latest
     outputs:
@@ -53,11 +53,13 @@ jobs:
   stage_deploy:
    needs: manual_approval_deploy
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
-   runs-on: ubuntu-latest
+   runs-on: stageVictoryCenter-Back
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
       run: echo "Deploy stage commands"
+    - name: Docker containers
+      run: docker ps
   manual_approval_rollback:
     needs: stage_deploy
     environment: test 
