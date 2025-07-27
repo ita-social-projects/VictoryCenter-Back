@@ -58,6 +58,12 @@ jobs:
     - name: "Set frontend tag"
       id: frontend_tag
       run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: ita-social-projects/VictoryCenter-DevOps
+    - name: list dirs
+      run: ls
   manual_approval_rollback:
     needs: stage_deploy
     environment: stage 
