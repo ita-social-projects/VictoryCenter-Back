@@ -97,7 +97,7 @@ jobs:
   stage_rollback:
    needs: [manual_approval_rollback, stage_deploy]
    if: contains(needs.manual_approval_rollback.outputs.comment, 'approve')
-   runs-on: ubuntu-latest
+   runs-on: self-hosted
    steps:
     - name: Rollback tag
       run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
