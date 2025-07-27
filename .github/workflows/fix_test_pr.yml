@@ -66,17 +66,18 @@ jobs:
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
       run: docker system prune -f
-    - name: Set up enviroments
+    - name: Set up enviroments and Deploy
+      env:
+        INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
+        INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
+        JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
+        JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+        DOCKER_TAG_FRONTEND: 1.0.0.42
+        DOCKER_TAG_BACKEND: 1.0.0.23
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
       run: |
-            export INITIAL_ADMIN_EMAIL=${{ secrets.INITIAL_ADMIN_EMAIL }}
-            export INITIAL_ADMIN_PASSWORD=${{ secrets.INITIAL_ADMIN_PASSWORD }}
-            export JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}
-            export JWTOPTIONS_REFRESH_TOKEN_SECRETKEY=${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
-            export DOCKER_TAG_FRONTEND=1.0.0.42
-            export DOCKER_TAG_BACKEND=1.0.0.23
-            export DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
-    - name: Deploy Stage
-      run: docker compose up -d
+        docker compose up -d
+
       
   manual_approval_rollback:
     needs: stage_deploy
@@ -109,17 +110,18 @@ jobs:
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
       run: docker system prune -f
-    - name: Set up enviroments
+    - name: Set up enviroments and Deploy
+      env:
+        INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
+        INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
+        JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
+        JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+        DOCKER_TAG_FRONTEND: 1.0.0.42
+        DOCKER_TAG_BACKEND: 1.0.0.23
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
       run: |
-            export INITIAL_ADMIN_EMAIL=${{ secrets.INITIAL_ADMIN_EMAIL }}
-            export INITIAL_ADMIN_PASSWORD=${{ secrets.INITIAL_ADMIN_PASSWORD }}
-            export JWTOPTIONS_SECRETKEY=${{ secrets.JWTOPTIONS_SECRETKEY }}
-            export JWTOPTIONS_REFRESH_TOKEN_SECRETKEY=${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
-            export DOCKER_TAG_FRONTEND=${{ needs.stage_deploy.outputs.frontend_tag }}
-            export DOCKER_TAG_BACKEND=${{ needs.stage_deploy.outputs.backend_tag }}
-            export DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
-    - name: Deploy Stage
-      run: docker compose up -d
+        docker compose up -d
+
       
  # post_action:
  #
