@@ -50,23 +50,16 @@ jobs:
       frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
-    - name: Deploy stage
-      run: docker ps
     - name: "Set backend tag"
       id: backend_tag
       run: echo "backend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
     - name: "Set frontend tag"
       id: frontend_tag
       run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
-#    - name: Git clone manually
-#      run: |
-#        git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
     - name: Checkout
       uses: actions/checkout@v2
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
-    - name: ls
-      run: ls
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
@@ -111,10 +104,6 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
-#    - name: Git clone manually
-#      run: |
-#        git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
-#        сd VictoryCenter-DevOps
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
@@ -130,15 +119,3 @@ jobs:
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
       run: |
         docker compose up -d
-
-      
- # post_action:
- #
-#    runs-on: ubuntu-latest
- #   steps:
- #   - name: Notify
- #     if: failure()
-  #    run: echo "FAILURE"
-   #   uses: <user-name>/notifier-action@v1
-   #   with:
-   #     message: 'Workflow failed with an error.'
