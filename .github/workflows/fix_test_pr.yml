@@ -45,13 +45,18 @@ jobs:
    needs: manual_approval_deploy
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
    runs-on: self-hosted
+   outputs:
+      backend_tag: ${{ steps.backend_tag.outputs.comment }}
+      frontend_tag: ${{ steps.frontend_tag.outputs.comment }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
       run: docker ps
-    - name: pypypy
+    - name: "Set backend tag"
+      id: backend_tag
       run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1
-    - name: pypypy2
+    - name: "Set frontend tag"
+      id: frontend_tag
       run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1
   manual_approval_rollback:
     needs: stage_deploy
@@ -74,7 +79,8 @@ jobs:
    steps:
     - name: Rollback tag
       run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
-
+    - name: Rollback tags
+      run: echo needs.stage_deploy.outputs.backend_tag
 
  # post_action:
 #    runs-on: ubuntu-latest
