@@ -36,7 +36,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
           labels: ${{ steps.meta.outputs.labels }}
   manual_approval_deploy:
-    needs: docker 
     environment: test 
     runs-on: ubuntu-latest
     outputs:
