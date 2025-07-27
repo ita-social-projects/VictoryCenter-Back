@@ -7,6 +7,6 @@ public class UpdateTeamMemberValidator : AbstractValidator<UpdateTeamMemberComma
 {
     public UpdateTeamMemberValidator(BaseTeamMembersValidator baseTeamMembersValidator)
     {
-        RuleFor(c => c.updateTeamMemberDto).SetValidator(baseTeamMembersValidator);
+        RuleFor(c => c.UpdateTeamMemberDto).SetValidator(baseTeamMembersValidator);
     }
 }

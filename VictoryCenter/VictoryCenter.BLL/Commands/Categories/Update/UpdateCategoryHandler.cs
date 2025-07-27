@@ -35,15 +35,16 @@ public class UpdateCategoryHandler : IRequestHandler<UpdateCategoryCommand, Resu
             var categoryEntity =
                 await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
                 {
-                    Filter = entity => entity.Id == request.updateCategoryDto.Id
+                    Filter = entity => entity.Id == request.Id
                 });
 
             if (categoryEntity is null)
             {
-                return Result.Fail<CategoryDto>(ErrorMessagesConstants.NotFound(request.updateCategoryDto.Id, typeof(Category)));
+                return Result.Fail<CategoryDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Category)));
             }
 
-            var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.updateCategoryDto);
+            var entityToUpdate = _mapper.Map<UpdateCategoryDto, Category>(request.UpdateCategoryDto);
+            entityToUpdate.Id = request.Id;
             entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
 
             _repositoryWrapper.CategoriesRepository.Update(entityToUpdate);
