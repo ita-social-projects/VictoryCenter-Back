@@ -65,7 +65,7 @@ jobs:
     - name: Delete additon info
       run: docker system prune -f
     - name: Check tag
-      run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
+      run: echo ${{ steps.frontend_tag.outputs.backend_tag }}
     - name: Set up enviroments and Deploy
       env:
         INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
