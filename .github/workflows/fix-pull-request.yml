@@ -1,0 +1,162 @@
+name: Run on PR from fix/* into release
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - 'release/**'
+
+env:
+  RUN_NUM: ${{ github.run_number }}
+
+jobs:
+  run_tests:
+    if: startsWith(github.head_ref, 'fix/**')
+    name: Run tests
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      attestations: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build project
+        run: npm run build
+      - name: Run unit tests
+        run: npm run test:cover  
+
+  docker:
+    if: startsWith(github.head_ref, 'fix/**')
+    name: Build and push docker image
+    needs: run_tests
+    runs-on: ubuntu-latest
+    steps:
+     - name: Check out the repo
+       uses: actions/checkout@v4
+     - name: "Run docker build and doker push"
+       run:  echo "Tag for image ${GITHUB_REF##*/}.${RUN_NUM}"    
+     - name: Log in to Docker Hub
+       uses: docker/login-action@v3
+       with:
+         username: ${{ secrets.DOCKER_USERNAME }}
+         password: ${{ secrets.DOCKER_PASSWORD }}
+     - name: Extract metadata for Docker
+       id: meta
+       uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+       with:
+          images: |
+            victorycenterua/client     
+     - name: Build and push Docker images
+       id: push
+       uses: docker/build-push-action@v6
+       with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
+          labels: ${{ steps.meta.outputs.labels }}
+          secret-envs: |
+            REACT_APP_BACKEND_URL=${{ secrets.REACT_APP_BACKEND_URL }}
+  manual_approval_deploy:
+    if: startsWith(github.head_ref, 'fix/**')
+    needs: docker 
+    environment: stage 
+    runs-on: ubuntu-latest
+    outputs:
+      comment: ${{ steps.set_env.outputs.comment }}
+    steps:
+     - name: "Get approval message for Stage deploy"
+       id: set_env
+       run: |
+          echo "comment=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+               -H "Accept: application/vnd.github+json" \
+                https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals \
+              | jq '.[] | {user: .user.login, comment: .comment, environments: [.environments[].name]}' \
+               | jq -r '.comment')" >> $GITHUB_OUTPUT
+  stage_deploy:
+   needs: manual_approval_deploy
+   if: contains(needs.manual_approval_deploy.outputs.comment, 'approve') && startsWith(github.head_ref, 'fix/**')
+   runs-on: self-hosted
+   outputs:
+      backend_tag: ${{ steps.backend_tag.outputs.backend_tag }}
+      frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
+   steps:
+    - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
+    - name: "Set backend tag"
+      id: backend_tag
+      run: echo "backend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
+    - name: "Set frontend tag"
+      id: frontend_tag
+      run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Stop all containers
+      run: docker stop nginx certbot frontend backend 
+    - name: Delete additon info
+      run: docker system prune -f
+    - name: Set up enviroments and Deploy
+      env:
+        INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
+        INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
+        JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
+        JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+        DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
+        DOCKER_TAG_BACKEND: ${GITHUB_REF##*/}.${RUN_NUM}
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+      run: |
+        docker compose up -d
+
+      
+  manual_approval_rollback:
+    if: startsWith(github.head_ref, 'fix/**')
+    needs: stage_deploy
+    environment: stage 
+    runs-on: ubuntu-latest
+    outputs:
+      comment: ${{ steps.set_comment_rollback.outputs.comment }}
+    steps:
+     - name: "Get rollback message for Stage deploy"
+       id: set_comment_rollback
+       run: |
+              echo "comment=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github+json" \
+                https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals \
+                | jq -r '.[0].comment')" >> $GITHUB_OUTPUT    
+  stage_rollback:
+   needs: [manual_approval_rollback, stage_deploy]
+   if: contains(needs.manual_approval_rollback.outputs.comment, 'approve') && startsWith(github.head_ref, 'fix/**')
+   runs-on: self-hosted
+   steps:
+    - name: Rollback tag
+      run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
+    - name: Rollback tags
+      run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Stop all containers
+      run: docker stop nginx certbot frontend backend 
+    - name: Delete additon info
+      run: docker system prune -f
+    - name: Set up enviroments and Deploy
+      env:
+        INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
+        INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
+        JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
+        JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+        DOCKER_TAG_FRONTEND: ${{ needs.stage_deploy.outputs.frontend_tag }}
+        DOCKER_TAG_BACKEND: ${{ needs.stage_deploy.outputs.backend_tag }}
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+      run: |
+        docker compose up -d
