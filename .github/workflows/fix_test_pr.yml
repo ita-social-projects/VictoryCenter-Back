@@ -1,14 +1,32 @@
-name: Fix Pipline
-
+name: Final version
 on:
   push:
-    branches:
-      - 'fix/**'
+
 env:
   RUN_NUM: ${{ github.run_number }}
-  
+
 jobs:
+  init:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Set enviroment"
+        run: echo "INIT"
+  run_tests:
+    needs: init
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Run tests"
+        run: echo "some tests:)"
+
+  dokcer:
+    needs: [init, run_tests] 
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Run docker build and doker push"
+        run:    echo "Tag for image ${GITHUB_REF##*/}.${RUN_NUM}"    
   manual_approval_deploy:
+    needs: dokcer 
+    environment: test 
     runs-on: ubuntu-latest
     outputs:
       comment: ${{ steps.set_env.outputs.comment }}
@@ -29,8 +47,6 @@ jobs:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
       run: echo "Deploy stage commands"
-    - name: Docker containers
-      run: docker ps
   manual_approval_rollback:
     needs: stage_deploy
     environment: test 
@@ -52,3 +68,14 @@ jobs:
    steps:
     - name: Rollback tag
       run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
+
+
+ # post_action:
+#    runs-on: ubuntu-latest
+ #   steps:
+ #   - name: Notify
+ #     if: failure()
+  #    run: echo "FAILURE"
+   #   uses: <user-name>/notifier-action@v1
+   #   with:
+   #     message: 'Workflow failed with an error.'
