@@ -28,12 +28,12 @@ jobs:
         run:    echo "Tag for image ${GITHUB_REF##*/}.${RUN_NUM}"    
   manual_approval_deploy:
     needs: dokcer 
-    environment: test 
+    environment: stage 
     runs-on: ubuntu-latest
     outputs:
       comment: ${{ steps.set_env.outputs.comment }}
     steps:
-     - name: "Get approval message for Stage яdeploy"
+     - name: "Get approval message for Stage deploy"
        id: set_env
        run: |
           echo "comment=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
@@ -49,9 +49,13 @@ jobs:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
       run: docker ps
+    - name: pypypy
+      run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1
+    - name: pypypy2
+      run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1
   manual_approval_rollback:
     needs: stage_deploy
-    environment: test 
+    environment: stage 
     runs-on: ubuntu-latest
     outputs:
       comment: ${{ steps.set_comment_rollback.outputs.comment }}
