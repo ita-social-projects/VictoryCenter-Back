@@ -54,16 +54,16 @@ jobs:
       run: docker ps
     - name: "Set backend tag"
       id: backend_tag
-      run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1
+      run: echo "docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1"  >> $GITHUB_OUTPUT
     - name: "Set frontend tag"
       id: frontend_tag
-      run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1
+      run: echo "docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1"  >> $GITHUB_OUTPUT
     - name: Checkout
       uses: actions/checkout@v2
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
-    - name: list dirs
-      run: ls
+    - name: dokcker DOWN
+      run: docker compose down
   manual_approval_rollback:
     needs: stage_deploy
     environment: stage 
