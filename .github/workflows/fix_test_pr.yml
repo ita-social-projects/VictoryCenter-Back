@@ -62,6 +62,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
+      clean: false
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
