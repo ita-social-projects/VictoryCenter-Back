@@ -64,16 +64,12 @@ public static class ServicesConfiguration
         {
             opt.AddDefaultPolicy(policy =>
             {
-                // policy.WithOrigins(corsSettings.AllowedOrigins)
-                //     .WithHeaders(corsSettings.AllowedHeaders)
-                //     .WithMethods(corsSettings.AllowedMethods)
-                //     .WithExposedHeaders(corsSettings.ExposedHeaders)
-                //     .AllowCredentials()
-                //     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
-
-                policy.AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowAnyOrigin();
+                policy.WithOrigins(corsSettings.AllowedOrigins)
+                    .WithHeaders(corsSettings.AllowedHeaders)
+                    .WithMethods(corsSettings.AllowedMethods)
+                    .WithExposedHeaders(corsSettings.ExposedHeaders)
+                    .AllowCredentials()
+                    .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
             });
         });
     }
