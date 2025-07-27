@@ -46,8 +46,8 @@ jobs:
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
    runs-on: self-hosted
    outputs:
-      backend_tag: ${{ steps.backend_tag.outputs.comment }}
-      frontend_tag: ${{ steps.frontend_tag.outputs.comment }}
+      backend_tag: ${{ steps.backend_tag.outputs.backend_tag }}
+      frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: Deploy stage
