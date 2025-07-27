@@ -58,9 +58,9 @@ jobs:
     - name: "Set frontend tag"
       id: frontend_tag
       run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
-    - name: Git clone manually
-      run: |
-        git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
+#    - name: Git clone manually
+#      run: |
+#        git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
     - name: ls
       run: ls
     - name: Stop all containers
@@ -103,10 +103,10 @@ jobs:
       run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
     - name: Rollback tags
       run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
-    - name: Git clone manually
-      run: |
-        git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
-        сd VictoryCenter-DevOps
+#    - name: Git clone manually
+#      run: |
+#        git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
+#        сd VictoryCenter-DevOps
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
