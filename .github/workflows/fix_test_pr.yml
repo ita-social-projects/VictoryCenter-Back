@@ -80,7 +80,7 @@ jobs:
     - name: Rollback tag
       run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
     - name: Rollback tags
-      run: echo needs.stage_deploy.outputs.backend_tag
+      run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
 
  # post_action:
 #    runs-on: ubuntu-latest
