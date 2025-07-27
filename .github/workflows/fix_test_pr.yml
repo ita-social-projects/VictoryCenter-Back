@@ -54,10 +54,10 @@ jobs:
       run: docker ps
     - name: "Set backend tag"
       id: backend_tag
-      run: echo "docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1"  >> $GITHUB_OUTPUT
+      run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1 >> $GITHUB_OUTPUT   
     - name: "Set frontend tag"
       id: frontend_tag
-      run: echo "docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1"  >> $GITHUB_OUTPUT
+      run: docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1  
     - name: Checkout
       uses: actions/checkout@v2
       with:
