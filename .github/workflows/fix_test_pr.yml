@@ -61,7 +61,8 @@ jobs:
     - name: Git clone manually
       run: |
         git clone https://github.com/ita-social-projects/VictoryCenter-DevOps.git
-        сd VictoryCenter-DevOps
+    - name: ls
+      run: ls
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
