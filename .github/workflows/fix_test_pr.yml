@@ -33,7 +33,7 @@ jobs:
     outputs:
       comment: ${{ steps.set_env.outputs.comment }}
     steps:
-     - name: "Get approval message for Stage deploy"
+     - name: "Get approval message for Stage яdeploy"
        id: set_env
        run: |
           echo "comment=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
