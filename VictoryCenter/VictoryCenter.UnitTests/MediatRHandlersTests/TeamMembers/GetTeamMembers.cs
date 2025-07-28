@@ -228,7 +228,7 @@ public class GetTeamMembers
                 Id = 1,
                 Priority = 1,
                 Status = Status.Draft,
-                CategoryId = 1
+                CategoryId = 1,
             },
             new()
             {
@@ -242,7 +242,7 @@ public class GetTeamMembers
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
-                CategoryId = 2
+                CategoryId = 12
             },
             new()
             {
@@ -256,7 +256,7 @@ public class GetTeamMembers
                 Id = 4,
                 Priority = 3,
                 Status = Status.Draft,
-                CategoryId = 1
+                CategoryId = 1,
             },
         };
 

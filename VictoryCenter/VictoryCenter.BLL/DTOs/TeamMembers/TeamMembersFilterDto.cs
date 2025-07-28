@@ -4,11 +4,11 @@ namespace VictoryCenter.BLL.DTOs.TeamMembers;
 
 public record TeamMembersFilterDto
 {
-    public int? Offset { get; set; }
+    public int? Offset { get; init; }
 
-    public int? Limit { get; set; }
+    public int? Limit { get; init; }
 
-    public Status? Status { get; set; }
+    public Status? Status { get; init; }
 
-    public long? CategoryId { get; set; }
+    public long? CategoryId { get; init; }
 }

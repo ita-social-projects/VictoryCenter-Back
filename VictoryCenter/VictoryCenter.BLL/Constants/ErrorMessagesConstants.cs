@@ -49,6 +49,16 @@ public static class ErrorMessagesConstants
             : $"{property} must be in a valid format of {format}";
     }
 
+    public static string PropertyMustHaveALengthOfNCharacters(string property, int length)
+    {
+        return $"{property} must have a length of {length} characters";
+    }
+
+    public static string PropertyMustBeValidEnum(string property)
+    {
+        return $"{property} must be a valid value";
+    }
+
     public static string BlobStorageError(string message)
     {
         return $"Blob error: {message}";

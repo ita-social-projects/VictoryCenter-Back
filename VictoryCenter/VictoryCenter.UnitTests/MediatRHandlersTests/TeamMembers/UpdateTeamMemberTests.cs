@@ -45,9 +45,10 @@ public class UpdateTeamMemberTests
             Description = "Test category description",
         },
         Email = "test@gmail.com",
+        ImageId = null
     };
 
-    private readonly TeamMember _testUpdatedTeamMember = new ()
+    private readonly TeamMember _testUpdatedTeamMember = new()
     {
         Id = 1,
         FullName = "Updated Name",
@@ -63,6 +64,7 @@ public class UpdateTeamMemberTests
             Description = "Test category description",
         },
         Email = "test@gmail.com",
+        ImageId = null
     };
 
     private readonly TeamMemberDto _testUpdatedTeamMemberDto = new ()
@@ -149,7 +151,10 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task Handle_InvalidFullName_ShouldReturnValidationError(string? testName)
     {
-        _testUpdatedTeamMemberDto.FullName = testName!;
+        var testUpdatedTeamMemberDto = _testUpdatedTeamMemberDto with
+        {
+            FullName = testName!
+        };
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);

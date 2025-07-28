@@ -48,8 +48,7 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
             {
                 try
                 {
-                    teamMember.Image.Base64 =
-                        await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
+                    teamMember.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
                 }
                 catch (Exception)
                 {

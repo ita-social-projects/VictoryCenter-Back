@@ -42,27 +42,27 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             TeamMember? teamMemberEntity =
                 await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
                 {
-                    Filter = entity => entity.Id == request.id
+                    Filter = entity => entity.Id == request.Id
                 });
 
             if (teamMemberEntity is null)
             {
-                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.id, typeof(TeamMember)));
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
             }
 
-            TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.updateTeamMemberDto);
-            entityToUpdate.Id = request.id;
+            TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.UpdateTeamMemberDto);
+            entityToUpdate.Id = request.Id;
             using TransactionScope scope = _repositoryWrapper.BeginTransaction();
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
 
             Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
                 {
-                    Filter = entity => entity.Id == request.updateTeamMemberDto.CategoryId
+                    Filter = entity => entity.Id == request.UpdateTeamMemberDto.CategoryId
                 });
             if (category is null)
             {
-                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.updateTeamMemberDto.CategoryId, typeof(Category)));
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)

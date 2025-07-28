@@ -51,6 +51,7 @@ public static class OpenTelemetryConfiguration
             {
                 o.Endpoint = new Uri("http://localhost:4317");
             });
+            loggingOptions.AddConsoleExporter();
         });
     }
 }
