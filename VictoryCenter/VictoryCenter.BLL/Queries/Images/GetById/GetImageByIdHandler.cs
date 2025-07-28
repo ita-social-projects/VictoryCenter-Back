@@ -13,9 +13,9 @@ namespace VictoryCenter.BLL.Queries.Images.GetById;
 
 public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<ImageDTO>>
 {
-    private IRepositoryWrapper _repositoryWrapper;
-    private IMapper _mapper;
-    private IBlobService _blobService;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IMapper _mapper;
+    private readonly IBlobService _blobService;
 
     public GetImageByIdHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IBlobService blobService)
     {
@@ -36,6 +36,11 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
             if (image is null)
             {
                 return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.Id));
+            }
+
+            if (string.IsNullOrEmpty(image.BlobName))
+            {
+                return Result.Fail<ImageDTO>(ImageConstants.ImageDataNotAvailable);
             }
 
             image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);

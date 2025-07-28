@@ -90,4 +90,37 @@ public class GetImageByIdHandlerTests
         Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_WrongImageName_ShouldReturnNotFound()
+    {
+        const long id = 1;
+
+        // Arrange
+        var command = new GetImageByIdQuery(Id: id);
+        var mockImage = new Image()
+        {
+            Id = id,
+            Base64 = "dGVzdA==",
+            BlobName = "",
+            MimeType = "image/png",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(mockImage);
+
+        var handler = new GetImageByIdHandler(
+            _mockRepositoryWrapper.Object,
+            _mockMapper.Object,
+            _blobservice.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(ImageConstants.ImageDataNotAvailable, result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
+    }
 }

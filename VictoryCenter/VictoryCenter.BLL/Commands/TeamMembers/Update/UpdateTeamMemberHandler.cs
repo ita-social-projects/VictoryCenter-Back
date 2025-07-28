@@ -91,14 +91,14 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                         });
                     if (image != null)
                     {
-                            image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
+                        var imageDto = _mapper.Map<ImageDTO>(image);
+                        imageDto.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
+                        resultDto.Image = imageDto;
                     }
                     else
                     {
                         return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
                     }
-
-                    resultDto.Image = _mapper.Map<ImageDTO>(image);
                 }
 
                 scope.Complete();

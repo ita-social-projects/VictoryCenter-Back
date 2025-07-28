@@ -18,6 +18,7 @@ public static class ImageConstants
     public static readonly string FailedToWriteEncryptedFile = "Failed to write encrypted file.";
     public static readonly string FailedToReadOrDecryptFile = "Failed to read or decrypt file.";
     public static readonly string UnexpectedBlobReadError = "Unexpected error during file retrieval.";
+    public static readonly string ImageDataNotAvailable = "Image data not available";
 
     public static string FieldIsRequired(string name)
     {
