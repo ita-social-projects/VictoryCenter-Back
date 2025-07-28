@@ -3,8 +3,8 @@ using AutoMapper;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Queries.Programs.GetPublished;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Programs;
@@ -35,27 +35,6 @@ public class GetPublishedProgramsTests
         }
     };
 
-    private readonly Image _image = new()
-    {
-        Id = 1,
-        BlobName = "BlobName",
-        MimeType = "image/png"
-    };
-
-    private readonly IEnumerable<ProgramCategory> _programCategories = new List<ProgramCategory>
-    {
-        new()
-        {
-            Id = 1,
-            Name = "TestCategoryName1"
-        },
-        new()
-        {
-            Id = 2,
-            Name = "TestCategoryName2"
-        }
-    };
-
     private readonly IEnumerable<PublishedProgramDto> _programDto = new List<PublishedProgramDto>()
     {
         new()
@@ -79,10 +58,21 @@ public class GetPublishedProgramsTests
         _mockBlobService = new Mock<IBlobService>();
     }
 
-    private void SetUpDependencies(DAL.Entities.Program program = null)
+    [Fact]
+    public async Task Handle_ShouldFindPrograms()
+    {
+        SetUpDependencies(_programEntities);
+        var handler = new GetPublishedProgramsHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
+        var result = await handler.Handle(new GetPublishedProgramsQuery(), CancellationToken.None);
+        Assert.True(result.IsSuccess);
+        Assert.NotEmpty(result.Value);
+        Assert.NotNull(result);
+    }
+
+    private void SetUpDependencies(List<DAL.Entities.Program> programs = null)
     {
         SetUpAutoMapper();
-        SetUpRepositoryWrapper(program);
+        SetUpRepositoryWrapper(programs);
         SetUpBlobService();
     }
 
@@ -92,10 +82,10 @@ public class GetPublishedProgramsTests
             .Returns(_programDto);
     }
 
-    private void SetUpRepositoryWrapper(DAL.Entities.Program program)
+    private void SetUpRepositoryWrapper(List<DAL.Entities.Program> programs)
     {
         _mockRepositoryWrapper.Setup(x => x.ProgramsRepository
-            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.Program>>())).ReturnsAsync(program);
+            .GetAllAsync(It.IsAny<QueryOptions<DAL.Entities.Program>>())).ReturnsAsync(programs);
     }
 
     private void SetUpBlobService()
