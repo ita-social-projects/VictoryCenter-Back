@@ -87,7 +87,7 @@ public class GetImageByIdHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(ErrorMessagesConstants.NotFound(id, typeof(Image)), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
     }
 

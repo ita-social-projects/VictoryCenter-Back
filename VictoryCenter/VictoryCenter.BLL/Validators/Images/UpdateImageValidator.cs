@@ -1,6 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Images.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Images;
 
 // using VictoryCenter.BLL.Commands.Images.Update;
 
@@ -11,13 +12,13 @@ public class UpdateImageValidator : AbstractValidator<UpdateImageCommand>
     private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
     public UpdateImageValidator()
     {
-        RuleFor(x => x.UpdateImageDto).NotEmpty().WithMessage("UreateImageDto cannot be null");
+        RuleFor(x => x.UpdateImageDto).NotEmpty().WithMessage(ImageConstants.UpdateImageDtoCantBeNull);
         RuleFor(x => x.UpdateImageDto.Base64)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("Base64 content"))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(UpdateImageDTO.Base64)))
             .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
 
         RuleFor(x => x.UpdateImageDto.MimeType)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("MimeType field"))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(UpdateImageDTO.MimeType)))
             .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }

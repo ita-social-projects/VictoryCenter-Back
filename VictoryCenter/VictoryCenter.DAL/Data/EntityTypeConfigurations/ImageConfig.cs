@@ -16,12 +16,16 @@ public class ImageConfig : IEntityTypeConfiguration<Image>
             .ValueGeneratedOnAdd();
 
         entity.Property(e => e.BlobName)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(100);
 
         entity.Property(e => e.MimeType)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(10);
 
         entity.Property(e => e.CreatedAt)
             .IsRequired();
+
+        entity.Ignore(e => e.Base64);
     }
 }

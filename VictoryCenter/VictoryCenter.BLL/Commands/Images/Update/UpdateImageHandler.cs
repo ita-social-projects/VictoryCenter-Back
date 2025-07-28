@@ -44,7 +44,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (imageEntity is null)
             {
-                return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.Id));
+                return Result.Fail<ImageDTO>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();

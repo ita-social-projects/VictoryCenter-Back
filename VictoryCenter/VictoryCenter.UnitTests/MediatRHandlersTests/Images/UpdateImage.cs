@@ -126,7 +126,7 @@ public class UpdateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.NotFound(id, typeof(Image)), result.Errors[0].Message);
         _mockBlobService.Verify(
             x => x.UpdateFileInStorageAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);

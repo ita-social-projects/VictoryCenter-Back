@@ -35,7 +35,7 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
 
             if (image is null)
             {
-                return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.Id));
+                return Result.Fail<ImageDTO>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
             if (string.IsNullOrEmpty(image.BlobName))

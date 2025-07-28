@@ -31,7 +31,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>(ImageConstants.ImageNotFound(request.Id));
+                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();

@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Commands.Images.Create;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Images;
 
 namespace VictoryCenter.BLL.Validators.Images;
 
@@ -11,11 +12,11 @@ public class CreateImageValidator : AbstractValidator<CreateImageCommand>
     {
         RuleFor(x => x.CreateImageDto).NotEmpty().WithMessage(ImageConstants.CreateImageDtoCantBeNull);
         RuleFor(x => x.CreateImageDto.Base64)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("Base64 content"))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(CreateImageDTO.Base64)))
             .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
 
         RuleFor(x => x.CreateImageDto.MimeType)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("MimeType"))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(CreateImageDTO.MimeType)))
             .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }

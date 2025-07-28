@@ -4,6 +4,7 @@ public static class ImageConstants
 {
     public static readonly string Base64ValidationError = "Base64 content is invalid";
     public static readonly string CreateImageDtoCantBeNull = "CreateImageDto cannot be null";
+    public static readonly string UpdateImageDtoCantBeNull = "UpdateImageDto cannot be null";
     public static readonly string FailToSaveImageInStorage = "An error occurred while saving the image in storage";
     public static readonly string FailToSaveImageInDatabase = "An error occurred while saving the image in database";
     public static readonly string FailToDeleteImage = "Failed to delete image.";
@@ -28,11 +29,6 @@ public static class ImageConstants
     public static string MimeTypeValidationError(string[] types)
     {
         return $"MimeType must be one of the following: {string.Join(", ", types)}";
-    }
-
-    public static string ImageNotFound(long id)
-    {
-        return $"Image with ID {id} not found.";
     }
 
     public static string FileNotFound(string filePath)
