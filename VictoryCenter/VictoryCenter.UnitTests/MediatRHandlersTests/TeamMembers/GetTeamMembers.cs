@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
@@ -103,7 +104,7 @@ public class GetTeamMembers
         var category = new Category { Id = 2, Name = "Category 2" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.CategoryId == category.Id)
+            .Where(t => t.Category.Id == category.Id)
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -139,7 +140,7 @@ public class GetTeamMembers
         var category = new Category { Id = 1, Name = "Category 1" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.Status == status && t.CategoryId == category.Id)
+            .Where(t => t.Status == status && t.Category.Id == category.Id)
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -225,35 +226,60 @@ public class GetTeamMembers
                 Id = 1,
                 Priority = 1,
                 Status = Status.Draft,
-                CategoryId = 1
+                Category = new CategoryDto
+                {
+                    Id = 1,
+                    Name = "Test Category",
+                    Description = "Test category description"
+                },
             },
             new()
             {
                 Id = 3,
                 Priority = 1,
                 Status = Status.Published,
-                CategoryId = 1
+                Category = new CategoryDto
+                {
+                    Id = 1,
+                    Name = "Test Category",
+                    Description = "Test category description"
+                },
             },
             new()
             {
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
-                CategoryId = 2
+                Category = new CategoryDto
+                {
+                    Id = 2,
+                    Name = "Test Category",
+                    Description = "Test category description"
+                },
             },
             new()
             {
                 Id = 5,
                 Priority = 2,
                 Status = Status.Published,
-                CategoryId = 2
+                Category = new CategoryDto
+                {
+                    Id = 2,
+                    Name = "Test Category",
+                    Description = "Test category description"
+                },
             },
             new()
             {
                 Id = 4,
                 Priority = 3,
                 Status = Status.Draft,
-                CategoryId = 1
+                Category = new CategoryDto
+                {
+                    Id = 1,
+                    Name = "Test Category",
+                    Description = "Test category description"
+                },
             },
         };
 

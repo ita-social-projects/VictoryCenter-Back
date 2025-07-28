@@ -4,5 +4,5 @@ using VictoryCenter.BLL.DTOs.Categories;
 
 namespace VictoryCenter.BLL.Commands.Categories.Update;
 
-public record UpdateCategoryCommand(UpdateCategoryDto updateCategoryDto)
+public record UpdateCategoryCommand(UpdateCategoryDto UpdateCategoryDto, long Id)
     : IRequest<Result<CategoryDto>>;
