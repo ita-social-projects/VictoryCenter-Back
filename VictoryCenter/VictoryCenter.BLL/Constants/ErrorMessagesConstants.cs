@@ -53,4 +53,9 @@ public static class ErrorMessagesConstants
     {
         return $"{property} must have a length of {length} characters";
     }
+
+    public static string PropertyMustBeValidEnum(string property)
+    {
+        return $"{property} must be a valid value";
+    }
 }

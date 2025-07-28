@@ -9,13 +9,13 @@ public class PaymentRequestValidator : AbstractValidator<PaymentRequestDto>
     public PaymentRequestValidator()
     {
         RuleFor(x => x.Amount)
-            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThan(nameof(PaymentRequestDto.Amount), 0));
+            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(PaymentRequestDto.Amount)));
 
         RuleFor(x => x.Currency)
             .IsInEnum()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(PaymentRequestDto.Currency)));
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(PaymentRequestDto.Currency)));
 
         RuleFor(x => x.PaymentSystem)
-            .IsInEnum().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(PaymentRequestDto.PaymentSystem)));
+            .IsInEnum().WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(PaymentRequestDto.PaymentSystem)));
     }
 }
