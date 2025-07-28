@@ -20,7 +20,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        IQueryable<T> query = _dbContext.Set<T>();
 
         if (queryOptions != null)
         {
@@ -36,7 +36,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        IQueryable<T> query = _dbContext.Set<T>();
 
         if (queryOptions != null)
         {

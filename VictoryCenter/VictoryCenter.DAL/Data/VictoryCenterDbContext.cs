@@ -17,7 +17,9 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     public DbSet<Image> Images { get; set; }
+
     public DbSet<ProgramCategory> ProgramCategories { get; set; }
+
     public DbSet<Program> Programs { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -80,6 +82,7 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
             entity.HasIndex(e => new { e.CategoryId, e.Priority })
                 .IsUnique();
         });
+
         modelBuilder.Entity<Image>(entity =>
         {
             entity.ToTable("Images", "media");
@@ -98,6 +101,7 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
         });
+
         modelBuilder.Entity<ProgramCategory>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -111,15 +115,38 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
         });
+
         modelBuilder.Entity<Program>(entity =>
         {
             entity.HasKey(e => e.Id);
+
             entity.Property(e => e.Id)
                 .ValueGeneratedOnAdd();
+
             entity.Property(e => e.Name)
                 .IsRequired();
+
             entity.Property(e => e.Description);
+
             entity.Property(e => e.ImageId);
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.Property(e => e.Status)
+                .IsRequired();
+
+            entity.HasOne(e => e.Image)
+                .WithOne()
+                .HasForeignKey<Program>(e => e.ImageId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasMany(e => e.Categories)
+                .WithMany(e => e.Programs)
+                .UsingEntity(j =>
+                {
+                    j.ToTable("ProgramProgramCategories");
+                });
         });
     }
 }

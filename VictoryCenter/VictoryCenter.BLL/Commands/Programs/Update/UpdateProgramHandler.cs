@@ -1,0 +1,101 @@
+using AutoMapper;
+using MediatR;
+using FluentResults;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+
+namespace VictoryCenter.BLL.Commands.Programs.Update;
+
+public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result<ProgramDto>>
+{
+    private readonly IMapper _mapper;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IValidator<UpdateProgramCommand> _validator;
+    private readonly IBlobService _blobService;
+
+    public UpdateProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<UpdateProgramCommand> validator, IBlobService blobService)
+    {
+        _mapper = mapper;
+        _repositoryWrapper = repositoryWrapper;
+        _validator = validator;
+        _blobService = blobService;
+    }
+
+    public async Task<Result<ProgramDto>> Handle(UpdateProgramCommand request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            var programToUpdate = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Program>()
+                {
+                    Filter = program => program.Id == request.updateProgramDto.Id,
+                    Include = program => program.Include(p => p.Categories)
+                });
+
+            if (programToUpdate is null)
+            {
+                return Result.Fail<ProgramDto>(ErrorMessagesConstants
+                    .NotFound(request.updateProgramDto.Id, typeof(DAL.Entities.Program)));
+            }
+
+            var newCategories = await _repositoryWrapper.ProgramCategoriesRepository.GetAllAsync(
+                new QueryOptions<DAL.Entities.ProgramCategory>
+                {
+                    Filter = category => request.updateProgramDto.CategoriesId.Contains(category.Id)
+                });
+
+            _mapper.Map(request.updateProgramDto, programToUpdate);
+
+            if (programToUpdate.ImageId != null)
+            {
+                var newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+                {
+                    Filter = image => image.Id == request.updateProgramDto.ImageId
+                });
+                if (newImage is not null)
+                {
+                    try
+                    {
+                        newImage.Base64 =
+                            await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
+                    }
+                    catch (Exception)
+                    {
+                        return Result.Fail<ProgramDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
+                    }
+                }
+
+                programToUpdate.Image = newImage;
+            }
+
+            programToUpdate.Categories.Clear();
+
+            foreach (var program in newCategories)
+            {
+                programToUpdate.Categories.Add(program);
+            }
+
+            _repositoryWrapper.ProgramsRepository.Update(programToUpdate);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                var responseDto = _mapper.Map<ProgramDto>(programToUpdate);
+                return Result.Ok(responseDto);
+            }
+
+            return Result.Fail<ProgramDto>(ProgramConstants.FailedToUpdateProgram);
+        }
+        catch (ValidationException ex)
+        {
+            return Result.Fail<ProgramDto>(ex.Message);
+        }
+    }
+}
