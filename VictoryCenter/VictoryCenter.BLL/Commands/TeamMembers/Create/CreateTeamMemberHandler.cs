@@ -56,40 +56,31 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 entity.Priority = (maxPriority ?? 0) + 1;
                 await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
-                if (await _repositoryWrapper.SaveChangesAsync() > 0)
-                {
-                    scope.Complete();
-                }
-                else
+                if (await _repositoryWrapper.SaveChangesAsync() <= 0)
                 {
                     return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMember);
                 }
-            }
 
-            TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
-            if (entity.ImageId != null)
-            {
-                Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
-                    new QueryOptions<Image>()
-                    {
-                        Filter = i => i.Id == entity.ImageId
-                    });
-                if (imageResult is not null)
+                TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
+                if (entity.ImageId != null)
                 {
-                    try
+                    Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                        new QueryOptions<Image>()
+                        {
+                            Filter = i => i.Id == entity.ImageId
+                        });
+                    if (imageResult is not null)
                     {
-                        imageResult.Base64 = await _blobService.FindFileInStorageAsBase64Async(imageResult.BlobName, imageResult.MimeType);
+                        imageResult.Base64 =
+                            await _blobService.FindFileInStorageAsBase64Async(imageResult.BlobName, imageResult.MimeType);
                     }
-                    catch(Exception)
-                    {
-                        return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
-                    }
+
+                    result.Image = _mapper.Map<ImageDTO>(imageResult);
                 }
 
-                result.Image = _mapper.Map<ImageDTO>(imageResult);
+                scope.Complete();
+                return Result.Ok(result);
             }
-
-            return Result.Ok(result);
         }
         catch (ValidationException vex)
         {

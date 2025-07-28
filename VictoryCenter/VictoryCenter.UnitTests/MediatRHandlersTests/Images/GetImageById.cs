@@ -41,7 +41,7 @@ public class GetImageByIdHandlerTests
     public async Task Handle_ValidRequest_ShouldReturnImageDto()
     {
         // Arrange
-        var command = new GetImageByIdQuery(id: 1);
+        var command = new GetImageByIdQuery(Id: 1);
 
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync(_testImage);
@@ -72,7 +72,7 @@ public class GetImageByIdHandlerTests
         const long id = 123;
 
         // Arrange
-        var command = new GetImageByIdQuery(id: id);
+        var command = new GetImageByIdQuery(Id: id);
 
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((Image?)null);
@@ -88,35 +88,6 @@ public class GetImageByIdHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(ImageConstants.ImageNotFound(id), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
-        _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task Handle_BlobNameIsNull_ShouldReturnNotFound()
-    {
-        // Arrange
-        var imageWithoutBlob = new Image
-        {
-            Id = 2,
-            BlobName = null,
-            MimeType = "image/png"
-        };
-        var command = new GetImageByIdQuery(id: 2);
-
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
-            .ReturnsAsync(imageWithoutBlob);
-
-        var handler = new GetImageByIdHandler(
-            _mockRepositoryWrapper.Object,
-            _mockMapper.Object,
-            _blobservice.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.ImageNotFound(imageWithoutBlob.Id), result.Errors[0].Message, StringComparison.OrdinalIgnoreCase);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
     }
 }

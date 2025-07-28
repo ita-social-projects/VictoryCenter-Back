@@ -14,5 +14,5 @@ public record CreateTeamMemberDto
 
     public string? Email { get; set; }
 
-    public long? ImageId { get; set; }
+    public long? ImageId { get; init; }
 }

@@ -48,4 +48,9 @@ public static class ErrorMessagesConstants
             ? $"{property} must be in a valid format"
             : $"{property} must be in a valid format of {format}";
     }
+
+    public static string BlobStorageError(string message)
+    {
+        return $"Blob error: {message}";
+    }
 }

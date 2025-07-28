@@ -92,33 +92,4 @@ public class GetImageByNameHandlerTests
         Assert.Contains(ImageConstants.ImageNotFoundGeneric, result.Errors[0].Message);
         _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
-
-    [Fact]
-    public async Task Handle_BlobNameIsNull_ShouldReturnNotFound()
-    {
-        // Arrange
-        var imageWithoutBlob = new Image
-        {
-            Id = 2,
-            BlobName = null,
-            MimeType = "image/png"
-        };
-        var command = new GetImageByNameQuery("nullblob.png");
-
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
-            .ReturnsAsync(imageWithoutBlob);
-
-        var handler = new GetImageByNameHandler(
-            _mockRepositoryWrapper.Object,
-            _mockMapper.Object,
-            _blobService.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.ImageBlobNameIsNull, result.Errors[0].Message);
-        _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-    }
 }

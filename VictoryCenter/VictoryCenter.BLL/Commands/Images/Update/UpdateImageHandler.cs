@@ -39,18 +39,17 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             Image? imageEntity = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
-                Filter = entity => entity.Id == request.id
+                Filter = entity => entity.Id == request.Id
             });
 
             if (imageEntity is null)
             {
-                return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.id));
+                return Result.Fail<ImageDTO>(ImageConstants.ImageNotFound(request.Id));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            // �������� ��������� ��� � ��
-            imageEntity.MimeType = request.updateImageDto.MimeType!;
+            imageEntity.MimeType = request.UpdateImageDto.MimeType!;
 
             var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
 
@@ -59,21 +58,18 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
             }
 
-            // ���� ��������� ���� � blob storage
             var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
                 imageEntity.BlobName,
                 imageEntity.MimeType,
-                request.updateImageDto.Base64!,
+                request.UpdateImageDto.Base64!,
                 imageEntity.BlobName,
-                request.updateImageDto.MimeType!);
+                request.UpdateImageDto.MimeType!);
 
             imageEntity.BlobName = updatedBlobName;
 
-            // ��������� ��������� � ������������ Base64
             ImageDTO resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
             resultDto.Base64 = await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
 
-            // ������� ���������� ����� �����������
             transaction.Complete();
 
             return Result.Ok(resultDto);
@@ -84,11 +80,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<ImageDTO>($"BlobStorage error: {e.Message}" );
-        }
-        catch (Exception)
-        {
-            return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
+            return Result.Fail<ImageDTO>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

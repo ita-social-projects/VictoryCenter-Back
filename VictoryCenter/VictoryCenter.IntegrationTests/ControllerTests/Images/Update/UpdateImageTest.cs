@@ -30,7 +30,7 @@ public class UpdateImageTest
     }
 
     [Fact]
-    public async Task UpdateImage_ShouldUpdateImage()
+    public async Task UpdateImage_ValidData_ShouldUpdateImage()
     {
         var image = await _dbContext.Images.FirstOrDefaultAsync();
         var id = image.Id;

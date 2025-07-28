@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -25,23 +26,26 @@ public class GetImageByNameHandler : IRequestHandler<GetImageByNameQuery, Result
 
     public async Task<Result<ImageDTO>> Handle(GetImageByNameQuery request, CancellationToken cancellationToken)
     {
-        var image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+        try
         {
-            Filter = e => e.BlobName == request.name
-        });
+            var image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+            {
+                Filter = e => e.BlobName == request.Name
+            });
 
-        if (image is null)
-        {
-            return Result.Fail<ImageDTO>(ImageConstants.ImageNotFoundGeneric);
+            if (image is null)
+            {
+                return Result.Fail<ImageDTO>(ImageConstants.ImageNotFoundGeneric);
+            }
+
+            image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
+            var result = _mapper.Map<ImageDTO>(image);
+            return Result.Ok(result);
         }
-
-        if (image.BlobName == null)
+        catch (BlobStorageException e)
         {
-            return Result.Fail<ImageDTO>(ImageConstants.ImageBlobNameIsNull);
+            var test = ErrorMessagesConstants.BlobStorageError(e.Message);
+            return Result.Fail<ImageDTO>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
-
-        var result = _mapper.Map<ImageDTO>(image);
-        result.Base64 = await _blobService.FindFileInStorageAsBase64Async(result.BlobName, result.MimeType);
-        return Result.Ok(result);
     }
 }

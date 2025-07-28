@@ -25,7 +25,7 @@ public class CreateImageTests
     }
 
     [Fact]
-    public async Task CreateImage_ShouldCreateImage()
+    public async Task CreateImage_ValidData_ShouldCreateImage()
     {
         var createImageDto = new CreateImageDTO
         {

@@ -5,6 +5,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Images.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -155,8 +156,11 @@ public class CreateImageHandlerTests
     {
         // Arrange
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDTO>())).Returns(_testImage);
-        _mockBlobService.Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Throws<IOException>();
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>())).ReturnsAsync(_testImage);
+        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+        _mockBlobService
+            .Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Throws(new BlobFileSystemException("mockpath", ImageConstants.FailToSaveImageInStorage));
 
         var handler = new CreateImageHandler(
             _mockBlobService.Object,
@@ -171,6 +175,6 @@ public class CreateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.FailToSaveImageInStorage, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.BlobStorageError(ImageConstants.FailToSaveImageInStorage), result.Errors[0].Message);
     }
 }

@@ -28,7 +28,7 @@ public class DeleteImageTests
     }
 
     [Fact]
-    public async Task DeleteImage_ShouldDeleteImage()
+    public async Task DeleteImage_ValidData_ShouldDeleteImage()
     {
         Image? image = await _dbContext.Images.OrderByDescending(i => i.Id).FirstOrDefaultAsync();
         var id = image.Id;

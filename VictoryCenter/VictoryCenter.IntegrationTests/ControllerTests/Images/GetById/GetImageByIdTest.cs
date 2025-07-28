@@ -26,7 +26,7 @@ public class GetImageByIdTest
     }
 
     [Fact]
-    public async Task GetImageById_ShouldReturnImage()
+    public async Task GetImageById_ValidData_ShouldReturnImage()
     {
         Image? image = await _dbContext.Images.FirstOrDefaultAsync();
         var id = image.Id;

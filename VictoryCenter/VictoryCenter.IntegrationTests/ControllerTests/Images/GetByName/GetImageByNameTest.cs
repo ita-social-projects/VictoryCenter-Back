@@ -26,7 +26,7 @@ public class GetImageByNameTest
     }
 
     [Fact]
-    public async Task GetImageByName_ShouldReturnImage()
+    public async Task GetImageByName_ValidData_ShouldReturnImage()
     {
         Image? image = await _dbContext.Images.FirstOrDefaultAsync();
         var name = image.BlobName;

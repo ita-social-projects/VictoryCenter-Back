@@ -36,7 +36,6 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            // Спочатку зберігаємо в базу даних
             Image image = _mapper.Map<Image>(request.CreateImageDto);
             image.BlobName = fileName;
             image.CreatedAt = DateTime.UtcNow;
@@ -48,14 +47,11 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
                 return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInDatabase);
             }
 
-            // Потім зберігаємо файл в blob storage
             await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
 
-            // Повертаємо результат з завантаженим Base64
+            createdImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(createdImage.BlobName, createdImage.MimeType);
             var response = _mapper.Map<ImageDTO>(createdImage);
-            response.Base64 = await _blobService.FindFileInStorageAsBase64Async(response.BlobName, response.MimeType);
 
-            // Комітимо транзакцію прямо перед поверненням
             transaction.Complete();
 
             return Result.Ok(response);
@@ -66,11 +62,8 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<ImageDTO>($"BlobStorage error: {e.Message}" );
-        }
-        catch (Exception)
-        {
-            return Result.Fail<ImageDTO>(ImageConstants.FailToSaveImageInStorage);
+            var test = ErrorMessagesConstants.BlobStorageError(e.Message);
+            return Result.Fail<ImageDTO>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

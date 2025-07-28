@@ -11,12 +11,12 @@ public class UpdateImageValidator : AbstractValidator<UpdateImageCommand>
     private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
     public UpdateImageValidator()
     {
-        RuleFor(x => x.updateImageDto).NotEmpty().WithMessage("UreateImageDto cannot be null");
-        RuleFor(x => x.updateImageDto.Base64)
+        RuleFor(x => x.UpdateImageDto).NotEmpty().WithMessage("UreateImageDto cannot be null");
+        RuleFor(x => x.UpdateImageDto.Base64)
             .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("Base64 content"))
             .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
 
-        RuleFor(x => x.updateImageDto.MimeType)
+        RuleFor(x => x.UpdateImageDto.MimeType)
             .NotEmpty().WithMessage(ImageConstants.FieldIsRequired("MimeType field"))
             .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));

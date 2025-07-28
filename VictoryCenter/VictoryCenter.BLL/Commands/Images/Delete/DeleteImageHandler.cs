@@ -54,11 +54,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<long>($"BlobStorage error: {e.Message}" );
-        }
-        catch (Exception)
-        {
-            return Result.Fail<long>(ImageConstants.FailToDeleteImage);
+            return Result.Fail<long>(ErrorMessagesConstants.BlobStorageError(e.Message) );
         }
     }
 }

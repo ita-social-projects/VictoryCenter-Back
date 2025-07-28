@@ -4,4 +4,4 @@ using VictoryCenter.BLL.DTOs.Images;
 
 namespace VictoryCenter.BLL.Queries.Images.GetByName;
 
-public record GetImageByNameQuery(string name) : IRequest<Result<ImageDTO>>;
+public record GetImageByNameQuery(string Name) : IRequest<Result<ImageDTO>>;

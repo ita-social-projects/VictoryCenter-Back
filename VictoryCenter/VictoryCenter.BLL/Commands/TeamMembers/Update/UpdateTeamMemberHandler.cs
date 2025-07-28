@@ -91,15 +91,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                         });
                     if (image != null)
                     {
-                        try
-                        {
-                            image.Base64 =
-                                await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
-                        }
-                        catch(Exception)
-                        {
-                            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
-                        }
+                            image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
                     }
                     else
                     {

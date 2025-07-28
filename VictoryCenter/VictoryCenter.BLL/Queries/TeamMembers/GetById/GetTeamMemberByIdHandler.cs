@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -26,26 +27,35 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
 
     public async Task<Result<TeamMemberDto>> Handle(GetTeamMemberByIdQuery request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<TeamMember>
+        try
         {
-            Filter = tm => tm.Id == request.Id,
-            Include = t => t.Include(t => t.Image)
-        };
+            var queryOptions = new QueryOptions<TeamMember>
+            {
+                Filter = tm => tm.Id == request.Id,
+                Include = t => t.Include(t => t.Image)
+            };
 
-        TeamMember? teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(queryOptions);
+            TeamMember? teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(queryOptions);
 
-        if (teamMember == null)
-        {
-            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+            if (teamMember == null)
+            {
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+            }
+
+            if (teamMember.Image is not null)
+            {
+                teamMember.Image.Base64 =
+                    await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
+            }
+
+            var result = _mapper.Map<TeamMemberDto>(teamMember);
+
+            return Result.Ok(result);
         }
-
-        var result = _mapper.Map<TeamMemberDto>(teamMember);
-        if (result.Image is not null)
+        catch (BlobStorageException e)
         {
-            result.Image.Base64 =
-                await _blobService.FindFileInStorageAsBase64Async(result.Image.BlobName, result.Image.MimeType);
+            var test = ErrorMessagesConstants.BlobStorageError(e.Message);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
-
-        return Result.Ok(result);
     }
 }
