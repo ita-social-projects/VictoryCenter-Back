@@ -50,7 +50,6 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
         }
         catch (BlobStorageException e)
         {
-            var test = ErrorMessagesConstants.BlobStorageError(e.Message);
             return Result.Fail<ImageDTO>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
