@@ -54,7 +54,6 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
         }
         catch (BlobStorageException e)
         {
-            var test = ErrorMessagesConstants.BlobStorageError(e.Message);
             return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
