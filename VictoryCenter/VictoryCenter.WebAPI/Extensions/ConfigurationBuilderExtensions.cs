@@ -26,6 +26,8 @@ public static class ConfigurationBuilderExtensions
         configuration["PaymentSystemsConfigurations:Way4Pay:MerchantSecretKey"] = Environment.GetEnvironmentVariable("WAY4PAY_MERCHANT_SECRET_KEY");
         configuration["PaymentSystemsConfigurations:Way4Pay:MerchantDomainName"] = Environment.GetEnvironmentVariable("WAY4PAY_MERCHANT_DOMAIN_NAME");
         configuration["PaymentSystemsConfigurations:Way4Pay:ApiUrl"] = Environment.GetEnvironmentVariable("WAY4PAY_API_URL");
+        configuration["BlobEnvironmentVariables:Local:BlobStoreKey"] = Environment.GetEnvironmentVariable("BLOB_LOCAL_STORE_KEY")
+                                                                               ?? throw new InvalidOperationException("BLOB_LOCAL_STORE_KEY is not set in environment variables");
 
         return configuration;
     }

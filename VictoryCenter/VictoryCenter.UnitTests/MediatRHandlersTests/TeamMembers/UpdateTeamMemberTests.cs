@@ -5,8 +5,8 @@ using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -19,6 +19,8 @@ public class UpdateTeamMemberTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly IValidator<UpdateTeamMemberCommand> _validator;
+    private readonly Mock<IBlobService> _blobService;
 
     private readonly Category _testCategory = new()
     {
@@ -40,10 +42,10 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             Name = "Test Category",
-            Description = "Test category description"
+            Description = "Test category description",
         },
         Email = "test@gmail.com",
-        Photo = null
+        ImageId = null
     };
 
     private readonly TeamMember _testUpdatedTeamMember = new()
@@ -59,19 +61,17 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             Name = "Test Category",
-            Description = "Test category description"
+            Description = "Test category description",
         },
         Email = "test@gmail.com",
-        Photo = null
+        ImageId = null
     };
 
-    private TeamMemberDto _testUpdatedTeamMemberDto = new()
+    private readonly TeamMemberDto _testUpdatedTeamMemberDto = new ()
     {
         FullName = "Updated Name",
-        Description = "Updated Description"
+        Description = "Updated Description",
     };
-
-    private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
     public UpdateTeamMemberTests()
     {
@@ -79,6 +79,7 @@ public class UpdateTeamMemberTests
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
+        _blobService = new Mock<IBlobService>();
     }
 
     [Theory]
@@ -100,26 +101,19 @@ public class UpdateTeamMemberTests
             {
                 Id = 1,
                 Name = "Test Category",
-                Description = "Test category description"
+                Description = "Test category description",
             },
             Email = "test@gmail.com",
-            Photo = null
         };
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {
             FullName = "Updated Name",
-            Category = new CategoryDto
-            {
-                Id = 1,
-                Name = "Test Category",
-                Description = "Test category description"
-            },
+            CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
             Description = testDescription,
             Email = "test@gmail.com",
-            Photo = null,
             Id = 1
         };
 
@@ -130,7 +124,7 @@ public class UpdateTeamMemberTests
             .Returns(testUpdatedTeamMemberDto);
 
         SetupRepositoryWrapper(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -144,7 +138,7 @@ public class UpdateTeamMemberTests
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(testUpdatedTeamMemberDto.Category.Id, result.Value.Category.Id);
+        Assert.Equal(testUpdatedTeamMemberDto.CategoryId, result.Value.CategoryId);
         Assert.Equal(testUpdatedTeamMemberDto.Priority, result.Value.Priority);
         Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
         Assert.Equal(testUpdatedTeamMemberDto.FullName, result.Value.FullName);
@@ -157,13 +151,13 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task Handle_InvalidFullName_ShouldReturnValidationError(string? testName)
     {
-        _testUpdatedTeamMemberDto = _testUpdatedTeamMemberDto with
+        var testUpdatedTeamMemberDto = _testUpdatedTeamMemberDto with
         {
             FullName = testName!
         };
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -189,7 +183,7 @@ public class UpdateTeamMemberTests
             .Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync((Category?)null);
         SetupMapper();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -210,7 +204,7 @@ public class UpdateTeamMemberTests
     public async Task Handle_TeamMemberNotFound_ShouldReturnNotFoundError(long testId)
     {
         SetupDependencies();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -229,7 +223,7 @@ public class UpdateTeamMemberTests
     public async Task Handle_SaveChangesFails_ShouldReturnFailureError()
     {
         SetupDependencies(_testExistingTeamMember, -1);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(

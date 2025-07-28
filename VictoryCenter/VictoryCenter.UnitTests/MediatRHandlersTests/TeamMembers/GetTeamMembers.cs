@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -14,11 +14,13 @@ public class GetTeamMembers
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IBlobService> _blobservice;
 
     public GetTeamMembers()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
+        _blobservice = new Mock<IBlobService>();
     }
 
     [Theory]
@@ -47,7 +49,7 @@ public class GetTeamMembers
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -84,7 +86,7 @@ public class GetTeamMembers
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -104,7 +106,7 @@ public class GetTeamMembers
         var category = new Category { Id = 2, Name = "Category 2" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.Category.Id == category.Id)
+            .Where(t => t.CategoryId == category.Id)
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -119,7 +121,7 @@ public class GetTeamMembers
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -140,7 +142,7 @@ public class GetTeamMembers
         var category = new Category { Id = 1, Name = "Category 1" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.Status == status && t.Category.Id == category.Id)
+            .Where(t => t.Status == status && t.CategoryId == category.Id)
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -155,7 +157,7 @@ public class GetTeamMembers
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -226,60 +228,35 @@ public class GetTeamMembers
                 Id = 1,
                 Priority = 1,
                 Status = Status.Draft,
-                Category = new CategoryDto
-                {
-                    Id = 1,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 1,
             },
             new()
             {
                 Id = 3,
                 Priority = 1,
                 Status = Status.Published,
-                Category = new CategoryDto
-                {
-                    Id = 1,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 1
             },
             new()
             {
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
-                Category = new CategoryDto
-                {
-                    Id = 2,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 12
             },
             new()
             {
                 Id = 5,
                 Priority = 2,
                 Status = Status.Published,
-                Category = new CategoryDto
-                {
-                    Id = 2,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 2
             },
             new()
             {
                 Id = 4,
                 Priority = 3,
                 Status = Status.Draft,
-                Category = new CategoryDto
-                {
-                    Id = 1,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 1,
             },
         };
 

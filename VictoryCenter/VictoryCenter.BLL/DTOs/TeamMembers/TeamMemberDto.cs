@@ -1,4 +1,4 @@
-﻿using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.TeamMembers;
@@ -9,7 +9,7 @@ public record TeamMemberDto
 
     public string FullName { get; init; } = null!;
 
-    public CategoryDto Category { get; init; }
+    public long CategoryId { get; init; }
 
     public long Priority { get; init; }
 
@@ -17,9 +17,7 @@ public record TeamMemberDto
 
     public string? Description { get; init; }
 
-#pragma warning disable SA1011
-    public byte[]? Photo { get; init; }
-#pragma warning restore SA1011
-
     public string? Email { get; init; }
+
+    public ImageDTO? Image { get; set; }
 }

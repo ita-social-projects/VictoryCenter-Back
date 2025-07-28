@@ -31,7 +31,9 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
                 ["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_SECRETKEY")
                                            ?? throw new InvalidOperationException("JWTOPTIONS_SECRETKEY is not set in enviroment variables"),
                 ["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY")
-                                                       ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration")
+                                                       ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration"),
+                ["BlobEnvironmentVariables:Local:BlobStoreKey"] = Environment.GetEnvironmentVariable("BLOB_LOCAL_STORE_KEY")
+                ?? throw new InvalidOperationException("BLOB_LOCAL_STORE_KEY is not set in environment variables")
             };
 
             config.AddInMemoryCollection(dict);
@@ -60,6 +62,7 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
         Environment.SetEnvironmentVariable("WAY4PAY_MERCHANT_SECRET_KEY", "MOCK_VALUE");
         Environment.SetEnvironmentVariable("WAY4PAY_MERCHANT_DOMAIN_NAME", "MOCK_VALUE");
         Environment.SetEnvironmentVariable("WAY4PAY_API_URL", "https://mock/pay");
+        Environment.SetEnvironmentVariable("BLOB_LOCAL_STORE_KEY", "test-blob-key");
     }
 
     private static void RemoveExistingContext(IServiceCollection services)

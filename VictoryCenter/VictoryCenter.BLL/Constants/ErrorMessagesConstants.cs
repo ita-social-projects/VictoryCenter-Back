@@ -58,4 +58,9 @@ public static class ErrorMessagesConstants
     {
         return $"{property} must be a valid value";
     }
+
+    public static string BlobStorageError(string message)
+    {
+        return $"Blob error: {message}";
+    }
 }

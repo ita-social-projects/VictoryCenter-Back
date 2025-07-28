@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Commands.Payment.Common;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.BLL.Helpers;
@@ -74,11 +76,12 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services)
+    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
+
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
@@ -86,6 +89,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.ConfigureBlob(configuration);
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
@@ -163,7 +167,13 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialAdmin(this WebApplication app)
+    public static async Task CreateInitialData(this WebApplication app)
+    {
+        await app.CreateInitialAdmin();
+        await app.CreateInitialCategories();
+    }
+
+    private static async Task CreateInitialAdmin(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
@@ -200,6 +210,42 @@ public static class ServicesConfiguration
         }
     }
 
+    private static async Task CreateInitialCategories(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var categories = new List<Category>
+        {
+            new()
+            {
+                Name = "������� �������",
+                Description = "����, �� ����� ����������� ������ �������, ������������� ��������, ������� ��������, ���������� ���.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "��������� ����",
+                Description = "����, �� ����� ����������� ������ �������, ������������� ��������, ������� ��������, ���������� ���.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "�������",
+                Description = "�������, �� ������������ ��� � �������� ��������: �������� �������, �����, �������, ����������, �����������. " +
+                "��� ������ � ��� ���������� ������.",
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+        foreach (var category in categories)
+        {
+            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+            {
+                dbContext.Categories.Add(category);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+    }
+
     private static void AddOpenApi(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
@@ -210,7 +256,6 @@ public static class ServicesConfiguration
                 Title = "VictoryCenter API",
                 Version = "v1"
             });
-
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
@@ -236,6 +281,32 @@ public static class ServicesConfiguration
                 }
             });
         });
+    }
+
+    private static IServiceCollection ConfigureBlob(this IServiceCollection services, IConfiguration configuration)
+    {
+        var blobSection = configuration.GetSection("BlobEnvironmentVariables");
+        var serviceType = blobSection.GetValue<string>("ServiceType");
+
+        switch (serviceType)
+        {
+            case "Local":
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations();
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            case "Azure":
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Azure"))
+                    .ValidateDataAnnotations();
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported Blob Service Type: {serviceType}");
+        }
+
+        return services;
     }
 
     private static void ScanInterfacesAndRegisterImplementations(this IServiceCollection services, Assembly assembly, Type interfaceType, ServiceLifetime lifetime)

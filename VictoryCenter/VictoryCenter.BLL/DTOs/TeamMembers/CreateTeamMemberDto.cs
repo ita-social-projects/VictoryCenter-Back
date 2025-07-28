@@ -11,11 +11,8 @@ public record CreateTeamMemberDto
     public Status Status { get; init; }
 
     public string? Description { get; init; }
-#pragma warning disable SA1011
 
-    // Change private set to set when photo logic is added
-    public byte[]? Photo { get; private set; }
-#pragma warning restore SA1011
+    public long? ImageId { get; init; }
 
     public string? Email { get; init; }
 }

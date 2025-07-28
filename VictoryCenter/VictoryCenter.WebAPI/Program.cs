@@ -4,12 +4,10 @@ using VictoryCenter.WebAPI.Extensions;
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Host.ConfigureApplication(builder);
 builder.Configuration.AddLocalEnvironmentVariables();
 builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddCustomServices();
-
+builder.Services.AddCustomServices(builder.Configuration);
 builder.Services.AddOpenTelemetryTracing();
 builder.Logging.AddOpenTelemetryLogging();
 
@@ -21,7 +19,7 @@ if (app.Environment.IsDevelopment())
 }
 
 await app.ApplyMigrations();
-await app.CreateInitialAdmin();
+await app.CreateInitialData();
 
 app.UseRequestResponseLogging();
 app.UseCors();
