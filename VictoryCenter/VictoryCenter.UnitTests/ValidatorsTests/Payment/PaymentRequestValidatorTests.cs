@@ -29,7 +29,7 @@ public class PaymentRequestValidatorTests
         };
         var result = _validator.TestValidate(dto);
         result.ShouldHaveValidationErrorFor(x => x.Amount)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeGreaterThan(nameof(PaymentRequestDto.Amount), 0));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(PaymentRequestDto.Amount)));
     }
 
     [Fact]
