@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
@@ -8,9 +9,14 @@ using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Commands.Payment.Common;
+using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -90,7 +96,23 @@ public static class ServicesConfiguration
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<WayForPayOptions>()
+            .BindConfiguration(WayForPayOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient("Way4PayClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+            {
+                AllowAutoRedirect = false
+            });
+
         services.AddSingleton<ITokenService, TokenService>();
+
+        services.AddScoped<IPaymentService, PaymentService>();
+
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
@@ -196,21 +218,21 @@ public static class ServicesConfiguration
         {
             new()
             {
-                Name = "Основна команда",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                Name = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ",
+                Description = "пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ.",
                 CreatedAt = DateTime.UtcNow
             },
             new()
             {
-                Name = "Наглядова рада",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                Name = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ",
+                Description = "пїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ.",
                 CreatedAt = DateTime.UtcNow
             },
             new()
             {
-                Name = "Радники",
-                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг. " +
-                "Їхні поради — наш додатковий компас.",
+                Name = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ",
+                Description = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ. " +
+                "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ.",
                 CreatedAt = DateTime.UtcNow
             }
         };
@@ -285,5 +307,31 @@ public static class ServicesConfiguration
         }
 
         return services;
+    }
+
+    private static void ScanInterfacesAndRegisterImplementations(this IServiceCollection services, Assembly assembly, Type interfaceType, ServiceLifetime lifetime)
+    {
+        var types = assembly.GetTypes().Where(x => !x.IsAbstract && x.IsClass);
+
+        foreach (var type in types)
+        {
+            var interfaces = type.GetInterfaces();
+
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                var matchingInterfaces = interfaces.Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
+                foreach (var matchingInterface in matchingInterfaces)
+                {
+                    services.Add(new ServiceDescriptor(matchingInterface, type, lifetime));
+                }
+            }
+            else
+            {
+                if (interfaces.Contains(interfaceType))
+                {
+                    services.Add(new ServiceDescriptor(interfaceType, type, lifetime));
+                }
+            }
+        }
     }
 }
