@@ -11,7 +11,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
-public class ReorderTeamMembers
+public class ReorderTeamMembersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly IValidator<ReorderTeamMembersCommand> _validator;
@@ -40,7 +40,7 @@ public class ReorderTeamMembers
         OrderedIds = [4, 2, 5, 1, 3]
     };
 
-    public ReorderTeamMembers()
+    public ReorderTeamMembersTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _validator = new ReorderTeamMembersValidator();
