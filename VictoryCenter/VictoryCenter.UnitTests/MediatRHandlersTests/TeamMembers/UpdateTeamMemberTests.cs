@@ -65,7 +65,7 @@ public class UpdateTeamMemberTests
         Photo = null
     };
 
-    private readonly TeamMemberDto _testUpdatedTeamMemberDto = new()
+    private TeamMemberDto _testUpdatedTeamMemberDto = new()
     {
         FullName = "Updated Name",
         Description = "Updated Description"
@@ -157,7 +157,10 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task Handle_InvalidFullName_ShouldReturnValidationError(string? testName)
     {
-        _testUpdatedTeamMemberDto.FullName = testName!;
+        _testUpdatedTeamMemberDto = _testUpdatedTeamMemberDto with
+        {
+            FullName = testName!
+        };
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);

@@ -31,7 +31,7 @@ public class UpdateCategoryTests
         Description = "Updated Description",
     };
 
-    private readonly CategoryDto _testUpdatedCategoryDto = new ()
+    private CategoryDto _testUpdatedCategoryDto = new ()
     {
         Name = "Updated Name",
         Description = "Updated Description",
@@ -52,7 +52,10 @@ public class UpdateCategoryTests
     public async Task Handle_ShouldUpdateEntity(string? testDescription)
     {
         _testUpdatedCategory.Description = testDescription;
-        _testUpdatedCategoryDto.Description = testDescription;
+        _testUpdatedCategoryDto = _testUpdatedCategoryDto with
+        {
+            Description = testDescription
+        };
         SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
@@ -77,8 +80,11 @@ public class UpdateCategoryTests
     [InlineData(" ")]
     public async Task Handle_ShouldNotUpdateEntity_IncorrectName(string? testName)
     {
-        _testUpdatedCategoryDto.Name = testName;
-        _testUpdatedCategory.Name = testName;
+        _testUpdatedCategoryDto = _testUpdatedCategoryDto with
+        {
+            Name = testName!
+        };
+        _testUpdatedCategory.Name = testName!;
         SetupDependencies(_testExistingCategory);
         var handler = new UpdateCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 

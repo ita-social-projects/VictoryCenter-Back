@@ -24,7 +24,7 @@ public class CreateCategoryTests
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
     };
 
-    private readonly CategoryDto _testCategoryDto = new()
+    private CategoryDto _testCategoryDto = new()
     {
         Name = "Test Category",
         Description = "Test Category Description",
@@ -45,7 +45,10 @@ public class CreateCategoryTests
     public async Task Handle_ShouldCreateCategory(string? description)
     {
         _testEntity.Description = description;
-        _testCategoryDto.Description = description;
+        _testCategoryDto = _testCategoryDto with
+        {
+            Description = description
+        };
         SetupDependencies();
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
@@ -67,8 +70,11 @@ public class CreateCategoryTests
     [InlineData(null)]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        _testEntity.Name = name;
-        _testCategoryDto.Name = name;
+        _testEntity.Name = name!;
+        _testCategoryDto = _testCategoryDto with
+        {
+            Name = name!
+        };
         SetupDependencies();
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
