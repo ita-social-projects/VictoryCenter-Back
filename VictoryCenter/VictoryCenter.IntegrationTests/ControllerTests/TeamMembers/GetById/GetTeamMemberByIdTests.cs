@@ -25,6 +25,7 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await _seederManager.SeedAllAsync();
+        await _seederManager.SeedAllAsync();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -33,7 +34,7 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
     public async Task GetTeamMemberById_ShouldReturnOk()
     {
         // Arrange
-        var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).OrderByDescending(tm => tm.Id).FirstOrDefaultAsync()
+        var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("Couldn't setup existing entity");
 
         // Act

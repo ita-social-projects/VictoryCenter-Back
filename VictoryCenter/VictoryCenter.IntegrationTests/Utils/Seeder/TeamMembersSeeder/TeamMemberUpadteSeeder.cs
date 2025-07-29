@@ -1,21 +1,21 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using Microsoft.EntityFrameworkCore;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
-public class TeamMembersSeeder : BaseSeeder<TeamMember>
+public class TeamMemberUpdateSeeder : BaseSeeder<TeamMember>
 {
-    private const int TeamMemberCount = 4;
+    private const int TeamMemberCount = 9;
 
-    public TeamMembersSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMembersSeeder> logger)
+    public TeamMemberUpdateSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMemberUpdateSeeder> logger)
         : base(dbContext, logger)
     {
     }
 
-    public override string Name => "TeamMembersSeeder";
+    public override string Name => "TeamMembersUpdateSeeder";
 
     public override int Order => 2;
 

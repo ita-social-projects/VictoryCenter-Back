@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,6 +20,7 @@ public class IntegrationTestDbFixture : IDisposable
     public readonly VictoryCenterDbContext DbContext;
     public readonly VictoryCenterWebApplicationFactory<Program> Factory;
     private readonly IServiceScope _scope;
+    private List<ISeeder> _seeders;
 
     public IntegrationTestDbFixture()
     {
@@ -28,12 +28,11 @@ public class IntegrationTestDbFixture : IDisposable
         _scope = Factory.Services.CreateScope();
         DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         HttpClient = Factory.CreateClient();
-
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         SeederManager = new SeederManager(DbContext, loggerFactory);
 
         DbContext.Database.EnsureDeleted();
-        DbContext.Database.Migrate();
+        DbContext.Database.EnsureCreated();
         SeederManager.SeedAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
 
@@ -45,9 +44,10 @@ public class IntegrationTestDbFixture : IDisposable
 
     public void Dispose()
     {
-        SeederManager.DisposeAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        DbContext.Database.EnsureDeleted();
         DbContext.Dispose();
         _scope.Dispose();
+        Factory.Dispose();
     }
 
     private string GetAuthorizationToken(IServiceProvider serviceProvider)

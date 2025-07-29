@@ -39,7 +39,14 @@ public class CategoriesSeeder : BaseSeeder<Category>
             {
                 Name = "Test name3",
                 Description = "Test description3",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+            },
+            new ()
+            {
+                Name = "Test name4",
+                Description = "Test description3",
+                CreatedAt = DateTime.UtcNow,
+                TeamMembers = new List<TeamMember>()
             }
         };
 

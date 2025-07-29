@@ -8,7 +8,7 @@ public class SeederManager
 {
     private readonly VictoryCenterDbContext _dbContext;
     private readonly ILoggerFactory _loggerFactory;
-    private readonly List<ISeeder> _seeders;
+    private List<ISeeder> _seeders;
 
     public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory)
     {
@@ -22,6 +22,18 @@ public class SeederManager
         }
         .OrderBy(s => s.Order)
         .ToList();
+    }
+
+    public void ClearSeeders()
+        => _seeders.Clear();
+
+    public void ConfigureSeeders(params ISeeder[] seeders)
+        => _seeders = seeders.OrderBy(s => s.Order).ToList();
+
+    public void AddSeeder(ISeeder seeder)
+    {
+        _seeders.Add(seeder);
+        _seeders = _seeders.OrderBy(s => s.Order).ToList();
     }
 
     public async Task<bool> SeedAllAsync()
