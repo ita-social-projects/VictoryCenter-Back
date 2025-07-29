@@ -7,14 +7,16 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
 
 [Collection("SharedIntegrationTests")]
-public class UpdateTeamMemberTests
+public class UpdateTeamMemberTests : IAsyncLifetime
 {
     private readonly VictoryCenterDbContext _dbContext;
     private readonly HttpClient _httpClient;
+    private readonly SeederManager _seederManager;
 
     private readonly JsonSerializerOptions _jsonOptions;
 
@@ -27,7 +29,17 @@ public class UpdateTeamMemberTests
         {
             PropertyNameCaseInsensitive = true
         };
+
+        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.DisposeAllAsync();
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(null)]

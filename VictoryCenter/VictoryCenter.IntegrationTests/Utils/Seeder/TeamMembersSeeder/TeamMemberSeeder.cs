@@ -8,7 +8,7 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
 public class TeamMembersSeeder : BaseSeeder<TeamMember>
 {
-    private const int TeamMemberCount = 8;
+    private const int TeamMemberCount = 16;
 
     public TeamMembersSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMembersSeeder> logger)
         : base(dbContext, logger)

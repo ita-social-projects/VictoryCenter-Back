@@ -4,20 +4,30 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetById;
 
 [Collection("SharedIntegrationTests")]
-public class GetTeamMemberByIdTests
+public class GetTeamMemberByIdTests : IAsyncLifetime
 {
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
+    private readonly SeederManager _seederManager;
 
     public GetTeamMemberByIdTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
+        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetTeamMemberById_ShouldReturnOk()

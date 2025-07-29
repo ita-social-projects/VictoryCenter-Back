@@ -21,7 +21,6 @@ public class IntegrationTestDbFixture : IDisposable
     public readonly VictoryCenterDbContext DbContext;
     public readonly VictoryCenterWebApplicationFactory<Program> Factory;
     private readonly IServiceScope _scope;
-    private readonly SeederManager _seederManager;
 
     public IntegrationTestDbFixture()
     {
@@ -31,20 +30,22 @@ public class IntegrationTestDbFixture : IDisposable
         HttpClient = Factory.CreateClient();
 
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
-        _seederManager = new SeederManager(DbContext, loggerFactory);
+        SeederManager = new SeederManager(DbContext, loggerFactory);
 
         DbContext.Database.EnsureDeleted();
         DbContext.Database.Migrate();
-        _seederManager.SeedAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        SeederManager.SeedAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
 
         HttpClient.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
     }
 
+    public SeederManager SeederManager { get; }
+
     public void Dispose()
     {
-        _seederManager.DisposeAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+        SeederManager.DisposeAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         DbContext.Dispose();
         _scope.Dispose();
     }
