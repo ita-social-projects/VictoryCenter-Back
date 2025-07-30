@@ -38,7 +38,7 @@ public class UpdateTeamMemberTests
     {
         TeamMember existingEntity = await _dbContext.TeamMembers
                                         .Include(tm => tm.Category)
-                                        .FirstOrDefaultAsync()
+                                        .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
 
@@ -72,7 +72,7 @@ public class UpdateTeamMemberTests
     {
         TeamMember existingEntity = await _dbContext.TeamMembers
                                         .Include(tm => tm.Category)
-                                        .FirstOrDefaultAsync()
+                                        .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
 

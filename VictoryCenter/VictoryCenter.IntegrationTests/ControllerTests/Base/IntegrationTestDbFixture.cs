@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -33,8 +32,7 @@ public class IntegrationTestDbFixture : IDisposable
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         _seederManager = new SeederManager(DbContext, loggerFactory);
 
-        DbContext.Database.EnsureDeleted();
-        DbContext.Database.Migrate();
+        DbContext.Database.EnsureCreated();
         _seederManager.SeedAllAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
 
