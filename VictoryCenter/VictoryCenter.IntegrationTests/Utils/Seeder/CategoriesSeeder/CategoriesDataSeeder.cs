@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
@@ -6,8 +7,8 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
 
 public class CategoriesSeeder : BaseSeeder<Category>
 {
-    public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger)
-        : base(dbContext, logger)
+    public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger, IBlobService blobService)
+        : base(dbContext, logger, blobService)
     {
     }
 

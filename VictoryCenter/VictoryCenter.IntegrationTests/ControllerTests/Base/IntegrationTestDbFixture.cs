@@ -32,11 +32,11 @@ public class IntegrationTestDbFixture : IDisposable
         _scope = Factory.Services.CreateScope();
         DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         HttpClient = Factory.CreateClient();
-        var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
-        SeederManager = new SeederManager(DbContext, loggerFactory);
         BlobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
         var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
         BlobVariables = options.Value;
+        var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        SeederManager = new SeederManager(DbContext, loggerFactory, BlobService);
 
         DbContext.Database.EnsureDeleted();
         DbContext.Database.EnsureCreated();

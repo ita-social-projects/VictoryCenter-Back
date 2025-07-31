@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -10,8 +11,8 @@ public class TeamMemberUpdateSeeder : BaseSeeder<TeamMember>
 {
     private const int TeamMemberCount = 9;
 
-    public TeamMemberUpdateSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMemberUpdateSeeder> logger)
-        : base(dbContext, logger)
+    public TeamMemberUpdateSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMemberUpdateSeeder> logger, IBlobService blobService)
+        : base(dbContext, logger, blobService)
     {
     }
 

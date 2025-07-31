@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeder;
@@ -7,17 +8,20 @@ public class SeederManager
 {
     private readonly VictoryCenterDbContext _dbContext;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IBlobService _blobService;
     private List<ISeeder> _seeders;
 
-    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory)
+    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory, IBlobService blobService)
     {
         _dbContext = dbContext;
         _loggerFactory = loggerFactory;
+        _blobService = blobService;
 
         _seeders = new List<ISeeder>
             {
-                new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>()),
-                new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>())
+                new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>(), _blobService),
+                new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>(), _blobService),
+                new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService)
             }
             .OrderBy(s => s.Order)
             .ToList();

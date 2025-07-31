@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -22,6 +23,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     private readonly HttpClient _httpClient;
     private readonly SeederManager _seederManager;
     private readonly IntegrationTestDbFixture _fixture;
+    private readonly IBlobService _blobService;
 
     private readonly JsonSerializerOptions _jsonOptions;
 
@@ -30,6 +32,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
         _fixture = fixture;
+        _blobService = fixture.BlobService;
 
         _jsonOptions = new JsonSerializerOptions
         {
@@ -46,8 +49,8 @@ public class UpdateTeamMemberTests : IAsyncLifetime
 
         _seederManager.ClearSeeders();
         _seederManager.ConfigureSeeders(
-            new CategoriesSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>()),
-            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>()));
+            new CategoriesSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>(), _blobService),
+            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>(), _blobService));
 
         if (!await _fixture.SeederManager.SeedAllAsync())
         {
