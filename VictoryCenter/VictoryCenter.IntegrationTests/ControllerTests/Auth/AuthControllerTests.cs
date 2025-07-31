@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Net;
 using System.Net.Http.Json;
 using VictoryCenter.BLL.Constants;
@@ -80,6 +81,9 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         var loginResponse = await _fixture.HttpClient.PostAsJsonAsync(LoginPath, loginRequest);
         loginResponse.EnsureSuccessStatusCode();
 
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse.AccessToken;
+
         var setCookieHeaders = loginResponse.Headers.TryGetValues("Set-Cookie", out var values) ? values : null;
         var refreshTokenCookie = setCookieHeaders?.FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
         Assert.False(string.IsNullOrEmpty(refreshTokenCookie));
@@ -88,6 +92,8 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
 
         var logoutRequest = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
         logoutRequest.Headers.Add("Cookie", cookieHeader);
+        logoutRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
         var logoutResponse = await _fixture.HttpClient.SendAsync(logoutRequest);
 
         Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);

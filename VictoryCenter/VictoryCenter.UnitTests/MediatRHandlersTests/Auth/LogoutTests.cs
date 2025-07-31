@@ -87,7 +87,7 @@ public class LogoutTests
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         Assert.Null(admin.RefreshToken);
-        Assert.Null(admin.RefreshTokenValidTo);
+        Assert.Equal(admin.RefreshTokenValidTo, DateTime.MinValue);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class LogoutTests
         Assert.True(result.IsSuccess);
         Assert.Equal(Unit.Value, result.Value);
         Assert.Null(admin.RefreshToken);
-        Assert.Null(admin.RefreshTokenValidTo);
+        Assert.Equal(admin.RefreshTokenValidTo, DateTime.MinValue);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         mockResponseCookies.Verify(
