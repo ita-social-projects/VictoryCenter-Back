@@ -1,10 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using Microsoft.EntityFrameworkCore;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
+namespace VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
 
 public class TeamMembersSeeder : BaseSeeder<TeamMember>
 {

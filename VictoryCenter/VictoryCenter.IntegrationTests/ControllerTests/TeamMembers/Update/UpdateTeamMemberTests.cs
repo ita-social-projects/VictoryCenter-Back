@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 using VictoryCenter.IntegrationTests.Utils.Seeder;
+using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
 using VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;

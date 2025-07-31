@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeder;
 
@@ -16,12 +15,12 @@ public class SeederManager
         _loggerFactory = loggerFactory;
 
         _seeders = new List<ISeeder>
-        {
-            new CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder>()),
-            new TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder>())
-        }
-        .OrderBy(s => s.Order)
-        .ToList();
+            {
+                new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>()),
+                new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>())
+            }
+            .OrderBy(s => s.Order)
+            .ToList();
     }
 
     public void ClearSeeders()

@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
+namespace VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
 
 public class CategoriesSeeder : BaseSeeder<Category>
 {

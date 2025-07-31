@@ -3,8 +3,10 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.BlobStorage;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
@@ -19,6 +21,8 @@ public class IntegrationTestDbFixture : IDisposable
     public readonly HttpClient HttpClient;
     public readonly VictoryCenterDbContext DbContext;
     public readonly VictoryCenterWebApplicationFactory<Program> Factory;
+    public readonly IBlobService BlobService;
+    public readonly BlobEnvironmentVariables BlobVariables;
     private readonly IServiceScope _scope;
     private List<ISeeder> _seeders;
 
@@ -30,6 +34,9 @@ public class IntegrationTestDbFixture : IDisposable
         HttpClient = Factory.CreateClient();
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         SeederManager = new SeederManager(DbContext, loggerFactory);
+        BlobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
+        var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
+        BlobVariables = options.Value;
 
         DbContext.Database.EnsureDeleted();
         DbContext.Database.EnsureCreated();

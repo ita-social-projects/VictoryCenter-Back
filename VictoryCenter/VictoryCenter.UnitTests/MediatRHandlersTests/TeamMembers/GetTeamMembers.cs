@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -13,11 +14,13 @@ public class GetTeamMembers
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IBlobService> _blobservice;
 
     public GetTeamMembers()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
+        _blobservice = new Mock<IBlobService>();
     }
 
     [Theory]
@@ -46,7 +49,7 @@ public class GetTeamMembers
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -83,7 +86,7 @@ public class GetTeamMembers
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -118,7 +121,7 @@ public class GetTeamMembers
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -154,7 +157,7 @@ public class GetTeamMembers
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -225,7 +228,7 @@ public class GetTeamMembers
                 Id = 1,
                 Priority = 1,
                 Status = Status.Draft,
-                CategoryId = 1
+                CategoryId = 1,
             },
             new()
             {
@@ -239,7 +242,7 @@ public class GetTeamMembers
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
-                CategoryId = 2
+                CategoryId = 12
             },
             new()
             {
@@ -253,7 +256,7 @@ public class GetTeamMembers
                 Id = 4,
                 Priority = 3,
                 Status = Status.Draft,
-                CategoryId = 1
+                CategoryId = 1,
             },
         };
 
