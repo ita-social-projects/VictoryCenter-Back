@@ -6,20 +6,31 @@ using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Create;
 
 [Collection("SharedIntegrationTests")]
-public class CreateTeamMemberTest
+public class CreateTeamMemberTest : IAsyncLifetime
 {
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
+    private readonly SeederManager _seederManager;
 
     public CreateTeamMemberTest(IntegrationTestDbFixture fixture)
     {
         _client = fixture.HttpClient;
         _dbContext = fixture.DbContext;
+        _seederManager = fixture.SeederManager
+            ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task CreateTeamMember_ShouldReturnOk()

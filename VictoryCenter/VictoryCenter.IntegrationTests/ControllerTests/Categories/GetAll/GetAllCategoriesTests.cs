@@ -1,15 +1,17 @@
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.GetAll;
 
 [Collection("SharedIntegrationTests")]
-public class GetAllCategoriesTests
+public class GetAllCategoriesTests : IAsyncLifetime
 {
     private readonly HttpClient _httpClient;
 
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly SeederManager _seederManager;
 
     public GetAllCategoriesTests(IntegrationTestDbFixture fixture)
     {
@@ -19,7 +21,17 @@ public class GetAllCategoriesTests
         {
             PropertyNameCaseInsensitive = true
         };
+
+        _seederManager = fixture.SeederManager;
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.DisposeAllAsync();
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetAllCategories_ShouldReturnAllCategories()

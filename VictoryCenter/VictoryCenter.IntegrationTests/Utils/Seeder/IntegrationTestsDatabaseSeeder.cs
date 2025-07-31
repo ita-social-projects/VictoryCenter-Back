@@ -1,29 +1,64 @@
+using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.ImageSeeder;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeder;
 
-internal static class IntegrationTestsDatabaseSeeder
+public class SeederManager
 {
-    public static void SeedData(VictoryCenterDbContext dbContext, IBlobService blobService)
+    private readonly VictoryCenterDbContext _dbContext;
+    private readonly ILoggerFactory _loggerFactory;
+    private readonly IBlobService _blobService;
+    private List<ISeeder> _seeders;
+
+    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory, IBlobService blobService)
     {
-        CategoriesDataSeeder.SeedData(dbContext);
-        TeamMemberSeeder.SeedData(dbContext, dbContext.Categories.ToList());
-        ImagesDataSeeder.SeedData(dbContext, blobService );
+        _dbContext = dbContext;
+        _loggerFactory = loggerFactory;
+        _blobService = blobService;
+
+        _seeders = new List<ISeeder>
+            {
+                new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>(), _blobService),
+                new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>(), _blobService),
+                new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService)
+            }
+            .OrderBy(s => s.Order)
+            .ToList();
     }
 
-    public static async Task DeleteExistingData(VictoryCenterDbContext dbContext, BlobEnvironmentVariables environment)
+    public void ClearSeeders()
+        => _seeders.Clear();
+
+    public void ConfigureSeeders(params ISeeder[] seeders)
+        => _seeders = seeders.OrderBy(s => s.Order).ToList();
+
+    public void AddSeeder(ISeeder seeder)
     {
-        dbContext.Images.RemoveRange(dbContext.Images);
-        await dbContext.SaveChangesAsync();
-        Directory.Delete(environment.BlobStorePath, recursive: true);
-        dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
-        await dbContext.SaveChangesAsync();
-        dbContext.Categories.RemoveRange(dbContext.Categories);
-        await dbContext.SaveChangesAsync();
+        _seeders.Add(seeder);
+        _seeders = _seeders.OrderBy(s => s.Order).ToList();
+    }
+
+    public async Task<bool> SeedAllAsync()
+    {
+        foreach (var seeder in _seeders)
+        {
+            var result = await seeder.SeedAsync();
+            if (!result.Success)
+            {
+                await DisposeAllAsync();
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public async Task DisposeAllAsync()
+    {
+        foreach (var seeder in _seeders.OrderByDescending(s => s.Order))
+        {
+            await seeder.DisposeAsync();
+        }
     }
 }
