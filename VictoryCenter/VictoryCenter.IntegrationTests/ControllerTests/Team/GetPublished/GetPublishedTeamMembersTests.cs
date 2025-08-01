@@ -6,17 +6,19 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Team.GetPublished;
 
 [Collection("SharedIntegrationTests")]
-public class GetPublishedTeamMembersTests
+public class GetPublishedTeamMembersTests : IAsyncLifetime
 {
     private const string _requestUri = "/api/Team/published";
 
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly SeederManager _seederManager;
 
     public GetPublishedTeamMembersTests(IntegrationTestDbFixture fixture)
     {
@@ -26,7 +28,17 @@ public class GetPublishedTeamMembersTests
         {
             PropertyNameCaseInsensitive = true
         };
+
+        _seederManager = fixture.SeederManager
+            ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetPublicTeamMembers_ShouldReturnOnlyPublishedMembersGroupedByCategory()

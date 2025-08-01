@@ -5,18 +5,18 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
-public class TeamMembersSeeder : BaseSeeder<TeamMember>
+public class TeamMemberUpdateSeeder : BaseSeeder<TeamMember>
 {
-    private const int TeamMemberCount = 8;
+    private const int TeamMemberCount = 9;
 
-    public TeamMembersSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMembersSeeder> logger, IBlobService blobService)
+    public TeamMemberUpdateSeeder(VictoryCenterDbContext dbContext, ILogger<TeamMemberUpdateSeeder> logger, IBlobService blobService)
         : base(dbContext, logger, blobService)
     {
     }
 
-    public override string Name => "TeamMembersSeeder";
+    public override string Name => "TeamMembersUpdateSeeder";
 
     public override int Order => 2;
 

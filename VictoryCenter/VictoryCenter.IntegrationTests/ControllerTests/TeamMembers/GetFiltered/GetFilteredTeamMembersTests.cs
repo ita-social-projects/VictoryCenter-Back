@@ -2,18 +2,29 @@ using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetFiltered;
 
 [Collection("SharedIntegrationTests")]
-public class GetFilteredTeamMembersTests
+public class GetFilteredTeamMembersTests : IAsyncLifetime
 {
     private readonly HttpClient _httpClient;
+    private readonly SeederManager _seederManager;
 
     public GetFilteredTeamMembersTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
+        _seederManager = fixture.SeederManager
+            ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetTeamMembers_ShouldReturnOk()
