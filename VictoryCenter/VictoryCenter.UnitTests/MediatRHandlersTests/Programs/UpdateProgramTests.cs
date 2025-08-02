@@ -74,7 +74,7 @@ public class UpdateProgramTests
         _mapperMock = new Mock<IMapper>();
         _blobServiceMock = new Mock<IBlobService>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
-        _validator = new UpdateProgramValidator();
+        _validator = new UpdateProgramValidator(new BaseProgramValidator());
     }
 
     [Fact]

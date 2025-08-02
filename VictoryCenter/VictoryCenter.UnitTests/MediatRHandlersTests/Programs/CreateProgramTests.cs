@@ -70,7 +70,7 @@ public class CreateProgramTests
     {
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
-        _validator = new CreateProgramValidator();
+        _validator = new CreateProgramValidator(new BaseProgramValidator());
         _blobServiceMock = new Mock<IBlobService>();
     }
 

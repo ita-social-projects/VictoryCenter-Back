@@ -21,7 +21,10 @@ public class SeederManager
             {
                 new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>(), _blobService),
                 new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>(), _blobService),
-                new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService)
+                new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService),
+                new ProgramSeeder.ProgramSeeder(_dbContext, _loggerFactory.CreateLogger<ProgramSeeder.ProgramSeeder>(), _blobService),
+                new ProgramCategoriesSeeder
+                    .ProgramCategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<ProgramCategoriesSeeder.ProgramCategoriesSeeder>(), _blobService)
             }
             .OrderBy(s => s.Order)
             .ToList();

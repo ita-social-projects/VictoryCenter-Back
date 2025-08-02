@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.Validators.Programs;
 using VictoryCenter.BLL.Commands.Programs.Update;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Programs;
 
@@ -12,7 +13,7 @@ public class UpdateProgramValidatorTests
 
     public UpdateProgramValidatorTests()
     {
-        _validator = new UpdateProgramValidator();
+        _validator = new UpdateProgramValidator(new BaseProgramValidator());
     }
 
     [Theory]
@@ -66,7 +67,14 @@ public class UpdateProgramValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_When_Description_IsNotValid(string? description)
     {
-        var command = new UpdateProgramCommand(new UpdateProgramDto { Description = description });
+        var updateProgramDto = new UpdateProgramDto()
+        {
+            Name = "TestName",
+            Status = Status.Published,
+            Description = description,
+            CategoriesId = [1, 2]
+        };
+        var command = new UpdateProgramCommand(updateProgramDto);
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Description"));
