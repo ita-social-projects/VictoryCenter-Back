@@ -1,6 +1,5 @@
 ﻿using System.Buffers;
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
@@ -12,11 +11,13 @@ public class BlobService : IBlobService
 {
     private readonly string _keyCrypt;
     private readonly string _blobPath;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public BlobService(IOptions<BlobEnvironmentVariables> environment)
+    public BlobService(IOptions<BlobEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
         _keyCrypt = environment.Value.BlobStoreKey;
         _blobPath = environment.Value.BlobStorePath;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public string BlobPath => _blobPath;
@@ -29,7 +30,7 @@ public class BlobService : IBlobService
             string extension = GetExtensionFromMimeType(mimeType);
 
             Directory.CreateDirectory(_blobPath);
-            await EncryptFileAsync(imageBytes, extension, name);
+            await CreateFileAsync(imageBytes, extension, name);
 
             return $"{name}.{extension}";
         }
@@ -41,21 +42,23 @@ public class BlobService : IBlobService
 
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
-            byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
+            byte[] decodedBytes = await GetFileAsync(name, GetExtensionFromMimeType(mimeType));
             return new MemoryStream(decodedBytes);
     }
 
-    public async Task<string> FindFileInStorageAsBase64Async(string name, string mimeType)
+    public string GetFileUrl(string name, string mimeType)
     {
-        try
+        var extension = GetExtensionFromMimeType(mimeType);
+        var fileName = $"{name}.{extension}";
+        var request = _httpContextAccessor.HttpContext?.Request;
+
+        if (request == null)
         {
-            using var stream = await FindFileInStorageAsMemoryStreamAsync(name, mimeType);
-            return Convert.ToBase64String(stream.ToArray());
+            throw new InvalidOperationException("HttpContext is not available.");
         }
-        catch (Exception ex) when (ex is not BlobStorageException)
-        {
-            throw new InvalidBase64FormatException(ex.Message, ex);
-        }
+
+        var baseUrl = $"{request.Scheme}://{request.Host}";
+        return $"{baseUrl}/{fileName}";
     }
 
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
@@ -124,41 +127,13 @@ public class BlobService : IBlobService
         };
     }
 
-    private async Task EncryptFileAsync(byte[] imageBytes, string type, string name)
+    private async Task CreateFileAsync(byte[] imageBytes, string type, string name)
     {
         string filePath = Path.Combine(_blobPath, $"{name}.{type}");
-        byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
 
         try
         {
-            using var aes = Aes.Create();
-            aes.KeySize = 256;
-            aes.Key = keyBytes;
-            aes.GenerateIV();
-
-            using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-            fileStream.Write(aes.IV, 0, aes.IV.Length);
-
-            using var cryptoStream = new CryptoStream(fileStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
-
-            int bufferSize = 4096;
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-
-            try
-            {
-                using var memoryStream = new MemoryStream(imageBytes);
-                int bytesRead;
-                while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    cryptoStream.Write(buffer, 0, bytesRead);
-                }
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
-            await cryptoStream.FlushAsync();
+            await File.WriteAllBytesAsync(filePath, imageBytes);
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
@@ -166,7 +141,7 @@ public class BlobService : IBlobService
         }
     }
 
-    private async Task<byte[]> DecryptFileAsync(string fileName, string type)
+    private async Task<byte[]> GetFileAsync(string fileName, string type)
     {
         string filePath = Path.Combine(_blobPath, $"{fileName}.{type}");
 
@@ -177,40 +152,7 @@ public class BlobService : IBlobService
 
         try
         {
-            await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
-
-            byte[] iv = new byte[16];
-            if (fileStream.Read(iv, 0, iv.Length) != iv.Length)
-            {
-                throw new BlobCryptographyException(fileName, ImageConstants.InvalidIVLength);
-            }
-
-            using var aes = Aes.Create();
-            aes.KeySize = 256;
-            aes.Key = keyBytes;
-            aes.IV = iv;
-
-            await using var cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-            await using var memoryStream = new MemoryStream();
-
-            int bufferSize = 4096;
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-
-            try
-            {
-                int bytesRead;
-                while ((bytesRead = cryptoStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    await memoryStream.WriteAsync(buffer, 0, bytesRead);
-                }
-
-                return memoryStream.ToArray();
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            return await File.ReadAllBytesAsync(filePath);
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {

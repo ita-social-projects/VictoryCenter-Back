@@ -49,7 +49,6 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
 
-            createdImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(createdImage.BlobName, createdImage.MimeType);
             var response = _mapper.Map<ImageDTO>(createdImage);
 
             transaction.Complete();

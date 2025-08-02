@@ -10,6 +10,6 @@ public class ImagesProfile : Profile
     {
         CreateMap<CreateImageDTO, Image>();
         CreateMap<UpdateImageDTO, Image>();
-        CreateMap<Image, ImageDTO>();
+        CreateMap<Image, ImageDTO>().ForMember(d => d.Url, o => o.MapFrom<BlobTobase64Resolver>());
     }
 }

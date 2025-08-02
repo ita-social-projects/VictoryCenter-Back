@@ -68,7 +68,6 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
             imageEntity.BlobName = updatedBlobName;
 
             ImageDTO resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
-            resultDto.Base64 = await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
 
             transaction.Complete();
 
