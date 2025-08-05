@@ -55,7 +55,7 @@ public class CreateImageTests
 
         // Перевіряємо що файл створено у blob storage
         string extension = GetExtensionFromMimeType(createImageDto.MimeType);
-        string filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{responseContext.BlobName}.{extension}");
+        string filePath = Path.Combine(_blobEnvironment.FullPath, $"{responseContext.BlobName}.{extension}");
         Assert.True(File.Exists(filePath));
 
         // Перевіряємо що URL правильно сформований
@@ -111,7 +111,7 @@ public class CreateImageTests
     {
         var createImageDto = new CreateImageDTO
         {
-            Base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
+            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
             MimeType = "image/png"
         };
 
@@ -130,7 +130,7 @@ public class CreateImageTests
 
         // Перевіряємо що файл створено
         string extension = GetExtensionFromMimeType(createImageDto.MimeType);
-        string filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{responseContext.BlobName}.{extension}");
+        string filePath = Path.Combine(_blobEnvironment.FullPath, $"{responseContext.BlobName}.{extension}");
         Assert.True(File.Exists(filePath));
     }
 
@@ -161,7 +161,7 @@ public class CreateImageTests
 
         // Перевіряємо що файл створено з правильним розширенням
         string expectedExtension = GetExtensionFromMimeType(mimeType);
-        string filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{responseContext.BlobName}.{expectedExtension}");
+        string filePath = Path.Combine(_blobEnvironment.FullPath, $"{responseContext.BlobName}.{expectedExtension}");
         Assert.True(File.Exists(filePath));
 
         // Перевіряємо що URL містить правильне розширення

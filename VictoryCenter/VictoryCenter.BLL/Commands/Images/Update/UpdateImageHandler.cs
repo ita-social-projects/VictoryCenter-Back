@@ -49,6 +49,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
+            var previousType = imageEntity.MimeType;
             imageEntity.MimeType = request.UpdateImageDto.MimeType!;
 
             var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
@@ -60,7 +61,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
                 imageEntity.BlobName,
-                imageEntity.MimeType,
+                previousType,
                 request.UpdateImageDto.Base64!,
                 imageEntity.BlobName,
                 request.UpdateImageDto.MimeType!);

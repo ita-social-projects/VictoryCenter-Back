@@ -9,18 +9,15 @@ namespace VictoryCenter.BLL.Services.BlobStorage;
 
 public class BlobService : IBlobService
 {
-    private readonly string _keyCrypt;
-    private readonly string _blobPath;
+    private readonly BlobEnvironmentVariables _blobEnv;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public BlobService(IOptions<BlobEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
-        _keyCrypt = environment.Value.BlobStoreKey;
-        _blobPath = environment.Value.BlobStorePath;
+        _blobEnv = environment.Value;
         _httpContextAccessor = httpContextAccessor;
+        Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
     }
-
-    public string BlobPath => _blobPath;
 
     public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
     {
@@ -29,14 +26,14 @@ public class BlobService : IBlobService
             byte[] imageBytes = ConvertBase64ToBytes(base64);
             string extension = GetExtensionFromMimeType(mimeType);
 
-            Directory.CreateDirectory(_blobPath);
+            Directory.CreateDirectory(_blobEnv.FullPath);
             await CreateFileAsync(imageBytes, extension, name);
 
             return $"{name}.{extension}";
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new BlobFileSystemException(BlobPath, ex.Message, ex);
+            throw new BlobFileSystemException(_blobEnv.FullPath, ex.Message, ex);
         }
     }
 
@@ -58,7 +55,7 @@ public class BlobService : IBlobService
         }
 
         var baseUrl = $"{request.Scheme}://{request.Host}";
-        return $"{baseUrl}/{fileName}";
+        return $"{baseUrl}/{_blobEnv.ImagesSubPath}/{fileName}";
     }
 
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
@@ -71,7 +68,7 @@ public class BlobService : IBlobService
     public void DeleteFileInStorage(string name, string mimeType)
     {
         var fullName = name + "." + GetExtensionFromMimeType(mimeType);
-        string filePath = Path.Combine(_blobPath, fullName);
+        string filePath = Path.Combine(_blobEnv.FullPath, fullName);
         try
         {
             if (File.Exists(filePath))
@@ -129,21 +126,21 @@ public class BlobService : IBlobService
 
     private async Task CreateFileAsync(byte[] imageBytes, string type, string name)
     {
-        string filePath = Path.Combine(_blobPath, $"{name}.{type}");
+        string filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
 
         try
         {
             await File.WriteAllBytesAsync(filePath, imageBytes);
         }
-        catch (Exception ex) when (ex is not BlobStorageException)
+        catch (Exception ex)
         {
-            throw new BlobCryptographyException($"{name}.{type}", ImageConstants.EncryptionFailed, ex);
+            throw new ImageProcessingException($"{name}.{type}", ImageConstants.EncryptionFailed, ex);
         }
     }
 
     private async Task<byte[]> GetFileAsync(string fileName, string type)
     {
-        string filePath = Path.Combine(_blobPath, $"{fileName}.{type}");
+        string filePath = Path.Combine(_blobEnv.FullPath, $"{fileName}.{type}");
 
         if (!File.Exists(filePath))
         {
@@ -156,7 +153,7 @@ public class BlobService : IBlobService
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new BlobCryptographyException(fileName, ImageConstants.DecryptionFailed, ex);
+            throw new ImageProcessingException(fileName, ImageConstants.DecryptionFailed, ex);
         }
     }
 }

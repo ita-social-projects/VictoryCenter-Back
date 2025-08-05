@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
@@ -13,11 +14,13 @@ public class GetImageByIdTest
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly BlobEnvironmentVariables _blobEnv;
 
     public GetImageByIdTest(IntegrationTestDbFixture fixture)
     {
         _client = fixture.HttpClient;
         _dbContext = fixture.DbContext;
+        _blobEnv = fixture.BlobVariables;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -28,7 +31,7 @@ public class GetImageByIdTest
     public async Task GetImageById_ValidData_ShouldReturnImage()
     {
         // Arrange: Створюємо тестове зображення
-        var testImage = await CreateTestImageAsync();
+        var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath);
         var imageId = testImage.Id;
 
         // Act: Отримуємо зображення за ID
@@ -111,7 +114,7 @@ public class GetImageByIdTest
 
         foreach (var (mimeType, blobName) in testCases)
         {
-            var testImage = await CreateTestImageAsync(blobName, mimeType);
+            var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath, blobName, mimeType);
 
             // Act: Отримуємо зображення
             HttpResponseMessage response = await _client.GetAsync($"api/Image/{testImage.Id}");
@@ -130,7 +133,7 @@ public class GetImageByIdTest
     public async Task GetImageById_ResponseFormat_ShouldContainAllRequiredFields()
     {
         // Arrange: Створюємо тестове зображення
-        var testImage = await CreateTestImageAsync();
+        var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath);
 
         // Act: Отримуємо зображення
         HttpResponseMessage response = await _client.GetAsync($"api/Image/{testImage.Id}");
@@ -156,12 +159,12 @@ public class GetImageByIdTest
         Assert.Contains("http", result.Url);
     }
 
-    private async Task<Image> CreateTestImageAsync(string? customBlobName = null, string? customMimeType = null)
+    private async Task<Image> CreateTestImageAsync(string subPath, string? customBlobName = null, string? customMimeType = null)
     {
         var blobName = customBlobName ?? Guid.NewGuid().ToString().Replace("-", "");
         var mimeType = customMimeType ?? "image/png";
         var extension = GetExtensionFromMimeType(mimeType);
-        var url = $"http://localhost/{blobName}.{extension}";
+        var url = $"http://localhost/{subPath}/{blobName}.{extension}";
 
         var image = new Image
         {

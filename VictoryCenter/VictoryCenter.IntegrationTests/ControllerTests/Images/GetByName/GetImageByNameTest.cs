@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
@@ -13,11 +14,13 @@ public class GetImageByNameTest
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
-
+    private readonly string _imageSubPath;
+    private readonly BlobEnvironmentVariables _blobEnv;
     public GetImageByNameTest(IntegrationTestDbFixture fixture)
     {
         _client = fixture.HttpClient;
         _dbContext = fixture.DbContext;
+        _blobEnv = fixture.BlobVariables;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -29,7 +32,7 @@ public class GetImageByNameTest
     {
         // Arrange: Створюємо тестове зображення з унікальним ім'ям
         var testBlobName = "test-image-" + Guid.NewGuid().ToString("N")[..8];
-        var testImage = await CreateTestImageAsync(testBlobName);
+        var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath, testBlobName );
 
         // Act: Отримуємо зображення за ім'ям
         HttpResponseMessage response = await _client.GetAsync($"api/Image/by-name/{testBlobName}");
@@ -105,7 +108,7 @@ public class GetImageByNameTest
     {
         // Arrange: Створюємо зображення з конкретним регістром
         var originalBlobName = "TestImageName";
-        var testImage = await CreateTestImageAsync(originalBlobName);
+        var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath, originalBlobName);
 
         // Act & Assert: Тестуємо точне співпадіння
         HttpResponseMessage exactResponse = await _client.GetAsync($"api/Image/by-name/{originalBlobName}");
@@ -113,7 +116,7 @@ public class GetImageByNameTest
 
         // Act & Assert: Тестуємо різний регістр (має не знайти, якщо пошук case-sensitive)
         var lowerCaseName = originalBlobName.ToLower();
-        if (lowerCaseName != originalBlobName) // Тільки якщо регістр дійсно відрізняється
+        if (lowerCaseName != originalBlobName)
         {
             HttpResponseMessage caseResponse = await _client.GetAsync($"api/Image/by-name/{lowerCaseName}");
 
@@ -127,7 +130,7 @@ public class GetImageByNameTest
     {
         // Arrange: Створюємо зображення з спеціальними символами в імені
         var specialCharName = "test-image_123.special";
-        var testImage = await CreateTestImageAsync(specialCharName);
+        var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath, specialCharName);
 
         // Act: Отримуємо зображення з URL-encoded ім'ям
         var encodedName = Uri.EscapeDataString(specialCharName);
@@ -146,9 +149,9 @@ public class GetImageByNameTest
     {
         // Arrange: Створюємо кілька зображень з схожими іменами
         var baseName = "similar-image";
-        var image1 = await CreateTestImageAsync($"{baseName}-1");
-        var image2 = await CreateTestImageAsync($"{baseName}-2");
-        var image3 = await CreateTestImageAsync($"{baseName}-test");
+        var image1 = await CreateTestImageAsync(_blobEnv.ImagesSubPath, $"{baseName}-1");
+        var image2 = await CreateTestImageAsync(_blobEnv.ImagesSubPath, $"{baseName}-2");
+        var image3 = await CreateTestImageAsync(_blobEnv.ImagesSubPath, $"{baseName}-test");
 
         // Act: Отримуємо конкретне зображення
         var targetName = $"{baseName}-2";
@@ -176,7 +179,7 @@ public class GetImageByNameTest
 
         foreach (var (mimeType, blobName) in testCases)
         {
-            var testImage = await CreateTestImageAsync(blobName, mimeType);
+            var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath, blobName, mimeType);
 
             // Act: Отримуємо зображення за ім'ям
             HttpResponseMessage response = await _client.GetAsync($"api/Image/by-name/{blobName}");
@@ -197,7 +200,7 @@ public class GetImageByNameTest
     {
         // Arrange: Створюємо тестове зображення
         var testBlobName = "format-test-image";
-        var testImage = await CreateTestImageAsync(testBlobName);
+        var testImage = await CreateTestImageAsync(_blobEnv.ImagesSubPath, testBlobName);
 
         // Act: Отримуємо зображення
         HttpResponseMessage response = await _client.GetAsync($"api/Image/by-name/{testBlobName}");
@@ -224,11 +227,12 @@ public class GetImageByNameTest
         Assert.Equal(testBlobName, result.BlobName);
     }
 
-    private async Task<Image> CreateTestImageAsync(string blobName, string? customMimeType = null)
+    private async Task<Image> CreateTestImageAsync(string? subPath, string blobName, string? customMimeType = null )
     {
         var mimeType = customMimeType ?? "image/png";
         var extension = GetExtensionFromMimeType(mimeType);
-        var url = $"http://localhost/{blobName}.{extension}";
+        var subString = subPath;
+        var url = $"http://localhost/{subString}/{blobName}.{extension}";
 
         var image = new Image
         {

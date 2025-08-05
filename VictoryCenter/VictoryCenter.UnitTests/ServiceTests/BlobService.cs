@@ -9,6 +9,7 @@ namespace VictoryCenter.UnitTests.ServiceTests;
 public class BlobServiceTests : IDisposable
 {
     private readonly string _tempDir;
+    private readonly string _subDir;
     private readonly BlobService _blobService;
     private readonly string _key = "testkey123";
     private readonly string _base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("test image content"));
@@ -19,10 +20,11 @@ public class BlobServiceTests : IDisposable
     public BlobServiceTests()
     {
         _tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+        _subDir = "Images";
         var env = new BlobEnvironmentVariables
         {
-            BlobStoreKey = _key,
-            BlobStorePath = _tempDir
+            RootPath = _tempDir,
+            ImagesSubPath = _subDir
         };
         _mockHttpContext = new Mock<IHttpContextAccessor>();
 
@@ -33,7 +35,7 @@ public class BlobServiceTests : IDisposable
     public async Task SaveFileInStorage_ShouldCreateFile()
     {
         var blobName = await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
-        var filePath = Path.Combine(_tempDir, $"{_fileName}.png");
+        var filePath = Path.Combine(Path.Combine(_tempDir, _subDir), $"{_fileName}.png");
         Assert.True(File.Exists(filePath));
         Assert.Equal($"{_fileName}.png", blobName);
         var encryptedContent = File.ReadAllBytes(filePath);
@@ -65,7 +67,7 @@ public class BlobServiceTests : IDisposable
 
         var result = _blobService.GetFileUrl(blobName, mimeType);
 
-        Assert.Equal("https://example.com/image123.png", result);
+        Assert.Equal("https://example.com/Images/image123.png", result);
     }
 
     [Fact]

@@ -35,7 +35,7 @@ public class DeleteImageTests
         var imageId = testImage.Id;
 
         string extension = GetExtensionFromMimeType(testImage.MimeType);
-        string filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{testImage.BlobName}.{extension}");
+        string filePath = Path.Combine(_blobEnvironment.FullPath, $"{testImage.BlobName}.{extension}");
 
         // Переконуємося що файл існує перед видаленням
         Assert.True(File.Exists(filePath), "Test file should exist before deletion");
@@ -105,8 +105,8 @@ public class DeleteImageTests
         var image1 = await CreateTestImageAsync("test-image-1");
         var image2 = await CreateTestImageAsync("test-image-2");
 
-        string filePath1 = Path.Combine(_blobEnvironment.BlobStorePath, $"{image1.BlobName}.png");
-        string filePath2 = Path.Combine(_blobEnvironment.BlobStorePath, $"{image2.BlobName}.png");
+        string filePath1 = Path.Combine(_blobEnvironment.FullPath, $"{image1.BlobName}.png");
+        string filePath2 = Path.Combine(_blobEnvironment.FullPath, $"{image2.BlobName}.png");
 
         // Act: Видаляємо тільки перше зображення
         HttpResponseMessage response = await _client.DeleteAsync($"api/Image/{image1.Id}");
@@ -162,8 +162,8 @@ public class DeleteImageTests
         await _dbContext.SaveChangesAsync();
 
         // Створюємо тестовий файл
-        var filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{blobName}.{extension}");
-        Directory.CreateDirectory(_blobEnvironment.BlobStorePath);
+        var filePath = Path.Combine(_blobEnvironment.FullPath, $"{blobName}.{extension}");
+        Directory.CreateDirectory(_blobEnvironment.FullPath);
 
         // Створюємо мінімальний PNG файл (1x1 pixel)
         var testImageBytes = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=");

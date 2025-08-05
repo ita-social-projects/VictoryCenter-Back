@@ -35,7 +35,7 @@ public class UpdateImageTest
     {
         var originalImage = await CreateTestImageAsync("update-test-original", "image/jpeg");
         var originalExtension = GetExtensionFromMimeType(originalImage.MimeType);
-        var originalFilePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{originalImage.BlobName}.{originalExtension}");
+        var originalFilePath = Path.Combine(_blobEnvironment.FullPath, $"{originalImage.BlobName}.{originalExtension}");
 
         await CreatePhysicalTestFileAsync(originalFilePath, "original-content");
         var oldHash = ComputeFileHash(originalFilePath);
@@ -66,7 +66,7 @@ public class UpdateImageTest
         Assert.Contains(responseContext.BlobName, responseContext.Url);
 
         var newExtension = GetExtensionFromMimeType(updateImageDto.MimeType);
-        var newFilePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{responseContext.BlobName}.{newExtension}");
+        var newFilePath = Path.Combine(_blobEnvironment.FullPath, $"{responseContext.BlobName}.{newExtension}");
         Assert.True(File.Exists(newFilePath));
 
         var newHash = ComputeFileHash(newFilePath);
@@ -194,8 +194,8 @@ public class UpdateImageTest
     public async Task UpdateImage_ChangeFromJpegToPng_ShouldUpdateCorrectly()
     {
         var originalImage = await CreateTestImageAsync("jpeg-to-png-test", "image/jpeg");
-        var originalFilePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{originalImage.BlobName}.jpg");
-        await CreatePhysicalTestFileAsync(originalFilePath, "jpeg-content");
+        var originalFilePath = Path.Combine(_blobEnvironment.FullPath, $"{originalImage.BlobName}.jpg");
+        await CreatePhysicalTestFileAsync(originalFilePath, "jpg-content");
 
         var updateImageDto = new UpdateImageDTO
         {
@@ -215,7 +215,7 @@ public class UpdateImageTest
         Assert.NotNull(result);
         Assert.Equal("image/png", result.MimeType);
 
-        var newFilePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{result.BlobName}.png");
+        var newFilePath = Path.Combine(_blobEnvironment.FullPath, $"{result.BlobName}.png");
         Assert.True(File.Exists(newFilePath));
 
         Assert.False(File.Exists(originalFilePath));
@@ -228,7 +228,7 @@ public class UpdateImageTest
 
         var updateImageDto = new UpdateImageDTO
         {
-            Base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
             MimeType = "image/png"
         };
 
@@ -244,7 +244,7 @@ public class UpdateImageTest
         Assert.NotNull(result);
         Assert.Equal("image/png", result.MimeType);
 
-        var filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{result.BlobName}.png");
+        var filePath = Path.Combine(_blobEnvironment.FullPath, $"{result.BlobName}.png");
         Assert.True(File.Exists(filePath));
     }
 
@@ -277,7 +277,7 @@ public class UpdateImageTest
         Assert.Equal(originalImage.BlobName, updatedImageInDb.BlobName);
         Assert.Equal(originalCreatedAt, updatedImageInDb.CreatedAt);
 
-        var filePath = Path.Combine(_blobEnvironment.BlobStorePath, $"{updatedImageInDb.BlobName}.png");
+        var filePath = Path.Combine(_blobEnvironment.FullPath, $"{updatedImageInDb.BlobName}.png");
         Assert.True(File.Exists(filePath));
     }
 
