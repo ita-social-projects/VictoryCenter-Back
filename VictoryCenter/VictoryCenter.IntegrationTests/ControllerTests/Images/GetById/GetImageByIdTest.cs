@@ -161,7 +161,7 @@ public class GetImageByIdTest
         var blobName = customBlobName ?? Guid.NewGuid().ToString().Replace("-", "");
         var mimeType = customMimeType ?? "image/png";
         var extension = GetExtensionFromMimeType(mimeType);
-        var url = $"http://test.com/{blobName}.{extension}";
+        var url = $"http://localhost/{blobName}.{extension}";
 
         var image = new Image
         {
