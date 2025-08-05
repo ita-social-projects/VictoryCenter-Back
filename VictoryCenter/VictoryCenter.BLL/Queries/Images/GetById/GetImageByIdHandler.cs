@@ -43,7 +43,6 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
                 return Result.Fail<ImageDTO>(ImageConstants.ImageDataNotAvailable);
             }
 
-            image.Base64 = await _blobService.FindFileInStorageAsBase64Async(image.BlobName, image.MimeType);
             var result = _mapper.Map<ImageDTO>(image);
 
             return Result.Ok(result);

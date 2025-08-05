@@ -38,7 +38,7 @@ public class CreateImageHandlerTests
         Id = 1,
         BlobName = "testblob",
         MimeType = "image/png",
-        Base64 = "dGVzdA=="
+        Url = "dGVzdA=="
     };
 
     public CreateImageHandlerTests()
@@ -90,7 +90,7 @@ public class CreateImageHandlerTests
         Assert.Equal(_testImageDto.Id, result.Value.Id);
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        Assert.Equal(_testImageDto.Url, result.Value.Url);
         _mockBlobService.Verify(x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.CreateAsync(It.IsAny<Image>()), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);

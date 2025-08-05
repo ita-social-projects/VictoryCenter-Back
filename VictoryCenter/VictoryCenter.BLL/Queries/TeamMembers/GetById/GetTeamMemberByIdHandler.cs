@@ -42,12 +42,6 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
                 return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
             }
 
-            if (teamMember.Image is not null)
-            {
-                teamMember.Image.Base64 =
-                    await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
-            }
-
             var result = _mapper.Map<TeamMemberDto>(teamMember);
 
             return Result.Ok(result);

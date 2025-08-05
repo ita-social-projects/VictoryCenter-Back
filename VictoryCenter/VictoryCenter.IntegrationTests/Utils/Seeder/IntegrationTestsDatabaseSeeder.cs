@@ -20,7 +20,7 @@ internal static class IntegrationTestsDatabaseSeeder
     {
         dbContext.Images.RemoveRange(dbContext.Images);
         await dbContext.SaveChangesAsync();
-        Directory.Delete(environment.BlobStorePath, recursive: true);
+        Directory.Delete(environment.FullPath, recursive: true);
         dbContext.TeamMembers.RemoveRange(dbContext.TeamMembers);
         await dbContext.SaveChangesAsync();
         dbContext.Categories.RemoveRange(dbContext.Categories);

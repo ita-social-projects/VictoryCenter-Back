@@ -14,12 +14,10 @@ public static class ImageConstants
     public static readonly string InvalidIVLength = "Invalid IV length";
     public static readonly string ImageNotFoundGeneric = "Image not found";
     public static readonly string ImageBlobNameIsNull = "Image blob name is null";
-    public static readonly string EncryptionFailed = "Encryption failed.";
-    public static readonly string DecryptionFailed = "Decryption failed.";
-    public static readonly string FailedToWriteEncryptedFile = "Failed to write encrypted file.";
-    public static readonly string FailedToReadOrDecryptFile = "Failed to read or decrypt file.";
     public static readonly string UnexpectedBlobReadError = "Unexpected error during file retrieval.";
     public static readonly string ImageDataNotAvailable = "Image data not available";
+    public static readonly string FailedToSaveImage = "Failed to save the image.";
+    public static readonly string FailedToReadImage = "Failed to retrieve the image.";
 
     public static string FieldIsRequired(string name)
     {
@@ -34,5 +32,10 @@ public static class ImageConstants
     public static string FileNotFound(string filePath)
     {
         return $"File not found: {filePath}";
+    }
+
+    public static string CantGetFile(string name)
+    {
+        return $"An error occurred while retrieving the file {name}.";
     }
 }

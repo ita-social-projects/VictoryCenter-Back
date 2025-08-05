@@ -290,8 +290,13 @@ public static class ServicesConfiguration
         switch (serviceType)
         {
             case "Local":
-                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Local"))
-                    .ValidateDataAnnotations();
+                services.AddOptions<BlobEnvironmentVariables>()
+                    .Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations()
+                    .PostConfigure<IWebHostEnvironment>((options, env) =>
+                    {
+                        options.RootPath = env.WebRootPath;
+                    });
                 services.AddScoped<IBlobService, BlobService>();
                 break;
 

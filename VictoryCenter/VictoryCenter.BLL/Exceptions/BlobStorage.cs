@@ -37,15 +37,15 @@ public class BlobNotFoundException : BlobStorageException
     public string FileName { get; }
 }
 
-public class BlobCryptographyException : BlobStorageException
+public class ImageProcessingException : BlobStorageException
 {
-    public BlobCryptographyException(string fileName, string message)
+    public ImageProcessingException(string fileName, string message)
         : base(message)
     {
         FileName = fileName;
     }
 
-    public BlobCryptographyException(string fileName, string message, Exception innerException)
+    public ImageProcessingException(string fileName, string message, Exception innerException)
         : base(message, innerException)
     {
         FileName = fileName;
@@ -69,4 +69,21 @@ public class BlobFileSystemException : BlobStorageException
     }
 
     public string Path { get; }
+}
+
+public class BlobFileNameException : BlobStorageException
+{
+    public BlobFileNameException(string name, string message)
+        : base(message)
+    {
+        Name = name;
+    }
+
+    public BlobFileNameException(string name, string message, Exception innerException)
+        : base(message, innerException)
+    {
+        Name = name;
+    }
+
+    public string Name { get; }
 }
