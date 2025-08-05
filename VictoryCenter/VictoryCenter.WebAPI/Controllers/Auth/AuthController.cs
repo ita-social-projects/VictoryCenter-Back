@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Auth.Login;
 using VictoryCenter.BLL.Commands.Auth.Logout;
@@ -24,6 +25,7 @@ public class AuthController : BaseApiController
         return HandleResult(await Mediator.Send(new RefreshTokenCommand()));
     }
 
+    [Authorize]
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

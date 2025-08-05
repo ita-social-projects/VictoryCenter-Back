@@ -45,7 +45,7 @@ public class LogoutTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Unauthorized", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync(It.IsAny<string>()), Times.Never);
     }
 
@@ -62,7 +62,7 @@ public class LogoutTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not found admin", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.AdminWithGivenEmailWasNotFound, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(It.IsAny<Admin>()), Times.Never);
     }
@@ -78,12 +78,12 @@ public class LogoutTests
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.UpdateAsync(admin))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Not updated" }));
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = AuthConstants.NotUpdated }));
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Not updated", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.NotUpdated, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         Assert.Null(admin.RefreshToken);
