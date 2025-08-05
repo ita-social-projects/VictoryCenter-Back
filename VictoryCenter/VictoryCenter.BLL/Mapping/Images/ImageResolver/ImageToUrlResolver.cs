@@ -1,14 +1,15 @@
 ﻿using AutoMapper;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.BLL.Mapping.Images;
+namespace VictoryCenter.BLL.Mapping.Images.ImageResolver;
 
-public class BlobTobase64Resolver : IValueResolver<Image, ImageDTO, string>
+public class BlobToUrlResolver : IValueResolver<Image, ImageDTO, string>
 {
     private readonly IBlobService _blobService;
-    public BlobTobase64Resolver(IBlobService blobService)
+    public BlobToUrlResolver(IBlobService blobService)
     {
         _blobService = blobService;
     }
@@ -19,9 +20,9 @@ public class BlobTobase64Resolver : IValueResolver<Image, ImageDTO, string>
         {
             return _blobService.GetFileUrl(source.BlobName, source.MimeType);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            throw new FileNotFoundException();
+            throw new FileNotFoundException(ImageConstants.UnexpectedBlobReadError);
         }
     }
 }

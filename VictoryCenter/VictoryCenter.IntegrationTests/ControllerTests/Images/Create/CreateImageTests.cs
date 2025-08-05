@@ -107,11 +107,11 @@ public class CreateImageTests
     }
 
     [Fact]
-    public async Task CreateImage_ValidDataWithDataPrefix_ShouldCreateImage()
+    public async Task CreateImage_ValidDataWithDataPrefix_ShouldNotCreateImage()
     {
         var createImageDto = new CreateImageDTO
         {
-            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
+            Base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
             MimeType = "image/png"
         };
 
@@ -123,15 +123,12 @@ public class CreateImageTests
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
-        Assert.True(response.IsSuccessStatusCode);
-        Assert.NotNull(responseContext);
-        Assert.NotNull(responseContext.BlobName);
-        Assert.Equal(createImageDto.MimeType, responseContext.MimeType);
+        Assert.False(response.IsSuccessStatusCode);
 
         // Перевіряємо що файл створено
         string extension = GetExtensionFromMimeType(createImageDto.MimeType);
         string filePath = Path.Combine(_blobEnvironment.FullPath, $"{responseContext.BlobName}.{extension}");
-        Assert.True(File.Exists(filePath));
+        Assert.False(File.Exists(filePath));
     }
 
     [Theory]

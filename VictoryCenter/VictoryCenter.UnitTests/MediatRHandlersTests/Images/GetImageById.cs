@@ -27,7 +27,7 @@ public class GetImageByIdHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        Url = "http:superblob.com/testblob.png"
+        Url = "http://superblob.com/testblob.png"
     };
 
     public GetImageByIdHandlerTests()
@@ -101,7 +101,7 @@ public class GetImageByIdHandlerTests
         var mockImage = new Image()
         {
             Id = id,
-            Url = "http:superblob.com/testblob.png",
+            Url = "http://superblob.com/testblob.png",
             BlobName = "",
             MimeType = "image/png",
             CreatedAt = DateTime.UtcNow

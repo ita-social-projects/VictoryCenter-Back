@@ -103,7 +103,6 @@ public class GetImageByNameHandlerTests
         var mockImage = new Image()
         {
             Id = id,
-            Url = "dGVzdA==",
             BlobName = "",
             MimeType = "image/png",
             CreatedAt = DateTime.UtcNow

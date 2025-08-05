@@ -177,6 +177,11 @@ public class GetImageByIdTest
         _dbContext.Images.Add(image);
         await _dbContext.SaveChangesAsync();
 
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{blobName}.{extension}");
+        Directory.CreateDirectory(_blobEnv.FullPath);
+        var testImageBytes = Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=");
+        await File.WriteAllBytesAsync(filePath, testImageBytes);
+
         return image;
     }
 

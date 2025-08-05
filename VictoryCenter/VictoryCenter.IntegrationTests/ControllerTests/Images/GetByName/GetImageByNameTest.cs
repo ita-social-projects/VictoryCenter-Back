@@ -14,7 +14,6 @@ public class GetImageByNameTest
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly string _imageSubPath;
     private readonly BlobEnvironmentVariables _blobEnv;
     public GetImageByNameTest(IntegrationTestDbFixture fixture)
     {

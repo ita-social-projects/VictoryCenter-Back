@@ -45,6 +45,11 @@ public class BlobService : IBlobService
 
     public string GetFileUrl(string name, string mimeType)
     {
+        if (string.IsNullOrWhiteSpace(name) || name.Contains("..") || Path.GetInvalidFileNameChars().Any(name.Contains))
+        {
+            throw new BlobFileNameException(name, ImageConstants.CantGetFile(name));
+        }
+
         var extension = GetExtensionFromMimeType(mimeType);
         var fileName = $"{name}.{extension}";
         var request = _httpContextAccessor.HttpContext?.Request;
@@ -134,7 +139,7 @@ public class BlobService : IBlobService
         }
         catch (Exception ex)
         {
-            throw new ImageProcessingException($"{name}.{type}", ImageConstants.EncryptionFailed, ex);
+            throw new ImageProcessingException($"{name}.{type}", ImageConstants.FailedToSaveImage, ex);
         }
     }
 
@@ -153,7 +158,7 @@ public class BlobService : IBlobService
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new ImageProcessingException(fileName, ImageConstants.DecryptionFailed, ex);
+            throw new ImageProcessingException(fileName, ImageConstants.FailedToReadImage, ex);
         }
     }
 }
