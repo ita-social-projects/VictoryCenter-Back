@@ -24,13 +24,13 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         var email = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
         if (email == null)
         {
-            return Result.Fail("Unauthorized");
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         var admin = await _userManager.FindByEmailAsync(email);
         if (admin == null)
         {
-            return Result.Fail("Not found admin");
+            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
         admin.RefreshToken = null;
@@ -40,7 +40,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 
         if (!updateAdmin.Succeeded)
         {
-            return Result.Fail("Not updated");
+            return Result.Fail(AuthConstants.NotUpdated);
         }
 
         _httpContextAccessor.HttpContext.Response.Cookies.Delete(AuthConstants.RefreshTokenCookieName);
