@@ -11,6 +11,10 @@ namespace VictoryCenter.IntegrationTests.Utils;
 public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
     where T : class
 {
+    private static readonly string InMemoryDbName = $"TestDb_{Guid.NewGuid()}_{DateTime.UtcNow.Ticks}";
+
+    private static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         var envPath = Path.GetFullPath("../../../../VictoryCenter.WebApi/.env");
@@ -32,8 +36,10 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
                                            ?? throw new InvalidOperationException("JWTOPTIONS_SECRETKEY is not set in enviroment variables"),
                 ["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY")
                                                        ?? throw new InvalidOperationException("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY is not set in configuration"),
+                ["BlobEnvironmentVariables:ServiceType"] = "Local",
                 ["BlobEnvironmentVariables:Local:BlobStoreKey"] = Environment.GetEnvironmentVariable("BLOB_LOCAL_STORE_KEY")
-                ?? throw new InvalidOperationException("BLOB_LOCAL_STORE_KEY is not set in environment variables")
+                    ?? throw new InvalidOperationException("BLOB_LOCAL_STORE_KEY is not set in environment variables"),
+                ["BlobEnvironmentVariables:Local:BlobStorePath"] = TestBlobPath
             };
 
             config.AddInMemoryCollection(dict);
@@ -49,6 +55,16 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
             var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
             dbContext.Database.EnsureCreated();
         });
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            CleanupTestBlobDirectory();
+        }
+
+        base.Dispose(disposing);
     }
 
     private void SetEnvironmentalVariables()
@@ -67,8 +83,13 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
 
     private static void RemoveExistingContext(IServiceCollection services)
     {
-        var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<VictoryCenterDbContext>));
-        if (descriptor != null)
+        var descriptors = services
+            .Where(d =>
+                d.ServiceType == typeof(DbContextOptions<VictoryCenterDbContext>) ||
+                d.ServiceType == typeof(VictoryCenterDbContext))
+            .ToList();
+
+        foreach (var descriptor in descriptors)
         {
             services.Remove(descriptor);
         }
@@ -76,13 +97,29 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
 
     private static void AddTestDbContext(IServiceCollection services)
     {
-        var serviceProvider = services.BuildServiceProvider();
-        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+        var efServiceProvider = new ServiceCollection()
+            .AddEntityFrameworkInMemoryDatabase()
+            .BuildServiceProvider();
 
-        services.AddDbContext<VictoryCenterDbContext>(options =>
+        services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            options.UseSqlServer(connectionString);
+            options.UseInMemoryDatabase(InMemoryDbName)
+                .UseInternalServiceProvider(efServiceProvider);
         });
+    }
+
+    private static void CleanupTestBlobDirectory()
+    {
+        try
+        {
+            if (Directory.Exists(TestBlobPath))
+            {
+                Directory.Delete(TestBlobPath, true);
+            }
+        }
+        catch
+        {
+            // Ignore cleanup errors in tests
+        }
     }
 }

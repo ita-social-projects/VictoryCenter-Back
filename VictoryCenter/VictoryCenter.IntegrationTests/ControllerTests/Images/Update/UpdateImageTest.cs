@@ -37,7 +37,7 @@ public class UpdateImageTest
         var id = image.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        var filePath = _blobEnvironment.BlobStorePath + image.BlobName + "." + extension;
+        string filePath = Path.Combine(_blobEnvironment.BlobStorePath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
         var updateImageDto = new UpdateImageDTO
@@ -54,7 +54,7 @@ public class UpdateImageTest
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         var newExtension = responseContext.MimeType.Split("/")[1];
-        var newFilePath = _blobEnvironment.BlobStorePath + responseContext.BlobName + "." + newExtension;
+        var newFilePath = Path.Combine(_blobEnvironment.BlobStorePath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);

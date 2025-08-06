@@ -43,7 +43,7 @@ public class CreateImageTests
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
         string extension = responseContext.MimeType.Split("/")[1];
-        string path = _blobEnvironment.BlobStorePath + responseContext.BlobName + "." + extension;
+        string path = Path.Combine(_blobEnvironment.BlobStorePath, responseContext.BlobName + "." + extension);
 
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(createImageDto.Base64, responseContext.Base64);

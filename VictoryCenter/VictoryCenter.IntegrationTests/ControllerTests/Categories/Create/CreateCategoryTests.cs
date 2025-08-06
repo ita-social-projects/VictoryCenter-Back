@@ -3,15 +3,17 @@ using System.Text;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Create;
 
 [Collection("SharedIntegrationTests")]
-public class CreateCategoryTests
+public class CreateCategoryTests : IAsyncLifetime
 {
     private readonly HttpClient _httpClient;
 
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly SeederManager _seederManager;
 
     public CreateCategoryTests(IntegrationTestDbFixture fixture)
     {
@@ -21,7 +23,17 @@ public class CreateCategoryTests
         {
             PropertyNameCaseInsensitive = true
         };
+
+        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.DisposeAllAsync();
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(null)]

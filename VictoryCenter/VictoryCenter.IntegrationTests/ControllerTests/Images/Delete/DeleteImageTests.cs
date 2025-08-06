@@ -5,16 +5,18 @@ using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Delete;
 
 [Collection("SharedIntegrationTests")]
-public class DeleteImageTests
+public class DeleteImageTests : IAsyncLifetime
 {
     private readonly HttpClient _client;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly BlobEnvironmentVariables _blobEnvironment;
+    private readonly SeederManager _seederManager;
 
     public DeleteImageTests(IntegrationTestDbFixture fixture)
     {
@@ -25,7 +27,16 @@ public class DeleteImageTests
         {
             PropertyNameCaseInsensitive = true
         };
+        _seederManager = fixture.SeederManager;
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.DisposeAllAsync();
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task DeleteImage_ValidData_ShouldDeleteImage()

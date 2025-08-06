@@ -5,16 +5,18 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Update;
 
 [Collection("SharedIntegrationTests")]
-public class UpdateCategoryTests
+public class UpdateCategoryTests : IAsyncLifetime
 {
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
 
     private readonly JsonSerializerOptions _jsonOptions;
+    private readonly SeederManager _seederManager;
 
     public UpdateCategoryTests(IntegrationTestDbFixture fixture)
     {
@@ -25,7 +27,17 @@ public class UpdateCategoryTests
         {
             PropertyNameCaseInsensitive = true
         };
+        _seederManager = fixture.SeederManager
+            ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
+
+    public async Task InitializeAsync()
+    {
+        await _seederManager.DisposeAllAsync();
+        await _seederManager.SeedAllAsync();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(null)]
