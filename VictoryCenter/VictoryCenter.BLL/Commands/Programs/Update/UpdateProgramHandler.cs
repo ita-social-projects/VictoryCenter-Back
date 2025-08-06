@@ -37,7 +37,8 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
                 new QueryOptions<Program>()
                 {
                     Filter = program => program.Id == request.updateProgramDto.Id,
-                    Include = program => program.Include(p => p.Categories)
+                    Include = program => program.Include(p => p.Categories),
+                    AsNoTracking = false
                 });
 
             if (programToUpdate is null)
@@ -47,9 +48,10 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
             }
 
             var newCategories = await _repositoryWrapper.ProgramCategoriesRepository.GetAllAsync(
-                new QueryOptions<DAL.Entities.ProgramCategory>
+                new QueryOptions<ProgramCategory>
                 {
-                    Filter = category => request.updateProgramDto.CategoriesId.Contains(category.Id)
+                    Filter = category => request.updateProgramDto.CategoriesId.Contains(category.Id),
+                    AsNoTracking = false
                 });
 
             _mapper.Map(request.updateProgramDto, programToUpdate);
@@ -58,7 +60,8 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
             {
                 var newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
-                    Filter = image => image.Id == request.updateProgramDto.ImageId
+                    Filter = image => image.Id == request.updateProgramDto.ImageId,
+                    AsNoTracking = false
                 });
                 if (newImage is not null)
                 {

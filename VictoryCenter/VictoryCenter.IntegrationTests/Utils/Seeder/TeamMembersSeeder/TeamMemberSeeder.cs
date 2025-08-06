@@ -22,7 +22,7 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
 
     protected override async Task<bool> ShouldSkipAsync()
     {
-        return await _dbContext.TeamMembers.CountAsync() >= TeamMemberCount;
+        return await _dbContext.TeamMembers.AnyAsync();
     }
 
     protected override async Task<List<TeamMember>> GenerateEntitiesAsync()

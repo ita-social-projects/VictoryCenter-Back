@@ -32,9 +32,10 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var categoryOptions = new QueryOptions<DAL.Entities.ProgramCategory>
+            var categoryOptions = new QueryOptions<ProgramCategory>
             {
-                Filter = category => request.createProgramDto.CategoriesId.Contains(category.Id)
+                Filter = category => request.createProgramDto.CategoriesId.Contains(category.Id),
+                AsNoTracking = false
             };
 
             var categories = await _repositoryWrapper
@@ -46,7 +47,8 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
             {
                 var newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
-                    Filter = image => image.Id == request.createProgramDto.ImageId
+                    Filter = image => image.Id == request.createProgramDto.ImageId,
+                    AsNoTracking = false
                 });
                 if (newImage is not null)
                 {

@@ -4,6 +4,7 @@ using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.Commands.Programs.Create;
 using VictoryCenter.BLL.Commands.Programs.Delete;
 using VictoryCenter.BLL.Commands.Programs.Update;
+using VictoryCenter.BLL.Queries.Programs.GetByFilters;
 using VictoryCenter.BLL.Queries.Programs.GetById;
 
 namespace VictoryCenter.WebAPI.Controllers.Programs;
@@ -11,6 +12,12 @@ namespace VictoryCenter.WebAPI.Controllers.Programs;
 [Authorize]
 public class ProgramController : BaseApiController
 {
+    [HttpGet]
+    public async Task<IActionResult> GetFilteredPrograms([FromQuery] ProgramFilterRequestDto requestDto)
+    {
+        return HandleResult(await Mediator.Send(new GetByFiltersQuery(requestDto)));
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateProgram([FromBody] CreateProgramDto createProgramDto)
     {

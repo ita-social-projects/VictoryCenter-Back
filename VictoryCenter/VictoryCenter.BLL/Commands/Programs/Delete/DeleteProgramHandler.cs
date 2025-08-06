@@ -31,6 +31,7 @@ public class DeleteProgramHandler : IRequestHandler<DeleteProgramCommand, Result
                 .NotFound(request.Id, typeof(Program)));
         }
 
+        entityToDelete.Categories.Clear();
         _repositoryWrapper.ProgramsRepository.Delete(entityToDelete);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Xunit.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
@@ -14,9 +15,11 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
     private readonly HttpClient _httpClient;
     private readonly VictoryCenterDbContext _dbContext;
     private readonly SeederManager _seederManager;
+    private readonly ITestOutputHelper _output;
 
-    public GetTeamMemberByIdTests(IntegrationTestDbFixture fixture)
+    public GetTeamMemberByIdTests(IntegrationTestDbFixture fixture, ITestOutputHelper output)
     {
+        _output = output;
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
         _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
@@ -24,7 +27,7 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _seederManager.SeedAllAsync();
+        await _seederManager.DisposeAllAsync();
         await _seederManager.SeedAllAsync();
     }
 
@@ -33,6 +36,12 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
     [Fact]
     public async Task GetTeamMemberById_ShouldReturnOk()
     {
+        var all = await _dbContext.TeamMembers.ToListAsync();
+        foreach (var a in all)
+        {
+            _output.WriteLine(a.FullName);
+        }
+
         // Arrange
         var existingEntity = await _dbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("Couldn't setup existing entity");
