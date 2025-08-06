@@ -303,18 +303,17 @@ VictoryCenter-Back/
 ### Environment
 environmental variables
 ```shell
-DB_CONNECTION_STRING= # Main database connection string for the application
-INTEGRATION_TESTS_DB_CONNECTION_STRING= # Database connection string used exclusively for integration tests
-INITIAL_ADMIN_EMAIL= # Initial admin account email
-INITIAL_ADMIN_PASSWORD= # Initial admin account password 
-JWTOPTIONS_SECRETKEY= # Secret key for signing JWT access tokens
-JWTOPTIONS_REFRESH_TOKEN_SECRETKEY= # Secret key for signing JWT refresh tokens
-BLOB_LOCAL_STORE_KEY= # Secret key used for encrypting and decrypting files in the blob storage ( size up to 32 characters )
-WAY4PAY_MERCHANT_LOGIN= # WayForPay merchant login (provided by WayForPay)
-WAY4PAY_MERCHANT_SECRET_KEY= # Secret key for authenticating with WayForPay API
-WAY4PAY_MERCHANT_DOMAIN_NAME= # Registered domain name of your store with WayForPay
-WAY4PAY_API_URL= # WayForPay API URL (used for sending payment requests)
-
+DB_CONNECTION_STRING="<DB_CONNECTION_STRING>"
+INTEGRATION_TESTS_DB_CONNECTION_STRING="<INTEGRATION_TESTS_DB_CONNECTION_STRING>"
+INITIAL_ADMIN_EMAIL="<INITIAL_ADMIN_EMAIL>"
+INITIAL_ADMIN_PASSWORD="<INITIAL_ADMIN_PASSWORD>"
+JWTOPTIONS_SECRETKEY="<JWT_ACCESS_SECRET>"
+JWTOPTIONS_REFRESH_TOKEN_SECRETKEY="<JWT_REFRESH_SECRET>"
+BLOB_LOCAL_STORE_KEY="<BLOB_LOCAL_STORE_KEY>"
+WAY4PAY_MERCHANT_LOGIN="<WAY4PAY_MERCHANT_LOGIN>"
+WAY4PAY_MERCHANT_SECRET_KEY="<WAY4PAY_MERCHANT_SECRET_KEY>"
+WAY4PAY_MERCHANT_DOMAIN_NAME="<WAY4PAY_MERCHANT_DOMAIN_NAME>"
+WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ```
 ```properties
 
