@@ -67,7 +67,7 @@ async Task MainAsync()
     using var scope = serviceProvider.CreateScope();
 
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Using connection string: {ConnectionString}", connectionString);
+    logger.LogInformation("Database connection string successfully resolved.");
 
     var context = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
