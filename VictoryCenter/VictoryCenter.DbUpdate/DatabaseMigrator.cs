@@ -31,7 +31,7 @@ public class DatabaseMigrator
 
         var connectionString = EnvironmentVariablesResolver.GetEnvironmentVariable(rawConnectionString);
 
-        _logger.LogInformation("Using connection string: {ConnectionString}", connectionString);
+        _logger.LogInformation("Database connection string successfully resolved");
 
         _services.AddDbContext<VictoryCenterDbContext>(options =>
             options.UseSqlServer(connectionString));
