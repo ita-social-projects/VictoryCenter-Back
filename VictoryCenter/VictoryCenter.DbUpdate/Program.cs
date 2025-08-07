@@ -1,46 +1,79 @@
 ﻿using dotenv.net;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
-
-DotEnv.Load();
-
-var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Local";
-
-var config = new ConfigurationBuilder()
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{environment}.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables()
-    .Build();
-
-var connectionString = config.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' was not found.");
-
-Console.WriteLine($"Using connection string: {connectionString}");
-
-var loggerFactory = LoggerFactory.Create(builder =>
-{
-    builder
-        .AddConsole()
-        .SetMinimumLevel(LogLevel.Information);
-});
-
-var optionsBuilder = new DbContextOptionsBuilder<VictoryCenterDbContext>();
-
-optionsBuilder
-    .UseSqlServer(connectionString)
-    .UseLoggerFactory(loggerFactory);
+using VictoryCenter.DbUpdate.Helpers;
 
 try
 {
-    using var context = new VictoryCenterDbContext(optionsBuilder.Options);
-    await context.Database.MigrateAsync();
+    await MainAsync();
 }
 catch (Exception ex)
 {
-    await Console.Error.WriteLineAsync($"Migration failed: {ex}");
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("Unhandled exception:");
+    Console.ResetColor();
+
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex);
+
     Environment.ExitCode = 1;
+}
+
+async Task MainAsync()
+{
+    var webApiProjectPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "VictoryCenter.WebApi"));
+
+    DotEnv.Load(new DotEnvOptions(envFilePaths: new[] { Path.Combine(webApiProjectPath, ".env") }));
+
+    var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+
+    var configuration = new ConfigurationBuilder()
+        .SetBasePath(webApiProjectPath)
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{environment}.json", optional: true)
+        .AddEnvironmentVariables()
+        .Build();
+
+    var rawConnectionString = configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrEmpty(rawConnectionString))
+    {
+        throw new InvalidOperationException("Connection string 'DefaultConnection' is not set.");
+    }
+
+    var connectionString = EnvironmentVariablesResolver.GetEnvironmentVariable(rawConnectionString);
+
+    var services = new ServiceCollection();
+
+    services.AddLogging(builder =>
+    {
+        builder.AddSimpleConsole(options =>
+        {
+            options.IncludeScopes = true;
+            options.SingleLine = true;
+            options.TimestampFormat = "HH:mm:ss ";
+        });
+        builder.SetMinimumLevel(LogLevel.Information);
+    });
+
+    services.AddDbContext<VictoryCenterDbContext>(options =>
+        options.UseSqlServer(connectionString));
+
+    var serviceProvider = services.BuildServiceProvider();
+
+    using var scope = serviceProvider.CreateScope();
+
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("Using connection string: {ConnectionString}", connectionString);
+
+    var context = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+    logger.LogInformation("Starting database migration...");
+
+    await context.Database.MigrateAsync();
+
+    logger.LogInformation("Database migration completed successfully.");
 }

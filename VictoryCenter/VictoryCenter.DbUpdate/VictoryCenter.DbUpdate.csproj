@@ -13,13 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\VictoryCenter.DAL\VictoryCenter.DAL.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-	<None Update="..\VictoryCenter.WebAPI\appsettings.json">
-		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		<Link>appsettings.json</Link>
-	</None>
+    <ProjectReference Include="..\VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
