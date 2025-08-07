@@ -1,28 +1,10 @@
 ﻿using dotenv.net;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using VictoryCenter.DAL.Data;
-using VictoryCenter.DbUpdate.Helpers;
+using VictoryCenter.DbUpdate;
 
 try
-{
-    await MainAsync();
-}
-catch (Exception ex)
-{
-    Console.ForegroundColor = ConsoleColor.Red;
-    Console.WriteLine("Unhandled exception:");
-    Console.ResetColor();
-
-    Console.WriteLine(ex.Message);
-    Console.WriteLine(ex);
-
-    Environment.ExitCode = 1;
-}
-
-async Task MainAsync()
 {
     var webApiProjectPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "..", "VictoryCenter.WebApi"));
 
@@ -37,15 +19,6 @@ async Task MainAsync()
         .AddEnvironmentVariables()
         .Build();
 
-    var rawConnectionString = configuration.GetConnectionString("DefaultConnection");
-
-    if (string.IsNullOrEmpty(rawConnectionString))
-    {
-        throw new InvalidOperationException("Connection string 'DefaultConnection' is not set.");
-    }
-
-    var connectionString = EnvironmentVariablesResolver.GetEnvironmentVariable(rawConnectionString);
-
     var services = new ServiceCollection();
 
     services.AddLogging(builder =>
@@ -59,21 +32,24 @@ async Task MainAsync()
         builder.SetMinimumLevel(LogLevel.Information);
     });
 
-    services.AddDbContext<VictoryCenterDbContext>(options =>
-        options.UseSqlServer(connectionString));
-
     var serviceProvider = services.BuildServiceProvider();
 
     using var scope = serviceProvider.CreateScope();
 
-    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Database connection string successfully resolved.");
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<DatabaseMigrator>>();
 
-    var context = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+    var migrator = new DatabaseMigrator(configuration, services, logger);
 
-    logger.LogInformation("Starting database migration...");
+    await migrator.MigrateAsync();
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("Unhandled exception:");
+    Console.ResetColor();
 
-    await context.Database.MigrateAsync();
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex);
 
-    logger.LogInformation("Database migration completed successfully.");
+    Environment.ExitCode = 1;
 }
