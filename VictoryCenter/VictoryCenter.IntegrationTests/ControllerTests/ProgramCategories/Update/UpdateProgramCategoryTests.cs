@@ -3,27 +3,22 @@ using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.Update;
 
 [Collection("SharedIntegrationTests")]
 public class UpdateProgramCategoryTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
-    private readonly SeederManager _seederManager;
+    private readonly IntegrationTestDbFixture _fixture;
 
     public UpdateProgramCategoryTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException(
-            "SeederManager is not registered in the service collection.");
+        _fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
-        await _seederManager.DisposeAllAsync();
-        await _seederManager.SeedAllAsync();
+        await _fixture.CreateFreshDatabase();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -38,7 +33,7 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        var response = await _httpClient.PutAsync("/api/ProgramCategory/", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -64,7 +59,7 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        var response = await _httpClient.PutAsync("/api/ProgramCategory/", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -83,7 +78,7 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        var response = await _httpClient.PutAsync("/api/ProgramCategories/", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("/api/ProgramCategories/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

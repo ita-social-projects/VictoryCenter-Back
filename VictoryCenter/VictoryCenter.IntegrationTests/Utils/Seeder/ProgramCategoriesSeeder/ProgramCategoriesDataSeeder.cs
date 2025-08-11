@@ -32,25 +32,25 @@ public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
             new()
             {
                 Id = 2,
-                Name = "TestName1",
+                Name = "TestName2",
                 CreatedAt = DateTime.UtcNow
             },
             new()
             {
                 Id = 3,
-                Name = "TestName1",
+                Name = "TestName3",
                 CreatedAt = DateTime.UtcNow
             },
             new()
             {
                 Id = 4,
-                Name = "TestName1",
+                Name = "TestName4",
                 CreatedAt = DateTime.UtcNow
             },
             new()
             {
                 Id = 5,
-                Name = "TestName1",
+                Name = "TestName5",
                 CreatedAt = DateTime.UtcNow
             }
         };

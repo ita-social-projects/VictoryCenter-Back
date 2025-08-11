@@ -17,7 +17,7 @@ public class CreateImageTests
     public CreateImageTests(IntegrationTestDbFixture fixture)
     {
         _httpClient = fixture.HttpClient;
-        _blobEnvironment = fixture.BlobVariables;
+        _blobEnvironment = fixture._blobEnvironmentVariables;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true

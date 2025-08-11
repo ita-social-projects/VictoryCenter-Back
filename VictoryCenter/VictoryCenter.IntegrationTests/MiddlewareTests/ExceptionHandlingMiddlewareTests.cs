@@ -17,7 +17,7 @@ public class ExceptionHandlingMiddlewareTests
 
     public ExceptionHandlingMiddlewareTests(IntegrationTestDbFixture fixture)
     {
-        var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
+        var customFactory = fixture._factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging =>
             {

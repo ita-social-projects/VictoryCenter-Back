@@ -1,27 +1,21 @@
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.GetAll;
 
 [Collection("SharedIntegrationTests")]
 public class GetAllProgramCategoriesTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
-    private readonly SeederManager _seederManager;
-
+    private readonly IntegrationTestDbFixture _fixture;
     public GetAllProgramCategoriesTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException(
-            "SeederManager is not registered in the service collection.");
+        _fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
-        await _seederManager.DisposeAllAsync();
-        await _seederManager.SeedAllAsync();
+        await _fixture.CreateFreshDatabase();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -29,7 +23,7 @@ public class GetAllProgramCategoriesTests : IAsyncLifetime
     [Fact]
     public async Task ProgramCategory_ShouldReturnAllProgramCategories()
     {
-        var response = await _httpClient.GetAsync("/api/ProgramCategory/");
+        var response = await _fixture.HttpClient.GetAsync("/api/ProgramCategory/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramCategoryDto>>(responseString);

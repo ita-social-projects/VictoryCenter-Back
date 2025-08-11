@@ -8,12 +8,16 @@ using VictoryCenter.DAL.Data;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
-public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
-    where T : class
+public class VictoryCenterWebApplicationFactory<TSartup> : WebApplicationFactory<TSartup>
+    where TSartup : class
 {
-    private static readonly string InMemoryDbName = $"TestDb_{Guid.NewGuid()}_{DateTime.UtcNow.Ticks}";
-
     private static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
+    private readonly string _databaseName;
+
+    public VictoryCenterWebApplicationFactory(string databaseName = null)
+    {
+        _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -95,15 +99,15 @@ public class VictoryCenterWebApplicationFactory<T> : WebApplicationFactory<T>
         }
     }
 
-    private static void AddTestDbContext(IServiceCollection services)
+    private void AddTestDbContext(IServiceCollection services)
     {
         var efServiceProvider = new ServiceCollection()
             .AddEntityFrameworkInMemoryDatabase()
             .BuildServiceProvider();
 
-        services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
+        services.AddDbContext<VictoryCenterDbContext>(options =>
         {
-            options.UseInMemoryDatabase(InMemoryDbName)
+            options.UseInMemoryDatabase(_databaseName)
                 .UseInternalServiceProvider(efServiceProvider);
         });
     }

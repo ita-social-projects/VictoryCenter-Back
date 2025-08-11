@@ -36,7 +36,7 @@ public class PaymentsControllerTests
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(fakeExternalResponse);
 
-        var client = _fixture.Factory.WithWebHostBuilder(builder =>
+        var client = _fixture._factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {

@@ -3,38 +3,29 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Update;
 
 [Collection("SharedIntegrationTests")]
 public class UpdateCategoryTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
-    private readonly VictoryCenterDbContext _dbContext;
-
+    private IntegrationTestDbFixture _fixture;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly SeederManager _seederManager;
 
     public UpdateCategoryTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
+        _fixture = fixture;
 
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
-        _seederManager = fixture.SeederManager
-            ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
 
     public async Task InitializeAsync()
     {
-        await _seederManager.DisposeAllAsync();
-        await _seederManager.SeedAllAsync();
+        await _fixture.CreateFreshDatabase();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -46,7 +37,7 @@ public class UpdateCategoryTests : IAsyncLifetime
     [InlineData("Test Description")]
     public async Task UpdateCategory_ShouldUpdateCategory(string? testDescription)
     {
-        var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
+        var existingEntity = await _fixture.DbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
             Name = "Test Category",
@@ -54,7 +45,7 @@ public class UpdateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -69,7 +60,7 @@ public class UpdateCategoryTests : IAsyncLifetime
     [Fact]
     public async Task UpdateCategory_ShouldUpdateCategory_SameInput()
     {
-        var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
+        var existingEntity = await _fixture.DbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
             Name = existingEntity.Name,
@@ -77,7 +68,7 @@ public class UpdateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -95,7 +86,7 @@ public class UpdateCategoryTests : IAsyncLifetime
     [InlineData(" ")]
     public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string? testName)
     {
-        var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
+        var existingEntity = await _fixture.DbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
             Name = testName,
@@ -103,7 +94,7 @@ public class UpdateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -122,7 +113,7 @@ public class UpdateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync($"api/categories/{testId}", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync($"api/categories/{testId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

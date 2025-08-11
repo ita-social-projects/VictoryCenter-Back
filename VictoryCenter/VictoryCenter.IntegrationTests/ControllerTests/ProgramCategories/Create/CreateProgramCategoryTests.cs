@@ -3,27 +3,22 @@ using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.Create;
 
 [Collection("SharedIntegrationTests")]
 public class CreateProgramCategoryTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
-    private readonly SeederManager _seederManager;
+    private IntegrationTestDbFixture _fixture;
 
     public CreateProgramCategoryTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException(
-            "SeederManager is not registered in the service collection.");
+        _fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
-        await _seederManager.DisposeAllAsync();
-        await _seederManager.SeedAllAsync();
+        await _fixture.CreateFreshDatabase();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -37,7 +32,7 @@ public class CreateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        var response = await _httpClient.PostAsync("/api/ProgramCategory/", new StringContent(
+        var response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -62,7 +57,7 @@ public class CreateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        var response = await _httpClient.PostAsync("/api/ProgramCategory/", new StringContent(
+        var response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

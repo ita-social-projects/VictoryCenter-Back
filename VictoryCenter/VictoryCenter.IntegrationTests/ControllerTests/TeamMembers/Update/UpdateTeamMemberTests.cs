@@ -32,7 +32,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
         _fixture = fixture;
-        _blobService = fixture.BlobService;
+        _blobService = fixture._blobService;
 
         _jsonOptions = new JsonSerializerOptions
         {
@@ -49,8 +49,8 @@ public class UpdateTeamMemberTests : IAsyncLifetime
 
         _seederManager.ClearSeeders();
         _seederManager.ConfigureSeeders(
-            new CategoriesSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>(), _blobService),
-            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>(), _blobService));
+            new CategoriesSeeder(_fixture.DbContext, _fixture._factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>(), _blobService),
+            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture._factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>(), _blobService));
 
         if (!await _fixture.SeederManager.SeedAllAsync())
         {
