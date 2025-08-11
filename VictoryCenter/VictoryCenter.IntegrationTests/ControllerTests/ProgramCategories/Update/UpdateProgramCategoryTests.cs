@@ -38,14 +38,14 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        var response = await _httpClient.PutAsync("api/ProgramCategory/", new StringContent(
+        var response = await _httpClient.PutAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
         var responseContent = JsonConvert.DeserializeObject<ProgramCategoryDto>(responseString);
 
-        response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Name, responseContent.Name);
     }

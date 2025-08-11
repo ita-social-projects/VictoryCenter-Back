@@ -55,6 +55,18 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return tmp.Entity;
     }
 
+    public async Task<int> CountAsync(QueryOptions<T>? queryOptions = null)
+    {
+        IQueryable<T> query = _dbContext.Set<T>();
+
+        if (queryOptions != null)
+        {
+            query = ApplyFilter(query, queryOptions.Filter);
+        }
+
+        return await query.CountAsync();
+    }
+
     public EntityEntry<T> Update(T entity)
     {
         return _dbContext.Set<T>().Update(entity);

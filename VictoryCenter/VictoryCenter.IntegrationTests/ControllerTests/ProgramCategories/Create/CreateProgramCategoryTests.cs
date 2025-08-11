@@ -39,10 +39,12 @@ public class CreateProgramCategoryTests : IAsyncLifetime
 
         var response = await _httpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
         var responseContent = JsonConvert.DeserializeObject<ProgramCategoryDto>(responseString);
+
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(createProgramCategoryDto.Name, responseContent.Name);

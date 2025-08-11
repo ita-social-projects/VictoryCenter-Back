@@ -28,9 +28,8 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.Program>
         var categories = await _dbContext.ProgramCategories.Take(4).ToListAsync();
         for (var i = 0; i < ProgramCount; i++)
         {
-            var random = new Random();
             var selectedCategories = categories
-                .OrderBy(_ => random.Next())
+                .OrderBy(_ => Guid.NewGuid())
                 .Take(2)
                 .ToList();
             programs.Add(new()

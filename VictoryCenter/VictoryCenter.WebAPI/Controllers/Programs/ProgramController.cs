@@ -26,7 +26,7 @@ public class ProgramController : BaseApiController
 
     [HttpDelete]
     [Route("{id:long}")]
-    public async Task<IActionResult> DeleteProgramCategory(long id)
+    public async Task<IActionResult> DeleteProgram(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteProgramCommand(id)));
     }

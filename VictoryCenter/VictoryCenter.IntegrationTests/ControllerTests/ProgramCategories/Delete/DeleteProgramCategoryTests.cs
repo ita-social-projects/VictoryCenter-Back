@@ -32,12 +32,15 @@ public class DeleteProgramCategoryTests : IAsyncLifetime
     [Fact]
     public async Task DeleteProgramCategory_ShouldDeleteProgramCategory()
     {
-        var existingEntity = await _dbContext.ProgramCategories.FirstOrDefaultAsync();
+        var existingEntity = await _dbContext.ProgramCategories
+            .FirstOrDefaultAsync(e => e.Id == 5);
+        Assert.NotNull(existingEntity);
 
-        var response = await _httpClient.DeleteAsync($"/api/ProgramCategory/5");
+        var response = await _httpClient.DeleteAsync($"/api/ProgramCategory/{existingEntity.Id}");
+        response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await _dbContext.ProgramCategories.FirstOrDefaultAsync(e => e.Id == 5));
+        Assert.Null(await _dbContext.ProgramCategories.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]

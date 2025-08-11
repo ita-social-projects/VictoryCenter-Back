@@ -34,9 +34,9 @@ public class GetProgramById : IAsyncLifetime
     public async Task GetProgramById_ShouldReturnProgram(int programId)
     {
         var response = await _httpClient.GetAsync($"/api/Program/{programId}");
+        response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
-        response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
     }
 

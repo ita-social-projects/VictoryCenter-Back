@@ -72,7 +72,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
                     }
                     catch (Exception)
                     {
-                        return Result.Fail<ProgramDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
+                        return Result.Fail<ProgramDto>(ProgramConstants.FailedRetrievingProgramPhoto);
                     }
                 }
 
@@ -81,9 +81,9 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
 
             programToUpdate.Categories.Clear();
 
-            foreach (var program in newCategories)
+            foreach (var category in newCategories)
             {
-                programToUpdate.Categories.Add(program);
+                programToUpdate.Categories.Add(category);
             }
 
             _repositoryWrapper.ProgramsRepository.Update(programToUpdate);

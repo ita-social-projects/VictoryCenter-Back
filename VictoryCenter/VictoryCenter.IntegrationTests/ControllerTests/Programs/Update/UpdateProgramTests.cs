@@ -46,10 +46,11 @@ public class UpdateProgramTests : IAsyncLifetime
         var response = await _httpClient.PutAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
+        response.EnsureSuccessStatusCode();
+
         var responseString = await response.Content.ReadAsStringAsync();
 
         var responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
-        response.EnsureSuccessStatusCode();
 
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Name, responseContent.Name);

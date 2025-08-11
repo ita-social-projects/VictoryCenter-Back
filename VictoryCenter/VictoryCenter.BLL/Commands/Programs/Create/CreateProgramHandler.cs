@@ -58,7 +58,7 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
                     }
                     catch(Exception)
                     {
-                        return Result.Fail<ProgramDto>(TeamMemberConstants.FailedRetrievingMemberPhoto);
+                        return Result.Fail<ProgramDto>(ProgramConstants.FailedRetrievingProgramPhoto);
                     }
                 }
 

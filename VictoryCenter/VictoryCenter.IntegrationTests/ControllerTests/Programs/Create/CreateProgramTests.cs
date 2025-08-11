@@ -45,6 +45,7 @@ public class CreateProgramTests : IAsyncLifetime
 
         var response = await _httpClient.PostAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
@@ -68,6 +69,7 @@ public class CreateProgramTests : IAsyncLifetime
 
         var response = await _httpClient.PostAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 

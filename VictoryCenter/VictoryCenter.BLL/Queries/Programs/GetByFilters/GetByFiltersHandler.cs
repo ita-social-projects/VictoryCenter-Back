@@ -46,6 +46,7 @@ public class GetByFiltersHandler : IRequestHandler<GetByFiltersQuery, Result<Pro
         };
 
         var programs = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
+        var totalCount = await _repositoryWrapper.ProgramsRepository.CountAsync(queryOptions);
         var programDto = _mapper.Map<IEnumerable<ProgramDto>>(programs).ToList();
         IEnumerable<Task> imageLoadTasks = programDto.Where(member => member.Image is not null)
             .Select(async member =>
@@ -64,7 +65,7 @@ public class GetByFiltersHandler : IRequestHandler<GetByFiltersQuery, Result<Pro
         ProgramsFilterResponseDto response = new ProgramsFilterResponseDto
         {
             Programs = programDto,
-            ProgramCount = programDto.Count()
+            ProgramCount = totalCount
         };
 
         return Result.Ok(response);
