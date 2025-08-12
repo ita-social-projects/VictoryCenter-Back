@@ -49,7 +49,13 @@ public class GetProgramByIdTests
             new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
         var result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.Equal(_programDto.Name, result.Value.Name);
+        Assert.Equal(_programDto.Description, result.Value.Description);
+        Assert.Equal(_programDto.Status, result.Value.Status);
+
+        _mockRepositoryWrapper.Verify(x => x.ProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.Program>>()), Times.Once);
+        _mapperMock.Verify(x => x.Map<ProgramDto>(It.IsAny<DAL.Entities.Program>()), Times.Once);
     }
 
     [Fact]

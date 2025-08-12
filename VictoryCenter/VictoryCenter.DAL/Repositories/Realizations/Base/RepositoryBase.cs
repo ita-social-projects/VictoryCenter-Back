@@ -58,6 +58,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
     public async Task<int> CountAsync(QueryOptions<T>? queryOptions = null)
     {
         IQueryable<T> query = _dbContext.Set<T>();
+        query = ApplyTracking(query, queryOptions?.AsNoTracking ?? true);
 
         if (queryOptions != null)
         {

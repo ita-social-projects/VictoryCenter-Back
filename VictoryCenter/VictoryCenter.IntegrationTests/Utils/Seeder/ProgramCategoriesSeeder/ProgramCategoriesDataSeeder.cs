@@ -12,7 +12,7 @@ public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
     {
     }
 
-    public override string Name => "ProgramCategorySeeder";
+    public override string Name => "ProgramCategoriesSeeder";
     public override int Order => 3;
     protected override Task<bool> ShouldSkipAsync()
     {
