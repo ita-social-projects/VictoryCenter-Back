@@ -11,13 +11,11 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Payments;
 [Collection("SharedIntegrationTests")]
 public class PaymentsControllerTests
 {
-    private readonly HttpClient _client;
     private readonly IntegrationTestDbFixture _fixture;
 
     public PaymentsControllerTests(IntegrationTestDbFixture fixture)
     {
         _fixture = fixture;
-        _client = fixture.HttpClient;
     }
 
     [Fact]
@@ -36,7 +34,7 @@ public class PaymentsControllerTests
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(fakeExternalResponse);
 
-        var client = _fixture.Factory.WithWebHostBuilder(builder =>
+        var client = _fixture._factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -86,7 +84,7 @@ public class PaymentsControllerTests
         };
         var content = new FormUrlEncodedContent(request);
 
-        var response = await _client.PostAsync("api/payments/donate", content);
+        var response = await _fixture.HttpClient.PostAsync("api/payments/donate", content);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

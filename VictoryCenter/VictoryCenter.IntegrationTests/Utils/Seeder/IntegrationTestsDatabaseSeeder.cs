@@ -8,21 +8,18 @@ public class SeederManager
 {
     private readonly VictoryCenterDbContext _dbContext;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly ILogger<SeederManager> _logger;
     private readonly IBlobService _blobService;
     private List<ISeeder> _seeders;
 
-    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory, IBlobService blobService)
+    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory, IBlobService blobService,  IEnumerable<ISeeder>? seeders = null)
     {
         _dbContext = dbContext;
         _loggerFactory = loggerFactory;
+        _logger = loggerFactory.CreateLogger<SeederManager>();
         _blobService = blobService;
 
-        _seeders = new List<ISeeder>
-            {
-                new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>(), _blobService),
-                new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>(), _blobService),
-                new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService)
-            }
+        _seeders = (seeders ?? CreateDefaultSeeders())
             .OrderBy(s => s.Order)
             .ToList();
     }
@@ -60,5 +57,12 @@ public class SeederManager
         {
             await seeder.DisposeAsync();
         }
+    }
+
+    public IEnumerable<ISeeder> CreateDefaultSeeders()
+    {
+        yield return new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>(), _blobService);
+        yield return new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>(), _blobService);
+        yield return new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService);
     }
 }
