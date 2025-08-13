@@ -45,7 +45,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
-        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(_ => true);
+        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions.Filter);
 
         IEnumerable<Task> imageLoadTasks = teamMembersDto.Where(member => member.Image is not null)
             .Select(async member =>
