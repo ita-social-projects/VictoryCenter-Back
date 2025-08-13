@@ -1,4 +1,4 @@
-namespace VictoryCenter.IntegrationTests.Utils.Seeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 
 public class SeederResult
 {

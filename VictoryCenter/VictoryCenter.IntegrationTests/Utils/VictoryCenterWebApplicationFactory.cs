@@ -10,7 +10,7 @@ namespace VictoryCenter.IntegrationTests.Utils;
 public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>
     where TStartup : class
 {
-    private static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
+    protected static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
     private readonly string _databaseName;
 
     public VictoryCenterWebApplicationFactory(string? databaseName = null)

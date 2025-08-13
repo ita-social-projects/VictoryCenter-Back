@@ -1,35 +1,24 @@
 using System.Net;
 using System.Text.Json;
-using Xunit.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetById;
 
 [Collection("SharedIntegrationTests")]
 public class GetTeamMemberByIdTests : IAsyncLifetime
 {
-    private readonly ITestOutputHelper _output;
     private readonly IntegrationTestDbFixture _fixture;
 
-    public GetTeamMemberByIdTests(IntegrationTestDbFixture fixture, ITestOutputHelper output)
+    public GetTeamMemberByIdTests(IntegrationTestDbFixture fixture)
     {
-        _output = output;
         _fixture = fixture;
     }
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
-
-        var count = await _fixture.DbContext.TeamMembers.CountAsync();
-        _output.WriteLine($"TeamMembers count after seeding: {count}");
-
-        if (count == 0)
-        {
-            throw new InvalidOperationException("No TeamMembers were seeded. Check your seeder implementation.");
-        }
+        await _fixture.CreateFreshWebApplication();
     }
 
     public async Task DisposeAsync()
@@ -40,16 +29,6 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
     [Fact]
     public async Task GetTeamMemberById_ShouldReturnOk()
     {
-        var all = await _fixture.DbContext.TeamMembers
-            .Include(tm => tm.Category)
-            .ToListAsync();
-
-        _output.WriteLine($"Found {all.Count} team members:");
-        foreach (var a in all)
-        {
-            _output.WriteLine($"ID: {a.Id}, Name: {a.FullName}, CategoryId: {a.CategoryId}");
-        }
-
         // Arrange
         var existingEntity = await _fixture.DbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("Couldn't setup existing entity");

@@ -1,14 +1,14 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.Categories;
 
 public class CategoriesSeeder : BaseSeeder<Category>
 {
-    public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger, IBlobService blobService)
-        : base(dbContext, logger, blobService)
+    public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger)
+        : base(dbContext, logger)
     {
     }
 
@@ -17,7 +17,7 @@ public class CategoriesSeeder : BaseSeeder<Category>
 
     protected override Task<bool> ShouldSkipAsync()
     {
-        return Task.FromResult(_dbContext.Categories.Any());
+        return _dbContext.Categories.AnyAsync();
     }
 
     protected override Task<List<Category>> GenerateEntitiesAsync()
@@ -45,7 +45,7 @@ public class CategoriesSeeder : BaseSeeder<Category>
             new ()
             {
                 Name = "Test name4",
-                Description = "Test description3",
+                Description = "Test description4",
                 CreatedAt = DateTime.UtcNow,
                 TeamMembers = new List<TeamMember>()
             }

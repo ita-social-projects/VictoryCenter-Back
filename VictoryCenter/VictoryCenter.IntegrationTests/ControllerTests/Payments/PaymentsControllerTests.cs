@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
 using VictoryCenter.BLL.DTOs.Payment;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Payments;
 
@@ -34,7 +34,7 @@ public class PaymentsControllerTests
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(fakeExternalResponse);
 
-        var client = _fixture._factory.WithWebHostBuilder(builder =>
+        var client = _fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {

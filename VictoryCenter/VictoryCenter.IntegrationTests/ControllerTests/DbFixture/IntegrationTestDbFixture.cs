@@ -1,54 +1,42 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Services.BlobStorage;
-using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
 using VictoryCenter.IntegrationTests.Utils.Seeders;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Base;
+namespace VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 public class IntegrationTestDbFixture : IAsyncLifetime
 {
-    public VictoryCenterWebApplicationFactory<Program> _factory;
-    public readonly IBlobService BlobService;
-    public readonly BlobEnvironmentVariables BlobEnvironmentVariables;
     private IServiceScope _scope;
-    private List<ISeeder> _seeders;
-    private string _authToken;
 
     public IntegrationTestDbFixture()
     {
-        _factory = new VictoryCenterWebApplicationFactory<Program>();
-        _scope = _factory.Services.CreateScope();
-        HttpClient = _factory.CreateClient();
-        BlobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
-        var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
-        BlobEnvironmentVariables = options.Value;
-
-        EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
-
-        _authToken = GetAuthorizationToken(_scope.ServiceProvider);
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
+        Factory = new VictoryCenterWebApplicationFactory<Program>();
+        _scope = Factory.Services.CreateScope();
+        HttpClient = Factory.CreateClient();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
     }
 
+    public VictoryCenterWebApplicationFactory<Program> Factory { get; private set; }
+    public BlobEnvironmentVariables BlobEnvironmentVariables { get; private set; } = null!;
     public HttpClient HttpClient { get; private set; }
-    public VictoryCenterDbContext DbContext { get; private set; }
-    public SeederManager SeederManager { get; private set; }
+    public VictoryCenterDbContext DbContext { get; private set; } = null!;
+    public SeederManager SeederManager { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
-        await CreateFreshDatabase();
+        await CreateFreshWebApplication();
     }
 
     public async Task DisposeAsync()
@@ -60,45 +48,52 @@ public class IntegrationTestDbFixture : IAsyncLifetime
 
         DbContext?.Dispose();
 
-        if(_factory != null)
+        if(Factory != null)
         {
-            await _factory.DisposeAsync();
+            await Factory.DisposeAsync();
         }
     }
 
-    public async Task CreateFreshDatabase()
+    public async Task CreateFreshWebApplication()
     {
-        if (_factory != null)
+        if (Factory != null)
         {
-            await _factory.DisposeAsync();
+            await Factory.DisposeAsync();
         }
 
-        _factory = new VictoryCenterWebApplicationFactory<Program>();
+        InitializeServices();
+        await InitializeDatabase();
+        InitializeSeeders();
+        await SeederManager.SeedAllAsync();
+    }
 
-        _scope = _factory.Services.CreateScope();
-        HttpClient = _factory.CreateClient();
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _authToken);
+    private void InitializeServices()
+    {
+        Factory = new VictoryCenterWebApplicationFactory<Program>();
+        _scope = Factory.Services.CreateScope();
+        HttpClient = Factory.CreateClient();
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
+
+        var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
+        BlobEnvironmentVariables = options.Value;
 
         DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+    }
+
+    private async Task InitializeDatabase()
+    {
         await DbContext.Database.EnsureCreatedAsync();
-
         await EnsureTestAdminUser(_scope.ServiceProvider);
+    }
 
+    private void InitializeSeeders()
+    {
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var blobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
         SeederManager = new SeederManager(DbContext, loggerFactory, blobService);
-
-        await SeederManager.SeedAllAsync();
-        await DbContext.SaveChangesAsync();
-
-        var teamMemberCount = await DbContext.TeamMembers.CountAsync();
-        if (teamMemberCount == 0)
-        {
-            throw new InvalidOperationException("Database seeding failed - no TeamMembers were created");
-        }
     }
 
-    private string GetAuthorizationToken(IServiceProvider serviceProvider)
+    private static string GetAuthorizationToken(IServiceProvider serviceProvider)
     {
         var jwtOptions = serviceProvider.GetRequiredService<IOptions<JwtOptions>>();
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();
@@ -108,24 +103,24 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         return tokenService.CreateAccessToken(Array.Empty<Claim>());
     }
 
-    private async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
+    private static async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<Admin>>();
-        const string TestEmail = "testadmin@victorycenter.com";
-        const string TestPassword = "TestPassword123!";
-        var existing = await userManager.FindByEmailAsync(TestEmail);
+        const string testEmail = "testadmin@victorycenter.com";
+        const string testPassword = "TestPassword123!";
+        var existing = await userManager.FindByEmailAsync(testEmail);
         if (existing == null)
         {
             var admin = new Admin
             {
-                UserName = TestEmail,
-                Email = TestEmail,
+                UserName = testEmail,
+                Email = testEmail,
                 EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
                 RefreshToken = "refresh_token",
                 RefreshTokenValidTo = DateTime.MaxValue
             };
-            var result = await userManager.CreateAsync(admin, TestPassword);
+            var result = await userManager.CreateAsync(admin, testPassword);
             if (!result.Succeeded)
             {
                 throw new InvalidOperationException(

@@ -1,7 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetFiltered;
 
@@ -17,7 +17,7 @@ public class GetFilteredTeamMembersTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;

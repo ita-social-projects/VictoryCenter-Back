@@ -1,23 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 
 public abstract class BaseSeeder<TEntity> : ISeeder
 where TEntity : class
 {
     protected readonly VictoryCenterDbContext _dbContext;
-    protected readonly IBlobService _blobService;
     private readonly ILogger _logger;
     private readonly List<TEntity> _createdEntities = new();
 
-    protected BaseSeeder(VictoryCenterDbContext dbContext, ILogger logger, IBlobService blobService)
+    protected BaseSeeder(VictoryCenterDbContext dbContext, ILogger logger)
     {
         _dbContext = dbContext;
         _logger = logger;
-        _blobService = blobService;
     }
 
     public abstract int Order { get; }
