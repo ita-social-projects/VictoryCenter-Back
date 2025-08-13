@@ -73,8 +73,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
             await _factory.DisposeAsync();
         }
 
-        var databaseName = $"TestDb_{Guid.NewGuid()}_{DateTime.UtcNow.Ticks}";
-        _factory = new VictoryCenterWebApplicationFactory<Program>(databaseName);
+        _factory = new VictoryCenterWebApplicationFactory<Program>();
 
         _scope = _factory.Services.CreateScope();
         HttpClient = _factory.CreateClient();

@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils.Seeder;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeders.ImageSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.Images;
 
 public class ImagesSeeder : BaseSeeder<Image>
 {
@@ -33,7 +33,7 @@ public class ImagesSeeder : BaseSeeder<Image>
     public ImagesSeeder(
         VictoryCenterDbContext dbContext,
         ILogger<ImagesSeeder> logger,
-        IBlobService blobService)
+        IBlobService blobService )
         : base(dbContext, logger, blobService)
     {
     }
@@ -41,7 +41,6 @@ public class ImagesSeeder : BaseSeeder<Image>
     public override int Order => 50;
 
     public override string Name => nameof(ImagesSeeder);
-    private IBlobService BlobService { get; set; }
 
     protected override async Task<List<Image>> GenerateEntitiesAsync()
     {

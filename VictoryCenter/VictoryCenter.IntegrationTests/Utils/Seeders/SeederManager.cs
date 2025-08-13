@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.Utils.Seeder;
 using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
 using VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
-using VictoryCenter.IntegrationTests.Utils.Seeders.ImageSeeder;
+using VictoryCenter.IntegrationTests.Utils.Seeders.Images;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 
