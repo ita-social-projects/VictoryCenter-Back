@@ -16,7 +16,7 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
     {
     }
 
-    public override string Name => "TeamMembersSeeder";
+    public override string Name => nameof(TeamMembersSeeder);
 
     public override int Order => 2;
 

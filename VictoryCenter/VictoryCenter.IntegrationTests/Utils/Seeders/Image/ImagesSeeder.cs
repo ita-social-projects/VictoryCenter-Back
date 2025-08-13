@@ -3,10 +3,11 @@ using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.ImageSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.ImageSeeder;
 
-public class ImagesDataSeeder : BaseSeeder<Image>
+public class ImagesSeeder : BaseSeeder<Image>
 {
     private static readonly List<Image> _images =
     [
@@ -29,17 +30,18 @@ public class ImagesDataSeeder : BaseSeeder<Image>
 
     ];
 
-    public ImagesDataSeeder(
+    public ImagesSeeder(
         VictoryCenterDbContext dbContext,
-        ILogger<ImagesDataSeeder> logger,
-        IBlobService blobService )
+        ILogger<ImagesSeeder> logger,
+        IBlobService blobService)
         : base(dbContext, logger, blobService)
     {
     }
 
     public override int Order => 50;
 
-    public override string Name => nameof(ImagesDataSeeder);
+    public override string Name => nameof(ImagesSeeder);
+    private IBlobService BlobService { get; set; }
 
     protected override async Task<List<Image>> GenerateEntitiesAsync()
     {

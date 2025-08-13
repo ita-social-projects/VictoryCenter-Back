@@ -1,4 +1,3 @@
-using dotenv.net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -8,34 +7,28 @@ using VictoryCenter.DAL.Data;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
-public class VictoryCenterWebApplicationFactory<TSartup> : WebApplicationFactory<TSartup>
-    where TSartup : class
+public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>
+    where TStartup : class
 {
     private static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
     private readonly string _databaseName;
 
-    public VictoryCenterWebApplicationFactory(string databaseName = null)
+    public VictoryCenterWebApplicationFactory(string? databaseName = null)
     {
         _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        var envPath = Path.GetFullPath("../../../../VictoryCenter.WebApi/.env");
-
-        DotEnv.Load(new DotEnvOptions(envFilePaths: new[] { envPath }));
-
         SetEnvironmentalVariables();
 
-        builder.ConfigureAppConfiguration((context, config) =>
+        builder.ConfigureAppConfiguration((_, config) =>
         {
             config.Sources.Clear();
             config.AddJsonFile("appsettings.IntegrationTests.json", optional: false);
             config.AddEnvironmentVariables();
             var dict = new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("INTEGRATION_TESTS_DB_CONNECTION_STRING")
-                                                          ?? throw new InvalidOperationException("INTEGRATION_TESTS_DB_CONNECTION_STRING is not set in enviroment variables"),
                 ["JwtOptions:SecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_SECRETKEY")
                                            ?? throw new InvalidOperationException("JWTOPTIONS_SECRETKEY is not set in enviroment variables"),
                 ["JwtOptions:RefreshTokenSecretKey"] = Environment.GetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY")

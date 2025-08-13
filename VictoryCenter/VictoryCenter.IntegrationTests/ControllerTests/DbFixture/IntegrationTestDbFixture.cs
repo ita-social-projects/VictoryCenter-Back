@@ -14,14 +14,15 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.Seeder;
+using VictoryCenter.IntegrationTests.Utils.Seeders;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Base;
 
 public class IntegrationTestDbFixture : IAsyncLifetime
 {
     public VictoryCenterWebApplicationFactory<Program> _factory;
-    public readonly IBlobService _blobService;
-    public readonly BlobEnvironmentVariables _blobEnvironmentVariables;
+    public readonly IBlobService BlobService;
+    public readonly BlobEnvironmentVariables BlobEnvironmentVariables;
     private IServiceScope _scope;
     private List<ISeeder> _seeders;
     private string _authToken;
@@ -31,9 +32,9 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         _factory = new VictoryCenterWebApplicationFactory<Program>();
         _scope = _factory.Services.CreateScope();
         HttpClient = _factory.CreateClient();
-        _blobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
+        BlobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
         var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
-        _blobEnvironmentVariables = options.Value;
+        BlobEnvironmentVariables = options.Value;
 
         EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
 
@@ -59,8 +60,6 @@ public class IntegrationTestDbFixture : IAsyncLifetime
 
         DbContext?.Dispose();
 
-        _scope?.Dispose();
-
         if(_factory != null)
         {
             await _factory.DisposeAsync();
@@ -69,14 +68,6 @@ public class IntegrationTestDbFixture : IAsyncLifetime
 
     public async Task CreateFreshDatabase()
     {
-        if (SeederManager != null)
-        {
-            await SeederManager.DisposeAllAsync();
-        }
-
-        _scope?.Dispose();
-        HttpClient.Dispose();
-
         if (_factory != null)
         {
             await _factory.DisposeAsync();
@@ -92,7 +83,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         await DbContext.Database.EnsureCreatedAsync();
 
-        EnsureTestAdminUser(_scope.ServiceProvider).ConfigureAwait(false).GetAwaiter().GetResult();
+        await EnsureTestAdminUser(_scope.ServiceProvider);
 
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var blobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();

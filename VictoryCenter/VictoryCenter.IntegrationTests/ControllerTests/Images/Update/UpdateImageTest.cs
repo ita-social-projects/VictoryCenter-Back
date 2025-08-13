@@ -38,7 +38,7 @@ public class UpdateImageTest : IAsyncLifetime
         var id = image.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        string filePath = Path.Combine(_fixture._blobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
+        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
         var updateImageDto = new UpdateImageDTO
@@ -55,7 +55,7 @@ public class UpdateImageTest : IAsyncLifetime
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         var newExtension = responseContext.MimeType.Split("/")[1];
-        var newFilePath = Path.Combine(_fixture._blobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
+        var newFilePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);

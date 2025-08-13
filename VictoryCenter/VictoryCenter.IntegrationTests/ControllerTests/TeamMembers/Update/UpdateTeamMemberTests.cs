@@ -2,14 +2,10 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
 
@@ -32,18 +28,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.SeederManager.DisposeAllAsync();
-        await _fixture.SeederManager.SeedAllAsync();
-
-        _fixture.SeederManager.ClearSeeders();
-        _fixture.SeederManager.ConfigureSeeders(
-            new CategoriesSeeder(_fixture.DbContext, _fixture._factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>(), _fixture._blobService),
-            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture._factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>(), _fixture._blobService));
-
-        if (!await _fixture.SeederManager.SeedAllAsync())
-        {
-            throw new InvalidOperationException("Seeding failed for CustomDataTests");
-        }
+        await _fixture.CreateFreshDatabase();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -57,7 +42,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     {
         TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
-                                        .LastOrDefaultAsync()
+                                        .FirstOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
 
@@ -91,7 +76,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     {
         TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
-                                        .LastOrDefaultAsync()
+                                        .FirstOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
 

@@ -35,7 +35,7 @@ public class DeleteImageTests : IAsyncLifetime
         var id = image.Id;
 
         string extension = image.MimeType.Split("/")[1];
-        string path = _fixture._blobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
+        string path = _fixture.BlobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
 
         HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"api/Image/{id}");
 

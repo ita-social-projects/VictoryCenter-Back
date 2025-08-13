@@ -1,8 +1,12 @@
 using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.IntegrationTests.Utils.Seeder;
+using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
+using VictoryCenter.IntegrationTests.Utils.Seeder.TeamMembersSeeder;
+using VictoryCenter.IntegrationTests.Utils.Seeders.ImageSeeder;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 
 public class SeederManager
 {
@@ -61,8 +65,8 @@ public class SeederManager
 
     public IEnumerable<ISeeder> CreateDefaultSeeders()
     {
-        yield return new CategoriesSeeder.CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder.CategoriesSeeder>(), _blobService);
-        yield return new TeamMembersSeeder.TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder.TeamMembersSeeder>(), _blobService);
-        yield return new ImageSeeder.ImagesDataSeeder(_dbContext, _loggerFactory.CreateLogger<ImageSeeder.ImagesDataSeeder>(), _blobService);
+        yield return new CategoriesSeeder(_dbContext,  _loggerFactory.CreateLogger<CategoriesSeeder>(), _blobService);
+        yield return new TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder>(), _blobService);
+        yield return new ImagesSeeder(_dbContext, _loggerFactory.CreateLogger<ImagesSeeder>(), _blobService);
     }
 }
