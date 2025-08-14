@@ -35,7 +35,12 @@ public class TeamMemberConfig : IEntityTypeConfiguration<TeamMember>
             .Property(e => e.Description);
 
         entity
-            .Property(e => e.Photo);
+            .Property(e => e.ImageId);
+
+        entity
+            .HasOne(e => e.Image)
+            .WithOne()
+            .HasForeignKey<TeamMember>(e => e.ImageId);
 
         entity
             .Property(e => e.Email);

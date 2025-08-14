@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;
 using VictoryCenter.DAL.Entities;
@@ -13,11 +14,13 @@ public class GetPublishedTeamMembers
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IBlobService> _blobService;
 
     public GetPublishedTeamMembers()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
+        _blobService = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -30,7 +33,7 @@ public class GetPublishedTeamMembers
         SetupRepository(categories);
         SetupMapper(expectedDto);
 
-        var handler = new GetPublishedTeamMembersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetPublishedTeamMembersHandler(_mockMapper.Object, _mockRepository.Object, _blobService.Object);
         var query = new GetPublishedTeamMembersQuery();
 
         // Act

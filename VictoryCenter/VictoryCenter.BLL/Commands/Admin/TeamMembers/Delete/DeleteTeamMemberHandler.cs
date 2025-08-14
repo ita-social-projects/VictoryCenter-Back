@@ -1,8 +1,8 @@
 using FluentResults;
 using MediatR;
-using VictoryCenter.DAL.Entities;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 

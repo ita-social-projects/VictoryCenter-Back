@@ -2,6 +2,7 @@ using System.Transactions;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 
@@ -14,6 +15,7 @@ public interface IRepositoryWrapper
     IFaqQuestionsRepository FaqQuestionsRepository { get; }
     ITeamMembersRepository TeamMembersRepository { get; }
     IVisitorPagesRepository VisitorPagesRepository { get; }
+    IImageRepository ImageRepository { get; }
 
     int SaveChanges();
 

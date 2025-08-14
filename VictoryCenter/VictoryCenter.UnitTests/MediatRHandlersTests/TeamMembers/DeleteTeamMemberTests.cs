@@ -12,7 +12,7 @@ public class DeleteTeamMemberTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly TeamMember _testExistingTeamMember = new ()
+    private readonly TeamMember _testExistingTeamMember = new()
     {
         Id = 1,
         FullName = "Test name",

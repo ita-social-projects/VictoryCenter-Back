@@ -21,7 +21,7 @@ public class CreateCategoryValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_When_Name_IsNotValid(string? name)
     {
-        var command = new CreateCategoryCommand(new CreateCategoryDto { Name = name });
+        var command = new CreateCategoryCommand(new CreateCategoryDto { Name = name! });
 
         var result = _validator.TestValidate(command);
 

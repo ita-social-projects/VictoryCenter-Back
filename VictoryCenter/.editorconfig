@@ -61,7 +61,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary:warning
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
 
 # Expression-level preferences
-dotnet_style_namespace_match_folder = true:warning
+dotnet_style_namespace_match_folder = true:error
 dotnet_style_operator_placement_when_wrapping = beginning_of_line:suggestion
 dotnet_style_prefer_compound_assignment = true:error
 dotnet_style_prefer_conditional_expression_over_assignment = true:warning
@@ -103,7 +103,7 @@ csharp_style_prefer_switch_expression = true:suggestion
 csharp_style_conditional_delegate_call = true:error
 
 # Modifier preferences
-csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
+csharp_preferred_modifier_order = public, private, protected, internal, file, static, extern, new, virtual, abstract, sealed, override, readonly, unsafe, required, volatile, async
 csharp_style_prefer_readonly_struct = true:suggestion
 csharp_style_prefer_readonly_struct_member = true:suggestion
 

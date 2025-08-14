@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetFiltered;
@@ -25,10 +26,11 @@ public class GetFilteredTeamMembersTests
         {
             PropertyNameCaseInsensitive = true
         };
-        var responseContent = JsonSerializer.Deserialize<List<TeamMemberDto>>(responseString, options);
+        var responseContent = JsonSerializer.Deserialize<PaginationResult<TeamMemberDto>>(responseString, options);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
-        Assert.NotEmpty(responseContent);
+        Assert.NotEmpty(responseContent.Items);
+        Assert.True(responseContent.TotalItemsCount > 0);
     }
 }

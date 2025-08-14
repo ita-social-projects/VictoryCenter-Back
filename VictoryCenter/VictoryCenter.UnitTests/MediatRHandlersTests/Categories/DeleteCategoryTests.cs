@@ -11,7 +11,7 @@ public class DeleteCategoryTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly Category _testExistingCategory = new ()
+    private readonly Category _testExistingCategory = new()
     {
         Id = 1,
         Name = "Test name",

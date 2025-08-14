@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
 using VictoryCenter.WebAPI.Factories;
 
-namespace VictoryCenter.UnitTests.FactoriesTests;
+namespace VictoryCenter.UnitTests.MiddlewareTests;
 
 public class CustomProblemDetailsFactoryTests
 {

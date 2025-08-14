@@ -9,6 +9,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -21,6 +22,7 @@ public class CreateTeamMemberTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<CreateTeamMemberCommand>> _validator;
+    private readonly Mock<IBlobService> _blobService;
 
     private readonly CreateTeamMemberDto _createTeamMemberDto = new()
     {
@@ -66,13 +68,14 @@ public class CreateTeamMemberTests
         _validator = new Mock<IValidator<CreateTeamMemberCommand>>();
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
+        _blobService = new Mock<IBlobService>();
     }
 
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnTeamMemberDto_WhenCreationIsValid()
     {
-        SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, 1);
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        SetupDependencies(_teamMemberDto, _teamMember, 1);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _blobService.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -86,9 +89,9 @@ public class CreateTeamMemberTests
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
     {
         var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember));
-        SetupDependencies(_createTeamMemberDto, _teamMemberDto, _teamMember, -1);
+        SetupDependencies(_teamMemberDto, _teamMember, -1);
 
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _blobService.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -105,9 +108,9 @@ public class CreateTeamMemberTests
             .Setup(repositoryWrapper =>
                 repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync((Category?)null);
-        SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);
+        SetupMapper(_teamMemberDto, _teamMember);
         SetupValidator();
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _blobService.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -121,7 +124,7 @@ public class CreateTeamMemberTests
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenExceptionThrown()
     {
         var testMessage = "test message";
-        SetupMapper(_createTeamMemberDto, _teamMemberDto, _teamMember);
+        SetupMapper(_teamMemberDto, _teamMember);
         _repositoryWrapperMock
             .Setup(repositoryWrapperMock =>
                 repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>()))
@@ -137,7 +140,7 @@ public class CreateTeamMemberTests
                 repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync(_category);
 
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _blobService.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -147,14 +150,14 @@ public class CreateTeamMemberTests
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)) + testMessage, result.Errors[0].Message);
     }
 
-    private void SetupDependencies(CreateTeamMemberDto createMember, TeamMemberDto memberDto, TeamMember member, int isSuccess)
+    private void SetupDependencies(TeamMemberDto memberDto, TeamMember member, int isSuccess)
     {
-        SetupMapper(createMember, memberDto, member);
+        SetupMapper(memberDto, member);
         SetupRepositoryWrapper(member, isSuccess);
         SetupValidator();
     }
 
-    private void SetupMapper(CreateTeamMemberDto createTeamMemberDto, TeamMemberDto teamMemberDto, TeamMember teamMember)
+    private void SetupMapper(TeamMemberDto teamMemberDto, TeamMember teamMember)
     {
         _mapperMock.Setup(mapper => mapper.Map<TeamMember>(It.IsAny<CreateTeamMemberDto>())).Returns(teamMember);
         _mapperMock.Setup(mapper => mapper.Map<TeamMemberDto>(It.IsAny<TeamMember>())).Returns(teamMemberDto);

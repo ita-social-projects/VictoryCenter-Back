@@ -8,7 +8,7 @@ public class UpdateCategoryValidator : AbstractValidator<UpdateCategoryCommand>
 {
     public UpdateCategoryValidator()
     {
-        RuleFor(command => command.updateCategoryDto.Name)
+        RuleFor(command => command.UpdateCategoryDto.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }

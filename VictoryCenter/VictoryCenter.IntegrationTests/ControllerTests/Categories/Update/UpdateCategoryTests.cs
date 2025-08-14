@@ -37,13 +37,12 @@ public class UpdateCategoryTests
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
-            Id = existingEntity!.Id,
             Name = "Test Category",
             Description = testDescription,
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories", new StringContent(
+        var response = await _httpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -61,13 +60,12 @@ public class UpdateCategoryTests
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
-            Id = existingEntity!.Id,
             Name = existingEntity.Name,
             Description = existingEntity.Description,
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories", new StringContent(
+        var response = await _httpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
@@ -88,13 +86,12 @@ public class UpdateCategoryTests
         var existingEntity = await _dbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
-            Id = existingEntity!.Id,
             Name = testName,
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories", new StringContent(
+        var response = await _httpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -108,13 +105,12 @@ public class UpdateCategoryTests
     {
         var updateCategoryDto = new UpdateCategoryDto
         {
-            Id = testId,
             Name = "Test Category",
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _httpClient.PutAsync("api/categories", new StringContent(
+        var response = await _httpClient.PutAsync($"api/categories/{testId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

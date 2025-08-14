@@ -1,24 +1,23 @@
-﻿using VictoryCenter.DAL.Enums;
+using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 
 public record TeamMemberDto
 {
-    public long Id { get; set; }
+    public long Id { get; init; }
 
-    public string FullName { get; set; } = null!;
+    public string FullName { get; init; } = null!;
 
-    public long CategoryId { get; set; }
+    public long CategoryId { get; init; }
 
-    public long Priority { get; set; }
+    public long Priority { get; init; }
 
-    public Status Status { get; set; }
+    public Status Status { get; init; }
 
-    public string? Description { get; set; }
+    public string? Description { get; init; }
 
-#pragma warning disable SA1011
-    public byte[]? Photo { get; set; }
-#pragma warning restore SA1011
+    public string? Email { get; init; }
 
-    public string? Email { get; set; }
+    public ImageDto? Image { get; set; }
 }

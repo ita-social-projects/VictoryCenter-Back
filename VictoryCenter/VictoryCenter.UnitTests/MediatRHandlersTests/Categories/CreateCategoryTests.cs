@@ -24,11 +24,10 @@ public class CreateCategoryTests
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
     };
 
-    private readonly CategoryDto _testCategoryDto = new()
+    private CategoryDto _testCategoryDto = new()
     {
         Name = "Test Category",
         Description = "Test Category Description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
     };
 
     public CreateCategoryTests()
@@ -46,16 +45,19 @@ public class CreateCategoryTests
     public async Task Handle_ShouldCreateCategory(string? description)
     {
         _testEntity.Description = description;
-        _testCategoryDto.Description = description;
+        _testCategoryDto = _testCategoryDto with
+        {
+            Description = description
+        };
         SetupDependencies();
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
         var result = await handler.Handle(
             new CreateCategoryCommand(new CreateCategoryDto
-        {
-            Name = "Test Category",
-            Description = description,
-        }), CancellationToken.None);
+            {
+                Name = "Test Category",
+                Description = description,
+            }), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _testCategoryDto.Name);
@@ -68,17 +70,20 @@ public class CreateCategoryTests
     [InlineData(null)]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        _testEntity.Name = name;
-        _testCategoryDto.Name = name;
+        _testEntity.Name = name!;
+        _testCategoryDto = _testCategoryDto with
+        {
+            Name = name!
+        };
         SetupDependencies();
         var handler = new CreateCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
         var result = await handler.Handle(
             new CreateCategoryCommand(new CreateCategoryDto
-        {
-            Name = name,
-            Description = "Test Category Description",
-        }), CancellationToken.None);
+            {
+                Name = name!,
+                Description = "Test Category Description",
+            }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
@@ -92,10 +97,10 @@ public class CreateCategoryTests
 
         var result = await handler.Handle(
             new CreateCategoryCommand(new CreateCategoryDto
-        {
-            Name = "Test Category",
-            Description = "Test Category Description",
-        }), CancellationToken.None);
+            {
+                Name = "Test Category",
+                Description = "Test Category Description",
+            }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Category)), result.Errors[0].Message);

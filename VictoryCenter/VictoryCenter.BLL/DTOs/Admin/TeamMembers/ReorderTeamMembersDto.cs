@@ -2,6 +2,6 @@
 
 public record ReorderTeamMembersDto
 {
-    public long CategoryId { get; set; }
-    public List<long> OrderedIds { get; set; } = [];
+    public long CategoryId { get; init; }
+    public List<long> OrderedIds { get; init; } = [];
 }
