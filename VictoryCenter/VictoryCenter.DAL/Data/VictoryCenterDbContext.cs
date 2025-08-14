@@ -18,6 +18,16 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
     public DbSet<Image> Images { get; set; }
 
+    public DbSet<AdditionalField> AdditionalFields { get; set; }
+
+    public DbSet<CorrespondentBank> CorrespondentBanks { get; set; }
+
+    public DbSet<ForeignBankDetails> ForeignBankDetails { get; set; }
+
+    public DbSet<SupportMethod> SupportMethods { get; set; }
+
+    public DbSet<UahBankDetails> UahBankDetails { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
