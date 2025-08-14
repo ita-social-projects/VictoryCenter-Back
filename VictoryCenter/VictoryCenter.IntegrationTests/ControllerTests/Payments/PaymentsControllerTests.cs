@@ -4,20 +4,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
 using VictoryCenter.BLL.DTOs.Public.Payment;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Payments;
 
 [Collection("SharedIntegrationTests")]
 public class PaymentsControllerTests
 {
-    private readonly HttpClient _client;
     private readonly IntegrationTestDbFixture _fixture;
 
     public PaymentsControllerTests(IntegrationTestDbFixture fixture)
     {
         _fixture = fixture;
-        _client = fixture.HttpClient;
     }
 
     [Fact]
@@ -86,7 +84,7 @@ public class PaymentsControllerTests
         };
         var content = new FormUrlEncodedContent(request);
 
-        var response = await _client.PostAsync("api/payments/donate", content);
+        var response = await _fixture.HttpClient.PostAsync("api/payments/donate", content);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

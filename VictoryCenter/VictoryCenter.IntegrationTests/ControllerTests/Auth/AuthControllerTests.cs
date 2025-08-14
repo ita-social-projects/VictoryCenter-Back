@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.Auth;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Auth;
 
@@ -27,7 +27,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         var response = await _fixture.HttpClient.PostAsJsonAsync(LoginPath, request);
         response.EnsureSuccessStatusCode();
         var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
-        Assert.False(string.IsNullOrEmpty(authResponse.AccessToken));
+        Assert.False(string.IsNullOrEmpty(authResponse!.AccessToken));
         var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
         Assert.False(string.IsNullOrEmpty(setCookie));
     }
@@ -59,7 +59,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         var refreshResponse = await _fixture.HttpClient.SendAsync(request);
         refreshResponse.EnsureSuccessStatusCode();
         var refreshAuthResponse = await refreshResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
-        Assert.False(string.IsNullOrEmpty(refreshAuthResponse.AccessToken));
+        Assert.False(string.IsNullOrEmpty(refreshAuthResponse!.AccessToken));
     }
 
     [Fact]

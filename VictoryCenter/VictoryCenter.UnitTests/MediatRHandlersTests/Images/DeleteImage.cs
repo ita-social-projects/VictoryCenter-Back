@@ -1,6 +1,7 @@
 ﻿using System.Transactions;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Images.Delete;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -101,7 +102,7 @@ public class DeleteImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Failed to delete image", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Image)), result.Errors[0].Message);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.Delete(_testImage), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
     }

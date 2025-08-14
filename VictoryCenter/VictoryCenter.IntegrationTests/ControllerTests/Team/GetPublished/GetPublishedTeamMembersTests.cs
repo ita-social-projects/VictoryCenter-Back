@@ -2,31 +2,35 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
-using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Team.GetPublished;
 
 [Collection("SharedIntegrationTests")]
-public class GetPublishedTeamMembersTests
+public class GetPublishedTeamMembersTests : IAsyncLifetime
 {
     private const string _requestUri = "/api/Team/published";
-
-    private readonly HttpClient _httpClient;
-    private readonly VictoryCenterDbContext _dbContext;
+    private readonly IntegrationTestDbFixture _fixture;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public GetPublishedTeamMembersTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
+        _fixture = fixture;
+
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
+
+    public async Task InitializeAsync()
+    {
+        await _fixture.CreateFreshWebApplication();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetPublicTeamMembers_ShouldReturnOnlyPublishedMembersGroupedByCategory()
@@ -40,7 +44,7 @@ public class GetPublishedTeamMembersTests
         }
 
         // Act
-        var response = await _httpClient.GetAsync(_requestUri);
+        var response = await _fixture.HttpClient.GetAsync(_requestUri);
         var responseString = await response.Content.ReadAsStringAsync();
         var actualCategoryDtos = JsonSerializer.Deserialize<List<CategoryWithPublishedTeamMembersDto>>(responseString, _jsonOptions);
 
@@ -79,7 +83,7 @@ public class GetPublishedTeamMembersTests
 
     private async Task<List<Category>> GetCategoriesWithPublishedMembersAsync()
     {
-        return await _dbContext.Categories
+        return await _fixture.DbContext.Categories
             .AsNoTracking()
             .Include(category => category.TeamMembers
                 .Where(teamMember => teamMember.Status == Status.Published)

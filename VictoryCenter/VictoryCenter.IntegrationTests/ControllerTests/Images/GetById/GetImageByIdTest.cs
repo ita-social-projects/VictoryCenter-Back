@@ -1,43 +1,47 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.DAL.Data;
+using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.GetById;
 
 [Collection("SharedIntegrationTests")]
-public class GetImageByIdTest
+public class GetImageByIdTest : IAsyncLifetime
 {
-    private readonly HttpClient _client;
-    private readonly VictoryCenterDbContext _dbContext;
+    private readonly IntegrationTestDbFixture _fixture;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public GetImageByIdTest(IntegrationTestDbFixture fixture)
     {
-        _client = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
+        _fixture = fixture;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
 
+    public async Task InitializeAsync()
+    {
+        await _fixture.CreateFreshWebApplication();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     [Fact]
     public async Task GetImageById_ValidData_ShouldReturnImage()
     {
-        Image? image = await _dbContext.Images.FirstOrDefaultAsync();
-        var id = image.Id;
+        Image? image = await _fixture.DbContext.Images.FirstOrDefaultAsync();
+        var id = image!.Id;
 
-        HttpResponseMessage response = await _client.GetAsync($"api/Image/{id}");
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/{id}");
 
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDto? result = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Equal(result.BlobName, image.BlobName);
+        Assert.Equal(result!.BlobName, image.BlobName);
         Assert.Equal(result.Id, image.Id);
     }
 
@@ -46,7 +50,7 @@ public class GetImageByIdTest
     {
         var id = int.MaxValue;
 
-        HttpResponseMessage response = await _client.GetAsync($"api/Image/{id}");
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/{id}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

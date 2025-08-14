@@ -1,28 +1,32 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
-using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Services.BlobStorage;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Create;
 
 [Collection("SharedIntegrationTests")]
-public class CreateImageTests
+public class CreateImageTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
+    private readonly IntegrationTestDbFixture _fixture;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly BlobEnvironmentVariables _blobEnvironment;
 
     public CreateImageTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _blobEnvironment = fixture.BlobVariables;
+        _fixture = fixture;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
+
+    public async Task InitializeAsync()
+    {
+        await _fixture.CreateFreshWebApplication();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task CreateImage_ValidData_ShouldCreateImage()
@@ -37,13 +41,13 @@ public class CreateImageTests
 
         var serializedDto = JsonSerializer.Serialize(createImageDto);
 
-        HttpResponseMessage response = await _httpClient.PostAsync("api/Image", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("api/Image", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
-        string extension = responseContext.MimeType.Split("/")[1];
-        string path = _blobEnvironment.BlobStorePath + responseContext.BlobName + "." + extension;
+        string extension = responseContext!.MimeType.Split("/")[1];
+        string path = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + extension);
 
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(createImageDto.Base64, responseContext.Base64);
@@ -63,16 +67,13 @@ public class CreateImageTests
             Base64 =
                 "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
 
-            MimeType = mimeType
+            MimeType = mimeType!
         };
 
         var serializedDto = JsonSerializer.Serialize(createImageDto);
 
-        HttpResponseMessage response = await _httpClient.PostAsync("api/Image", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("api/Image", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-
-        var responseString = await response.Content.ReadAsStringAsync();
-        ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
