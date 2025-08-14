@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.TokenService;
@@ -88,9 +87,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
 
     private void InitializeSeeders()
     {
-        var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
-        var blobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
-        SeederManager = new SeederManager(DbContext, loggerFactory, blobService);
+        SeederManager = new SeederManager(_scope.ServiceProvider);
     }
 
     private static string GetAuthorizationToken(IServiceProvider serviceProvider)

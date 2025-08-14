@@ -1,24 +1,15 @@
-using Microsoft.Extensions.Logging;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.Utils.Seeders.Categories;
-using VictoryCenter.IntegrationTests.Utils.Seeders.Images;
-using VictoryCenter.IntegrationTests.Utils.Seeders.TeamMembers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 
-public class SeederManager
+public sealed class SeederManager
 {
-    private readonly VictoryCenterDbContext _dbContext;
-    private readonly ILoggerFactory _loggerFactory;
-    private readonly IBlobService _blobService;
+    private readonly IServiceProvider _serviceProvider;
     private List<ISeeder> _seeders;
 
-    public SeederManager(VictoryCenterDbContext dbContext, ILoggerFactory loggerFactory, IBlobService blobService, IEnumerable<ISeeder>? seeders = null)
+    public SeederManager(IServiceProvider serviceProvider, IEnumerable<ISeeder>? seeders = null)
     {
-        _dbContext = dbContext;
-        _loggerFactory = loggerFactory;
-        _blobService = blobService;
+        _serviceProvider = serviceProvider;
 
         _seeders = (seeders ?? CreateDefaultSeeders())
             .OrderBy(s => s.Order)
@@ -62,8 +53,13 @@ public class SeederManager
 
     private IEnumerable<ISeeder> CreateDefaultSeeders()
     {
-        yield return new CategoriesSeeder(_dbContext, _loggerFactory.CreateLogger<CategoriesSeeder>());
-        yield return new TeamMembersSeeder(_dbContext, _loggerFactory.CreateLogger<TeamMembersSeeder>());
-        yield return new ImagesSeeder(_dbContext, _loggerFactory.CreateLogger<ImagesSeeder>(), _blobService);
+        var seederTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(a => a.GetTypes())
+            .Where(t => typeof(ISeeder).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+        foreach (var type in seederTypes)
+        {
+            yield return (ISeeder)ActivatorUtilities.CreateInstance(_serviceProvider, type);
+        }
     }
 }
