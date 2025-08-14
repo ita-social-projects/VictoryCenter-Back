@@ -24,11 +24,6 @@ where TEntity : class
     {
         try
         {
-            if (await ShouldSkipAsync())
-            {
-                return new SeederResult { Success = true, CreatedCount = 0 };
-            }
-
             var entities = await GenerateEntitiesAsync();
 
             await _dbContext.Set<TEntity>().AddRangeAsync(entities);
@@ -79,5 +74,4 @@ where TEntity : class
     }
 
     protected abstract Task<List<TEntity>> GenerateEntitiesAsync();
-    protected abstract Task<bool> ShouldSkipAsync();
 }

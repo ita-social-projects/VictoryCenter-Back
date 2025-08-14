@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -14,11 +13,6 @@ public class CategoriesSeeder : BaseSeeder<Category>
 
     public override string Name => nameof(CategoriesSeeder);
     public override int Order => 1;
-
-    protected override Task<bool> ShouldSkipAsync()
-    {
-        return _dbContext.Categories.AnyAsync();
-    }
 
     protected override Task<List<Category>> GenerateEntitiesAsync()
     {

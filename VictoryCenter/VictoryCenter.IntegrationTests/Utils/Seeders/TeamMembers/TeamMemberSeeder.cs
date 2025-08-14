@@ -19,11 +19,6 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
 
     public override int Order => 2;
 
-    protected override async Task<bool> ShouldSkipAsync()
-    {
-        return await _dbContext.TeamMembers.CountAsync() >= TeamMemberCount;
-    }
-
     protected override async Task<List<TeamMember>> GenerateEntitiesAsync()
     {
         var categories = await _dbContext.Categories.ToListAsync();

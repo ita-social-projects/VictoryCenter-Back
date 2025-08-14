@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -59,7 +58,4 @@ public class ImagesSeeder : BaseSeeder<Image>
 
         return entities;
     }
-
-    protected override Task<bool> ShouldSkipAsync() =>
-        _dbContext.Images.AnyAsync();
 }
