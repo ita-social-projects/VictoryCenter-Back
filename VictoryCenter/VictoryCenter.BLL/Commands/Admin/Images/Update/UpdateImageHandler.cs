@@ -50,6 +50,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
             using var transaction = _repositoryWrapper.BeginTransaction();
 
             imageEntity.MimeType = request.UpdateImageDto.MimeType!;
+            _repositoryWrapper.ImageRepository.Update(imageEntity);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
