@@ -90,7 +90,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
     {
         var loggerFactory = _scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var blobService = _scope.ServiceProvider.GetRequiredService<IBlobService>();
-        SeederManager = new SeederManager(DbContext, loggerFactory, blobService);
+        SeederManager = new SeederManager(DbContext, loggerFactory, blobService, _scope.ServiceProvider);
     }
 
     private static string GetAuthorizationToken(IServiceProvider serviceProvider)

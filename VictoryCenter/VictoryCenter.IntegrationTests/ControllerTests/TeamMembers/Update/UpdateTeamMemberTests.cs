@@ -42,7 +42,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     {
         TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
-                                        .Where(tm => tm.Id % 2 == 1)
+                                        .Where(tm => tm.Status == Status.Draft)
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -77,7 +77,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     {
         TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
-                                        .Where(tm => tm.Id % 2 == 1)
+                                        .Where(tm => tm.Status == Status.Draft)
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
