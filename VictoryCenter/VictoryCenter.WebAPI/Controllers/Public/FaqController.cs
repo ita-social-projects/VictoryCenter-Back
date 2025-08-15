@@ -9,7 +9,7 @@ public class FaqController : BaseApiController
 {
     [HttpGet("published/{slug}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublishedFaqQuestionDto>))]
-    public async Task<IActionResult> GetPublishedTeamMembers([FromRoute] string slug)
+    public async Task<IActionResult> GetPublishedFaqQuestions([FromRoute] string slug)
     {
         return HandleResult(await Mediator.Send(new GetPublishedFaqQuestionsBySlugQuery(slug)));
     }
