@@ -7,13 +7,13 @@ using VictoryCenter.WebAPI.Middleware;
 
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
-public class RequestResponseLoggingMiddlewareTests : BaseTestClass
+[Collection("SharedIntegrationTests")]
+public class RequestResponseLoggingMiddlewareTests
 {
     private readonly HttpClient _client;
     private readonly InMemoryLoggerProvider _loggerProvider;
 
     public RequestResponseLoggingMiddlewareTests(IntegrationTestDbFixture fixture)
-        : base(fixture)
     {
         var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {

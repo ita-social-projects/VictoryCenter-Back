@@ -9,13 +9,13 @@ using VictoryCenter.WebAPI.Middleware;
 
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
-public class ExceptionHandlingMiddlewareTests : BaseTestClass
+[Collection("SharedIntegrationTests")]
+public class ExceptionHandlingMiddlewareTests
 {
     private readonly HttpClient _client;
     private readonly InMemoryLoggerProvider _loggerProvider;
 
     public ExceptionHandlingMiddlewareTests(IntegrationTestDbFixture fixture)
-        : base(fixture)
     {
         var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {

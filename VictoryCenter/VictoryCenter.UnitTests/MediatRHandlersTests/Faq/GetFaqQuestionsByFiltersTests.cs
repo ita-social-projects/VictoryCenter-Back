@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
@@ -32,9 +33,9 @@ public class GetFaqQuestionsByFiltersTests
         var faqQuestionDtoList = GetFaqQuestionDtoList()
             .Skip(pageNumber)
             .Take(pageSize)
-            .ToList();
+            .ToArray();
 
-        SetupRepository(faqQuestionList);
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
         SetupMapper(faqQuestionDtoList);
 
         var filtersDto = new FaqQuestionsFilterDto
@@ -51,13 +52,14 @@ public class GetFaqQuestionsByFiltersTests
         var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
 
         // Assert
-        var faqQuestionDtoListOld = GetFaqQuestionDtoList();
+        var faqQuestionDtoListOld = GetFaqQuestionDtoList().ToArray();
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEqual(faqQuestionDtoListOld.Count, result.Value.TotalItemsCount),
+            () => Assert.NotEqual(faqQuestionDtoListOld.Length, result.Value.Items.Length),
             () => Assert.NotEqual(faqQuestionDtoListOld, result.Value.Items),
-            () => Assert.Equal(faqQuestionDtoList.Count, result.Value.TotalItemsCount),
+            () => Assert.Equal(faqQuestionDtoList.Length, result.Value.Items.Length),
+            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
             () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
@@ -69,9 +71,9 @@ public class GetFaqQuestionsByFiltersTests
         var faqQuestionList = GetFaqQuestionList();
         var faqQuestionDtoList = GetFaqQuestionDtoList()
             .Where(q => q.Status == status)
-            .ToList();
+            .ToArray();
 
-        SetupRepository(faqQuestionList);
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
         SetupMapper(faqQuestionDtoList);
 
         var filtersDto = new FaqQuestionsFilterDto
@@ -92,6 +94,7 @@ public class GetFaqQuestionsByFiltersTests
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
             () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
             () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
@@ -105,9 +108,9 @@ public class GetFaqQuestionsByFiltersTests
         var faqQuestionDtoList = GetFaqQuestionDtoList()
             .Where(q => q.PageIds.Contains(page.Id))
             .OrderBy(q => faqPlacementList.Single(fp => fp.QuestionId == q.Id && fp.PageId == page.Id).Priority)
-            .ToList();
+            .ToArray();
 
-        SetupRepository(faqQuestionList);
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
         SetupMapper(faqQuestionDtoList);
 
         var filtersDto = new FaqQuestionsFilterDto
@@ -128,6 +131,7 @@ public class GetFaqQuestionsByFiltersTests
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
             () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
             () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
@@ -142,9 +146,9 @@ public class GetFaqQuestionsByFiltersTests
         var faqQuestionDtoList = GetFaqQuestionDtoList()
             .Where(q => q.Status == status && q.PageIds.Contains(page.Id))
             .OrderBy(q => faqPlacementList.Single(fp => fp.QuestionId == q.Id && fp.PageId == page.Id).Priority)
-            .ToList();
+            .ToArray();
 
-        SetupRepository(faqQuestionList);
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
         SetupMapper(faqQuestionDtoList);
 
         var filtersDto = new FaqQuestionsFilterDto
@@ -165,6 +169,7 @@ public class GetFaqQuestionsByFiltersTests
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
             () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
             () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
@@ -307,17 +312,21 @@ public class GetFaqQuestionsByFiltersTests
         return faqPlacementList;
     }
 
-    private void SetupRepository(List<FaqQuestion> faqQuestions)
+    private void SetupRepository(List<FaqQuestion> faqQuestions, int count)
     {
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.FaqQuestionsRepository.GetAllAsync(
              It.IsAny<QueryOptions<FaqQuestion>>()))
             .ReturnsAsync(faqQuestions);
+
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.FaqQuestionsRepository.CountAsync(
+             It.IsAny<Expression<Func<FaqQuestion, bool>>>()))
+            .ReturnsAsync(count);
     }
 
-    private void SetupMapper(List<FaqQuestionDto> faqQuestionDtos)
+    private void SetupMapper(FaqQuestionDto[] faqQuestionDtos)
     {
         _mockMapper
-            .Setup(x => x.Map<List<FaqQuestionDto>>(It.IsAny<List<FaqQuestion>>()))
+            .Setup(x => x.Map<FaqQuestionDto[]>(It.IsAny<List<FaqQuestion>>()))
             .Returns(faqQuestionDtos);
     }
 }
