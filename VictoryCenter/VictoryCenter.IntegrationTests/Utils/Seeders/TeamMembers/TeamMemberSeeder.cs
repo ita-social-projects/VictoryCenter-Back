@@ -17,7 +17,7 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
 
     public override string Name => nameof(TeamMembersSeeder);
 
-    public override int Order => 2;
+    public override int Order => (int)SeederExecutionOrder.TeamMembers;
 
     protected override async Task<List<TeamMember>> GenerateEntitiesAsync()
     {

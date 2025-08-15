@@ -15,7 +15,7 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class FaqController : AuthorizedApiController
 {
     [HttpGet("pages")]
-    [ProducesResponseType(typeof(VisitorPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<VisitorPageDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllVisitorPages()
     {
         return HandleResult(await Mediator.Send(new GetAllVisitorPagesQuery()));

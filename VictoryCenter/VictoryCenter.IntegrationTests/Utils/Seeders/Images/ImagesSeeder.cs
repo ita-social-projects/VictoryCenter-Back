@@ -38,7 +38,7 @@ public class ImagesSeeder : BaseSeeder<Image>
         _blobService = blobService;
     }
 
-    public override int Order => 50;
+    public override int Order => (int)SeederExecutionOrder.Images;
 
     public override string Name => nameof(ImagesSeeder);
 
