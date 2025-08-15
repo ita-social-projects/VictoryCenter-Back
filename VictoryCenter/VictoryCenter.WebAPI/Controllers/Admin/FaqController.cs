@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.DTOs.Admin.VisitorPages;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetById;
 using VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
@@ -22,7 +23,7 @@ public class FaqController : AuthorizedApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<FaqQuestionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginationResult<FaqQuestionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFilteredQuestions([FromQuery] FaqQuestionsFilterDto faqQuestionsFilterDto)
     {
         return HandleResult(await Mediator.Send(new GetFaqQuestionsByFiltersQuery(faqQuestionsFilterDto)));

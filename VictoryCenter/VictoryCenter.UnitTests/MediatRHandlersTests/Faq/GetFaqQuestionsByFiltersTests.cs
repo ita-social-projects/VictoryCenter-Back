@@ -9,12 +9,12 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Faq;
 
-public class GetFaqQuestionsByFilters
+public class GetFaqQuestionsByFiltersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
 
-    public GetFaqQuestionsByFilters()
+    public GetFaqQuestionsByFiltersTests()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
@@ -55,10 +55,10 @@ public class GetFaqQuestionsByFilters
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEqual(faqQuestionDtoListOld.Count, result.Value.Count),
-            () => Assert.NotEqual(faqQuestionDtoListOld, result.Value),
-            () => Assert.Equal(faqQuestionDtoList.Count, result.Value.Count),
-            () => Assert.Equal(faqQuestionDtoList, result.Value));
+            () => Assert.NotEqual(faqQuestionDtoListOld.Count, result.Value.TotalItemsCount),
+            () => Assert.NotEqual(faqQuestionDtoListOld, result.Value.Items),
+            () => Assert.Equal(faqQuestionDtoList.Count, result.Value.TotalItemsCount),
+            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
     [Fact]
@@ -91,8 +91,8 @@ public class GetFaqQuestionsByFilters
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(faqQuestionDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
     [Fact]
@@ -127,8 +127,8 @@ public class GetFaqQuestionsByFilters
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(faqQuestionDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
     [Fact]
@@ -164,13 +164,13 @@ public class GetFaqQuestionsByFilters
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(faqQuestionDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
     }
 
     private static List<FaqQuestion> GetFaqQuestionList()
     {
-        var faqQuestionList = new List<FaqQuestion>()
+        var faqQuestionList = new List<FaqQuestion>
         {
             new()
             {
@@ -238,7 +238,7 @@ public class GetFaqQuestionsByFilters
 
     private static List<FaqQuestionDto> GetFaqQuestionDtoList()
     {
-        var faqQuestionDtoList = new List<FaqQuestionDto>()
+        var faqQuestionDtoList = new List<FaqQuestionDto>
         {
             new()
             {
@@ -287,7 +287,7 @@ public class GetFaqQuestionsByFilters
 
     private static List<FaqPlacement> GetPlacementList()
     {
-        var faqPlacementList = new List<FaqPlacement>()
+        var faqPlacementList = new List<FaqPlacement>
         {
             new() { PageId = 1, QuestionId = 4, Priority = 3 },
             new() { PageId = 2, QuestionId = 4, Priority = 3 },
