@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Net;
 using System.Security.Cryptography;
@@ -126,6 +127,10 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
         }
     }
 
+    [SuppressMessage(
+        "SonarLint",
+        "S4790",
+        Justification = "This is intentional because WayForPay API expects exactly this hashing mechanism")]
     private string GenerateMerchantSignature(PaymentCommand request, Guid orderReference, long orderDate)
     {
         var concatenatedValues = string.Join(

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
@@ -32,10 +33,11 @@ public class GetFilteredTeamMembersTests : IAsyncLifetime
         {
             PropertyNameCaseInsensitive = true
         };
-        var responseContent = JsonSerializer.Deserialize<List<TeamMemberDto>>(responseString, options);
+        var responseContent = JsonSerializer.Deserialize<PaginationResult<TeamMemberDto>>(responseString, options);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
-        Assert.NotEmpty(responseContent);
+        Assert.NotEmpty(responseContent.Items);
+        Assert.True(responseContent.TotalItemsCount > 0);
     }
 }
