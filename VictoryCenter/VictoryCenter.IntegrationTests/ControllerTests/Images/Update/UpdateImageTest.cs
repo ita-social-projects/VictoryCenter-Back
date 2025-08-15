@@ -4,40 +4,41 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Services.BlobStorage;
-using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Update;
 
 [Collection("SharedIntegrationTests")]
-public class UpdateImageTest
+public class UpdateImageTest : IAsyncLifetime
 {
-    private readonly BlobEnvironmentVariables _blobEnvironment;
-    private readonly HttpClient _client;
-    private readonly VictoryCenterDbContext _dbContext;
+    private readonly IntegrationTestDbFixture _fixture;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public UpdateImageTest(IntegrationTestDbFixture fixture)
     {
-        _client = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
-        _blobEnvironment = fixture.BlobVariables;
+        _fixture = fixture;
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
     }
 
+    public async Task InitializeAsync()
+    {
+        await _fixture.CreateFreshWebApplication();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
+
     [Fact]
     public async Task UpdateImage_ValidData_ShouldUpdateImage()
     {
-        Image? image = await _dbContext.Images.FirstOrDefaultAsync();
+        Image? image = await _fixture.DbContext.Images.FirstOrDefaultAsync();
         var id = image.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        var filePath = _blobEnvironment.BlobStorePath + image.BlobName + "." + extension;
+        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
         var updateImageDto = new UpdateImageDTO
@@ -48,13 +49,13 @@ public class UpdateImageTest
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _client.PutAsync($"api/image/{id}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         var newExtension = responseContext.MimeType.Split("/")[1];
-        var newFilePath = _blobEnvironment.BlobStorePath + responseContext.BlobName + "." + newExtension;
+        var newFilePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);
@@ -76,7 +77,7 @@ public class UpdateImageTest
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _client.PutAsync($"api/image/{invalidId}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"api/image/{invalidId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
@@ -88,7 +89,7 @@ public class UpdateImageTest
     [Fact]
     public async Task UpdateImage_InvalidData_ShouldFail()
     {
-        Image? image = await _dbContext.Images.FirstOrDefaultAsync();
+        Image? image = await _fixture.DbContext.Images.FirstOrDefaultAsync();
         var id = image.Id;
 
         var updateImageDto = new UpdateImageDTO
@@ -99,7 +100,7 @@ public class UpdateImageTest
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _client.PutAsync($"api/image/{id}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);

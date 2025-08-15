@@ -1,24 +1,31 @@
 using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetFiltered;
 
 [Collection("SharedIntegrationTests")]
-public class GetFilteredTeamMembersTests
+public class GetFilteredTeamMembersTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
+    private readonly IntegrationTestDbFixture _fixture;
 
     public GetFilteredTeamMembersTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
+        _fixture = fixture;
     }
+
+    public async Task InitializeAsync()
+    {
+        await _fixture.CreateFreshWebApplication();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetTeamMembers_ShouldReturnOk()
     {
-        var response = await _httpClient.GetAsync("api/TeamMembers/");
+        var response = await _fixture.HttpClient.GetAsync("api/TeamMembers/");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions
