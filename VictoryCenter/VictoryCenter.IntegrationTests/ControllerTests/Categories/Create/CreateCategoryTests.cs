@@ -9,7 +9,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Create;
 [Collection("SharedIntegrationTests")]
 public class CreateCategoryTests : IAsyncLifetime
 {
-    private IntegrationTestDbFixture _fixture;
+    private readonly IntegrationTestDbFixture _fixture;
     private readonly JsonSerializerOptions _jsonOptions;
 
     public CreateCategoryTests(IntegrationTestDbFixture fixture)
@@ -62,7 +62,7 @@ public class CreateCategoryTests : IAsyncLifetime
     {
         var createCategoryDto = new CreateCategoryDto
         {
-            Name = testName,
+            Name = testName!,
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);

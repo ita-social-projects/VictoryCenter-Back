@@ -22,21 +22,19 @@ public class SeederManager
         _blobService = blobService;
         _serviceProvider = serviceProvider;
 
-        _seeders = (seeders ?? CreateDefaultSeeders())
-            .OrderBy(s => s.Order)
-            .ToList();
+        _seeders = [.. (seeders ?? CreateDefaultSeeders()).OrderBy(s => s.Order)];
     }
 
     public void ClearSeeders()
         => _seeders.Clear();
 
     public void ConfigureSeeders(params ISeeder[] seeders)
-        => _seeders = seeders.OrderBy(s => s.Order).ToList();
+        => _seeders = [.. seeders.OrderBy(s => s.Order)];
 
     public void AddSeeder(ISeeder seeder)
     {
         _seeders.Add(seeder);
-        _seeders = _seeders.OrderBy(s => s.Order).ToList();
+        _seeders = [.. _seeders.OrderBy(s => s.Order)];
     }
 
     public async Task<bool> SeedAllAsync()

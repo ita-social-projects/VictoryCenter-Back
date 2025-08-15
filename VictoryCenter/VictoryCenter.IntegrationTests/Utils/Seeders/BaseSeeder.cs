@@ -7,18 +7,18 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 public abstract class BaseSeeder<TEntity> : ISeeder
 where TEntity : class
 {
-    protected readonly VictoryCenterDbContext _dbContext;
     private readonly ILogger _logger;
     private readonly List<TEntity> _createdEntities = new();
 
     protected BaseSeeder(VictoryCenterDbContext dbContext, ILogger logger)
     {
-        _dbContext = dbContext;
+        DbContext = dbContext;
         _logger = logger;
     }
 
     public abstract int Order { get; }
     public abstract string Name { get; }
+    protected VictoryCenterDbContext DbContext { get; init; }
 
     public async Task<SeederResult> SeedAsync()
     {
@@ -26,8 +26,8 @@ where TEntity : class
         {
             var entities = await GenerateEntitiesAsync();
 
-            await _dbContext.Set<TEntity>().AddRangeAsync(entities);
-            await _dbContext.SaveChangesAsync();
+            await DbContext.Set<TEntity>().AddRangeAsync(entities);
+            await DbContext.SaveChangesAsync();
 
             _createdEntities.AddRange(entities);
 
@@ -50,10 +50,10 @@ where TEntity : class
     {
         try
         {
-            if (_createdEntities.Any())
+            if (_createdEntities.Count != 0)
             {
-                _dbContext.Set<TEntity>().RemoveRange(_createdEntities);
-                await _dbContext.SaveChangesAsync();
+                DbContext.Set<TEntity>().RemoveRange(_createdEntities);
+                await DbContext.SaveChangesAsync();
                 _createdEntities.Clear();
             }
 
@@ -69,7 +69,7 @@ where TEntity : class
     public virtual async Task<bool> VerifyAsync()
     {
         var expected = _createdEntities.Count;
-        var actual = await _dbContext.Set<TEntity>().CountAsync();
+        var actual = await DbContext.Set<TEntity>().CountAsync();
         return actual >= expected;
     }
 

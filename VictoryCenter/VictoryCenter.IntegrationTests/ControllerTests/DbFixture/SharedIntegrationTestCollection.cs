@@ -1,6 +1,4 @@
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
-
-namespace VictoryCenter.IntegrationTests.ControllerTests.Base;
+namespace VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 [CollectionDefinition("SharedIntegrationTests")]
 public class SharedIntegrationTestCollection : ICollectionFixture<IntegrationTestDbFixture>

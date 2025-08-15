@@ -1,5 +1,4 @@
 using System.Net.Http.Headers;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -100,7 +99,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         var logger = serviceProvider.GetRequiredService<ILogger<TokenService>>();
         var tokenService = new TokenService(jwtOptions, configuration, logger);
 
-        return tokenService.CreateAccessToken(Array.Empty<Claim>());
+        return tokenService.CreateAccessToken([]);
     }
 
     private static async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
