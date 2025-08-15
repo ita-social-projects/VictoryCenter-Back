@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.Update;
 

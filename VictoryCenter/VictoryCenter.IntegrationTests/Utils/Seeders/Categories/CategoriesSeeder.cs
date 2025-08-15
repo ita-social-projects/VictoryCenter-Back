@@ -41,7 +41,7 @@ public class CategoriesSeeder : BaseSeeder<Category>
                 Name = "Test name4",
                 Description = "Test description4",
                 CreatedAt = DateTime.UtcNow,
-                TeamMembers = new List<TeamMember>()
+                TeamMembers = []
             }
         };
 

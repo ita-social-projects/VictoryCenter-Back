@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
