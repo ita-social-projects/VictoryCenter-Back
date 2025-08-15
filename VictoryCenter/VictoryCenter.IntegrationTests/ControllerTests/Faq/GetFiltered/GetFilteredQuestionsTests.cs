@@ -6,8 +6,8 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.GetFiltered;
 
 public class GetFilteredQuestionsTests : BaseTestClass
 {
-    public GetFilteredQuestionsTests(IntegrationTestDbFixture Fixture)
-        : base(Fixture)
+    public GetFilteredQuestionsTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
     }
 

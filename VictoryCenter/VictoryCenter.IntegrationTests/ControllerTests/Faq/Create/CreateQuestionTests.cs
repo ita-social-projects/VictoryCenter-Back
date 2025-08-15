@@ -13,13 +13,13 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.Create;
 public class CreateQuestionTests : BaseTestClass
 {
     private readonly Uri _endpointUri = new("/api/faq", UriKind.Relative);
-    public CreateQuestionTests(IntegrationTestDbFixture Fixture)
-        : base(Fixture)
+    public CreateQuestionTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
     }
 
     [Fact]
-    public async Task CreateQuestion_ShouldReturnOk_DtoIsValid()
+    public async Task CreateQuestion_DtoIsValid_ShouldReturnOk()
     {
         var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createFaqQuestionDto = new CreateFaqQuestionDto
@@ -37,7 +37,7 @@ public class CreateQuestionTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateQuestion_ShouldReturnBadRequest_DtoIsInvalid()
+    public async Task CreateQuestion_DtoIsInvalid_ShouldReturnBadRequest()
     {
         var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createFaqQuestionDto = new CreateFaqQuestionDto
@@ -55,7 +55,7 @@ public class CreateQuestionTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateQuestion_ShouldReturnNotFound_DtoContainsInvalidPageId()
+    public async Task CreateQuestion_DtoContainsInvalidPageId_ShouldReturnNotFound()
     {
         var createFaqQuestionDto = new CreateFaqQuestionDto
         {

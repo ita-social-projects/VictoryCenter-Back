@@ -277,7 +277,7 @@ public class ReorderTeamMemberTests : IAsyncLifetime
         var reorderDto = new ReorderTeamMembersDto
         {
             CategoryId = firstCategoryId,
-            OrderedIds = firstCategoryMemberIds.Concat([secondCategoryMemberIds.First()]).ToList()
+            OrderedIds = [.. firstCategoryMemberIds, secondCategoryMemberIds[0]]
         };
 
         var serializedDto = JsonSerializer.Serialize(reorderDto);
