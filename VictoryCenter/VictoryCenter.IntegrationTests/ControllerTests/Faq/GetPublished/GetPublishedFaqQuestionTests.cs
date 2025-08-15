@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Public.FAQ;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.GetPublished;
 

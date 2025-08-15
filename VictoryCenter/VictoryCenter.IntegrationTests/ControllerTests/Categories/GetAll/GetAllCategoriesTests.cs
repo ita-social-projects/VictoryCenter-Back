@@ -1,41 +1,25 @@
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Admin.Categories;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.GetAll;
 
-[Collection("SharedIntegrationTests")]
-public class GetAllCategoriesTests : IAsyncLifetime
+public class GetAllCategoriesTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public GetAllCategoriesTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetAllCategories_ShouldReturnAllCategories()
     {
-        var response = await _fixture.HttpClient.GetAsync("/api/categories");
+        var response = await Fixture.HttpClient.GetAsync("/api/categories");
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<IEnumerable<CategoryDto>>(
             responseString,
-            _jsonOptions);
+            JsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);

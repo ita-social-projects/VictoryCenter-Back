@@ -2,32 +2,17 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Admin.Categories;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Create;
 
-[Collection("SharedIntegrationTests")]
-public class CreateCategoryTests : IAsyncLifetime
+public class CreateCategoryTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public CreateCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(null)]
@@ -43,10 +28,10 @@ public class CreateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await _fixture.HttpClient.PostAsync("api/categories", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, JsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
@@ -67,7 +52,7 @@ public class CreateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await _fixture.HttpClient.PostAsync("api/categories", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

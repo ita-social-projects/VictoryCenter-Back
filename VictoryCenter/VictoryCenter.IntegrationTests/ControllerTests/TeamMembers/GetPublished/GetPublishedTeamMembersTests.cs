@@ -4,33 +4,19 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Team.GetPublished;
+namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetPublished;
 
-[Collection("SharedIntegrationTests")]
-public class GetPublishedTeamMembersTests : IAsyncLifetime
+public class GetPublishedTeamMembersTests : BaseTestClass
 {
     private const string _requestUri = "/api/Team/published";
-    private readonly IntegrationTestDbFixture _fixture;
-    private readonly JsonSerializerOptions _jsonOptions;
 
     public GetPublishedTeamMembersTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetPublicTeamMembers_ShouldReturnOnlyPublishedMembersGroupedByCategory()
@@ -44,9 +30,9 @@ public class GetPublishedTeamMembersTests : IAsyncLifetime
         }
 
         // Act
-        var response = await _fixture.HttpClient.GetAsync(_requestUri);
+        var response = await Fixture.HttpClient.GetAsync(_requestUri);
         var responseString = await response.Content.ReadAsStringAsync();
-        var actualCategoryDtos = JsonSerializer.Deserialize<List<CategoryWithPublishedTeamMembersDto>>(responseString, _jsonOptions);
+        var actualCategoryDtos = JsonSerializer.Deserialize<List<CategoryWithPublishedTeamMembersDto>>(responseString, JsonOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -83,7 +69,7 @@ public class GetPublishedTeamMembersTests : IAsyncLifetime
 
     private async Task<List<Category>> GetCategoriesWithPublishedMembersAsync()
     {
-        return await _fixture.DbContext.Categories
+        return await Fixture.DbContext.Categories
             .AsNoTracking()
             .Include(category => category.TeamMembers
                 .Where(teamMember => teamMember.Status == Status.Published)

@@ -2,29 +2,28 @@ using System.Net;
 using System.Net.Http.Json;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.Auth;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Auth;
 
-[Collection("SharedIntegrationTests")]
-public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
+public class AuthControllerTests : BaseTestClass
 {
     private const string TestEmail = "testadmin@victorycenter.com";
     private const string TestPassword = "TestPassword123!";
     private const string LoginPath = "/api/auth/login";
     private const string RefreshTokenPath = "/api/auth/refresh-token";
-    private readonly IntegrationTestDbFixture _fixture;
 
     public AuthControllerTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
 
     [Fact]
     public async Task Login_WithValidCredentials_ReturnsAuthResponse()
     {
         var request = new LoginRequestDto(TestEmail, TestPassword);
-        var response = await _fixture.HttpClient.PostAsJsonAsync(LoginPath, request);
+        var response = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, request);
         response.EnsureSuccessStatusCode();
         var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
         Assert.False(string.IsNullOrEmpty(authResponse!.AccessToken));
@@ -36,7 +35,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
     public async Task Login_InvalidPassword_ReturnsUnauthorized()
     {
         var request = new LoginRequestDto(TestEmail, "WrongPassword!");
-        var response = await _fixture.HttpClient.PostAsJsonAsync(LoginPath, request);
+        var response = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
@@ -44,7 +43,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
     public async Task RefreshToken_ValidCredentials_ReturnsAuthResponse()
     {
         var loginRequest = new LoginRequestDto(TestEmail, TestPassword);
-        var loginResponse = await _fixture.HttpClient.PostAsJsonAsync(LoginPath, loginRequest);
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, loginRequest);
         loginResponse.EnsureSuccessStatusCode();
 
         var setCookieHeaders = loginResponse.Headers.TryGetValues("Set-Cookie", out var values) ? values : null;
@@ -56,7 +55,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
         request.Headers.Add("Cookie", cookieHeader);
 
-        var refreshResponse = await _fixture.HttpClient.SendAsync(request);
+        var refreshResponse = await Fixture.HttpClient.SendAsync(request);
         refreshResponse.EnsureSuccessStatusCode();
         var refreshAuthResponse = await refreshResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
         Assert.False(string.IsNullOrEmpty(refreshAuthResponse!.AccessToken));
@@ -68,7 +67,7 @@ public class AuthControllerTests : IClassFixture<IntegrationTestDbFixture>
         var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
         request.Headers.Add("Cookie", $"{AuthConstants.RefreshTokenCookieName}=invalidRefreshToken");
 
-        var response = await _fixture.HttpClient.SendAsync(request);
+        var response = await Fixture.HttpClient.SendAsync(request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

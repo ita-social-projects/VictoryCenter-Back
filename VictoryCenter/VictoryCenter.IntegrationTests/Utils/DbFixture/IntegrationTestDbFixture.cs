@@ -10,10 +10,9 @@ using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.Seeders;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+namespace VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 public class IntegrationTestDbFixture : IAsyncLifetime
 {
@@ -35,7 +34,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await CreateFreshWebApplication();
+        await CreateFreshWebApplicationAsync();
     }
 
     public async Task DisposeAsync()
@@ -53,7 +52,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         }
     }
 
-    public async Task CreateFreshWebApplication()
+    public async Task CreateFreshWebApplicationAsync()
     {
         if (Factory != null)
         {
@@ -61,7 +60,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         }
 
         InitializeServices();
-        await InitializeDatabase();
+        await InitializeDatabaseAsync();
         InitializeSeeders();
         await SeederManager.SeedAllAsync();
     }
@@ -79,10 +78,10 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
     }
 
-    private async Task InitializeDatabase()
+    private async Task InitializeDatabaseAsync()
     {
         await DbContext.Database.EnsureCreatedAsync();
-        await EnsureTestAdminUser(_scope.ServiceProvider);
+        await EnsureTestAdminUserAsync(_scope.ServiceProvider);
     }
 
     private void InitializeSeeders()
@@ -100,7 +99,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         return tokenService.CreateAccessToken(Array.Empty<Claim>());
     }
 
-    private static async Task EnsureTestAdminUser(IServiceProvider serviceProvider)
+    private static async Task EnsureTestAdminUserAsync(IServiceProvider serviceProvider)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<AdminUser>>();
         const string testEmail = "testadmin@victorycenter.com";
