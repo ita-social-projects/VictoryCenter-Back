@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Images.Create;
 using VictoryCenter.BLL.Commands.Admin.Images.Delete;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
@@ -10,8 +9,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
-[Authorize]
-public class ImageController : BaseApiController
+public class ImageController : AuthorizedApiController
 {
     [HttpPost]
     public async Task<ActionResult> CreateImage([FromBody] CreateImageDto request)

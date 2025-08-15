@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
@@ -179,18 +180,19 @@ public static class ServicesConfiguration
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
         var createdAt = DateTime.UtcNow;
-        var pages = new List<VisitorPage>
-        {
-            new() { Title = "Програми", Slug = "program-page", CreatedAt = createdAt },
-            new() { Title = "Про іпотерапію", Slug = "about-hippotherapy", CreatedAt = createdAt },
-            new() { Title = "Донати", Slug = "donate-page", CreatedAt = createdAt }
-        };
 
-        foreach (var page in pages)
+        foreach (var page in PageConstants.VisitorPages)
         {
             if (!await dbContext.VisitorPages.AnyAsync(p => p.Slug == page.Slug && p.Title == page.Title))
             {
-                dbContext.VisitorPages.Add(page);
+                VisitorPage newPage = new()
+                {
+                    Title = page.Title,
+                    Slug = page.Slug,
+                    CreatedAt = createdAt,
+                };
+
+                dbContext.VisitorPages.Add(newPage);
                 await dbContext.SaveChangesAsync();
             }
         }
