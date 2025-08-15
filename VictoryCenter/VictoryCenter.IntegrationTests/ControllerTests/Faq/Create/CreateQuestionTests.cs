@@ -42,7 +42,7 @@ public class CreateQuestionTests : BaseTestClass
         var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createFaqQuestionDto = new CreateFaqQuestionDto
         {
-            QuestionText = "Some normal question?",
+            QuestionText = new string('Q', 15),
             AnswerText = "Too short answer",
             Status = Status.Published,
             PageIds = [page.Id],
@@ -57,11 +57,10 @@ public class CreateQuestionTests : BaseTestClass
     [Fact]
     public async Task CreateQuestion_ShouldReturnNotFound_DtoContainsInvalidPageId()
     {
-        var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createFaqQuestionDto = new CreateFaqQuestionDto
         {
-            QuestionText = "Some pretty smart question?",
-            AnswerText = "Some pretty smart answer about the point in life and why VictoryCenter exists",
+            QuestionText = new string('Q', 15),
+            AnswerText = new string('A', 55),
             Status = Status.Published,
             PageIds = [long.MaxValue],
         };
