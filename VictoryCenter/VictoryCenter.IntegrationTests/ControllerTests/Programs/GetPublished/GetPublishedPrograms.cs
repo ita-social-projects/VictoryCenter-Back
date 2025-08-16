@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 using VictoryCenter.BLL.DTOs.Programs;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.GetPublished;
@@ -16,7 +16,7 @@ public class GetPublishedPrograms : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -24,7 +24,7 @@ public class GetPublishedPrograms : IAsyncLifetime
     [Fact]
     public async Task GetPublishedPrograms_ShouldReturnPublishedPrograms()
     {
-        var response = await _fixture.HttpClient.GetAsync("/api/Programs/published/");
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync("/api/Programs/published/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramDto>>(responseString);

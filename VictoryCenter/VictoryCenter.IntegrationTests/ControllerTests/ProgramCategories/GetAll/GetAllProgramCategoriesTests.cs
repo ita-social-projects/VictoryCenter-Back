@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.GetAll;
 
@@ -15,7 +15,7 @@ public class GetAllProgramCategoriesTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;

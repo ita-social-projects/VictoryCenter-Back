@@ -1,13 +1,13 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.Delete;
 
 [Collection("SharedIntegrationTests")]
 public class DeleteProgramTests : IAsyncLifetime
 {
-    private IntegrationTestDbFixture _fixture;
+    private readonly IntegrationTestDbFixture _fixture;
 
     public DeleteProgramTests(IntegrationTestDbFixture fixture)
     {
@@ -16,7 +16,7 @@ public class DeleteProgramTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -24,8 +24,8 @@ public class DeleteProgramTests : IAsyncLifetime
     [Fact]
     public async Task DeleteProgram_ShouldDeleteProgram()
     {
-        var existingEntity = await _fixture.DbContext.Programs.FirstOrDefaultAsync();
-        var response = await _fixture.HttpClient.DeleteAsync($"/api/Program/{existingEntity!.Id}");
+        DAL.Entities.Program? existingEntity = await _fixture.DbContext.Programs.FirstOrDefaultAsync();
+        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/Program/{existingEntity!.Id}");
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
@@ -37,7 +37,7 @@ public class DeleteProgramTests : IAsyncLifetime
     [InlineData(0)]
     public async Task DeleteProgram_ShouldNotDeleteProgram(int id)
     {
-        var response = await _fixture.HttpClient.DeleteAsync($"/api/Program/{id}");
+        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/Program/{id}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

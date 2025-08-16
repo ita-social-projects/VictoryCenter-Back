@@ -1,7 +1,7 @@
 using System.Net;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.GetById;
 
@@ -17,7 +17,7 @@ public class GetProgramById : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -28,10 +28,10 @@ public class GetProgramById : IAsyncLifetime
     [InlineData(3)]
     public async Task GetProgramById_ShouldReturnProgram(int programId)
     {
-        var response = await _fixture.HttpClient.GetAsync($"/api/Program/{programId}");
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"/api/Program/{programId}");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
+        ProgramDto? responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
         Assert.NotNull(responseContent);
     }
 
@@ -40,7 +40,7 @@ public class GetProgramById : IAsyncLifetime
     [InlineData(0)]
     public async Task GetProgramById_ShouldReturnNotFound(int programId)
     {
-        var response = await _fixture.HttpClient.GetAsync($"/api/Program/{programId}");
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"/api/Program/{programId}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

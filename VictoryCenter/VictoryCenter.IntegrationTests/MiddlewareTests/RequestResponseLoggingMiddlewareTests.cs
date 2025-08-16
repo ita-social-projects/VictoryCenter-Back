@@ -15,7 +15,7 @@ public class RequestResponseLoggingMiddlewareTests
 
     public RequestResponseLoggingMiddlewareTests(IntegrationTestDbFixture fixture)
     {
-        var customFactory = fixture._factory.WithWebHostBuilder(builder =>
+        var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging =>
             {

@@ -4,28 +4,24 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Enums;
 using Microsoft.Extensions.Logging;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.ProgramSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.ProgramSeeder;
 
 public class ProgramSeeder : BaseSeeder<DAL.Entities.Program>
 {
     private const int ProgramCount = 8;
 
     public ProgramSeeder(VictoryCenterDbContext dbContext, ILogger<ProgramSeeder> logger, IBlobService blobService)
-        : base(dbContext, logger, blobService)
+        : base(dbContext, logger)
     {
     }
 
     public override string Name => "ProgramsSeeder";
     public override int Order => 4;
-    protected override Task<bool> ShouldSkipAsync()
-    {
-        return Task.FromResult(_dbContext.Programs.Any());
-    }
 
     protected override async Task<List<DAL.Entities.Program>> GenerateEntitiesAsync()
     {
         var programs = new List<DAL.Entities.Program>();
-        var categories = await _dbContext.ProgramCategories.Take(4).ToListAsync();
+        var categories = await DbContext.ProgramCategories.Take(4).ToListAsync();
         for (var i = 0; i < ProgramCount; i++)
         {
             var selectedCategories = categories

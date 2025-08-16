@@ -3,14 +3,14 @@ using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.Update;
 
 [Collection("SharedIntegrationTests")]
 public class UpdateProgramTests : IAsyncLifetime
 {
-    private IntegrationTestDbFixture _fixture;
+    private readonly IntegrationTestDbFixture _fixture;
 
     public UpdateProgramTests(IntegrationTestDbFixture fixture)
     {
@@ -19,7 +19,7 @@ public class UpdateProgramTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -38,14 +38,14 @@ public class UpdateProgramTests : IAsyncLifetime
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        var response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
-        var responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
+        ProgramDto? responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
 
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Name, responseContent.Name);
@@ -68,7 +68,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        var response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -91,7 +91,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        var response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -111,10 +111,10 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        var response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
+        ProgramDto? responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Description, responseContent.Description);
@@ -135,7 +135,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        var response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
