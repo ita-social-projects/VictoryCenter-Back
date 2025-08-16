@@ -4,6 +4,7 @@ using FluentResults;
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -28,8 +29,8 @@ public class UpdateProgramCategoryHandler : IRequestHandler<UpdateProgramCategor
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var programCategoryEntity = await _repositoryWrapper.ProgramCategoriesRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<DAL.Entities.ProgramCategory>
+            ProgramCategory? programCategoryEntity = await _repositoryWrapper.ProgramCategoriesRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
                 {
                     Filter = programCategory => programCategory.Id == request.updateProgramCategoryDto.Id
                 });
@@ -37,17 +38,17 @@ public class UpdateProgramCategoryHandler : IRequestHandler<UpdateProgramCategor
             if (programCategoryEntity is null)
             {
                 return Result.Fail<ProgramCategoryDto>(ErrorMessagesConstants
-                    .NotFound(request.updateProgramCategoryDto.Id, typeof(DAL.Entities.ProgramCategory)));
+                    .NotFound(request.updateProgramCategoryDto.Id, typeof(ProgramCategory)));
             }
 
-            var entityToUpdate = _mapper.Map(request.updateProgramCategoryDto, programCategoryEntity);
+            ProgramCategory entityToUpdate = _mapper.Map(request.updateProgramCategoryDto, programCategoryEntity);
             entityToUpdate.CreatedAt = programCategoryEntity.CreatedAt;
 
             _repositoryWrapper.ProgramCategoriesRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var responseDto = _mapper.Map<ProgramCategoryDto>(entityToUpdate);
+                ProgramCategoryDto responseDto = _mapper.Map<ProgramCategoryDto>(entityToUpdate);
                 return Result.Ok(responseDto);
             }
 

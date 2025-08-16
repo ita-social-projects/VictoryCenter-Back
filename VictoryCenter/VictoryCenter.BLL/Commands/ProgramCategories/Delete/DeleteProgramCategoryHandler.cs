@@ -2,6 +2,7 @@ using MediatR;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -25,13 +26,13 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
                 .Include(p => p.Programs)
         };
 
-        var entityToDelete = await _repositoryWrapper.ProgramCategoriesRepository
+        ProgramCategory? entityToDelete = await _repositoryWrapper.ProgramCategoriesRepository
             .GetFirstOrDefaultAsync(queryOptions);
 
         if (entityToDelete is null)
         {
             return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.id, typeof(DAL.Entities.ProgramCategory)));
+                .NotFound(request.id, typeof(ProgramCategory)));
         }
 
         if (entityToDelete.Programs.Count != 0)

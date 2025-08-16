@@ -34,9 +34,9 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
                 .Include(program => program.Image),
         };
 
-        var publishedPrograms = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
+        IEnumerable<Program> publishedPrograms = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
         var publishedProgramsDto = _mapper.Map<IEnumerable<PublishedProgramDto>>(publishedPrograms).ToList();
-        foreach (var program in publishedProgramsDto)
+        foreach (PublishedProgramDto program in publishedProgramsDto)
         {
             if (program.Image != null)
             {

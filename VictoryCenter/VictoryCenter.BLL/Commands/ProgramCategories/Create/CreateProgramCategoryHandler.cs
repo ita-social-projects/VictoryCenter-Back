@@ -4,6 +4,7 @@ using FluentResults;
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.ProgramCategories.Create;
@@ -27,13 +28,13 @@ public class CreateProgramCategoryHandler : IRequestHandler<CreateProgramCategor
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var entity = _mapper.Map<DAL.Entities.ProgramCategory>(request.programCategoryDto);
+            ProgramCategory entity = _mapper.Map<ProgramCategory>(request.programCategoryDto);
             entity.CreatedAt = DateTime.UtcNow;
             await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var responseDto = _mapper.Map<ProgramCategoryDto>(entity);
+                ProgramCategoryDto responseDto = _mapper.Map<ProgramCategoryDto>(entity);
                 return Result.Ok(responseDto);
             }
 

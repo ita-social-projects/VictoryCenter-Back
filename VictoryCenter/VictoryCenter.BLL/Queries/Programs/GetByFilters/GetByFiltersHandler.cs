@@ -45,7 +45,7 @@ public class GetByFiltersHandler : IRequestHandler<GetByFiltersQuery, Result<Pro
                 .Include(p => p.Categories)
         };
 
-        var programs = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
+        IEnumerable<Program> programs = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
         var totalCount = await _repositoryWrapper.ProgramsRepository.CountAsync(queryOptions);
         var programDto = _mapper.Map<IEnumerable<ProgramDto>>(programs).ToList();
         IEnumerable<Task> imageLoadTasks = programDto.Where(member => member.Image is not null)
@@ -53,16 +53,16 @@ public class GetByFiltersHandler : IRequestHandler<GetByFiltersQuery, Result<Pro
             {
                 try
                 {
-                    member.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
+                    member.Image!.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
                 }
                 catch (BlobStorageException)
                 {
-                    member.Image.Base64 = string.Empty;
+                    member.Image!.Base64 = string.Empty;
                 }
             });
         await Task.WhenAll(imageLoadTasks);
 
-        ProgramsFilterResponseDto response = new ProgramsFilterResponseDto
+        var response = new ProgramsFilterResponseDto
         {
             Programs = programDto,
             ProgramCount = totalCount

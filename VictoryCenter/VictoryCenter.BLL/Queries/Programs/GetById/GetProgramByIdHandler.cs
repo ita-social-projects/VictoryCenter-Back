@@ -48,7 +48,7 @@ public class GetProgramByIdHandler : IRequestHandler<GetProgramByIdQuery, Result
                 program.Image.MimeType);
         }
 
-        var responseDto = _mapper.Map<ProgramDto>(program);
+        ProgramDto responseDto = _mapper.Map<ProgramDto>(program);
         return Result.Ok(responseDto);
     }
 }

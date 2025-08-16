@@ -33,7 +33,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var programToUpdate = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(
+            Program? programToUpdate = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Program>()
                 {
                     Filter = program => program.Id == request.updateProgramDto.Id,
@@ -44,10 +44,10 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
             if (programToUpdate is null)
             {
                 return Result.Fail<ProgramDto>(ErrorMessagesConstants
-                    .NotFound(request.updateProgramDto.Id, typeof(DAL.Entities.Program)));
+                    .NotFound(request.updateProgramDto.Id, typeof(Program)));
             }
 
-            var newCategories = await _repositoryWrapper.ProgramCategoriesRepository.GetAllAsync(
+            IEnumerable<ProgramCategory> newCategories = await _repositoryWrapper.ProgramCategoriesRepository.GetAllAsync(
                 new QueryOptions<ProgramCategory>
                 {
                     Filter = category => request.updateProgramDto.CategoriesId.Contains(category.Id),
@@ -58,7 +58,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
 
             if (programToUpdate.ImageId != null)
             {
-                var newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+                Image? newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
                     Filter = image => image.Id == request.updateProgramDto.ImageId,
                     AsNoTracking = false
@@ -81,7 +81,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
 
             programToUpdate.Categories.Clear();
 
-            foreach (var category in newCategories)
+            foreach (ProgramCategory category in newCategories)
             {
                 programToUpdate.Categories.Add(category);
             }
@@ -90,7 +90,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var responseDto = _mapper.Map<ProgramDto>(programToUpdate);
+                ProgramDto responseDto = _mapper.Map<ProgramDto>(programToUpdate);
                 return Result.Ok(responseDto);
             }
 

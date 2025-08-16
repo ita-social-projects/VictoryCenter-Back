@@ -38,14 +38,14 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
                 AsNoTracking = false
             };
 
-            var categories = await _repositoryWrapper
+            IEnumerable<ProgramCategory> categories = await _repositoryWrapper
                 .ProgramCategoriesRepository.GetAllAsync(categoryOptions);
 
-            var entity = _mapper.Map<Program>(request.createProgramDto);
+            Program entity = _mapper.Map<Program>(request.createProgramDto);
 
             if (entity.ImageId != null)
             {
-                var newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+                Image? newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
                 {
                     Filter = image => image.Id == request.createProgramDto.ImageId,
                     AsNoTracking = false
