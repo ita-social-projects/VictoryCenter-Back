@@ -1,5 +1,6 @@
 using Moq;
 using AutoMapper;
+using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.DTOs.Programs;
@@ -79,7 +80,7 @@ public class CreateProgramTests
     {
         SetUpDependencies();
         var handler = new CreateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        var result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _programEntity.Name);
     }
@@ -90,11 +91,11 @@ public class CreateProgramTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        _createProgramDto.Name = name;
-        _programEntity.Name = name;
+        _createProgramDto.Name = name!;
+        _programEntity.Name = name!;
         SetUpDependencies();
         var handler = new CreateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        var result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -104,7 +105,7 @@ public class CreateProgramTests
     {
         SetUpDependencies(-1);
         var handler = new CreateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        var result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramConstants.FailedToCreateProgram, result.Errors[0].Message);
     }

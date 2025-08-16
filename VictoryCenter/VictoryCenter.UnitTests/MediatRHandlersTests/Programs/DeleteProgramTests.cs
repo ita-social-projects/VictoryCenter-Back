@@ -1,4 +1,5 @@
 using Moq;
+using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.Programs.Delete;
 using VictoryCenter.DAL.Enums;
@@ -29,7 +30,7 @@ public class DeleteProgramTests
     {
         SetUpDependencies(_programEntity);
         var handler = new DeleteProgramHandler(_repositoryWrapperMock.Object);
-        var result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
         Assert.True(result.IsSuccess);
     }
 
@@ -38,7 +39,7 @@ public class DeleteProgramTests
     {
         SetUpDependencies();
         var handler = new DeleteProgramHandler(_repositoryWrapperMock.Object);
-        var result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(Program)), result.Errors[0].Message);
     }
@@ -48,12 +49,12 @@ public class DeleteProgramTests
     {
         SetUpDependencies(_programEntity, -1);
         var handler = new DeleteProgramHandler(_repositoryWrapperMock.Object);
-        var result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramConstants.FailedToDeleteProgram, result.Errors[0].Message);
     }
 
-    private void SetUpDependencies(DAL.Entities.Program program = null, int saveResult = 1)
+    private void SetUpDependencies(DAL.Entities.Program program = null!, int saveResult = 1)
     {
         SetUpRepositoryWrapper(saveResult, program);
     }

@@ -9,7 +9,7 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.Programs;
 
 public class UpdateProgramValidatorTests
 {
-    private UpdateProgramValidator _validator;
+    private readonly UpdateProgramValidator _validator;
 
     public UpdateProgramValidatorTests()
     {
@@ -29,7 +29,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
@@ -48,7 +48,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Name)
             .WithErrorMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Name", ProgramConstants.MinNameLength));
@@ -57,7 +57,7 @@ public class UpdateProgramValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_When_Name_IsTooLong()
     {
-        string name = new string('a', ProgramConstants.MaxNameLength + 1);
+        var name = new string('a', ProgramConstants.MaxNameLength + 1);
         var command = new UpdateProgramCommand(new UpdateProgramDto
         {
             Name = name,
@@ -65,7 +65,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Name)
             .WithErrorMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Name", ProgramConstants.MaxNameLength));
@@ -81,7 +81,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldNotHaveValidationErrorFor(p => p.updateProgramDto.Name);
     }
 
@@ -99,7 +99,7 @@ public class UpdateProgramValidatorTests
             CategoriesId = [1, 2]
         };
         var command = new UpdateProgramCommand(updateProgramDto);
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Description"));
     }
@@ -118,7 +118,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters("Description", ProgramConstants.MinDescriptionLength));
@@ -135,7 +135,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters("Description", ProgramConstants.MaxDescriptionLength));
@@ -151,7 +151,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldNotHaveValidationErrorFor(p => p.updateProgramDto.Description);
     }
 
@@ -165,7 +165,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = []
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.CategoriesId)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Categories-list"));
     }
@@ -180,7 +180,7 @@ public class UpdateProgramValidatorTests
             Status = Status.Draft,
             CategoriesId = [1, 2]
         });
-        var result = _validator.TestValidate(command);
+        TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
         result.ShouldNotHaveValidationErrorFor(p => p.updateProgramDto.CategoriesId);
     }
 }

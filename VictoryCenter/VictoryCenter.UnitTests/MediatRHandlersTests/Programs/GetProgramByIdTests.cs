@@ -1,5 +1,6 @@
 using AutoMapper;
 using Moq;
+using FluentResults;
 using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -47,7 +48,7 @@ public class GetProgramByIdTests
         SetUpDependencies(_programEntity);
         var handler =
             new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
-        var result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(_programDto.Name, result.Value.Name);
@@ -64,7 +65,7 @@ public class GetProgramByIdTests
         SetUpDependencies();
         var handler =
             new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
-        var result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(_programEntity.Id, typeof(Program)), result.Errors[0].Message);
     }

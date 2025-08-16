@@ -1,4 +1,5 @@
 using Moq;
+using FluentResults;
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.DTOs.Programs;
@@ -15,8 +16,8 @@ public class GetPublishedProgramsTests
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IBlobService> _mockBlobService;
 
-    private readonly List<DAL.Entities.Program> _programEntities = new()
-    {
+    private readonly List<DAL.Entities.Program> _programEntities =
+    [
         new()
         {
             Id = 1,
@@ -33,7 +34,8 @@ public class GetPublishedProgramsTests
             Status = Status.Published,
             ImageId = 2,
         }
-    };
+
+    ];
 
     private readonly IEnumerable<PublishedProgramDto> _programDto = new List<PublishedProgramDto>()
     {
@@ -63,13 +65,13 @@ public class GetPublishedProgramsTests
     {
         SetUpDependencies(_programEntities);
         var handler = new GetPublishedProgramsHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
-        var result = await handler.Handle(new GetPublishedProgramsQuery(), CancellationToken.None);
+        Result<List<PublishedProgramDto>> result = await handler.Handle(new GetPublishedProgramsQuery(), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.NotEmpty(result.Value);
         Assert.NotNull(result);
     }
 
-    private void SetUpDependencies(List<DAL.Entities.Program> programs = null)
+    private void SetUpDependencies(List<DAL.Entities.Program> programs = null!)
     {
         SetUpAutoMapper();
         SetUpRepositoryWrapper(programs);

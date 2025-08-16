@@ -1,5 +1,6 @@
 using AutoMapper;
 using Moq;
+using FluentResults;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.ProgramCategories;
@@ -54,7 +55,7 @@ public class GetProgramCategoriesTests
         SetupDependencies();
 
         var handler = new GetProgramCategoriesHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
-        var result = await handler.Handle(new GetProgramCategoriesQuery(), CancellationToken.None);
+        Result<List<ProgramCategoryDto>> result = await handler.Handle(new GetProgramCategoriesQuery(), CancellationToken.None);
 
         Assert.NotEmpty(result.Value);
         Assert.NotNull(result);

@@ -15,8 +15,8 @@ public class GetPrograms
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
     private readonly Mock<IBlobService> _blobService;
 
-    private readonly List<DAL.Entities.Program> _programs = new()
-    {
+    private readonly List<DAL.Entities.Program> _programs =
+    [
         new()
         {
             Id = 1,
@@ -62,7 +62,8 @@ public class GetPrograms
             CreatedAt = DateTime.UtcNow,
             ImageId = 5,
         }
-    };
+
+    ];
 
     private readonly List<ProgramDto> _responseDto = new()
     {

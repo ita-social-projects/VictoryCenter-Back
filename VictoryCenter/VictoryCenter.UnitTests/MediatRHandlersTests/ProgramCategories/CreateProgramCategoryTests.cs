@@ -1,10 +1,10 @@
 using Moq;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.ProgramCategories.Create;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Validators.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -29,7 +29,7 @@ public class CreateProgramCategoryTests
             {
                 Image = new Image
                 {
-                    BlobName = "someblob.jpg",
+                    BlobName = "someBlob.jpg",
                     MimeType = "image/jpeg"
                 }
             }
@@ -41,17 +41,18 @@ public class CreateProgramCategoryTests
         Id = 1,
         Name = "TestCategory",
         CreatedAt = DateTime.UtcNow.AddMinutes(-10),
-        Programs = new List<ProgramDto>
-        {
+        Programs =
+        [
             new()
             {
                 Image = new ImageDTO
                 {
-                    BlobName = "someblob.jpg",
+                    BlobName = "someBlob.jpg",
                     MimeType = "image/jpeg"
                 }
             }
-        }
+
+        ]
     };
 
     public CreateProgramCategoryTests()
@@ -66,7 +67,7 @@ public class CreateProgramCategoryTests
     {
         SetupDependencies();
         var handler = new CreateProgramCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
-        var result = await handler
+        Result<ProgramCategoryDto> result = await handler
             .Handle(new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = "TestCategory" }), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _programCategoryDto.Name);
@@ -78,13 +79,13 @@ public class CreateProgramCategoryTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        _program.Name = name;
-        _programCategoryDto.Name = name;
+        _program.Name = name!;
+        _programCategoryDto.Name = name!;
         SetupDependencies();
         var handler = new CreateProgramCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
 
-        var result = await handler
-            .Handle(new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = name }), CancellationToken.None);
+        Result<ProgramCategoryDto> result = await handler
+            .Handle(new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = name! }), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -94,7 +95,7 @@ public class CreateProgramCategoryTests
     {
         SetupDependencies(-1);
         var handler = new CreateProgramCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
-        var result = await handler
+        Result<ProgramCategoryDto> result = await handler
             .Handle(new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = "TestName" }), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramCategoryConstants.FailedToCreateCategory, result.Errors[0].Message);

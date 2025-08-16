@@ -1,5 +1,6 @@
 using Moq;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
@@ -15,7 +16,7 @@ public class UpdateProgramCategoryTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
-    private IValidator<UpdateProgramCategoryCommand> _validator;
+    private readonly IValidator<UpdateProgramCategoryCommand> _validator;
 
     private readonly UpdateProgramCategoryDto _updateProgramCategoryDto = new()
     {
@@ -50,13 +51,13 @@ public class UpdateProgramCategoryTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        _programCategoryEntity.Name = name;
-        _programCategoryDto.Name = name;
+        _programCategoryEntity.Name = name!;
+        _programCategoryDto.Name = name!;
         SetupDependencies();
         var handler = new UpdateProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
-        var result = await handler
-            .Handle(new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }), CancellationToken.None);
+        Result<ProgramCategoryDto> result = await handler
+            .Handle(new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name! }), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -66,18 +67,18 @@ public class UpdateProgramCategoryTests
     {
         SetupDependencies(-1);
         var handler = new UpdateProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
-        var result = await handler
+        Result<ProgramCategoryDto> result = await handler
             .Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramCategoryConstants.FailedToUpdateCategory, result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdatePtogramCategory()
+    public async Task Handle_ShouldUpdateProgramCategory()
     {
         SetupDependencies();
         var handler = new UpdateProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
-        var result = await handler.Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto), CancellationToken.None);
+        Result<ProgramCategoryDto> result = await handler.Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _programCategoryDto.Name);
     }
@@ -92,7 +93,7 @@ public class UpdateProgramCategoryTests
     {
         _mockMapper.Setup(m => m.Map<ProgramCategoryDto>(It.IsAny<ProgramCategory>()))
             .Returns(outputProgramCategoryDto);
-        _mockMapper.Setup(m => m.Map<UpdateProgramCategoryDto, ProgramCategory>(
+        _mockMapper.Setup(m => m.Map(
                 It.IsAny<UpdateProgramCategoryDto>(),
                 It.IsAny<ProgramCategory>()))
             .Returns(outputProgramCategoryEntity);

@@ -1,4 +1,5 @@
 using Moq;
+using FluentResults;
 using VictoryCenter.BLL.Commands.ProgramCategories.Delete;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -40,7 +41,7 @@ public class DeleteProgramCategoryTests
 
         var handler = new DeleteProgramCategoryHandler(_repositoryWrapperMock.Object);
 
-        var result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithNoPrograms.Id), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithNoPrograms.Id), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(_programCategoryWithNoPrograms.Id, result.Value);
@@ -53,7 +54,7 @@ public class DeleteProgramCategoryTests
 
         var handler = new DeleteProgramCategoryHandler(_repositoryWrapperMock.Object);
 
-        var result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithPrograms.Id), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithPrograms.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramCategoryConstants.CantDeleteProgramCategoryWhileAssociatedWithAnyProgram, result.Errors[0].Message);
@@ -65,7 +66,7 @@ public class DeleteProgramCategoryTests
         SetupCategoryRetrieval(null);
         var handler = new DeleteProgramCategoryHandler(_repositoryWrapperMock.Object);
 
-        var result = await handler.Handle(new DeleteProgramCategoryCommand(99), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCategoryCommand(99), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains("was not found", result.Errors[0].Message);
@@ -79,7 +80,7 @@ public class DeleteProgramCategoryTests
 
         var handler = new DeleteProgramCategoryHandler(_repositoryWrapperMock.Object);
 
-        var result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithNoPrograms.Id), CancellationToken.None);
+        Result<long> result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithNoPrograms.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramCategoryConstants.FailedToDeleteCategory, result.Errors[0].Message);
