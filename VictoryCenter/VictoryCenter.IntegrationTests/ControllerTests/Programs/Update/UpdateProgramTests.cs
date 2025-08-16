@@ -61,7 +61,7 @@ public class UpdateProgramTests : IAsyncLifetime
         var updateProgramDto = new UpdateProgramDto
         {
             Id = 1,
-            Name = invalidName,
+            Name = invalidName!,
             Description = "UpdatedDescription",
             Status = Status.Published,
             ImageId = 2,

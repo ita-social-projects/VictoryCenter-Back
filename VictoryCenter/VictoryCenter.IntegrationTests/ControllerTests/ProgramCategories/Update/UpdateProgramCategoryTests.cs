@@ -33,13 +33,13 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        var response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
-        var responseContent = JsonConvert.DeserializeObject<ProgramCategoryDto>(responseString);
+        ProgramCategoryDto? responseContent = JsonConvert.DeserializeObject<ProgramCategoryDto>(responseString);
 
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Name, responseContent.Name);
@@ -54,12 +54,12 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
         var updateProgramCategoryDto = new UpdateProgramCategoryDto
         {
             Id = 1,
-            Name = name
+            Name = name!
         };
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        var response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -78,7 +78,7 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        var response = await _fixture.HttpClient.PutAsync("/api/ProgramCategories/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategories/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

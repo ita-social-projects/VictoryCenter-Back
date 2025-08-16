@@ -30,7 +30,7 @@ public class GetProgramCategoriesHandler : IRequestHandler<GetProgramCategoriesQ
         {
             Include = programCategory => programCategory
                 .Include(p => p.Programs)
-                .ThenInclude(p => p.Image)
+                .ThenInclude(p => p.Image)!
         });
         var mapped = _mapper.Map<IEnumerable<ProgramCategoryDto>>(programCategories).ToList();
         foreach (ProgramCategoryDto category in mapped)

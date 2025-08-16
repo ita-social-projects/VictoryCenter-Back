@@ -1,5 +1,6 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.Delete;
@@ -24,11 +25,11 @@ public class DeleteProgramCategoryTests : IAsyncLifetime
     [Fact]
     public async Task DeleteProgramCategory_ShouldDeleteProgramCategory()
     {
-        var existingEntity = await _fixture.DbContext.ProgramCategories
+        ProgramCategory? existingEntity = await _fixture.DbContext.ProgramCategories
             .FirstOrDefaultAsync(e => e.Id == 1);
         Assert.NotNull(existingEntity);
 
-        var response = await _fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{existingEntity.Id}");
+        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{existingEntity.Id}");
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
@@ -40,7 +41,7 @@ public class DeleteProgramCategoryTests : IAsyncLifetime
     [InlineData(0)]
     public async Task DeleteProgramCategory_ShouldNotDeleteProgramCategory(int testId)
     {
-        var response = await _fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{testId}");
+        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{testId}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

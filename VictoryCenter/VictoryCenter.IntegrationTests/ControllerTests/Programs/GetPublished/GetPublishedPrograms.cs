@@ -27,7 +27,7 @@ public class GetPublishedPrograms : IAsyncLifetime
         HttpResponseMessage response = await _fixture.HttpClient.GetAsync("/api/Programs/published/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramDto>>(responseString);
+        IEnumerable<ProgramDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramDto>>(responseString);
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
     }

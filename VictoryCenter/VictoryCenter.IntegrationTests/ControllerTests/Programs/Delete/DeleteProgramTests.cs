@@ -29,7 +29,7 @@ public class DeleteProgramTests : IAsyncLifetime
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await _fixture.DbContext.Programs.FirstOrDefaultAsync(e => e.Id == existingEntity!.Id));
+        Assert.Null(await _fixture.DbContext.Programs.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]

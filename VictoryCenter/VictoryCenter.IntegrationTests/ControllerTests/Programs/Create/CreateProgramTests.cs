@@ -83,7 +83,7 @@ public class CreateProgramTests : IAsyncLifetime
     {
         var createProgramDto = new CreateProgramDto
         {
-            Name = name,
+            Name = name!,
             Description = "TestDescription",
             Status = Status.Draft,
             CategoriesId = [1, 3]

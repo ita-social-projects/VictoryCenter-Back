@@ -31,7 +31,7 @@ public class GetProgramByIdHandler : IRequestHandler<GetProgramByIdQuery, Result
             Filter = program => program.Id == request.id,
             Include = program => program
                 .Include(p => p.Categories)
-                .Include(p => p.Image)
+                .Include(p => p.Image)!
         };
 
         Program? program = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(queryOptions);

@@ -9,7 +9,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.Creat
 [Collection("SharedIntegrationTests")]
 public class CreateProgramCategoryTests : IAsyncLifetime
 {
-    private IntegrationTestDbFixture _fixture;
+    private readonly IntegrationTestDbFixture _fixture;
 
     public CreateProgramCategoryTests(IntegrationTestDbFixture fixture)
     {
@@ -32,13 +32,13 @@ public class CreateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        var response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
-        var responseContent = JsonConvert.DeserializeObject<ProgramCategoryDto>(responseString);
+        ProgramCategoryDto? responseContent = JsonConvert.DeserializeObject<ProgramCategoryDto>(responseString);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
@@ -53,11 +53,11 @@ public class CreateProgramCategoryTests : IAsyncLifetime
     {
         var createProgramCategoryDto = new CreateProgramCategoryDto
         {
-            Name = name
+            Name = name!
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        var response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

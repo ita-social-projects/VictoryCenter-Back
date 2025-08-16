@@ -23,10 +23,10 @@ public class GetAllProgramCategoriesTests : IAsyncLifetime
     [Fact]
     public async Task ProgramCategory_ShouldReturnAllProgramCategories()
     {
-        var response = await _fixture.HttpClient.GetAsync("/api/ProgramCategory/");
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync("/api/ProgramCategory/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramCategoryDto>>(responseString);
+        IEnumerable<ProgramCategoryDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramCategoryDto>>(responseString);
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
     }

@@ -19,7 +19,7 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
 
     public async Task<Result<long>> Handle(DeleteProgramCategoryCommand request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<DAL.Entities.ProgramCategory>
+        var queryOptions = new QueryOptions<ProgramCategory>
         {
             Filter = programCategory => programCategory.Id == request.id,
             Include = programCategory => programCategory
