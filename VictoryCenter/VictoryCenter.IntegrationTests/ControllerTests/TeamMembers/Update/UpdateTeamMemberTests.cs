@@ -2,60 +2,33 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.CategoriesSeeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
 
 [Collection("SharedIntegrationTests")]
 public class UpdateTeamMemberTests : IAsyncLifetime
 {
-    private readonly VictoryCenterDbContext _dbContext;
-    private readonly HttpClient _httpClient;
-    private readonly SeederManager _seederManager;
     private readonly IntegrationTestDbFixture _fixture;
-    private readonly IBlobService _blobService;
 
     private readonly JsonSerializerOptions _jsonOptions;
 
     public UpdateTeamMemberTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
         _fixture = fixture;
-        _blobService = fixture._blobService;
 
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
-
-        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
 
     public async Task InitializeAsync()
     {
-        await _seederManager.DisposeAllAsync();
-        await _seederManager.SeedAllAsync();
-
-        _seederManager.ClearSeeders();
-        _seederManager.ConfigureSeeders(
-            new CategoriesSeeder(_fixture.DbContext, _fixture._factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>(), _blobService),
-            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture._factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>(), _blobService));
-
-        if (!await _fixture.SeederManager.SeedAllAsync())
-        {
-            throw new InvalidOperationException("Seeding failed for CustomDataTests");
-        }
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -67,8 +40,9 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     [InlineData("Test Description")]
     public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
     {
-        TeamMember existingEntity = await _dbContext.TeamMembers
+        TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
+                                        .Where(tm => tm.Status == Status.Draft)
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -83,7 +57,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
                 serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         TeamMemberDto? responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, _jsonOptions);
@@ -101,8 +75,9 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     [Fact]
     public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
     {
-        TeamMember existingEntity = await _dbContext.TeamMembers
+        TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
+                                        .Where(tm => tm.Status == Status.Draft)
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -117,7 +92,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
                 serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         TeamMemberDto? responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, _jsonOptions);
@@ -138,7 +113,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     [InlineData(" ")]
     public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
     {
-        TeamMember existingEntity = await _dbContext.TeamMembers
+        TeamMember existingEntity = await _fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
                                         .FirstOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
@@ -161,13 +136,13 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
                 serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
-        TeamMember? reloadedEntity = await _dbContext.TeamMembers
+        TeamMember? reloadedEntity = await _fixture.DbContext.TeamMembers
             .AsNoTracking()
             .FirstOrDefaultAsync(tm => tm.Id == existingEntity.Id);
         Assert.NotNull(reloadedEntity);
@@ -184,7 +159,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     [InlineData(0)]
     public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
     {
-        Category category = await _dbContext.Categories.FirstOrDefaultAsync() ??
+        Category category = await _fixture.DbContext.Categories.FirstOrDefaultAsync() ??
                             throw new InvalidOperationException("Couldn't setup existing entity");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
@@ -197,7 +172,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{testId}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/TeamMembers/{testId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -207,7 +182,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
     [Fact]
     public async Task UpdateTeamMember_InvalidCategoryId_ShouldNotUpdateTeamMember()
     {
-        Category category = await _dbContext.Categories.FirstOrDefaultAsync() ??
+        Category category = await _fixture.DbContext.Categories.FirstOrDefaultAsync() ??
                             throw new InvalidOperationException("Couldn't setup existing entity");
 
         var wrongId = int.MaxValue;
@@ -221,7 +196,7 @@ public class UpdateTeamMemberTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
-        HttpResponseMessage response = await _httpClient.PutAsync($"/api/TeamMembers/{wrongId}", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/TeamMembers/{wrongId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

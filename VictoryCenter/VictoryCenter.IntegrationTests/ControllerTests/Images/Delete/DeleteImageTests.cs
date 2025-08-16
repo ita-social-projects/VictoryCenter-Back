@@ -1,7 +1,8 @@
 ﻿using System.Net;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Delete;
 
@@ -9,22 +10,20 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Delete;
 public class DeleteImageTests : IAsyncLifetime
 {
     private readonly IntegrationTestDbFixture _fixture;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public DeleteImageTests(IntegrationTestDbFixture fixture)
     {
         _fixture = fixture;
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
     }
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
-
-        var count = await _fixture.DbContext.TeamMembers.CountAsync();
-
-        if (count == 0)
-        {
-            throw new InvalidOperationException("No TeamMembers were seeded. Check your seeder implementation.");
-        }
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -36,7 +35,7 @@ public class DeleteImageTests : IAsyncLifetime
         var id = image.Id;
 
         string extension = image.MimeType.Split("/")[1];
-        string path = _fixture._blobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
+        string path = _fixture.BlobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
 
         HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"api/Image/{id}");
 

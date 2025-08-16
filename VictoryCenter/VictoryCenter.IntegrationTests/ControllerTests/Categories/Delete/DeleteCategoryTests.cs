@@ -1,6 +1,6 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Delete;
 
@@ -16,7 +16,7 @@ public class DeleteCategoryTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;

@@ -2,11 +2,9 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Team.GetPublished;
 
@@ -14,28 +12,23 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Team.GetPublished;
 public class GetPublishedTeamMembersTests : IAsyncLifetime
 {
     private const string _requestUri = "/api/Team/published";
+    private IntegrationTestDbFixture _fixture;
 
-    private readonly HttpClient _httpClient;
-    private readonly VictoryCenterDbContext _dbContext;
     private readonly JsonSerializerOptions _jsonOptions;
-    private readonly SeederManager _seederManager;
 
     public GetPublishedTeamMembersTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
+        _fixture = fixture;
+
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
-
-        _seederManager = fixture.SeederManager
-            ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
     }
 
     public async Task InitializeAsync()
     {
-        await _seederManager.SeedAllAsync();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -52,7 +45,7 @@ public class GetPublishedTeamMembersTests : IAsyncLifetime
         }
 
         // Act
-        var response = await _httpClient.GetAsync(_requestUri);
+        var response = await _fixture.HttpClient.GetAsync(_requestUri);
         var responseString = await response.Content.ReadAsStringAsync();
         var actualCategoryDtos = JsonSerializer.Deserialize<List<CategoryWithPublishedTeamMembersDto>>(responseString, _jsonOptions);
 
@@ -91,7 +84,7 @@ public class GetPublishedTeamMembersTests : IAsyncLifetime
 
     private async Task<List<Category>> GetCategoriesWithPublishedMembersAsync()
     {
-        return await _dbContext.Categories
+        return await _fixture.DbContext.Categories
             .AsNoTracking()
             .Include(category => category.TeamMembers
                 .Where(teamMember => teamMember.Status == Status.Published)

@@ -3,7 +3,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.GetByName;
 
@@ -24,7 +24,7 @@ public class GetImageByNameTest : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public async Task DisposeAsync() => await _fixture.DisposeAsync();

@@ -1,14 +1,14 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeder.ImageSeeder;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.Images;
 
-public class ImagesDataSeeder : BaseSeeder<Image>
+public class ImagesSeeder : BaseSeeder<Image>
 {
-    private static readonly List<Image> _images =
+    private readonly IBlobService _blobService;
+    private static readonly List<Image> Images =
     [
         new Image
         {
@@ -29,28 +29,36 @@ public class ImagesDataSeeder : BaseSeeder<Image>
 
     ];
 
-    public ImagesDataSeeder(
+    public ImagesSeeder(
         VictoryCenterDbContext dbContext,
-        ILogger<ImagesDataSeeder> logger,
+        ILogger<ImagesSeeder> logger,
         IBlobService blobService )
-        : base(dbContext, logger, blobService)
+        : base(dbContext, logger)
     {
+        _blobService = blobService;
     }
 
     public override int Order => 50;
 
-    public override string Name => nameof(ImagesDataSeeder);
+    public override string Name => nameof(ImagesSeeder);
 
     protected override async Task<List<Image>> GenerateEntitiesAsync()
     {
-        foreach (var image in _images)
+        foreach (var image in Images)
         {
-            await _blobService.SaveFileInStorageAsync(image.Base64, image.BlobName, image.MimeType);
+            if (image.Base64 != null)
+            {
+                await _blobService.SaveFileInStorageAsync(image.Base64, image.BlobName, image.MimeType);
+            }
         }
 
-        return _images;
-    }
+        var entities = Images.Select(i => new Image
+        {
+            BlobName = i.BlobName,
+            Base64 = i.Base64,
+            MimeType = i.MimeType
+        }).ToList();
 
-    protected override Task<bool> ShouldSkipAsync() =>
-        _dbContext.Images.AnyAsync();
+        return entities;
+    }
 }

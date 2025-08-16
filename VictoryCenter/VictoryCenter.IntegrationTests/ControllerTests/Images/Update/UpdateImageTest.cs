@@ -5,7 +5,7 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Update;
 
@@ -26,7 +26,7 @@ public class UpdateImageTest : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await _fixture.CreateFreshDatabase();
+        await _fixture.CreateFreshWebApplication();
     }
 
     public Task DisposeAsync() => Task.CompletedTask;
@@ -38,7 +38,7 @@ public class UpdateImageTest : IAsyncLifetime
         var id = image.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        string filePath = Path.Combine(_fixture._blobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
+        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
         var updateImageDto = new UpdateImageDTO
@@ -55,7 +55,7 @@ public class UpdateImageTest : IAsyncLifetime
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         var newExtension = responseContext.MimeType.Split("/")[1];
-        var newFilePath = Path.Combine(_fixture._blobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
+        var newFilePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);
