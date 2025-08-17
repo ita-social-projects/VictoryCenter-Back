@@ -36,7 +36,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
             Program? programToUpdate = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Program>()
                 {
-                    Filter = program => program.Id == request.updateProgramDto.Id,
+                    Filter = program => program.Id == request.id,
                     Include = program => program.Include(p => p.Categories),
                     AsNoTracking = false
                 });
@@ -44,7 +44,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
             if (programToUpdate is null)
             {
                 return Result.Fail<ProgramDto>(ErrorMessagesConstants
-                    .NotFound(request.updateProgramDto.Id, typeof(Program)));
+                    .NotFound(request.id, typeof(Program)));
             }
 
             IEnumerable<ProgramCategory> newCategories = await _repositoryWrapper.ProgramCategoriesRepository.GetAllAsync(

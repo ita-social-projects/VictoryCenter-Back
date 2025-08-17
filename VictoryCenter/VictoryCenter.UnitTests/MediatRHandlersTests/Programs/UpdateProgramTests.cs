@@ -23,7 +23,6 @@ public class UpdateProgramTests
 
     private readonly UpdateProgramDto _updateProgramDto = new()
     {
-        Id = 1,
         Name = "TestProgramName",
         Description = "TestProgramDescription",
         Status = Status.Published,
@@ -83,7 +82,7 @@ public class UpdateProgramTests
     {
         SetUpDependencies(_programEntity);
         var handler = new UpdateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _updateProgramDto.Name);
     }
@@ -97,7 +96,7 @@ public class UpdateProgramTests
         _updateProgramDto.Name = name!;
         SetUpDependencies(_programEntity);
         var handler = new UpdateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -107,7 +106,7 @@ public class UpdateProgramTests
     {
         SetUpDependencies(_programEntity, -1);
         var handler = new UpdateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramConstants.FailedToUpdateProgram, result.Errors[0].Message);
     }
@@ -117,9 +116,9 @@ public class UpdateProgramTests
     {
         SetUpDependencies();
         var handler = new UpdateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
-        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto), CancellationToken.None);
+        Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound(_updateProgramDto.Id, typeof(DAL.Entities.Program)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(DAL.Entities.Program)), result.Errors[0].Message);
     }
 
     private void SetUpDependencies(DAL.Entities.Program programEntity = null!, int saveResult = 1)

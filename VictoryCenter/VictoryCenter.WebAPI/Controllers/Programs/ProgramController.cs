@@ -32,9 +32,10 @@ public class ProgramController : BaseApiController
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateProgram([FromBody] UpdateProgramDto updateProgramDto)
+    [Route("{id:long}")]
+    public async Task<IActionResult> UpdateProgram([FromBody] UpdateProgramDto updateProgramDto, long id)
     {
-        return HandleResult(await Mediator.Send(new UpdateProgramCommand(updateProgramDto)));
+        return HandleResult(await Mediator.Send(new UpdateProgramCommand(updateProgramDto, id)));
     }
 
     [HttpGet("{id:long}")]

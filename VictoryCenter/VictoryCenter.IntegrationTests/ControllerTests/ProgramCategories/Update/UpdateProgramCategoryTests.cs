@@ -28,12 +28,11 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
     {
         var updateProgramDto = new UpdateProgramCategoryDto
         {
-            Id = 1,
             Name = "UpdatedName"
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -53,13 +52,12 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
     {
         var updateProgramCategoryDto = new UpdateProgramCategoryDto
         {
-            Id = 1,
             Name = name!
         };
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategory/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -73,12 +71,11 @@ public class UpdateProgramCategoryTests : IAsyncLifetime
     {
         var updateProgramCategoryDto = new UpdateProgramCategoryDto
         {
-            Id = id,
             Name = "UpdatedName"
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/ProgramCategories/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/ProgramCategories/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

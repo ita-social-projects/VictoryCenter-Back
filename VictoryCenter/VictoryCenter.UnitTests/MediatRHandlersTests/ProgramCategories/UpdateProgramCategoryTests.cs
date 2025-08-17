@@ -20,7 +20,6 @@ public class UpdateProgramCategoryTests
 
     private readonly UpdateProgramCategoryDto _updateProgramCategoryDto = new()
     {
-        Id = 1,
         Name = "TestName1"
     };
 
@@ -57,7 +56,7 @@ public class UpdateProgramCategoryTests
         var handler = new UpdateProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
         Result<ProgramCategoryDto> result = await handler
-            .Handle(new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name! }), CancellationToken.None);
+            .Handle(new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name! }, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
@@ -68,7 +67,7 @@ public class UpdateProgramCategoryTests
         SetupDependencies(-1);
         var handler = new UpdateProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
         Result<ProgramCategoryDto> result = await handler
-            .Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto), CancellationToken.None);
+            .Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ProgramCategoryConstants.FailedToUpdateCategory, result.Errors[0].Message);
     }
@@ -78,7 +77,7 @@ public class UpdateProgramCategoryTests
     {
         SetupDependencies();
         var handler = new UpdateProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
-        Result<ProgramCategoryDto> result = await handler.Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto), CancellationToken.None);
+        Result<ProgramCategoryDto> result = await handler.Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto, 1), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _programCategoryDto.Name);
     }

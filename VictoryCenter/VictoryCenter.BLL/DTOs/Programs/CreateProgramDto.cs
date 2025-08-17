@@ -1,7 +1,7 @@
 using VictoryCenter.DAL.Enums;
 namespace VictoryCenter.BLL.DTOs.Programs;
 
-public class CreateProgramDto
+public record CreateProgramDto
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }

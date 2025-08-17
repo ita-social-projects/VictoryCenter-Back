@@ -25,9 +25,10 @@ public class ProgramCategoryController : BaseApiController
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateProgramCategory([FromBody] UpdateProgramCategoryDto updateProgramCategoryDto)
+    [Route("{id:long}")]
+    public async Task<IActionResult> UpdateProgramCategory([FromBody] UpdateProgramCategoryDto updateProgramCategoryDto, long id)
     {
-        return HandleResult(await Mediator.Send(new UpdateProgramCategoryCommand(updateProgramCategoryDto)));
+        return HandleResult(await Mediator.Send(new UpdateProgramCategoryCommand(updateProgramCategoryDto, id)));
     }
 
     [HttpGet]

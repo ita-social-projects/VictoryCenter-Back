@@ -20,7 +20,7 @@ public class UpdateProgramCategoryValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_When_Name_IsNotValid(string? name)
     {
-        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name });
+        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
@@ -34,7 +34,7 @@ public class UpdateProgramCategoryValidatorTests
     public void Validate_ShouldHaveError_When_Name_IsTooShort(int nameLength)
     {
         var name = new string('a', nameLength);
-        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name });
+        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
@@ -45,7 +45,7 @@ public class UpdateProgramCategoryValidatorTests
     public void Validate_ShouldHaveError_When_Name_IsTooLong()
     {
         var name = new string('a', 21);
-        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name });
+        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
@@ -55,7 +55,7 @@ public class UpdateProgramCategoryValidatorTests
     [Fact]
     public void Validate_ShouldNotHaveError_When_Name_IsValid()
     {
-        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = "Valid Name" });
+        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = "Valid Name" }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
         result.ShouldNotHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name);
     }

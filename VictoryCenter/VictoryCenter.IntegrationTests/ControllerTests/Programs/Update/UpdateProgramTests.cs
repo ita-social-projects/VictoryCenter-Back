@@ -29,7 +29,6 @@ public class UpdateProgramTests : IAsyncLifetime
     {
         var updateProgramDto = new UpdateProgramDto
         {
-            Id = 1,
             Name = "UpdatedName",
             Description = "UpdatedDescription",
             ImageId = 1,
@@ -38,7 +37,7 @@ public class UpdateProgramTests : IAsyncLifetime
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         response.EnsureSuccessStatusCode();
@@ -60,7 +59,6 @@ public class UpdateProgramTests : IAsyncLifetime
     {
         var updateProgramDto = new UpdateProgramDto
         {
-            Id = 1,
             Name = invalidName!,
             Description = "UpdatedDescription",
             Status = Status.Published,
@@ -68,7 +66,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -83,7 +81,6 @@ public class UpdateProgramTests : IAsyncLifetime
     {
         var updateProgramDto = new UpdateProgramDto
         {
-            Id = 1,
             Name = "TestName",
             Description = invalidDescription,
             Status = Status.Published,
@@ -91,7 +88,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -103,7 +100,6 @@ public class UpdateProgramTests : IAsyncLifetime
     {
         var updateProgramDto = new UpdateProgramDto
         {
-            Id = 1,
             Name = "TestName",
             Description = description,
             Status = Status.Draft,
@@ -111,7 +107,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         ProgramDto? responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
@@ -127,7 +123,6 @@ public class UpdateProgramTests : IAsyncLifetime
     {
         var updateProgramDto = new UpdateProgramDto
         {
-            Id = id,
             Name = "TestName",
             Description = "TestDescription",
             Status = Status.Draft,
@@ -135,7 +130,7 @@ public class UpdateProgramTests : IAsyncLifetime
             CategoriesId = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/Program/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
