@@ -5,7 +5,7 @@ using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -57,7 +57,8 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 });
             if (category is null)
             {
-                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(Category)));
+                return Result.Fail<TeamMemberDto>(
+                    ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
@@ -76,15 +77,17 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
                 if (entityToUpdate.ImageId != null)
                 {
                     Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
-                        new QueryOptions<Image>()
+                        new QueryOptions<Image>
                         {
                             Filter = i => i.Id == entityToUpdate.ImageId
                         });
+                    entityToUpdate.Image = image;
                 }
+
+                TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
 
                 scope.Complete();
                 return Result.Ok(resultDto);
@@ -94,7 +97,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}" );
+            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}");
         }
         catch (ValidationException vex)
         {

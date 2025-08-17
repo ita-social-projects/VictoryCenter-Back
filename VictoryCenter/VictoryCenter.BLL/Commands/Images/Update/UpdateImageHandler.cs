@@ -1,14 +1,16 @@
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Images.Update;
 
@@ -47,12 +49,12 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDTO>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
 
             var previousType = imageEntity.MimeType;
             imageEntity.MimeType = request.UpdateImageDto.MimeType!;
 
-            var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
+            EntityEntry<Image> result = _repositoryWrapper.ImageRepository.Update(imageEntity);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {

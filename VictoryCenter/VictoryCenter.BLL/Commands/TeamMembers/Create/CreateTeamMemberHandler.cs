@@ -4,10 +4,10 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Images;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -19,6 +19,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateTeamMemberCommand> _validator;
+
     public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
@@ -31,15 +32,16 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<Category>()
+            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Category>
                 {
                     Filter = c => c.Id == request.createTeamMemberDto.CategoryId
                 });
 
             if (category == null)
             {
-                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.createTeamMemberDto.CategoryId, typeof(Category)));
+                return Result.Fail<TeamMemberDto>(
+                    ErrorMessagesConstants.NotFound(request.createTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             TeamMember? entity = _mapper.Map<TeamMember>(request.createTeamMemberDto);
@@ -61,7 +63,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 if (entity.ImageId != null)
                 {
                     Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
-                        new QueryOptions<Image>()
+                        new QueryOptions<Image>
                         {
                             Filter = i => i.Id == entity.ImageId
                         });
@@ -79,11 +81,12 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}" );
+            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}");
         }
         catch (DbUpdateException ex)
         {
-            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase + ex.Message);
+            return Result.Fail<TeamMemberDto>(TeamMemberConstants.FailedToCreateNewTeamMemberInTheDatabase +
+                                              ex.Message);
         }
     }
 }

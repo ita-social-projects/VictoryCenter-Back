@@ -1,9 +1,9 @@
 ﻿using System.Buffers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
 
@@ -23,8 +23,10 @@ public class BlobService : IBlobService
     {
         try
         {
-            byte[] imageBytes = ConvertBase64ToBytes(base64);
-            string extension = GetExtensionFromMimeType(mimeType);
+            ValidateFileName(name);
+
+            var imageBytes = ConvertBase64ToBytes(base64);
+            var extension = GetExtensionFromMimeType(mimeType);
 
             Directory.CreateDirectory(_blobEnv.FullPath);
             await CreateFileAsync(imageBytes, extension, name);
@@ -39,20 +41,19 @@ public class BlobService : IBlobService
 
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
-            byte[] decodedBytes = await GetFileAsync(name, GetExtensionFromMimeType(mimeType));
-            return new MemoryStream(decodedBytes);
+        ValidateFileName(name);
+
+        var decodedBytes = await GetFileAsync(name, GetExtensionFromMimeType(mimeType));
+        return new MemoryStream(decodedBytes);
     }
 
     public string GetFileUrl(string name, string mimeType)
     {
-        if (string.IsNullOrWhiteSpace(name) || name.Contains("..") || Path.GetInvalidFileNameChars().Any(name.Contains))
-        {
-            throw new BlobFileNameException(name, ImageConstants.CantGetFile(name));
-        }
+        ValidateFileName(name);
 
         var extension = GetExtensionFromMimeType(mimeType);
         var fileName = $"{name}.{extension}";
-        var request = _httpContextAccessor.HttpContext?.Request;
+        HttpRequest? request = _httpContextAccessor.HttpContext?.Request;
 
         if (request == null)
         {
@@ -65,6 +66,7 @@ public class BlobService : IBlobService
 
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
+        ValidateFileName(newBlobName);
         DeleteFileInStorage(previousBlobName, previousMimeType);
         await SaveFileInStorageAsync(base64Format, newBlobName, mimeType);
         return newBlobName;
@@ -72,8 +74,10 @@ public class BlobService : IBlobService
 
     public void DeleteFileInStorage(string name, string mimeType)
     {
+        ValidateFileName(name);
+
         var fullName = name + "." + GetExtensionFromMimeType(mimeType);
-        string filePath = Path.Combine(_blobEnv.FullPath, fullName);
+        var filePath = Path.Combine(_blobEnv.FullPath, fullName);
         try
         {
             if (File.Exists(filePath))
@@ -94,16 +98,16 @@ public class BlobService : IBlobService
             base64 = base64.Split(',')[1];
         }
 
-        int byteCount = base64.Length * 3 / 4;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(byteCount);
+        var byteCount = base64.Length * 3 / 4;
+        var buffer = ArrayPool<byte>.Shared.Rent(byteCount);
         try
         {
-            if (!Convert.TryFromBase64String(base64, buffer, out int bytesWritten))
+            if (!Convert.TryFromBase64String(base64, buffer, out var bytesWritten))
             {
                 throw new InvalidBase64FormatException(ImageConstants.InvalidBase64String);
             }
 
-            byte[] result = new byte[bytesWritten];
+            var result = new byte[bytesWritten];
             Array.Copy(buffer, result, bytesWritten);
             return result;
         }
@@ -131,7 +135,9 @@ public class BlobService : IBlobService
 
     private async Task CreateFileAsync(byte[] imageBytes, string type, string name)
     {
-        string filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
+        ValidateFileName(name);
+
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
 
         try
         {
@@ -145,7 +151,9 @@ public class BlobService : IBlobService
 
     private async Task<byte[]> GetFileAsync(string fileName, string type)
     {
-        string filePath = Path.Combine(_blobEnv.FullPath, $"{fileName}.{type}");
+        ValidateFileName(fileName);
+
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{fileName}.{type}");
 
         if (!File.Exists(filePath))
         {
@@ -159,6 +167,16 @@ public class BlobService : IBlobService
         catch (Exception ex) when (ex is not BlobStorageException)
         {
             throw new ImageProcessingException(fileName, ImageConstants.FailedToReadImage, ex);
+        }
+    }
+
+    private void ValidateFileName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)
+            || name.Contains("..")
+            || Path.GetInvalidFileNameChars().Any(name.Contains))
+        {
+            throw new BlobFileNameException(name, ImageConstants.CantGetFile(name));
         }
     }
 }
