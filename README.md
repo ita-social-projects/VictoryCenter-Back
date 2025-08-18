@@ -46,244 +46,163 @@
 
 ## Folder structure 
 ```
-VictoryCenter-Back/
-├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   ├── PULL_REQUEST_TEMPLATE/
-│   └── workflows/
-│ 
-├── VictoryCenter/
-│   ├── VictoryCenter.WebAPI/
-│   │   ├── Controllers/        
-│   │   │   ├── Auth/
-│   │   │   │   └── AuthController.cs
-│   │   │   ├── Categories/
-│   │   │   ├── Images/
-│   │   │   ├── Payments/
-│   │   │   ├── Public/         
-│   │   │   ├── TeamMembers/
-│   │   │   └── BaseApiController.cs
-│   │   │
-│   │   ├── Extensions/         
-│   │   │   └── ApplicationConfiguration.cs
-│   │   │   └── ConfigurationBuilderExtensions.cs
-│   │   │   └── .................................
-│   │   ├── Factories/
-│   │   ├── Middleware/         
-│   │   ├── Properties/
-│   │   ├── Utils/
-│   │   ├── Program.cs          
-│   │   ├── VictoryCenter.WebAPI.csproj
-│   │   ├── appsettings.json      
-│   │   ├── appsettings.local.json
-│   │   └── ......................
-│   │ 
-│   ├── VictoryCenter.BLL/
-│   │   ├── Commands/          
-│   │   │   ├── Auth/
-│   │   │   │   ├── Login/
-│   │   │   │   │   └── LoginCommand.cs
-│   │   │   │   │   └── LoginCommandHandler.cs
-│   │   │   │   └── RefreshToken/
-│   │   │   │       └── RefreshTokenCommand.cs
-│   │   │   │       └── RefreshTokenCommandHandler.cs
-│   │   │   │   
-│   │   │   ├── Categories/
-│   │   │   │   ├── Create/
-│   │   │   │   │   └── CreateCategoryCommand.cs
-│   │   │   │   │   └── CreateCategoryHandler.cs
-│   │   │   │   ├── Delete/
-│   │   │   │   └── Update/
-│   │   │   │
-│   │   │   ├── Images/
-│   │   │   │   ├── Create/
-│   │   │   │   ├── Delete/
-│   │   │   │   └── Update/
-│   │   │   │
-│   │   │   ├── Payment/
-│   │   │   │   ├── Common/
-│   │   │   │   └── WayForPay/
-│   │   │   │   
-│   │   │   └── TeamMembers/
-│   │   │       ├── Create/
-│   │   │       ├── Delete/
-│   │   │       ├── Reorder/
-│   │   │       └── Update/
-│   │   │
-│   │   ├── Constants/        
-│   │   │   └── ErrorMessagesConstants.cs
-│   │   │
-│   │   ├── DTOs/             
-│   │   │   ├── Auth/
-│   │   │   ├── Categories/
-│   │   │   ├── Images/
-│   │   │   ├── TeamMembers/
-│   │   │   └── Payment/
-│   │   │       ├── Common/
-│   │   │       ├── WayForPay/
-│   │   │       ├── Currency.cs
-│   │   │       └── PaymentSystem.cs
-│   │   │
-│   │   ├── Exceptions/       
-│   │   │
-│   │   ├── Factories         
-│   │   │   └── Payment/
-│   │   │       ├── Implementations/
-│   │   │       └── Interfaces/
-│   │   │
-│   │   ├── Helpers/         
-│   │   │   └── AuthHelper.cs
-│   │   │
-│   │   ├── Interfaces/      
-│   │   │   ├── BlobStorage/
-│   │   │   ├── PaymentService/
-│   │   │   └── TokenService/
-│   │   │
-│   │   ├── Mapping/        
-│   │   │   ├── Categories/
-│   │   │   ├── Images/
-│   │   │   ├── TeamMembers/
-│   │   │
-│   │   ├── Options/        
-│   │   │
-│   │   ├── Queries/        
-│   │   │   ├── Categories/
-│   │   │   │   ├── GetAll/
-│   │   │   │   │   └── GetAllCategoriesHandler.cs
-│   │   │   │   │   └── GetAllCategoriesQuery.cs
-│   │   │   ├── Images/
-│   │   │   │   ├── GetById/
-│   │   │   │   ├── GetByName/
-│   │   │   └── TeamMembers/
-│   │   │       ├── GetByFilters/
-│   │   │       ├── GetById/
-│   │   │       └── GetPublished/
-│   │   │
-│   │   ├── Services/        
-│   │   │   ├── BlobStorage/
-│   │   │   ├── PaymentService/
-│   │   │   └── TokenService/
-│   │   │
-│   │   └── Validators/      
-│   │       ├── Auth/
-│   │       │   └── LoginCommandValidator.cs
-│   │       ├── Categories/
-│   │       ├── Images/
-│   │       ├── Payment/
-│   │       └── TeamMembers/
-│   │
-│   ├── VictoryCenter.DAL/
-│   │   ├── Data/           
-│   │   │   ├── EntityTypeConfigurations/   
-│   │   │   │   └── CategoryConfig.cs
-│   │   │   │   └── ImageConfig.cs
-│   │   │   │   └── TeamMemberConfig.cs
-│   │   │   └── VictoryCenterDbContext.cs
-│   │   │
-│   │   ├── Entities/       
-│   │   │   └── Admin.cs
-│   │   │   └── Category.cs
-│   │   │   └── Image.cs
-│   │   │   └── TeamMember.cs
-│   │   │
-│   │   ├── Enums/          
-│   │   │   └── Status.cs
-│   │   │
-│   │   ├── Migrations/     
-│   │   │   └── .editorconfig
-│   │   │   └── 20250523215616_InitialMigration.Designer.cs
-│   │   │   └── 20250523215616_InitialMigration.cs
-│   │   │   └── ........................................
-│   │   │   └── VictoryCenterDbContextModelSnapshot.cs
-│   │   │
-│   │   └── Repositories/  
-│   │       ├── Interfaces/
-│   │       │   ├── Base/
-│   │       │   │   └── IRepositoryBase.cs
-│   │       │   │   └── IRepositoryWrapper.cs
-│   │       │   ├── Categories/
-│   │       │   │   └── ICategoriesRepository.cs
-│   │       │   ├── Media/
-│   │       │   ├── TeamMembers/
-│   │       ├── Options/
-│   │       │   └── QueryOptions.cs
-│   │       └── Realizations/
-│   │           ├── Base/
-│   │           │   └── RepositoryBase.cs
-│   │           │   └── RepositoryWrapper.cs
-│   │           ├── Categories/
-│   │           │   └── CategoriesRepository.cs
-│   │           ├── Media/
-│   │           └── TeamMembers/
-│   │   
-│   ├── VictoryCenter.IntegrationTests/
-│   │   ├── ControllerTests/     
-│   │   │   ├── Auth/
-│   │   │   │   └── AuthControllerTests.cs
-│   │   │   ├── Base/
-│   │   │   ├── Categories/
-│   │   │   │   ├── Create/
-│   │   │   │   │   └── CreateCategoryTests.cs
-│   │   │   │   ├── Delete/
-│   │   │   │   ├── GetAll/
-│   │   │   │   └── Update/
-│   │   │   ├── Images/
-│   │   │   │   ├── Create/
-│   │   │   │   ├── Delete/
-│   │   │   │   ├── GetById/
-│   │   │   │   ├── GetByName/
-│   │   │   │   └── Update/
-│   │   │   ├── Payments/
-│   │   │   │   └── PaymentsControllerTests.cs
-│   │   │   ├── Team/
-│   │   │   │   ├── GetPublished/
-│   │   │   ├── TeamMembers/
-│   │   │   │   ├── Create/
-│   │   │   │   ├── Delete/
-│   │   │   │   ├── GetById/
-│   │   │   │   ├── GetFiltered/
-│   │   │   │   ├── Reorder/
-│   │   │   │   └── Update/
-│   │   ├── MiddlewareTests/     
-│   │   ├── TestData/           
-│   │   └── Utils/               
-│   │       ├── Seeder/
-│   │       │   ├── CategoriesSeeder/
-│   │       │   ├── ImageSeeder/
-│   │       │   ├── TeamMembersSeeder/
-│   │       │   └── IntegrationTestsDatabaseSeeder.cs
-│   │       └── FakeErrorController.cs
-│   │       └── InMemoryLoggerProvider.cs
-│   │       └── VictoryCenterWebApplicationFactory.cs
-│   │
-│   ├── VictoryCenter.UnitTests/
-│   │   ├── Configuration/
-│   │   │   └── DbContextMock.cs
-│   │   ├── FactoriesTests/     
-│   │   │   ├── PaymentFactory/
-│   │   │   └── CustomProblemDetailsFactoryTests.cs
-│   │   ├── MediatRHandlersTests/   
-│   │   │   ├── Auth/
-│   │   │   ├── Categories/
-│   │   │   ├── Images/
-│   │   │   ├── Payment/
-│   │   │   └── TeamMembers/
-│   │   ├── MiddlewareTests/    
-│   │   ├── ServiceTests/       
-│   │   ├── TestData/           
-│   │   └── ValidatorsTests/    
-│   │       ├── Auth/
-│   │       ├── Categories/
-│   │       ├── Payment/
-│   │       ├── TeamMembers/
-│   │       └── TeamMembersTests/
-│   │
-├── docs/
-│   └── 101-Project-Structure-Initital.md
-│   └── .................................
-└── .coderabbit.yaml
-└── .gitignore
-└── docker-compose.yml
+VictoryCenter-Back
+├── .github
+│   ├── ISSUE_TEMPLATE
+│   ├── PULL_REQUEST_TEMPLATE
+│   └── workflows
+├───docs
+├───VictoryCenter
+│   ├───VictoryCenter.BLL
+│   │   ├───Commands
+│   │   │   ├───Auth
+│   │   │   │   ├───Login
+│   │   │   │   └───RefreshToken
+│   │   │   ├───Categories
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   └───Update
+│   │   │   ├───Images
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   └───Update
+│   │   │   ├───Payment
+│   │   │   │   ├───Common
+│   │   │   │   └───WayForPay
+│   │   │   └───TeamMembers
+│   │   │       ├───Create
+│   │   │       ├───Delete
+│   │   │       ├───Reorder
+│   │   │       └───Update
+│   │   ├───Constants
+│   │   ├───DTOs
+│   │   │   ├───Auth
+│   │   │   ├───Categories
+│   │   │   ├───Images
+│   │   │   ├───Payment
+│   │   │   │   ├───Common
+│   │   │   │   └───WayForPay
+│   │   │   └───TeamMembers
+│   │   ├───Exceptions
+│   │   ├───Factories
+│   │   │   └───Payment
+│   │   │       ├───Implementations
+│   │   │       └───Interfaces
+│   │   ├───Helpers
+│   │   ├───Interfaces
+│   │   │   ├───BlobStorage
+│   │   │   ├───PaymentService
+│   │   │   └───TokenService
+│   │   ├───Mapping
+│   │   │   ├───Categories
+│   │   │   ├───Images
+│   │   │   └───TeamMembers
+│   │   ├───Options
+│   │   │   └───Payment
+│   │   ├───Queries
+│   │   │   ├───Categories
+│   │   │   │   └───GetAll
+│   │   │   ├───Images
+│   │   │   │   ├───GetById
+│   │   │   │   └───GetByName
+│   │   │   └───TeamMembers
+│   │   │       ├───GetByFilters
+│   │   │       ├───GetById
+│   │   │       └───GetPublished
+│   │   ├───Services
+│   │   │   ├───BlobStorage
+│   │   │   ├───PaymentService
+│   │   │   └───TokenService
+│   │   └───Validators
+│   │       ├───Auth
+│   │       ├───Categories
+│   │       ├───Images
+│   │       ├───Payment
+│   │       └───TeamMembers
+│   ├───VictoryCenter.DAL
+│   │   ├───Data
+│   │   │   └───EntityTypeConfigurations
+│   │   ├───Entities
+│   │   ├───Enums
+│   │   ├───Migrations
+│   │   └───Repositories
+│   │       ├───Interfaces
+│   │       │   ├───Base
+│   │       │   ├───Categories
+│   │       │   ├───Media
+│   │       │   └───TeamMembers
+│   │       ├───Options
+│   │       └───Realizations
+│   │           ├───Base
+│   │           ├───Categories
+│   │           ├───Media
+│   │           └───TeamMembers
+│   ├───VictoryCenter.IntegrationTests
+│   │   ├───ControllerTests
+│   │   │   ├───Auth
+│   │   │   ├───Base
+│   │   │   ├───Categories
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   ├───GetAll
+│   │   │   │   └───Update
+│   │   │   ├───Images
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   ├───GetById
+│   │   │   │   ├───GetByName
+│   │   │   │   └───Update
+│   │   │   ├───Payments
+│   │   │   ├───Team
+│   │   │   │   └───GetPublished
+│   │   │   └───TeamMembers
+│   │   │       ├───Create
+│   │   │       ├───Delete
+│   │   │       ├───GetById
+│   │   │       ├───GetFiltered
+│   │   │       ├───Reorder
+│   │   │       └───Update
+│   │   ├───MiddlewareTests
+│   │   ├───TestData
+│   │   └───Utils
+│   │       └───Seeder
+│   │           ├───CategoriesSeeder
+│   │           ├───ImageSeeder
+│   │           └───TeamMembersSeeder
+│   ├───VictoryCenter.UnitTests
+│   │   ├───Configuration
+│   │   ├───FactoriesTests
+│   │   │   └───PaymentFactory
+│   │   ├───MediatRHandlersTests
+│   │   │   ├───Auth
+│   │   │   ├───Categories
+│   │   │   ├───Images
+│   │   │   ├───Payment
+│   │   │   └───TeamMembers
+│   │   ├───MiddlewareTests
+│   │   ├───ServiceTests
+│   │   └───ValidatorsTests
+│   │       ├───Auth
+│   │       ├───Categories
+│   │       ├───Payment
+│   │       ├───TeamMembers
+│   │       └───TeamMembersTests
+│   └───VictoryCenter.WebAPI
+│       ├───Controllers
+│       │   ├───Auth
+│       │   ├───Categories
+│       │   ├───Images
+│       │   ├───Payments
+│       │   ├───Public
+│       │   └───TeamMembers
+│       ├───Extensions
+│       ├───Factories
+│       ├───Middleware
+│       ├───Properties
+│       └───Utils
+│           └───Settings
+├───.gitignore
+└───docker-compose.yml
 ```
 
 
