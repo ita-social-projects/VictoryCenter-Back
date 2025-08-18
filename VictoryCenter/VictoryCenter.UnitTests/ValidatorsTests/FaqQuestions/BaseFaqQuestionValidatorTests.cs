@@ -3,7 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.Validators.FaqQuestions;
 
-namespace VictoryCenter.UnitTests.ValidatorsTests.Faq;
+namespace VictoryCenter.UnitTests.ValidatorsTests.FaqQuestions;
 
 public class BaseFaqQuestionValidatorTests
 {

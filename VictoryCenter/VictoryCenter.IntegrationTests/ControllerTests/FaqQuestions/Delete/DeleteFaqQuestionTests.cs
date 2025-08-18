@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.Delete;
+namespace VictoryCenter.IntegrationTests.ControllerTests.FaqQuestions.Delete;
 
 public class DeleteFaqQuestionTests : BaseTestClass
 {

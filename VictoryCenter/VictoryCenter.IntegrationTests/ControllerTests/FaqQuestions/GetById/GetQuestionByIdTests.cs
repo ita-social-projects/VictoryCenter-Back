@@ -5,7 +5,7 @@ using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.GetById;
+namespace VictoryCenter.IntegrationTests.ControllerTests.FaqQuestions.GetById;
 
 public class GetQuestionByIdTests : BaseTestClass
 {

@@ -2,7 +2,7 @@ using System.Net;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.GetFiltered;
+namespace VictoryCenter.IntegrationTests.ControllerTests.FaqQuestions.GetFiltered;
 
 public class GetFilteredQuestionsTests : BaseTestClass
 {

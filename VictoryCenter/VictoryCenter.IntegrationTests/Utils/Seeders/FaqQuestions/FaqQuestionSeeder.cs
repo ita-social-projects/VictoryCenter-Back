@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeders.Faq;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.FaqQuestions;
 
 public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
 {

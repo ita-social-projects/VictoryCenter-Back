@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.Reorder;
+namespace VictoryCenter.IntegrationTests.ControllerTests.FaqQuestions.Reorder;
 
 public class ReorderQuestionsTests : BaseTestClass
 {

@@ -8,7 +8,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Faq.Create;
+namespace VictoryCenter.IntegrationTests.ControllerTests.FaqQuestions.Create;
 
 public class CreateQuestionTests : BaseTestClass
 {

@@ -8,7 +8,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.UnitTests.MediatRHandlersTests.Faq;
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.FaqQuestions;
 
 public class GetFaqQuestionByIdTests
 {
