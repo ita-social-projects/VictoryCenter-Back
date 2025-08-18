@@ -2,33 +2,24 @@
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Create;
 
-[Collection("SharedIntegrationTests")]
-public class CreateTeamMemberTest : IAsyncLifetime
+public class CreateTeamMemberTest : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public CreateTeamMemberTest(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task CreateTeamMember_ShouldReturnOk()
     {
-        var category = await _fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FullName = "TestName",
@@ -40,7 +31,7 @@ public class CreateTeamMemberTest : IAsyncLifetime
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
 
-        var response = await _fixture.HttpClient.PostAsync("/api/TeamMembers/", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -61,7 +52,7 @@ public class CreateTeamMemberTest : IAsyncLifetime
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
 
-        var response = await _fixture.HttpClient.PostAsync("/api/TeamMembers/", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -71,7 +62,7 @@ public class CreateTeamMemberTest : IAsyncLifetime
     [Fact]
     public async Task CreateTeamMember_ShouldFail_InvalidFullNameLength()
     {
-        var category = await _fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FullName = "A",
@@ -83,7 +74,7 @@ public class CreateTeamMemberTest : IAsyncLifetime
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
 
-        var response = await _fixture.HttpClient.PostAsync("/api/TeamMembers/", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("/api/TeamMembers/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

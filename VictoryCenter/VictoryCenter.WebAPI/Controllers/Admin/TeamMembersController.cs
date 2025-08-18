@@ -1,0 +1,53 @@
+using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Delete;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetById;
+using VictoryCenter.WebAPI.Controllers.Common;
+
+namespace VictoryCenter.WebAPI.Controllers.Admin;
+
+public class TeamMembersController : AuthorizedApiController
+{
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
+    public async Task<IActionResult> GetFilteredTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
+    {
+        return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
+    }
+
+    [HttpGet("{id:long}")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(TeamMemberDto))]
+    public async Task<IActionResult> GetTeamMemberById(long id)
+    {
+        return HandleResult(await Mediator.Send(new GetTeamMemberByIdQuery(id)));
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateTeamMember([FromBody] CreateTeamMemberDto createTeamMemberDto)
+    {
+        return HandleResult(await Mediator.Send(new CreateTeamMemberCommand(createTeamMemberDto)));
+    }
+
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> DeleteTeamMember(long id)
+    {
+        return HandleResult(await Mediator.Send(new DeleteTeamMemberCommand(id)));
+    }
+
+    [HttpPut("{id:long}")]
+    public async Task<IActionResult> UpdateTeamMember([FromBody] UpdateTeamMemberDto updateTeamMemberDto, long id)
+    {
+        return HandleResult(await Mediator.Send(new UpdateTeamMemberCommand(updateTeamMemberDto, id)));
+    }
+
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReorderTeamMembers([FromBody] ReorderTeamMembersDto dto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderTeamMembersCommand(dto)));
+    }
+}

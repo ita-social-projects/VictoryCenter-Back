@@ -13,10 +13,24 @@ public interface IRepositoryBase<T>
 
     Task<T> CreateAsync(T entity);
 
+    Task CreateRangeAsync(params T[] entities);
+
+    Task CreateRangeAsync(IEnumerable<T> entities);
+
     EntityEntry<T> Update(T entity);
+
+    void UpdateRange(params T[] entities);
+
+    void UpdateRange(IEnumerable<T> entities);
 
     void Delete(T entity);
 
+    void DeleteRange(params T[] entities);
+
+    void DeleteRange(IEnumerable<T> entities);
+
     Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
         where TKey : struct;
+
+    Task<long> CountAsync(Expression<Func<T, bool>> filter);
 }

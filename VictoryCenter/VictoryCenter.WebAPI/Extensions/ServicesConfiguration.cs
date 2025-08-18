@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Services.BlobStorage;
-using VictoryCenter.BLL.Commands.Payment.Common;
-using VictoryCenter.BLL.Factories.Payment.Interfaces;
+using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
@@ -42,7 +42,7 @@ public static class ServicesConfiguration
             });
         });
 
-        services.AddIdentity<Admin, IdentityRole<int>>()
+        services.AddIdentity<AdminUser, IdentityRole<int>>()
             .AddEntityFrameworkStores<VictoryCenterDbContext>()
             .AddDefaultTokenProviders();
 
@@ -171,12 +171,37 @@ public static class ServicesConfiguration
     {
         await app.CreateInitialAdmin();
         await app.CreateInitialCategories();
+        await app.SeedVisitorPagesAsync();
+    }
+
+    public static async Task SeedVisitorPagesAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        var createdAt = DateTime.UtcNow;
+
+        foreach (var page in PageConstants.VisitorPages)
+        {
+            if (!await dbContext.VisitorPages.AnyAsync(p => p.Slug == page.Slug && p.Title == page.Title))
+            {
+                VisitorPage newPage = new()
+                {
+                    Title = page.Title,
+                    Slug = page.Slug,
+                    CreatedAt = createdAt,
+                };
+
+                dbContext.VisitorPages.Add(newPage);
+                await dbContext.SaveChangesAsync();
+            }
+        }
     }
 
     private static async Task CreateInitialAdmin(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
+        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
                                 ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
         if (!initialAdminEmail.Contains('@'))
@@ -187,7 +212,7 @@ public static class ServicesConfiguration
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
             var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
-            var admin = new Admin()
+            var admin = new AdminUser()
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,

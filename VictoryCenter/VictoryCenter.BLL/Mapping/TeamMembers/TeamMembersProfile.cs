@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.TeamMembers;

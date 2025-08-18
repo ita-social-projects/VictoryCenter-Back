@@ -1,6 +1,6 @@
 ﻿using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.TeamMembers.Reorder;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.TeamMembers;

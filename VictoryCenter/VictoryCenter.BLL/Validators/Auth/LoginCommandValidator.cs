@@ -1,7 +1,7 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Commands.Public.Auth.Login;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.DTOs.Public.Auth;
 
 namespace VictoryCenter.BLL.Validators.Auth;
 

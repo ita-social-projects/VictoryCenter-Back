@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Commands.Admin.Categories.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Categories;
@@ -21,7 +21,7 @@ public class CreateCategoryValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_When_Name_IsNotValid(string? name)
     {
-        var command = new CreateCategoryCommand(new CreateCategoryDto { Name = name });
+        var command = new CreateCategoryCommand(new CreateCategoryDto { Name = name! });
 
         var result = _validator.TestValidate(command);
 

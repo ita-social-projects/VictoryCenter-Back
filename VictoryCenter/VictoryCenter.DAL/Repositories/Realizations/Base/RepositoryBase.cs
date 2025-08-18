@@ -11,16 +11,16 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 public class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    protected readonly VictoryCenterDbContext _dbContext;
-
     protected RepositoryBase(VictoryCenterDbContext context)
     {
-        _dbContext = context;
+        DbContext = context;
     }
+
+    protected VictoryCenterDbContext DbContext { get; init; }
 
     public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
         if (queryOptions != null)
         {
@@ -28,7 +28,6 @@ public class RepositoryBase<T> : IRepositoryBase<T>
             query = ApplyFilter(query, queryOptions.Filter);
             query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
             query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
-            query = ApplySelector(query, queryOptions.Selector);
         }
 
         return await query.ToListAsync();
@@ -36,7 +35,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
         if (queryOptions != null)
         {
@@ -49,18 +48,48 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T> CreateAsync(T entity)
     {
-        var tmp = await _dbContext.Set<T>().AddAsync(entity);
+        var tmp = await DbContext.Set<T>().AddAsync(entity);
         return tmp.Entity;
+    }
+
+    public async Task CreateRangeAsync(params T[] entities)
+    {
+        await DbContext.Set<T>().AddRangeAsync(entities);
+    }
+
+    public async Task CreateRangeAsync(IEnumerable<T> entities)
+    {
+        await DbContext.Set<T>().AddRangeAsync(entities);
     }
 
     public EntityEntry<T> Update(T entity)
     {
-        return _dbContext.Set<T>().Update(entity);
+        return DbContext.Set<T>().Update(entity);
+    }
+
+    public void UpdateRange(params T[] entities)
+    {
+        DbContext.Set<T>().UpdateRange(entities);
+    }
+
+    public void UpdateRange(IEnumerable<T> entities)
+    {
+        DbContext.Set<T>().UpdateRange(entities);
     }
 
     public void Delete(T entity)
     {
-        _dbContext.Set<T>().Remove(entity);
+        DbContext.Set<T>().Remove(entity);
+    }
+
+    public void DeleteRange(params T[] entities)
+    {
+        DbContext.Set<T>().RemoveRange(entities);
+    }
+
+    public void DeleteRange(IEnumerable<T> entities)
+    {
+        DbContext.Set<T>().RemoveRange(entities);
     }
 
     public async Task<TKey?> MaxAsync<TKey>(
@@ -68,7 +97,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         Expression<Func<T, bool>>? filter = null)
         where TKey : struct
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
         if (filter != null)
         {
@@ -78,6 +107,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         var projected = query.Select(selector);
 
         return await projected.DefaultIfEmpty().MaxAsync();
+    }
+
+    public Task<long> CountAsync(Expression<Func<T, bool>> filter)
+    {
+        return DbContext.Set<T>().LongCountAsync(filter);
     }
 
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
@@ -106,11 +140,6 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         }
 
         return query;
-    }
-
-    private static IQueryable<T> ApplySelector(IQueryable<T> query, Expression<Func<T, T>>? selector)
-    {
-        return selector != null ? query.Select(selector) : query;
     }
 
     private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)

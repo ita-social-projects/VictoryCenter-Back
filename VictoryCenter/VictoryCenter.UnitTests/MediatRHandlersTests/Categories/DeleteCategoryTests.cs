@@ -1,5 +1,5 @@
 using Moq;
-using VictoryCenter.BLL.Commands.Categories.Delete;
+using VictoryCenter.BLL.Commands.Admin.Categories.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -11,7 +11,7 @@ public class DeleteCategoryTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly Category _testExistingCategory = new ()
+    private readonly Category _testExistingCategory = new()
     {
         Id = 1,
         Name = "Test name",
@@ -78,7 +78,7 @@ public class DeleteCategoryTests
         var result = await handler.Handle(new DeleteCategoryCommand(_testExistingCategory.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(CategoryConstants.FailedToDeleteCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Category)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(Category? entityToDelete = null, int saveResult = 1)

@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.Images.GetByName;
+using VictoryCenter.BLL.Queries.Admin.Images.GetByName;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -23,7 +23,7 @@ public class GetImageByNameHandlerTests
         MimeType = "image/png"
     };
 
-    private readonly ImageDTO _testImageDto = new()
+    private readonly ImageDto _testImageDto = new()
     {
         Id = 1,
         BlobName = "testblob.png",
@@ -50,7 +50,7 @@ public class GetImageByNameHandlerTests
         _blobService.Setup(x => x.FindFileInStorageAsBase64Async(_testImage.BlobName, _testImage.MimeType))
             .ReturnsAsync(_testImageDto.Base64);
 
-        _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
+        _mockMapper.Setup(x => x.Map<ImageDto>(It.IsAny<Image>()))
             .Returns(_testImageDto);
 
         var handler = new GetImageByNameHandler(

@@ -92,10 +92,10 @@ public class BlobServiceTests : IDisposable
 
     [Fact]
     public void DeleteFileInStorage_NonExistentFile_ShouldNotThrow()
-        {
-            var exception = Record.Exception(() => _blobService.DeleteFileInStorage("nonexistent", _mimeType));
-            Assert.Null(exception);
-        }
+    {
+        var exception = Record.Exception(() => _blobService.DeleteFileInStorage("nonexistent", _mimeType));
+        Assert.Null(exception);
+    }
 
     public void Dispose()
     {

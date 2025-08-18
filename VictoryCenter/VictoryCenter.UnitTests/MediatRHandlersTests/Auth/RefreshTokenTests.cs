@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using VictoryCenter.BLL.Commands.Auth.RefreshToken;
+using VictoryCenter.BLL.Commands.Public.Auth.RefreshToken;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
@@ -17,23 +17,23 @@ public class RefreshTokenTests
     private static readonly DateTime FixedTestTime = DateTime.UtcNow;
     private readonly RefreshTokenCommandHandler _handler;
     private readonly Mock<ITokenService> _mockTokenService;
-    private readonly Mock<UserManager<Admin>> _mockUserManager;
+    private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly JwtOptions _jwtOptions;
 
     public RefreshTokenTests()
     {
         _mockTokenService = new Mock<ITokenService>();
-        _mockUserManager = new Mock<UserManager<Admin>>(
-            new Mock<IUserStore<Admin>>().Object,
+        _mockUserManager = new Mock<UserManager<AdminUser>>(
+            new Mock<IUserStore<AdminUser>>().Object,
             new Mock<IOptions<IdentityOptions>>().Object,
-            new Mock<IPasswordHasher<Admin>>().Object,
-            new IUserValidator<Admin>[0],
-            new IPasswordValidator<Admin>[0],
+            new Mock<IPasswordHasher<AdminUser>>().Object,
+            new IUserValidator<AdminUser>[0],
+            new IPasswordValidator<AdminUser>[0],
             new Mock<ILookupNormalizer>().Object,
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<IServiceProvider>().Object,
-            new Mock<ILogger<UserManager<Admin>>>().Object);
+            new Mock<ILogger<UserManager<AdminUser>>>().Object);
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         var jwtOptions = new JwtOptions()
         {
@@ -152,7 +152,7 @@ public class RefreshTokenTests
         ]));
 
         _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("expired_access_token")).Returns(claimsPrincipal);
-        _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync((Admin?)null);
+        _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync((AdminUser?)null);
 
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
@@ -166,7 +166,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenRefreshTokenDifferentFromTheAdmins_ReturnsFail()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new Admin()
+        var admin = new AdminUser()
         {
             RefreshToken = "refresh_token_different",
             RefreshTokenValidTo = FixedTestTime.AddHours(24)
@@ -198,7 +198,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenOutdatedRefreshToken_ReturnsFail()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new Admin()
+        var admin = new AdminUser()
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(-24)
@@ -230,7 +230,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenValidRefreshToken_ReturnsSuccess()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new Admin()
+        var admin = new AdminUser()
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
@@ -281,7 +281,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenValidRefreshToken_ReturnsFailure()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new Admin()
+        var admin = new AdminUser()
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
