@@ -3,7 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Public.FAQ;
+using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

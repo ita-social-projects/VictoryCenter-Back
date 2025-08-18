@@ -1,6 +1,6 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
-using VictoryCenter.BLL.DTOs.Public.FAQ;
+using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.FaqQuestions;

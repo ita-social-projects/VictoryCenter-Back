@@ -1,4 +1,4 @@
-namespace VictoryCenter.BLL.DTOs.Public.FAQ;
+namespace VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 
 public record PublishedFaqQuestionDto
 {

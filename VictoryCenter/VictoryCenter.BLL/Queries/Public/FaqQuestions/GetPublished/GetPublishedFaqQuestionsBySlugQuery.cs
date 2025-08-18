@@ -1,6 +1,6 @@
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.DTOs.Public.FAQ;
+using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 
 namespace VictoryCenter.BLL.Queries.Public.FaqQuestions.GetPublished;
 

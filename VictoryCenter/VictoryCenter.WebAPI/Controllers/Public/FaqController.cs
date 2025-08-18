@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.DTOs.Public.FAQ;
+using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 using VictoryCenter.BLL.Queries.Public.FaqQuestions.GetPublished;
 using VictoryCenter.WebAPI.Controllers.Common;
 
