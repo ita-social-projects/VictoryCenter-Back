@@ -54,32 +54,32 @@ VictoryCenter-Back/
 │ 
 ├── VictoryCenter/
 │   ├── VictoryCenter.WebAPI/
-│   │   ├── Controllers/        # HTTP controllers
+│   │   ├── Controllers/        
 │   │   │   ├── Auth/
 │   │   │   │   └── AuthController.cs
 │   │   │   ├── Categories/
 │   │   │   ├── Images/
 │   │   │   ├── Payments/
-│   │   │   ├── Public/         # Publicly accessible API endpoints
+│   │   │   ├── Public/         
 │   │   │   ├── TeamMembers/
 │   │   │   └── BaseApiController.cs
 │   │   │
-│   │   ├── Extensions/         # Extension methods for app configuration
+│   │   ├── Extensions/         
 │   │   │   └── ApplicationConfiguration.cs
 │   │   │   └── ConfigurationBuilderExtensions.cs
 │   │   │   └── .................................
 │   │   ├── Factories/
-│   │   ├── Middleware/         # Custom middleware components
+│   │   ├── Middleware/         
 │   │   ├── Properties/
 │   │   ├── Utils/
-│   │   ├── Program.cs          # Application entry point
+│   │   ├── Program.cs          
 │   │   ├── VictoryCenter.WebAPI.csproj
-│   │   ├── appsettings.json    # Application configuration files    
+│   │   ├── appsettings.json      
 │   │   ├── appsettings.local.json
 │   │   └── ......................
 │   │ 
 │   ├── VictoryCenter.BLL/
-│   │   ├── Commands/          # CQRS Commands (Create, Update, Delete)
+│   │   ├── Commands/          
 │   │   │   ├── Auth/
 │   │   │   │   ├── Login/
 │   │   │   │   │   └── LoginCommand.cs
@@ -110,10 +110,10 @@ VictoryCenter-Back/
 │   │   │       ├── Reorder/
 │   │   │       └── Update/
 │   │   │
-│   │   ├── Constants/        # Static constant values (e.g., error messages)
+│   │   ├── Constants/        
 │   │   │   └── ErrorMessagesConstants.cs
 │   │   │
-│   │   ├── DTOs/             # Data Transfer Objects
+│   │   ├── DTOs/             
 │   │   │   ├── Auth/
 │   │   │   ├── Categories/
 │   │   │   ├── Images/
@@ -124,29 +124,29 @@ VictoryCenter-Back/
 │   │   │       ├── Currency.cs
 │   │   │       └── PaymentSystem.cs
 │   │   │
-│   │   ├── Exceptions/       # Custom exception classes
+│   │   ├── Exceptions/       
 │   │   │
-│   │   ├── Factories         # Business logic factories
+│   │   ├── Factories         
 │   │   │   └── Payment/
 │   │   │       ├── Implementations/
 │   │   │       └── Interfaces/
 │   │   │
-│   │   ├── Helpers/         # Helper classes and utilities
+│   │   ├── Helpers/         
 │   │   │   └── AuthHelper.cs
 │   │   │
-│   │   ├── Interfaces/      # Interfaces for services and infrastructure
+│   │   ├── Interfaces/      
 │   │   │   ├── BlobStorage/
 │   │   │   ├── PaymentService/
 │   │   │   └── TokenService/
 │   │   │
-│   │   ├── Mapping/        # AutoMapper profiles for object mapping
+│   │   ├── Mapping/        
 │   │   │   ├── Categories/
 │   │   │   ├── Images/
 │   │   │   ├── TeamMembers/
 │   │   │
-│   │   ├── Options/        # Configuration-bound option classes
+│   │   ├── Options/        
 │   │   │
-│   │   ├── Queries/        # CQRS Queries (Read operations)
+│   │   ├── Queries/        
 │   │   │   ├── Categories/
 │   │   │   │   ├── GetAll/
 │   │   │   │   │   └── GetAllCategoriesHandler.cs
@@ -159,12 +159,12 @@ VictoryCenter-Back/
 │   │   │       ├── GetById/
 │   │   │       └── GetPublished/
 │   │   │
-│   │   ├── Services/        # Service implementations
+│   │   ├── Services/        
 │   │   │   ├── BlobStorage/
 │   │   │   ├── PaymentService/
 │   │   │   └── TokenService/
 │   │   │
-│   │   └── Validators/      # FluentValidation validators
+│   │   └── Validators/      
 │   │       ├── Auth/
 │   │       │   └── LoginCommandValidator.cs
 │   │       ├── Categories/
@@ -173,30 +173,30 @@ VictoryCenter-Back/
 │   │       └── TeamMembers/
 │   │
 │   ├── VictoryCenter.DAL/
-│   │   ├── Data/           # Database context and entity configuration
-│   │   │   ├── EntityTypeConfigurations/   # EF Core entity configurations
+│   │   ├── Data/           
+│   │   │   ├── EntityTypeConfigurations/   
 │   │   │   │   └── CategoryConfig.cs
 │   │   │   │   └── ImageConfig.cs
 │   │   │   │   └── TeamMemberConfig.cs
 │   │   │   └── VictoryCenterDbContext.cs
 │   │   │
-│   │   ├── Entities/       # Database entity classes
+│   │   ├── Entities/       
 │   │   │   └── Admin.cs
 │   │   │   └── Category.cs
 │   │   │   └── Image.cs
 │   │   │   └── TeamMember.cs
 │   │   │
-│   │   ├── Enums/          # Enum definitions
+│   │   ├── Enums/          
 │   │   │   └── Status.cs
 │   │   │
-│   │   ├── Migrations/     # EF Core migrations
+│   │   ├── Migrations/     
 │   │   │   └── .editorconfig
 │   │   │   └── 20250523215616_InitialMigration.Designer.cs
 │   │   │   └── 20250523215616_InitialMigration.cs
 │   │   │   └── ........................................
 │   │   │   └── VictoryCenterDbContextModelSnapshot.cs
 │   │   │
-│   │   └── Repositories/  # Repository interfaces and implementations
+│   │   └── Repositories/  
 │   │       ├── Interfaces/
 │   │       │   ├── Base/
 │   │       │   │   └── IRepositoryBase.cs
@@ -217,7 +217,7 @@ VictoryCenter-Back/
 │   │           └── TeamMembers/
 │   │   
 │   ├── VictoryCenter.IntegrationTests/
-│   │   ├── ControllerTests/     # Tests for API controllers
+│   │   ├── ControllerTests/     
 │   │   │   ├── Auth/
 │   │   │   │   └── AuthControllerTests.cs
 │   │   │   ├── Base/
@@ -244,9 +244,9 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetFiltered/
 │   │   │   │   ├── Reorder/
 │   │   │   │   └── Update/
-│   │   ├── MiddlewareTests/     # Tests for middleware behavior
+│   │   ├── MiddlewareTests/     
 │   │   ├── TestData/           
-│   │   └── Utils/               # Test utilities
+│   │   └── Utils/               
 │   │       ├── Seeder/
 │   │       │   ├── CategoriesSeeder/
 │   │       │   ├── ImageSeeder/
@@ -259,19 +259,19 @@ VictoryCenter-Back/
 │   ├── VictoryCenter.UnitTests/
 │   │   ├── Configuration/
 │   │   │   └── DbContextMock.cs
-│   │   ├── FactoriesTests/     # Tests for factories
+│   │   ├── FactoriesTests/     
 │   │   │   ├── PaymentFactory/
 │   │   │   └── CustomProblemDetailsFactoryTests.cs
-│   │   ├── MediatRHandlersTests/   # Unit tests for MediatR handlers
+│   │   ├── MediatRHandlersTests/   
 │   │   │   ├── Auth/
 │   │   │   ├── Categories/
 │   │   │   ├── Images/
 │   │   │   ├── Payment/
 │   │   │   └── TeamMembers/
-│   │   ├── MiddlewareTests/    # Unit tests for middleware
-│   │   ├── ServiceTests/       # Unit tests for services
-│   │   ├── TestData/           # Test data for unit tests
-│   │   └── ValidatorsTests/    # Unit tests for FluentValidators
+│   │   ├── MiddlewareTests/    
+│   │   ├── ServiceTests/       
+│   │   ├── TestData/           
+│   │   └── ValidatorsTests/    
 │   │       ├── Auth/
 │   │       ├── Categories/
 │   │       ├── Payment/
@@ -304,7 +304,6 @@ VictoryCenter-Back/
 environmental variables
 ```shell
 DB_CONNECTION_STRING="<DB_CONNECTION_STRING>"
-INTEGRATION_TESTS_DB_CONNECTION_STRING="<INTEGRATION_TESTS_DB_CONNECTION_STRING>"
 INITIAL_ADMIN_EMAIL="<INITIAL_ADMIN_EMAIL>"
 INITIAL_ADMIN_PASSWORD="<INITIAL_ADMIN_PASSWORD>"
 JWTOPTIONS_SECRETKEY="<JWT_ACCESS_SECRET>"
@@ -315,31 +314,13 @@ WAY4PAY_MERCHANT_SECRET_KEY="<WAY4PAY_MERCHANT_SECRET_KEY>"
 WAY4PAY_MERCHANT_DOMAIN_NAME="<WAY4PAY_MERCHANT_DOMAIN_NAME>"
 WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ```
-```properties
+
 
 ### Clone
 
 - Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO`
 
 ### Setup
-
-- If you want more syntax highlighting, format your code like this:
-
-> update and install this package first
-
-```shell
-$ brew update
-$ brew install SOMEREPOproductions
-```
-
-> now install npm and bower packages
-
-```shell
-$ npm install
-$ bower install
-```
-
-- For all the possible languages that support syntax highlithing on GitHub (which is basically all of them), refer <a href="https://github.com/github/linguist/blob/master/lib/linguist/languages.yml" target="_blank">here</a>.
 
 ### How to run local
 ### How to connect to db locally
