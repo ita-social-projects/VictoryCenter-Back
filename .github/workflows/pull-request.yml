@@ -73,6 +73,10 @@ jobs:
       run: docker stop nginx certbot frontend backend 
     - name: Delete additon info
       run: docker system prune -f
+    - name: Set docker tag
+      run: echo "DOCKER_TAG_BACKEND=${GITHUB_REF##*/}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+    - name: Check value
+      run: echo "$DOCKER_TAG_BACKEND"
     - name: Set up enviroments and Deploy
       env:
         INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
@@ -80,7 +84,7 @@ jobs:
         JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
         JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
         DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
-        DOCKER_TAG_BACKEND: ${GITHUB_REF##*/}.${RUN_NUM}
+        DOCKER_TAG_BACKEND: $DOCKER_TAG_BACKEND
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
         WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
