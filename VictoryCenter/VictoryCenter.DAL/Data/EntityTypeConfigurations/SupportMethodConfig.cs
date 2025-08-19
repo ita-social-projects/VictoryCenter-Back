@@ -8,11 +8,10 @@ public class SupportMethodConfig : IEntityTypeConfiguration<SupportMethod>
 {
     public void Configure(EntityTypeBuilder<SupportMethod> entity)
     {
-        entity
-            .HasMany(e => e.AdditionalFields)
-            .WithOne()
-            .HasForeignKey(e => e.SupportMethodId)
-            .OnDelete(DeleteBehavior.Cascade)
+        entity.Property(e => e.Currency)
+            .IsRequired();
+
+        entity.Property(e => e.CreatedAt)
             .IsRequired();
     }
 }

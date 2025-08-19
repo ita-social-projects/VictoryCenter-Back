@@ -26,19 +26,5 @@ public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDeta
 
         entity.Property(e => e.Address)
             .HasMaxLength(200);
-
-        entity
-            .HasMany(e => e.CorrespondentBanks)
-            .WithOne()
-            .HasForeignKey(e => e.ForeignBankDetailsId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired();
-
-        entity
-            .HasMany(e => e.AdditionalFields)
-            .WithOne()
-            .HasForeignKey(e => e.ForeignBankDetailsId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired();
     }
 }

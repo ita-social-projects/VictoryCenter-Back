@@ -27,12 +27,5 @@ public class UahBankDetailsConfig : IEntityTypeConfiguration<UahBankDetails>
         entity.Property(e => e.PaymentPurpose)
             .HasMaxLength(500)
             .IsRequired();
-
-        entity
-            .HasMany(e => e.AdditionalFields)
-            .WithOne()
-            .HasForeignKey(e => e.UahBankDetailsId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired();
     }
 }

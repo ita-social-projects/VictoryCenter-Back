@@ -1,6 +1,6 @@
 ﻿namespace VictoryCenter.DAL.Entities;
 
-public class BankDetailsBase
+public abstract class BankDetailsBase
 {
     public long Id { get; set; }
     public required string BankName { get; set; }

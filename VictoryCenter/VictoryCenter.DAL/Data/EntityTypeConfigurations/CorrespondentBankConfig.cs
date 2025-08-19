@@ -18,9 +18,10 @@ public class CorrespondentBankConfig : IEntityTypeConfiguration<CorrespondentBan
             .HasMaxLength(20);
 
         entity
-            .HasOne<ForeignBankDetails>()
+            .HasOne(e => e.ForeignBankDetails)
             .WithMany(e => e.CorrespondentBanks)
-            .HasForeignKey(e => e.ForeignBankDetails)
-            .IsRequired();
+            .HasForeignKey(e => e.ForeignBankDetailsId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

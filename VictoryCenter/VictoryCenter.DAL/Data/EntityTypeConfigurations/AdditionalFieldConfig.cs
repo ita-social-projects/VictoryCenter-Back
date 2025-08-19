@@ -15,18 +15,24 @@ public class AdditionalFieldConfig : IEntityTypeConfiguration<AdditionalField>
             .HasMaxLength(100);
 
         entity
-            .HasOne<UahBankDetails>()
+            .HasOne(e => e.UahBankDetails)
             .WithMany(e => e.AdditionalFields)
-            .HasForeignKey(e => e.UahBankDetailsId);
+            .HasForeignKey(e => e.UahBankDetailsId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity
-            .HasOne<ForeignBankDetails>()
+            .HasOne(e => e.ForeignBankDetails)
             .WithMany(e => e.AdditionalFields)
-            .HasForeignKey(e => e.ForeignBankDetailsId);
+            .HasForeignKey(e => e.ForeignBankDetailsId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity
-            .HasOne<SupportMethod>()
+            .HasOne(e => e.SupportMethod)
             .WithMany(e => e.AdditionalFields)
-            .HasForeignKey(e => e.SupportMethodId);
+            .HasForeignKey(e => e.SupportMethodId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
