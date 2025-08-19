@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -59,10 +60,11 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEqual(teamMemberDtoListOld.Count, result.Value.Count),
-            () => Assert.NotEqual(teamMemberDtoListOld, result.Value),
-            () => Assert.Equal(teamMemberDtoList.Count, result.Value.Count),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEqual(teamMemberDtoListOld.Count, result.Value.Items.Length),
+            () => Assert.NotEqual(teamMemberDtoListOld, result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList.Count, result.Value.Items.Length),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     [Fact]
@@ -95,8 +97,9 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     [Fact]
@@ -130,8 +133,9 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     [Fact]
@@ -166,8 +170,9 @@ public class GetTeamMembers
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     private static List<TeamMember> GetTeamMemberList()
@@ -268,6 +273,8 @@ public class GetTeamMembers
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.GetAllAsync(
              It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMembers);
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.CountAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .ReturnsAsync(teamMembers.Count);
     }
 
     private void SetupMapper(List<TeamMemberDto> teamMemberDTOList)

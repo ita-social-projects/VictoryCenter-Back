@@ -3,6 +3,7 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -13,7 +14,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 
-public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFiltersQuery, Result<List<TeamMemberDto>>>
+public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFiltersQuery, Result<PaginationResult<TeamMemberDto>>>
 {
     private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
@@ -26,7 +27,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
         _blobService = blobService;
     }
 
-    public async Task<Result<List<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
         Status? status = request.TeamMembersFilter.Status;
         var categoryId = request.TeamMembersFilter.CategoryId;
@@ -44,6 +45,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions.Filter);
 
         IEnumerable<Task> imageLoadTasks = teamMembersDto.Where(member => member.Image is not null)
             .Select(async member =>
@@ -59,6 +61,6 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             });
         await Task.WhenAll(imageLoadTasks);
 
-        return Result.Ok(teamMembersDto);
+        return Result.Ok(new PaginationResult<TeamMemberDto>([.. teamMembersDto], itemsTotalCount));
     }
 }
