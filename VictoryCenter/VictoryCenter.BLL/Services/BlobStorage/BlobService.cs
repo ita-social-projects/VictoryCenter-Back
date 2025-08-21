@@ -16,7 +16,14 @@ public class BlobService : IBlobService
     {
         _blobEnv = environment.Value;
         _httpContextAccessor = httpContextAccessor;
-        Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
+        }
+        catch (Exception ex)
+        {
+            throw new BlobFileSystemException(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath), ImageConstants.FailToCreateDirectory, ex);
+        }
     }
 
     public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
