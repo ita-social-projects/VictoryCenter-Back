@@ -109,6 +109,37 @@ public class UpdateImageTest : IAsyncLifetime
         Assert.Equal(response.StatusCode, HttpStatusCode.BadRequest);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task UpdateImage_InvalidBase64_ShouldReturnBadRequest(string invalidBase64)
+    {
+        var testImage = new Image()
+        {
+            Id = 1100,
+            MimeType = "image/png",
+            BlobName = "test123",
+            CreatedAt = DateTime.Now
+        };
+        _fixture.DbContext.Images.Add(testImage);
+
+        var updateImageDto = new UpdateImageDTO
+        {
+            Base64 = invalidBase64,
+            MimeType = "image/png"
+        };
+
+        var serializedDto = JsonSerializer.Serialize(updateImageDto);
+
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync(
+            $"api/image/{testImage.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private static string ComputeFileHash(string filePath)
     {
         using var sha256 = SHA256.Create();

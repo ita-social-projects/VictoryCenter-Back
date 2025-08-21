@@ -81,5 +81,49 @@ public class CreateImageTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("image/jpeg")]
+    [InlineData("image/jpg")]
+    [InlineData("image/png")]
+    [InlineData("image/webp")]
+    public async Task CreateImage_DifferentMimeTypes_ShouldCreateImageWithCorrectExtension(string mimeType)
+    {
+        var createImageDto = new CreateImageDTO
+        {
+            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
+            MimeType = mimeType
+        };
 
+        var serializedDto = JsonSerializer.Serialize(createImageDto);
+        HttpResponseMessage response = await _fixture.HttpClient.PostAsync(
+            "api/Image",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.NotNull(responseContext);
+        Assert.Equal(mimeType, responseContext.MimeType);
+
+        // Перевіряємо що файл створено з правильним розширенням
+        string expectedExtension = GetExtensionFromMimeType(mimeType);
+        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.FullPath, $"{responseContext.BlobName}.{expectedExtension}");
+        Assert.True(File.Exists(filePath));
+
+        // Перевіряємо що URL містить правильне розширення
+        Assert.Contains($".{expectedExtension}", responseContext.Url);
+    }
+
+    private static string GetExtensionFromMimeType(string mimeType)
+    {
+        return mimeType.ToLower() switch
+        {
+            "image/jpeg" => "jpg",
+            "image/jpg" => "jpg",
+            "image/png" => "png",
+            "image/webp" => "webp",
+            _ => "jpg"
+        };
+    }
 }

@@ -55,4 +55,36 @@ public class GetImageByNameTest : IAsyncLifetime
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public async Task GetImageByName_EmptyOrWhitespaceName_ShouldReturnNotFound(string invalidName)
+    {
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/by-name/{Uri.EscapeDataString(invalidName)}");
+
+        Assert.False(response.IsSuccessStatusCode);
+
+        Assert.True(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetImageByName_ImageWithEmptyBlobName_ShouldReturnError()
+    {
+        var imageWithEmptyBlobName = new Image
+        {
+            BlobName = "",
+            MimeType = "image/png",
+            Url = "http://test.com/empty.png",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _fixture.DbContext.Images.Add(imageWithEmptyBlobName);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/by-name/");
+
+        Assert.False(response.IsSuccessStatusCode);
+    }
 }
