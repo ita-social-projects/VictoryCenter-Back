@@ -131,10 +131,8 @@ public class BlobServiceTests : IDisposable
     [Fact]
     public async Task SaveFileInStorage_InvalidBase64_ShouldThrowInvalidBase64FormatException()
     {
-        // Arrange
         var invalidBase64 = "ab#";
 
-        // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidBase64FormatException>(
             () => _blobService.SaveFileInStorageAsync(invalidBase64, _fileName, _mimeType));
 
