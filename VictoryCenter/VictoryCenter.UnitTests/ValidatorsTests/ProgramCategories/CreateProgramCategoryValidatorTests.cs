@@ -19,7 +19,7 @@ public class CreateProgramCategoryValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Validate_ShouldHaveError_When_Name_IsNotValid(string? name)
+    public void Validate_ShouldHaveError_WhenNameIsNotValid(string? name)
     {
         var command = new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = name });
         TestValidationResult<CreateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
@@ -32,7 +32,7 @@ public class CreateProgramCategoryValidatorTests
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
-    public void Validate_ShouldHaveError_When_Name_IsTooShort(int nameLength)
+    public void Validate_ShouldHaveError_WhenNameIsTooShort(int nameLength)
     {
         var name = new string('a', nameLength);
         var command = new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = name });
@@ -43,9 +43,9 @@ public class CreateProgramCategoryValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_When_Name_IsTooLong()
+    public void Validate_ShouldHaveError_WhenNameIsTooLong()
     {
-        var name = new string('a', 21);
+        var name = new string('a', ProgramCategoryConstants.MaxNameLength + 1);
         var command = new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = name });
         TestValidationResult<CreateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.programCategoryDto.Name)
@@ -54,7 +54,7 @@ public class CreateProgramCategoryValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_When_Name_IsValid()
+    public void Validate_ShouldNotHaveError_WhenNameIsValid()
     {
         var command = new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = "Valid Name" });
         TestValidationResult<CreateProgramCategoryCommand> result = _validatorTests.TestValidate(command);

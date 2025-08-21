@@ -13,20 +13,20 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Programs.GetByFilters;
 
-public class GetByFiltersHandler : IRequestHandler<GetByFiltersQuery, Result<ProgramsFilterResponseDto>>
+public class GetProgramsByFiltersHandler : IRequestHandler<GetProgramsByFiltersQuery, Result<ProgramsFilterResponseDto>>
 {
     private readonly IMapper _mapper;
     private readonly IBlobService _blobService;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetByFiltersHandler(IMapper mapper, IBlobService blobService, IRepositoryWrapper repositoryWrapper)
+    public GetProgramsByFiltersHandler(IMapper mapper, IBlobService blobService, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _blobService = blobService;
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<ProgramsFilterResponseDto>> Handle(GetByFiltersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ProgramsFilterResponseDto>> Handle(GetProgramsByFiltersQuery request, CancellationToken cancellationToken)
     {
         Status? status = request.RequestDto?.Status;
         List<long>? programCategories = request.RequestDto?.CategoryId;

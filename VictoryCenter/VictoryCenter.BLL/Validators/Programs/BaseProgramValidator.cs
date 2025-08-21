@@ -11,31 +11,31 @@ public class BaseProgramValidator : AbstractValidator<CreateProgramDto>
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Name)))
             .MaximumLength(ProgramConstants.MaxNameLength)
             .WithMessage(
-                ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Name", ProgramConstants.MaxNameLength))
+                ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ProgramDto.Name), ProgramConstants.MaxNameLength))
             .MinimumLength(ProgramConstants.MinNameLength)
             .WithMessage(
-                ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Name", ProgramConstants.MinNameLength));
+                ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ProgramDto.Name), ProgramConstants.MinNameLength));
 
         RuleFor(x => x.Description)
             .MaximumLength(ProgramConstants.MaxDescriptionLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters("Description", ProgramConstants.MaxDescriptionLength))
+                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ProgramDto.Description), ProgramConstants.MaxDescriptionLength))
             .MinimumLength(ProgramConstants.MinDescriptionLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters("Description", ProgramConstants.MinDescriptionLength));
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ProgramDto.Description), ProgramConstants.MinDescriptionLength));
 
         RuleFor(x => x.Description)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Description"))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Description)))
             .When(x => x.Status == Status.Published);
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage(ProgramConstants.UnknownStatus);
 
         RuleFor(x => x.CategoriesId)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired("Categories-list"));
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Categories)));
     }
 }

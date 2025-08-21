@@ -4,4 +4,4 @@ using VictoryCenter.BLL.DTOs.Programs;
 
 namespace VictoryCenter.BLL.Queries.Programs.GetByFilters;
 
-public record GetByFiltersQuery(ProgramFilterRequestDto? RequestDto) : IRequest<Result<ProgramsFilterResponseDto>>;
+public record GetProgramsByFiltersQuery(ProgramFilterRequestDto? RequestDto) : IRequest<Result<ProgramsFilterResponseDto>>;

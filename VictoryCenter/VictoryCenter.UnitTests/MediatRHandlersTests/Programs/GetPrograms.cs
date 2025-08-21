@@ -129,7 +129,7 @@ public class GetPrograms
 
         SetUpDependencies(programResponseDto, programEntities);
 
-        var handler = new GetByFiltersHandler(_mockMapper.Object, _blobService.Object,  _repositoryWrapper.Object);
+        var handler = new GetProgramsByFiltersHandler(_mockMapper.Object, _blobService.Object,  _repositoryWrapper.Object);
 
         ProgramFilterRequestDto requestDto = new()
         {
@@ -140,7 +140,7 @@ public class GetPrograms
         };
 
         var result = await handler
-            .Handle(new GetByFiltersQuery(requestDto), CancellationToken.None);
+            .Handle(new GetProgramsByFiltersQuery(requestDto), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -164,8 +164,8 @@ public class GetPrograms
             CategoryId = null
         };
 
-        var handler = new GetByFiltersHandler(_mockMapper.Object, _blobService.Object,  _repositoryWrapper.Object);
-        var result = await handler.Handle(new GetByFiltersQuery(requestDto), CancellationToken.None);
+        var handler = new GetProgramsByFiltersHandler(_mockMapper.Object, _blobService.Object,  _repositoryWrapper.Object);
+        var result = await handler.Handle(new GetProgramsByFiltersQuery(requestDto), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);

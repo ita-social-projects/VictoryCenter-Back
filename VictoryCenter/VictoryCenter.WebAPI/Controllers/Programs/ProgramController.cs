@@ -15,7 +15,7 @@ public class ProgramController : BaseApiController
     [HttpGet]
     public async Task<IActionResult> GetFilteredPrograms([FromQuery] ProgramFilterRequestDto requestDto)
     {
-        return HandleResult(await Mediator.Send(new GetByFiltersQuery(requestDto)));
+        return HandleResult(await Mediator.Send(new GetProgramsByFiltersQuery(requestDto)));
     }
 
     [HttpPost]

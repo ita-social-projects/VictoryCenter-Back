@@ -18,7 +18,7 @@ public class UpdateProgramCategoryValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Validate_ShouldHaveError_When_Name_IsNotValid(string? name)
+    public void Validate_ShouldHaveError_WhenNameIsNotValid(string? name)
     {
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
@@ -31,7 +31,7 @@ public class UpdateProgramCategoryValidatorTests
     [InlineData(2)]
     [InlineData(3)]
     [InlineData(4)]
-    public void Validate_ShouldHaveError_When_Name_IsTooShort(int nameLength)
+    public void Validate_ShouldHaveError_WhenNameIsTooShort(int nameLength)
     {
         var name = new string('a', nameLength);
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
@@ -42,9 +42,9 @@ public class UpdateProgramCategoryValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_When_Name_IsTooLong()
+    public void Validate_ShouldHaveError_WhenNameIsTooLong()
     {
-        var name = new string('a', 21);
+        var name = new string('a', ProgramCategoryConstants.MaxNameLength + 1);
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
         result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
@@ -53,7 +53,7 @@ public class UpdateProgramCategoryValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_When_Name_IsValid()
+    public void Validate_ShouldNotHaveError_WhenNameIsValid()
     {
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = "Valid Name" }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
