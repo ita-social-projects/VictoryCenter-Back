@@ -182,7 +182,10 @@ public class BlobServiceTests : IDisposable
         }
         finally
         {
-            File.SetAttributes(filePath, FileAttributes.Normal);
+            if (File.Exists(filePath))
+            {
+                File.SetAttributes(filePath, FileAttributes.Normal);
+            }
         }
     }
 
