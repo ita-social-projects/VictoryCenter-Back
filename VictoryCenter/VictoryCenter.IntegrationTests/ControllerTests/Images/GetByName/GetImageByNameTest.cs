@@ -66,7 +66,7 @@ public class GetImageByNameTest : IAsyncLifetime
 
         Assert.False(response.IsSuccessStatusCode);
 
-        Assert.True(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.BadRequest);
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest);
     }
 
     [Fact]
@@ -86,5 +86,6 @@ public class GetImageByNameTest : IAsyncLifetime
         HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/by-name/");
 
         Assert.False(response.IsSuccessStatusCode);
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest);
     }
 }

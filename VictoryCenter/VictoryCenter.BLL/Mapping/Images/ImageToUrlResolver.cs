@@ -1,7 +1,5 @@
 ﻿using AutoMapper;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 
@@ -17,13 +15,6 @@ public class BlobToUrlResolver : IValueResolver<Image, ImageDTO, string>
 
     public string Resolve(Image source, ImageDTO destination, string destMember, ResolutionContext context)
     {
-        try
-        {
             return _blobService.GetFileUrl(source.BlobName, source.MimeType);
-        }
-        catch (Exception e)
-        {
-            throw new ImageProcessingException(ImageConstants.UnexpectedBlobReadError, e.Message);
-        }
     }
 }

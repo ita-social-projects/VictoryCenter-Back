@@ -51,17 +51,24 @@ public class BlobService : IBlobService
     {
         ValidateFileName(name);
 
-        var extension = GetExtensionFromMimeType(mimeType);
-        var fileName = $"{name}.{extension}";
-        HttpRequest? request = _httpContextAccessor.HttpContext?.Request;
-
-        if (request == null)
+        try
         {
-            throw new BlobFileSystemException(_blobEnv.FullPath, ImageConstants.HttpContextIsNotAvailable);
-        }
+            var extension = GetExtensionFromMimeType(mimeType);
+            var fileName = $"{name}.{extension}";
+            HttpRequest? request = _httpContextAccessor.HttpContext?.Request;
 
-        var baseUrl = $"{request.Scheme}://{request.Host}";
-        return $"{baseUrl}/{_blobEnv.ImagesSubPath}/{fileName}";
+            if (request == null)
+            {
+                throw new BlobFileSystemException(_blobEnv.FullPath, ImageConstants.HttpContextIsNotAvailable);
+            }
+
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            return $"{baseUrl}/{_blobEnv.ImagesSubPath}/{fileName}";
+        }
+        catch (Exception ex) when (ex is not BlobStorageException)
+        {
+            throw new ImageProcessingException(_blobEnv.FullPath, ex.Message, ex);
+        }
     }
 
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)

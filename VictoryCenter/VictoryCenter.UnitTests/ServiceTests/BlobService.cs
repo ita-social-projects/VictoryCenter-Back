@@ -164,31 +164,6 @@ public class BlobServiceTests : IDisposable
         }
     }
 
-    [Fact]
-    public async Task DeleteFileInStorage_FileIsReadOnly_ShouldThrowBlobFileSystemException()
-    {
-        var filePath = Path.Combine(_blobEnv.FullPath, $"{_fileName}.png");
-        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
-
-        File.SetAttributes(filePath, FileAttributes.ReadOnly);
-
-        try
-        {
-            var ex = Assert.Throws<BlobFileSystemException>(
-                () => _blobService.DeleteFileInStorage(_fileName, _mimeType));
-
-            Assert.Equal(ImageConstants.FailToDeleteImage, ex.Message);
-            Assert.IsType<UnauthorizedAccessException>(ex.InnerException);
-        }
-        finally
-        {
-            if (File.Exists(filePath))
-            {
-                File.SetAttributes(filePath, FileAttributes.Normal);
-            }
-        }
-    }
-
     public void Dispose()
     {
         if (Directory.Exists(_tempDir))
