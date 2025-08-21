@@ -57,7 +57,7 @@ public class BlobService : IBlobService
 
         if (request == null)
         {
-            throw new InvalidOperationException("HttpContext is not available.");
+            throw new BlobFileSystemException(_blobEnv.FullPath, ImageConstants.HttpContextIsNotAvailable);
         }
 
         var baseUrl = $"{request.Scheme}://{request.Host}";
@@ -176,7 +176,7 @@ public class BlobService : IBlobService
             || name.Contains("..")
             || Path.GetInvalidFileNameChars().Any(name.Contains))
         {
-            throw new BlobFileNameException(name, ImageConstants.CantGetFile(name));
+            throw new BlobFileNameException(name, ImageConstants.WrongFileName(name));
         }
     }
 }

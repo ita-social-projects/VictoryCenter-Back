@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Mapping.Images.ImageResolver;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.Images;

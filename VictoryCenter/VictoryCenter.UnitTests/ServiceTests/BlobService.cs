@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.BlobStorage;
 
 namespace VictoryCenter.UnitTests.ServiceTests;
@@ -16,6 +18,7 @@ public class BlobServiceTests : IDisposable
     private readonly string _mimeType = "image/png";
     private readonly string _fileName = "testfile";
     private readonly Mock<IHttpContextAccessor> _mockHttpContext;
+    private readonly BlobEnvironmentVariables _blobEnv;
 
     public BlobServiceTests()
     {
@@ -26,6 +29,7 @@ public class BlobServiceTests : IDisposable
             RootPath = _tempDir,
             ImagesSubPath = _subDir
         };
+        _blobEnv = env;
         _mockHttpContext = new Mock<IHttpContextAccessor>();
 
         _blobService = new BlobService(Options.Create(env), _mockHttpContext.Object);
@@ -41,6 +45,18 @@ public class BlobServiceTests : IDisposable
         var encryptedContent = File.ReadAllBytes(filePath);
         var originalContent = Convert.FromBase64String(_base64);
         Assert.Equal(originalContent, encryptedContent);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("image...png")]
+    public async Task SaveFileInStorage_WrongFileName_ShouldThrowException(string fileName)
+    {
+        var ex = await Assert.ThrowsAsync<BlobFileNameException>(
+            () => _blobService.SaveFileInStorageAsync(_base64, fileName, _mimeType));
+
+        Assert.Contains(fileName, ex.Message);
     }
 
     [Fact]
@@ -71,6 +87,20 @@ public class BlobServiceTests : IDisposable
     }
 
     [Fact]
+    public void GetFileUrl_InvalidHttpPath_ShouldThrowException()
+    {
+        var httpContextMock = new Mock<HttpContext>();
+        httpContextMock.Setup(c => c.Request).Returns((HttpRequest)null);
+        _mockHttpContext.Setup(h => h.HttpContext).Returns(httpContextMock.Object);
+
+        var blobName = "image123";
+        var mimeType = "image/png";
+
+        Assert.Throws<BlobFileSystemException>(() =>
+            _blobService.GetFileUrl(blobName, mimeType));
+    }
+
+    [Fact]
     public async Task UpdateFileInStorage_ShouldReplaceFile()
     {
         await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
@@ -98,11 +128,77 @@ public class BlobServiceTests : IDisposable
             Assert.Null(exception);
         }
 
+    [Fact]
+    public async Task SaveFileInStorage_InvalidBase64_ShouldThrowInvalidBase64FormatException()
+    {
+        // Arrange
+        var invalidBase64 = "ab#";
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidBase64FormatException>(
+            () => _blobService.SaveFileInStorageAsync(invalidBase64, _fileName, _mimeType));
+
+        Assert.Equal(ImageConstants.InvalidBase64String, ex.Message);
+    }
+
+    [Fact]
+    public async Task FindFileInStorage_NonExistentFile_ShouldThrowBlobNotFoundException()
+    {
+        var ex = await Assert.ThrowsAsync<BlobNotFoundException>(
+            () => _blobService.FindFileInStorageAsMemoryStreamAsync("nonexistent", _mimeType));
+
+        Assert.Contains("nonexistent", ex.Message);
+    }
+
+    [Fact]
+    public async Task FindFileInStorage_FileIsLocked_ShouldThrowImageProcessingException()
+    {
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{_fileName}.png");
+        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
+
+        using (File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+        {
+            var ex = await Assert.ThrowsAsync<ImageProcessingException>(
+                () => _blobService.FindFileInStorageAsMemoryStreamAsync(_fileName, _mimeType));
+
+            Assert.Equal(ImageConstants.FailedToReadImage, ex.Message);
+            Assert.IsType<IOException>(ex.InnerException);
+        }
+    }
+
+    [Fact]
+    public async Task DeleteFileInStorage_FileIsReadOnly_ShouldThrowBlobFileSystemException()
+    {
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{_fileName}.png");
+        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
+
+        File.SetAttributes(filePath, FileAttributes.ReadOnly);
+
+        try
+        {
+            var ex = Assert.Throws<BlobFileSystemException>(
+                () => _blobService.DeleteFileInStorage(_fileName, _mimeType));
+
+            Assert.Equal(ImageConstants.FailToDeleteImage, ex.Message);
+            Assert.IsType<UnauthorizedAccessException>(ex.InnerException);
+        }
+        finally
+        {
+            File.SetAttributes(filePath, FileAttributes.Normal);
+        }
+    }
+
     public void Dispose()
     {
         if (Directory.Exists(_tempDir))
         {
-            Directory.Delete(_tempDir, true);
+            var directory = new DirectoryInfo(_tempDir) { Attributes = FileAttributes.Normal };
+            foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+            {
+                info.Attributes = FileAttributes.Normal;
+            }
+
+            directory.Delete(true);
         }
     }
 }
