@@ -95,6 +95,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return await projected.DefaultIfEmpty().MaxAsync();
     }
 
+    public Task<long> CountAsync(Expression<Func<T, bool>> filter)
+    {
+        return _dbContext.Set<T>().LongCountAsync(filter);
+    }
+
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
     {
         return filter is not null ? query.Where(filter) : query;

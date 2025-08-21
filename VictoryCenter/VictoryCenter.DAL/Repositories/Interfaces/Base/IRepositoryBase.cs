@@ -21,4 +21,6 @@ public interface IRepositoryBase<T>
 
     Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
         where TKey : struct;
+
+    Task<long> CountAsync(Expression<Func<T, bool>> filter);
 }
