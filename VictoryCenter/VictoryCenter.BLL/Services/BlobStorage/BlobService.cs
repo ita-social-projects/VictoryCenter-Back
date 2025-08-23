@@ -12,6 +12,15 @@ public class BlobService : IBlobService
     private readonly BlobEnvironmentVariables _blobEnv;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BlobService"/> class.
+    /// Ensures that the storage directory exists during initialization.
+    /// </summary>
+    /// <param name="environment">Configuration settings for the blob storage.</param>
+    /// <param name="httpContextAccessor">Provides access to <see cref="HttpContext"/> for building absolute URLs.</param>
+    /// <exception cref="BlobFileSystemException">
+    /// Thrown if the local storage directory could not be created.
+    /// </exception>
     public BlobService(IOptions<BlobEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
         _blobEnv = environment.Value;
@@ -26,6 +35,25 @@ public class BlobService : IBlobService
         }
     }
 
+    /// <summary>
+    /// Saves a file into the blob storage from a Base64-encoded string.
+    /// </summary>
+    /// <param name="base64">The Base64 string representing the file.</param>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file (e.g., "image/png").</param>
+    /// <returns>The saved file name with extension.</returns>
+    /// <exception cref="BlobFileSystemException">
+    /// thrown if an unknown error related to the file system occurs
+    /// </exception>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
+    /// <exception cref="InvalidBase64FormatException">
+    /// Thrown if the Base64 string has an invalid format.
+    /// </exception>
+    /// <exception cref="ImageProcessingException">
+    /// thrown if there are problems saving the file to the storage.
+    /// </exception>
     public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
     {
         try
@@ -35,7 +63,6 @@ public class BlobService : IBlobService
             var imageBytes = ConvertBase64ToBytes(base64);
             var extension = GetExtensionFromMimeType(mimeType);
 
-            Directory.CreateDirectory(_blobEnv.FullPath);
             await CreateFileAsync(imageBytes, extension, name);
 
             return $"{name}.{extension}";
@@ -46,6 +73,21 @@ public class BlobService : IBlobService
         }
     }
 
+    /// <summary>
+    /// Retrieves a file from storage as a <see cref="MemoryStream"/>.
+    /// </summary>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file.</param>
+    /// <returns>A memory stream containing the file content.</returns>
+    /// <exception cref="BlobNotFoundException">
+    /// thrown if the file could not be found in the storage.
+    /// </exception>
+    /// /// <exception cref="ImageProcessingException">
+    /// thrown if there are problems retrieving the image from storage.
+    /// </exception>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
         ValidateFileName(name);
@@ -54,6 +96,21 @@ public class BlobService : IBlobService
         return new MemoryStream(decodedBytes);
     }
 
+    /// <summary>
+    /// Builds an absolute URL for accessing a stored file.
+    /// </summary>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file.</param>
+    /// <returns>The absolute URL of the file.</returns>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
+    /// <exception cref="BlobHttpContextException">
+    /// Thrown if <see cref="HttpContext"/> is not available.
+    /// </exception>
+    /// <exception cref="BlobFileSystemException">
+    /// Thrown if another error occurs while building the URL.
+    /// </exception>
     public string GetFileUrl(string name, string mimeType)
     {
         ValidateFileName(name);
@@ -66,7 +123,7 @@ public class BlobService : IBlobService
 
             if (request == null)
             {
-                throw new BlobFileSystemException(_blobEnv.FullPath, ImageConstants.HttpContextIsNotAvailable);
+                throw new BlobHttpContextException(ImageConstants.HttpContextIsNotAvailable);
             }
 
             var baseUrl = $"{request.Scheme}://{request.Host}";
@@ -74,18 +131,52 @@ public class BlobService : IBlobService
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new ImageProcessingException(_blobEnv.FullPath, ex.Message, ex);
+            throw new BlobFileSystemException(name, ex.Message, ex);
         }
     }
 
+    /// <summary>
+    /// Updates an existing file in storage.
+    /// Deletes the old file and saves a new one.
+    /// </summary>
+    /// <param name="previousBlobName">The previous file name.</param>
+    /// <param name="previousMimeType">The MIME type of the previous file.</param>
+    /// <param name="base64Format">The new file content as a Base64 string.</param>
+    /// <param name="newBlobName">The new file name.</param>
+    /// <param name="mimeType">The MIME type of the new file.</param>
+    /// <returns>New file name.</returns>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the new or previous file name is invalid.
+    /// </exception>
+    /// <exception cref="ImageProcessingException">
+    /// Thrown if an error occurs while updating the file.
+    /// </exception>
+    /// <exception cref="BlobFileSystemException">
+    /// thrown if an unknown error related to the file system occurs
+    /// </exception>
+    /// <exception cref="InvalidBase64FormatException">
+    /// Thrown if the Base64 string has an invalid format.
+    /// </exception>
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
         ValidateFileName(newBlobName);
+        ValidateFileName(previousBlobName);
         DeleteFileInStorage(previousBlobName, previousMimeType);
         await SaveFileInStorageAsync(base64Format, newBlobName, mimeType);
         return newBlobName;
     }
 
+    /// <summary>
+    /// Deletes a file from storage.
+    /// </summary>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file.</param>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
+    /// <exception cref="ImageProcessingException">
+    /// Thrown if an error occurs while deleting the file.
+    /// </exception>
     public void DeleteFileInStorage(string name, string mimeType)
     {
         ValidateFileName(name);
@@ -101,7 +192,7 @@ public class BlobService : IBlobService
         }
         catch (Exception ex)
         {
-            throw new BlobFileSystemException(filePath, ImageConstants.FailToDeleteImage, ex);
+            throw new ImageProcessingException(name, ImageConstants.FailToDeleteImage, ex);
         }
     }
 

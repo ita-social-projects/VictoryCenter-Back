@@ -96,7 +96,7 @@ public class BlobServiceTests : IDisposable
         var blobName = "image123";
         var mimeType = "image/png";
 
-        Assert.Throws<BlobFileSystemException>(() =>
+        Assert.Throws<BlobHttpContextException>(() =>
             _blobService.GetFileUrl(blobName, mimeType));
     }
 
