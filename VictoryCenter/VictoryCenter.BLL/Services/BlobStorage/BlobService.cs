@@ -43,7 +43,7 @@ public class BlobService : IBlobService
     /// <param name="mimeType">The MIME type of the file (e.g., "image/png").</param>
     /// <returns>The saved file name with extension.</returns>
     /// <exception cref="BlobFileSystemException">
-    /// thrown if an unknown error related to the file system occurs
+    /// Thrown if an unknown error related to the file system occurs.
     /// </exception>
     /// <exception cref="BlobFileNameException">
     /// Thrown if the file name is invalid.
@@ -52,7 +52,7 @@ public class BlobService : IBlobService
     /// Thrown if the Base64 string has an invalid format.
     /// </exception>
     /// <exception cref="ImageProcessingException">
-    /// thrown if there are problems saving the file to the storage.
+    /// Thrown if there are problems saving the file to the storage.
     /// </exception>
     public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
     {
@@ -80,7 +80,7 @@ public class BlobService : IBlobService
     /// <param name="mimeType">The MIME type of the file.</param>
     /// <returns>A memory stream containing the file content.</returns>
     /// <exception cref="BlobNotFoundException">
-    /// thrown if the file could not be found in the storage.
+    /// Thrown if the file could not be found in the storage.
     /// </exception>
     /// /// <exception cref="ImageProcessingException">
     /// thrown if there are problems retrieving the image from storage.
@@ -152,7 +152,7 @@ public class BlobService : IBlobService
     /// Thrown if an error occurs while updating the file.
     /// </exception>
     /// <exception cref="BlobFileSystemException">
-    /// thrown if an unknown error related to the file system occurs
+    /// Thrown if an unknown error related to the file system occurs.
     /// </exception>
     /// <exception cref="InvalidBase64FormatException">
     /// Thrown if the Base64 string has an invalid format.
@@ -168,6 +168,7 @@ public class BlobService : IBlobService
 
     /// <summary>
     /// Deletes a file from storage.
+    /// If the file does not exist, nothing happens.
     /// </summary>
     /// <param name="name">The file name without extension.</param>
     /// <param name="mimeType">The MIME type of the file.</param>
@@ -196,7 +197,7 @@ public class BlobService : IBlobService
         }
     }
 
-    private byte[] ConvertBase64ToBytes(string base64)
+    private static byte[] ConvertBase64ToBytes(string base64)
     {
         if (base64.Contains(','))
         {
@@ -226,7 +227,7 @@ public class BlobService : IBlobService
         }
     }
 
-    private string GetExtensionFromMimeType(string mimeType)
+    private static string GetExtensionFromMimeType(string mimeType)
     {
         return mimeType.ToLower() switch
         {
@@ -275,7 +276,7 @@ public class BlobService : IBlobService
         }
     }
 
-    private void ValidateFileName(string name)
+    private static void ValidateFileName(string name)
     {
         if (string.IsNullOrWhiteSpace(name)
             || name.Contains("..")
