@@ -61,7 +61,7 @@ namespace VictoryCenter.DAL.Migrations
                 {
                     table.PrimaryKey("PK_UahBankDetails", x => x.Id);
                 });
-            
+
             migrationBuilder.CreateTable(
                 name: "CorrespondentBanks",
                 columns: table => new
@@ -147,7 +147,7 @@ namespace VictoryCenter.DAL.Migrations
         {
             migrationBuilder.DropTable(
                 name: "AdditionalFields");
-            
+
             migrationBuilder.DropTable(
                 name: "CorrespondentBanks");
 

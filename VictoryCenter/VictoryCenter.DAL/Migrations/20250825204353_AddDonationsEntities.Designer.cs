@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250818161442_AddDonationsEntities")]
+    [Migration("20250825204353_AddDonationsEntities")]
     partial class AddDonationsEntities
     {
         /// <inheritdoc />

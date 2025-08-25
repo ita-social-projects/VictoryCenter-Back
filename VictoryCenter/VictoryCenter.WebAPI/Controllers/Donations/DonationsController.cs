@@ -1,11 +1,17 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using VictoryCenter.BLL.Commands.Donations.CreateForeign;
+using VictoryCenter.BLL.Commands.Donations.CreateUah;
+using VictoryCenter.BLL.DTOs.Donations.ForeignBank;
+using VictoryCenter.BLL.DTOs.Donations.UahBank;
 using VictoryCenter.BLL.Queries.Donations.GetAll;
 using VictoryCenter.BLL.Queries.Donations.GetByCurrency;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.WebAPI.Controllers.Donations;
 
+[Authorize]
 public class DonationsController : BaseApiController
 {
     [HttpGet]
@@ -28,5 +34,17 @@ public class DonationsController : BaseApiController
         }
 
         return HandleResult(await Mediator.Send(new GetByCurrencyQuery(parsed)));
+    }
+
+    [HttpPost("bank-details/uah")]
+    public async Task<ActionResult> CreateUahBankDetails([FromBody] CreateUahBankDetailsDto request)
+    {
+        return HandleResult(await Mediator.Send(new CreateUahBankDetailsCommand(request)));
+    }
+
+    [HttpPost("bank-details/foreign")]
+    public async Task<ActionResult> CreateForeignBankDetails([FromBody] CreateForeignBankDetailsDto request)
+    {
+        return HandleResult(await Mediator.Send(new CreateForeignBankDetailsCommand(request)));
     }
 }

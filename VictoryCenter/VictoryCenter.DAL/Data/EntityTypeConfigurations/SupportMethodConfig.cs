@@ -8,6 +8,11 @@ public class SupportMethodConfig : IEntityTypeConfiguration<SupportMethod>
 {
     public void Configure(EntityTypeBuilder<SupportMethod> entity)
     {
+        entity.HasKey(e => e.Id);
+
+        entity.Property(e => e.Id)
+            .ValueGeneratedOnAdd();
+
         entity.Property(e => e.Currency)
             .IsRequired();
 

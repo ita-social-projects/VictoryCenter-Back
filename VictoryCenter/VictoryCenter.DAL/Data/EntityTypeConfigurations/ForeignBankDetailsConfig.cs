@@ -8,6 +8,11 @@ public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDeta
 {
     public void Configure(EntityTypeBuilder<ForeignBankDetails> entity)
     {
+        entity.HasKey(e => e.Id);
+
+        entity.Property(e => e.Id)
+            .ValueGeneratedOnAdd();
+
         entity.Property(e => e.BankName)
             .HasMaxLength(200)
             .IsRequired();

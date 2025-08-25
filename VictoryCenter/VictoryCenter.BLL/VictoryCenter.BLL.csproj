@@ -24,8 +24,4 @@
       <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="DTOs\Donations\UahBank\" />
-    </ItemGroup>
-
 </Project>

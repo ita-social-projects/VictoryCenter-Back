@@ -8,6 +8,11 @@ public class CorrespondentBankConfig : IEntityTypeConfiguration<CorrespondentBan
 {
     public void Configure(EntityTypeBuilder<CorrespondentBank> entity)
     {
+        entity.HasKey(e => e.Id);
+
+        entity.Property(e => e.Id)
+            .ValueGeneratedOnAdd();
+
         entity.Property(e => e.BankName)
             .HasMaxLength(200);
 
