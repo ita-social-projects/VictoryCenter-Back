@@ -1,10 +1,11 @@
-﻿using AutoMapper;
+﻿using System.Transactions;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -34,7 +35,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             var fileName = Guid.NewGuid().ToString().Replace("-", "");
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
 
             Image image = _mapper.Map<Image>(request.CreateImageDto);
             image.BlobName = fileName;
@@ -49,8 +50,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
 
-            createdImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(createdImage.BlobName, createdImage.MimeType);
-            var response = _mapper.Map<ImageDTO>(createdImage);
+            ImageDTO? response = _mapper.Map<ImageDTO>(createdImage);
 
             transaction.Complete();
 

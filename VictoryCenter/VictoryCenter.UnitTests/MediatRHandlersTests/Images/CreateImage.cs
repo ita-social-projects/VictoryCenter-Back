@@ -1,24 +1,24 @@
 ﻿using System.Transactions;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Images.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.BLL.Validators.Images;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
 public class CreateImageHandlerTests
 {
     private readonly Mock<IBlobService> _mockBlobService;
-    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly IValidator<CreateImageCommand> _validator;
+    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
     private readonly CreateImageDTO _testCreateImageDto = new()
     {
@@ -38,8 +38,10 @@ public class CreateImageHandlerTests
         Id = 1,
         BlobName = "testblob",
         MimeType = "image/png",
-        Base64 = "dGVzdA=="
+        Url = "dGVzdA=="
     };
+
+    private readonly IValidator<CreateImageCommand> _validator;
 
     public CreateImageHandlerTests()
     {
@@ -55,7 +57,8 @@ public class CreateImageHandlerTests
         // Arrange
         var fileName = "testblob";
         var fileWithExtension = "testblob.png";
-        _mockBlobService.Setup(x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType))
+        _mockBlobService.Setup(x =>
+                x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType))
             .ReturnsAsync(fileWithExtension);
 
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDTO>()))
@@ -82,7 +85,7 @@ public class CreateImageHandlerTests
         var command = new CreateImageCommand(_testCreateImageDto);
 
         // Act
-        var result = await handler.Handle(command, CancellationToken.None);
+        Result<ImageDTO> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -90,8 +93,10 @@ public class CreateImageHandlerTests
         Assert.Equal(_testImageDto.Id, result.Value.Id);
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
-        _mockBlobService.Verify(x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType), Times.Once);
+        Assert.Equal(_testImageDto.Url, result.Value.Url);
+        _mockBlobService.Verify(
+            x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType),
+            Times.Once);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.CreateAsync(It.IsAny<Image>()), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
         _mockMapper.Verify(x => x.Map<Image>(It.IsAny<CreateImageDTO>()), Times.Once);
@@ -112,7 +117,7 @@ public class CreateImageHandlerTests
             _validator);
 
         // Act
-        var result = await handler.Handle(command, CancellationToken.None);
+        Result<ImageDTO> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -123,7 +128,8 @@ public class CreateImageHandlerTests
     public async Task Handle_SaveChangesFails_ShouldReturnFailure()
     {
         // Arrange
-        _mockBlobService.Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+        _mockBlobService
+            .Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync("testblob.png");
 
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDTO>()))
@@ -144,7 +150,7 @@ public class CreateImageHandlerTests
         var command = new CreateImageCommand(_testCreateImageDto);
 
         // Act
-        var result = await handler.Handle(command, CancellationToken.None);
+        Result<ImageDTO> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -171,7 +177,7 @@ public class CreateImageHandlerTests
         var command = new CreateImageCommand(_testCreateImageDto);
 
         // Act
-        var result = await handler.Handle(command, CancellationToken.None);
+        Result<ImageDTO> result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);

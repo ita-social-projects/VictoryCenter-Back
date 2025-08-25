@@ -1,74 +1,189 @@
 ﻿using System.Buffers;
-using System.Security.Cryptography;
-using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
 
 public class BlobService : IBlobService
 {
-    private readonly string _keyCrypt;
-    private readonly string _blobPath;
+    private readonly BlobEnvironmentVariables _blobEnv;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public BlobService(IOptions<BlobEnvironmentVariables> environment)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BlobService"/> class.
+    /// Ensures that the storage directory exists during initialization.
+    /// </summary>
+    /// <param name="environment">Configuration settings for the blob storage.</param>
+    /// <param name="httpContextAccessor">Provides access to <see cref="HttpContext"/> for building absolute URLs.</param>
+    /// <exception cref="BlobFileSystemException">
+    /// Thrown if the local storage directory could not be created.
+    /// </exception>
+    public BlobService(IOptions<BlobEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
-        _keyCrypt = environment.Value.BlobStoreKey;
-        _blobPath = environment.Value.BlobStorePath;
+        _blobEnv = environment.Value;
+        _httpContextAccessor = httpContextAccessor;
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
+        }
+        catch (Exception ex)
+        {
+            throw new BlobFileSystemException(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath), ImageConstants.FailToCreateDirectory, ex);
+        }
     }
 
-    public string BlobPath => _blobPath;
-
+    /// <summary>
+    /// Saves a file into the blob storage from a Base64-encoded string.
+    /// </summary>
+    /// <param name="base64">The Base64 string representing the file.</param>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file (e.g., "image/png").</param>
+    /// <returns>The saved file name with extension.</returns>
+    /// <exception cref="BlobFileSystemException">
+    /// Thrown if an unknown error related to the file system occurs.
+    /// </exception>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
+    /// <exception cref="InvalidBase64FormatException">
+    /// Thrown if the Base64 string has an invalid format.
+    /// </exception>
+    /// <exception cref="ImageProcessingException">
+    /// Thrown if there are problems saving the file to the storage.
+    /// </exception>
     public async Task<string> SaveFileInStorageAsync(string base64, string name, string mimeType)
     {
         try
         {
-            byte[] imageBytes = ConvertBase64ToBytes(base64);
-            string extension = GetExtensionFromMimeType(mimeType);
+            ValidateFileName(name);
 
-            Directory.CreateDirectory(_blobPath);
-            await EncryptFileAsync(imageBytes, extension, name);
+            var imageBytes = ConvertBase64ToBytes(base64);
+            var extension = GetExtensionFromMimeType(mimeType);
+
+            await CreateFileAsync(imageBytes, extension, name);
 
             return $"{name}.{extension}";
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new BlobFileSystemException(BlobPath, ex.Message, ex);
+            throw new BlobFileSystemException(_blobEnv.FullPath, ex.Message, ex);
         }
     }
 
+    /// <summary>
+    /// Retrieves a file from storage as a <see cref="MemoryStream"/>.
+    /// </summary>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file.</param>
+    /// <returns>A memory stream containing the file content.</returns>
+    /// <exception cref="BlobNotFoundException">
+    /// Thrown if the file could not be found in the storage.
+    /// </exception>
+    /// /// <exception cref="ImageProcessingException">
+    /// thrown if there are problems retrieving the image from storage.
+    /// </exception>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
-            byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
-            return new MemoryStream(decodedBytes);
+        ValidateFileName(name);
+
+        var decodedBytes = await GetFileAsync(name, GetExtensionFromMimeType(mimeType));
+        return new MemoryStream(decodedBytes);
     }
 
-    public async Task<string> FindFileInStorageAsBase64Async(string name, string mimeType)
+    /// <summary>
+    /// Builds an absolute URL for accessing a stored file.
+    /// </summary>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file.</param>
+    /// <returns>The absolute URL of the file.</returns>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
+    /// <exception cref="BlobHttpContextException">
+    /// Thrown if <see cref="HttpContext"/> is not available.
+    /// </exception>
+    /// <exception cref="BlobFileSystemException">
+    /// Thrown if another error occurs while building the URL.
+    /// </exception>
+    public string GetFileUrl(string name, string mimeType)
     {
+        ValidateFileName(name);
+
         try
         {
-            using var stream = await FindFileInStorageAsMemoryStreamAsync(name, mimeType);
-            return Convert.ToBase64String(stream.ToArray());
+            var extension = GetExtensionFromMimeType(mimeType);
+            var fileName = $"{name}.{extension}";
+            HttpRequest? request = _httpContextAccessor.HttpContext?.Request;
+
+            if (request == null)
+            {
+                throw new BlobHttpContextException(ImageConstants.HttpContextIsNotAvailable);
+            }
+
+            var baseUrl = $"{request.Scheme}://{request.Host}";
+            return $"{baseUrl}/{_blobEnv.ImagesSubPath}/{fileName}";
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new InvalidBase64FormatException(ex.Message, ex);
+            throw new BlobFileSystemException(name, ex.Message, ex);
         }
     }
 
+    /// <summary>
+    /// Updates an existing file in storage.
+    /// Deletes the old file and saves a new one.
+    /// </summary>
+    /// <param name="previousBlobName">The previous file name.</param>
+    /// <param name="previousMimeType">The MIME type of the previous file.</param>
+    /// <param name="base64Format">The new file content as a Base64 string.</param>
+    /// <param name="newBlobName">The new file name.</param>
+    /// <param name="mimeType">The MIME type of the new file.</param>
+    /// <returns>New file name.</returns>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the new or previous file name is invalid.
+    /// </exception>
+    /// <exception cref="ImageProcessingException">
+    /// Thrown if an error occurs while updating the file.
+    /// </exception>
+    /// <exception cref="BlobFileSystemException">
+    /// Thrown if an unknown error related to the file system occurs.
+    /// </exception>
+    /// <exception cref="InvalidBase64FormatException">
+    /// Thrown if the Base64 string has an invalid format.
+    /// </exception>
     public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
     {
+        ValidateFileName(newBlobName);
+        ValidateFileName(previousBlobName);
         DeleteFileInStorage(previousBlobName, previousMimeType);
         await SaveFileInStorageAsync(base64Format, newBlobName, mimeType);
         return newBlobName;
     }
 
+    /// <summary>
+    /// Deletes a file from storage.
+    /// If the file does not exist, nothing happens.
+    /// </summary>
+    /// <param name="name">The file name without extension.</param>
+    /// <param name="mimeType">The MIME type of the file.</param>
+    /// <exception cref="BlobFileNameException">
+    /// Thrown if the file name is invalid.
+    /// </exception>
+    /// <exception cref="ImageProcessingException">
+    /// Thrown if an error occurs while deleting the file.
+    /// </exception>
     public void DeleteFileInStorage(string name, string mimeType)
     {
+        ValidateFileName(name);
+
         var fullName = name + "." + GetExtensionFromMimeType(mimeType);
-        string filePath = Path.Combine(_blobPath, fullName);
+        var filePath = Path.Combine(_blobEnv.FullPath, fullName);
         try
         {
             if (File.Exists(filePath))
@@ -78,27 +193,27 @@ public class BlobService : IBlobService
         }
         catch (Exception ex)
         {
-            throw new BlobFileSystemException(filePath, ImageConstants.FailToDeleteImage, ex);
+            throw new ImageProcessingException(name, ImageConstants.FailToDeleteImage, ex);
         }
     }
 
-    private byte[] ConvertBase64ToBytes(string base64)
+    private static byte[] ConvertBase64ToBytes(string base64)
     {
         if (base64.Contains(','))
         {
             base64 = base64.Split(',')[1];
         }
 
-        int byteCount = base64.Length * 3 / 4;
-        byte[] buffer = ArrayPool<byte>.Shared.Rent(byteCount);
+        var byteCount = base64.Length * 3 / 4;
+        var buffer = ArrayPool<byte>.Shared.Rent(byteCount);
         try
         {
-            if (!Convert.TryFromBase64String(base64, buffer, out int bytesWritten))
+            if (!Convert.TryFromBase64String(base64, buffer, out var bytesWritten))
             {
                 throw new InvalidBase64FormatException(ImageConstants.InvalidBase64String);
             }
 
-            byte[] result = new byte[bytesWritten];
+            var result = new byte[bytesWritten];
             Array.Copy(buffer, result, bytesWritten);
             return result;
         }
@@ -112,7 +227,7 @@ public class BlobService : IBlobService
         }
     }
 
-    private string GetExtensionFromMimeType(string mimeType)
+    private static string GetExtensionFromMimeType(string mimeType)
     {
         return mimeType.ToLower() switch
         {
@@ -124,51 +239,27 @@ public class BlobService : IBlobService
         };
     }
 
-    private async Task EncryptFileAsync(byte[] imageBytes, string type, string name)
+    private async Task CreateFileAsync(byte[] imageBytes, string type, string name)
     {
-        string filePath = Path.Combine(_blobPath, $"{name}.{type}");
-        byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
+        ValidateFileName(name);
+
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
 
         try
         {
-            using var aes = Aes.Create();
-            aes.KeySize = 256;
-            aes.Key = keyBytes;
-            aes.GenerateIV();
-
-            using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
-            fileStream.Write(aes.IV, 0, aes.IV.Length);
-
-            using var cryptoStream = new CryptoStream(fileStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
-
-            int bufferSize = 4096;
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-
-            try
-            {
-                using var memoryStream = new MemoryStream(imageBytes);
-                int bytesRead;
-                while ((bytesRead = memoryStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    cryptoStream.Write(buffer, 0, bytesRead);
-                }
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
-            await cryptoStream.FlushAsync();
+            await File.WriteAllBytesAsync(filePath, imageBytes);
         }
-        catch (Exception ex) when (ex is not BlobStorageException)
+        catch (Exception ex)
         {
-            throw new BlobCryptographyException($"{name}.{type}", ImageConstants.EncryptionFailed, ex);
+            throw new ImageProcessingException($"{name}.{type}", ImageConstants.FailedToSaveImage, ex);
         }
     }
 
-    private async Task<byte[]> DecryptFileAsync(string fileName, string type)
+    private async Task<byte[]> GetFileAsync(string fileName, string type)
     {
-        string filePath = Path.Combine(_blobPath, $"{fileName}.{type}");
+        ValidateFileName(fileName);
+
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{fileName}.{type}");
 
         if (!File.Exists(filePath))
         {
@@ -177,44 +268,21 @@ public class BlobService : IBlobService
 
         try
         {
-            await using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_keyCrypt.PadRight(32)[..32]);
-
-            byte[] iv = new byte[16];
-            if (fileStream.Read(iv, 0, iv.Length) != iv.Length)
-            {
-                throw new BlobCryptographyException(fileName, ImageConstants.InvalidIVLength);
-            }
-
-            using var aes = Aes.Create();
-            aes.KeySize = 256;
-            aes.Key = keyBytes;
-            aes.IV = iv;
-
-            await using var cryptoStream = new CryptoStream(fileStream, aes.CreateDecryptor(), CryptoStreamMode.Read);
-            await using var memoryStream = new MemoryStream();
-
-            int bufferSize = 4096;
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
-
-            try
-            {
-                int bytesRead;
-                while ((bytesRead = cryptoStream.Read(buffer, 0, buffer.Length)) > 0)
-                {
-                    await memoryStream.WriteAsync(buffer, 0, bytesRead);
-                }
-
-                return memoryStream.ToArray();
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+            return await File.ReadAllBytesAsync(filePath);
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new BlobCryptographyException(fileName, ImageConstants.DecryptionFailed, ex);
+            throw new ImageProcessingException(fileName, ImageConstants.FailedToReadImage, ex);
+        }
+    }
+
+    private static void ValidateFileName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)
+            || name.Contains("..")
+            || Path.GetInvalidFileNameChars().Any(name.Contains))
+        {
+            throw new BlobFileNameException(name, ImageConstants.WrongFileName(name));
         }
     }
 }
