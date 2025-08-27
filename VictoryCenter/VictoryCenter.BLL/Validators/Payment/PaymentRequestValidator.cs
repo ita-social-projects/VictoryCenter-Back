@@ -1,6 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Payment.Common;
+using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 
 namespace VictoryCenter.BLL.Validators.Payment;
 

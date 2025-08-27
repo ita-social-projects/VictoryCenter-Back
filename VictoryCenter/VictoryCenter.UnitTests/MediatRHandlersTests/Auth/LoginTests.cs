@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Commands.Public.Auth.Login;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.DTOs.Public.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Validators.Auth;
@@ -18,22 +18,22 @@ public class LoginTests
 {
     private readonly LoginCommandHandler _commandHandler;
     private readonly Mock<ITokenService> _mockTokenService;
-    private readonly Mock<UserManager<Admin>> _mockUserManager;
+    private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly JwtOptions _jwtOptions;
 
     public LoginTests()
     {
-        _mockUserManager = new Mock<UserManager<Admin>>(
-            new Mock<IUserStore<Admin>>().Object,
+        _mockUserManager = new Mock<UserManager<AdminUser>>(
+            new Mock<IUserStore<AdminUser>>().Object,
             new Mock<IOptions<IdentityOptions>>().Object,
-            new Mock<IPasswordHasher<Admin>>().Object,
-            new IUserValidator<Admin>[0],
-            new IPasswordValidator<Admin>[0],
+            new Mock<IPasswordHasher<AdminUser>>().Object,
+            new IUserValidator<AdminUser>[0],
+            new IPasswordValidator<AdminUser>[0],
             new Mock<ILookupNormalizer>().Object,
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<IServiceProvider>().Object,
-            new Mock<ILogger<UserManager<Admin>>>().Object);
+            new Mock<ILogger<UserManager<AdminUser>>>().Object);
         var jwtOptions = new JwtOptions()
         {
             Audience = "UnitTests.Client",
@@ -91,7 +91,7 @@ public class LoginTests
     public async Task Handle_AdminWithGivenEmailDoesNotExist_ReturnsFail()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync((Admin?)null);
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync((AdminUser?)null);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -104,7 +104,7 @@ public class LoginTests
     public async Task Handle_GivenIncorrectPassword_ReturnsFail()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new Admin();
+        var admin = new AdminUser();
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(false);
 
@@ -120,7 +120,7 @@ public class LoginTests
     public async Task Handle_GivenValidData_UpdatesSuccessfully()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new Admin();
+        var admin = new AdminUser();
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
@@ -157,7 +157,7 @@ public class LoginTests
     public async Task Handle_GivenValidData_UpdatesUnsuccessfully()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new Admin();
+        var admin = new AdminUser();
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);

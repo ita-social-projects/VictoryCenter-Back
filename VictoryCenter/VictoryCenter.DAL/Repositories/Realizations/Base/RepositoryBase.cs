@@ -11,16 +11,16 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 public class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    protected readonly VictoryCenterDbContext _dbContext;
-
     protected RepositoryBase(VictoryCenterDbContext context)
     {
-        _dbContext = context;
+        DbContext = context;
     }
+
+    protected VictoryCenterDbContext DbContext { get; init; }
 
     public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
         if (queryOptions != null)
         {
@@ -36,7 +36,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
         if (queryOptions != null)
         {
@@ -49,18 +49,18 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T> CreateAsync(T entity)
     {
-        var tmp = await _dbContext.Set<T>().AddAsync(entity);
+        var tmp = await DbContext.Set<T>().AddAsync(entity);
         return tmp.Entity;
     }
 
     public EntityEntry<T> Update(T entity)
     {
-        return _dbContext.Set<T>().Update(entity);
+        return DbContext.Set<T>().Update(entity);
     }
 
     public void Delete(T entity)
     {
-        _dbContext.Set<T>().Remove(entity);
+        DbContext.Set<T>().Remove(entity);
     }
 
     public async Task<TKey?> MaxAsync<TKey>(
@@ -68,7 +68,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         Expression<Func<T, bool>>? filter = null)
         where TKey : struct
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
         if (filter != null)
         {
@@ -82,7 +82,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public Task<long> CountAsync(Expression<Func<T, bool>> filter)
     {
-        return _dbContext.Set<T>().LongCountAsync(filter);
+        return DbContext.Set<T>().LongCountAsync(filter);
     }
 
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)

@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.Images.GetById;
+using VictoryCenter.BLL.Queries.Admin.Images.GetById;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -22,7 +22,7 @@ public class GetImageByIdHandlerTests
         MimeType = "image/png"
     };
 
-    private readonly ImageDTO _testImageDto = new()
+    private readonly ImageDto _testImageDto = new()
     {
         Id = 1,
         BlobName = "testblob.png",
@@ -46,7 +46,7 @@ public class GetImageByIdHandlerTests
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync(_testImage);
 
-        _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
+        _mockMapper.Setup(x => x.Map<ImageDto>(It.IsAny<Image>()))
             .Returns(_testImageDto);
 
         var handler = new GetImageByIdHandler(

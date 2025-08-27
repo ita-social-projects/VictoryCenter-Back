@@ -1,5 +1,5 @@
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.Delete;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -12,7 +12,7 @@ public class DeleteTeamMemberTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly TeamMember _testExistingTeamMember = new ()
+    private readonly TeamMember _testExistingTeamMember = new()
     {
         Id = 1,
         FullName = "Test name",
@@ -63,7 +63,7 @@ public class DeleteTeamMemberTests
         var result = await handler.Handle(new DeleteTeamMemberCommand(_testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(TeamMemberConstants.FailedToDeleteTeamMember, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(TeamMember? entityToDelete = null, int saveResult = 1)

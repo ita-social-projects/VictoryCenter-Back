@@ -3,19 +3,17 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Moq.Protected;
-using VictoryCenter.BLL.DTOs.Payment;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.BLL.DTOs.Public.Payment;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Payments;
 
-[Collection("SharedIntegrationTests")]
-public class PaymentsControllerTests
+public class PaymentsControllerTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public PaymentsControllerTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
 
     [Fact]
@@ -34,7 +32,7 @@ public class PaymentsControllerTests
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync(fakeExternalResponse);
 
-        var client = _fixture.Factory.WithWebHostBuilder(builder =>
+        var client = Fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureServices(services =>
             {
@@ -84,7 +82,7 @@ public class PaymentsControllerTests
         };
         var content = new FormUrlEncodedContent(request);
 
-        var response = await _fixture.HttpClient.PostAsync("api/payments/donate", content);
+        var response = await Fixture.HttpClient.PostAsync("api/payments/donate", content);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }

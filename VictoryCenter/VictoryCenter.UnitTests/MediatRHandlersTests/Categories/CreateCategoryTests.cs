@@ -1,9 +1,9 @@
 using AutoMapper;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.Categories.Create;
+using VictoryCenter.BLL.Commands.Admin.Categories.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.BLL.Validators.Categories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -54,10 +54,10 @@ public class CreateCategoryTests
 
         var result = await handler.Handle(
             new CreateCategoryCommand(new CreateCategoryDto
-        {
-            Name = "Test Category",
-            Description = description,
-        }), CancellationToken.None);
+            {
+                Name = "Test Category",
+                Description = description,
+            }), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _testCategoryDto.Name);
@@ -80,10 +80,10 @@ public class CreateCategoryTests
 
         var result = await handler.Handle(
             new CreateCategoryCommand(new CreateCategoryDto
-        {
-            Name = name,
-            Description = "Test Category Description",
-        }), CancellationToken.None);
+            {
+                Name = name!,
+                Description = "Test Category Description",
+            }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
@@ -97,13 +97,13 @@ public class CreateCategoryTests
 
         var result = await handler.Handle(
             new CreateCategoryCommand(new CreateCategoryDto
-        {
-            Name = "Test Category",
-            Description = "Test Category Description",
-        }), CancellationToken.None);
+            {
+                Name = "Test Category",
+                Description = "Test Category Description",
+            }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(CategoryConstants.FailedToCreateCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Category)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)

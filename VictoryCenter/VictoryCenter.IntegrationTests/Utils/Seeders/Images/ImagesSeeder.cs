@@ -8,7 +8,7 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeders.Images;
 public class ImagesSeeder : BaseSeeder<Image>
 {
     private readonly IBlobService _blobService;
-    private static readonly List<Image> Images =
+    private static readonly List<Image> _images =
     [
         new Image
         {
@@ -32,27 +32,24 @@ public class ImagesSeeder : BaseSeeder<Image>
     public ImagesSeeder(
         VictoryCenterDbContext dbContext,
         ILogger<ImagesSeeder> logger,
-        IBlobService blobService )
+        IBlobService blobService)
         : base(dbContext, logger)
     {
         _blobService = blobService;
     }
 
-    public override int Order => 50;
+    public override int Order => (int)SeederExecutionOrder.Images;
 
     public override string Name => nameof(ImagesSeeder);
 
     protected override async Task<List<Image>> GenerateEntitiesAsync()
     {
-        foreach (var image in Images)
+        foreach (var image in _images)
         {
-            if (image.Base64 != null)
-            {
-                await _blobService.SaveFileInStorageAsync(image.Base64, image.BlobName, image.MimeType);
-            }
+            await _blobService.SaveFileInStorageAsync(image.Base64!, image.BlobName, image.MimeType);
         }
 
-        var entities = Images.Select(i => new Image
+        var entities = _images.Select(i => new Image
         {
             BlobName = i.BlobName,
             Base64 = i.Base64,

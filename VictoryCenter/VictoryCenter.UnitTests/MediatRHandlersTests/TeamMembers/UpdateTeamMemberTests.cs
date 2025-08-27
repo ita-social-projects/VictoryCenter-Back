@@ -3,9 +3,9 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.Update;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
@@ -67,7 +67,7 @@ public class UpdateTeamMemberTests
         ImageId = null
     };
 
-    private readonly TeamMemberDto _testUpdatedTeamMemberDto = new ()
+    private readonly TeamMemberDto _testUpdatedTeamMemberDto = new()
     {
         FullName = "Updated Name",
         Description = "Updated Description",
@@ -151,10 +151,6 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task Handle_InvalidFullName_ShouldReturnValidationError(string? testName)
     {
-        var testUpdatedTeamMemberDto = _testUpdatedTeamMemberDto with
-        {
-            FullName = testName!
-        };
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
@@ -235,7 +231,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(TeamMemberConstants.FailedToUpdateTeamMember, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(TeamMember? teamMemberToReturn = null, int saveResult = 1)

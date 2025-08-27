@@ -1,46 +1,31 @@
 ﻿using System.Net;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Delete;
 
-[Collection("SharedIntegrationTests")]
-public class DeleteImageTests : IAsyncLifetime
+public class DeleteImageTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public DeleteImageTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task DeleteImage_ValidData_ShouldDeleteImage()
     {
-        Image? image = await _fixture.DbContext.Images.OrderByDescending(i => i.Id).FirstOrDefaultAsync();
-        var id = image.Id;
+        Image? image = await Fixture.DbContext.Images.OrderByDescending(i => i.Id).FirstOrDefaultAsync();
+        var id = image!.Id;
 
         string extension = image.MimeType.Split("/")[1];
-        string path = _fixture.BlobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
+        string path = Fixture.BlobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
 
-        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"api/Image/{id}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"api/Image/{id}");
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await _fixture.DbContext.Images.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id));
+        Assert.Null(await Fixture.DbContext.Images.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id));
         Assert.False(File.Exists(path));
     }
 
@@ -49,7 +34,7 @@ public class DeleteImageTests : IAsyncLifetime
     {
         var id = int.MaxValue;
 
-        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"api/Image/{id}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"api/Image/{id}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

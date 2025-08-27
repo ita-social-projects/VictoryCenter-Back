@@ -2,33 +2,18 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Update;
 
-[Collection("SharedIntegrationTests")]
-public class UpdateCategoryTests : IAsyncLifetime
+public class UpdateCategoryTests : BaseTestClass
 {
-    private IntegrationTestDbFixture _fixture;
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public UpdateCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(null)]
@@ -37,7 +22,7 @@ public class UpdateCategoryTests : IAsyncLifetime
     [InlineData("Test Description")]
     public async Task UpdateCategory_ShouldUpdateCategory(string? testDescription)
     {
-        var existingEntity = await _fixture.DbContext.Categories.FirstOrDefaultAsync();
+        var existingEntity = await Fixture.DbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
             Name = "Test Category",
@@ -45,36 +30,33 @@ public class UpdateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        if (existingEntity != null)
-        {
-            var response = await _fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
-                serializedDto, Encoding.UTF8, "application/json"));
-            var responseString = await response.Content.ReadAsStringAsync();
-            var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity!.Id}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+        var responseString = await response.Content.ReadAsStringAsync();
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, JsonOptions);
 
-            response.EnsureSuccessStatusCode();
-            Assert.NotNull(responseContent);
-            Assert.Equal(existingEntity.Id, responseContent.Id);
-            Assert.Equal(updateCategoryDto.Name, responseContent.Name);
-            Assert.Equal(updateCategoryDto.Description, responseContent.Description);
-        }
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateCategoryDto.Name, responseContent.Name);
+        Assert.Equal(updateCategoryDto.Description, responseContent.Description);
     }
 
     [Fact]
     public async Task UpdateCategory_ShouldUpdateCategory_SameInput()
     {
-        var existingEntity = await _fixture.DbContext.Categories.FirstOrDefaultAsync();
+        var existingEntity = await Fixture.DbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
-            Name = existingEntity.Name,
+            Name = existingEntity!.Name,
             Description = existingEntity.Description,
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, JsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
@@ -89,15 +71,15 @@ public class UpdateCategoryTests : IAsyncLifetime
     [InlineData(" ")]
     public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string? testName)
     {
-        var existingEntity = await _fixture.DbContext.Categories.FirstOrDefaultAsync();
+        var existingEntity = await Fixture.DbContext.Categories.FirstOrDefaultAsync();
         var updateCategoryDto = new UpdateCategoryDto
         {
-            Name = testName,
+            Name = testName!,
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity!.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -116,7 +98,7 @@ public class UpdateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await _fixture.HttpClient.PutAsync($"api/categories/{testId}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{testId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

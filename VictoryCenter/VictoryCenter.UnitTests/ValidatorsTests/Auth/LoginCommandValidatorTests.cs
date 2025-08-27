@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Commands.Public.Auth.Login;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.DTOs.Public.Auth;
 using VictoryCenter.BLL.Validators.Auth;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Auth;
@@ -20,7 +20,7 @@ public class LoginCommandValidatorTests
     [InlineData(null)]
     public void Validate_EmailIsEmpty_ShouldHaveValidationError(string? email)
     {
-        var command = new LoginCommand(new LoginRequestDto(email, "password"));
+        var command = new LoginCommand(new LoginRequestDto(email!, "password"));
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.RequestDto.Email)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Email"));
@@ -41,7 +41,7 @@ public class LoginCommandValidatorTests
     [InlineData(null)]
     public void Validate_PasswordIsEmpty_ShouldHaveValidationError(string? password)
     {
-        var command = new LoginCommand(new LoginRequestDto("user@email.com", password));
+        var command = new LoginCommand(new LoginRequestDto("user@email.com", password!));
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.RequestDto.Password)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Password"));

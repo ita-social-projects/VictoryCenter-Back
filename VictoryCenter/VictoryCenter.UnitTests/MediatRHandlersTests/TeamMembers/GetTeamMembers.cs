@@ -1,9 +1,9 @@
 ﻿using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

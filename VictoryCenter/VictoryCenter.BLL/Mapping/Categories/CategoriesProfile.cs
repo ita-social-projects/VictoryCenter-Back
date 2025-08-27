@@ -1,5 +1,6 @@
 using AutoMapper;
-using VictoryCenter.BLL.DTOs.Categories;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
+using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.Categories;

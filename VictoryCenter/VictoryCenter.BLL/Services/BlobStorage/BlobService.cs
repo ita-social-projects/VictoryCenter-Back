@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
 
@@ -78,7 +79,7 @@ public class BlobService : IBlobService
         }
         catch (Exception ex)
         {
-            throw new BlobFileSystemException(filePath, ImageConstants.FailToDeleteImage, ex);
+            throw new BlobFileSystemException(filePath, ErrorMessagesConstants.FailedToDeleteEntity(typeof(Image)), ex);
         }
     }
 

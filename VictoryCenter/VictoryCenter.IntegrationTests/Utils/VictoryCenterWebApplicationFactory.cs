@@ -64,13 +64,13 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         base.Dispose(disposing);
     }
 
-    private void SetEnvironmentalVariables()
+    static private void SetEnvironmentalVariables()
     {
         Environment.SetEnvironmentVariable("INITIAL_ADMIN_EMAIL", "secretadmintest@gmail.com");
         Environment.SetEnvironmentVariable("INITIAL_ADMIN_PASSWORD", "Pa$$w0rd!");
         Environment.SetEnvironmentVariable("JWTOPTIONS_SECRETKEY", "FFE4F83F-5D19-4FFD-831E-673B27DFB103");
         Environment.SetEnvironmentVariable("JWTOPTIONS_REFRESH_TOKEN_SECRETKEY", "1F9845EF-067D-4BEE-AD41-43EB8C089977");
-        Environment.SetEnvironmentVariable("DB_CONNECTION_STRING", "Server=localhost,1434;Database=VictoryCenter_IntegrationTests_Db;User Id=sa;Password=Admin@1234;MultipleActiveResultSets=True;TrustServerCertificate=true");
+        Environment.SetEnvironmentVariable("DB_CONNECTION_STRING", "Server=localhost,1434;Database=VictoryCenter_IntegrationTests_Db;MultipleActiveResultSets=True;TrustServerCertificate=true");
         Environment.SetEnvironmentVariable("WAY4PAY_MERCHANT_LOGIN", "MOCK_VALUE");
         Environment.SetEnvironmentVariable("WAY4PAY_MERCHANT_SECRET_KEY", "MOCK_VALUE");
         Environment.SetEnvironmentVariable("WAY4PAY_MERCHANT_DOMAIN_NAME", "MOCK_VALUE");

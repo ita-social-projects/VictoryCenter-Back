@@ -8,8 +8,7 @@ public abstract class BaseSeeder<TEntity> : ISeeder
 where TEntity : class
 {
     private readonly ILogger _logger;
-    private readonly List<TEntity> _createdEntities = new();
-
+    private readonly List<TEntity> _createdEntities = [];
     protected BaseSeeder(VictoryCenterDbContext dbContext, ILogger logger)
     {
         DbContext = dbContext;
