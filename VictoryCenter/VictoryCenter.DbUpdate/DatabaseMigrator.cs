@@ -34,7 +34,11 @@ public class DatabaseMigrator
         _logger.LogInformation("Database connection string successfully resolved");
 
         _services.AddDbContext<VictoryCenterDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            options.UseSqlServer(connectionString, opt =>
+            {
+                opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
+                opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
+            }));
 
         var provider = _services.BuildServiceProvider();
         using var scope = provider.CreateScope();
