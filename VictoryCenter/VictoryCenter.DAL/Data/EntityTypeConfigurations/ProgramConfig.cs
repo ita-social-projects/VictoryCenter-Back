@@ -35,7 +35,7 @@ public class ProgramConfig : IEntityTypeConfiguration<Program>
             .WithMany(e => e.Programs)
             .UsingEntity(j =>
             {
-                j.ToTable("ProgramProgramCategories");
+                j.ToTable("ProgramsProgramCategories");
             });
     }
 }

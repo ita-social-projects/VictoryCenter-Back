@@ -6,11 +6,11 @@ using VictoryCenter.DAL.Enums;
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.GetFiltered;
 
 [Collection("SharedIntegrationTests")]
-public class GetByFilters : IAsyncLifetime
+public class GetProgramsByFilters : IAsyncLifetime
 {
     private readonly IntegrationTestDbFixture _fixture;
 
-    public GetByFilters(IntegrationTestDbFixture fixture)
+    public GetProgramsByFilters(IntegrationTestDbFixture fixture)
     {
         _fixture = fixture;
     }

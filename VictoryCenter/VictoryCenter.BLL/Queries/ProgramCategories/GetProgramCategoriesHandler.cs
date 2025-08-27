@@ -3,7 +3,6 @@ using AutoMapper;
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -33,18 +32,15 @@ public class GetProgramCategoriesHandler : IRequestHandler<GetProgramCategoriesQ
                 .ThenInclude(p => p.Image)!
         });
         var mapped = _mapper.Map<IEnumerable<ProgramCategoryDto>>(programCategories).ToList();
-        foreach (ProgramCategoryDto category in mapped)
+        await Task.WhenAll(
+        mapped.SelectMany(category => category.Programs)
+        .Where(program => program.Image != null)
+        .Select(async program =>
         {
-            foreach (ProgramDto program in category.Programs)
-            {
-                if (program.Image != null)
-                {
-                    program.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
-                        program.Image.BlobName,
-                        program.Image.MimeType);
-                }
-            }
-        }
+            program.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
+                program.Image.BlobName,
+                program.Image.MimeType);
+        }));
 
         return Result.Ok(mapped);
     }

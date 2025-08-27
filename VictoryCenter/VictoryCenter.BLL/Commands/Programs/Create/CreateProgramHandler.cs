@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Programs.Create;
 
@@ -32,14 +33,12 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var categoryOptions = new QueryOptions<ProgramCategory>
-            {
-                Filter = category => request.createProgramDto.CategoriesId.Contains(category.Id),
-                AsNoTracking = false
-            };
-
             IEnumerable<ProgramCategory> categories = await _repositoryWrapper
-                .ProgramCategoriesRepository.GetAllAsync(categoryOptions);
+                .ProgramCategoriesRepository.GetAllAsync(new QueryOptions<ProgramCategory>
+                {
+                    Filter = category => request.createProgramDto.CategoriesId.Contains(category.Id),
+                    AsNoTracking = false
+                });
 
             Program entity = _mapper.Map<Program>(request.createProgramDto);
 
@@ -52,14 +51,7 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
                 });
                 if (newImage is not null)
                 {
-                    try
-                    {
-                        newImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
-                    }
-                    catch(Exception)
-                    {
-                        return Result.Fail<ProgramDto>(ProgramConstants.FailedRetrievingProgramPhoto);
-                    }
+                    newImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
                 }
 
                 entity.Image = newImage;
@@ -80,6 +72,10 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
         catch (ValidationException ex)
         {
             return Result.Fail<ProgramDto>(ex.Message);
+        }
+        catch (BlobStorageException)
+        {
+            return Result.Fail<ProgramDto>(ProgramConstants.FailedRetrievingProgramPhoto);
         }
     }
 }

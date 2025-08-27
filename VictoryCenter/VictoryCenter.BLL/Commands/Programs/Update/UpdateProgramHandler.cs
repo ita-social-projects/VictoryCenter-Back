@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Programs.Update;
 
@@ -65,15 +66,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
                 });
                 if (newImage is not null)
                 {
-                    try
-                    {
-                        newImage.Base64 =
-                            await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
-                    }
-                    catch (Exception)
-                    {
-                        return Result.Fail<ProgramDto>(ProgramConstants.FailedRetrievingProgramPhoto);
-                    }
+                    newImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
                 }
 
                 programToUpdate.Image = newImage;
@@ -99,6 +92,10 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
         catch (ValidationException ex)
         {
             return Result.Fail<ProgramDto>(ex.Message);
+        }
+        catch (BlobStorageException)
+        {
+            return Result.Fail<ProgramDto>(ProgramConstants.FailedToUpdateProgram);
         }
     }
 }

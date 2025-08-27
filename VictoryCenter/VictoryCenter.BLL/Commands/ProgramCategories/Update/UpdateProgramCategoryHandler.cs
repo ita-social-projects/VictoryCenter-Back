@@ -56,7 +56,7 @@ public class UpdateProgramCategoryHandler : IRequestHandler<UpdateProgramCategor
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ProgramCategoryDto>(ex.Message);
+            return Result.Fail<ProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
         }
     }
 }

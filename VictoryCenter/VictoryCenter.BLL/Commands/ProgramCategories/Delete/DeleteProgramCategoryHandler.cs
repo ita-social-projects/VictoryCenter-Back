@@ -19,15 +19,13 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
 
     public async Task<Result<long>> Handle(DeleteProgramCategoryCommand request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<ProgramCategory>
-        {
-            Filter = programCategory => programCategory.Id == request.id,
-            Include = programCategory => programCategory
-                .Include(p => p.Programs)
-        };
-
         ProgramCategory? entityToDelete = await _repositoryWrapper.ProgramCategoriesRepository
-            .GetFirstOrDefaultAsync(queryOptions);
+            .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
+            {
+                Filter = programCategory => programCategory.Id == request.id,
+                Include = programCategory => programCategory
+                    .Include(p => p.Programs)
+            });
 
         if (entityToDelete is null)
         {

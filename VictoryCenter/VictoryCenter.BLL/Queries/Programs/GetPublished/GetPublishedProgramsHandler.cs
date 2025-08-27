@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Queries.Programs.GetPublished;
 
@@ -40,9 +41,16 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
         {
             if (program.Image != null)
             {
-                program.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
+                try
+                {
+                    program.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
                     program.Image.BlobName,
                     program.Image.MimeType);
+                }
+                catch (BlobStorageException)
+                {
+                    program.Image.Base64 = string.Empty;
+                }
             }
         }
 

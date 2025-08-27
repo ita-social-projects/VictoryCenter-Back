@@ -42,7 +42,7 @@ public class CreateProgramCategoryHandler : IRequestHandler<CreateProgramCategor
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ProgramCategoryDto>(ex.Message);
+            return Result.Fail<ProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
         }
     }
 }
