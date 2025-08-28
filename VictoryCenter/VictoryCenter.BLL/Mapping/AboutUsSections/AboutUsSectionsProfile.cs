@@ -1,0 +1,13 @@
+using AutoMapper;
+using VictoryCenter.BLL.DTOs.AboutUsContent;
+using VictoryCenter.DAL.Entities;
+
+namespace VictoryCenter.BLL.Mapping.AboutUsSections;
+
+public class AboutUsSectionsProfile : Profile
+{
+    public AboutUsSectionsProfile()
+    {
+        CreateMap<AboutUsSection, AboutUsSectionDto>();
+    }
+}

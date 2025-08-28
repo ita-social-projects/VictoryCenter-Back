@@ -8,8 +8,8 @@ public class ImagesProfile : Profile
 {
     public ImagesProfile()
     {
-        CreateMap<CreateImageDTO, Image>();
-        CreateMap<UpdateImageDTO, Image>();
-        CreateMap<Image, ImageDTO>().ForMember(d => d.Url, o => o.MapFrom<BlobToUrlResolver>());
+        CreateMap<CreateImageDto, Image>();
+        CreateMap<UpdateImageDto, Image>();
+        CreateMap<Image, ImageDto>().ForMember(d => d.Url, o => o.MapFrom<BlobToUrlResolver>());
     }
 }

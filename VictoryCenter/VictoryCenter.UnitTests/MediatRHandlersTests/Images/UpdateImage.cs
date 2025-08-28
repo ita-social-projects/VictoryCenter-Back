@@ -20,7 +20,7 @@ public class UpdateImageHandlerTests
     private readonly Mock<IBlobService> _mockBlobService;
     private readonly IValidator<UpdateImageCommand> _validator;
 
-    private readonly UpdateImageDTO _testUpdateImageDto = new()
+    private readonly UpdateImageDto _testUpdateImageDto = new()
     {
         Base64 = "dGVzdA==",
         MimeType = "image/png"
@@ -34,7 +34,7 @@ public class UpdateImageHandlerTests
         CreatedAt = new DateTime(2025, 7, 16, 14, 30, 0, DateTimeKind.Utc )
     };
 
-    private readonly ImageDTO _testImageDto = new()
+    private readonly ImageDto _testImageDto = new()
     {
         Id = 1,
         BlobName = "testblob.png",
@@ -67,10 +67,10 @@ public class UpdateImageHandlerTests
                 _testUpdateImageDto.MimeType))
             .ReturnsAsync(_testImage.BlobName);
 
-        _mockMapper.Setup(x => x.Map<UpdateImageDTO, Image>(It.IsAny<UpdateImageDTO>()))
+        _mockMapper.Setup(x => x.Map<UpdateImageDto, Image>(It.IsAny<UpdateImageDto>()))
             .Returns(_testImage);
 
-        _mockMapper.Setup(x => x.Map<Image, ImageDTO>(It.IsAny<Image>()))
+        _mockMapper.Setup(x => x.Map<Image, ImageDto>(It.IsAny<Image>()))
             .Returns(_testImageDto);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
@@ -149,7 +149,7 @@ public class UpdateImageHandlerTests
                 _testUpdateImageDto.MimeType))
             .ReturnsAsync(_testImage.BlobName);
 
-        _mockMapper.Setup(x => x.Map<UpdateImageDTO, Image>(It.IsAny<UpdateImageDTO>()))
+        _mockMapper.Setup(x => x.Map<UpdateImageDto, Image>(It.IsAny<UpdateImageDto>()))
             .Returns(_testImage);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())

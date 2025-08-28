@@ -32,7 +32,7 @@ public class CreateImageTests : IAsyncLifetime
     [Fact]
     public async Task CreateImage_ValidData_ShouldCreateImage()
     {
-        var createImageDto = new CreateImageDTO
+        var createImageDto = new CreateImageDto
         {
             Base64 =
                 "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
@@ -46,7 +46,7 @@ public class CreateImageTests : IAsyncLifetime
             serializedDto, Encoding.UTF8, "application/json"));
 
         var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+        ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
         string extension = responseContext.MimeType.Split("/")[1];
         string path = Path.Combine(_fixture.BlobEnvironmentVariables.FullPath, responseContext.BlobName + "." + extension);
 
@@ -61,7 +61,7 @@ public class CreateImageTests : IAsyncLifetime
     [InlineData(" ")]
     public async Task CreateImage_InvalidData_ShouldReturnError(string mimeType)
     {
-        var createImageDto = new CreateImageDTO
+        var createImageDto = new CreateImageDto
         {
             Base64 =
                 "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
@@ -75,7 +75,7 @@ public class CreateImageTests : IAsyncLifetime
             serializedDto, Encoding.UTF8, "application/json"));
 
         var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+        ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -88,7 +88,7 @@ public class CreateImageTests : IAsyncLifetime
     [InlineData("image/webp")]
     public async Task CreateImage_DifferentMimeTypes_ShouldCreateImageWithCorrectExtension(string mimeType)
     {
-        var createImageDto = new CreateImageDTO
+        var createImageDto = new CreateImageDto
         {
             Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
             MimeType = mimeType
@@ -100,7 +100,7 @@ public class CreateImageTests : IAsyncLifetime
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 
         var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+        ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
 
         Assert.True(response.IsSuccessStatusCode);
         Assert.NotNull(responseContext);

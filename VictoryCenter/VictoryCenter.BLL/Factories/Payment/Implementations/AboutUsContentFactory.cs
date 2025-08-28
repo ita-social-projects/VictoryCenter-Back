@@ -7,7 +7,7 @@ namespace VictoryCenter.BLL.Factories.Payment.Implementations;
 
 public class AboutUsContentFactory : IAboutUsContentFactory
 {
-    public TitleContent CreateTitle(AboutUsContentDto dto)
+    public TitleContent CreateTitle(CreateAboutUsContentDto dto)
     {
         return new TitleContent()
         {
@@ -16,22 +16,22 @@ public class AboutUsContentFactory : IAboutUsContentFactory
         };
     }
 
-    public ImageContent CreateImage(AboutUsContentDto dto)
+    public ImageContent CreateImage(CreateAboutUsContentDto dto)
     {
         throw new NotImplementedException();
     }
 
-    public DescriptionContent CreateDescription(AboutUsContentDto dto)
+    public DescriptionContent CreateDescription(CreateAboutUsContentDto dto)
     {
         throw new NotImplementedException();
     }
 
-    public CardContent CreateCard(AboutUsContentDto dto)
+    public CardContent CreateCard(CreateAboutUsContentDto dto)
     {
         throw new NotImplementedException();
     }
 
-    public TitleContent UpdateTitle(AboutUsContentDto dto, AboutUsContent entity)
+    public TitleContent UpdateTitle(CreateAboutUsContentDto dto, AboutUsContent entity)
     {
         var result = entity as TitleContent ?? throw new InvalidOperationException("Entity is not Title");
 
@@ -39,7 +39,7 @@ public class AboutUsContentFactory : IAboutUsContentFactory
         return result;
     }
 
-    public ImageContent UpdateImage(AboutUsContentDto dto, AboutUsContent entity)
+    public ImageContent UpdateImage(CreateAboutUsContentDto dto, AboutUsContent entity)
     {
         var result = entity as ImageContent ?? throw new InvalidOperationException("Entity is not Image");
 
@@ -48,7 +48,7 @@ public class AboutUsContentFactory : IAboutUsContentFactory
         return result;
     }
 
-    public DescriptionContent UpdateDescription(AboutUsContentDto dto, AboutUsContent entity)
+    public DescriptionContent UpdateDescription(CreateAboutUsContentDto dto, AboutUsContent entity)
     {
         var result = entity as DescriptionContent ?? throw new InvalidOperationException("Entity is not Description");
 
@@ -56,7 +56,7 @@ public class AboutUsContentFactory : IAboutUsContentFactory
         return result;
     }
 
-    public CardContent UpdateCard(AboutUsContentDto dto, AboutUsContent entity)
+    public CardContent UpdateCard(CreateAboutUsContentDto dto, AboutUsContent entity)
     {
         var result = entity as CardContent ?? throw new InvalidOperationException("Entity is not Image");
         result.ImageId = dto.ImageId;

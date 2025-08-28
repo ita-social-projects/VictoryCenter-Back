@@ -14,11 +14,11 @@ public class UpdateImageValidator : AbstractValidator<UpdateImageCommand>
     {
         RuleFor(x => x.UpdateImageDto).NotEmpty().WithMessage(ImageConstants.UpdateImageDtoCantBeNull);
         RuleFor(x => x.UpdateImageDto.Base64)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(UpdateImageDTO.Base64)))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(UpdateImageDto.Base64)))
             .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
 
         RuleFor(x => x.UpdateImageDto.MimeType)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(UpdateImageDTO.MimeType)))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(UpdateImageDto.MimeType)))
             .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }

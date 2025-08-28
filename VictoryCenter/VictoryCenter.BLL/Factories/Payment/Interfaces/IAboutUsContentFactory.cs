@@ -5,19 +5,19 @@ namespace VictoryCenter.BLL.Factories.Payment.Interfaces;
 
 public interface IAboutUsContentFactory
 {
-    TitleContent CreateTitle(AboutUsContentDto dto);
+    TitleContent CreateTitle(CreateAboutUsContentDto dto);
 
-    ImageContent CreateImage(AboutUsContentDto dto);
+    ImageContent CreateImage(CreateAboutUsContentDto dto);
 
-    DescriptionContent CreateDescription(AboutUsContentDto dto);
+    DescriptionContent CreateDescription(CreateAboutUsContentDto dto);
 
-    CardContent CreateCard(AboutUsContentDto dto);
+    CardContent CreateCard(CreateAboutUsContentDto dto);
 
-    TitleContent UpdateTitle(AboutUsContentDto dto, AboutUsContent content);
+    TitleContent UpdateTitle(CreateAboutUsContentDto dto, AboutUsContent content);
 
-    ImageContent UpdateImage(AboutUsContentDto dto, AboutUsContent content);
+    ImageContent UpdateImage(CreateAboutUsContentDto dto, AboutUsContent content);
 
-    DescriptionContent UpdateDescription(AboutUsContentDto dto, AboutUsContent content);
+    DescriptionContent UpdateDescription(CreateAboutUsContentDto dto, AboutUsContent content);
 
-    CardContent UpdateCard(AboutUsContentDto dto, AboutUsContent content);
+    CardContent UpdateCard(CreateAboutUsContentDto dto, AboutUsContent content);
 }

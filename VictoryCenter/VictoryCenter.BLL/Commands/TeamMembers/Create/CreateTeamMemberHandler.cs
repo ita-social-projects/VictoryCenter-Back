@@ -68,7 +68,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                             Filter = i => i.Id == entity.ImageId
                         });
 
-                    result.Image = _mapper.Map<ImageDTO>(imageResult);
+                    result.Image = _mapper.Map<ImageDto>(imageResult);
                 }
 
                 scope.Complete();

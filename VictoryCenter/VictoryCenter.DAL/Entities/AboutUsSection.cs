@@ -5,7 +5,7 @@ namespace VictoryCenter.DAL.Entities;
 
 public class AboutUsSection
 {
-    public int Id { get; set; }
+    public long Id { get; set; }
 
     public SectionType SectionType { get; set; }
 

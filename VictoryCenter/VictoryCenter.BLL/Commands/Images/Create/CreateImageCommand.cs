@@ -4,4 +4,4 @@ using VictoryCenter.BLL.DTOs.Images;
 
 namespace VictoryCenter.BLL.Commands.Images.Create;
 
-public record CreateImageCommand(CreateImageDTO CreateImageDto) : IRequest<Result<ImageDTO>>;
+public record CreateImageCommand(CreateImageDto CreateImageDto) : IRequest<Result<ImageDto>>;

@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.Images;
 
-public class BlobToUrlResolver : IValueResolver<Image, ImageDTO, string>
+public class BlobToUrlResolver : IValueResolver<Image, ImageDto, string>
 {
     private readonly IBlobService _blobService;
     public BlobToUrlResolver(IBlobService blobService)
@@ -13,7 +13,7 @@ public class BlobToUrlResolver : IValueResolver<Image, ImageDTO, string>
         _blobService = blobService;
     }
 
-    public string Resolve(Image source, ImageDTO destination, string destMember, ResolutionContext context)
+    public string Resolve(Image source, ImageDto destination, string destMember, ResolutionContext context)
     {
             return _blobService.GetFileUrl(source.BlobName, source.MimeType);
     }

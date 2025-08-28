@@ -14,7 +14,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Images.Update;
 
-public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<ImageDTO>>
+public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<ImageDto>>
 {
     private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
@@ -33,7 +33,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         _blobService = blobService;
     }
 
-    public async Task<Result<ImageDTO>> Handle(UpdateImageCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ImageDto>> Handle(UpdateImageCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -46,7 +46,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (imageEntity is null)
             {
-                return Result.Fail<ImageDTO>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
+                return Result.Fail<ImageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
             using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
@@ -58,7 +58,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Fail<ImageDTO>(ImageConstants.FailToUpdateImage);
+                return Result.Fail<ImageDto>(ImageConstants.FailToUpdateImage);
             }
 
             var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
@@ -70,7 +70,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             imageEntity.BlobName = updatedBlobName;
 
-            ImageDTO resultDto = _mapper.Map<Image, ImageDTO>(imageEntity);
+            ImageDto resultDto = _mapper.Map<Image, ImageDto>(imageEntity);
 
             transaction.Complete();
 
@@ -78,11 +78,11 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ImageDTO>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ImageDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<ImageDTO>(ErrorMessagesConstants.BlobStorageError(e.Message));
+            return Result.Fail<ImageDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

@@ -13,7 +13,7 @@ namespace VictoryCenter.WebAPI.Controllers.Images;
 public class ImageController : BaseApiController
 {
     [HttpPost]
-    public async Task<ActionResult> CreateImage([FromBody] CreateImageDTO request)
+    public async Task<ActionResult> CreateImage([FromBody] CreateImageDto request)
     {
         return HandleResult(await Mediator.Send(new CreateImageCommand(request)));
     }
@@ -31,7 +31,7 @@ public class ImageController : BaseApiController
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateImage(long id, [FromBody] UpdateImageDTO request)
+    public async Task<ActionResult> UpdateImage(long id, [FromBody] UpdateImageDto request)
     {
         return HandleResult(await Mediator.Send(new UpdateImageCommand(request, id)));
     }

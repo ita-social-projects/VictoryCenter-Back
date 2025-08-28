@@ -1,7 +1,10 @@
+using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.AboutUsContent;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.AboutUsContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -13,15 +16,18 @@ public class AboutUsContentHandler : IRequestHandler<AboutUsContentCommand, Resu
 {
     private IAboutUsContentFactory _factory;
     private IRepositoryWrapper _repository;
+    private IMapper _mapper;
 
-    public AboutUsContentHandler(IAboutUsContentFactory factory, IRepositoryWrapper repository)
+    public AboutUsContentHandler(IAboutUsContentFactory factory, IRepositoryWrapper repository, IMapper mapper )
     {
         _factory = factory;
         _repository = repository;
+        _mapper = mapper;
     }
 
     public async Task<Result<AboutUsSectionDto>> Handle(AboutUsContentCommand request, CancellationToken cancellationToken)
     {
+        // call choose validator method
         foreach (var dto in request.Content)
         {
             var entity = await _repository.AboutUsContentsRepository.GetFirstOrDefaultAsync(new QueryOptions<AboutUsContent>()
@@ -62,5 +68,18 @@ public class AboutUsContentHandler : IRequestHandler<AboutUsContentCommand, Resu
                     break;
             }
         }
+
+        var result = await _repository.AboutUsSectionsRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<AboutUsSection>
+            {
+                Filter = e => e.Id == request.SectionId,
+                Include = query => query
+                    .Include(section => section.Contents.OfType<CardContent>())
+                    .ThenInclude(content => content.Image)
+                    .Include(section => section.Contents.OfType<ImageContent>())
+                    .ThenInclude(content => content.Image)!
+            });
+
+        return Result.Ok(_mapper.Map<AboutUsSectionDto>(result));
     }
 }

@@ -38,7 +38,7 @@ public class GetImageByIdTest : IAsyncLifetime
         HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/{id}");
 
         var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? result = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+        ImageDto? result = JsonSerializer.Deserialize<ImageDto>(responseString, _jsonOptions);
 
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(result.BlobName, image.BlobName);

@@ -1,6 +1,6 @@
 namespace VictoryCenter.DAL.Entities.AboutUsContents;
 
-public class ImageContent : AboutUsContents.AboutUsContent
+public class ImageContent : AboutUsContent
 {
     public long? ImageId { get; set; }
 

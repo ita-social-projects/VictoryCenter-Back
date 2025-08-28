@@ -23,7 +23,7 @@ public class GetImageByNameHandlerTests
         MimeType = "image/png"
     };
 
-    private readonly ImageDTO _testImageDto = new()
+    private readonly ImageDto _testImageDto = new()
     {
         Id = 1,
         BlobName = "testblob",
@@ -50,7 +50,7 @@ public class GetImageByNameHandlerTests
         _blobService.Setup(x => x.GetFileUrl(_testImage.BlobName, _testImage.MimeType))
             .Returns(_testImageDto.Url);
 
-        _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
+        _mockMapper.Setup(x => x.Map<ImageDto>(It.IsAny<Image>()))
             .Returns(_testImageDto);
 
         var handler = new GetImageByNameHandler(

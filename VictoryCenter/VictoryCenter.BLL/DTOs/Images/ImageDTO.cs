@@ -1,5 +1,5 @@
 ﻿namespace VictoryCenter.BLL.DTOs.Images;
-public record ImageDTO
+public record ImageDto
 {
     public long Id { get; init; }
     public string BlobName { get; init; } = null!;

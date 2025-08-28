@@ -12,11 +12,11 @@ public class CreateImageValidator : AbstractValidator<CreateImageCommand>
     {
         RuleFor(x => x.CreateImageDto).NotEmpty().WithMessage(ImageConstants.CreateImageDtoCantBeNull);
         RuleFor(x => x.CreateImageDto.Base64)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(CreateImageDTO.Base64)))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(CreateImageDto.Base64)))
             .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
 
         RuleFor(x => x.CreateImageDto.MimeType)
-            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(CreateImageDTO.MimeType)))
+            .NotEmpty().WithMessage(ImageConstants.FieldIsRequired(nameof(CreateImageDto.MimeType)))
             .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }

@@ -4,6 +4,7 @@ public enum SectionType
 {
    Main,
    WhatWeDo,
-   WhoSupport,
-   Team
+   WhoWeSupport,
+   Team,
+   People
 }

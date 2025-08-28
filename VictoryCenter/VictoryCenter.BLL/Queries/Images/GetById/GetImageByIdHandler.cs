@@ -11,7 +11,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Images.GetById;
 
-public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<ImageDTO>>
+public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<ImageDto>>
 {
     private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
@@ -24,7 +24,7 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
         _blobService = blobService;
     }
 
-    public async Task<Result<ImageDTO>> Handle(GetImageByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ImageDto>> Handle(GetImageByIdQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,21 +35,21 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
 
             if (image is null)
             {
-                return Result.Fail<ImageDTO>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
+                return Result.Fail<ImageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
             if (string.IsNullOrEmpty(image.BlobName))
             {
-                return Result.Fail<ImageDTO>(ImageConstants.ImageDataNotAvailable);
+                return Result.Fail<ImageDto>(ImageConstants.ImageDataNotAvailable);
             }
 
-            ImageDTO? result = _mapper.Map<ImageDTO>(image);
+            ImageDto? result = _mapper.Map<ImageDto>(image);
 
             return Result.Ok(result);
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<ImageDTO>(ErrorMessagesConstants.BlobStorageError(e.Message));
+            return Result.Fail<ImageDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

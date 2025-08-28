@@ -1,9 +1,8 @@
-using VictoryCenter.BLL.DTOs.Images;
-using ContentType = VictoryCenter.DAL.Enums.ContentType;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.AboutUsContent;
 
-public class AboutUsContentDto
+public class CreateAboutUsContentDto
 {
     public ContentType ContentType { get; set; }
 
@@ -13,5 +12,5 @@ public class AboutUsContentDto
 
     public string? Description { get; init; }
 
-    public ImageDto Image { get; set; }
+    public long ImageId { get; set; }
 }
