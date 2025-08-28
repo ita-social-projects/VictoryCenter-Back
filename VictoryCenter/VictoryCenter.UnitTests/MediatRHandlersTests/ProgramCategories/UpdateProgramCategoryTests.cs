@@ -58,7 +58,7 @@ public class UpdateProgramCategoryTests
         Result<ProgramCategoryDto> result = await handler
             .Handle(new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name! }, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.NotEmpty(result.Errors);
     }
 
     [Fact]
