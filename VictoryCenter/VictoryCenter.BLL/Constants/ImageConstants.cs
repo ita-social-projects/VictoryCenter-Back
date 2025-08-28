@@ -22,4 +22,9 @@ public static class ImageConstants
     {
         return $"File not found: {filePath}";
     }
+
+    public static string ErrorWithUserImage(string message)
+    {
+        return $"Error with user image: {message}";
+    }
 }

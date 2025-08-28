@@ -87,7 +87,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<TeamMemberDto>($"Error with user image: {e.Message}");
+            return Result.Fail<TeamMemberDto>(ImageConstants.ErrorWithUserImage(e.Message));
         }
         catch (DbUpdateException ex)
         {

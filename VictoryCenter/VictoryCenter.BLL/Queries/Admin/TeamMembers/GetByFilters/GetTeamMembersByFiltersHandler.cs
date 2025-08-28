@@ -39,8 +39,8 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             Offset = request.TeamMembersFilter.Offset is > 0 ? (int)request.TeamMembersFilter.Offset : 0,
             Limit = request.TeamMembersFilter.Limit is > 0 ? (int)request.TeamMembersFilter.Limit : 0,
             Filter = filter,
-            Include = t => t.Include(t => t.Image!),
-            OrderByASC = t => t.Priority
+            Include = tm => tm.Include(member => member.Image!),
+            OrderByASC = tm => tm.Priority
         };
 
         IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);

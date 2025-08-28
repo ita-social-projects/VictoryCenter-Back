@@ -62,7 +62,6 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         }
         catch (BlobStorageException e)
         {
-            var test = ErrorMessagesConstants.BlobStorageError(e.Message);
             return Result.Fail<ImageDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
