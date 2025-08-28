@@ -1,6 +1,7 @@
+using VictoryCenter.BLL.DTOs.AboutUsContent;
 using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.BLL.DTOs.AboutUsContent;
+namespace VictoryCenter.BLL.DTOs.AboutUsSectionDto;
 
 public class AboutUsSectionDto
 {
@@ -12,5 +13,5 @@ public class AboutUsSectionDto
 
     public DateTime CreatedAt { get; set; }
 
-    public required List<AboutUsContentDto> Content { get; set; }
+    public List<AboutUsContentDto> Content { get; set; }
 }

@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.AboutUsContent;
+using VictoryCenter.BLL.DTOs.AboutUsSectionDto;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.AboutUsContents;

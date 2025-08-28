@@ -9,8 +9,6 @@ public class AboutUsContentDto
 
     public long Id { get; set; }
 
-    public string? Title { get; init; }
-
     public string? Description { get; init; }
 
     public ImageDto Image { get; set; }
