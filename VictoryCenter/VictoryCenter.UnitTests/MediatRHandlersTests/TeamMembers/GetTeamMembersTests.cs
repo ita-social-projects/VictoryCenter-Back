@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+﻿using System.Linq.Expressions;
+using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -14,11 +15,13 @@ public class GetTeamMembersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IBlobService> _blobservice;
 
     public GetTeamMembersTests()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
+        _blobservice = new Mock<IBlobService>();
     }
 
     [Theory]
@@ -47,7 +50,7 @@ public class GetTeamMembersTests
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -57,10 +60,11 @@ public class GetTeamMembersTests
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEqual(teamMemberDtoListOld.Count, result.Value.Count),
-            () => Assert.NotEqual(teamMemberDtoListOld, result.Value),
-            () => Assert.Equal(teamMemberDtoList.Count, result.Value.Count),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEqual(teamMemberDtoListOld.Count, result.Value.Items.Length),
+            () => Assert.NotEqual(teamMemberDtoListOld, result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList.Count, result.Value.Items.Length),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     [Fact]
@@ -84,7 +88,7 @@ public class GetTeamMembersTests
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -93,8 +97,9 @@ public class GetTeamMembersTests
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     [Fact]
@@ -104,7 +109,7 @@ public class GetTeamMembersTests
         var category = new Category { Id = 2, Name = "Category 2" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.Category.Id == category.Id)
+            .Where(t => t.CategoryId == category.Id)
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -119,7 +124,7 @@ public class GetTeamMembersTests
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -128,8 +133,9 @@ public class GetTeamMembersTests
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     [Fact]
@@ -140,7 +146,7 @@ public class GetTeamMembersTests
         var category = new Category { Id = 1, Name = "Category 1" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.Status == status && t.Category.Id == category.Id)
+            .Where(t => t.Status == status && t.CategoryId == category.Id)
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -155,7 +161,7 @@ public class GetTeamMembersTests
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -164,8 +170,9 @@ public class GetTeamMembersTests
         Assert.Multiple(
             () => Assert.NotNull(result),
             () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value),
-            () => Assert.Equal(teamMemberDtoList, result.Value));
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
     private static List<TeamMember> GetTeamMemberList()
@@ -226,60 +233,35 @@ public class GetTeamMembersTests
                 Id = 1,
                 Priority = 1,
                 Status = Status.Draft,
-                Category = new CategoryDto
-                {
-                    Id = 1,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 1,
             },
             new()
             {
                 Id = 3,
                 Priority = 1,
                 Status = Status.Published,
-                Category = new CategoryDto
-                {
-                    Id = 1,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 1
             },
             new()
             {
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
-                Category = new CategoryDto
-                {
-                    Id = 2,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 12
             },
             new()
             {
                 Id = 5,
                 Priority = 2,
                 Status = Status.Published,
-                Category = new CategoryDto
-                {
-                    Id = 2,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 2
             },
             new()
             {
                 Id = 4,
                 Priority = 3,
                 Status = Status.Draft,
-                Category = new CategoryDto
-                {
-                    Id = 1,
-                    Name = "Test Category",
-                    Description = "Test category description"
-                },
+                CategoryId = 1,
             },
         };
 
@@ -291,6 +273,8 @@ public class GetTeamMembersTests
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.GetAllAsync(
              It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMembers);
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.CountAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .ReturnsAsync(teamMembers.Count);
     }
 
     private void SetupMapper(List<TeamMemberDto> teamMemberDTOList)

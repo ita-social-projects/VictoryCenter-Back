@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Auth;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Auth;
 

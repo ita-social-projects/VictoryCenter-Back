@@ -34,7 +34,7 @@
   - [How to work with swagger UI](#How-to-work-with-swagger-UI)
   - [How to run tests](#How-to-run-tests)
   - [How to Checkstyle](#How-to-Checkstyle)
-- [Documentation](#Documentation))
+- [Documentation](#Documentation)
 - [Contributing](#contributing)
   - [git flow](#git-flow)
   - [issue flow](#git-flow)
@@ -43,6 +43,168 @@
 - [License](#license)
 
 ---
+
+## Folder structure 
+```
+VictoryCenter-Back
+├── .github
+│   ├── ISSUE_TEMPLATE
+│   ├── PULL_REQUEST_TEMPLATE
+│   └── workflows
+├───docs
+├───VictoryCenter
+│   ├───VictoryCenter.BLL
+│   │   ├───Commands
+│   │   │   ├───Auth
+│   │   │   │   ├───Login
+│   │   │   │   └───RefreshToken
+│   │   │   ├───Categories
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   └───Update
+│   │   │   ├───Images
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   └───Update
+│   │   │   ├───Payment
+│   │   │   │   ├───Common
+│   │   │   │   └───WayForPay
+│   │   │   └───TeamMembers
+│   │   │       ├───Create
+│   │   │       ├───Delete
+│   │   │       ├───Reorder
+│   │   │       └───Update
+│   │   ├───Constants
+│   │   ├───DTOs
+│   │   │   ├───Auth
+│   │   │   ├───Categories
+│   │   │   ├───Images
+│   │   │   ├───Payment
+│   │   │   │   ├───Common
+│   │   │   │   └───WayForPay
+│   │   │   └───TeamMembers
+│   │   ├───Exceptions
+│   │   ├───Factories
+│   │   │   └───Payment
+│   │   │       ├───Implementations
+│   │   │       └───Interfaces
+│   │   ├───Helpers
+│   │   ├───Interfaces
+│   │   │   ├───BlobStorage
+│   │   │   ├───PaymentService
+│   │   │   └───TokenService
+│   │   ├───Mapping
+│   │   │   ├───Categories
+│   │   │   ├───Images
+│   │   │   └───TeamMembers
+│   │   ├───Options
+│   │   │   └───Payment
+│   │   ├───Queries
+│   │   │   ├───Categories
+│   │   │   │   └───GetAll
+│   │   │   ├───Images
+│   │   │   │   ├───GetById
+│   │   │   │   └───GetByName
+│   │   │   └───TeamMembers
+│   │   │       ├───GetByFilters
+│   │   │       ├───GetById
+│   │   │       └───GetPublished
+│   │   ├───Services
+│   │   │   ├───BlobStorage
+│   │   │   ├───PaymentService
+│   │   │   └───TokenService
+│   │   └───Validators
+│   │       ├───Auth
+│   │       ├───Categories
+│   │       ├───Images
+│   │       ├───Payment
+│   │       └───TeamMembers
+│   ├───VictoryCenter.DAL
+│   │   ├───Data
+│   │   │   └───EntityTypeConfigurations
+│   │   ├───Entities
+│   │   ├───Enums
+│   │   ├───Migrations
+│   │   └───Repositories
+│   │       ├───Interfaces
+│   │       │   ├───Base
+│   │       │   ├───Categories
+│   │       │   ├───Media
+│   │       │   └───TeamMembers
+│   │       ├───Options
+│   │       └───Realizations
+│   │           ├───Base
+│   │           ├───Categories
+│   │           ├───Media
+│   │           └───TeamMembers
+│   ├───VictoryCenter.IntegrationTests
+│   │   ├───ControllerTests
+│   │   │   ├───Auth
+│   │   │   ├───Base
+│   │   │   ├───Categories
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   ├───GetAll
+│   │   │   │   └───Update
+│   │   │   ├───Images
+│   │   │   │   ├───Create
+│   │   │   │   ├───Delete
+│   │   │   │   ├───GetById
+│   │   │   │   ├───GetByName
+│   │   │   │   └───Update
+│   │   │   ├───Payments
+│   │   │   ├───Team
+│   │   │   │   └───GetPublished
+│   │   │   └───TeamMembers
+│   │   │       ├───Create
+│   │   │       ├───Delete
+│   │   │       ├───GetById
+│   │   │       ├───GetFiltered
+│   │   │       ├───Reorder
+│   │   │       └───Update
+│   │   ├───MiddlewareTests
+│   │   ├───TestData
+│   │   └───Utils
+│   │       └───Seeder
+│   │           ├───CategoriesSeeder
+│   │           ├───ImageSeeder
+│   │           └───TeamMembersSeeder
+│   ├───VictoryCenter.UnitTests
+│   │   ├───Configuration
+│   │   ├───FactoriesTests
+│   │   │   └───PaymentFactory
+│   │   ├───MediatRHandlersTests
+│   │   │   ├───Auth
+│   │   │   ├───Categories
+│   │   │   ├───Images
+│   │   │   ├───Payment
+│   │   │   └───TeamMembers
+│   │   ├───MiddlewareTests
+│   │   ├───ServiceTests
+│   │   └───ValidatorsTests
+│   │       ├───Auth
+│   │       ├───Categories
+│   │       ├───Payment
+│   │       ├───TeamMembers
+│   │       └───TeamMembersTests
+│   └───VictoryCenter.WebAPI
+│       ├───Controllers
+│       │   ├───Auth
+│       │   ├───Categories
+│       │   ├───Images
+│       │   ├───Payments
+│       │   ├───Public
+│       │   └───TeamMembers
+│       ├───Extensions
+│       ├───Factories
+│       ├───Middleware
+│       ├───Properties
+│       └───Utils
+│           └───Settings
+├───.gitignore
+└───docker-compose.yml
+```
+
 
 ## Installation
 
@@ -59,33 +221,25 @@
 
 ### Environment
 environmental variables
-```properties
-
+```shell
+DB_CONNECTION_STRING="<DB_CONNECTION_STRING>"
+INITIAL_ADMIN_EMAIL="<INITIAL_ADMIN_EMAIL>"
+INITIAL_ADMIN_PASSWORD="<INITIAL_ADMIN_PASSWORD>"
+JWTOPTIONS_SECRETKEY="<JWT_ACCESS_SECRET>"
+JWTOPTIONS_REFRESH_TOKEN_SECRETKEY="<JWT_REFRESH_SECRET>"
+BLOB_LOCAL_STORE_KEY="<BLOB_LOCAL_STORE_KEY>"
+WAY4PAY_MERCHANT_LOGIN="<WAY4PAY_MERCHANT_LOGIN>"
+WAY4PAY_MERCHANT_SECRET_KEY="<WAY4PAY_MERCHANT_SECRET_KEY>"
+WAY4PAY_MERCHANT_DOMAIN_NAME="<WAY4PAY_MERCHANT_DOMAIN_NAME>"
+WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ```
+
 
 ### Clone
 
 - Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO`
 
 ### Setup
-
-- If you want more syntax highlighting, format your code like this:
-
-> update and install this package first
-
-```shell
-$ brew update
-$ brew install SOMEREPOproductions
-```
-
-> now install npm and bower packages
-
-```shell
-$ npm install
-$ bower install
-```
-
-- For all the possible languages that support syntax highlithing on GitHub (which is basically all of them), refer <a href="https://github.com/github/linguist/blob/master/lib/linguist/languages.yml" target="_blank">here</a>.
 
 ### How to run local
 ### How to connect to db locally
@@ -226,8 +380,6 @@ In case of any violations, pull request will be rejected.
 
 
 ---
-
-</div>
 
 ---
 

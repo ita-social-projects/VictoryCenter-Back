@@ -10,6 +10,7 @@ public static class TeamMemberConstants
     public static readonly string UnknownStatusValue = "Unknown status value";
     public static readonly string OrderedIdsCannotBeEmpty = "Ordered Ids cannot be empty";
     public static readonly string OrderedIdsMustContainUniqueValues = "OrderedIds must contain unique values";
+    public static readonly string FailedRetrievingMemberPhoto = "Failed to retrieve team member photo ";
 
     public static string OrderedIdsCannotContainMoreThanNElements(int numberOfElements)
     {

@@ -2,6 +2,6 @@ namespace VictoryCenter.BLL.DTOs.Categories;
 
 public record CreateCategoryDto
 {
-    public string Name { get; set; } = null!;
-    public string? Description { get; set; }
+    public string Name { get; init; } = null!;
+    public string? Description { get; init; }
 }

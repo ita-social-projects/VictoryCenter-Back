@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Search;
 
@@ -20,7 +20,7 @@ public class SearchTeamMemberTests
     {
         _httpClient = fixture.HttpClient;
         _dbContext = fixture.DbContext;
-        _mapper = fixture.Factory.Services.GetService<IMapper>();
+        _mapper = fixture.Factory.Services.GetService<IMapper>() ?? throw new InvalidOperationException();
     }
 
     [Fact]

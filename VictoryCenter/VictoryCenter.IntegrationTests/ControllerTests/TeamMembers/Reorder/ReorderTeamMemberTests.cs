@@ -3,30 +3,34 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
+using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Reorder;
 
 [Collection("SharedIntegrationTests")]
-public class ReorderTeamMemberTests
+public class ReorderTeamMemberTests : IAsyncLifetime
 {
-    private readonly HttpClient _httpClient;
-    private readonly VictoryCenterDbContext _dbContext;
+    private readonly IntegrationTestDbFixture _fixture;
 
     public ReorderTeamMemberTests(IntegrationTestDbFixture fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
+        _fixture = fixture;
     }
+
+    public async Task InitializeAsync()
+    {
+        await _fixture.CreateFreshWebApplication();
+    }
+
+    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task ReorderTeamMembers_ValidRequest_ShouldReturnOk()
     {
         // Arrange
-        var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await _fixture.DbContext.Categories.FirstAsync()).Id;
 
-        var originalTeamMemberIdsOrder = await _dbContext.TeamMembers
+        var originalTeamMemberIdsOrder = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
             .OrderBy(x => x.Priority)
             .Select(x => x.Id)
@@ -45,13 +49,13 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var updatedTeamMembersIdsOrder = await _dbContext.TeamMembers
+        var updatedTeamMembersIdsOrder = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
             .OrderBy(x => x.Priority)
             .Select(x => x.Id)
@@ -64,9 +68,9 @@ public class ReorderTeamMemberTests
     public async Task ReorderTeamMembers_PartialTeamMemberIds_ShouldReorderPartialMembers()
     {
         // Arrange
-        var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await _fixture.DbContext.Categories.FirstAsync()).Id;
 
-        var allTeamMemberIdsOrder = await _dbContext.TeamMembers
+        var allTeamMemberIdsOrder = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
             .OrderBy(x => x.Priority)
             .Select(x => x.Id)
@@ -84,14 +88,14 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         // Verify database changes
-        var updatedMembers = await _dbContext.TeamMembers
+        var updatedMembers = await _fixture.DbContext.TeamMembers
             .Where(tm => tm.CategoryId == categoryId)
             .OrderBy(tm => tm.Priority)
             .ToListAsync();
@@ -117,7 +121,7 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
@@ -128,7 +132,7 @@ public class ReorderTeamMemberTests
     public async Task ReorderTeamMembers_EmptyOrderedIds_ShouldReturnBadRequest()
     {
         // Arrange
-        var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await _fixture.DbContext.Categories.FirstAsync()).Id;
 
         var reorderDto = new ReorderTeamMembersDto
         {
@@ -138,7 +142,7 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
@@ -149,9 +153,9 @@ public class ReorderTeamMemberTests
     public async Task ReorderTeamMembers_DuplicateIds_ShouldReturnBadRequest()
     {
         // Arrange
-        var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await _fixture.DbContext.Categories.FirstAsync()).Id;
 
-        var existingIds = await _dbContext.TeamMembers
+        var existingIds = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
             .Select(x => x.Id)
             .Take(2)
@@ -170,7 +174,7 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
@@ -183,9 +187,9 @@ public class ReorderTeamMemberTests
     public async Task ReorderTeamMembers_InvalidIdInOrderedIds_ShouldReturnBadRequest(long invalidId)
     {
         // Arrange
-        var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await _fixture.DbContext.Categories.FirstAsync()).Id;
 
-        var existingIds = await _dbContext.TeamMembers
+        var existingIds = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
             .Select(x => x.Id)
             .Take(2)
@@ -202,7 +206,7 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
@@ -213,9 +217,9 @@ public class ReorderTeamMemberTests
     public async Task ReorderTeamMembers_NonExistentMemberIds_ShouldReturnBadRequest()
     {
         // Arrange
-        var categoryId = (await _dbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await _fixture.DbContext.Categories.FirstAsync()).Id;
 
-        var existingIds = await _dbContext.TeamMembers
+        var existingIds = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
             .Select(x => x.Id)
             .Take(2)
@@ -233,7 +237,7 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
@@ -244,7 +248,7 @@ public class ReorderTeamMemberTests
     public async Task ReorderTeamMembers_MemberFromDifferentCategory_ShouldReturnBadRequest()
     {
         // Arrange
-        var categories = await _dbContext.Categories.ToListAsync();
+        var categories = await _fixture.DbContext.Categories.ToListAsync();
 
         if (categories.Count < 2)
         {
@@ -254,13 +258,13 @@ public class ReorderTeamMemberTests
         var firstCategoryId = categories[0].Id;
         var secondCategoryId = categories[1].Id;
 
-        var firstCategoryMemberIds = await _dbContext.TeamMembers
+        var firstCategoryMemberIds = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == firstCategoryId)
             .Select(x => x.Id)
             .Take(2)
             .ToListAsync();
 
-        var secondCategoryMemberIds = await _dbContext.TeamMembers
+        var secondCategoryMemberIds = await _fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == secondCategoryId)
             .Select(x => x.Id)
             .ToListAsync();
@@ -279,7 +283,7 @@ public class ReorderTeamMemberTests
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 
         // Act
-        var response = await _httpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
+        var response = await _fixture.HttpClient.PutAsync("api/TeamMembers/reorder", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         // Assert
