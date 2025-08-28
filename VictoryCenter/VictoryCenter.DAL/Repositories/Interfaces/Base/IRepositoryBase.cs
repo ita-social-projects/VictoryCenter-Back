@@ -17,6 +17,8 @@ public interface IRepositoryBase<T>
 
     void Delete(T entity);
 
+    Task<int> CountAsync(QueryOptions<T>? queryOptions = null);
+
     Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
         where TKey : struct;
 
