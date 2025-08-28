@@ -86,6 +86,9 @@ public static class ServicesConfiguration
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
+        ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
+
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
         services.ConfigureBlob(configuration);
