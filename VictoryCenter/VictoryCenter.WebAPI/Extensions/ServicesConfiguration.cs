@@ -7,16 +7,18 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Commands.Payment.Common;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -110,6 +112,8 @@ public static class ServicesConfiguration
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);

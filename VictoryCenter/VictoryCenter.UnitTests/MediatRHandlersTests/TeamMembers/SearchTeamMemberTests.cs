@@ -70,7 +70,7 @@ public class SearchTeamMemberTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Equal(_teamMemberDtos, result.Value);
+        Assert.Equal(_teamMemberDtos, result.Value.Items);
     }
 
     [Fact]
@@ -89,7 +89,7 @@ public class SearchTeamMemberTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
-        Assert.Empty(result.Value);
+        Assert.Empty(result.Value.Items);
     }
 
     [Fact]

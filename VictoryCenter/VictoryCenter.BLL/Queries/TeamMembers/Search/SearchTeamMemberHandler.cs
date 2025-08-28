@@ -3,6 +3,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Services.Search.Helpers;
@@ -12,7 +13,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.TeamMembers.Search;
 
-public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Result<List<TeamMemberDto>>>
+public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Result<PaginationResult<TeamMemberDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -31,7 +32,7 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
         _searchService = searchService;
     }
 
-    public async Task<Result<List<TeamMemberDto>>> Handle(SearchTeamMemberQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(SearchTeamMemberQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -50,10 +51,18 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
             {
                 Include = tm => tm.Include(tm => tm.Category),
                 Filter = searchExpression,
+                Offset = dto.Offset is not null and > 0 ? (int)dto.Offset : 0,
+                Limit = dto.Limit is not null and > 0 ? (int)dto.Limit : 0,
             });
             var teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
 
-            return Result.Ok(teamMembersDto);
+            var count = await _repositoryWrapper.TeamMembersRepository.CountAsync(searchExpression);
+
+            var paginationResult = new PaginationResult<TeamMemberDto>(
+                teamMembersDto.ToArray(),
+                count);
+
+            return Result.Ok(paginationResult);
         }
         catch (ValidationException vex)
         {

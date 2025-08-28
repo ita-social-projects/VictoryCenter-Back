@@ -3,6 +3,7 @@ using System.Text.Json;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.TeamMembers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
@@ -43,13 +44,13 @@ public class SearchTeamMemberTests
         {
             PropertyNameCaseInsensitive = true
         };
-        var responseContent = JsonSerializer.Deserialize<List<TeamMemberDto>>(responseString, options);
+        var responseContent = JsonSerializer.Deserialize<PaginationResult<TeamMemberDto>>(responseString, options);
 
         // Assert
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
-        Assert.Equal(responseContent, expectedTeamMembers);
+        Assert.Equal(responseContent.Items, expectedTeamMembers);
     }
 
     [Fact]
