@@ -2,9 +2,9 @@
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
@@ -42,8 +42,8 @@ public class BlobService : IBlobService
 
     public async Task<MemoryStream> FindFileInStorageAsMemoryStreamAsync(string name, string mimeType)
     {
-            byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
-            return new MemoryStream(decodedBytes);
+        byte[] decodedBytes = await DecryptFileAsync(name, GetExtensionFromMimeType(mimeType));
+        return new MemoryStream(decodedBytes);
     }
 
     public async Task<string> FindFileInStorageAsBase64Async(string name, string mimeType)

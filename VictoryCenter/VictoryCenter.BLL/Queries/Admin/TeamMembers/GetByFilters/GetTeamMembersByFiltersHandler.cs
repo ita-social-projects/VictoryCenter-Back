@@ -36,10 +36,10 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         var queryOptions = new QueryOptions<TeamMember>
         {
-            Offset = request.TeamMembersFilter.Offset is not null and > 0 ? (int)request.TeamMembersFilter.Offset : 0,
-            Limit = request.TeamMembersFilter.Limit is not null and > 0 ? (int)request.TeamMembersFilter.Limit : 0,
+            Offset = request.TeamMembersFilter.Offset is > 0 ? (int)request.TeamMembersFilter.Offset : 0,
+            Limit = request.TeamMembersFilter.Limit is > 0 ? (int)request.TeamMembersFilter.Limit : 0,
             Filter = filter,
-            Include = t => t.Include(t => t.Image),
+            Include = t => t.Include(t => t.Image!),
             OrderByASC = t => t.Priority
         };
 
@@ -52,11 +52,11 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             {
                 try
                 {
-                    member.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
+                    member.Image!.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
                 }
                 catch (BlobStorageException)
                 {
-                    member.Image.Base64 = string.Empty;
+                    member.Image!.Base64 = string.Empty;
                 }
             });
         await Task.WhenAll(imageLoadTasks);

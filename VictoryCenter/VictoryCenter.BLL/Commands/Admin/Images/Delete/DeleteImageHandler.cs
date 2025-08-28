@@ -1,11 +1,11 @@
 using FluentResults;
 using MediatR;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Admin.Images.Delete;
 
@@ -45,7 +45,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             if (!string.IsNullOrEmpty(entityToDelete.BlobName))
             {
-                 _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
+                _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
             }
 
             transaction.Complete();
@@ -54,7 +54,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.BlobStorageError(e.Message) );
+            return Result.Fail<long>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

@@ -19,7 +19,6 @@ public class RefreshTokenTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly JwtOptions _jwtOptions;
 
     public RefreshTokenTests()
     {
@@ -35,7 +34,7 @@ public class RefreshTokenTests
             new Mock<IServiceProvider>().Object,
             new Mock<ILogger<UserManager<AdminUser>>>().Object);
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        var jwtOptions = new JwtOptions()
+        var jwtOptions = new JwtOptions
         {
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
@@ -49,7 +48,6 @@ public class RefreshTokenTests
         mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
         IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
 
-        _jwtOptions = jwtOptions;
         _handler = new RefreshTokenCommandHandler(_mockTokenService.Object, _mockUserManager.Object, _mockHttpContextAccessor.Object, jwtOptions1);
     }
 
@@ -58,7 +56,7 @@ public class RefreshTokenTests
     {
         var cmd = new RefreshTokenCommand();
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out It.Ref<string>.IsAny)).Returns(false);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out It.Ref<string>.IsAny!)).Returns(false);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -77,7 +75,7 @@ public class RefreshTokenTests
         var cmd = new RefreshTokenCommand();
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string empty = string.Empty;
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out empty)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out empty!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -96,7 +94,7 @@ public class RefreshTokenTests
         var cmd = new RefreshTokenCommand();
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string token = "expired_access_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -118,7 +116,7 @@ public class RefreshTokenTests
         var cmd = new RefreshTokenCommand();
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string token = "expired_access_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -140,7 +138,7 @@ public class RefreshTokenTests
         var cmd = new RefreshTokenCommand();
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string token = "expired_access_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -166,7 +164,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenRefreshTokenDifferentFromTheAdmins_ReturnsFail()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new AdminUser()
+        var admin = new AdminUser
         {
             RefreshToken = "refresh_token_different",
             RefreshTokenValidTo = FixedTestTime.AddHours(24)
@@ -176,7 +174,7 @@ public class RefreshTokenTests
         ]));
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string token = "expired_access_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -198,7 +196,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenOutdatedRefreshToken_ReturnsFail()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new AdminUser()
+        var admin = new AdminUser
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(-24)
@@ -208,7 +206,7 @@ public class RefreshTokenTests
         ]));
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string token = "expired_access_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out token!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockHttpContext = new Mock<HttpContext>();
@@ -230,7 +228,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenValidRefreshToken_ReturnsSuccess()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new AdminUser()
+        var admin = new AdminUser
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
@@ -241,7 +239,7 @@ public class RefreshTokenTests
         ]));
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string cookieValue = "refresh_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out cookieValue)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out cookieValue!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockResponseCookies = new Mock<IResponseCookies>();
@@ -281,7 +279,7 @@ public class RefreshTokenTests
     public async Task Handle_GivenValidRefreshToken_ReturnsFailure()
     {
         var cmd = new RefreshTokenCommand();
-        var admin = new AdminUser()
+        var admin = new AdminUser
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
@@ -292,7 +290,7 @@ public class RefreshTokenTests
         ]));
         var mockRequestCookies = new Mock<IRequestCookieCollection>();
         string cookieValue = "refresh_token";
-        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out cookieValue)).Returns(true);
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out cookieValue!)).Returns(true);
         var mockHttpRequest = new Mock<HttpRequest>();
         mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         var mockResponseCookies = new Mock<IResponseCookies>();
@@ -307,7 +305,7 @@ public class RefreshTokenTests
         _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
-        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(new IdentityError() { Description = "Failed" }));
+        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed" }));
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
 
         var result = await _handler.Handle(cmd, CancellationToken.None);

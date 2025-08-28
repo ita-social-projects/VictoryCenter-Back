@@ -32,7 +32,7 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
             var queryOptions = new QueryOptions<TeamMember>
             {
                 Filter = tm => tm.Id == request.Id,
-                Include = t => t.Include(t => t.Image)
+                Include = t => t.Include(t => t.Image!)
             };
 
             TeamMember? teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(queryOptions);

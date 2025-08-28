@@ -34,7 +34,7 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
             Include = categories => categories.Include(category => category.TeamMembers
                     .Where(member => member.Status == Status.Published)
                     .OrderBy(members => members.Priority))
-                .ThenInclude(member => member.Image)
+                .ThenInclude(member => member.Image!)
         };
 
         IEnumerable<Category> categoriesWithPublishedMembers =
@@ -51,12 +51,12 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
             {
                 try
                 {
-                    teamMember.Image.Base64 =
+                    teamMember.Image!.Base64 =
                         await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
                 }
                 catch (BlobStorageException)
                 {
-                    teamMember.Image.Base64 = string.Empty;
+                    teamMember.Image!.Base64 = string.Empty;
                 }
             });
         await Task.WhenAll(imageLoadTasks);

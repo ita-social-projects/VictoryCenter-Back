@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.DTOs.Admin.Images;
 
 namespace VictoryCenter.BLL.Queries.Admin.Images.GetById;
 
@@ -28,7 +28,7 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
     {
         try
         {
-            var image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>()
+            var image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
                 Filter = e => e.Id == request.Id
             });

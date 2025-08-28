@@ -28,7 +28,7 @@ namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {
-    public static void AddApplicationServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -75,7 +75,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
@@ -104,7 +104,7 @@ public static class ServicesConfiguration
             .ValidateOnStart();
 
         services.AddHttpClient("Way4PayClient")
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 AllowAutoRedirect = false
             });
@@ -127,7 +127,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static async Task ApplyMigrations(this WebApplication app)
+    public static async Task ApplyMigrationsAsync(this WebApplication app)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         try
@@ -169,13 +169,13 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialData(this WebApplication app)
+    public static async Task CreateInitialDataAsync(this WebApplication app)
     {
-        await app.CreateInitialAdmin();
-        await app.CreateInitialCategories();
+        await app.CreateInitialAdminAsync();
+        await app.CreateInitialCategoriesAsync();
     }
 
-    private static async Task CreateInitialAdmin(this WebApplication app)
+    private static async Task CreateInitialAdminAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
@@ -212,7 +212,7 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialCategories(this WebApplication app)
+    private static async Task CreateInitialCategoriesAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
@@ -257,7 +257,7 @@ public static class ServicesConfiguration
                 Title = "VictoryCenter API",
                 Version = "v1"
             });
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
                 Name = "Authorization",
