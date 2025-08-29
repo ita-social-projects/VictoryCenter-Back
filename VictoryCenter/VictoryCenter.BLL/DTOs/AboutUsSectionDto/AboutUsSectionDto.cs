@@ -13,5 +13,5 @@ public class AboutUsSectionDto
 
     public DateTime CreatedAt { get; set; }
 
-    public List<AboutUsContentDto> Content { get; set; }
+    public List<AboutUsContentDto> Contents { get; set; }
 }

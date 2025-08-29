@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.AboutUsContent;
 using VictoryCenter.BLL.DTOs.AboutUsSectionDto;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;

@@ -9,6 +9,12 @@ public class AboutUsContentsProfile : Profile
     public AboutUsContentsProfile()
     {
         CreateMap<AboutUsContent, AboutUsContentDto>()
-            .IncludeAllDerived();
+            .Include<ImageContent, ImageContentDto>()
+            .Include<TitleContent, TitleContentDto>()
+            .Include<DescriptionContent, DescriptionContentDto>();
+
+        CreateMap<ImageContent, ImageContentDto>();
+        CreateMap<TitleContent, TitleContentDto>();
+        CreateMap<DescriptionContent, DescriptionContentDto>();
     }
 }

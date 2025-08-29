@@ -290,7 +290,7 @@ public static class ServicesConfiguration
                 {
                     new DescriptionContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Description,
                         Description =
                             "Ми створюємо терапевтичні програми, які поєднують взаємодію з кіньми, тілесні практики, контакт із природою, психологічний супровід, спільноту підтримки. Кожна програма адаптується під індивідуальні запити учасників/ць групи.Кожна програма адаптується",
                     },
@@ -305,21 +305,21 @@ public static class ServicesConfiguration
                 {
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
                             "Ветеранів/ок, що повернулися із фронту/полону та прагнуть відновити контакт із собою, своїм тілом та близькими.",
                     },
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
                             "Волонтерів/ок та цивільних, які відчувають потребу в емоційному відновленні іпрагнуть продовжувати підтримувати інших.",
                     },
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
                             "Дітей, що постраждали від війни та пройшли через втрату, страх, вимушений переїзд. Через ігрову терапію, взаємодію у групах та контакт із тваринами, ми допомагаємо сформувати довіру маленьких українців/ок до оточуючих та повернути відчуття безпеки.",
@@ -340,7 +340,7 @@ public static class ServicesConfiguration
                     },
                     new DescriptionContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Description,
                         Description =
                             "Волонтерів/ок та цивільних, які відчувають потребу в емоційному відновленні іпрагнуть продовжувати підтримувати інших.",
                     },
@@ -355,28 +355,28 @@ public static class ServicesConfiguration
                 {
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
                             "Партнери, які поділяють наші мрії та цінності",
                     },
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
                             "Партнери, які поділяють наші мрії та цінності",
                     },
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
                             "волонтери/ки, які поруч, аби підтримати.",
                     },
                     new CardContent()
                     {
-                        ContentType = ContentType.Image,
+                        ContentType = ContentType.Card,
                         ImageId = null,
                         Description = "благодійники/ці, які допомагають втілити ідеї в реальність",
                     },
