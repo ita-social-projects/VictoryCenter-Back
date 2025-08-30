@@ -85,10 +85,11 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 if (entityToUpdate.ImageId != null)
                 {
                     Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
-                        new QueryOptions<Image>()
+                        new QueryOptions<Image>
                         {
                             Filter = i => i.Id == entityToUpdate.ImageId
                         });
+
                     if (image != null)
                     {
                         var imageDto = _mapper.Map<ImageDto>(image);
@@ -109,7 +110,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<TeamMemberDto>($"ImageConstants.ErrorWithUserImage(e.Message) {e.Message}");
+            return Result.Fail<TeamMemberDto>(ImageConstants.ErrorWithUserImage(e.Message));
         }
         catch (ValidationException vex)
         {
