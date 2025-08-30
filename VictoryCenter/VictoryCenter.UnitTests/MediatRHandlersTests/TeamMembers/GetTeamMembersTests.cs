@@ -11,13 +11,13 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
-public class GetTeamMembers
+public class GetTeamMembersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IBlobService> _blobservice;
 
-    public GetTeamMembers()
+    public GetTeamMembersTests()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();

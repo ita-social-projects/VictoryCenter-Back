@@ -7,16 +7,18 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Commands.Payment.Common;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -110,6 +112,8 @@ public static class ServicesConfiguration
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
@@ -211,39 +215,39 @@ public static class ServicesConfiguration
     }
 
     private static async Task CreateInitialCategories(this WebApplication app)
-    {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var categories = new List<Category>
         {
-            new()
+            await using var asyncServiceScope = app.Services.CreateAsyncScope();
+            var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var categories = new List<Category>
             {
-                Name = "Основна команда",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTime.UtcNow
-            },
-            new()
+                new()
+                {
+                    Name = "Основна команда",
+                    Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                    CreatedAt = DateTime.UtcNow
+                },
+                new()
+                {
+                    Name = "Наглядова рада",
+                    Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                    CreatedAt = DateTime.UtcNow
+                },
+                new()
+                {
+                    Name = "Радники",
+                    Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
+                    CreatedAt = DateTime.UtcNow
+                }
+            };
+            foreach (var category in categories)
             {
-                Name = "Наглядова рада",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTime.UtcNow
-            },
-            new()
-            {
-                Name = "Радники",
-                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
-                CreatedAt = DateTime.UtcNow
-            }
-        };
-        foreach (var category in categories)
-        {
-            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
-            {
-                dbContext.Categories.Add(category);
-                await dbContext.SaveChangesAsync();
+                if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+                {
+                    dbContext.Categories.Add(category);
+                    await dbContext.SaveChangesAsync();
+                }
             }
         }
-    }
 
     private static void AddOpenApi(this IServiceCollection services)
     {
