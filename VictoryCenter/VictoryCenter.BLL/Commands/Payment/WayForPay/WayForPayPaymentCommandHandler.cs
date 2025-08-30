@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -148,8 +148,6 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
         var secretKeyBytes = Encoding.UTF8.GetBytes(_way4PayOptions.Value.MerchantSecretKey);
         var signatureBytes = Encoding.UTF8.GetBytes(concatenatedValues);
 
-        // Using HMACMD5 is required by WayForPay API specification. Suppressing SonarQube rule S5547.
-        // NOSONAR
         using var hmac = new HMACMD5(secretKeyBytes);
 
         var bytes = hmac.ComputeHash(signatureBytes);
