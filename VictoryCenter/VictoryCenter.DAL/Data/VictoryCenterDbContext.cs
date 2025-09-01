@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Entities.AboutUsContents;
+using VictoryCenter.DAL.Entities.WhoWeAreContents;
 
 namespace VictoryCenter.DAL.Data;
 
@@ -19,9 +19,9 @@ public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>
 
     public DbSet<Image> Images { get; set; }
 
-    public DbSet<AboutUsSection> AboutUsSections { get; set; }
+    public DbSet<WhoWeAreSection> WhoWeAreSections { get; set; }
 
-    public DbSet<AboutUsContent> AboutUsContents { get; set; }
+    public DbSet<WhoWeAreContent> WhoWeAreContents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

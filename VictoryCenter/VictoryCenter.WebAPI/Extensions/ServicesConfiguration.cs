@@ -21,7 +21,7 @@ using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Entities.AboutUsContents;
+using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
@@ -90,7 +90,7 @@ public static class ServicesConfiguration
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
-        services.AddScoped<IAboutUsContentFactory, AboutUsContentFactory>();
+        services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
         services.ConfigureBlob(configuration);
@@ -175,7 +175,7 @@ public static class ServicesConfiguration
     {
         await app.CreateInitialAdmin();
         await app.CreateInitialCategories();
-        await app.CreateInitialAboutUsPages();
+        await app.CreateInitialWhoWeArePages();
     }
 
     private static async Task CreateInitialAdmin(this WebApplication app)
@@ -250,18 +250,18 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialAboutUsPages(this WebApplication app)
+    private static async Task CreateInitialWhoWeArePages(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var sections = new List<AboutUsSection>
+        var sections = new List<WhoWeAreSection>
         {
             new()
             {
                 SectionType = SectionType.Main,
                 Title = "Основне",
                 CreatedAt = DateTime.UtcNow,
-                Contents = new List<AboutUsContent>()
+                Contents = new List<WhoWeAreContent>()
                 {
                     new ImageContent()
                     {
@@ -286,7 +286,7 @@ public static class ServicesConfiguration
                 SectionType = SectionType.WhatWeDo,
                 Title = "Що ми робимо",
                 CreatedAt = DateTime.UtcNow,
-                Contents = new List<AboutUsContent>()
+                Contents = new List<WhoWeAreContent>()
                 {
                     new DescriptionContent()
                     {
@@ -301,7 +301,7 @@ public static class ServicesConfiguration
                 SectionType = SectionType.WhoWeSupport,
                 Title = "Кого підтримуюмо",
                 CreatedAt = DateTime.UtcNow,
-                Contents = new List<AboutUsContent>()
+                Contents = new List<WhoWeAreContent>()
                 {
                     new CardContent()
                     {
@@ -331,7 +331,7 @@ public static class ServicesConfiguration
                 SectionType = SectionType.Team,
                 Title = "Команда",
                 CreatedAt = DateTime.UtcNow,
-                Contents = new List<AboutUsContent>()
+                Contents = new List<WhoWeAreContent>()
                 {
                     new ImageContent()
                     {
@@ -351,7 +351,7 @@ public static class ServicesConfiguration
                 SectionType = SectionType.People,
                 Title = "Люди",
                 CreatedAt = DateTime.UtcNow,
-                Contents = new List<AboutUsContent>()
+                Contents = new List<WhoWeAreContent>()
                 {
                     new CardContent()
                     {
@@ -385,9 +385,9 @@ public static class ServicesConfiguration
         };
         foreach (var section in sections)
         {
-            if (!await dbContext.AboutUsSections.AnyAsync(c => c.SectionType == section.SectionType))
+            if (!await dbContext.WhoWeAreSections.AnyAsync(c => c.SectionType == section.SectionType))
             {
-                dbContext.AboutUsSections.Add(section);
+                dbContext.WhoWeAreSections.Add(section);
                 await dbContext.SaveChangesAsync();
             }
         }

@@ -1,9 +1,9 @@
 using System.Transactions;
-using VictoryCenter.DAL.Repositories.Interfaces.AboutUsContents;
-using VictoryCenter.DAL.Repositories.Interfaces.AboutUsSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -13,9 +13,9 @@ public interface IRepositoryWrapper
     ITeamMembersRepository TeamMembersRepository { get; }
     IImageRepository ImageRepository { get; }
 
-    IAboutUsContentsRepository AboutUsContentsRepository { get; }
+    IWhoWeAreContentsRepository WhoWeAreContentsRepository { get; }
 
-    IAboutUsSectionsRepository AboutUsSectionsRepository { get; }
+    IWhoWeAreSectionsRepository WhoWeAreSectionsRepository { get; }
 
     int SaveChanges();
 

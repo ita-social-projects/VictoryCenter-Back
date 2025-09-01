@@ -8,8 +8,9 @@ builder.Host.ConfigureApplication(builder);
 builder.Configuration.AddLocalEnvironmentVariables();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices(builder.Configuration);
-builder.Services.AddOpenTelemetryTracing();
-builder.Logging.AddOpenTelemetryLogging();
+
+// builder.Services.AddOpenTelemetryTracing();
+// builder.Logging.AddOpenTelemetryLogging();
 builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
