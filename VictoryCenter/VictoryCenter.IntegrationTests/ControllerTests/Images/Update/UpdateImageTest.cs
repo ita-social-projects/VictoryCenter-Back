@@ -38,7 +38,7 @@ public class UpdateImageTest : IAsyncLifetime
         var id = image.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
+        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.FullPath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
         var updateImageDto = new UpdateImageDTO
@@ -55,7 +55,7 @@ public class UpdateImageTest : IAsyncLifetime
         ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         var newExtension = responseContext.MimeType.Split("/")[1];
-        var newFilePath = Path.Combine(_fixture.BlobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
+        var newFilePath = Path.Combine(_fixture.BlobEnvironmentVariables.FullPath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);
@@ -107,6 +107,37 @@ public class UpdateImageTest : IAsyncLifetime
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(response.StatusCode, HttpStatusCode.BadRequest);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task UpdateImage_InvalidBase64_ShouldReturnBadRequest(string invalidBase64)
+    {
+        var testImage = new Image()
+        {
+            Id = 1100,
+            MimeType = "image/png",
+            BlobName = "test123",
+            CreatedAt = DateTime.Now
+        };
+        _fixture.DbContext.Images.Add(testImage);
+
+        var updateImageDto = new UpdateImageDTO
+        {
+            Base64 = invalidBase64,
+            MimeType = "image/png"
+        };
+
+        var serializedDto = JsonSerializer.Serialize(updateImageDto);
+
+        HttpResponseMessage response = await _fixture.HttpClient.PutAsync(
+            $"api/image/{testImage.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private static string ComputeFileHash(string filePath)

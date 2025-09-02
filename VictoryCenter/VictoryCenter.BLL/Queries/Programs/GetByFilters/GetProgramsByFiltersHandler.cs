@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 using MediatR;
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -48,19 +47,6 @@ public class GetProgramsByFiltersHandler : IRequestHandler<GetProgramsByFiltersQ
         IEnumerable<Program> programs = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
         var totalCount = await _repositoryWrapper.ProgramsRepository.CountAsync(queryOptions);
         var programDto = _mapper.Map<IEnumerable<ProgramDto>>(programs).ToList();
-        IEnumerable<Task> imageLoadTasks = programDto.Where(member => member.Image is not null)
-            .Select(async member =>
-            {
-                try
-                {
-                    member.Image!.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
-                }
-                catch (BlobStorageException)
-                {
-                    member.Image!.Base64 = string.Empty;
-                }
-            });
-        await Task.WhenAll(imageLoadTasks);
 
         var response = new ProgramsFilterResponseDto
         {

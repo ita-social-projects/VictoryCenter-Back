@@ -3,7 +3,6 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -43,23 +42,6 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
         var publishedCategoriesDto = _mapper
             .Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(categoriesWithPublishedMembers)
             .ToList();
-
-        IEnumerable<Task> imageLoadTasks = publishedCategoriesDto
-            .SelectMany(category => category.TeamMembers)
-            .Where(teamMembers => teamMembers.Image is not null)
-            .Select(async teamMember =>
-            {
-                try
-                {
-                    teamMember.Image.Base64 =
-                        await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
-                }
-                catch (BlobStorageException)
-                {
-                    teamMember.Image.Base64 = string.Empty;
-                }
-            });
-        await Task.WhenAll(imageLoadTasks);
 
         return Result.Ok(publishedCategoriesDto);
     }

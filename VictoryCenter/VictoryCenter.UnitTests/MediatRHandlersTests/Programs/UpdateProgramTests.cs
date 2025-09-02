@@ -138,8 +138,8 @@ public class UpdateProgramTests
     private void SetUpBlobService()
     {
         _blobServiceMock
-            .Setup(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync("mockedBase64");
+            .Setup(x => x.GetFileUrl(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns("https://localhost:5000/supersecretimage.png");
     }
 
     private void SetUpRepositoryWrapper(int saveResult, DAL.Entities.Program programEntity)

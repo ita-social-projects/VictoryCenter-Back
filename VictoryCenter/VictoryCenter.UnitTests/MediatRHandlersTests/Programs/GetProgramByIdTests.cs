@@ -91,7 +91,7 @@ public class GetProgramByIdTests
     private void SetUpBlobService()
     {
         _mockBlobService
-            .Setup(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync("mockedBase64");
+            .Setup(x => x.GetFileUrl(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns("https://localhost:5000/supersecretimage.png");
     }
 }

@@ -9,7 +9,7 @@ using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 namespace VictoryCenter.BLL.Commands.Programs.Update;
 
@@ -18,14 +18,12 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateProgramCommand> _validator;
-    private readonly IBlobService _blobService;
 
     public UpdateProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<UpdateProgramCommand> validator, IBlobService blobService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
-        _blobService = blobService;
     }
 
     public async Task<Result<ProgramDto>> Handle(UpdateProgramCommand request, CancellationToken cancellationToken)
@@ -64,10 +62,6 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
                     Filter = image => image.Id == request.updateProgramDto.ImageId,
                     AsNoTracking = false
                 });
-                if (newImage is not null)
-                {
-                    newImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
-                }
 
                 programToUpdate.Image = newImage;
             }

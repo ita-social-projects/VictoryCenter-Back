@@ -26,9 +26,9 @@ public class GetImageByNameHandlerTests
     private readonly ImageDTO _testImageDto = new()
     {
         Id = 1,
-        BlobName = "testblob.png",
+        BlobName = "testblob",
         MimeType = "image/png",
-        Base64 = "dGVzdA=="
+        Url = "http:supersecretblob.com/testblob.png"
     };
 
     public GetImageByNameHandlerTests()
@@ -47,8 +47,8 @@ public class GetImageByNameHandlerTests
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync(_testImage);
 
-        _blobService.Setup(x => x.FindFileInStorageAsBase64Async(_testImage.BlobName, _testImage.MimeType))
-            .ReturnsAsync(_testImageDto.Base64);
+        _blobService.Setup(x => x.GetFileUrl(_testImage.BlobName, _testImage.MimeType))
+            .Returns(_testImageDto.Url);
 
         _mockMapper.Setup(x => x.Map<ImageDTO>(It.IsAny<Image>()))
             .Returns(_testImageDto);
@@ -67,7 +67,7 @@ public class GetImageByNameHandlerTests
         Assert.Equal(_testImageDto.Id, result.Value.Id);
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        Assert.Equal(_testImageDto.Url, result.Value.Url);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class GetImageByNameHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(ImageConstants.ImageNotFoundGeneric, result.Errors[0].Message);
-        _blobService.Verify(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+        _blobService.Verify(x => x.GetFileUrl(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -103,7 +103,6 @@ public class GetImageByNameHandlerTests
         var mockImage = new Image()
         {
             Id = id,
-            Base64 = "dGVzdA==",
             BlobName = "",
             MimeType = "image/png",
             CreatedAt = DateTime.UtcNow

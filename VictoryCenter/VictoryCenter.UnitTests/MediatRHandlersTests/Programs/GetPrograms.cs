@@ -188,8 +188,8 @@ public class GetPrograms
     private void SetUpBlobService()
     {
         _blobService
-            .Setup(x => x.FindFileInStorageAsBase64Async(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync("mockedBase64");
+            .Setup(x => x.GetFileUrl(It.IsAny<string>(), It.IsAny<string>()))
+            .Returns("https://localhost:5000/supersecretimage.png");
     }
 
     private void SetUpRepositoryWrapper(List<DAL.Entities.Program> programs)

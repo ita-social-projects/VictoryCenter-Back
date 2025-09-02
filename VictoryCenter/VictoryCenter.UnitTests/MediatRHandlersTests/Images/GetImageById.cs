@@ -27,7 +27,7 @@ public class GetImageByIdHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        Base64 = "dGVzdA=="
+        Url = "http://superblob.com/testblob.png"
     };
 
     public GetImageByIdHandlerTests()
@@ -63,7 +63,7 @@ public class GetImageByIdHandlerTests
         Assert.Equal(_testImageDto.Id, result.Value.Id);
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        Assert.Equal(_testImageDto.Url, result.Value.Url);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class GetImageByIdHandlerTests
         var mockImage = new Image()
         {
             Id = id,
-            Base64 = "dGVzdA==",
+            Url = "http://superblob.com/testblob.png",
             BlobName = "",
             MimeType = "image/png",
             CreatedAt = DateTime.UtcNow

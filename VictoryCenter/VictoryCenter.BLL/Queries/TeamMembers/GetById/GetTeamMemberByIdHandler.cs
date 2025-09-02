@@ -3,7 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -13,9 +13,9 @@ namespace VictoryCenter.BLL.Queries.TeamMembers.GetById;
 
 public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, Result<TeamMemberDto>>
 {
+    private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repository;
-    private readonly IBlobService _blobService;
 
     public GetTeamMemberByIdHandler(IMapper mapper, IRepositoryWrapper repository, IBlobService blobService)
     {
@@ -40,13 +40,7 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
                 return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
             }
 
-            if (teamMember.Image is not null)
-            {
-                teamMember.Image.Base64 =
-                    await _blobService.FindFileInStorageAsBase64Async(teamMember.Image.BlobName, teamMember.Image.MimeType);
-            }
-
-            var result = _mapper.Map<TeamMemberDto>(teamMember);
+            TeamMemberDto? result = _mapper.Map<TeamMemberDto>(teamMember);
 
             return Result.Ok(result);
         }

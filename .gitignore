@@ -158,4 +158,4 @@ dist
 *idea/
 *bin/
 *obj/
-*StaticFile/
+*wwwroot/

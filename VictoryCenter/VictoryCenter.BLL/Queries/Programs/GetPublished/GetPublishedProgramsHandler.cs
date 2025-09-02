@@ -8,7 +8,6 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Queries.Programs.GetPublished;
 
@@ -16,13 +15,11 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
-    private readonly IBlobService _blobService;
 
     public GetPublishedProgramsHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IBlobService blobService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
-        _blobService = blobService;
     }
 
     public async Task<Result<List<PublishedProgramDto>>> Handle(GetPublishedProgramsQuery request, CancellationToken cancellationToken)
@@ -37,22 +34,6 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
 
         IEnumerable<Program> publishedPrograms = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
         var publishedProgramsDto = _mapper.Map<IEnumerable<PublishedProgramDto>>(publishedPrograms).ToList();
-        foreach (PublishedProgramDto program in publishedProgramsDto)
-        {
-            if (program.Image != null)
-            {
-                try
-                {
-                    program.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
-                    program.Image.BlobName,
-                    program.Image.MimeType);
-                }
-                catch (BlobStorageException)
-                {
-                    program.Image.Base64 = string.Empty;
-                }
-            }
-        }
 
         return Result.Ok(publishedProgramsDto);
     }

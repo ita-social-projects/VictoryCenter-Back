@@ -51,6 +51,11 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         {
             await Factory.DisposeAsync();
         }
+
+        if (Directory.Exists(BlobEnvironmentVariables.FullPath))
+        {
+            Directory.Delete(BlobEnvironmentVariables.FullPath, recursive: true);
+        }
     }
 
     public async Task CreateFreshWebApplication()

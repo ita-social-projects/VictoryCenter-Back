@@ -5,7 +5,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Exceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -46,20 +45,6 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
         IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
         var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions.Filter);
-
-        IEnumerable<Task> imageLoadTasks = teamMembersDto.Where(member => member.Image is not null)
-            .Select(async member =>
-            {
-                try
-                {
-                    member.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
-                }
-                catch (BlobStorageException)
-                {
-                    member.Image.Base64 = string.Empty;
-                }
-            });
-        await Task.WhenAll(imageLoadTasks);
 
         return Result.Ok(new PaginationResult<TeamMemberDto>([.. teamMembersDto], itemsTotalCount));
     }

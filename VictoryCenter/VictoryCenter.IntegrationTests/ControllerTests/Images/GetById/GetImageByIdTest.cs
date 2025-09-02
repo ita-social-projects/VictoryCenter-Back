@@ -55,4 +55,24 @@ public class GetImageByIdTest : IAsyncLifetime
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetImageById_ImageWithEmptyBlobName_ShouldReturnError()
+    {
+        var imageWithEmptyBlobName = new Image
+        {
+            BlobName = "",
+            MimeType = "image/png",
+            Url = "http://test.com/empty.png",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _fixture.DbContext.Images.Add(imageWithEmptyBlobName);
+        await _fixture.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"api/Image/{imageWithEmptyBlobName.Id}");
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

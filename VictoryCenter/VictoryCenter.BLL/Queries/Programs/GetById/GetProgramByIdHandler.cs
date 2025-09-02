@@ -41,13 +41,6 @@ public class GetProgramByIdHandler : IRequestHandler<GetProgramByIdQuery, Result
             return Result.Fail<ProgramDto>(ErrorMessagesConstants.NotFound(request.id, typeof(Program)));
         }
 
-        if (program.Image is not null)
-        {
-            program.Image.Base64 = await _blobService.FindFileInStorageAsBase64Async(
-                program.Image.BlobName,
-                program.Image.MimeType);
-        }
-
         ProgramDto responseDto = _mapper.Map<ProgramDto>(program);
         return Result.Ok(responseDto);
     }

@@ -4,11 +4,11 @@ using FluentResults;
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Exceptions;
 
 namespace VictoryCenter.BLL.Commands.Programs.Create;
 
@@ -17,14 +17,12 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateProgramCommand> _validator;
-    private readonly IBlobService _blobService;
 
     public CreateProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<CreateProgramCommand> validator, IBlobService blobService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
-        _blobService = blobService;
     }
 
     public async Task<Result<ProgramDto>> Handle(CreateProgramCommand request, CancellationToken cancellationToken)
@@ -49,10 +47,6 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
                     Filter = image => image.Id == request.createProgramDto.ImageId,
                     AsNoTracking = false
                 });
-                if (newImage is not null)
-                {
-                    newImage.Base64 = await _blobService.FindFileInStorageAsBase64Async(newImage.BlobName, newImage.MimeType);
-                }
 
                 entity.Image = newImage;
             }
