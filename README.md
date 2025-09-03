@@ -57,11 +57,23 @@ VictoryCenter-Back/
 │   ├── VictoryCenter.BLL
 │   │   ├── Commands
 │   │   │   ├── Admin
+│   │   │   │   ├── Auth
+│   │   │   │   │   ├── Login
+│   │   │   │   │   ├── Logout
+│   │   │   │   │   └── RefreshToken
 │   │   │   │   ├── Categories
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   └── Update
 │   │   │   │   ├── Images
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── ProgramCategories
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── Programs
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   └── Update
@@ -71,35 +83,39 @@ VictoryCenter-Back/
 │   │   │   │       ├── Reorder
 │   │   │   │       └── Update
 │   │   │   └── Public
-│   │   │       ├── Auth
-│   │   │       │   ├── Login
-│   │   │       │   └── RefreshToken
 │   │   │       └── Payment
 │   │   │           ├── Common
 │   │   │           └── WayForPay
 │   │   ├── Constants
 │   │   ├── DTOs
 │   │   │   ├── Admin
+│   │   │   │   ├── Auth
 │   │   │   │   ├── Categories
 │   │   │   │   ├── Common
 │   │   │   │   ├── Images
+│   │   │   │   ├── ProgramCategories
+│   │   │   │   ├── Programs
 │   │   │   │   └── TeamMembers
 │   │   │   ├── Common
 │   │   │   └── Public
-│   │   │       ├── Auth
 │   │   │       ├── Payment
 │   │   │       │   ├── Common
 │   │   │       │   └── WayForPay
+│   │   │       ├── Programs
 │   │   │       └── TeamPage
 │   │   ├── Exceptions
+│   │   │   └── BlobStorageExceptions
 │   │   ├── Helpers
 │   │   ├── Interfaces
 │   │   │   ├── BlobStorage
 │   │   │   ├── PaymentService
+│   │   │   ├── Search
 │   │   │   └── TokenService
 │   │   ├── Mapping
 │   │   │   ├── Categories
 │   │   │   ├── Images
+│   │   │   ├── ProgramCategories
+│   │   │   ├── Programs
 │   │   │   └── TeamMembers
 │   │   ├── Options
 │   │   │   └── Payment
@@ -110,21 +126,32 @@ VictoryCenter-Back/
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── GetById
 │   │   │   │   │   └── GetByName
+│   │   │   │   ├── ProgramCategories
+│   │   │   │   ├── Programs
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
 │   │   │   │   └── TeamMembers
 │   │   │   │       ├── GetByFilters
-│   │   │   │       └── GetById
+│   │   │   │       ├── GetById
+│   │   │   │       └── Search
 │   │   │   └── Public
+│   │   │       ├── Programs
+│   │   │       │   └── GetPublished
 │   │   │       └── TeamPage
 │   │   │           └── GetPublished
 │   │   ├── Services
 │   │   │   ├── BlobStorage
 │   │   │   ├── PaymentService
+│   │   │   ├── Search
+│   │   │   │   └── Helpers
 │   │   │   └── TokenService
 │   │   └── Validators
 │   │       ├── Auth
 │   │       ├── Categories
 │   │       ├── Images
 │   │       ├── Payment
+│   │       ├── ProgramCategories
+│   │       ├── Programs
 │   │       └── TeamMembers
 │   ├── VictoryCenter.DAL
 │   │   ├── Data
@@ -137,13 +164,19 @@ VictoryCenter-Back/
 │   │       │   ├── Base
 │   │       │   ├── Categories
 │   │       │   ├── Media
+│   │       │   ├── ProgramCategories
+│   │       │   ├── Programs
 │   │       │   └── TeamMembers
 │   │       ├── Options
 │   │       └── Realizations
 │   │           ├── Base
 │   │           ├── Categories
 │   │           ├── Media
+│   │           ├── ProgramCategories
+│   │           ├── Programs
 │   │           └── TeamMembers
+│   ├── VictoryCenter.DbUpdate
+│   │   └── Helpers
 │   ├── VictoryCenter.IntegrationTests
 │   │   ├── ControllerTests
 │   │   │   ├── Auth
@@ -159,6 +192,18 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetByName
 │   │   │   │   └── Update
 │   │   │   ├── Payments
+│   │   │   ├── ProgramCategories
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── Programs
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   └── Update
 │   │   │   └── TeamMembers
 │   │   │       ├── Create
 │   │   │       ├── Delete
@@ -166,6 +211,7 @@ VictoryCenter-Back/
 │   │   │       ├── GetFiltered
 │   │   │       ├── GetPublished
 │   │   │       ├── Reorder
+│   │   │       ├── Search
 │   │   │       └── Update
 │   │   ├── MiddlewareTests
 │   │   └── Utils
@@ -173,6 +219,8 @@ VictoryCenter-Back/
 │   │       └── Seeders
 │   │           ├── Categories
 │   │           ├── Images
+│   │           ├── ProgramCategoriesSeeder
+│   │           ├── ProgramSeeder
 │   │           └── TeamMembers
 │   ├── VictoryCenter.UnitTests
 │   │   ├── MediatRHandlersTests
@@ -180,6 +228,8 @@ VictoryCenter-Back/
 │   │   │   ├── Categories
 │   │   │   ├── Images
 │   │   │   ├── Payment
+│   │   │   ├── ProgramCategories
+│   │   │   ├── Programs
 │   │   │   └── TeamMembers
 │   │   ├── MiddlewareTests
 │   │   ├── ServiceTests
@@ -188,18 +238,21 @@ VictoryCenter-Back/
 │   │       ├── Auth
 │   │       ├── Categories
 │   │       ├── Payment
+│   │       ├── ProgramCategories
+│   │       ├── Programs
 │   │       └── TeamMembers
-│   └── VictoryCenter.WebAPI
-│       ├── Controllers
-│       │   ├── Admin
-│       │   ├── Common
-│       │   └── Public
-│       ├── Extensions
-│       ├── Factories
-│       ├── Middleware
-│       ├── Properties
-│       └── Utils
-│           └── Settings
+│   ├── VictoryCenter.WebAPI
+│   │   ├── Controllers
+│   │   │   ├── Admin
+│   │   │   ├── Common
+│   │   │   └── Public
+│   │   ├── Extensions
+│   │   ├── Factories
+│   │   ├── Middleware
+│   │   ├── Properties
+│   │   ├── Utils
+│   │   │   └── Settings
+│   │   └── wwwroot
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md

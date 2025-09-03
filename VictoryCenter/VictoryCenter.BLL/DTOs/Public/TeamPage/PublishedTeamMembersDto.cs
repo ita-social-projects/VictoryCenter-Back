@@ -1,4 +1,4 @@
-﻿using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.DTOs.Public.TeamPage;
 

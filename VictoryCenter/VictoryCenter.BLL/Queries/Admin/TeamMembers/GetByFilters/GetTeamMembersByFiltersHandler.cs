@@ -5,8 +5,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Exceptions;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -16,15 +14,13 @@ namespace VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 
 public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFiltersQuery, Result<PaginationResult<TeamMemberDto>>>
 {
-    private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repository;
 
-    public GetTeamMembersByFiltersHandler(IMapper mapper, IRepositoryWrapper repository, IBlobService blobService)
+    public GetTeamMembersByFiltersHandler(IMapper mapper, IRepositoryWrapper repository)
     {
         _mapper = mapper;
         _repository = repository;
-        _blobService = blobService;
     }
 
     public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
@@ -45,21 +41,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
-        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions.Filter);
-
-        IEnumerable<Task> imageLoadTasks = teamMembersDto.Where(member => member.Image is not null)
-            .Select(async member =>
-            {
-                try
-                {
-                    member.Image!.Base64 = await _blobService.FindFileInStorageAsBase64Async(member.Image.BlobName, member.Image.MimeType);
-                }
-                catch (BlobStorageException)
-                {
-                    member.Image!.Base64 = string.Empty;
-                }
-            });
-        await Task.WhenAll(imageLoadTasks);
+        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions);
 
         return Result.Ok(new PaginationResult<TeamMemberDto>([.. teamMembersDto], itemsTotalCount));
     }

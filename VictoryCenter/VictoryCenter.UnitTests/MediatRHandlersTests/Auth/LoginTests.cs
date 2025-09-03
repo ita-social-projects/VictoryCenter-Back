@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using VictoryCenter.BLL.Commands.Public.Auth.Login;
+using VictoryCenter.BLL.Commands.Admin.Auth.Login;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Public.Auth;
+using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Validators.Auth;
@@ -20,7 +20,6 @@ public class LoginTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly JwtOptions _jwtOptions;
 
     public LoginTests()
     {
@@ -28,13 +27,13 @@ public class LoginTests
             new Mock<IUserStore<AdminUser>>().Object,
             new Mock<IOptions<IdentityOptions>>().Object,
             new Mock<IPasswordHasher<AdminUser>>().Object,
-            new IUserValidator<AdminUser>[0],
-            new IPasswordValidator<AdminUser>[0],
+            Array.Empty<IUserValidator<AdminUser>>(),
+            Array.Empty<IPasswordValidator<AdminUser>>(),
             new Mock<ILookupNormalizer>().Object,
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<IServiceProvider>().Object,
             new Mock<ILogger<UserManager<AdminUser>>>().Object);
-        var jwtOptions = new JwtOptions()
+        var jwtOptions = new JwtOptions
         {
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
@@ -48,7 +47,6 @@ public class LoginTests
         mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
         IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
 
-        _jwtOptions = jwtOptions;
         _mockTokenService = new Mock<ITokenService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator(), _mockHttpContextAccessor.Object, jwtOptions1);

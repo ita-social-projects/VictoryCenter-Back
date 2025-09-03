@@ -24,7 +24,7 @@ public class TeamMember
 
     public DateTime CreatedAt { get; set; }
 
-    public Category Category { get; set; } = default!;
+    public Category Category { get; set; } = null!;
 
     public Image? Image { get; set; }
 }

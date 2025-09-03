@@ -11,5 +11,5 @@ public class QueryOptions<T>
     public int Limit { get; set; }
     public Expression<Func<T, object>>? OrderByASC { get; set; }
     public Expression<Func<T, object>>? OrderByDESC { get; set; }
-    public Expression<Func<T, T>>? Selector { get; set; }
+    public bool AsNoTracking { get; set; } = true;
 }

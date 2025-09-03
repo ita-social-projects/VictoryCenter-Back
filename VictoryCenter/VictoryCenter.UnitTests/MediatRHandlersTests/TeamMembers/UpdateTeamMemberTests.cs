@@ -6,7 +6,6 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -20,7 +19,6 @@ public class UpdateTeamMemberTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly IValidator<UpdateTeamMemberCommand> _validator;
-    private readonly Mock<IBlobService> _blobService;
 
     private readonly Category _testCategory = new()
     {
@@ -79,7 +77,6 @@ public class UpdateTeamMemberTests
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
-        _blobService = new Mock<IBlobService>();
     }
 
     [Theory]
@@ -124,7 +121,7 @@ public class UpdateTeamMemberTests
             .Returns(testUpdatedTeamMemberDto);
 
         SetupRepositoryWrapper(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -153,7 +150,7 @@ public class UpdateTeamMemberTests
     {
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -164,7 +161,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired("Full Name"), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -179,7 +176,7 @@ public class UpdateTeamMemberTests
             .Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync((Category?)null);
         SetupMapper();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -200,7 +197,7 @@ public class UpdateTeamMemberTests
     public async Task Handle_TeamMemberNotFound_ShouldReturnNotFoundError(long testId)
     {
         SetupDependencies();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -219,7 +216,7 @@ public class UpdateTeamMemberTests
     public async Task Handle_SaveChangesFails_ShouldReturnFailureError()
     {
         SetupDependencies(_testExistingTeamMember, -1);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _blobService.Object);
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(

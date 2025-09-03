@@ -50,7 +50,7 @@ public class PaymentsControllerTests : BaseTestClass
 
                 services.AddSingleton(mockFactory.Object);
             });
-        }).CreateClient(new WebApplicationFactoryClientOptions()
+        }).CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
         });

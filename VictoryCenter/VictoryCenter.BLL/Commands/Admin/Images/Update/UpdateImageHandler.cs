@@ -1,10 +1,11 @@
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Images;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -47,11 +48,12 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
 
+            var previousType = imageEntity.MimeType;
             imageEntity.MimeType = request.UpdateImageDto.MimeType!;
 
-            var result = _repositoryWrapper.ImageRepository.Update(imageEntity);
+            _repositoryWrapper.ImageRepository.Update(imageEntity);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
@@ -60,7 +62,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
                 imageEntity.BlobName,
-                imageEntity.MimeType,
+                previousType,
                 request.UpdateImageDto.Base64!,
                 imageEntity.BlobName,
                 request.UpdateImageDto.MimeType!);
@@ -68,7 +70,6 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
             imageEntity.BlobName = updatedBlobName;
 
             ImageDto resultDto = _mapper.Map<Image, ImageDto>(imageEntity);
-            resultDto.Base64 = await _blobService.FindFileInStorageAsBase64Async(resultDto.BlobName, resultDto.MimeType);
 
             transaction.Complete();
 

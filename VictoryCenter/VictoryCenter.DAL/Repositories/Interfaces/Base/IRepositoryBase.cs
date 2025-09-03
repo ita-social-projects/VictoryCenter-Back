@@ -17,8 +17,12 @@ public interface IRepositoryBase<T>
 
     void Delete(T entity);
 
+    void DeleteRange(params T[] entities);
+
+    void DeleteRange(IEnumerable<T> entities);
+
     Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
         where TKey : struct;
 
-    Task<long> CountAsync(Expression<Func<T, bool>> filter);
+    Task<int> CountAsync(QueryOptions<T>? queryOptions = null);
 }

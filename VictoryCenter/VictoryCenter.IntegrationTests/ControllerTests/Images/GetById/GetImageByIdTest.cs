@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -40,5 +40,25 @@ public class GetImageByIdTest : BaseTestClass
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetImageById_ImageWithEmptyBlobName_ShouldReturnError()
+    {
+        var imageWithEmptyBlobName = new Image
+        {
+            BlobName = "",
+            MimeType = "image/png",
+            Url = "http://test.com/empty.png",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        Fixture.DbContext.Images.Add(imageWithEmptyBlobName);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"api/Image/{imageWithEmptyBlobName.Id}");
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

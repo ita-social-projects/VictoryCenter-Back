@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -40,5 +40,38 @@ public class GetImageByNameTest : BaseTestClass
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public async Task GetImageByName_EmptyOrWhitespaceName_ShouldReturnNotFound(string invalidName)
+    {
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"api/Image/by-name/{Uri.EscapeDataString(invalidName)}");
+
+        Assert.False(response.IsSuccessStatusCode);
+
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task GetImageByName_ImageWithEmptyBlobName_ShouldReturnError()
+    {
+        var imageWithEmptyBlobName = new Image
+        {
+            BlobName = "",
+            MimeType = "image/png",
+            Url = "http://test.com/empty.png",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        Fixture.DbContext.Images.Add(imageWithEmptyBlobName);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"api/Image/by-name/");
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest);
     }
 }

@@ -1,7 +1,8 @@
+using System.Transactions;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Exceptions;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -11,8 +12,8 @@ namespace VictoryCenter.BLL.Commands.Admin.Images.Delete;
 
 public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<long>>
 {
-    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IBlobService _blobService;
+    private readonly IRepositoryWrapper _repositoryWrapper;
 
     public DeleteImageHandler(IRepositoryWrapper repositoryWrapper, IBlobService blobService)
     {
@@ -24,17 +25,18 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
     {
         try
         {
-            var entityToDelete = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
-            {
-                Filter = entity => entity.Id == request.Id,
-            });
+            Image? entityToDelete = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Image>
+                {
+                    Filter = entity => entity.Id == request.Id
+                });
 
             if (entityToDelete is null)
             {
                 return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
 
             _repositoryWrapper.ImageRepository.Delete(entityToDelete);
 
