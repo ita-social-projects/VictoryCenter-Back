@@ -29,15 +29,15 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
     public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
-        Status? status = request.TeamMembersFilter.Status;
-        var categoryId = request.TeamMembersFilter.CategoryId;
+        Status? status = request.TeamMembersFilterDto.Status;
+        var categoryId = request.TeamMembersFilterDto.CategoryId;
         Expression<Func<TeamMember, bool>> filter =
             t => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
 
         var queryOptions = new QueryOptions<TeamMember>
         {
-            Offset = request.TeamMembersFilter.Offset is > 0 ? (int)request.TeamMembersFilter.Offset : 0,
-            Limit = request.TeamMembersFilter.Limit is > 0 ? (int)request.TeamMembersFilter.Limit : 0,
+            Offset = request.TeamMembersFilterDto.Offset is > 0 ? (int)request.TeamMembersFilterDto.Offset : 0,
+            Limit = request.TeamMembersFilterDto.Limit is > 0 ? (int)request.TeamMembersFilterDto.Limit : 0,
             Filter = filter,
             Include = tm => tm.Include(member => member.Image!),
             OrderByASC = tm => tm.Priority

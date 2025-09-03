@@ -21,7 +21,12 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IOptions<JwtOptions> _jwtOptions;
 
-    public LoginCommandHandler(ITokenService tokenService, UserManager<AdminUser> userManager, IValidator<LoginCommand> validator, IHttpContextAccessor httpContextAccessor, IOptions<JwtOptions> jwtOptions)
+    public LoginCommandHandler(
+        ITokenService tokenService,
+        UserManager<AdminUser> userManager,
+        IValidator<LoginCommand> validator,
+        IHttpContextAccessor httpContextAccessor,
+        IOptions<JwtOptions> jwtOptions)
     {
         _tokenService = tokenService;
         _userManager = userManager;
@@ -38,13 +43,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
         }
 
-        var admin = await _userManager.FindByEmailAsync(request.RequestDto.Email);
+        var admin = await _userManager.FindByEmailAsync(request.LoginRequestDto.Email);
         if (admin is null)
         {
             return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
-        var result = await _userManager.CheckPasswordAsync(admin, request.RequestDto.Password);
+        var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
         if (!result)
         {
             return Result.Fail(AuthConstants.IncorrectPassword);
@@ -52,11 +57,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
-            new Claim(ClaimTypes.Email, request.RequestDto.Email)
+            new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)
         ]);
-        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.RequestDto.Email)]);
+        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)]);
         var refreshTokenExppires = DateTime.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
-        _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, refreshToken, new CookieOptions()
+        _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, refreshToken, new CookieOptions
         {
             HttpOnly = true,
             Secure = true,

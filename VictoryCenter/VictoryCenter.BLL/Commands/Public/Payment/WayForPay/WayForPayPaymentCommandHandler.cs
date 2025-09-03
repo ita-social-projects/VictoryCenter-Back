@@ -33,19 +33,19 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
         var orderDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var merchantSignature = GenerateMerchantSignature(request, orderReference, orderDate);
 
-        var purchaseRequest = new WayForPayPurchaseRequest()
+        var purchaseRequest = new WayForPayPurchaseRequest
         {
-            Amount = request.Request.Amount,
-            Currency = request.Request.Currency,
+            Amount = request.PaymentRequestDto.Amount,
+            Currency = request.PaymentRequestDto.Currency,
             MerchantAccount = _way4PayOptions.Value.MerchantLogin,
             MerchantDomainName = _way4PayOptions.Value.MerchantDomainName,
             OrderDate = orderDate,
             OrderReference = orderReference.ToString(),
             ProductCount = [1],
             ProductName = [PaymentConstants.ProductName],
-            ProductPrice = [request.Request.Amount],
+            ProductPrice = [request.PaymentRequestDto.Amount],
             MerchantSignature = merchantSignature,
-            ReturnUrl = request.Request.ReturnUrl
+            ReturnUrl = request.PaymentRequestDto.ReturnUrl
         };
 
         // regular payment is going to be supported in the future
@@ -90,7 +90,7 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
 
         var client = _httpClientFactory.CreateClient("Way4PayClient");
 
-        var httpRequestMessage = new HttpRequestMessage()
+        var httpRequestMessage = new HttpRequestMessage
         {
             RequestUri = new Uri(_way4PayOptions.Value.ApiUrl),
             Method = HttpMethod.Post,
@@ -106,7 +106,7 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
                 var paymentUrl = response.Headers.Location?.ToString();
                 if (!string.IsNullOrEmpty(paymentUrl))
                 {
-                    return Result.Ok(new PaymentResponseDto()
+                    return Result.Ok(new PaymentResponseDto
                     {
                         PaymentUrl = paymentUrl
                     });
@@ -139,11 +139,11 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
             _way4PayOptions.Value.MerchantDomainName,
             orderReference,
             orderDate,
-            request.Request.Amount.ToString(CultureInfo.InvariantCulture),
-            request.Request.Currency,
+            request.PaymentRequestDto.Amount.ToString(CultureInfo.InvariantCulture),
+            request.PaymentRequestDto.Currency,
             PaymentConstants.ProductName,
             1,
-            request.Request.Amount.ToString(CultureInfo.InvariantCulture));
+            request.PaymentRequestDto.Amount.ToString(CultureInfo.InvariantCulture));
 
         var secretKeyBytes = Encoding.UTF8.GetBytes(_way4PayOptions.Value.MerchantSecretKey);
         var signatureBytes = Encoding.UTF8.GetBytes(concatenatedValues);

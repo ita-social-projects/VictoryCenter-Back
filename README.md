@@ -83,8 +83,7 @@ VictoryCenter-Back/
 │   │   │   │   ├── Categories
 │   │   │   │   ├── Common
 │   │   │   │   ├── Images
-│   │   │   │   ├── TeamMembers
-│   │   │   │   └── VisitorPages
+│   │   │   │   └── TeamMembers
 │   │   │   ├── Common
 │   │   │   └── Public
 │   │   │       ├── Auth
@@ -101,8 +100,7 @@ VictoryCenter-Back/
 │   │   ├── Mapping
 │   │   │   ├── Categories
 │   │   │   ├── Images
-│   │   │   ├── TeamMembers
-│   │   │   └── VisitorPages
+│   │   │   └── TeamMembers
 │   │   ├── Options
 │   │   │   └── Payment
 │   │   ├── Queries
@@ -112,11 +110,9 @@ VictoryCenter-Back/
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── GetById
 │   │   │   │   │   └── GetByName
-│   │   │   │   ├── TeamMembers
-│   │   │   │   │   ├── GetByFilters
-│   │   │   │   │   └── GetById
-│   │   │   │   └── VisitorPages
-│   │   │   │       └── GetAll
+│   │   │   │   └── TeamMembers
+│   │   │   │       ├── GetByFilters
+│   │   │   │       └── GetById
 │   │   │   └── Public
 │   │   │       └── TeamPage
 │   │   │           └── GetPublished
@@ -141,15 +137,13 @@ VictoryCenter-Back/
 │   │       │   ├── Base
 │   │       │   ├── Categories
 │   │       │   ├── Media
-│   │       │   ├── TeamMembers
-│   │       │   └── VisitorPages
+│   │       │   └── TeamMembers
 │   │       ├── Options
 │   │       └── Realizations
 │   │           ├── Base
 │   │           ├── Categories
 │   │           ├── Media
-│   │           ├── TeamMembers
-│   │           └── VisitorPages
+│   │           └── TeamMembers
 │   ├── VictoryCenter.IntegrationTests
 │   │   ├── ControllerTests
 │   │   │   ├── Auth
@@ -165,16 +159,14 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetByName
 │   │   │   │   └── Update
 │   │   │   ├── Payments
-│   │   │   ├── TeamMembers
-│   │   │   │   ├── Create
-│   │   │   │   ├── Delete
-│   │   │   │   ├── GetById
-│   │   │   │   ├── GetFiltered
-│   │   │   │   ├── GetPublished
-│   │   │   │   ├── Reorder
-│   │   │   │   └── Update
-│   │   │   └── VisitorPages
-│   │   │       └── GetAll
+│   │   │   └── TeamMembers
+│   │   │       ├── Create
+│   │   │       ├── Delete
+│   │   │       ├── GetById
+│   │   │       ├── GetFiltered
+│   │   │       ├── GetPublished
+│   │   │       ├── Reorder
+│   │   │       └── Update
 │   │   ├── MiddlewareTests
 │   │   └── Utils
 │   │       ├── DbFixture
@@ -188,8 +180,7 @@ VictoryCenter-Back/
 │   │   │   ├── Categories
 │   │   │   ├── Images
 │   │   │   ├── Payment
-│   │   │   ├── TeamMembers
-│   │   │   └── VisitorPages
+│   │   │   └── TeamMembers
 │   │   ├── MiddlewareTests
 │   │   ├── ServiceTests
 │   │   │   └── Payment

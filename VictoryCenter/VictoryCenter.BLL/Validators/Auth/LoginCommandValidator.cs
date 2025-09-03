@@ -9,11 +9,11 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(x => x.RequestDto.Email)
+        RuleFor(x => x.LoginRequestDto.Email)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(LoginRequestDto.Email)))
             .EmailAddress().WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(LoginRequestDto.Email)));
 
-        RuleFor(x => x.RequestDto.Password)
+        RuleFor(x => x.LoginRequestDto.Password)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(LoginRequestDto.Password)));
     }
 }
