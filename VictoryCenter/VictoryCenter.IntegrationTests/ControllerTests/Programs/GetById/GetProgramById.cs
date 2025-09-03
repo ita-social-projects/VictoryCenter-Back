@@ -13,9 +13,6 @@ public class GetProgramById : BaseTestClass
     {
     }
 
-    [Fact]
-    public Task DisposeAsync() => Task.CompletedTask;
-
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
