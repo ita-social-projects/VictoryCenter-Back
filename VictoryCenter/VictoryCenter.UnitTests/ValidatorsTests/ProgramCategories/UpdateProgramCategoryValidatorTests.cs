@@ -22,7 +22,7 @@ public class UpdateProgramCategoryValidatorTests
     {
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name! }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 
@@ -36,7 +36,7 @@ public class UpdateProgramCategoryValidatorTests
         var name = new string('a', nameLength);
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters("Name", ProgramCategoryConstants.MinNameLength));
     }
@@ -47,7 +47,7 @@ public class UpdateProgramCategoryValidatorTests
         var name = new string('a', ProgramCategoryConstants.MaxNameLength + 1);
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters("Name", ProgramCategoryConstants.MaxNameLength));
     }
@@ -57,6 +57,6 @@ public class UpdateProgramCategoryValidatorTests
     {
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = "Valid Name" }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name);
+        result.ShouldNotHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name);
     }
 }

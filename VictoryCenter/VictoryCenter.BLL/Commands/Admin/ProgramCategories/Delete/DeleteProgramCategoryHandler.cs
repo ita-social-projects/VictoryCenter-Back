@@ -22,7 +22,7 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
         ProgramCategory? entityToDelete = await _repositoryWrapper.ProgramCategoriesRepository
             .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
             {
-                Filter = programCategory => programCategory.Id == request.id,
+                Filter = programCategory => programCategory.Id == request.Id,
                 Include = programCategory => programCategory
                     .Include(p => p.Programs)
             });
@@ -30,7 +30,7 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
         if (entityToDelete is null)
         {
             return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.id, typeof(ProgramCategory)));
+                .NotFound(request.Id, typeof(ProgramCategory)));
         }
 
         if (entityToDelete.Programs.Count != 0)

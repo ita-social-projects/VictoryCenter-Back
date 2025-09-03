@@ -9,7 +9,7 @@ public class UpdateProgramCategoryValidator : AbstractValidator<UpdateProgramCat
 {
     public UpdateProgramCategoryValidator()
     {
-        RuleFor(command => command.updateProgramCategoryDto.Name)
+        RuleFor(command => command.UpdateProgramCategoryDto.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateProgramCategoryDto.Name)))
             .MaximumLength(ProgramCategoryConstants.MaxNameLength)

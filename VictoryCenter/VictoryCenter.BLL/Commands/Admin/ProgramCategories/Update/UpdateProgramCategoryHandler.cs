@@ -32,16 +32,16 @@ public class UpdateProgramCategoryHandler : IRequestHandler<UpdateProgramCategor
             ProgramCategory? programCategoryEntity = await _repositoryWrapper.ProgramCategoriesRepository
                 .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
                 {
-                    Filter = programCategory => programCategory.Id == request.id
+                    Filter = programCategory => programCategory.Id == request.Id
                 });
 
             if (programCategoryEntity is null)
             {
                 return Result.Fail<ProgramCategoryDto>(ErrorMessagesConstants
-                    .NotFound(request.id, typeof(ProgramCategory)));
+                    .NotFound(request.Id, typeof(ProgramCategory)));
             }
 
-            ProgramCategory entityToUpdate = _mapper.Map(request.updateProgramCategoryDto, programCategoryEntity);
+            ProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
             entityToUpdate.CreatedAt = programCategoryEntity.CreatedAt;
 
             _repositoryWrapper.ProgramCategoriesRepository.Update(entityToUpdate);

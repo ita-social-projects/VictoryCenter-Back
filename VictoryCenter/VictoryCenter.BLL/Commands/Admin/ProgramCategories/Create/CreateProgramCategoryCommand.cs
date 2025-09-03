@@ -4,5 +4,5 @@ using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
 
 namespace VictoryCenter.BLL.Commands.Admin.ProgramCategories.Create;
 
-public record CreateProgramCategoryCommand(CreateProgramCategoryDto programCategoryDto)
+public record CreateProgramCategoryCommand(CreateProgramCategoryDto ProgramCategoryDto)
     : IRequest<Result<ProgramCategoryDto>>;
