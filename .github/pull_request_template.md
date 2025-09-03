@@ -1,14 +1,15 @@
-## Issue ticket number and link
+## Issue ticket link
+
 * [Github ticket](<ticket link here>)
   
 ## Summary of issue
 
-ToDo
+* write issue summary
 
 ## Summary of change
 
-ToDo
+* write summary changes
 
 ## Testing approach
 
-ToDo
+* write testing approach
