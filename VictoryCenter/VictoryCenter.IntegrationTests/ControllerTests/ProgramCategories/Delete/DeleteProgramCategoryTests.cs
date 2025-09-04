@@ -1,39 +1,30 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.Delete;
 
-[Collection("SharedIntegrationTests")]
-public class DeleteProgramCategoryTests : IAsyncLifetime
+public class DeleteProgramCategoryTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public DeleteProgramCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task DeleteProgramCategory_ShouldDeleteProgramCategory()
     {
-        ProgramCategory? existingEntity = await _fixture.DbContext.ProgramCategories
+        ProgramCategory? existingEntity = await Fixture.DbContext.ProgramCategories
             .FirstOrDefaultAsync(e => e.Id == 1);
         Assert.NotNull(existingEntity);
 
-        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{existingEntity.Id}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{existingEntity.Id}");
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await _fixture.DbContext.ProgramCategories.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Assert.Null(await Fixture.DbContext.ProgramCategories.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]
@@ -41,7 +32,7 @@ public class DeleteProgramCategoryTests : IAsyncLifetime
     [InlineData(0)]
     public async Task DeleteProgramCategory_ShouldNotDeleteProgramCategory(int testId)
     {
-        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{testId}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/ProgramCategory/{testId}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

@@ -1,28 +1,19 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.Create;
 
-[Collection("SharedIntegrationTests")]
-public class CreateProgramTests : IAsyncLifetime
+public class CreateProgramTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
-    public CreateProgramTests(IntegrationTestDbFixture dbFixture)
+    public CreateProgramTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = dbFixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task CreatePublishedProgram_ShouldCreateProgram()
@@ -33,12 +24,12 @@ public class CreateProgramTests : IAsyncLifetime
             Description = "TestDescription",
             Status = Status.Published,
             ImageId = 1,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         };
 
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/Programs/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -58,11 +49,11 @@ public class CreateProgramTests : IAsyncLifetime
         {
             Name = "TestName",
             Status = Status.Draft,
-            CategoriesId = [1, 4]
+            CategoryIds = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/Programs/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -86,11 +77,11 @@ public class CreateProgramTests : IAsyncLifetime
             Name = name!,
             Description = "TestDescription",
             Status = Status.Draft,
-            CategoriesId = [1, 3]
+            CategoryIds = [1, 3]
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/Programs/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -109,11 +100,11 @@ public class CreateProgramTests : IAsyncLifetime
             Description = description,
             Status = Status.Published,
             ImageId = 1,
-            CategoriesId = [3, 4]
+            CategoryIds = [3, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/Program/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/Programs/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

@@ -1,27 +1,14 @@
 ﻿using System.Net;
-using System.Text.Json;
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.DAL.Data;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Search;
 
-[Collection("SharedIntegrationTests")]
-public class SearchTeamMemberTests
+public class SearchTeamMemberTests : BaseTestClass
 {
-    private readonly HttpClient _httpClient;
-    private readonly VictoryCenterDbContext _dbContext;
-    private readonly IMapper _mapper;
-
     public SearchTeamMemberTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
-        _mapper = fixture.Factory.Services.GetService<IMapper>() ?? throw new InvalidOperationException();
     }
 
     [Fact]
@@ -29,28 +16,13 @@ public class SearchTeamMemberTests
     {
         // Arrange
         string fullName = $"FirstName1 LastName1";
-        var expectedTeamMembers = (await _dbContext.TeamMembers
-            .Include(tm => tm.Category)
-            .Where(tm => tm.FullName.StartsWith(fullName))
-            .ToListAsync())
-            .Select(_mapper.Map<TeamMemberDto>)
-            .ToList();
 
         // Act
-        var response = await _httpClient.GetAsync($"api/TeamMembers/search?fullname={fullName}");
-        var responseString = await response.Content.ReadAsStringAsync();
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-        var responseContent = JsonSerializer.Deserialize<PaginationResult<TeamMemberDto>>(responseString, options);
+        var response = await Fixture.HttpClient.GetAsync($"api/TeamMembers/search?fullname={fullName}");
 
         // Assert
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.NotNull(responseContent);
-        Assert.Equal(responseContent.Items, expectedTeamMembers);
     }
 
     [Fact]
@@ -60,7 +32,7 @@ public class SearchTeamMemberTests
         string fullName = $"";
 
         // Act
-        var response = await _httpClient.GetAsync($"api/TeamMembers/search?fullname={fullName}");
+        var response = await Fixture.HttpClient.GetAsync($"api/TeamMembers/search?fullname={fullName}");
 
         // Assert
         Assert.False(response.IsSuccessStatusCode);

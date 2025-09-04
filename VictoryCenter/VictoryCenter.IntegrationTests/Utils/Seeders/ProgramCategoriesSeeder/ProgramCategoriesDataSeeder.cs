@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
-using Microsoft.Extensions.Logging;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders.ProgramCategoriesSeeder;
 
@@ -12,7 +12,7 @@ public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
     }
 
     public override string Name => "ProgramCategoriesSeeder";
-    public override int Order => 3;
+    public override int Order => (int)SeederExecutionOrder.ProgramCategories;
 
     protected override Task<List<ProgramCategory>> GenerateEntitiesAsync()
     {

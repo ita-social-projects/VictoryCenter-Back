@@ -19,8 +19,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-await app.ApplyMigrations();
-await app.CreateInitialData();
+await app.ApplyMigrationsAsync();
+await app.CreateInitialDataAsync();
 
 app.UseRequestResponseLogging();
 app.UseCors();

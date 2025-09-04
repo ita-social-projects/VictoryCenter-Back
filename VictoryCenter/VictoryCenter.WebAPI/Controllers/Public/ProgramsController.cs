@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.BLL.Queries.Programs.GetPublished;
+using VictoryCenter.BLL.DTOs.Public.Programs;
+using VictoryCenter.BLL.Queries.Public.Programs.GetPublished;
+using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 

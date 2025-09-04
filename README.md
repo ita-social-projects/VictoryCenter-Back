@@ -15,7 +15,7 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=alert_status)](https://sonarcloud.io/project/overview?id=ita-social-projects_VictoryCenter-Back) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=coverage)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=bugs)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=code_smells)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=security_rating)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back)
 
-- For more on these wonderful  badges, refer to <a href="https://shields.io/" target="_blank">shields.io</a>.
+- For more on these wonderful badges, refer to <a href="https://shields.io/" target="_blank">shields.io</a>.
 
 ---
 
@@ -44,167 +44,219 @@
 
 ---
 
-## Folder structure 
-```
-VictoryCenter-Back
-├── .github
-│   ├── ISSUE_TEMPLATE
-│   ├── PULL_REQUEST_TEMPLATE
-│   └── workflows
-├───docs
-├───VictoryCenter
-│   ├───VictoryCenter.BLL
-│   │   ├───Commands
-│   │   │   ├───Auth
-│   │   │   │   ├───Login
-│   │   │   │   └───RefreshToken
-│   │   │   ├───Categories
-│   │   │   │   ├───Create
-│   │   │   │   ├───Delete
-│   │   │   │   └───Update
-│   │   │   ├───Images
-│   │   │   │   ├───Create
-│   │   │   │   ├───Delete
-│   │   │   │   └───Update
-│   │   │   ├───Payment
-│   │   │   │   ├───Common
-│   │   │   │   └───WayForPay
-│   │   │   └───TeamMembers
-│   │   │       ├───Create
-│   │   │       ├───Delete
-│   │   │       ├───Reorder
-│   │   │       └───Update
-│   │   ├───Constants
-│   │   ├───DTOs
-│   │   │   ├───Auth
-│   │   │   ├───Categories
-│   │   │   ├───Images
-│   │   │   ├───Payment
-│   │   │   │   ├───Common
-│   │   │   │   └───WayForPay
-│   │   │   └───TeamMembers
-│   │   ├───Exceptions
-│   │   ├───Factories
-│   │   │   └───Payment
-│   │   │       ├───Implementations
-│   │   │       └───Interfaces
-│   │   ├───Helpers
-│   │   ├───Interfaces
-│   │   │   ├───BlobStorage
-│   │   │   ├───PaymentService
-│   │   │   └───TokenService
-│   │   ├───Mapping
-│   │   │   ├───Categories
-│   │   │   ├───Images
-│   │   │   └───TeamMembers
-│   │   ├───Options
-│   │   │   └───Payment
-│   │   ├───Queries
-│   │   │   ├───Categories
-│   │   │   │   └───GetAll
-│   │   │   ├───Images
-│   │   │   │   ├───GetById
-│   │   │   │   └───GetByName
-│   │   │   └───TeamMembers
-│   │   │       ├───GetByFilters
-│   │   │       ├───GetById
-│   │   │       └───GetPublished
-│   │   ├───Services
-│   │   │   ├───BlobStorage
-│   │   │   ├───PaymentService
-│   │   │   └───TokenService
-│   │   └───Validators
-│   │       ├───Auth
-│   │       ├───Categories
-│   │       ├───Images
-│   │       ├───Payment
-│   │       └───TeamMembers
-│   ├───VictoryCenter.DAL
-│   │   ├───Data
-│   │   │   └───EntityTypeConfigurations
-│   │   ├───Entities
-│   │   ├───Enums
-│   │   ├───Migrations
-│   │   └───Repositories
-│   │       ├───Interfaces
-│   │       │   ├───Base
-│   │       │   ├───Categories
-│   │       │   ├───Media
-│   │       │   └───TeamMembers
-│   │       ├───Options
-│   │       └───Realizations
-│   │           ├───Base
-│   │           ├───Categories
-│   │           ├───Media
-│   │           └───TeamMembers
-│   ├───VictoryCenter.IntegrationTests
-│   │   ├───ControllerTests
-│   │   │   ├───Auth
-│   │   │   ├───Base
-│   │   │   ├───Categories
-│   │   │   │   ├───Create
-│   │   │   │   ├───Delete
-│   │   │   │   ├───GetAll
-│   │   │   │   └───Update
-│   │   │   ├───Images
-│   │   │   │   ├───Create
-│   │   │   │   ├───Delete
-│   │   │   │   ├───GetById
-│   │   │   │   ├───GetByName
-│   │   │   │   └───Update
-│   │   │   ├───Payments
-│   │   │   ├───Team
-│   │   │   │   └───GetPublished
-│   │   │   └───TeamMembers
-│   │   │       ├───Create
-│   │   │       ├───Delete
-│   │   │       ├───GetById
-│   │   │       ├───GetFiltered
-│   │   │       ├───Reorder
-│   │   │       └───Update
-│   │   ├───MiddlewareTests
-│   │   ├───TestData
-│   │   └───Utils
-│   │       └───Seeder
-│   │           ├───CategoriesSeeder
-│   │           ├───ImageSeeder
-│   │           └───TeamMembersSeeder
-│   ├───VictoryCenter.UnitTests
-│   │   ├───Configuration
-│   │   ├───FactoriesTests
-│   │   │   └───PaymentFactory
-│   │   ├───MediatRHandlersTests
-│   │   │   ├───Auth
-│   │   │   ├───Categories
-│   │   │   ├───Images
-│   │   │   ├───Payment
-│   │   │   └───TeamMembers
-│   │   ├───MiddlewareTests
-│   │   ├───ServiceTests
-│   │   └───ValidatorsTests
-│   │       ├───Auth
-│   │       ├───Categories
-│   │       ├───Payment
-│   │       ├───TeamMembers
-│   │       └───TeamMembersTests
-│   └───VictoryCenter.WebAPI
-│       ├───Controllers
-│       │   ├───Auth
-│       │   ├───Categories
-│       │   ├───Images
-│       │   ├───Payments
-│       │   ├───Public
-│       │   └───TeamMembers
-│       ├───Extensions
-│       ├───Factories
-│       ├───Middleware
-│       ├───Properties
-│       └───Utils
-│           └───Settings
-├───.gitignore
-└───docker-compose.yml
-```
+## Folder structure
 
+```
+VictoryCenter-Back/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   ├── PULL_REQUEST_TEMPLATE/
+│   └── workflows/
+├── docs
+├── VictoryCenter
+│   ├── VictoryCenter.BLL
+│   │   ├── Commands
+│   │   │   ├── Admin
+│   │   │   │   ├── Auth
+│   │   │   │   │   ├── Login
+│   │   │   │   │   ├── Logout
+│   │   │   │   │   └── RefreshToken
+│   │   │   │   ├── Categories
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── Images
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── ProgramCategories
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── Programs
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   └── TeamMembers
+│   │   │   │       ├── Create
+│   │   │   │       ├── Delete
+│   │   │   │       ├── Reorder
+│   │   │   │       └── Update
+│   │   │   └── Public
+│   │   │       └── Payment
+│   │   │           ├── Common
+│   │   │           └── WayForPay
+│   │   ├── Constants
+│   │   ├── DTOs
+│   │   │   ├── Admin
+│   │   │   │   ├── Auth
+│   │   │   │   ├── Categories
+│   │   │   │   ├── Common
+│   │   │   │   ├── Images
+│   │   │   │   ├── ProgramCategories
+│   │   │   │   ├── Programs
+│   │   │   │   └── TeamMembers
+│   │   │   ├── Common
+│   │   │   └── Public
+│   │   │       ├── Payment
+│   │   │       │   ├── Common
+│   │   │       │   └── WayForPay
+│   │   │       ├── Programs
+│   │   │       └── TeamPage
+│   │   ├── Exceptions
+│   │   │   └── BlobStorageExceptions
+│   │   ├── Helpers
+│   │   ├── Interfaces
+│   │   │   ├── BlobStorage
+│   │   │   ├── PaymentService
+│   │   │   ├── Search
+│   │   │   └── TokenService
+│   │   ├── Mapping
+│   │   │   ├── Categories
+│   │   │   ├── Images
+│   │   │   ├── ProgramCategories
+│   │   │   ├── Programs
+│   │   │   └── TeamMembers
+│   │   ├── Options
+│   │   │   └── Payment
+│   │   ├── Queries
+│   │   │   ├── Admin
+│   │   │   │   ├── Categories
+│   │   │   │   │   └── GetAll
+│   │   │   │   ├── Images
+│   │   │   │   │   ├── GetById
+│   │   │   │   │   └── GetByName
+│   │   │   │   ├── ProgramCategories
+│   │   │   │   ├── Programs
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
+│   │   │   │   └── TeamMembers
+│   │   │   │       ├── GetByFilters
+│   │   │   │       ├── GetById
+│   │   │   │       └── Search
+│   │   │   └── Public
+│   │   │       ├── Programs
+│   │   │       │   └── GetPublished
+│   │   │       └── TeamPage
+│   │   │           └── GetPublished
+│   │   ├── Services
+│   │   │   ├── BlobStorage
+│   │   │   ├── PaymentService
+│   │   │   ├── Search
+│   │   │   │   └── Helpers
+│   │   │   └── TokenService
+│   │   └── Validators
+│   │       ├── Auth
+│   │       ├── Categories
+│   │       ├── Images
+│   │       ├── Payment
+│   │       ├── ProgramCategories
+│   │       ├── Programs
+│   │       └── TeamMembers
+│   ├── VictoryCenter.DAL
+│   │   ├── Data
+│   │   │   └── EntityTypeConfigurations
+│   │   ├── Entities
+│   │   ├── Enums
+│   │   ├── Migrations
+│   │   └── Repositories
+│   │       ├── Interfaces
+│   │       │   ├── Base
+│   │       │   ├── Categories
+│   │       │   ├── Media
+│   │       │   ├── ProgramCategories
+│   │       │   ├── Programs
+│   │       │   └── TeamMembers
+│   │       ├── Options
+│   │       └── Realizations
+│   │           ├── Base
+│   │           ├── Categories
+│   │           ├── Media
+│   │           ├── ProgramCategories
+│   │           ├── Programs
+│   │           └── TeamMembers
+│   ├── VictoryCenter.DbUpdate
+│   │   └── Helpers
+│   ├── VictoryCenter.IntegrationTests
+│   │   ├── ControllerTests
+│   │   │   ├── Auth
+│   │   │   ├── Categories
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── Images
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetByName
+│   │   │   │   └── Update
+│   │   │   ├── Payments
+│   │   │   ├── ProgramCategories
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── Programs
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   └── Update
+│   │   │   └── TeamMembers
+│   │   │       ├── Create
+│   │   │       ├── Delete
+│   │   │       ├── GetById
+│   │   │       ├── GetFiltered
+│   │   │       ├── GetPublished
+│   │   │       ├── Reorder
+│   │   │       ├── Search
+│   │   │       └── Update
+│   │   ├── MiddlewareTests
+│   │   └── Utils
+│   │       ├── DbFixture
+│   │       └── Seeders
+│   │           ├── Categories
+│   │           ├── Images
+│   │           ├── ProgramCategoriesSeeder
+│   │           ├── ProgramSeeder
+│   │           └── TeamMembers
+│   ├── VictoryCenter.UnitTests
+│   │   ├── MediatRHandlersTests
+│   │   │   ├── Auth
+│   │   │   ├── Categories
+│   │   │   ├── Images
+│   │   │   ├── Payment
+│   │   │   ├── ProgramCategories
+│   │   │   ├── Programs
+│   │   │   └── TeamMembers
+│   │   ├── MiddlewareTests
+│   │   ├── ServiceTests
+│   │   │   └── Payment
+│   │   └── ValidatorsTests
+│   │       ├── Auth
+│   │       ├── Categories
+│   │       ├── Payment
+│   │       ├── ProgramCategories
+│   │       ├── Programs
+│   │       └── TeamMembers
+│   ├── VictoryCenter.WebAPI
+│   │   ├── Controllers
+│   │   │   ├── Admin
+│   │   │   ├── Common
+│   │   │   └── Public
+│   │   ├── Extensions
+│   │   ├── Factories
+│   │   ├── Middleware
+│   │   ├── Properties
+│   │   ├── Utils
+│   │   │   └── Settings
+│   │   └── wwwroot
+├── .gitignore
+├── docker-compose.yml
+└── README.md
+```
 
 ## Installation
 
@@ -212,15 +264,18 @@ VictoryCenter-Back
 - Images of what it should look like
 
 ### Required to install
+
 - MS Visual Studio (2022 or later)
   https://visualstudio.microsoft.com/ru/downloads
 - .NET SDK (v 6.0.101)
   https://dotnet.microsoft.com/en-us/download/dotnet/6.0
-- NodeJS (v 16.13.2) 
+- NodeJS (v 16.13.2)
   https://nodejs.org
 
 ### Environment
+
 environmental variables
+
 ```shell
 DB_CONNECTION_STRING="<DB_CONNECTION_STRING>"
 INITIAL_ADMIN_EMAIL="<INITIAL_ADMIN_EMAIL>"
@@ -234,7 +289,6 @@ WAY4PAY_MERCHANT_DOMAIN_NAME="<WAY4PAY_MERCHANT_DOMAIN_NAME>"
 WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ```
 
-
 ### Clone
 
 - Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO`
@@ -242,11 +296,13 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ### Setup
 
 ### How to run local
+
 ### How to connect to db locally
+
 1. launch SQL Server management Studio
 2. In the pop-up window:
-    - enter **"localhost"** as the server name;
-    - select **"windows authentication"** as authentication mechanism;
+   - enter **"localhost"** as the server name;
+   - select **"windows authentication"** as authentication mechanism;
 3. After the connection has been established, right-click on the server (the first line with the icon), on the left-hand side of the UI
 4. In the the appeared window find and click on **"properties"**
 5. In the properties section, select **"security"** page
@@ -264,51 +320,70 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 
 Now you can connect to your localhost instance with login (sa) and password (Admin@1234)!
 
-
 ### How to run Docker
+
 ### how to connect to db via docker
+
 1. Install and set up Docker if you haven't already
 2. Open Docker Desktop
 3. Open a terminal (either inside or outside your IDE)
 4. Navigate to the project directory: .../VictoryCenter-Back/VictoryCenter
 5. Start the Docker containers:
-  ```text
-  docker compose up 
-  ```
+
+```text
+docker compose up
+```
+
 6. Wait for Docker to pull and set up the necessary images and containers.
 7. then open the appsettings.Development.json file and change Server to:
+
 ```text
   Server=localhost,1434;
-  ```
+```
+
 The Docker-based database should now be running and ready for use!
+
 ### Additioanal information
+
 1.The database container must be running whenever you're working on the backend. To start it:
+
 ```text
-  docker compose up 
-  ```
+  docker compose up
+```
+
 2.To stop the database:
+
 ```text
   docker compose down
-  ```
+```
+
 Alternatively, you can use Docker Desktop:
+
 1. Open Docker Desktop.
 2. Go to the Containers tab
 3. Find victorycenter-back
 4. Start or stop it as needed
 
 ### Troubleshooting
+
 If you encounter issues or want to reset the database:
+
 ```text
   docker compose down -v
-  ```
+```
+
 Then recreate it using:
+
 ```text
   docker compose up
-  ```
+```
+
 ---
 
 ## Usage
+
 ### How to work with swagger UI
+
 ### How to run tests
 
 ---
@@ -327,13 +402,13 @@ Supported editors: Visual Studio 2022 / VS Code / Rider
 ### Quick Setup
 
 1. **.editorconfig**  
-Already included — most IDEs pick it up automatically.
+   Already included — most IDEs pick it up automatically.
 
 2. **SonarLint**  
-Set up SonarLint and bind it to the `VictoryCenter-Back` project of the `ita-social-projects` org using your personal SonarCloud token.
+   Set up SonarLint and bind it to the `VictoryCenter-Back` project of the `ita-social-projects` org using your personal SonarCloud token.
 
 3. **Fix issues locally**  
-Your IDE will highlight style/code issues in real time. Please, fix them before committing anything to avoid CI fails.
+   Your IDE will highlight style/code issues in real time. Please, fix them before committing anything to avoid CI fails.
 
 **Detailed setup guide:** [docs/104-Static-Code-Analysis.md](docs/104-Static-Code-Analysis.md)
 
@@ -344,20 +419,24 @@ Your IDE will highlight style/code issues in real time. Please, fix them before 
 ---
 
 ## Contributing
+
 1. All Pull Requests should start from prefix #xxx-yyy where xxx - task number and and yyy - short description e.g. #020-CreateAdminPanel
 2. Pull request should not contain any files that is not required by task.
 
 In case of any violations, pull request will be rejected.
 
 ### Git flow
+
 > To get started...
+
 #### Step 1
 
 - **Option 1**
-    - 🍴 Fork this repo!
+
+  - 🍴 Fork this repo!
 
 - **Option 2**
-    - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
+  - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
 
 #### Step 2
 
@@ -375,9 +454,8 @@ In case of any violations, pull request will be rejected.
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
 [![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?s=100&v=4)](https://github.com/mehalyna)
-[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym) 
-[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7) 
-
+[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym)
+[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7)
 
 ---
 
@@ -385,8 +463,8 @@ In case of any violations, pull request will be rejected.
 
 ## FAQ
 
-- **Сan't  install .NET Core 6.0.0+ in Visual Studio?**
-    - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
+- **Сan't install .NET Core 6.0.0+ in Visual Studio?**
+  - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
 
 ---
 
@@ -399,5 +477,6 @@ Reach out to us at one of the following places!
 ---
 
 ## License
+
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
 - Copyright 2025 © <a href="https://softserve.academy/" target="_blank"> SoftServe Academy</a>.

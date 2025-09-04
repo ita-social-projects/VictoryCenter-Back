@@ -32,13 +32,13 @@ public class ImagesSeeder : BaseSeeder<Image>
     public ImagesSeeder(
         VictoryCenterDbContext dbContext,
         ILogger<ImagesSeeder> logger,
-        IBlobService blobService )
+        IBlobService blobService)
         : base(dbContext, logger)
     {
         _blobService = blobService;
     }
 
-    public override int Order => 50;
+    public override int Order => (int)SeederExecutionOrder.Images;
 
     public override string Name => nameof(ImagesSeeder);
 
@@ -46,10 +46,7 @@ public class ImagesSeeder : BaseSeeder<Image>
     {
         foreach (var image in Images)
         {
-            if (image.Base64 != null)
-            {
-                await _blobService.SaveFileInStorageAsync(image.Base64, image.BlobName, image.MimeType);
-            }
+            await _blobService.SaveFileInStorageAsync(image.Base64!, image.BlobName, image.MimeType);
         }
 
         var entities = Images.Select(i => new Image

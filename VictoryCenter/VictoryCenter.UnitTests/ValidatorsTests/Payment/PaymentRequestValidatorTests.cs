@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Payment;
-using VictoryCenter.BLL.DTOs.Payment.Common;
+using VictoryCenter.BLL.DTOs.Public.Payment;
+using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.Validators.Payment;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Payment;

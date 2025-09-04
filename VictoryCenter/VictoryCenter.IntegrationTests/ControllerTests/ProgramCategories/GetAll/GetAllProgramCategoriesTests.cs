@@ -1,29 +1,21 @@
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.GetAll;
 
-[Collection("SharedIntegrationTests")]
-public class GetAllProgramCategoriesTests : IAsyncLifetime
+public class GetAllProgramCategoriesTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
     public GetAllProgramCategoriesTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task ProgramCategory_ShouldReturnAllProgramCategories()
     {
-        HttpResponseMessage response = await _fixture.HttpClient.GetAsync("/api/ProgramCategory/");
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/ProgramCategory/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         IEnumerable<ProgramCategoryDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramCategoryDto>>(responseString);

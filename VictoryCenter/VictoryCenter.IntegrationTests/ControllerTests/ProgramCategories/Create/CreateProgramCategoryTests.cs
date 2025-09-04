@@ -1,27 +1,18 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ProgramCategories.Create;
 
-[Collection("SharedIntegrationTests")]
-public class CreateProgramCategoryTests : IAsyncLifetime
+public class CreateProgramCategoryTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public CreateProgramCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task ProgramCategory_ShouldCreateProgramCategory()
@@ -32,7 +23,7 @@ public class CreateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -57,7 +48,7 @@ public class CreateProgramCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/ProgramCategory/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

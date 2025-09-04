@@ -1,26 +1,18 @@
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.GetFiltered;
 
-[Collection("SharedIntegrationTests")]
-public class GetProgramsByFilters : IAsyncLifetime
+public class GetProgramsByFilters : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public GetProgramsByFilters(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(0, 3)]
@@ -40,12 +32,12 @@ public class GetProgramsByFilters : IAsyncLifetime
             .Where(kv => kv.Value is not null)
             .Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value!)}"));
 
-        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"/api/Program?{queryString}");
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"/api/Programs?{queryString}");
 
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        ProgramsFilterResponseDto? result = JsonConvert.DeserializeObject<ProgramsFilterResponseDto>(content);
+        PaginationResult<ProgramDto>? result = JsonConvert.DeserializeObject<PaginationResult<ProgramDto>>(content);
 
         Assert.NotNull(result);
         Assert.True(response.IsSuccessStatusCode);
@@ -68,12 +60,12 @@ public class GetProgramsByFilters : IAsyncLifetime
             .Where(kv => kv.Value is not null)
             .Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value!)}"));
 
-        HttpResponseMessage response = await _fixture.HttpClient.GetAsync($"/api/Program?{queryString}");
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"/api/Programs?{queryString}");
 
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        ProgramsFilterResponseDto? result = JsonConvert.DeserializeObject<ProgramsFilterResponseDto>(content);
+        PaginationResult<ProgramDto>? result = JsonConvert.DeserializeObject<PaginationResult<ProgramDto>>(content);
 
         Assert.NotNull(result);
         Assert.True(response.IsSuccessStatusCode);

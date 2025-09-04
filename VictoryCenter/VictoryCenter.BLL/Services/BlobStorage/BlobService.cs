@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
 
@@ -119,13 +120,7 @@ public class BlobService : IBlobService
         {
             var extension = GetExtensionFromMimeType(mimeType);
             var fileName = $"{name}.{extension}";
-            HttpRequest? request = _httpContextAccessor.HttpContext?.Request;
-
-            if (request == null)
-            {
-                throw new BlobHttpContextException(ImageConstants.HttpContextIsNotAvailable);
-            }
-
+            HttpRequest? request = _httpContextAccessor.HttpContext?.Request ?? throw new BlobHttpContextException(ImageConstants.HttpContextIsNotAvailable);
             var baseUrl = $"{request.Scheme}://{request.Host}";
             return $"{baseUrl}/{_blobEnv.ImagesSubPath}/{fileName}";
         }
@@ -193,7 +188,7 @@ public class BlobService : IBlobService
         }
         catch (Exception ex)
         {
-            throw new ImageProcessingException(name, ImageConstants.FailToDeleteImage, ex);
+            throw new ImageProcessingException(name, ErrorMessagesConstants.FailedToDeleteEntity(typeof(Image)), ex);
         }
     }
 

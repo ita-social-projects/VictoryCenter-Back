@@ -1,14 +1,14 @@
-using Moq;
 using AutoMapper;
 using FluentResults;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.Programs.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Commands.Programs.Update;
-using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.Programs;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -27,7 +27,7 @@ public class UpdateProgramTests
         Description = "TestProgramDescription",
         Status = Status.Published,
         ImageId = 1,
-        CategoriesId = [1, 2, 3]
+        CategoryIds = [1, 2, 3]
     };
 
     private readonly DAL.Entities.Program _programEntity = new()
@@ -45,7 +45,7 @@ public class UpdateProgramTests
         Name = "TestProgramName",
         Description = "TestProgramDescription",
         Status = Status.Published,
-        Image = new ImageDTO()
+        Image = new ImageDto()
     };
 
     private readonly IEnumerable<ProgramCategory> _programCategories = new List<ProgramCategory>
@@ -108,7 +108,7 @@ public class UpdateProgramTests
         var handler = new UpdateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
         Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ProgramConstants.FailedToUpdateProgram, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Program)), result.Errors[0].Message);
     }
 
     [Fact]

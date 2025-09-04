@@ -1,38 +1,38 @@
 using System.Security.Claims;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using VictoryCenter.BLL.Commands.Auth.Logout;
+using VictoryCenter.BLL.Commands.Admin.Auth.Logout;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
-using MediatR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
 
 public class LogoutTests
 {
     private readonly LogoutCommandHandler _commandHandler;
-    private readonly Mock<UserManager<Admin>> _mockUserManager;
+    private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
 
     public LogoutTests()
     {
-        _mockUserManager = new Mock<UserManager<Admin>>(
-            new Mock<IUserStore<Admin>>().Object,
+        _mockUserManager = new Mock<UserManager<AdminUser>>(
+            new Mock<IUserStore<AdminUser>>().Object,
             new Mock<IOptions<IdentityOptions>>().Object,
-            new Mock<IPasswordHasher<Admin>>().Object,
-            new IUserValidator<Admin>[0],
-            new IPasswordValidator<Admin>[0],
+            new Mock<IPasswordHasher<AdminUser>>().Object,
+            new IUserValidator<AdminUser>[0],
+            new IPasswordValidator<AdminUser>[0],
             new Mock<ILookupNormalizer>().Object,
             new Mock<IdentityErrorDescriber>().Object,
             new Mock<IServiceProvider>().Object,
-            new Mock<ILogger<UserManager<Admin>>>().Object);
+            new Mock<ILogger<UserManager<AdminUser>>>().Object);
 
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _commandHandler = new LogoutCommandHandler(_mockHttpContextAccessor.Object, _mockUserManager.Object);
-        }
+    }
 
     [Fact]
     public async Task Handle_NoEmailInContext_ReturnsUnauthorized()
@@ -54,26 +54,26 @@ public class LogoutTests
     {
         var cmd = new LogoutCommand();
         var mockHttpContext = new Mock<HttpContext>();
-        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "admin@gmail.com") }));
+        var claims = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "admin@gmail.com")]));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
-        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync((Admin?)null);
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync((AdminUser?)null);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(AuthConstants.AdminWithGivenEmailWasNotFound, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
-        _mockUserManager.Verify(x => x.UpdateAsync(It.IsAny<Admin>()), Times.Never);
+        _mockUserManager.Verify(x => x.UpdateAsync(It.IsAny<AdminUser>()), Times.Never);
     }
 
     [Fact]
     public async Task Handle_UpdateFails_ReturnsNotUpdated()
     {
         var cmd = new LogoutCommand();
-        var admin = new Admin();
+        var admin = new AdminUser();
         var mockHttpContext = new Mock<HttpContext>();
-        var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "admin@gmail.com") }));
+        var claims = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "admin@gmail.com")]));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
@@ -94,7 +94,7 @@ public class LogoutTests
     public async Task Handle_ValidData_SucceedsAndClearsCookies()
     {
         var cmd = new LogoutCommand();
-        var admin = new Admin { RefreshToken = "refresh_token", RefreshTokenValidTo = DateTime.UtcNow.AddDays(1) };
+        var admin = new AdminUser { RefreshToken = "refresh_token", RefreshTokenValidTo = DateTime.UtcNow.AddDays(1) };
         var mockHttpContext = new Mock<HttpContext>();
         var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "admin@gmail.com") }));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);

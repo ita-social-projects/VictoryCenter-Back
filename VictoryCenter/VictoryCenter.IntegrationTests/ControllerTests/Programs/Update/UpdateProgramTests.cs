@@ -1,28 +1,19 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
 using VictoryCenter.DAL.Enums;
-using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.Update;
 
-[Collection("SharedIntegrationTests")]
-public class UpdateProgramTests : IAsyncLifetime
+public class UpdateProgramTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public UpdateProgramTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task UpdatePublishedProgram_ShouldUpdateProgram()
@@ -32,12 +23,12 @@ public class UpdateProgramTests : IAsyncLifetime
             Name = "UpdatedName",
             Description = "UpdatedDescription",
             ImageId = 1,
-            CategoriesId = [1, 4]
+            CategoryIds = [1, 4]
         };
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/Programs/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         response.EnsureSuccessStatusCode();
@@ -63,10 +54,10 @@ public class UpdateProgramTests : IAsyncLifetime
             Description = "UpdatedDescription",
             Status = Status.Published,
             ImageId = 2,
-            CategoriesId = [1, 4]
+            CategoryIds = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/Programs/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -85,10 +76,10 @@ public class UpdateProgramTests : IAsyncLifetime
             Description = invalidDescription,
             Status = Status.Published,
             ImageId = 2,
-            CategoriesId = [1, 4]
+            CategoryIds = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/Programs/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -104,10 +95,10 @@ public class UpdateProgramTests : IAsyncLifetime
             Description = description,
             Status = Status.Draft,
             ImageId = 2,
-            CategoriesId = [1, 4]
+            CategoryIds = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync("/api/Program/1", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/Programs/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         ProgramDto? responseContent = JsonConvert.DeserializeObject<ProgramDto>(responseString);
@@ -127,10 +118,10 @@ public class UpdateProgramTests : IAsyncLifetime
             Description = "TestDescription",
             Status = Status.Draft,
             ImageId = 2,
-            CategoriesId = [1, 4]
+            CategoryIds = [1, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"/api/Program/{id}", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/Programs/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

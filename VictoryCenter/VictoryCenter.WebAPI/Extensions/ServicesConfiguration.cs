@@ -7,8 +7,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
-using VictoryCenter.BLL.Commands.Payment.Common;
-using VictoryCenter.BLL.Factories.Payment.Interfaces;
+using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
@@ -31,7 +30,7 @@ namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {
-    public static void AddApplicationServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -44,7 +43,7 @@ public static class ServicesConfiguration
             });
         });
 
-        services.AddIdentity<Admin, IdentityRole<int>>()
+        services.AddIdentity<AdminUser, IdentityRole<int>>()
             .AddEntityFrameworkStores<VictoryCenterDbContext>()
             .AddDefaultTokenProviders();
 
@@ -78,7 +77,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
@@ -88,6 +87,9 @@ public static class ServicesConfiguration
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
+
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
+        ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
@@ -104,7 +106,7 @@ public static class ServicesConfiguration
             .ValidateOnStart();
 
         services.AddHttpClient("Way4PayClient")
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 AllowAutoRedirect = false
             });
@@ -129,7 +131,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static async Task ApplyMigrations(this WebApplication app)
+    public static async Task ApplyMigrationsAsync(this WebApplication app)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         try
@@ -171,16 +173,16 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialData(this WebApplication app)
+    public static async Task CreateInitialDataAsync(this WebApplication app)
     {
-        await app.CreateInitialAdmin();
-        await app.CreateInitialCategories();
+        await app.CreateInitialAdminAsync();
+        await app.CreateInitialCategoriesAsync();
     }
 
-    private static async Task CreateInitialAdmin(this WebApplication app)
+    private static async Task CreateInitialAdminAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
+        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
                                 ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
         if (!initialAdminEmail.Contains('@'))
@@ -191,7 +193,7 @@ public static class ServicesConfiguration
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
             var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
-            var admin = new Admin()
+            var admin = new AdminUser()
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
@@ -214,40 +216,41 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialCategories(this WebApplication app)
+    private static async Task CreateInitialCategoriesAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var categories = new List<Category>
         {
-            await using var asyncServiceScope = app.Services.CreateAsyncScope();
-            var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            var categories = new List<Category>
+            new()
             {
-                new()
-                {
-                    Name = "Основна команда",
-                    Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Наглядова рада",
-                    Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                    CreatedAt = DateTime.UtcNow
-                },
-                new()
-                {
-                    Name = "Радники",
-                    Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
-                    CreatedAt = DateTime.UtcNow
-                }
-            };
-            foreach (var category in categories)
+                Name = "Основна команда",
+                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
             {
-                if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
-                {
-                    dbContext.Categories.Add(category);
-                    await dbContext.SaveChangesAsync();
-                }
+                Name = "Наглядова рада",
+                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "Радники",
+                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        foreach (var category in categories)
+        {
+            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+            {
+                dbContext.Categories.Add(category);
+                await dbContext.SaveChangesAsync();
             }
         }
+    }
 
     private static void AddOpenApi(this IServiceCollection services)
     {
@@ -259,7 +262,7 @@ public static class ServicesConfiguration
                 Title = "VictoryCenter API",
                 Version = "v1"
             });
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
                 Name = "Authorization",

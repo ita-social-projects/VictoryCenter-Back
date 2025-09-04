@@ -1,7 +1,7 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Commands.Admin.Auth.Login;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.DTOs.Admin.Auth;
 
 namespace VictoryCenter.BLL.Validators.Auth;
 
@@ -9,11 +9,11 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
     public LoginCommandValidator()
     {
-        RuleFor(x => x.RequestDto.Email)
+        RuleFor(x => x.LoginRequestDto.Email)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(LoginRequestDto.Email)))
             .EmailAddress().WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(LoginRequestDto.Email)));
 
-        RuleFor(x => x.RequestDto.Password)
+        RuleFor(x => x.LoginRequestDto.Password)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(LoginRequestDto.Password)));
     }
 }

@@ -1,36 +1,27 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Delete;
 
-[Collection("SharedIntegrationTests")]
-public class DeleteTeamMemberTests : IAsyncLifetime
+public class DeleteTeamMemberTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public DeleteTeamMemberTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task DeleteTeamMember_ValidRequest_ShouldDeleteTeamMember()
     {
-        var existingEntity = await _fixture.DbContext.TeamMembers.FirstOrDefaultAsync()
+        var existingEntity = await Fixture.DbContext.TeamMembers.FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
-        var response = await _fixture.HttpClient.DeleteAsync($"/api/TeamMembers/{existingEntity.Id}");
+        var response = await Fixture.HttpClient.DeleteAsync($"/api/TeamMembers/{existingEntity.Id}");
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Null(await _fixture.DbContext.TeamMembers.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Assert.Null(await Fixture.DbContext.TeamMembers.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]
@@ -38,7 +29,7 @@ public class DeleteTeamMemberTests : IAsyncLifetime
     [InlineData(0)]
     public async Task DeleteTeamMember_InvalidId_ShouldReturnNotFound(long testId)
     {
-        var response = await _fixture.HttpClient.DeleteAsync($"/api/TeamMembers/{testId}");
+        var response = await Fixture.HttpClient.DeleteAsync($"/api/TeamMembers/{testId}");
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

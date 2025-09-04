@@ -1,7 +1,7 @@
 ﻿using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Queries.TeamMembers.Search;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.Search;
 using VictoryCenter.BLL.Validators.TeamMembers;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.TeamMembers;
@@ -56,7 +56,7 @@ public class SearchTeamMemberValidatorTests
     [Fact]
     public void Validate_InvalidQuery_FullNameTooLongShouldHaveError()
     {
-        string fullName = new string('A', 101);
+        string fullName = new('A', 101);
         var dto = new SearchTeamMemberDto
         {
             FullName = fullName!,

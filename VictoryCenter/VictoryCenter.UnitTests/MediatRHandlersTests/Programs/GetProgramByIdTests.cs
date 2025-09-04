@@ -1,11 +1,10 @@
 using AutoMapper;
-using Moq;
 using FluentResults;
-using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.Programs.GetById;
+using Moq;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
+using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Queries.Admin.Programs.GetById;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -16,7 +15,6 @@ public class GetProgramByIdTests
 {
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IBlobService> _mockBlobService;
 
     private readonly DAL.Entities.Program _programEntity = new()
     {
@@ -32,14 +30,13 @@ public class GetProgramByIdTests
         Name = "TestName",
         Description = "TestDescription",
         Status = Status.Draft,
-        Image = new ImageDTO()
+        Image = new ImageDto()
     };
 
     public GetProgramByIdTests()
     {
         _mapperMock = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _mockBlobService = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -47,7 +44,7 @@ public class GetProgramByIdTests
     {
         SetUpDependencies(_programEntity);
         var handler =
-            new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
+            new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
         Result<ProgramDto> result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -64,17 +61,16 @@ public class GetProgramByIdTests
     {
         SetUpDependencies();
         var handler =
-            new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
+            new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
         Result<ProgramDto> result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(_programEntity.Id, typeof(Program)), result.Errors[0].Message);
     }
 
-    private void SetUpDependencies(DAL.Entities.Program program = null)
+    private void SetUpDependencies(DAL.Entities.Program program = null!)
     {
         SetUpAutoMapper();
         SetUpRepositoryWrapper(program);
-        SetUpBlobService();
     }
 
     private void SetUpAutoMapper()
@@ -86,12 +82,5 @@ public class GetProgramByIdTests
     {
         _mockRepositoryWrapper.Setup(x => x.ProgramsRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.Program>>())).ReturnsAsync(program);
-    }
-
-    private void SetUpBlobService()
-    {
-        _mockBlobService
-            .Setup(x => x.GetFileUrl(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("https://localhost:5000/supersecretimage.png");
     }
 }

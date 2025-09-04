@@ -11,25 +11,20 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 public class RepositoryBase<T> : IRepositoryBase<T>
     where T : class
 {
-    protected readonly VictoryCenterDbContext _dbContext;
-
     protected RepositoryBase(VictoryCenterDbContext context)
     {
-        _dbContext = context;
+        DbContext = context;
     }
+
+    protected VictoryCenterDbContext DbContext { get; init; }
 
     public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
-        IQueryable<T> query = _dbContext.Set<T>();
-        query = ApplyTracking(query, queryOptions?.AsNoTracking ?? true);
+        IQueryable<T> query = DbContext.Set<T>();
 
         if (queryOptions != null)
         {
-            query = ApplyInclude(query, queryOptions.Include);
-            query = ApplyFilter(query, queryOptions.Filter);
-            query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
-            query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
-            query = ApplySelector(query, queryOptions.Selector);
+            query = ApplyQueryOptions(query, queryOptions);
         }
 
         return await query.ToListAsync();
@@ -37,11 +32,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
-        IQueryable<T> query = _dbContext.Set<T>();
-        query = ApplyTracking(query, queryOptions?.AsNoTracking ?? true);
+        IQueryable<T> query = DbContext.Set<T>();
 
         if (queryOptions != null)
         {
+            query = ApplyTracking(query, queryOptions.AsNoTracking);
             query = ApplyInclude(query, queryOptions.Include);
             query = ApplyFilter(query, queryOptions.Filter);
         }
@@ -51,31 +46,17 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T> CreateAsync(T entity)
     {
-        var tmp = await _dbContext.Set<T>().AddAsync(entity);
-        return tmp.Entity;
-    }
-
-    public async Task<int> CountAsync(QueryOptions<T>? queryOptions = null)
-    {
-        IQueryable<T> query = _dbContext.Set<T>();
-        query = ApplyTracking(query, queryOptions?.AsNoTracking ?? true);
-
-        if (queryOptions != null)
-        {
-            query = ApplyFilter(query, queryOptions.Filter);
-        }
-
-        return await query.CountAsync();
+        return (await DbContext.Set<T>().AddAsync(entity)).Entity;
     }
 
     public EntityEntry<T> Update(T entity)
     {
-        return _dbContext.Set<T>().Update(entity);
+        return DbContext.Set<T>().Update(entity);
     }
 
     public void Delete(T entity)
     {
-        _dbContext.Set<T>().Remove(entity);
+        DbContext.Set<T>().Remove(entity);
     }
 
     public async Task<TKey?> MaxAsync<TKey>(
@@ -83,21 +64,25 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         Expression<Func<T, bool>>? filter = null)
         where TKey : struct
     {
-        var query = _dbContext.Set<T>().AsNoTracking();
+        var query = DbContext.Set<T>().AsNoTracking();
 
-        if (filter != null)
-        {
-            query = query.Where(filter);
-        }
+        query = ApplyFilter(query, filter);
 
         var projected = query.Select(selector);
 
         return await projected.DefaultIfEmpty().MaxAsync();
     }
 
-    public Task<long> CountAsync(Expression<Func<T, bool>> filter)
+    public async Task<int> CountAsync(QueryOptions<T>? queryOptions = null)
     {
-        return _dbContext.Set<T>().LongCountAsync(filter);
+        IQueryable<T> query = DbContext.Set<T>();
+
+        if (queryOptions != null)
+        {
+            query = ApplyQueryOptions(query, queryOptions);
+        }
+
+        return await query.CountAsync();
     }
 
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
@@ -128,11 +113,6 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return query;
     }
 
-    private static IQueryable<T> ApplySelector(IQueryable<T> query, Expression<Func<T, T>>? selector)
-    {
-        return selector != null ? query.Select(selector) : query;
-    }
-
     private static IQueryable<T> ApplyPagination(IQueryable<T> query, int offset, int limit)
     {
         if (offset > 0)
@@ -148,8 +128,19 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return query;
     }
 
-    private IQueryable<T> ApplyTracking(IQueryable<T> query, bool asNoTracking)
+    static private IQueryable<T> ApplyTracking(IQueryable<T> query, bool asNoTracking)
     {
         return asNoTracking ? query.AsNoTracking() : query;
+    }
+
+    private static IQueryable<T> ApplyQueryOptions(IQueryable<T> query, QueryOptions<T> queryOptions)
+    {
+        query = ApplyTracking(query, queryOptions.AsNoTracking);
+        query = ApplyInclude(query, queryOptions.Include);
+        query = ApplyFilter(query, queryOptions.Filter);
+        query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
+        query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
+
+        return query;
     }
 }

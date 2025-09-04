@@ -1,16 +1,16 @@
-using Moq;
 using AutoMapper;
 using FluentResults;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.Programs.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.DTOs.Programs;
-using VictoryCenter.BLL.Validators.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Commands.Programs.Create;
-using VictoryCenter.DAL.Enums;
+using VictoryCenter.BLL.Validators.Programs;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Programs;
 
@@ -27,7 +27,7 @@ public class CreateProgramTests
         Description = "TestDescription",
         Status = Status.Draft,
         ImageId = 1,
-        CategoriesId = [1, 2]
+        CategoryIds = [1, 2]
     };
 
     private readonly DAL.Entities.Program _programEntity = new()
@@ -43,7 +43,7 @@ public class CreateProgramTests
         Name = "TestName",
         Description = "TestDescription",
         Status = Status.Draft,
-        Image = new ImageDTO()
+        Image = new ImageDto()
     };
 
     private readonly IEnumerable<ProgramCategory> _programCategories = new List<ProgramCategory>
@@ -107,7 +107,7 @@ public class CreateProgramTests
         var handler = new CreateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
         Result<ProgramDto> result = await handler.Handle(new CreateProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ProgramConstants.FailedToCreateProgram, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Program)), result.Errors[0].Message);
     }
 
     private void SetUpDependencies(int saveResult = 1)

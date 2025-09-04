@@ -2,9 +2,9 @@
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Interfaces.Search;
-using VictoryCenter.BLL.Queries.TeamMembers.Search;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.Search;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;

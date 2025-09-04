@@ -1,7 +1,7 @@
-using Moq;
 using FluentResults;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.Programs.Delete;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Commands.Programs.Delete;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -51,7 +51,7 @@ public class DeleteProgramTests
         var handler = new DeleteProgramHandler(_repositoryWrapperMock.Object);
         Result<long> result = await handler.Handle(new DeleteProgramCommand(1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ProgramConstants.FailedToDeleteProgram, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Program)), result.Errors[0].Message);
     }
 
     private void SetUpDependencies(DAL.Entities.Program program = null!, int saveResult = 1)

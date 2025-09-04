@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data;
 
-public class VictoryCenterDbContext : IdentityDbContext<Admin, IdentityRole<int>, int>
+public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<int>, int>
 {
     public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
         : base(options)

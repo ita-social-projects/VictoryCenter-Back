@@ -1,9 +1,7 @@
-﻿using System.Linq.Expressions;
-using AutoMapper;
+﻿using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.TeamMembers.GetByFilters;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -15,13 +13,11 @@ public class GetTeamMembersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly Mock<IBlobService> _blobservice;
 
     public GetTeamMembersTests()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
-        _blobservice = new Mock<IBlobService>();
     }
 
     [Theory]
@@ -50,7 +46,7 @@ public class GetTeamMembersTests
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -88,7 +84,7 @@ public class GetTeamMembersTests
             CategoryId = null
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -124,7 +120,7 @@ public class GetTeamMembersTests
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -161,7 +157,7 @@ public class GetTeamMembersTests
             CategoryId = category.Id
         };
 
-        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object, _blobservice.Object);
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
@@ -177,7 +173,7 @@ public class GetTeamMembersTests
 
     private static List<TeamMember> GetTeamMemberList()
     {
-        var teamMemberList = new List<TeamMember>()
+        var teamMemberList = new List<TeamMember>
         {
             new()
             {
@@ -226,7 +222,7 @@ public class GetTeamMembersTests
 
     private static List<TeamMemberDto> GetTeamMemberDtoList()
     {
-        var teamMemberDtoList = new List<TeamMemberDto>()
+        var teamMemberDtoList = new List<TeamMemberDto>
         {
             new()
             {
@@ -268,12 +264,12 @@ public class GetTeamMembersTests
         return teamMemberDtoList;
     }
 
-    private void SetupRepository(List<TeamMember> teamMembers)
+    private void SetupRepository(IEnumerable<TeamMember> teamMembers)
     {
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.GetAllAsync(
              It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMembers);
-        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.CountAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.CountAsync(It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMembers.Count);
     }
 

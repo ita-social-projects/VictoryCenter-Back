@@ -1,8 +1,8 @@
 using FluentValidation.TestHelper;
+using VictoryCenter.BLL.Commands.Admin.Programs.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
 using VictoryCenter.BLL.Validators.Programs;
-using VictoryCenter.BLL.Commands.Programs.Update;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Programs;
@@ -22,9 +22,9 @@ public class UpdateProgramValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenNameIsNotValid(string? name)
     {
-        var command = new UpdateProgramCommand(new UpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoriesId = [1, 2] }, 1);
+        var command = new UpdateProgramCommand(new UpdateProgramDto { Name = name!, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Name)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Name)));
     }
 
@@ -36,9 +36,9 @@ public class UpdateProgramValidatorTests
     public void Validate_ShouldHaveError_WhenNameIsTooShort(string name)
     {
         var command = new UpdateProgramCommand(
-            new UpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoriesId = [1, 2] }, 1);
+            new UpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Name)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Name)
             .WithErrorMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ProgramDto.Name), ProgramConstants.MinNameLength));
     }
@@ -48,9 +48,9 @@ public class UpdateProgramValidatorTests
     {
         var name = new string('a', ProgramConstants.MaxNameLength + 1);
         var command = new UpdateProgramCommand(
-            new UpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoriesId = [1, 2] }, 1);
+            new UpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Name)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Name)
             .WithErrorMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ProgramDto.Name), ProgramConstants.MaxNameLength));
     }
@@ -64,10 +64,10 @@ public class UpdateProgramValidatorTests
                 Name = "ValidName",
                 Description = "ValidDescription",
                 Status = Status.Draft,
-                CategoriesId = [1, 2]
+                CategoryIds = [1, 2]
             }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(p => p.updateProgramDto.Name);
+        result.ShouldNotHaveValidationErrorFor(p => p.UpdateProgramDto.Name);
     }
 
     [Theory]
@@ -76,16 +76,16 @@ public class UpdateProgramValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenDescriptionIsNotValid(string? description)
     {
-        var updateProgramDto = new UpdateProgramDto()
+        var updateProgramDto = new UpdateProgramDto
         {
             Name = "TestName",
             Status = Status.Published,
             Description = description,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         };
         var command = new UpdateProgramCommand(updateProgramDto, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Description)));
     }
 
@@ -102,10 +102,10 @@ public class UpdateProgramValidatorTests
                 Name = "ValidName",
                 Description = description,
                 Status = Status.Draft,
-                CategoriesId = [1, 2]
+                CategoryIds = [1, 2]
             }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ProgramDto.Description), ProgramConstants.MinDescriptionLength));
     }
@@ -120,10 +120,10 @@ public class UpdateProgramValidatorTests
                 Name = "ValidName",
                 Description = description,
                 Status = Status.Draft,
-                CategoriesId = [1, 2]
+                CategoryIds = [1, 2]
             }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.Description)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ProgramDto.Description), ProgramConstants.MaxDescriptionLength));
     }
@@ -137,10 +137,10 @@ public class UpdateProgramValidatorTests
                 Name = "ValidName",
                 Description = "ValidDescription!!!",
                 Status = Status.Draft,
-                CategoriesId = [1, 2]
+                CategoryIds = [1, 2]
             }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(p => p.updateProgramDto.Description);
+        result.ShouldNotHaveValidationErrorFor(p => p.UpdateProgramDto.Description);
     }
 
     [Fact]
@@ -152,10 +152,10 @@ public class UpdateProgramValidatorTests
                 Name = "ValidName",
                 Description = "ValidDescription!!!",
                 Status = Status.Draft,
-                CategoriesId = []
+                CategoryIds = []
             }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.updateProgramDto.CategoriesId)
+        result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.CategoryIds)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Categories)));
     }
 
@@ -168,9 +168,9 @@ public class UpdateProgramValidatorTests
                 Name = "ValidName",
                 Description = "ValidDescription!!!",
                 Status = Status.Draft,
-                CategoriesId = [1, 2]
+                CategoryIds = [1, 2]
             }, 1);
         TestValidationResult<UpdateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(p => p.updateProgramDto.CategoriesId);
+        result.ShouldNotHaveValidationErrorFor(p => p.UpdateProgramDto.CategoryIds);
     }
 }

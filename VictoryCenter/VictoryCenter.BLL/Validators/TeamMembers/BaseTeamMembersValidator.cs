@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;
@@ -16,7 +16,7 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
         RuleFor(x => x.CategoryId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberDto.CategoryId)));
         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage(TeamMemberConstants.UnknownStatusValue);
+            .IsInEnum().WithMessage(ErrorMessagesConstants.UnknownStatusValue);
         RuleFor(x => x.Description)
             .MaximumLength(DescriptionNameMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), DescriptionNameMaxLength));

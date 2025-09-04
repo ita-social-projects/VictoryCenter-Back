@@ -1,10 +1,10 @@
-using Moq;
-using FluentResults;
 using AutoMapper;
-using VictoryCenter.BLL.DTOs.Images;
-using VictoryCenter.BLL.DTOs.Programs;
+using FluentResults;
+using Moq;
+using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.DTOs.Public.Programs;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.Programs.GetPublished;
+using VictoryCenter.BLL.Queries.Public.Programs.GetPublished;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -33,25 +33,24 @@ public class GetPublishedProgramsTests
             Description = "TestDescription2",
             Status = Status.Published,
             ImageId = 2,
-        }
-
+        },
     ];
 
-    private readonly IEnumerable<PublishedProgramDto> _programDto = new List<PublishedProgramDto>()
-    {
+    private readonly IEnumerable<PublishedProgramDto> _programDto =
+    [
         new()
         {
             Name = "TestName1",
             Description = "TestDescription1",
-            Image = new ImageDTO()
+            Image = new ImageDto()
         },
         new()
         {
             Name = "TestName2",
             Description = "TestDescription2",
-            Image = new ImageDTO()
-        }
-    };
+            Image = new ImageDto()
+        },
+    ];
 
     public GetPublishedProgramsTests()
     {
@@ -71,7 +70,7 @@ public class GetPublishedProgramsTests
         Assert.NotNull(result);
     }
 
-    private void SetUpDependencies(List<DAL.Entities.Program> programs = null!)
+    private void SetUpDependencies(IEnumerable<DAL.Entities.Program> programs = null!)
     {
         SetUpAutoMapper();
         SetUpRepositoryWrapper(programs);
@@ -84,7 +83,7 @@ public class GetPublishedProgramsTests
             .Returns(_programDto);
     }
 
-    private void SetUpRepositoryWrapper(List<DAL.Entities.Program> programs)
+    private void SetUpRepositoryWrapper(IEnumerable<DAL.Entities.Program> programs)
     {
         _mockRepositoryWrapper.Setup(x => x.ProgramsRepository
             .GetAllAsync(It.IsAny<QueryOptions<DAL.Entities.Program>>())).ReturnsAsync(programs);

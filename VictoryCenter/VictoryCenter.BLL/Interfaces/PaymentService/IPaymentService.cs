@@ -1,5 +1,5 @@
 using FluentResults;
-using VictoryCenter.BLL.DTOs.Payment.Common;
+using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 
 namespace VictoryCenter.BLL.Interfaces.PaymentService;
 

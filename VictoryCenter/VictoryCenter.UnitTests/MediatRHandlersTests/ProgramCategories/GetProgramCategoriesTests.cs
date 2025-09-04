@@ -1,12 +1,11 @@
 using AutoMapper;
-using Moq;
 using FluentResults;
-using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.ProgramCategories;
+using Moq;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
+using VictoryCenter.BLL.Queries.Admin.ProgramCategories;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ProgramCategories;
 
@@ -14,10 +13,9 @@ public class GetProgramCategoriesTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IBlobService> _mockBlobService;
 
-    private readonly IEnumerable<ProgramCategory> _testProgramCategories = new List<ProgramCategory>
-    {
+    private readonly IEnumerable<ProgramCategory> _testProgramCategories =
+    [
         new()
         {
             Id = 1,
@@ -27,11 +25,11 @@ public class GetProgramCategoriesTests
         {
             Id = 2,
             Name = "Test2"
-        }
-    };
+        },
+    ];
 
-    private readonly IEnumerable<ProgramCategoryDto> _testProgramCategoriesDtos = new List<ProgramCategoryDto>
-    {
+    private readonly IEnumerable<ProgramCategoryDto> _testProgramCategoriesDtos =
+    [
         new()
         {
             Name = "Test1"
@@ -39,14 +37,13 @@ public class GetProgramCategoriesTests
         new()
         {
             Name = "Test2"
-        }
-    };
+        },
+    ];
 
     public GetProgramCategoriesTests()
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _mockBlobService = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -54,7 +51,7 @@ public class GetProgramCategoriesTests
     {
         SetupDependencies();
 
-        var handler = new GetProgramCategoriesHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _mockBlobService.Object);
+        var handler = new GetProgramCategoriesHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
         Result<List<ProgramCategoryDto>> result = await handler.Handle(new GetProgramCategoriesQuery(), CancellationToken.None);
 
         Assert.NotEmpty(result.Value);
@@ -65,7 +62,6 @@ public class GetProgramCategoriesTests
     {
         SetupMapper();
         SetupRepositoryWrapper();
-        SetUpBlobService();
     }
 
     private void SetupMapper()
@@ -79,12 +75,5 @@ public class GetProgramCategoriesTests
         _mockRepositoryWrapper.Setup(repo => repo.ProgramCategoriesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<ProgramCategory>>()))
             .ReturnsAsync(_testProgramCategories);
-    }
-
-    private void SetUpBlobService()
-    {
-        _mockBlobService
-            .Setup(x => x.GetFileUrl(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("https://localhost:5000/supersecretimage.png");
     }
 }

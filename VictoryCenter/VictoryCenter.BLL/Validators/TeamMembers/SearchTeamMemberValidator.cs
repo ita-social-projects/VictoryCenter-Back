@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Queries.TeamMembers.Search;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.Search;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;
 

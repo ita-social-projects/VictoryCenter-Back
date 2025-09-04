@@ -1,14 +1,14 @@
-using Moq;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Commands.ProgramCategories.Create;
-using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Validators.ProgramCategories;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ProgramCategories;
 
@@ -23,8 +23,8 @@ public class CreateProgramCategoryTests
         Id = 1,
         Name = "TestCategory",
         CreatedAt = DateTime.UtcNow.AddMinutes(-10),
-        Programs = new List<DAL.Entities.Program>
-        {
+        Programs =
+        [
             new()
             {
                 Image = new Image
@@ -32,8 +32,8 @@ public class CreateProgramCategoryTests
                     BlobName = "someBlob.jpg",
                     MimeType = "image/jpeg"
                 }
-            }
-        }
+            },
+        ]
     };
 
     private readonly ProgramCategoryDto _programCategoryDto = new()
@@ -45,7 +45,7 @@ public class CreateProgramCategoryTests
         [
             new()
             {
-                Image = new ImageDTO
+                Image = new ImageDto
                 {
                     BlobName = "someBlob.jpg",
                     MimeType = "image/jpeg"
@@ -98,7 +98,7 @@ public class CreateProgramCategoryTests
         Result<ProgramCategoryDto> result = await handler
             .Handle(new CreateProgramCategoryCommand(new CreateProgramCategoryDto { Name = "TestName" }), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ProgramCategoryConstants.FailedToCreateCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(ProgramCategory)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)

@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.TeamMembers.GetById;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetById;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -14,12 +13,10 @@ public class GetTeamMemberByIdTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepository;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly Mock<IBlobService> _blobService;
     public GetTeamMemberByIdTests()
     {
         _mockRepository = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
-        _blobService = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -32,7 +29,7 @@ public class GetTeamMemberByIdTests
         SetupRepository(teamMember);
         SetupMapper(teamMemberDto);
 
-        var handler = new GetTeamMemberByIdHandler(_mockMapper.Object, _mockRepository.Object, _blobService.Object);
+        var handler = new GetTeamMemberByIdHandler(_mockMapper.Object, _mockRepository.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMemberByIdQuery(teamMember.Id), CancellationToken.None);
@@ -55,7 +52,7 @@ public class GetTeamMemberByIdTests
         SetupRepository(GetTeamMemberWithNotExistingId());
         SetupMapper(GetTeamDTOWithNotExistingId());
 
-        var handler = new GetTeamMemberByIdHandler(_mockMapper.Object, _mockRepository.Object, _blobService.Object);
+        var handler = new GetTeamMemberByIdHandler(_mockMapper.Object, _mockRepository.Object);
 
         // Act
         var result = await handler.Handle(new GetTeamMemberByIdQuery(teamMember.Id), CancellationToken.None);

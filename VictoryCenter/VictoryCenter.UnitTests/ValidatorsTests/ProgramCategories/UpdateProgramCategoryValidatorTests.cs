@@ -1,8 +1,8 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Validators.ProgramCategories;
-using VictoryCenter.BLL.Commands.ProgramCategories.Update;
+using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.ProgramCategories;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
+using VictoryCenter.BLL.Validators.ProgramCategories;
 namespace VictoryCenter.UnitTests.ValidatorsTests.ProgramCategories;
 
 public class UpdateProgramCategoryValidatorTests
@@ -20,9 +20,9 @@ public class UpdateProgramCategoryValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenNameIsNotValid(string? name)
     {
-        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
+        var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name! }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 
@@ -36,7 +36,7 @@ public class UpdateProgramCategoryValidatorTests
         var name = new string('a', nameLength);
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters("Name", ProgramCategoryConstants.MinNameLength));
     }
@@ -47,7 +47,7 @@ public class UpdateProgramCategoryValidatorTests
         var name = new string('a', ProgramCategoryConstants.MaxNameLength + 1);
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = name }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters("Name", ProgramCategoryConstants.MaxNameLength));
     }
@@ -57,6 +57,6 @@ public class UpdateProgramCategoryValidatorTests
     {
         var command = new UpdateProgramCategoryCommand(new UpdateProgramCategoryDto { Name = "Valid Name" }, 1);
         TestValidationResult<UpdateProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(c => c.updateProgramCategoryDto.Name);
+        result.ShouldNotHaveValidationErrorFor(c => c.UpdateProgramCategoryDto.Name);
     }
 }

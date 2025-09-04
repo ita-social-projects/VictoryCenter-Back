@@ -1,5 +1,6 @@
 using AutoMapper;
-using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
+using VictoryCenter.BLL.DTOs.Public.Programs;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.Programs;

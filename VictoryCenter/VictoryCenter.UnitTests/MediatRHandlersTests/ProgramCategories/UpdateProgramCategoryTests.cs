@@ -1,14 +1,14 @@
-using Moq;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.ProgramCategories;
-using VictoryCenter.BLL.Commands.ProgramCategories.Update;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
 using VictoryCenter.BLL.Validators.ProgramCategories;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ProgramCategories;
 
@@ -69,7 +69,7 @@ public class UpdateProgramCategoryTests
         Result<ProgramCategoryDto> result = await handler
             .Handle(new UpdateProgramCategoryCommand(_updateProgramCategoryDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ProgramCategoryConstants.FailedToUpdateCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(ProgramCategory)), result.Errors[0].Message);
     }
 
     [Fact]

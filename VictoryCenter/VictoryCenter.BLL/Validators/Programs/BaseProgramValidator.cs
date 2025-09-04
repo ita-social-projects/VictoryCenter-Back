@@ -1,6 +1,6 @@
 using FluentValidation;
-using VictoryCenter.BLL.DTOs.Programs;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.Programs;
@@ -33,9 +33,9 @@ public class BaseProgramValidator : AbstractValidator<CreateProgramDto>
             .When(x => x.Status == Status.Published);
 
         RuleFor(x => x.Status)
-            .IsInEnum().WithMessage(ProgramConstants.UnknownStatus);
+            .IsInEnum().WithMessage(ErrorMessagesConstants.UnknownStatusValue);
 
-        RuleFor(x => x.CategoriesId)
+        RuleFor(x => x.CategoryIds)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Categories)));
     }
 }

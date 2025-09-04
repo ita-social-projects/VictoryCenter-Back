@@ -1,30 +1,21 @@
 using Newtonsoft.Json;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
-using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.GetPublished;
 
-[Collection("SharedIntegrationTests")]
-public class GetPublishedPrograms : IAsyncLifetime
+public class GetPublishedPrograms : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public GetPublishedPrograms(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task GetPublishedPrograms_ShouldReturnPublishedPrograms()
     {
-        HttpResponseMessage response = await _fixture.HttpClient.GetAsync("/api/Programs/published/");
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/Programs/published/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         IEnumerable<ProgramDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<ProgramDto>>(responseString);

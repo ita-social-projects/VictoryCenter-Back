@@ -1,6 +1,7 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.ProgramCategories.Update;
+using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
 
 namespace VictoryCenter.BLL.Validators.ProgramCategories;
 
@@ -8,14 +9,14 @@ public class UpdateProgramCategoryValidator : AbstractValidator<UpdateProgramCat
 {
     public UpdateProgramCategoryValidator()
     {
-        RuleFor(command => command.updateProgramCategoryDto.Name)
+        RuleFor(command => command.UpdateProgramCategoryDto.Name)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateProgramCategoryDto.Name)))
             .MaximumLength(ProgramCategoryConstants.MaxNameLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters("Name",  ProgramCategoryConstants.MaxNameLength))
+                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateProgramCategoryDto.Name), ProgramCategoryConstants.MaxNameLength))
             .MinimumLength(ProgramCategoryConstants.MinNameLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters("Name", ProgramCategoryConstants.MinNameLength));
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateProgramCategoryDto.Name), ProgramCategoryConstants.MinNameLength));
     }
 }

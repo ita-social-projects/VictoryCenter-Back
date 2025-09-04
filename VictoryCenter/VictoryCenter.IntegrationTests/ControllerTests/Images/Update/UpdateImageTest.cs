@@ -3,45 +3,32 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Update;
 
-[Collection("SharedIntegrationTests")]
-public class UpdateImageTest : IAsyncLifetime
+public class UpdateImageTest : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public UpdateImageTest(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task UpdateImage_ValidData_ShouldUpdateImage()
     {
-        Image? image = await _fixture.DbContext.Images.FirstOrDefaultAsync();
-        var id = image.Id;
+        Image? image = await Fixture.DbContext.Images.FirstOrDefaultAsync();
+        var id = image!.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        string filePath = Path.Combine(_fixture.BlobEnvironmentVariables.FullPath, image.BlobName + "." + extension);
+        string filePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
-        var updateImageDto = new UpdateImageDTO
+        var updateImageDto = new UpdateImageDto
         {
             Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
             MimeType = "image/png"
@@ -49,13 +36,13 @@ public class UpdateImageTest : IAsyncLifetime
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
+        ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, JsonOptions);
 
-        var newExtension = responseContext.MimeType.Split("/")[1];
-        var newFilePath = Path.Combine(_fixture.BlobEnvironmentVariables.FullPath, responseContext.BlobName + "." + newExtension);
+        var newExtension = responseContext!.MimeType.Split("/")[1];
+        var newFilePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);
@@ -69,7 +56,7 @@ public class UpdateImageTest : IAsyncLifetime
     {
         var invalidId = int.MaxValue;
 
-        var updateImageDto = new UpdateImageDTO
+        var updateImageDto = new UpdateImageDto
         {
             Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
             MimeType = "image/png"
@@ -77,22 +64,20 @@ public class UpdateImageTest : IAsyncLifetime
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"api/image/{invalidId}", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"api/image/{invalidId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(response.StatusCode, HttpStatusCode.NotFound);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
     public async Task UpdateImage_InvalidData_ShouldFail()
     {
-        Image? image = await _fixture.DbContext.Images.FirstOrDefaultAsync();
-        var id = image.Id;
+        Image? image = await Fixture.DbContext.Images.FirstOrDefaultAsync();
+        var id = image!.Id;
 
-        var updateImageDto = new UpdateImageDTO
+        var updateImageDto = new UpdateImageDto
         {
             Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
             MimeType = "image/gif"
@@ -100,31 +85,29 @@ public class UpdateImageTest : IAsyncLifetime
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
-        var responseString = await response.Content.ReadAsStringAsync();
-        ImageDTO? responseContext = JsonSerializer.Deserialize<ImageDTO>(responseString, _jsonOptions);
 
         Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(response.StatusCode, HttpStatusCode.BadRequest);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task UpdateImage_InvalidBase64_ShouldReturnBadRequest(string invalidBase64)
+    public async Task UpdateImage_InvalidBase64_ShouldReturnBadRequest(string? invalidBase64)
     {
-        var testImage = new Image()
+        var testImage = new Image
         {
             Id = 1100,
             MimeType = "image/png",
             BlobName = "test123",
             CreatedAt = DateTime.Now
         };
-        _fixture.DbContext.Images.Add(testImage);
+        Fixture.DbContext.Images.Add(testImage);
 
-        var updateImageDto = new UpdateImageDTO
+        var updateImageDto = new UpdateImageDto
         {
             Base64 = invalidBase64,
             MimeType = "image/png"
@@ -132,7 +115,7 @@ public class UpdateImageTest : IAsyncLifetime
 
         var serializedDto = JsonSerializer.Serialize(updateImageDto);
 
-        HttpResponseMessage response = await _fixture.HttpClient.PutAsync(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
             $"api/image/{testImage.Id}",
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 

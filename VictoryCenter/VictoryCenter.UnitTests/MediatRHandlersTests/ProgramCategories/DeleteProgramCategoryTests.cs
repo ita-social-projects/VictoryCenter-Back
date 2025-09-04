@@ -1,10 +1,10 @@
-using Moq;
 using FluentResults;
-using VictoryCenter.BLL.Commands.ProgramCategories.Delete;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Delete;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ProgramCategories;
 
@@ -22,14 +22,14 @@ public class DeleteProgramCategoryTests
         {
             Id = 1,
             Name = "Without Programs",
-            Programs = new List<DAL.Entities.Program>()
+            Programs = []
         };
 
         _programCategoryWithPrograms = new ProgramCategory
         {
             Id = 2,
             Name = "With Programs",
-            Programs = new List<DAL.Entities.Program> { new() }
+            Programs = [new()]
         };
     }
 
@@ -83,7 +83,7 @@ public class DeleteProgramCategoryTests
         Result<long> result = await handler.Handle(new DeleteProgramCategoryCommand(_programCategoryWithNoPrograms.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ProgramCategoryConstants.FailedToDeleteCategory, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(ProgramCategory)), result.Errors[0].Message);
     }
 
     private void SetupCategoryRetrieval(ProgramCategory? category)

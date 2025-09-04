@@ -1,35 +1,26 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Programs.Delete;
 
-[Collection("SharedIntegrationTests")]
-public class DeleteProgramTests : IAsyncLifetime
+public class DeleteProgramTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public DeleteProgramTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
     }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Fact]
     public async Task DeleteProgram_ShouldDeleteProgram()
     {
-        DAL.Entities.Program? existingEntity = await _fixture.DbContext.Programs.FirstOrDefaultAsync();
-        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/Program/{existingEntity!.Id}");
+        DAL.Entities.Program? existingEntity = await Fixture.DbContext.Programs.FirstOrDefaultAsync();
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/Programs/{existingEntity!.Id}");
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await _fixture.DbContext.Programs.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Assert.Null(await Fixture.DbContext.Programs.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]
@@ -37,7 +28,7 @@ public class DeleteProgramTests : IAsyncLifetime
     [InlineData(0)]
     public async Task DeleteProgram_ShouldNotDeleteProgram(int id)
     {
-        HttpResponseMessage response = await _fixture.HttpClient.DeleteAsync($"/api/Program/{id}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/Programs/{id}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders.ProgramSeeder;
 
@@ -16,7 +16,7 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.Program>
     }
 
     public override string Name => "ProgramsSeeder";
-    public override int Order => 4;
+    public override int Order => (int)SeederExecutionOrder.Programs;
 
     protected override async Task<List<DAL.Entities.Program>> GenerateEntitiesAsync()
     {

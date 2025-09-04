@@ -1,8 +1,8 @@
 using FluentValidation.TestHelper;
+using VictoryCenter.BLL.Commands.Admin.Programs.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Programs;
+using VictoryCenter.BLL.DTOs.Admin.Programs;
 using VictoryCenter.BLL.Validators.Programs;
-using VictoryCenter.BLL.Commands.Programs.Create;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Programs;
@@ -24,13 +24,13 @@ public class CreateProgramValidatorTests
     {
         var command = new CreateProgramCommand(new CreateProgramDto
         {
-            Name = name,
+            Name = name!,
             Description = "ValidDescription",
             Status = Status.Draft,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.Name)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Name)));
     }
 
@@ -46,10 +46,10 @@ public class CreateProgramValidatorTests
             Name = name,
             Description = "ValidDescription",
             Status = Status.Draft,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.Name)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Name)
             .WithErrorMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ProgramDto.Name), ProgramConstants.MinNameLength));
     }
@@ -63,10 +63,10 @@ public class CreateProgramValidatorTests
             Name = name,
             Description = "ValidDescription",
             Status = Status.Draft,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.Name)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Name)
             .WithErrorMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ProgramDto.Name), ProgramConstants.MaxNameLength));
     }
@@ -79,10 +79,10 @@ public class CreateProgramValidatorTests
             Name = "ValidName",
             Description = "ValidDescription",
             Status = Status.Draft,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(p => p.createProgramDto.Name);
+        result.ShouldNotHaveValidationErrorFor(p => p.CreateProgramDto.Name);
     }
 
     [Theory]
@@ -91,16 +91,16 @@ public class CreateProgramValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenDescriptionIsNotValid(string? description)
     {
-        var createProgramDto = new CreateProgramDto()
+        var createProgramDto = new CreateProgramDto
         {
             Name = "ValidName",
             Status = Status.Published,
             Description = description,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         };
         var command = new CreateProgramCommand(createProgramDto);
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.Description)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Description)));
     }
 
@@ -113,7 +113,7 @@ public class CreateProgramValidatorTests
         var description = new string('a', descriptionLength);
         var command = new CreateProgramCommand(new CreateProgramDto { Description = description });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.Description)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ProgramDto.Description), ProgramConstants.MinDescriptionLength));
     }
@@ -127,10 +127,10 @@ public class CreateProgramValidatorTests
             Name = "ValidName",
             Description = description,
             Status = Status.Draft,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.Description)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ProgramDto.Description), ProgramConstants.MaxDescriptionLength));
     }
@@ -143,10 +143,10 @@ public class CreateProgramValidatorTests
             Name = "ValidName",
             Description = "ValidProgramDescription!!!",
             Status = Status.Draft,
-            CategoriesId = [1, 2]
+            CategoryIds = [1, 2]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(p => p.createProgramDto.Description);
+        result.ShouldNotHaveValidationErrorFor(p => p.CreateProgramDto.Description);
     }
 
     [Fact]
@@ -157,10 +157,10 @@ public class CreateProgramValidatorTests
             Name = "ValidName",
             Description = "ValidProgramDescription",
             Status = Status.Draft,
-            CategoriesId = []
+            CategoryIds = []
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(p => p.createProgramDto.CategoriesId)
+        result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.CategoryIds)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Categories)));
     }
 
@@ -172,9 +172,9 @@ public class CreateProgramValidatorTests
             Name = "ValidName",
             Description = "ValidProgramDescription",
             Status = Status.Draft,
-            CategoriesId = [1, 2, 3]
+            CategoryIds = [1, 2, 3]
         });
         TestValidationResult<CreateProgramCommand> result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(p => p.createProgramDto.CategoriesId);
+        result.ShouldNotHaveValidationErrorFor(p => p.CreateProgramDto.CategoryIds);
     }
 }
