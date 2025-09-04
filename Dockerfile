@@ -20,7 +20,7 @@ COPY ./VictoryCenter/VictoryCenter.BLL/*.csproj ./VictoryCenter.BLL/
 COPY ./VictoryCenter/VictoryCenter.DAL/*.csproj ./VictoryCenter.DAL/
 COPY ./VictoryCenter/VictoryCenter.UnitTests/*.csproj ./VictoryCenter.UnitTests/
 COPY ./VictoryCenter/VictoryCenter.IntegrationTests/*.csproj ./VictoryCenter.IntegrationTests/
-COPY ./VictoryCenter/VictoryCenter.DbUpdate/.csproj ./VictoryCenter.DbUpdate/
+COPY ./VictoryCenter/VictoryCenter.DbUpdate/*.csproj ./VictoryCenter.DbUpdate/
 RUN dotnet restore
 
 # copying other neccessary data and building application
