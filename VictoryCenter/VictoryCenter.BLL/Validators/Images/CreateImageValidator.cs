@@ -28,7 +28,7 @@ public class CreateImageValidator : AbstractValidator<CreateImageCommand>
             return false;
         }
 
-        Span<byte> buffer = new Span<byte>(new byte[base64.Length]);
+        Span<byte> buffer = new(new byte[base64.Length]);
         return Convert.TryFromBase64String(base64, buffer, out _);
     }
 }

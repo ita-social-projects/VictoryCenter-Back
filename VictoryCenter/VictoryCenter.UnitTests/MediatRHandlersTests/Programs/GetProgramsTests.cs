@@ -8,7 +8,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Programs;
 
-public class GetPrograms
+public class GetProgramsTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
@@ -102,7 +102,7 @@ public class GetPrograms
         },
     ];
 
-    public GetPrograms()
+    public GetProgramsTests()
     {
         _mockMapper = new Mock<IMapper>();
         _repositoryWrapper = new Mock<IRepositoryWrapper>();

@@ -43,7 +43,7 @@ public class GetProgramsByFiltersHandler : IRequestHandler<GetProgramsByFiltersQ
         };
 
         IEnumerable<Program> programs = await _repositoryWrapper.ProgramsRepository.GetAllAsync(queryOptions);
-        var totalCount = await _repositoryWrapper.ProgramsRepository.CountAsync(queryOptions);
+        var totalCount = await _repositoryWrapper.ProgramsRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
         var programDto = _mapper.Map<IEnumerable<ProgramDto>>(programs).ToList();
 
         return Result.Ok(new PaginationResult<ProgramDto>([.. programDto], totalCount));

@@ -41,7 +41,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
         IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
         List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
-        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions);
+        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
 
         return Result.Ok(new PaginationResult<TeamMemberDto>([.. teamMembersDto], itemsTotalCount));
     }

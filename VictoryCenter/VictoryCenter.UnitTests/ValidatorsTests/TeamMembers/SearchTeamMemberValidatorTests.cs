@@ -56,7 +56,7 @@ public class SearchTeamMemberValidatorTests
     [Fact]
     public void Validate_InvalidQuery_FullNameTooLongShouldHaveError()
     {
-        string fullName = new string('A', 101);
+        string fullName = new('A', 101);
         var dto = new SearchTeamMemberDto
         {
             FullName = fullName!,

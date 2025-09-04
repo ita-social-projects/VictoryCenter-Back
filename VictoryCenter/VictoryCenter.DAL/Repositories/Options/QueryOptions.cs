@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Query;
 
 namespace VictoryCenter.DAL.Repositories.Options;
 
-public class QueryOptions<T>
+public record QueryOptions<T>
 {
     public Expression<Func<T, bool>>? Filter { get; set; }
     public Func<IQueryable<T>, IIncludableQueryable<T, object>>? Include { get; set; }
