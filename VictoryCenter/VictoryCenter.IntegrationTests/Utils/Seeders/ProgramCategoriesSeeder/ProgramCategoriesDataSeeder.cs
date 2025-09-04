@@ -12,7 +12,7 @@ public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
     }
 
     public override string Name => "ProgramCategoriesSeeder";
-    public override int Order => 3;
+    public override int Order => (int)SeederExecutionOrder.ProgramCategories;
 
     protected override Task<List<ProgramCategory>> GenerateEntitiesAsync()
     {

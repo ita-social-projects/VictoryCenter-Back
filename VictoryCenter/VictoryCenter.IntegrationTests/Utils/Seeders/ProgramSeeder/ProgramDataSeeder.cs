@@ -16,7 +16,7 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.Program>
     }
 
     public override string Name => "ProgramsSeeder";
-    public override int Order => 4;
+    public override int Order => (int)SeederExecutionOrder.Programs;
 
     protected override async Task<List<DAL.Entities.Program>> GenerateEntitiesAsync()
     {

@@ -4,5 +4,7 @@ public enum SeederExecutionOrder
 {
     Categories,
     TeamMembers,
+    ProgramCategories,
+    Programs,
     Images
 }
