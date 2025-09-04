@@ -59,16 +59,6 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         DbContext.Set<T>().Remove(entity);
     }
 
-    public void DeleteRange(params T[] entities)
-    {
-        DbContext.Set<T>().RemoveRange(entities);
-    }
-
-    public void DeleteRange(IEnumerable<T> entities)
-    {
-        DbContext.Set<T>().RemoveRange(entities);
-    }
-
     public async Task<TKey?> MaxAsync<TKey>(
         Expression<Func<T, TKey>> selector,
         Expression<Func<T, bool>>? filter = null)
