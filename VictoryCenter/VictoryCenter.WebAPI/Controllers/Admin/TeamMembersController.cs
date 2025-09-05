@@ -4,8 +4,10 @@ using VictoryCenter.BLL.Commands.Admin.TeamMembers.Delete;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetById;
+using VictoryCenter.BLL.Queries.Admin.TeamMembers.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -13,10 +15,17 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class TeamMembersController : AuthorizedApiController
 {
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<TeamMemberDto>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginationResult<TeamMemberDto>))]
     public async Task<IActionResult> GetFilteredTeamMembers([FromQuery] TeamMembersFilterDto teamMembersFilterDto)
     {
         return HandleResult(await Mediator.Send(new GetTeamMembersByFiltersQuery(teamMembersFilterDto)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginationResult<TeamMemberDto>))]
+    public async Task<IActionResult> SearchTeamMembers([FromQuery] SearchTeamMemberDto searchTeamMemberDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchTeamMemberQuery(searchTeamMemberDto)));
     }
 
     [HttpGet("{id:long}")]

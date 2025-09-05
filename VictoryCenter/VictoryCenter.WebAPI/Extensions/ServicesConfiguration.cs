@@ -12,11 +12,13 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -29,7 +31,7 @@ namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {
-    public static void AddApplicationServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -76,7 +78,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
@@ -86,6 +88,9 @@ public static class ServicesConfiguration
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
+
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
+        ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
 
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
@@ -102,7 +107,7 @@ public static class ServicesConfiguration
             .ValidateOnStart();
 
         services.AddHttpClient("Way4PayClient")
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler()
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {
                 AllowAutoRedirect = false
             });
@@ -110,6 +115,8 @@ public static class ServicesConfiguration
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
@@ -125,7 +132,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static async Task ApplyMigrations(this WebApplication app)
+    public static async Task ApplyMigrationsAsync(this WebApplication app)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         try
@@ -167,10 +174,10 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialData(this WebApplication app)
+    public static async Task CreateInitialDataAsync(this WebApplication app)
     {
-        await app.CreateInitialAdmin();
-        await app.CreateInitialCategories();
+        await app.CreateInitialAdminAsync();
+        await app.CreateInitialCategoriesAsync();
         await app.SeedVisitorPagesAsync();
     }
 
@@ -198,7 +205,7 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialAdmin(this WebApplication app)
+    private static async Task CreateInitialAdminAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
@@ -235,7 +242,7 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialCategories(this WebApplication app)
+    private static async Task CreateInitialCategoriesAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
@@ -260,6 +267,7 @@ public static class ServicesConfiguration
                 CreatedAt = DateTime.UtcNow
             }
         };
+
         foreach (var category in categories)
         {
             if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
@@ -280,7 +288,7 @@ public static class ServicesConfiguration
                 Title = "VictoryCenter API",
                 Version = "v1"
             });
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
                 Name = "Authorization",
@@ -315,8 +323,13 @@ public static class ServicesConfiguration
         switch (serviceType)
         {
             case "Local":
-                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Local"))
-                    .ValidateDataAnnotations();
+                services.AddOptions<BlobEnvironmentVariables>()
+                    .Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations()
+                    .PostConfigure<IWebHostEnvironment>((options, env) =>
+                    {
+                        options.RootPath = env.WebRootPath;
+                    });
                 services.AddScoped<IBlobService, BlobService>();
                 break;
 

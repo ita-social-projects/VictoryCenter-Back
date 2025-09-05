@@ -4,7 +4,7 @@ namespace VictoryCenter.BLL.Options;
 
 public class JwtOptions
 {
-    public const string Position = "JwtOptions";
+    static readonly public string Position = "JwtOptions";
 
     [Required]
     public string Audience { get; init; } = null!;

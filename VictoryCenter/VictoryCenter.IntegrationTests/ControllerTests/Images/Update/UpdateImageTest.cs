@@ -4,6 +4,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -24,7 +25,7 @@ public class UpdateImageTest : BaseTestClass
         var id = image!.Id;
 
         var extension = image.MimeType.Split("/")[1];
-        string filePath = Path.Combine(Fixture.BlobEnvironmentVariables.BlobStorePath, image.BlobName + "." + extension);
+        string filePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, image.BlobName + "." + extension);
         var oldHash = ComputeFileHash(filePath);
 
         var updateImageDto = new UpdateImageDto
@@ -41,7 +42,7 @@ public class UpdateImageTest : BaseTestClass
         ImageDto? responseContext = JsonSerializer.Deserialize<ImageDto>(responseString, JsonOptions);
 
         var newExtension = responseContext!.MimeType.Split("/")[1];
-        var newFilePath = Path.Combine(Fixture.BlobEnvironmentVariables.BlobStorePath, responseContext.BlobName + "." + newExtension);
+        var newFilePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, responseContext.BlobName + "." + newExtension);
         var newHash = ComputeFileHash(newFilePath);
 
         Assert.True(response.IsSuccessStatusCode);
@@ -86,6 +87,37 @@ public class UpdateImageTest : BaseTestClass
 
         HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"api/image/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task UpdateImage_InvalidBase64_ShouldReturnBadRequest(string? invalidBase64)
+    {
+        var testImage = new Image
+        {
+            Id = 1100,
+            MimeType = "image/png",
+            BlobName = "test123",
+            CreatedAt = DateTime.Now
+        };
+        Fixture.DbContext.Images.Add(testImage);
+
+        var updateImageDto = new UpdateImageDto
+        {
+            Base64 = invalidBase64,
+            MimeType = "image/png"
+        };
+
+        var serializedDto = JsonSerializer.Serialize(updateImageDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"api/image/{testImage.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

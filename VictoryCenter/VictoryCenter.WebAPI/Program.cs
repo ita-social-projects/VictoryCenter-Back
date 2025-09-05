@@ -10,6 +10,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices(builder.Configuration);
 builder.Services.AddOpenTelemetryTracing();
 builder.Logging.AddOpenTelemetryLogging();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -18,8 +19,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-await app.ApplyMigrations();
-await app.CreateInitialData();
+await app.ApplyMigrationsAsync();
+await app.CreateInitialDataAsync();
 
 app.UseRequestResponseLogging();
 app.UseCors();
@@ -28,6 +29,7 @@ app.UseHttpsRedirection();
 app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseStaticFiles();
 
 app.Run();
 

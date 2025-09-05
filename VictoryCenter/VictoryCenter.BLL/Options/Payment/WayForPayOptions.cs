@@ -4,7 +4,7 @@ namespace VictoryCenter.BLL.Options.Payment;
 
 public class WayForPayOptions
 {
-    public const string Position = "PaymentSystemsConfigurations:Way4Pay";
+    static readonly public string Position = "PaymentSystemsConfigurations:Way4Pay";
 
     [Required]
     public string MerchantLogin { get; init; } = null!;

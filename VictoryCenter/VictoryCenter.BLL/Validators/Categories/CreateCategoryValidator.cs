@@ -8,7 +8,7 @@ public class CreateCategoryValidator : AbstractValidator<CreateCategoryCommand>
 {
     public CreateCategoryValidator()
     {
-        RuleFor(command => command.createCategoryDto.Name)
+        RuleFor(command => command.CreateCategoryDto.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }

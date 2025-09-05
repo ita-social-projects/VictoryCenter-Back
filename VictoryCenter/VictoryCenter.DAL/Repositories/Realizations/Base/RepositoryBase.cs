@@ -20,14 +20,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = DbContext.Set<T>().AsNoTracking();
+        IQueryable<T> query = DbContext.Set<T>();
 
         if (queryOptions != null)
         {
-            query = ApplyInclude(query, queryOptions.Include);
-            query = ApplyFilter(query, queryOptions.Filter);
-            query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
-            query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
+            query = ApplyQueryOptions(query, queryOptions);
         }
 
         return await query.ToListAsync();
@@ -35,10 +32,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
-        var query = DbContext.Set<T>().AsNoTracking();
+        IQueryable<T> query = DbContext.Set<T>();
 
         if (queryOptions != null)
         {
+            query = ApplyTracking(query, queryOptions.AsNoTracking);
             query = ApplyInclude(query, queryOptions.Include);
             query = ApplyFilter(query, queryOptions.Filter);
         }
@@ -48,8 +46,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
 
     public async Task<T> CreateAsync(T entity)
     {
-        var tmp = await DbContext.Set<T>().AddAsync(entity);
-        return tmp.Entity;
+        return (await DbContext.Set<T>().AddAsync(entity)).Entity;
     }
 
     public async Task CreateRangeAsync(params T[] entities)
@@ -99,19 +96,23 @@ public class RepositoryBase<T> : IRepositoryBase<T>
     {
         var query = DbContext.Set<T>().AsNoTracking();
 
-        if (filter != null)
-        {
-            query = query.Where(filter);
-        }
+        query = ApplyFilter(query, filter);
 
         var projected = query.Select(selector);
 
         return await projected.DefaultIfEmpty().MaxAsync();
     }
 
-    public Task<long> CountAsync(Expression<Func<T, bool>> filter)
+    public async Task<int> CountAsync(QueryOptions<T>? queryOptions = null)
     {
-        return DbContext.Set<T>().LongCountAsync(filter);
+        IQueryable<T> query = DbContext.Set<T>();
+
+        if (queryOptions != null)
+        {
+            query = ApplyQueryOptions(query, queryOptions);
+        }
+
+        return await query.CountAsync();
     }
 
     private static IQueryable<T> ApplyFilter(IQueryable<T> query, Expression<Func<T, bool>>? filter)
@@ -153,6 +154,22 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         {
             query = query.Take(limit);
         }
+
+        return query;
+    }
+
+    static private IQueryable<T> ApplyTracking(IQueryable<T> query, bool asNoTracking)
+    {
+        return asNoTracking ? query.AsNoTracking() : query;
+    }
+
+    private static IQueryable<T> ApplyQueryOptions(IQueryable<T> query, QueryOptions<T> queryOptions)
+    {
+        query = ApplyTracking(query, queryOptions.AsNoTracking);
+        query = ApplyInclude(query, queryOptions.Include);
+        query = ApplyFilter(query, queryOptions.Filter);
+        query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
+        query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
 
         return query;
     }

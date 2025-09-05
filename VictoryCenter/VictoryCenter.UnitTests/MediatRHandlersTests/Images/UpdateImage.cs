@@ -5,6 +5,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
@@ -39,7 +40,7 @@ public class UpdateImageHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        Base64 = "dGVzdA==",
+        Url = "dGVzdA==",
         CreatedAt = DateTime.UtcNow
     };
 
@@ -94,7 +95,7 @@ public class UpdateImageHandlerTests
         Assert.Equal(_testImageDto.Id, result.Value.Id);
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        Assert.Equal(_testImageDto.Url, result.Value.Url);
         _mockBlobService.Verify(
             x => x.UpdateFileInStorageAsync(
             _testImage.BlobName,

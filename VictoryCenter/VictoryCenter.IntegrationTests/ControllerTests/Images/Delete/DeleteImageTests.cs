@@ -20,7 +20,7 @@ public class DeleteImageTests : BaseTestClass
         var id = image!.Id;
 
         string extension = image.MimeType.Split("/")[1];
-        string path = Fixture.BlobEnvironmentVariables.BlobStorePath + image.BlobName + "." + extension;
+        string path = Fixture.BlobEnvironmentVariables.FullPath + image.BlobName + "." + extension;
 
         HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"api/Image/{id}");
 

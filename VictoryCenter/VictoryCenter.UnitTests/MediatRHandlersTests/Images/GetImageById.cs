@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Images;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.Images.GetById;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -14,7 +13,6 @@ public class GetImageByIdHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly Mock<IBlobService> _blobservice;
     private readonly Image _testImage = new()
     {
         Id = 1,
@@ -27,14 +25,13 @@ public class GetImageByIdHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        Base64 = "dGVzdA=="
+        Url = "http://superblob.com/testblob.png"
     };
 
     public GetImageByIdHandlerTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
-        _blobservice = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -51,8 +48,7 @@ public class GetImageByIdHandlerTests
 
         var handler = new GetImageByIdHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object,
-            _blobservice.Object);
+            _mockMapper.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -63,7 +59,7 @@ public class GetImageByIdHandlerTests
         Assert.Equal(_testImageDto.Id, result.Value.Id);
         Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
         Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Base64, result.Value.Base64);
+        Assert.Equal(_testImageDto.Url, result.Value.Url);
     }
 
     [Fact]
@@ -79,8 +75,7 @@ public class GetImageByIdHandlerTests
 
         var handler = new GetImageByIdHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object,
-            _blobservice.Object);
+            _mockMapper.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -101,7 +96,7 @@ public class GetImageByIdHandlerTests
         var mockImage = new Image()
         {
             Id = id,
-            Base64 = "dGVzdA==",
+            Url = "http://superblob.com/testblob.png",
             BlobName = "",
             MimeType = "image/png",
             CreatedAt = DateTime.UtcNow
@@ -112,8 +107,7 @@ public class GetImageByIdHandlerTests
 
         var handler = new GetImageByIdHandler(
             _mockRepositoryWrapper.Object,
-            _mockMapper.Object,
-            _blobservice.Object);
+            _mockMapper.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

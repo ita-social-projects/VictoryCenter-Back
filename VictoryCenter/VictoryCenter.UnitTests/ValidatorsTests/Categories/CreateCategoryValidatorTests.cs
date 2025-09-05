@@ -25,7 +25,7 @@ public class CreateCategoryValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.createCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.CreateCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 
@@ -36,6 +36,6 @@ public class CreateCategoryValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldNotHaveValidationErrorFor(c => c.createCategoryDto.Name);
+        result.ShouldNotHaveValidationErrorFor(c => c.CreateCategoryDto.Name);
     }
 }

@@ -7,8 +7,6 @@ namespace VictoryCenter.BLL.Validators.TeamMembers;
 
 public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersCommand>
 {
-    private const int MaxTeamMemberIds = 500;
-
     public ReorderTeamMembersValidator()
     {
         RuleFor(x => x.ReorderTeamMembersDto.CategoryId)
@@ -19,7 +17,7 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
             .Cascade(CascadeMode.Stop)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ReorderTeamMembersDto.OrderedIds)))
-            .NotEmpty()
+            .Must(ids => ids.Count > 0)
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(ReorderTeamMembersDto.OrderedIds)))
             .Must(ids => ids.Count <= MaxTeamMemberIds)
             .WithMessage(ErrorMessagesConstants
@@ -33,4 +31,6 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustBePositive($"Each {nameof(ReorderTeamMembersDto.OrderedIds)} element"));
     }
+
+    public static int MaxTeamMemberIds { get; } = 500;
 }

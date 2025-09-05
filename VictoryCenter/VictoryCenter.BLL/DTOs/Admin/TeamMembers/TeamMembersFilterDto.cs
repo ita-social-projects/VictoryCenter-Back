@@ -4,5 +4,5 @@ namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 
 public record TeamMembersFilterDto : BaseFilterDto
 {
-    public long? CategoryId { get; set; }
+    public long? CategoryId { get; init; }
 }

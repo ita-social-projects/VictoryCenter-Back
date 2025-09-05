@@ -33,7 +33,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
             var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
             var allCategoryMembers = (await _repositoryWrapper.TeamMembersRepository
-                .GetAllAsync(new QueryOptions<TeamMember>()
+                .GetAllAsync(new QueryOptions<TeamMember>
                 {
                     Filter = x => x.CategoryId == categoryId
                 })).ToList();
