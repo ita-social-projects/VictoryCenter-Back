@@ -42,7 +42,7 @@ public class GetFaqQuestionsByFiltersHandler : IRequestHandler<GetFaqQuestionsBy
 
         var questions = await _repository.FaqQuestionsRepository.GetAllAsync(queryOptions);
         var questionsDto = _mapper.Map<FaqQuestionDto[]>(questions);
-        var itemsTotalCount = await _repository.FaqQuestionsRepository.CountAsync(queryOptions.Filter);
+        var itemsTotalCount = await _repository.FaqQuestionsRepository.CountAsync(queryOptions);
 
         return Result.Ok(new PaginationResult<FaqQuestionDto>(questionsDto, itemsTotalCount));
     }

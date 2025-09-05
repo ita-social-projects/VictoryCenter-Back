@@ -1,5 +1,4 @@
-﻿using System.Linq.Expressions;
-using AutoMapper;
+﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
@@ -319,7 +318,7 @@ public class GetFaqQuestionsByFiltersTests
             .ReturnsAsync(faqQuestions);
 
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.FaqQuestionsRepository.CountAsync(
-             It.IsAny<Expression<Func<FaqQuestion, bool>>>()))
+             It.IsAny<QueryOptions<FaqQuestion>>()))
             .ReturnsAsync(count);
     }
 
