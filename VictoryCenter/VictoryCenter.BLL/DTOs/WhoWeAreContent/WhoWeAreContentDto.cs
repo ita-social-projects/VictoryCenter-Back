@@ -6,6 +6,7 @@ namespace VictoryCenter.BLL.DTOs.WhoWeAreContent;
 [JsonDerivedType(typeof(DescriptionContentDto), typeDiscriminator: "description")]
 [JsonDerivedType(typeof(ImageContentDto), typeDiscriminator: "image")]
 [JsonDerivedType(typeof(TitleContentDto), typeDiscriminator: "title")]
+[JsonDerivedType(typeof(CardContentDto), typeDiscriminator: "card")]
 public class WhoWeAreContentDto
 {
     public long Id { get; set; }

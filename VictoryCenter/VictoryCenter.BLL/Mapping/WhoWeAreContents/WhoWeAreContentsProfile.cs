@@ -11,10 +11,12 @@ public class WhoWeAreContentsProfile : Profile
         CreateMap<WhoWeAreContent, WhoWeAreContentDto>()
             .Include<ImageContent, ImageContentDto>()
             .Include<TitleContent, TitleContentDto>()
-            .Include<DescriptionContent, DescriptionContentDto>();
+            .Include<DescriptionContent, DescriptionContentDto>()
+            .Include<CardContent, CardContentDto>();
 
         CreateMap<ImageContent, ImageContentDto>();
         CreateMap<TitleContent, TitleContentDto>();
         CreateMap<DescriptionContent, DescriptionContentDto>();
+        CreateMap<CardContent, CardContentDto>();
     }
 }

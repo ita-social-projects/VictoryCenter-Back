@@ -3,6 +3,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.WhoWeAreSection;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.DAL.Entities;
@@ -34,21 +35,18 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
+            var dictEntities = await GetContentMappedToDictionary(request.Content);
+            var sectionId = await GetSectionIdByType(request.SectionType) ??
+                            throw new ArgumentException("Section type is invalid");
+
             foreach (var dto in request.Content)
             {
-                var entity = await _repository.WhoWeAreContentsRepository.GetFirstOrDefaultAsync(
-                    new QueryOptions<WhoWeAreContent>()
-                    {
-                        Include = x => x.Include(w => w.Section),
-                        Filter = x => x.Id == dto.Id
-                    });
-
-                if (entity == null)
+                if (!dictEntities.TryGetValue(dto.Id, out var entity))
                 {
-                    return Result.Fail($"Content was not found");
+                    return Result.Fail("Content was not found");
                 }
 
-                if (entity.Section.SectionType != request.SectionType)
+                if (entity.SectionId != sectionId)
                 {
                     return Result.Fail("Entity didnt belong to this section");
                 }
@@ -58,45 +56,82 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                     return Result.Fail("Wrong Content type");
                 }
 
-                switch (dto.ContentType)
-                {
-                    case ContentType.Description:
-                        _factory.UpdateDescription(dto, entity);
-                        break;
-
-                    case ContentType.Card:
-                        _factory.UpdateCard(dto, entity);
-                        break;
-
-                    case ContentType.Title:
-                        _factory.UpdateTitle(dto, entity);
-                        break;
-
-                    case ContentType.Image:
-                        _factory.UpdateImage(dto, entity);
-                        break;
-                }
-
-                _repository.WhoWeAreContentsRepository.Update(entity);
+                UpdateContent(dto, entity);
             }
 
             await _repository.SaveChangesAsync();
-            var result = await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<WhoWeAreSection>
-                {
-                    Filter = e => e.SectionType == request.SectionType,
-                    Include = s => s
-                        .Include(sec => sec.Contents)
-                        .ThenInclude(c => (c as ImageContent)!.Image)
-                        .Include(sec => sec.Contents)
-                        .ThenInclude(c => (c as CardContent)!.Image)!
-                });
 
-            return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(result));
+            var updatedSection = await GetSection(request.SectionType);
+            return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(updatedSection));
         }
         catch (ValidationException vex)
         {
             return Result.Fail(vex.Errors.Select(x => x.ErrorMessage));
         }
+        catch (ArgumentNullException e)
+        {
+            return Result.Fail("Section was not found");
+        }
+    }
+
+    private async Task<Dictionary<long, WhoWeAreContent>> GetContentMappedToDictionary(List<CreateWhoWeAreContentDto> content)
+    {
+        var contentIds = content.Select(x => x.Id).ToList();
+
+        var entities = await _repository.WhoWeAreContentsRepository.GetAllAsync(new QueryOptions<WhoWeAreContent>
+        {
+            Filter = w => contentIds.Contains(w.Id)
+        });
+
+        return entities.ToDictionary(x => x.Id, x => x);
+    }
+
+    private async Task<WhoWeAreSection?> GetSection(SectionType sectionType)
+    {
+        return await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<WhoWeAreSection>
+            {
+                Filter = e => e.SectionType == sectionType,
+                Include = s => s
+                    .Include(sec => sec.Contents)
+                    .ThenInclude(c => (c as ImageContent)!.Image)
+                    .Include(sec => sec.Contents)
+                    .ThenInclude(c => (c as CardContent)!.Image)!
+            });
+    }
+
+    private void UpdateContent(CreateWhoWeAreContentDto contentDto, WhoWeAreContent entity)
+    {
+        switch (contentDto.ContentType)
+        {
+            case ContentType.Description:
+                _factory.UpdateDescription(contentDto, entity);
+                break;
+
+            case ContentType.Card:
+                _factory.UpdateCard(contentDto, entity);
+                break;
+
+            case ContentType.Title:
+                _factory.UpdateTitle(contentDto, entity);
+                break;
+
+            case ContentType.Image:
+                _factory.UpdateImage(contentDto, entity);
+                break;
+        }
+
+        _repository.WhoWeAreContentsRepository.Update(entity);
+    }
+
+    private async Task<long?> GetSectionIdByType(SectionType sectionType)
+    {
+        var section = await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<WhoWeAreSection>
+            {
+                Filter = x => x.SectionType == sectionType
+            });
+
+        return section?.Id;
     }
 }
