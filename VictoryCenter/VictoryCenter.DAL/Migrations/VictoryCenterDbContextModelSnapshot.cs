@@ -170,7 +170,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("ProgramsProgramCategories", (string)null);
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Admin", b =>
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.AdminUser", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -268,6 +268,54 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
+                {
+                    b.Property<long>("PageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("QuestionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Priority")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("PageId", "QuestionId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("PageId", "Priority")
+                        .IsUnique();
+
+                    b.ToTable("FaqPlacements");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AnswerText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FaqQuestions");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
@@ -490,16 +538,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Program", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.Program", "ImageId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Image");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.VisitorPage", "Page")
@@ -517,6 +555,16 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Page");
 
                     b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Program", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
+                        .WithOne()
+                        .HasForeignKey("VictoryCenter.DAL.Entities.Program", "ImageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
@@ -539,6 +587,16 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Category", b =>
                 {
                     b.Navigation("TeamMembers");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
+                {
+                    b.Navigation("Placements");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.VisitorPage", b =>
+                {
+                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }
