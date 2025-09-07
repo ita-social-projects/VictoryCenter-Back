@@ -320,7 +320,7 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 
 Now you can connect to your localhost instance with login (sa) and password (Admin@1234)!
 
-### How to run Docker
+#### How to run Docker
 
 ### how to connect to db via docker
 
