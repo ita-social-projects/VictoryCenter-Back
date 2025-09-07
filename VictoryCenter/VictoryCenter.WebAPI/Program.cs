@@ -14,7 +14,10 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-app.MapOpenApi();
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
 
 await app.ApplyMigrationsAsync();
 await app.CreateInitialDataAsync();
