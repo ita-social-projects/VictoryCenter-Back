@@ -177,6 +177,7 @@ public static class ServicesConfiguration
     {
         await app.CreateInitialAdminAsync();
         await app.CreateInitialCategoriesAsync();
+        await app.CreateInitialLocalizationLanguages();
     }
 
     private static async Task CreateInitialAdminAsync(this WebApplication app)
@@ -247,6 +248,36 @@ public static class ServicesConfiguration
             if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
             {
                 dbContext.Categories.Add(category);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+    }
+
+    private static async Task CreateInitialLocalizationLanguages(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var languages = new List<LocalizationLanguage>
+        {
+            new()
+            {
+                Code = "uk",
+            },
+            new()
+            {
+                Code = "en",
+            },
+            new()
+            {
+                Code = "es",
+            }
+        };
+
+        foreach (var language in languages)
+        {
+            if (!await dbContext.LocalizationLanguages.AnyAsync(l => l.Code == language.Code))
+            {
+                dbContext.LocalizationLanguages.Add(language);
                 await dbContext.SaveChangesAsync();
             }
         }

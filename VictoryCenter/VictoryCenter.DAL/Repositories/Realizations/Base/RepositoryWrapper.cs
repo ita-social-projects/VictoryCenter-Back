@@ -2,11 +2,13 @@ using System.Transactions;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Programs;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Categories;
+using VictoryCenter.DAL.Repositories.Realizations.Localization;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Programs;
@@ -23,6 +25,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IImageRepository? _imageRepository;
     private IProgramCategoriesRepository? _programCategoriesRepository;
     private IProgramsRepository? _programsRepository;
+    private ILocalizationLanguagesRepository? _localizationLanguagesRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -35,6 +38,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IProgramCategoriesRepository ProgramCategoriesRepository => _programCategoriesRepository
         ??= new ProgramCategoriesRepository(_victoryCenterDbContext);
     public IProgramsRepository ProgramsRepository => _programsRepository ??= new ProgramsRepository(_victoryCenterDbContext);
+    public ILocalizationLanguagesRepository LocalizationLanguagesRepository => _localizationLanguagesRepository
+        ??= new LocalizationLanguagesRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

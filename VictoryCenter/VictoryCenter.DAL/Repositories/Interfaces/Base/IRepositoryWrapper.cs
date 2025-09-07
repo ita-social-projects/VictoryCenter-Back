@@ -1,5 +1,6 @@
 using System.Transactions;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Programs;
@@ -14,6 +15,7 @@ public interface IRepositoryWrapper
     IImageRepository ImageRepository { get; }
     IProgramCategoriesRepository ProgramCategoriesRepository { get; }
     IProgramsRepository ProgramsRepository { get; }
+    ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }
 
     int SaveChanges();
 
