@@ -1,7 +1,9 @@
 using AutoMapper;
 using FluentResults;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.WhoWeAreSection;
 using VictoryCenter.BLL.Factories.Payment.Interfaces;
 using VictoryCenter.DAL.Entities;
@@ -16,73 +18,120 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 {
     private readonly IWhoWeAreContentFactory _factory;
     private readonly IRepositoryWrapper _repository;
-    private IMapper _mapper;
+    private readonly IMapper _mapper;
+    private readonly IValidator<UpdateWhoWeAreContentCommand> _validator;
 
-    public UpdateWhoWeAreContentHandler(IWhoWeAreContentFactory factory, IRepositoryWrapper repository, IMapper mapper )
+    public UpdateWhoWeAreContentHandler(IWhoWeAreContentFactory factory, IRepositoryWrapper repository, IMapper mapper, IValidator<UpdateWhoWeAreContentCommand> validator)
     {
         _factory = factory;
         _repository = repository;
         _mapper = mapper;
+        _validator = validator;
     }
 
     public async Task<Result<WhoWeAreSectionDto>> Handle(UpdateWhoWeAreContentCommand request, CancellationToken cancellationToken)
     {
-        // call choose validator method
-        foreach (var dto in request.Content)
+        try
         {
-            var entity = await _repository.WhoWeAreContentsRepository.GetFirstOrDefaultAsync(new QueryOptions<WhoWeAreContent>()
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            var dictEntities = await GetContentMappedToDictionary(request.Content);
+            var sectionId = await GetSectionIdByType(request.SectionType) ??
+                            throw new ArgumentException("Section type is invalid");
+
+            foreach (var dto in request.Content)
             {
-                Filter = x => x.Id == dto.Id
-            });
-            if (entity == null)
-            {
-                throw new NullReferenceException("good");
+                if (!dictEntities.TryGetValue(dto.Id, out var entity))
+                {
+                    return Result.Fail("Content was not found");
+                }
+
+                if (entity.SectionId != sectionId)
+                {
+                    return Result.Fail("Entity didnt belong to this section");
+                }
+
+                if (entity.ContentType != dto.ContentType)
+                {
+                    return Result.Fail("Wrong Content type");
+                }
+
+                UpdateContent(dto, entity);
             }
 
-            if (entity.SectionId != request.SectionId )
-            {
-                throw new InvalidCastException("entity didnt belong to this section");
-            }
+            await _repository.SaveChangesAsync();
 
-            if (entity.ContentType != dto.ContentType)
-            {
-                throw new Exception("Wrong Content type");
-            }
-
-            switch (dto.ContentType)
-            {
-                case ContentType.Description:
-                    _factory.UpdateDescription(dto, entity);
-                    break;
-
-                case ContentType.Card:
-                    _factory.UpdateCard(dto, entity);
-                    break;
-
-                case ContentType.Title:
-                    _factory.UpdateTitle(dto, entity);
-                    break;
-
-                case ContentType.Image:
-                    _factory.UpdateImage(dto, entity);
-                    break;
-            }
-
-            _repository.WhoWeAreContentsRepository.Update(entity);
+            var updatedSection = await GetSection(request.SectionType);
+            return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(updatedSection));
         }
+        catch (ValidationException vex)
+        {
+            return Result.Fail(vex.Errors.Select(x => x.ErrorMessage));
+        }
+        catch (ArgumentNullException e)
+        {
+            return Result.Fail("Section was not found");
+        }
+    }
 
-        await _repository.SaveChangesAsync();
-        var result = await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
+    private async Task<Dictionary<long, WhoWeAreContent>> GetContentMappedToDictionary(List<CreateWhoWeAreContentDto> content)
+    {
+        var contentIds = content.Select(x => x.Id).ToList();
+
+        var entities = await _repository.WhoWeAreContentsRepository.GetAllAsync(new QueryOptions<WhoWeAreContent>
+        {
+            Filter = w => contentIds.Contains(w.Id)
+        });
+
+        return entities.ToDictionary(x => x.Id, x => x);
+    }
+
+    private async Task<WhoWeAreSection?> GetSection(SectionType sectionType)
+    {
+        return await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
             new QueryOptions<WhoWeAreSection>
             {
-                Filter = e => e.Id == request.SectionId,
+                Filter = e => e.SectionType == sectionType,
                 Include = s => s
                     .Include(sec => sec.Contents)
                     .ThenInclude(c => (c as ImageContent)!.Image)
                     .Include(sec => sec.Contents)
                     .ThenInclude(c => (c as CardContent)!.Image)!
             });
+    }
 
-        return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(result));
+    private void UpdateContent(CreateWhoWeAreContentDto contentDto, WhoWeAreContent entity)
+    {
+        switch (contentDto.ContentType)
+        {
+            case ContentType.Description:
+                _factory.UpdateDescription(contentDto, entity);
+                break;
+
+            case ContentType.Card:
+                _factory.UpdateCard(contentDto, entity);
+                break;
+
+            case ContentType.Title:
+                _factory.UpdateTitle(contentDto, entity);
+                break;
+
+            case ContentType.Image:
+                _factory.UpdateImage(contentDto, entity);
+                break;
+        }
+
+        _repository.WhoWeAreContentsRepository.Update(entity);
+    }
+
+    private async Task<long?> GetSectionIdByType(SectionType sectionType)
+    {
+        var section = await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<WhoWeAreSection>
+            {
+                Filter = x => x.SectionType == sectionType
+            });
+
+        return section?.Id;
     }
 }
