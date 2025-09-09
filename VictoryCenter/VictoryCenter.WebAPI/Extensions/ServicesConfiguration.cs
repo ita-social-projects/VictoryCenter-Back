@@ -1,3 +1,4 @@
+using System.Reflection;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
@@ -6,9 +7,17 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -21,7 +30,7 @@ namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {
-    public static void AddApplicationServices(this IServiceCollection services, ConfigurationManager configuration)
+    public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
@@ -34,7 +43,7 @@ public static class ServicesConfiguration
             });
         });
 
-        services.AddIdentity<Admin, IdentityRole<int>>()
+        services.AddIdentity<AdminUser, IdentityRole<int>>()
             .AddEntityFrameworkStores<VictoryCenterDbContext>()
             .AddDefaultTokenProviders();
 
@@ -68,25 +77,48 @@ public static class ServicesConfiguration
         });
     }
 
-    public static void AddCustomServices(this IServiceCollection services)
+    public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
+
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
+        ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
+
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.ConfigureBlob(configuration);
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<WayForPayOptions>()
+            .BindConfiguration(WayForPayOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddHttpClient("Way4PayClient")
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                AllowAutoRedirect = false
+            });
+
         services.AddSingleton<ITokenService, TokenService>();
+
+        services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
+
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
+        services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
@@ -99,7 +131,7 @@ public static class ServicesConfiguration
         });
     }
 
-    public static async Task ApplyMigrations(this WebApplication app)
+    public static async Task ApplyMigrationsAsync(this WebApplication app)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         try
@@ -141,10 +173,16 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialAdmin(this WebApplication app)
+    public static async Task CreateInitialDataAsync(this WebApplication app)
+    {
+        await app.CreateInitialAdminAsync();
+        await app.CreateInitialCategoriesAsync();
+    }
+
+    private static async Task CreateInitialAdminAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<Admin>>();
+        var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
                                 ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
         if (!initialAdminEmail.Contains('@'))
@@ -155,7 +193,7 @@ public static class ServicesConfiguration
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
             var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
-            var admin = new Admin()
+            var admin = new AdminUser()
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
@@ -178,6 +216,42 @@ public static class ServicesConfiguration
         }
     }
 
+    private static async Task CreateInitialCategoriesAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var categories = new List<Category>
+        {
+            new()
+            {
+                Name = "Основна команда",
+                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "Наглядова рада",
+                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
+                CreatedAt = DateTime.UtcNow
+            },
+            new()
+            {
+                Name = "Радники",
+                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        foreach (var category in categories)
+        {
+            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+            {
+                dbContext.Categories.Add(category);
+                await dbContext.SaveChangesAsync();
+            }
+        }
+    }
+
     private static void AddOpenApi(this IServiceCollection services)
     {
         services.AddEndpointsApiExplorer();
@@ -188,8 +262,7 @@ public static class ServicesConfiguration
                 Title = "VictoryCenter API",
                 Version = "v1"
             });
-
-            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+            c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Description = "JWT Authorization header using the Bearer scheme. Example: \"Bearer {token}\"",
                 Name = "Authorization",
@@ -214,5 +287,62 @@ public static class ServicesConfiguration
                 }
             });
         });
+    }
+
+    private static IServiceCollection ConfigureBlob(this IServiceCollection services, IConfiguration configuration)
+    {
+        var blobSection = configuration.GetSection("BlobEnvironmentVariables");
+        var serviceType = blobSection.GetValue<string>("ServiceType");
+
+        switch (serviceType)
+        {
+            case "Local":
+                services.AddOptions<BlobEnvironmentVariables>()
+                    .Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations()
+                    .PostConfigure<IWebHostEnvironment>((options, env) =>
+                    {
+                        options.RootPath = env.WebRootPath;
+                    });
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            case "Azure":
+                services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Azure"))
+                    .ValidateDataAnnotations();
+                services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported Blob Service Type: {serviceType}");
+        }
+
+        return services;
+    }
+
+    private static void ScanInterfacesAndRegisterImplementations(this IServiceCollection services, Assembly assembly, Type interfaceType, ServiceLifetime lifetime)
+    {
+        var types = assembly.GetTypes().Where(x => !x.IsAbstract && x.IsClass);
+
+        foreach (var type in types)
+        {
+            var interfaces = type.GetInterfaces();
+
+            if (interfaceType.IsGenericTypeDefinition)
+            {
+                var matchingInterfaces = interfaces.Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == interfaceType);
+                foreach (var matchingInterface in matchingInterfaces)
+                {
+                    services.Add(new ServiceDescriptor(matchingInterface, type, lifetime));
+                }
+            }
+            else
+            {
+                if (interfaces.Contains(interfaceType))
+                {
+                    services.Add(new ServiceDescriptor(interfaceType, type, lifetime));
+                }
+            }
+        }
     }
 }

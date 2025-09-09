@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+<<<<<<< HEAD
 using VictoryCenter.BLL.DTOs.Categories;
 using VictoryCenter.IntegrationTests.ControllerTests.Base;
 using VictoryCenter.IntegrationTests.Utils.Seeder;
@@ -15,8 +16,20 @@ public class CreateCategoryTests : IAsyncLifetime
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly SeederManager _seederManager;
 
+=======
+using VictoryCenter.BLL.DTOs.Admin.Categories;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
+
+namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Create;
+
+public class CreateCategoryTests : BaseTestClass
+{
+>>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
     public CreateCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
+<<<<<<< HEAD
         _httpClient = fixture.HttpClient;
 
         _jsonOptions = new JsonSerializerOptions
@@ -25,6 +38,8 @@ public class CreateCategoryTests : IAsyncLifetime
         };
 
         _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
+=======
+>>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
     }
 
     public async Task InitializeAsync()
@@ -49,10 +64,10 @@ public class CreateCategoryTests : IAsyncLifetime
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await _httpClient.PostAsync("api/categories", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
-        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, _jsonOptions);
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, JsonOptions);
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
@@ -68,12 +83,12 @@ public class CreateCategoryTests : IAsyncLifetime
     {
         var createCategoryDto = new CreateCategoryDto
         {
-            Name = testName,
+            Name = testName!,
             Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await _httpClient.PostAsync("api/categories", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("api/categories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

@@ -7,7 +7,8 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Categories;
 
 public class CategoriesRepository : RepositoryBase<Category>, ICategoriesRepository
 {
-    public CategoriesRepository(VictoryCenterDbContext context) : base(context)
+    public CategoriesRepository(VictoryCenterDbContext context)
+        : base(context)
     {
     }
 }

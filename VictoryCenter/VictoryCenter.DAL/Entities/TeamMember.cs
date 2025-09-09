@@ -17,12 +17,14 @@ public class TeamMember
     public string? Description { get; set; }
 
 #pragma warning disable SA1011
-    public byte[]? Photo { get; set; }
+    public long? ImageId { get; set; }
 #pragma warning restore SA1011
 
     public string? Email { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
-    public Category Category { get; set; } = default!;
+    public Category Category { get; set; } = null!;
+
+    public Image? Image { get; set; }
 }

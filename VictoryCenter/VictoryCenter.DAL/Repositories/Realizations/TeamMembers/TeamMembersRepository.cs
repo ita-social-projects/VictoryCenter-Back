@@ -7,8 +7,8 @@ namespace VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 
 public class TeamMembersRepository : RepositoryBase<TeamMember>, ITeamMembersRepository
 {
-    public TeamMembersRepository(VictoryCenterDbContext dbContext)
-        : base(dbContext)
+    public TeamMembersRepository(VictoryCenterDbContext context)
+        : base(context)
     {
     }
 }

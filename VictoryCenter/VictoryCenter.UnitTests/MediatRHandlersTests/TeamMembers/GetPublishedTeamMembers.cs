@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.Categories;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.BLL.Queries.TeamMembers.GetPublished;
+using VictoryCenter.BLL.DTOs.Public.TeamPage;
+using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -54,8 +53,8 @@ public class GetPublishedTeamMembers
                 Id = 1,
                 Name = "Cool category 1",
                 Description = "This is a cool group of a few guys",
-                TeamMembers = new List<TeamMember>
-                {
+                TeamMembers =
+                [
                     new()
                     {
                         Id = 1,
@@ -73,17 +72,16 @@ public class GetPublishedTeamMembers
                         Priority = 2,
                         Status = Status.Published,
                         CategoryId = 1
-                    }
-                }
+                    },
+                ]
             },
-
             new Category
             {
                 Id = 2,
                 Name = "Cool category 2",
                 Description = "This is another cool group of a few guys",
-                TeamMembers = new List<TeamMember>
-                {
+                TeamMembers =
+                [
                     new()
                     {
                         Id = 3,
@@ -92,10 +90,9 @@ public class GetPublishedTeamMembers
                         Priority = 1,
                         Status = Status.Published,
                         CategoryId = 2
-                    }
-                }
-            }
-
+                    },
+                ]
+            },
         ];
     }
 
@@ -146,14 +143,14 @@ public class GetPublishedTeamMembers
         ];
     }
 
-    private void SetupRepository(List<Category> categories)
+    private void SetupRepository(IEnumerable<Category> categories)
     {
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.CategoriesRepository.GetAllAsync(
              It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync(categories);
     }
 
-    private void SetupMapper(List<CategoryWithPublishedTeamMembersDto> expectedDto)
+    private void SetupMapper(IEnumerable<CategoryWithPublishedTeamMembersDto> expectedDto)
     {
         _mockMapper
             .Setup(x => x.Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(It.IsAny<IEnumerable<Category>>()))

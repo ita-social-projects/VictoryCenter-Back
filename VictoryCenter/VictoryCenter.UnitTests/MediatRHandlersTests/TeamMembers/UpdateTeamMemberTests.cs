@@ -3,9 +3,9 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.TeamMembers.Update;
+using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -18,6 +18,7 @@ public class UpdateTeamMemberTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
     private readonly Category _testCategory = new()
     {
@@ -39,10 +40,10 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             Name = "Test Category",
-            Description = "Test category description"
+            Description = "Test category description",
         },
         Email = "test@gmail.com",
-        Photo = null
+        ImageId = null
     };
 
     private readonly TeamMember _testUpdatedTeamMember = new()
@@ -58,19 +59,17 @@ public class UpdateTeamMemberTests
         {
             Id = 1,
             Name = "Test Category",
-            Description = "Test category description"
+            Description = "Test category description",
         },
         Email = "test@gmail.com",
-        Photo = null
+        ImageId = null
     };
 
     private readonly TeamMemberDto _testUpdatedTeamMemberDto = new()
     {
         FullName = "Updated Name",
-        Description = "Updated Description"
+        Description = "Updated Description",
     };
-
-    private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
     public UpdateTeamMemberTests()
     {
@@ -99,10 +98,9 @@ public class UpdateTeamMemberTests
             {
                 Id = 1,
                 Name = "Test Category",
-                Description = "Test category description"
+                Description = "Test category description",
             },
             Email = "test@gmail.com",
-            Photo = null
         };
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
@@ -113,7 +111,6 @@ public class UpdateTeamMemberTests
             Status = Status.Published,
             Description = testDescription,
             Email = "test@gmail.com",
-            Photo = null,
             Id = 1
         };
 
@@ -151,7 +148,6 @@ public class UpdateTeamMemberTests
     [InlineData(" ")]
     public async Task Handle_InvalidFullName_ShouldReturnValidationError(string? testName)
     {
-        _testUpdatedTeamMemberDto.FullName = testName!;
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
@@ -165,7 +161,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired("Full Name"), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -232,7 +228,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(TeamMemberConstants.FailedToUpdateTeamMember, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(TeamMember? teamMemberToReturn = null, int saveResult = 1)

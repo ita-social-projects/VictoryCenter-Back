@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156 d17.13
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VictoryCenter.WebAPI", "VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj", "{0C60A7C6-47B9-4F0F-B4AC-580FEB5289BE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VictoryCenter.BLL", "VictoryCenter.BLL\VictoryCenter.BLL.csproj", "{033B68FE-D0D7-412D-8735-AADE2E52309A}"
@@ -9,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VictoryCenter.UnitTests", "VictoryCenter.UnitTests\VictoryCenter.UnitTests.csproj", "{659D384C-60F3-4212-9E67-913D38822D27}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VictoryCenter.IntegrationTests", "VictoryCenter.IntegrationTests\VictoryCenter.IntegrationTests.csproj", "{83F6E118-2B9D-4F19-B138-6ECDD1B51692}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VictoryCenter.DbUpdate", "VictoryCenter.DbUpdate\VictoryCenter.DbUpdate.csproj", "{AEE6DAA2-05E8-40B9-8BE9-762C1ACC3D7B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,5 +41,15 @@ Global
 		{83F6E118-2B9D-4F19-B138-6ECDD1B51692}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83F6E118-2B9D-4F19-B138-6ECDD1B51692}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83F6E118-2B9D-4F19-B138-6ECDD1B51692}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEE6DAA2-05E8-40B9-8BE9-762C1ACC3D7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE6DAA2-05E8-40B9-8BE9-762C1ACC3D7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE6DAA2-05E8-40B9-8BE9-762C1ACC3D7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE6DAA2-05E8-40B9-8BE9-762C1ACC3D7B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3D8B3D26-79DC-4AE4-A868-231EEC4905D0}
 	EndGlobalSection
 EndGlobal

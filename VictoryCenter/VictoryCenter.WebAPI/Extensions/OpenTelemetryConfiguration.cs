@@ -42,7 +42,6 @@ public static class OpenTelemetryConfiguration
     {
         ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(ServiceName, ServiceVersion);
 
-        logging.ClearProviders();
         logging.AddOpenTelemetry(loggingOptions =>
         {
             loggingOptions.SetResourceBuilder(resourceBuilder);
@@ -52,6 +51,7 @@ public static class OpenTelemetryConfiguration
             {
                 o.Endpoint = new Uri("http://localhost:4317");
             });
+            loggingOptions.AddConsoleExporter();
         });
     }
 }
