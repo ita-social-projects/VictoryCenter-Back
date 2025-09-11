@@ -23,7 +23,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
             await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
             {
                 Filter = entity => entity.Id == request.Id,
-                Include = query => query.Include(tm => tm.Category)
+                Include = query => query.Include(tm => tm.TeamCategory)
             });
 
         if (entityToDelete is null)
@@ -31,7 +31,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
             return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
         }
 
-        entityToDelete.Category = null!;
+        entityToDelete.TeamCategory = null!;
 
         _repositoryWrapper.TeamMembersRepository.Delete(entityToDelete);
 

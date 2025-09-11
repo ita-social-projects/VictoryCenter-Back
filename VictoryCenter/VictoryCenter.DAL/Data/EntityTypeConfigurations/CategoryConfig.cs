@@ -4,9 +4,9 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
 
-public class CategoryConfig : IEntityTypeConfiguration<Category>
+public class CategoryConfig : IEntityTypeConfiguration<TeamCategory>
 {
-    public void Configure(EntityTypeBuilder<Category> entity)
+    public void Configure(EntityTypeBuilder<TeamCategory> entity)
     {
         entity.HasKey(e => e.Id);
 
@@ -22,7 +22,7 @@ public class CategoryConfig : IEntityTypeConfiguration<Category>
             .IsRequired();
 
         entity.HasMany(e => e.TeamMembers)
-            .WithOne(e => e.Category)
+            .WithOne(e => e.TeamCategory)
             .HasForeignKey(e => e.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
     }

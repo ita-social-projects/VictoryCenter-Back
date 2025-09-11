@@ -20,7 +20,7 @@ public class UpdateTeamMemberTests
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
-    private readonly Category _testCategory = new()
+    private readonly TeamCategory _testCategory = new()
     {
         Id = 1,
         Name = "Test Category",
@@ -36,7 +36,7 @@ public class UpdateTeamMemberTests
         Status = Status.Published,
         Description = "Test description",
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
-        Category = new Category
+        TeamCategory = new TeamCategory
         {
             Id = 1,
             Name = "Test Category",
@@ -55,7 +55,7 @@ public class UpdateTeamMemberTests
         Status = Status.Published,
         Description = "Test updated description",
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
-        Category = new Category
+        TeamCategory = new TeamCategory
         {
             Id = 1,
             Name = "Test Category",
@@ -94,7 +94,7 @@ public class UpdateTeamMemberTests
             Status = Status.Published,
             Description = testDescription,
             CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
-            Category = new Category
+            TeamCategory = new TeamCategory
             {
                 Id = 1,
                 Name = "Test Category",
@@ -173,8 +173,8 @@ public class UpdateTeamMemberTests
                 x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(_testExistingTeamMember);
         _mockRepositoryWrapper
-            .Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
-            .ReturnsAsync((Category?)null);
+            .Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
+            .ReturnsAsync((TeamCategory?)null);
         SetupMapper();
         var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
@@ -188,7 +188,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.NotFound(_testUpdatedTeamMember.CategoryId, typeof(Category)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.NotFound(_testUpdatedTeamMember.CategoryId, typeof(TeamCategory)), result.Errors[0].Message);
     }
 
     [Theory]
@@ -259,7 +259,7 @@ public class UpdateTeamMemberTests
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _mockRepositoryWrapper
-            .Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(_testCategory);
     }
 }

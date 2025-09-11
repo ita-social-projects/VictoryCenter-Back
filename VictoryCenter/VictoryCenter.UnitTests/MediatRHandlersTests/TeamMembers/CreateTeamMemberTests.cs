@@ -54,7 +54,7 @@ public class CreateTeamMemberTests
         Email = "Test@gmail.com"
     };
 
-    private readonly Category _category = new()
+    private readonly TeamCategory _category = new()
     {
         Id = 1,
         Name = "Test",
@@ -103,8 +103,8 @@ public class CreateTeamMemberTests
     {
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
-            .ReturnsAsync((Category?)null);
+                repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
+            .ReturnsAsync((TeamCategory?)null);
         SetupMapper(_teamMemberDto, _teamMember);
         SetupValidator();
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
@@ -114,7 +114,7 @@ public class CreateTeamMemberTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(Category)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(TeamCategory)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -134,7 +134,7 @@ public class CreateTeamMemberTests
 
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+                repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(_category);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
@@ -183,8 +183,8 @@ public class CreateTeamMemberTests
 
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                    It.IsAny<QueryOptions<Category>>()))
+                repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                    It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(_category);
     }
 }

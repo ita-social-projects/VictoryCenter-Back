@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders.Categories;
 
-public class CategoriesSeeder : BaseSeeder<Category>
+public class CategoriesSeeder : BaseSeeder<TeamCategory>
 {
     public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger)
         : base(dbContext, logger)
@@ -14,9 +14,9 @@ public class CategoriesSeeder : BaseSeeder<Category>
     public override string Name => nameof(CategoriesSeeder);
     public override int Order => (int)SeederExecutionOrder.Categories;
 
-    protected override Task<List<Category>> GenerateEntitiesAsync()
+    protected override Task<List<TeamCategory>> GenerateEntitiesAsync()
     {
-        var categories = new List<Category>
+        var categories = new List<TeamCategory>
         {
             new()
             {

@@ -21,7 +21,7 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
 
     protected override async Task<List<TeamMember>> GenerateEntitiesAsync()
     {
-        var categories = await DbContext.Categories.ToListAsync();
+        var categories = await DbContext.TeamCategories.ToListAsync();
         if (categories.Count < 2)
         {
             throw new InvalidOperationException("At least 2 categories required to seed team members.");

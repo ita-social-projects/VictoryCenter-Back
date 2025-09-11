@@ -102,7 +102,7 @@ public class GetTeamMembersTests
     public async Task Handle_ShouldReturnSuccessfully_FilterByCategoryId()
     {
         // Arrange
-        var category = new Category { Id = 2, Name = "Category 2" };
+        var category = new TeamCategory { Id = 2, Name = "Category 2" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
             .Where(t => t.CategoryId == category.Id)
@@ -139,7 +139,7 @@ public class GetTeamMembersTests
     {
         // Arrange
         var status = Status.Published;
-        var category = new Category { Id = 1, Name = "Category 1" };
+        var category = new TeamCategory { Id = 1, Name = "Category 1" };
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
             .Where(t => t.Status == status && t.CategoryId == category.Id)
@@ -181,7 +181,7 @@ public class GetTeamMembersTests
                 Priority = 3,
                 Status = Status.Draft,
                 CategoryId = 1,
-                Category = new Category { Id = 1, Name = "Category 1" }
+                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" }
             },
             new()
             {
@@ -189,7 +189,7 @@ public class GetTeamMembersTests
                 Priority = 2,
                 Status = Status.Draft,
                 CategoryId = 2,
-                Category = new Category { Id = 2, Name = "Category 2" }
+                TeamCategory = new TeamCategory { Id = 2, Name = "Category 2" }
             },
             new()
             {
@@ -197,7 +197,7 @@ public class GetTeamMembersTests
                 Priority = 1,
                 Status = Status.Published,
                 CategoryId = 1,
-                Category = new Category { Id = 1, Name = "Category 1" }
+                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" }
             },
             new()
             {
@@ -205,7 +205,7 @@ public class GetTeamMembersTests
                 Priority = 2,
                 Status = Status.Published,
                 CategoryId = 2,
-                Category = new Category { Id = 2, Name = "Category 2" }
+                TeamCategory = new TeamCategory { Id = 2, Name = "Category 2" }
             },
             new()
             {
@@ -213,7 +213,7 @@ public class GetTeamMembersTests
                 Priority = 1,
                 Status = Status.Draft,
                 CategoryId = 1,
-                Category = new Category { Id = 1, Name = "Category 1" }
+                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" }
             },
         };
 

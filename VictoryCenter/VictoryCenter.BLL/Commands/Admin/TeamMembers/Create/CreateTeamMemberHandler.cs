@@ -32,8 +32,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<Category>
+            TeamCategory? category = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<TeamCategory>
                 {
                     Filter = c => c.Id == request.CreateTeamMemberDto.CategoryId
                 });
@@ -41,7 +41,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             if (category == null)
             {
                 return Result.Fail<TeamMemberDto>(
-                    ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
+                    ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(TeamCategory)));
             }
 
             TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);

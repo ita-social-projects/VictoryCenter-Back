@@ -12,7 +12,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     {
     }
 
-    public DbSet<Category> Categories { get; set; }
+    public DbSet<TeamCategory> TeamCategories { get; set; }
 
     public DbSet<TeamMember> TeamMembers { get; set; }
 

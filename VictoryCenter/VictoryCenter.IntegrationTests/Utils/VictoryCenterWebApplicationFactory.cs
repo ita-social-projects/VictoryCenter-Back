@@ -10,9 +10,6 @@ namespace VictoryCenter.IntegrationTests.Utils;
 public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>
     where TStartup : class
 {
-<<<<<<< HEAD
-    private static readonly string InMemoryDbName = $"TestDb_{Guid.NewGuid()}";
-=======
     protected static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
     private readonly string _databaseName;
 
@@ -21,7 +18,6 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
     }
 
->>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         SetEnvironmentalVariables();
@@ -104,13 +100,9 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
             .AddEntityFrameworkInMemoryDatabase()
             .BuildServiceProvider();
 
-        services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
+        services.AddDbContext<VictoryCenterDbContext>(options =>
         {
-<<<<<<< HEAD
-            options.UseInMemoryDatabase(InMemoryDbName)
-=======
             options.UseInMemoryDatabase(_databaseName)
->>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
                 .UseInternalServiceProvider(efServiceProvider);
         });
     }

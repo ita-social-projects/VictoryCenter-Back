@@ -2,30 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-<<<<<<< HEAD
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Enums;
-using VictoryCenter.IntegrationTests.ControllerTests.Base;
-using VictoryCenter.IntegrationTests.Utils.Seeder;
-using VictoryCenter.IntegrationTests.Utils.Seeder.Seeders;
-
-namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
-
-[Collection("SharedIntegrationTests")]
-public class UpdateTeamMemberTests : IAsyncLifetime
-{
-    private readonly VictoryCenterDbContext _dbContext;
-    private readonly HttpClient _httpClient;
-    private readonly SeederManager _seederManager;
-    private readonly IntegrationTestDbFixture _fixture;
-
-    private readonly JsonSerializerOptions _jsonOptions;
-
-=======
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -36,42 +12,10 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
 
 public class UpdateTeamMemberTests : BaseTestClass
 {
->>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
     public UpdateTeamMemberTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
-<<<<<<< HEAD
-        _httpClient = fixture.HttpClient;
-        _dbContext = fixture.DbContext;
-        _fixture = fixture;
-
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        _seederManager = fixture.SeederManager ?? throw new InvalidOperationException("SeederManager is not registered in the service collection.");
-=======
->>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
     }
-
-    public async Task InitializeAsync()
-    {
-        await _seederManager.DisposeAllAsync();
-        await _seederManager.SeedAllAsync();
-
-        _seederManager.ClearSeeders();
-        _seederManager.ConfigureSeeders(
-            new CategoriesSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<CategoriesSeeder>>()),
-            new TeamMemberUpdateSeeder(_fixture.DbContext, _fixture.Factory.Services.GetRequiredService<ILogger<TeamMemberUpdateSeeder>>()));
-
-        if (!await _fixture.SeederManager.SeedAllAsync())
-        {
-            throw new InvalidOperationException("Seeding failed for CustomDataTests");
-        }
-    }
-
-    public Task DisposeAsync() => Task.CompletedTask;
 
     [Theory]
     [InlineData(null)]
@@ -81,19 +25,15 @@ public class UpdateTeamMemberTests : BaseTestClass
     public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
-<<<<<<< HEAD
-                                        .LastOrDefaultAsync()
-=======
+                                        .Include(tm => tm.TeamCategory)
                                         .LastOrDefaultAsync(tm => tm.Status == Status.Draft)
->>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = "Test Name",
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = testDescription,
             Email = existingEntity.Email
@@ -119,11 +59,8 @@ public class UpdateTeamMemberTests : BaseTestClass
     public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
-<<<<<<< HEAD
-=======
+                                        .Include(tm => tm.TeamCategory)
                                         .Where(tm => tm.Status == Status.Draft)
->>>>>>> dec19edb82ded7c9a85eabf645cb4e87878fa99e
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -131,7 +68,7 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = existingEntity.FullName,
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = existingEntity.Description,
             Email = existingEntity.Email
@@ -160,7 +97,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .FirstOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -175,7 +112,7 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = testName!,
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = "Test Description",
             Email = existingEntity.Email
@@ -205,7 +142,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     [InlineData(0)]
     public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
     {
-        Category category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ??
+        TeamCategory category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ??
                             throw new InvalidOperationException("Couldn't setup existing entity");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto

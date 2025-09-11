@@ -1,8 +1,9 @@
-﻿using VictoryCenter.DAL.Enums;
+﻿using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class TeamMember
+public class TeamMember : IBaseEntity
 {
     public long Id { get; set; }
 
@@ -24,7 +25,7 @@ public class TeamMember
 
     public DateTime CreatedAt { get; set; }
 
-    public Category Category { get; set; } = null!;
+    public TeamCategory TeamCategory { get; set; } = null!;
 
     public Image? Image { get; set; }
 }

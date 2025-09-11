@@ -1,8 +1,9 @@
+using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class Program
+public class Program : IBaseEntity
 {
     public long Id { get; set; }
     public string Name { get; set; } = null!;

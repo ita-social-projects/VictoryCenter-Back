@@ -28,7 +28,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
         Status? status = request.TeamMembersFilterDto.Status;
         var categoryId = request.TeamMembersFilterDto.CategoryId;
         Expression<Func<TeamMember, bool>> filter =
-            t => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
+            t => (status == null || t.Status == status) && (categoryId == null || t.TeamCategory.Id == categoryId);
 
         var queryOptions = new QueryOptions<TeamMember>
         {

@@ -50,15 +50,15 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             using TransactionScope scope = _repositoryWrapper.BeginTransaction();
             entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
 
-            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<Category>
+            TeamCategory? category = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<TeamCategory>
                 {
                     Filter = entity => entity.Id == request.UpdateTeamMemberDto.CategoryId
                 });
             if (category is null)
             {
                 return Result.Fail<TeamMemberDto>(
-                    ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(Category)));
+                    ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(TeamCategory)));
             }
 
             if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
