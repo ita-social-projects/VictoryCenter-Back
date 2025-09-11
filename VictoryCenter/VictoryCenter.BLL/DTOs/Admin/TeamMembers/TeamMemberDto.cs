@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.TeamMemberLocalizations;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 
@@ -20,4 +21,6 @@ public record TeamMemberDto
     public string? Email { get; init; }
 
     public ImageDto? Image { get; set; }
+
+    public IEnumerable<TeamMemberLocalizationDto> Localizations { get; init; } = [];
 }

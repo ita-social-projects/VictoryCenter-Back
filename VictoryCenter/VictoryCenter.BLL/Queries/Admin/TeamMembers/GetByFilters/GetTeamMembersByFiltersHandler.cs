@@ -35,7 +35,7 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
             Offset = request.TeamMembersFilterDto.Offset is > 0 ? (int)request.TeamMembersFilterDto.Offset : 0,
             Limit = request.TeamMembersFilterDto.Limit is > 0 ? (int)request.TeamMembersFilterDto.Limit : 0,
             Filter = filter,
-            Include = tm => tm.Include(member => member.Image!),
+            Include = tm => tm.Include(member => member.Image!).Include(member => member.Localizations).ThenInclude(l => l.Language),
             OrderByASC = tm => tm.Priority
         };
 

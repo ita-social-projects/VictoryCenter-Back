@@ -27,4 +27,6 @@ public class TeamMember
     public Category Category { get; set; } = null!;
 
     public Image? Image { get; set; }
+
+    public ICollection<TeamMemberLocalization> Localizations { get; set; } = [];
 }

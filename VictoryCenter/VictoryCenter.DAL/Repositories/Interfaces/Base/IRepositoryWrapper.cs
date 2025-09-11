@@ -16,6 +16,7 @@ public interface IRepositoryWrapper
     IProgramCategoriesRepository ProgramCategoriesRepository { get; }
     IProgramsRepository ProgramsRepository { get; }
     ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }
+    ITeamMemberLocalizationsRepository TeamMemberLocalizationsRepository { get; }
 
     int SaveChanges();
 

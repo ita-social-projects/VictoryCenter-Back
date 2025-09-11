@@ -24,6 +24,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<LocalizationLanguage> LocalizationLanguages { get; set; }
 
+    public DbSet<TeamMemberLocalization> TeamMemberLocalizations { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

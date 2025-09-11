@@ -26,6 +26,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IProgramCategoriesRepository? _programCategoriesRepository;
     private IProgramsRepository? _programsRepository;
     private ILocalizationLanguagesRepository? _localizationLanguagesRepository;
+    private ITeamMemberLocalizationsRepository? _teamMemberLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -40,6 +41,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IProgramsRepository ProgramsRepository => _programsRepository ??= new ProgramsRepository(_victoryCenterDbContext);
     public ILocalizationLanguagesRepository LocalizationLanguagesRepository => _localizationLanguagesRepository
         ??= new LocalizationLanguagesRepository(_victoryCenterDbContext);
+    public ITeamMemberLocalizationsRepository TeamMemberLocalizationsRepository => _teamMemberLocalizationsRepository
+        ??= new TeamMemberLocalizationsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
