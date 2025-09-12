@@ -275,7 +275,7 @@ public static class ServicesConfiguration
                     },
                     new DescriptionContent()
                     {
-                        ContentType = ContentType.Title,
+                        ContentType = ContentType.Description,
                         Description =
                             "Victory Center — це не про терміни чи цифри. Це про відчуття.Тут ти зупиняєшся в моменті, де зникає напруга, і починається\nзцілення. Через спільноту, природу й контакт із кіньми ти повертаєшся до себе справжнього/ої. Ми не змінюємо людей. Ми допомагаємо їм згадати, ким вони є.",
                     }
