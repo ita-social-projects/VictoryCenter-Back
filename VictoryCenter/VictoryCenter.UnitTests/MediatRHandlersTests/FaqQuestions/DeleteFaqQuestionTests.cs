@@ -1,4 +1,5 @@
 using System.Transactions;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
 using VictoryCenter.BLL.Constants;
@@ -34,7 +35,7 @@ public class DeleteFaqQuestionTests
     [InlineData(-1)]
     [InlineData(0)]
     [InlineData(1000)]
-    public async Task Handle_DtoIsInvalid_ShouldReturnFail(long questionId)
+    public async Task Handle_DtoIsInvalid_ShouldReturnFailure(long questionId)
     {
         SetupRepositoryWrapper();
         var command = new DeleteFaqQuestionCommand(questionId);
@@ -62,7 +63,7 @@ public class DeleteFaqQuestionTests
     }
 
     [Fact]
-    public async Task Handle_SaveChangesFails_ShouldReturnFail()
+    public async Task Handle_SaveChangesFails_ShouldReturnFailure()
     {
         SetupRepositoryWrapper(_existingFaqQuestion, 0);
         var command = new DeleteFaqQuestionCommand(_existingFaqQuestion.Id);
@@ -73,6 +74,29 @@ public class DeleteFaqQuestionTests
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(FaqQuestion)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
+    {
+        _mockRepoWrapper.Setup(
+            repoWrapper => repoWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FaqQuestion>>())).ReturnsAsync(_existingFaqQuestion);
+        _mockRepoWrapper.Setup(
+            repoWrapper => repoWrapper.FaqPlacementsRepository.GetAllAsync(
+                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(_existingFaqQuestion.Placements);
+        _mockRepoWrapper.Setup(repoWrapper => repoWrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
+        _mockRepoWrapper.Setup(repoWrapper => repoWrapper.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        var command = new DeleteFaqQuestionCommand(_existingFaqQuestion.Id);
+
+        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(FaqQuestion? entityToDelete = null, int saveResult = 1)

@@ -52,14 +52,13 @@ public class GetFaqQuestionsByFiltersTests
 
         // Assert
         var faqQuestionDtoListOld = GetFaqQuestionDtoList().ToArray();
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.NotNull(result.Value),
-            () => Assert.NotEqual(faqQuestionDtoListOld.Length, result.Value.Items.Length),
-            () => Assert.NotEqual(faqQuestionDtoListOld, result.Value.Items),
-            () => Assert.Equal(faqQuestionDtoList.Length, result.Value.Items.Length),
-            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
-            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.NotEqual(faqQuestionDtoListOld.Length, result.Value.Items.Length);
+        Assert.NotEqual(faqQuestionDtoListOld, result.Value.Items);
+        Assert.Equal(faqQuestionDtoList.Length, result.Value.Items.Length);
+        Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
     }
 
     [Fact]
@@ -89,12 +88,11 @@ public class GetFaqQuestionsByFiltersTests
         var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
 
         // Assert
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value.Items),
-            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
-            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.NotEmpty(result.Value.Items);
+        Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
     }
 
     [Fact]
@@ -126,12 +124,11 @@ public class GetFaqQuestionsByFiltersTests
         var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
 
         // Assert
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value.Items),
-            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
-            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.NotEmpty(result.Value.Items);
+        Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
     }
 
     [Fact]
@@ -164,12 +161,11 @@ public class GetFaqQuestionsByFiltersTests
         var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
 
         // Assert
-        Assert.Multiple(
-            () => Assert.NotNull(result),
-            () => Assert.NotNull(result.Value),
-            () => Assert.NotEmpty(result.Value.Items),
-            () => Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount),
-            () => Assert.Equal(faqQuestionDtoList, result.Value.Items));
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.NotEmpty(result.Value.Items);
+        Assert.Equal(faqQuestionList.Count, result.Value.TotalItemsCount);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
     }
 
     private static List<FaqQuestion> GetFaqQuestionList()

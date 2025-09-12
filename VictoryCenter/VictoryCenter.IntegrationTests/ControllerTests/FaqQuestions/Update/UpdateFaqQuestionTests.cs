@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Validators.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -18,15 +19,15 @@ public class UpdateFaqQuestionTests : BaseTestClass
     }
 
     [Fact]
-    public async Task UpdateFaqQuestion_ValidRequest_ReturnsSuccess()
+    public async Task UpdateFaqQuestion_ValidRequest_ShouldReturnSuccess()
     {
         FaqQuestion existingEntity = await Fixture.DbContext.FaqQuestions.FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("No FaqQuestion entity exists in the database.");
 
         var updateFaqQuestionDto = new UpdateFaqQuestionDto
         {
-            QuestionText = "QQQQQQQQQQQQQQQQQQQQ",
-            AnswerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            QuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1),
+            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
             PageIds = [3],
             Status = Status.Published,
         };
@@ -42,7 +43,7 @@ public class UpdateFaqQuestionTests : BaseTestClass
     }
 
     [Fact]
-    public async Task UpdateFaqQuestion_InvalidQuestionText_ReturnsBadRequest()
+    public async Task UpdateFaqQuestion_InvalidQuestionText_ShouldReturnBadRequest()
     {
         FaqQuestion existingEntity = await Fixture.DbContext.FaqQuestions.FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("No FaqQuestion entity exists in the database.");
@@ -50,7 +51,7 @@ public class UpdateFaqQuestionTests : BaseTestClass
         var updateFaqQuestionDto = new UpdateFaqQuestionDto
         {
             QuestionText = "",
-            AnswerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
             PageIds = [3],
             Status = Status.Published,
         };
@@ -64,12 +65,12 @@ public class UpdateFaqQuestionTests : BaseTestClass
     }
 
     [Fact]
-    public async Task UpdateFaqQuestion_InvalidId_ReturnsNotFound()
+    public async Task UpdateFaqQuestion_InvalidId_ShouldReturnNotFound()
     {
         var updateFaqQuestionDto = new UpdateFaqQuestionDto
         {
-            QuestionText = "QQQQQQQQQQQQQQQQQQQQ",
-            AnswerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            QuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1),
+            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
             PageIds = [3],
             Status = Status.Published,
         };

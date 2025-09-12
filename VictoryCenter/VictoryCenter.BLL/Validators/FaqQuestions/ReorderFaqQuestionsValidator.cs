@@ -7,7 +7,7 @@ namespace VictoryCenter.BLL.Validators.FaqQuestions;
 
 public class ReorderFaqQuestionsValidator : AbstractValidator<ReorderFaqQuestionsCommand>
 {
-    private const int MaxFaqQuestionIds = 500;
+    public static readonly int MaxFaqQuestionIds = 500;
 
     public ReorderFaqQuestionsValidator()
     {

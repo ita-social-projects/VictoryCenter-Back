@@ -128,7 +128,7 @@ public class CreateFaqQuestionTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(FaqQuestion)) + testMessage, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(FaqQuestionDto faqQuestionDto, FaqQuestion faqQuestion, int isSuccess)

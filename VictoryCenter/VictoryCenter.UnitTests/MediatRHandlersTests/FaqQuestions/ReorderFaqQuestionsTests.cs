@@ -1,5 +1,6 @@
 using System.Transactions;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
 using VictoryCenter.BLL.Constants;
@@ -44,11 +45,11 @@ public class ReorderFaqQuestionsTests
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
 
-        long[] affected = [..mockPlacements.Where(p => pageIds.Contains(p.QuestionId))
+        long[] affected = [.._mockPlacements.Where(p => pageIds.Contains(p.QuestionId))
             .OrderBy(p => p.Priority).Select(p => p.QuestionId)];
         Assert.Equal(pageIds, affected);
 
-        var unaffected = mockPlacements.Where(p => !pageIds.Contains(p.QuestionId))
+        var unaffected = _mockPlacements.Where(p => !pageIds.Contains(p.QuestionId))
             .OrderBy(p => p.QuestionId).ToArray();
 
         for (var i = 0; i < unaffected.Length; i++)
@@ -58,7 +59,7 @@ public class ReorderFaqQuestionsTests
     }
 
     [Fact]
-    public async Task Handle_DtoIsInvalid_ShouldReturnFail()
+    public async Task Handle_DtoIsInvalid_ShouldReturnFailure()
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = -10, OrderedIds = [2, 1] });
@@ -74,11 +75,12 @@ public class ReorderFaqQuestionsTests
         Assert.True(result.IsFailed);
         Assert.Contains(
                 ErrorMessagesConstants.PropertyMustBePositive(nameof(ReorderFaqQuestionsDto.PageId)),
-                result.Errors[0].Message);
+                result.Errors[0].Message,
+                StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public async Task Handle_PageNotFoundOrContainsNoFaqQuestions_ShouldReturnFail()
+    public async Task Handle_PageNotFoundOrContainsNoFaqQuestions_ShouldReturnFailure()
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1000, OrderedIds = [2, 1] });
@@ -96,7 +98,7 @@ public class ReorderFaqQuestionsTests
     }
 
     [Fact]
-    public async Task Handle_OrderedIdsContainsInvalidId_ShouldReturnFail()
+    public async Task Handle_OrderedIdsContainsInvalidId_ShouldReturnFailure()
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [1000, 1] });
@@ -119,7 +121,7 @@ public class ReorderFaqQuestionsTests
     [InlineData(4L, 2L)]
     [InlineData(4L, 2L, 1L)]
     [InlineData(5L, 4L, 2L, 1L)]
-    public async Task Handle_OrderedIdsAreNonConsecutive_ShouldReturnFail(params long[] pageIds)
+    public async Task Handle_OrderedIdsAreNonConsecutive_ShouldReturnFailure(params long[] pageIds)
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [.. pageIds] });
@@ -134,6 +136,30 @@ public class ReorderFaqQuestionsTests
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
         Assert.Equal(FaqConstants.IdsAreNonConsecutive, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
+    {
+        var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [2, 1] });
+        var mockPlacements = FilterList(command);
+
+        _mockRepoWrapper.Setup(
+            repositoryWrapper => repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
+                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(mockPlacements);
+
+        _mockRepoWrapper.Setup(x => x.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        _mockRepoWrapper.Setup(x => x.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
     private List<FaqPlacement> FilterList(ReorderFaqQuestionsCommand command)

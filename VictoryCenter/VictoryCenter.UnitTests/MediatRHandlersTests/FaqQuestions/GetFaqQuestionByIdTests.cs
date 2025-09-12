@@ -45,7 +45,7 @@ public class GetFaqQuestionByIdTests
     [InlineData(-1)]
     [InlineData(0)]
     [InlineData(1000)]
-    public async Task Handle_EntityNotExists_ShouldReturnFail(long questionId)
+    public async Task Handle_EntityNotExists_ShouldReturnFailure(long questionId)
     {
         SetupMapper(null!);
         SetupRepositoryWrapper();

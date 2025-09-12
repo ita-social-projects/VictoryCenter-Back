@@ -36,7 +36,7 @@ public class GetAllVisitorPagesTests
         // Arrange
         _mockRepoWrapper.Setup(
             repoWrapper => repoWrapper.VisitorPagesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<VisitorPage>>())).ReturnsAsync(_testPageEntities);
+                It.IsAny<QueryOptions<VisitorPage>?>())).ReturnsAsync(_testPageEntities);
 
         _mockMapper.Setup(
             mapper => mapper.Map<List<VisitorPageDto>>(It.IsAny<List<VisitorPage>>())).Returns(_testPageDtos);

@@ -6,10 +6,10 @@ namespace VictoryCenter.BLL.Validators.FaqQuestions;
 
 public class BaseFaqQuestionValidator : AbstractValidator<CreateFaqQuestionDto>
 {
-    private const short QuestionTextMinLength = 10;
-    private const short QuestionTextMaxLength = 150;
-    private const short AnswerTextMinLength = 50;
-    private const short AnswerTextMaxLength = 1000;
+    public static readonly short QuestionTextMinLength = 10;
+    public static readonly short QuestionTextMaxLength = 150;
+    public static readonly short AnswerTextMinLength = 50;
+    public static readonly short AnswerTextMaxLength = 1000;
 
     public BaseFaqQuestionValidator()
     {
@@ -37,7 +37,9 @@ public class BaseFaqQuestionValidator : AbstractValidator<CreateFaqQuestionDto>
 
         RuleFor(x => x.PageIds)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(CreateFaqQuestionDto.PageIds)));
+            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(CreateFaqQuestionDto.PageIds)))
+            .Must(pageIds => pageIds.Distinct().Count() == pageIds.Count)
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateFaqQuestionDto.PageIds)));
 
         RuleForEach(x => x.PageIds)
             .GreaterThan(0)

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -22,21 +22,22 @@ public class GetQuestionByIdTests : BaseTestClass
             ?? throw new InvalidOperationException("Couldn't setup existing entity");
 
         // Act
-        var response = await Fixture.HttpClient.GetAsync(new Uri($"api/faq/{existingEntity!.Id}", UriKind.Relative));
+        var response = await Fixture.HttpClient.GetAsync(new Uri($"/api/faq/{existingEntity!.Id}", UriKind.Relative));
         var responseString = await response.Content.ReadAsStringAsync();
 
-        var responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, JsonOptions);
+        var responseContent = JsonSerializer.Deserialize<FaqQuestionDto>(responseString, JsonOptions);
 
         // Assert
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent!.Id);
     }
 
     [Fact]
-    public async Task GetTeamMemberById_ShouldFail_NotFound()
+    public async Task GetFaqQuestionById_InvalidId_ShouldReturnNotFound()
     {
-        var response = await Fixture.HttpClient.GetAsync(new Uri($"api/faq/{-1}", UriKind.Relative));
+        var response = await Fixture.HttpClient.GetAsync(new Uri($"/api/faq/{-1}", UriKind.Relative));
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

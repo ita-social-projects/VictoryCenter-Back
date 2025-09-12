@@ -186,23 +186,25 @@ public static class ServicesConfiguration
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
-        var createdAt = DateTime.UtcNow;
+        var existing = await dbContext.VisitorPages.ToListAsync();
+        var existingBySlug = existing.ToDictionary(p => p.Slug, StringComparer.OrdinalIgnoreCase);
+
+        var toAdd = new List<VisitorPage>();
 
         foreach (var page in PageConstants.VisitorPages)
         {
-            if (!await dbContext.VisitorPages.AnyAsync(p => p.Slug == page.Slug && p.Title == page.Title))
+            if (existingBySlug.TryGetValue(page.Slug, out VisitorPage? found))
             {
-                VisitorPage newPage = new()
-                {
-                    Title = page.Title,
-                    Slug = page.Slug,
-                    CreatedAt = createdAt,
-                };
-
-                dbContext.VisitorPages.Add(newPage);
-                await dbContext.SaveChangesAsync();
+                found.Title = page.Title;
+            }
+            else
+            {
+                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTime.UtcNow });
             }
         }
+
+        dbContext.VisitorPages.AddRange(toAdd);
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task CreateInitialAdminAsync(this WebApplication app)

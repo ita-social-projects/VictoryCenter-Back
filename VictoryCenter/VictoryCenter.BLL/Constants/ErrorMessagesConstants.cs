@@ -37,11 +37,25 @@ public static class ErrorMessagesConstants
         return $"Failed to update {entityType.Name}";
     }
 
+    public static string FailedToUpdateEntityInDatabase(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to update {entityType.Name} in the database";
+    }
+
     public static string FailedToDeleteEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
         return $"Failed to delete {entityType.Name}";
+    }
+
+    public static string FailedToDeleteEntityInDatabase(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to delete {entityType.Name} in the database";
     }
 
     public static string ReorderingContainsInvalidIds(Type entityType, IEnumerable<long> ids)

@@ -21,7 +21,8 @@ public class DeleteFaqQuestionTests : BaseTestClass
         var response = await Fixture.HttpClient.DeleteAsync(new Uri($"/api/faq/{existingEntity.Id}", UriKind.Relative));
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Null(await Fixture.DbContext.FaqQuestions.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Fixture.DbContext.ChangeTracker.Clear();
+        Assert.Null(await Fixture.DbContext.FaqQuestions.AsNoTracking().FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]

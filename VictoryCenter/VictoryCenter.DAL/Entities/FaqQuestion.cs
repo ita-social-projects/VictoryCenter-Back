@@ -6,9 +6,9 @@ public class FaqQuestion
 {
     public long Id { get; set; }
 
-    public string QuestionText { get; set; } = default!;
+    public string QuestionText { get; set; } = null!;
 
-    public string AnswerText { get; set; } = default!;
+    public string AnswerText { get; set; } = null!;
 
     public Status Status { get; set; }
 

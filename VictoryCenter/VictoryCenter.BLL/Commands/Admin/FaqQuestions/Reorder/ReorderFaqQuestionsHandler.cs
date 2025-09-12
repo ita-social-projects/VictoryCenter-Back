@@ -1,6 +1,7 @@
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -37,7 +38,7 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
                     OrderByASC = e => e.Priority
                 })).ToList();
 
-            if (!questionsToReorder.Any())
+            if (questionsToReorder.Count == 0)
             {
                 return Result.Fail<Unit>(FaqConstants.PageNotFoundOrContainsNoFaqQuestions);
             }
@@ -82,6 +83,10 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
         catch (ValidationException ex)
         {
             return Result.Fail(ex.Message);
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)));
         }
     }
 }

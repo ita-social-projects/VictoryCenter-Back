@@ -4,11 +4,11 @@ public class FaqPlacement
 {
     public long PageId { get; set; }
 
-    public VisitorPage Page { get; set; } = default!;
+    public VisitorPage Page { get; set; } = null!;
 
     public long QuestionId { get; set; }
 
-    public FaqQuestion Question { get; set; } = default!;
+    public FaqQuestion Question { get; set; } = null!;
 
     public long Priority { get; set; }
 }

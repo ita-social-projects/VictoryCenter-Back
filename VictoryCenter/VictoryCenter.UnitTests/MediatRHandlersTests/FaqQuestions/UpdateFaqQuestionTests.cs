@@ -2,6 +2,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 using VictoryCenter.BLL.Constants;
@@ -155,7 +156,7 @@ public class UpdateFaqQuestionTests
             new UpdateFaqQuestionCommand(invalidUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateFaqQuestionDto.QuestionText)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateFaqQuestionDto.QuestionText)), result.Errors[0].Message);
     }
 
     [Theory]
@@ -185,6 +186,36 @@ public class UpdateFaqQuestionTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(FaqQuestion)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
+    {
+        List<long> pageIds = [1];
+        var existingFaqQuestion = _existingFaqQuestion;
+
+        var updateFaqQuestion = _updateFaqQuestion;
+        updateFaqQuestion.Placements =
+            [.. pageIds.Select(id => new FaqPlacement { PageId = id, QuestionId = updateFaqQuestion.Id, Priority = 1 })];
+
+        var validUpdateFaqQuestionDto = _updateFaqQuestionDto with
+        { PageIds = pageIds };
+
+        var validResultFaqQuestionDto = _faqQuestionDto with
+        { PageIds = pageIds };
+
+        SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
+        SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
+        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
+        .ThrowsAsync(new DbUpdateException());
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        Result<FaqQuestionDto> result = await handler.Handle(
+            new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
     private void SetupMapper(FaqQuestion updateFaqQuestion, FaqQuestionDto updatedFaqQuestionDto)

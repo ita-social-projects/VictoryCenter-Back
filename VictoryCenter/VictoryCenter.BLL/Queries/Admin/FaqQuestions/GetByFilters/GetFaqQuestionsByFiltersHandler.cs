@@ -31,7 +31,7 @@ public class GetFaqQuestionsByFiltersHandler : IRequestHandler<GetFaqQuestionsBy
 
         var queryOptions = new QueryOptions<FaqQuestion>
         {
-            Include = fq => fq.Include(fq => fq.Placements),
+            Include = fq => fq.Include(question => question.Placements),
             Offset = request.FaqQuestionsFilterDto.Offset is > 0 ?
             (int)request.FaqQuestionsFilterDto.Offset : 0,
             Limit = request.FaqQuestionsFilterDto.Limit is > 0 ?

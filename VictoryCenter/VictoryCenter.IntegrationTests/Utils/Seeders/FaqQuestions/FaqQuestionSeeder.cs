@@ -18,7 +18,7 @@ public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
 
     protected override async Task<List<FaqQuestion>> GenerateEntitiesAsync()
     {
-        var pages = await DbContext.VisitorPages.ToListAsync();
+        var pages = await DbContext.VisitorPages.OrderBy(p => p.Id).ToListAsync();
 
         if (pages.Count < 3)
         {

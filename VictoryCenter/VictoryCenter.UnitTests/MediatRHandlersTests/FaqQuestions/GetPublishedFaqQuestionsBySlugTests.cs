@@ -85,7 +85,7 @@ public class GetPublishedFaqQuestionsBySlugTests
     }
 
     [Fact]
-    public async Task Handle_PageDoesNotExistOrIsEmpty_ShouldReturnFail()
+    public async Task Handle_PageDoesNotExistOrIsEmpty_ShouldReturnFailure()
     {
         // Arrange
         SetupRepository([]);

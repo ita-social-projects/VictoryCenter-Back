@@ -161,9 +161,9 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
         {
             return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex) when (ex is InvalidOperationException or DbUpdateException)
         {
-            return Result.Fail<FaqQuestionDto>(ex.Message);
+            return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)));
         }
     }
 }

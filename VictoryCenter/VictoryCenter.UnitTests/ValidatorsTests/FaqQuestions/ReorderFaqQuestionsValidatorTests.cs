@@ -93,7 +93,7 @@ public class ReorderFaqQuestionsValidatorTests
     [Fact]
     public void Validate_OrderedIdsExceedsMaxLimit_ShouldHaveError()
     {
-        var idsCount = 501;
+        var idsCount = ReorderFaqQuestionsValidator.MaxFaqQuestionIds + 1;
         var dto = new ReorderFaqQuestionsDto
         {
             PageId = 1,
@@ -104,6 +104,6 @@ public class ReorderFaqQuestionsValidatorTests
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.ReorderFaqQuestionsDto.OrderedIds)
             .WithErrorMessage(ErrorMessagesConstants
-                .CollectionCannotContainMoreThan(nameof(ReorderFaqQuestionsDto.OrderedIds), 500));
+                .CollectionCannotContainMoreThan(nameof(ReorderFaqQuestionsDto.OrderedIds), ReorderFaqQuestionsValidator.MaxFaqQuestionIds));
     }
 }

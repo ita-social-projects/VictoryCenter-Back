@@ -72,10 +72,9 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
         {
             return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         {
-            return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.
-                FailedToCreateEntityInDatabase(typeof(FaqQuestion)) + ex.Message);
+            return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(FaqQuestion)));
         }
     }
 }
