@@ -1,0 +1,107 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Admin.Categories;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
+
+namespace VictoryCenter.IntegrationTests.ControllerTests.Categories.Update;
+
+public class UpdateCategoryTests : BaseTestClass
+{
+    public UpdateCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
+    {
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("Test Description")]
+    public async Task UpdateCategory_ShouldUpdateCategory(string? testDescription)
+    {
+        var existingEntity = await Fixture.DbContext.Categories.FirstOrDefaultAsync();
+        var updateCategoryDto = new UpdateCategoryDto
+        {
+            Name = "Test Category",
+            Description = testDescription,
+        };
+        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity!.Id}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+        var responseString = await response.Content.ReadAsStringAsync();
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, JsonOptions);
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateCategoryDto.Name, responseContent.Name);
+        Assert.Equal(updateCategoryDto.Description, responseContent.Description);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_ShouldUpdateCategory_SameInput()
+    {
+        var existingEntity = await Fixture.DbContext.Categories.FirstOrDefaultAsync();
+        var updateCategoryDto = new UpdateCategoryDto
+        {
+            Name = existingEntity!.Name,
+            Description = existingEntity.Description,
+        };
+        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+        var responseString = await response.Content.ReadAsStringAsync();
+        var responseContent = JsonSerializer.Deserialize<CategoryDto>(responseString, JsonOptions);
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateCategoryDto.Name, responseContent.Name);
+        Assert.Equal(updateCategoryDto.Description, responseContent.Description);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string? testName)
+    {
+        var existingEntity = await Fixture.DbContext.Categories.FirstOrDefaultAsync();
+        var updateCategoryDto = new UpdateCategoryDto
+        {
+            Name = testName!,
+            Description = "Test Description",
+        };
+        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity!.Id}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_NotFound(long testId)
+    {
+        var updateCategoryDto = new UpdateCategoryDto
+        {
+            Name = "Test Category",
+            Description = "Test Description",
+        };
+        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+
+        var response = await Fixture.HttpClient.PutAsync($"api/categories/{testId}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+}
