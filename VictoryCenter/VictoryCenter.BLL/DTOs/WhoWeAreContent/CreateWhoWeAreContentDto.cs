@@ -12,5 +12,5 @@ public class CreateWhoWeAreContentDto
 
     public string? Description { get; init; }
 
-    public long ImageId { get; set; }
+    public long? ImageId { get; set; }
 }

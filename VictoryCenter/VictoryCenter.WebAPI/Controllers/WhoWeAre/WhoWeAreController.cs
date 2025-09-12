@@ -9,8 +9,8 @@ namespace VictoryCenter.WebAPI.Controllers.WhoWeAre;
 
 public class WhoWeAreController : BaseApiController
 {
-    [HttpPut]
-    public async Task<IActionResult> UpdateWhoWeAreSection(List<CreateWhoWeAreContentDto> dtos, [FromQuery]SectionType sectionType)
+    [HttpPut("{sectionType}")]
+    public async Task<IActionResult> UpdateWhoWeAreSection(List<CreateWhoWeAreContentDto> dtos, SectionType sectionType)
     {
         return HandleResult(await Mediator.Send(new UpdateWhoWeAreContentCommand(sectionType, dtos)));
     }
