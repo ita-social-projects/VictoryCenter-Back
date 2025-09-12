@@ -17,7 +17,7 @@ public class DeleteTeamCategoryTests : BaseTestClass
     {
         var existingEntity = await Fixture.DbContext.TeamCategories.OrderBy(c => c.Id).LastOrDefaultAsync();
 
-        var response = await Fixture.HttpClient.DeleteAsync($"api/categories/{existingEntity!.Id}");
+        var response = await Fixture.HttpClient.DeleteAsync($"api/teamcategories/{existingEntity!.Id}");
 
         Assert.True(response.IsSuccessStatusCode);
         Assert.Null(await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync(e => e.Id == existingEntity!.Id));
@@ -28,7 +28,7 @@ public class DeleteTeamCategoryTests : BaseTestClass
     [InlineData(0)]
     public async Task DeleteCategory_ShouldNotDeleteCategory_NotFound(long testId)
     {
-        var response = await Fixture.HttpClient.DeleteAsync($"api/categories/{testId}");
+        var response = await Fixture.HttpClient.DeleteAsync($"api/teamcategories/{testId}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

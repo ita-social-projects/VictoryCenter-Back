@@ -28,7 +28,7 @@ public class CreateTeamCategoryTests : BaseTestClass
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await Fixture.HttpClient.PostAsync("api/categories", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("api/teamcategories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<TeamCategoryDto>(responseString, JsonOptions);
@@ -52,7 +52,7 @@ public class CreateTeamCategoryTests : BaseTestClass
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
-        var response = await Fixture.HttpClient.PostAsync("api/categories", new StringContent(
+        var response = await Fixture.HttpClient.PostAsync("api/teamcategories", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

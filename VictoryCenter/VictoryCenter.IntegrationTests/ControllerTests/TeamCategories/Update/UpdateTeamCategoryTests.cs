@@ -30,7 +30,7 @@ public class UpdateCategoryTests : BaseTestClass
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity!.Id}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity!.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<TeamCategoryDto>(responseString, JsonOptions);
@@ -53,7 +53,7 @@ public class UpdateCategoryTests : BaseTestClass
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity.Id}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         var responseString = await response.Content.ReadAsStringAsync();
         var responseContent = JsonSerializer.Deserialize<TeamCategoryDto>(responseString, JsonOptions);
@@ -79,7 +79,7 @@ public class UpdateCategoryTests : BaseTestClass
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await Fixture.HttpClient.PutAsync($"api/categories/{existingEntity!.Id}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity!.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -98,7 +98,7 @@ public class UpdateCategoryTests : BaseTestClass
         };
         var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
 
-        var response = await Fixture.HttpClient.PutAsync($"api/categories/{testId}", new StringContent(
+        var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{testId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

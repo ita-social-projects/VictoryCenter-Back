@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
 
-public class CategoryConfig : IEntityTypeConfiguration<TeamCategory>
+public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
 {
     public void Configure(EntityTypeBuilder<TeamCategory> entity)
     {
