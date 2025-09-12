@@ -103,5 +103,9 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
+        catch (Exception ex)
+        {
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)) + ex.Message);
+        }
     }
 }

@@ -19,27 +19,34 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
 
     public async Task<Result<long>> Handle(DeleteTeamMemberCommand request, CancellationToken cancellationToken)
     {
-        var entityToDelete =
-            await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+        try
+        {
+            var entityToDelete =
+                await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+                {
+                    Filter = entity => entity.Id == request.Id,
+                    Include = query => query.Include(tm => tm.TeamCategory)
+                });
+
+            if (entityToDelete is null)
             {
-                Filter = entity => entity.Id == request.Id,
-                Include = query => query.Include(tm => tm.TeamCategory)
-            });
+                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+            }
 
-        if (entityToDelete is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+            entityToDelete.TeamCategory = null!;
+
+            _repositoryWrapper.TeamMembersRepository.Delete(entityToDelete);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)));
         }
-
-        entityToDelete.TeamCategory = null!;
-
-        _repositoryWrapper.TeamMembersRepository.Delete(entityToDelete);
-
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        catch (DbUpdateException ex)
         {
-            return Result.Ok(entityToDelete.Id);
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)) + ex.Message);
         }
-
-        return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)));
     }
 }
