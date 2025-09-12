@@ -57,6 +57,10 @@ VictoryCenter-Back/
 │   ├── VictoryCenter.BLL
 │   │   ├── Commands
 │   │   │   ├── Admin
+│   │   │   │   ├── Auth
+│   │   │   │   │   ├── Login
+│   │   │   │   │   ├── Logout
+│   │   │   │   │   └── RefreshToken
 │   │   │   │   ├── Categories
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
@@ -70,202 +74,6 @@ VictoryCenter-Back/
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   └── Update
-│   │   │   │   └── TeamMembers
-│   │   │   │       ├── Create
-│   │   │   │       ├── Delete
-│   │   │   │       ├── Reorder
-│   │   │   │       └── Update
-│   │   │   └── Public
-│   │   │       ├── Auth
-│   │   │       │   ├── Login
-│   │   │       │   └── RefreshToken
-│   │   │       └── Payment
-│   │   │           ├── Common
-│   │   │           └── WayForPay
-│   │   ├── Constants
-│   │   ├── DTOs
-│   │   │   ├── Admin
-│   │   │   │   ├── Categories
-│   │   │   │   ├── Common
-│   │   │   │   ├── FaqQuestions
-│   │   │   │   ├── Images
-│   │   │   │   ├── TeamMembers
-│   │   │   │   └── VisitorPages
-│   │   │   ├── Common
-│   │   │   └── Public
-│   │   │       ├── Auth
-│   │   │       ├── FaqQuestions
-│   │   │       ├── Payment
-│   │   │       │   ├── Common
-│   │   │       │   └── WayForPay
-│   │   │       └── TeamPage
-│   │   ├── Exceptions
-│   │   ├── Helpers
-│   │   ├── Interfaces
-│   │   │   ├── BlobStorage
-│   │   │   ├── PaymentService
-│   │   │   └── TokenService
-│   │   ├── Mapping
-│   │   │   ├── Categories
-│   │   │   ├── FaqQuestions
-│   │   │   ├── Images
-│   │   │   ├── TeamMembers
-│   │   │   └── VisitorPages
-│   │   ├── Options
-│   │   │   └── Payment
-│   │   ├── Queries
-│   │   │   ├── Admin
-│   │   │   │   ├── Categories
-│   │   │   │   │   └── GetAll
-│   │   │   │   ├── FaqQuestions
-│   │   │   │   │   ├── GetByFilters
-│   │   │   │   │   └── GetById
-│   │   │   │   ├── Images
-│   │   │   │   │   ├── GetById
-│   │   │   │   │   └── GetByName
-│   │   │   │   ├── TeamMembers
-│   │   │   │   │   ├── GetByFilters
-│   │   │   │   │   └── GetById
-│   │   │   │   └── VisitorPages
-│   │   │   │       └── GetAll
-│   │   │   └── Public
-│   │   │       ├── FaqQuestions
-│   │   │       │   └── GetPublished
-│   │   │       └── TeamPage
-│   │   │           └── GetPublished
-│   │   ├── Services
-│   │   │   ├── BlobStorage
-│   │   │   ├── PaymentService
-│   │   │   └── TokenService
-│   │   └── Validators
-│   │       ├── Auth
-│   │       ├── Categories
-│   │       ├── FaqQuestions
-│   │       ├── Images
-│   │       ├── Payment
-│   │       └── TeamMembers
-│   ├── VictoryCenter.DAL
-│   │   ├── Data
-│   │   │   └── EntityTypeConfigurations
-│   │   ├── Entities
-│   │   ├── Enums
-│   │   ├── Migrations
-│   │   └── Repositories
-│   │       ├── Interfaces
-│   │       │   ├── Base
-│   │       │   ├── Categories
-│   │       │   ├── FaqPlacements
-│   │       │   ├── FaqQuestions
-│   │       │   ├── Media
-│   │       │   ├── TeamMembers
-│   │       │   └── VisitorPages
-│   │       ├── Options
-│   │       └── Realizations
-│   │           ├── Base
-│   │           ├── Categories
-│   │           ├── FaqPlacements
-│   │           ├── FaqQuestions
-│   │           ├── Media
-│   │           ├── TeamMembers
-│   │           └── VisitorPages
-│   ├── VictoryCenter.IntegrationTests
-│   │   ├── ControllerTests
-│   │   │   ├── Auth
-│   │   │   ├── Categories
-│   │   │   │   ├── Create
-│   │   │   │   ├── Delete
-│   │   │   │   ├── GetAll
-│   │   │   │   └── Update
-│   │   │   ├── FaqQuestions
-│   │   │   │   ├── Create
-│   │   │   │   ├── Delete
-│   │   │   │   ├── GetById
-│   │   │   │   ├── GetFiltered
-│   │   │   │   ├── GetPublished
-│   │   │   │   ├── Reorder
-│   │   │   │   └── Update
-│   │   │   ├── Images
-│   │   │   │   ├── Create
-│   │   │   │   ├── Delete
-│   │   │   │   ├── GetById
-│   │   │   │   ├── GetByName
-│   │   │   │   └── Update
-│   │   │   ├── Payments
-│   │   │   ├── TeamMembers
-│   │   │   │   ├── Create
-│   │   │   │   ├── Delete
-│   │   │   │   ├── GetById
-│   │   │   │   ├── GetFiltered
-│   │   │   │   ├── GetPublished
-│   │   │   │   ├── Reorder
-│   │   │   │   └── Update
-│   │   │   └── VisitorPages
-│   │   │       └── GetAll
-│   │   ├── MiddlewareTests
-│   │   └── Utils
-│   │       ├── DbFixture
-│   │       └── Seeders
-│   │           ├── Categories
-│   │           ├── FaqQuestions
-│   │           ├── Images
-│   │           └── TeamMembers
-│   ├── VictoryCenter.UnitTests
-│   │   ├── MediatRHandlersTests
-│   │   │   ├── Auth
-│   │   │   ├── Categories
-│   │   │   ├── FaqQuestions
-│   │   │   ├── Images
-│   │   │   ├── Payment
-│   │   │   ├── TeamMembers
-│   │   │   └── VisitorPages
-│   │   ├── MiddlewareTests
-│   │   ├── ServiceTests
-│   │   │   └── Payment
-│   │   └── ValidatorsTests
-│   │       ├── Auth
-│   │       ├── Categories
-│   │       ├── FaqQuestions
-│   │       ├── Payment
-│   │       └── TeamMembers
-│   └── VictoryCenter.WebAPI
-│       ├── Controllers
-│       │   ├── Admin
-│       │   ├── Common
-│       │   └── Public
-│       ├── Extensions
-│       ├── Factories
-│       ├── Middleware
-│       ├── Properties
-│       └── Utils
-│           └── Settings
-├── .gitignore
-├── docker-compose.yml
-└── README.md
-```
-
-```
-VictoryCenter-Back/
-├── .github/
-│   ├── ISSUE_TEMPLATE/
-│   ├── PULL_REQUEST_TEMPLATE/
-│   └── workflows/
-├── docs
-├── VictoryCenter
-│   ├── VictoryCenter.BLL
-│   │   ├── Commands
-│   │   │   ├── Admin
-│   │   │   │   ├── Auth
-│   │   │   │   │   ├── Login
-│   │   │   │   │   ├── Logout
-│   │   │   │   │   └── RefreshToken
-│   │   │   │   ├── Categories
-│   │   │   │   │   ├── Create
-│   │   │   │   │   ├── Delete
-│   │   │   │   │   └── Update
-│   │   │   │   ├── Images
-│   │   │   │   │   ├── Create
-│   │   │   │   │   ├── Delete
-│   │   │   │   │   └── Update
 │   │   │   │   ├── ProgramCategories
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
@@ -289,12 +97,15 @@ VictoryCenter-Back/
 │   │   │   │   ├── Auth
 │   │   │   │   ├── Categories
 │   │   │   │   ├── Common
+│   │   │   │   ├── FaqQuestions
 │   │   │   │   ├── Images
 │   │   │   │   ├── ProgramCategories
 │   │   │   │   ├── Programs
-│   │   │   │   └── TeamMembers
+│   │   │   │   ├── TeamMembers
+│   │   │   │   └── VisitorPages
 │   │   │   ├── Common
 │   │   │   └── Public
+│   │   │       ├── FaqQuestions
 │   │   │       ├── Payment
 │   │   │       │   ├── Common
 │   │   │       │   └── WayForPay
@@ -310,16 +121,21 @@ VictoryCenter-Back/
 │   │   │   └── TokenService
 │   │   ├── Mapping
 │   │   │   ├── Categories
+│   │   │   ├── FaqQuestions
 │   │   │   ├── Images
 │   │   │   ├── ProgramCategories
 │   │   │   ├── Programs
-│   │   │   └── TeamMembers
+│   │   │   ├── TeamMembers
+│   │   │   └── VisitorPages
 │   │   ├── Options
 │   │   │   └── Payment
 │   │   ├── Queries
 │   │   │   ├── Admin
 │   │   │   │   ├── Categories
 │   │   │   │   │   └── GetAll
+│   │   │   │   ├── FaqQuestions
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── GetById
 │   │   │   │   │   └── GetByName
@@ -327,11 +143,15 @@ VictoryCenter-Back/
 │   │   │   │   ├── Programs
 │   │   │   │   │   ├── GetByFilters
 │   │   │   │   │   └── GetById
-│   │   │   │   └── TeamMembers
-│   │   │   │       ├── GetByFilters
-│   │   │   │       ├── GetById
-│   │   │   │       └── Search
+│   │   │   │   ├── TeamMembers
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   ├── GetById
+│   │   │   │   │   └── Search
+│   │   │   │   └── VisitorPages
+│   │   │   │       └── GetAll
 │   │   │   └── Public
+│   │   │       ├── FaqQuestions
+│   │   │       │   └── GetPublished
 │   │   │       ├── Programs
 │   │   │       │   └── GetPublished
 │   │   │       └── TeamPage
@@ -345,6 +165,7 @@ VictoryCenter-Back/
 │   │   └── Validators
 │   │       ├── Auth
 │   │       ├── Categories
+│   │       ├── FaqQuestions
 │   │       ├── Images
 │   │       ├── Payment
 │   │       ├── ProgramCategories
@@ -360,18 +181,24 @@ VictoryCenter-Back/
 │   │       ├── Interfaces
 │   │       │   ├── Base
 │   │       │   ├── Categories
+│   │       │   ├── FaqPlacements
+│   │       │   ├── FaqQuestions
 │   │       │   ├── Media
 │   │       │   ├── ProgramCategories
 │   │       │   ├── Programs
-│   │       │   └── TeamMembers
+│   │       │   ├── TeamMembers
+│   │       │   └── VisitorPages
 │   │       ├── Options
 │   │       └── Realizations
 │   │           ├── Base
 │   │           ├── Categories
+│   │           ├── FaqPlacements
+│   │           ├── FaqQuestions
 │   │           ├── Media
 │   │           ├── ProgramCategories
 │   │           ├── Programs
-│   │           └── TeamMembers
+│   │           ├── TeamMembers
+│   │           └── VisitorPages
 │   ├── VictoryCenter.DbUpdate
 │   │   └── Helpers
 │   ├── VictoryCenter.IntegrationTests
@@ -381,6 +208,14 @@ VictoryCenter-Back/
 │   │   │   │   ├── Create
 │   │   │   │   ├── Delete
 │   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── FaqQuestions
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   ├── Reorder
 │   │   │   │   └── Update
 │   │   │   ├── Images
 │   │   │   │   ├── Create
@@ -401,20 +236,23 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetFiltered
 │   │   │   │   ├── GetPublished
 │   │   │   │   └── Update
-│   │   │   └── TeamMembers
-│   │   │       ├── Create
-│   │   │       ├── Delete
-│   │   │       ├── GetById
-│   │   │       ├── GetFiltered
-│   │   │       ├── GetPublished
-│   │   │       ├── Reorder
-│   │   │       ├── Search
-│   │   │       └── Update
+│   │   │   ├── TeamMembers
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   ├── Reorder
+│   │   │   │   ├── Search
+│   │   │   │   └── Update
+│   │   │   └── VisitorPages
+│   │   │       └── GetAll
 │   │   ├── MiddlewareTests
 │   │   └── Utils
 │   │       ├── DbFixture
 │   │       └── Seeders
 │   │           ├── Categories
+│   │           ├── FaqQuestions
 │   │           ├── Images
 │   │           ├── ProgramCategoriesSeeder
 │   │           ├── ProgramSeeder
@@ -423,33 +261,37 @@ VictoryCenter-Back/
 │   │   ├── MediatRHandlersTests
 │   │   │   ├── Auth
 │   │   │   ├── Categories
+│   │   │   ├── FaqQuestions
 │   │   │   ├── Images
 │   │   │   ├── Payment
 │   │   │   ├── ProgramCategories
 │   │   │   ├── Programs
-│   │   │   └── TeamMembers
+│   │   │   ├── TeamMembers
+│   │   │   └── VisitorPages
 │   │   ├── MiddlewareTests
 │   │   ├── ServiceTests
 │   │   │   └── Payment
 │   │   └── ValidatorsTests
 │   │       ├── Auth
 │   │       ├── Categories
+│   │       ├── FaqQuestions
 │   │       ├── Payment
 │   │       ├── ProgramCategories
 │   │       ├── Programs
 │   │       └── TeamMembers
-│   ├── VictoryCenter.WebAPI
-│   │   ├── Controllers
-│   │   │   ├── Admin
-│   │   │   ├── Common
-│   │   │   └── Public
-│   │   ├── Extensions
-│   │   ├── Factories
-│   │   ├── Middleware
-│   │   ├── Properties
-│   │   ├── Utils
-│   │   │   └── Settings
-│   │   └── wwwroot
+│   └── VictoryCenter.WebAPI
+│       ├── Controllers
+│       │   ├── Admin
+│       │   ├── Common
+│       │   └── Public
+│       ├── Extensions
+│       ├── Factories
+│       ├── Middleware
+│       ├── Properties
+│       ├── Utils
+│       │   └── Settings
+│       └── wwwroot
+│           └── Images
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md
