@@ -3,6 +3,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
@@ -103,7 +104,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)) + ex.Message);
         }
