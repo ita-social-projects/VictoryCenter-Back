@@ -13,5 +13,9 @@ public class WhoWeAreSectionsProfile : Profile
             .ForMember(
                 dest => dest.SectionType,
                 opt => opt.MapFrom(src => src.SectionType.ToString()));
+        CreateMap<WhoWeAreSection, WhoWeArePageSectionDto>()
+            .ForMember(
+                dest => dest.SectionType,
+                opt => opt.MapFrom(src => src.SectionType.ToString()));
     }
 }
