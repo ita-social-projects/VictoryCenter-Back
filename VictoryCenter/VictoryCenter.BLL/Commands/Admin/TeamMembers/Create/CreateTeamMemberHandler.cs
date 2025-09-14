@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -18,12 +19,18 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IReorderService _reorderService;
     private readonly IValidator<CreateTeamMemberCommand> _validator;
 
-    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberCommand> validator)
+    public CreateTeamMemberHandler(
+        IRepositoryWrapper repositoryWrapper,
+        IReorderService reorderService,
+        IMapper mapper,
+        IValidator<CreateTeamMemberCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
+        _reorderService = reorderService;
         _validator = validator;
     }
 

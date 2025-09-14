@@ -1,8 +1,9 @@
-﻿using VictoryCenter.DAL.Enums;
+﻿using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class TeamMember
+public class TeamMember : IOrderableEntity<long>
 {
     public long Id { get; set; }
 
@@ -27,4 +28,5 @@ public class TeamMember
     public Category Category { get; set; } = null!;
 
     public Image? Image { get; set; }
+    public long? NextElementId { get; set; }
 }
