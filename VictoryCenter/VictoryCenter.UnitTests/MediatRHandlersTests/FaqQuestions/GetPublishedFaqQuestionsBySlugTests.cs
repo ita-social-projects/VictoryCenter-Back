@@ -71,7 +71,7 @@ public class GetPublishedFaqQuestionsBySlugTests
     {
         // Arrange
         SetupRepository(_testPlacementEntities);
-        SetupMapper(_testPlacementDtos);
+        SetupMapper();
         var handler = new GetPublishedFaqQuestionsBySlugHandler(_mockMapper.Object, _mockRepoWrapper.Object);
         var query = new GetPublishedFaqQuestionsBySlugQuery("some-page-slug");
 
@@ -89,7 +89,7 @@ public class GetPublishedFaqQuestionsBySlugTests
     {
         // Arrange
         SetupRepository([]);
-        SetupMapper([]);
+        SetupMapper();
         var handler = new GetPublishedFaqQuestionsBySlugHandler(_mockMapper.Object, _mockRepoWrapper.Object);
         var query = new GetPublishedFaqQuestionsBySlugQuery("another-test-slug");
 
@@ -109,9 +109,16 @@ public class GetPublishedFaqQuestionsBySlugTests
                 It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(entities);
     }
 
-    private void SetupMapper(List<PublishedFaqQuestionDto> expectedDtos)
+    private void SetupMapper()
     {
-        _mockMapper.Setup(
-            x => x.Map<List<PublishedFaqQuestionDto>>(It.IsAny<IEnumerable<FaqQuestion>>())).Returns(expectedDtos);
+        _mockMapper
+            .Setup(x => x.Map<List<PublishedFaqQuestionDto>>(It.IsAny<IEnumerable<FaqQuestion>>()))
+            .Returns((IEnumerable<FaqQuestion> qs) =>
+                qs.Select(q => new PublishedFaqQuestionDto
+                {
+                    Id = q.Id,
+                    QuestionText = q.QuestionText,
+                    AnswerText = q.AnswerText
+                }).ToList());
     }
 }

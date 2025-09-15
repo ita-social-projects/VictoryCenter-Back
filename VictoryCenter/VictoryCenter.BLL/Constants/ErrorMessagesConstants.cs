@@ -62,7 +62,7 @@ public static class ErrorMessagesConstants
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
-        return $"Invalid IDs found while reodering {entityType.Name}: {string.Join(", ", ids)}";
+        return $"Invalid IDs found while reordering {entityType.Name}: {string.Join(", ", ids)}";
     }
 
     public static string PropertyMustHaveAMinimumLengthOfNCharacters(string property, int length)

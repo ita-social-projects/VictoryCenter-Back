@@ -82,11 +82,11 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
         }
         catch (ValidationException ex)
         {
-            return Result.Fail(ex.Message);
+            return Result.Fail<Unit>(ex.Message);
         }
         catch (DbUpdateException)
         {
-            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)));
+            return Result.Fail<Unit>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)));
         }
     }
 }
