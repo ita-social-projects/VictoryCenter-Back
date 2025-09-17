@@ -60,7 +60,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)
         ]);
         var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)]);
-        var refreshTokenExpires = DateTime.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
+        var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
         _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, refreshToken, new CookieOptions
         {
             HttpOnly = true,

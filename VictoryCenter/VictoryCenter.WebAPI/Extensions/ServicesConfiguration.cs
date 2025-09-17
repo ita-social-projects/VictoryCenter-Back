@@ -197,8 +197,8 @@ public static class ServicesConfiguration
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
-                CreatedAt = DateTime.UtcNow,
-                RefreshTokenValidTo = DateTime.UtcNow.AddDays(30),
+                CreatedAt = DateTimeOffset.UtcNow,
+                RefreshTokenValidTo = DateTimeOffset.UtcNow.AddDays(30),
 
                 // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
                 RefreshToken = tokenService.CreateRefreshToken([])
@@ -226,19 +226,19 @@ public static class ServicesConfiguration
             {
                 Name = "Основна команда",
                 Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Name = "Наглядова рада",
                 Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Name = "Радники",
                 Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             }
         };
 

@@ -99,7 +99,7 @@ public class GetImageByIdHandlerTests
             Url = "http://superblob.com/testblob.png",
             BlobName = "",
             MimeType = "image/png",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))

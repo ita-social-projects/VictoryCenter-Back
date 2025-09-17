@@ -7,7 +7,7 @@ public class Program
     public long Id { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
     public Status Status { get; set; }
     public long? ImageId { get; set; }
     public ICollection<ProgramCategory> Categories { get; set; } = [];

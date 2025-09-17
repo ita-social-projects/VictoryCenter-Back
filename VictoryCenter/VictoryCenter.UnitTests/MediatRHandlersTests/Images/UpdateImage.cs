@@ -32,7 +32,7 @@ public class UpdateImageHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        CreatedAt = new DateTime(2025, 7, 16, 14, 30, 0, DateTimeKind.Utc)
+        CreatedAt = new DateTimeOffset(2025, 7, 16, 14, 30, 0, TimeZoneInfo.Utc.BaseUtcOffset)
     };
 
     private readonly ImageDto _testImageDto = new()
@@ -41,7 +41,7 @@ public class UpdateImageHandlerTests
         BlobName = "testblob.png",
         MimeType = "image/png",
         Url = "dGVzdA==",
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTimeOffset.UtcNow
     };
 
     public UpdateImageHandlerTests()

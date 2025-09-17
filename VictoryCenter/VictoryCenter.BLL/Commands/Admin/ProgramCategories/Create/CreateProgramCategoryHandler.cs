@@ -29,7 +29,7 @@ public class CreateProgramCategoryHandler : IRequestHandler<CreateProgramCategor
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             ProgramCategory entity = _mapper.Map<ProgramCategory>(request.ProgramCategoryDto);
-            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedAt = DateTimeOffset.UtcNow;
             await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)

@@ -16,7 +16,7 @@ public class DeleteCategoryTests
         Id = 1,
         Name = "Test name",
         Description = "Test description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Local),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Local.BaseUtcOffset),
     };
 
     public DeleteCategoryTests()

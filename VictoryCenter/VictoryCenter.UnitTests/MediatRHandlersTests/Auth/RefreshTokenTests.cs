@@ -14,7 +14,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
 
 public class RefreshTokenTests
 {
-    private static readonly DateTime FixedTestTime = DateTime.UtcNow;
+    private static readonly DateTimeOffset FixedTestTime = DateTimeOffset.UtcNow;
     private readonly RefreshTokenCommandHandler _handler;
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;

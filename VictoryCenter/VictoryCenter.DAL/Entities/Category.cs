@@ -8,7 +8,7 @@ public class Category
 
     public string? Description { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     public ICollection<TeamMember> TeamMembers { get; set; } = [];
 }
