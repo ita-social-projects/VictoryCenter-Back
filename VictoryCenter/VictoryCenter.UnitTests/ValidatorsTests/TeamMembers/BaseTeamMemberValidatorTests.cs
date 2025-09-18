@@ -98,7 +98,8 @@ public class BaseTeamMembersValidatorTests
         };
 
         var result = _validator.TestValidate(model);
-        result.ShouldNotHaveAnyValidationErrors();
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), 10));
     }
 
     [Fact]
@@ -113,6 +114,7 @@ public class BaseTeamMembersValidatorTests
         };
 
         var result = _validator.TestValidate(model);
-        result.ShouldNotHaveAnyValidationErrors();
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), 10));
     }
 }
