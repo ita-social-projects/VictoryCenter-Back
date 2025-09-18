@@ -26,6 +26,6 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     }
 
     public static int FullNameMinLength { get; } = 2;
-    public static int FullNameMaxLength { get; } = 100;
+    public static int FullNameMaxLength { get; } = 50;
     public static int DescriptionNameMaxLength { get; } = 200;
 }
