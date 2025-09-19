@@ -267,10 +267,8 @@ VictoryCenter-Back/
 
 - MS Visual Studio (2022 or later)
   https://visualstudio.microsoft.com/ru/downloads
-- .NET SDK (v 6.0.101)
-  https://dotnet.microsoft.com/en-us/download/dotnet/6.0
-- NodeJS (v 16.13.2)
-  https://nodejs.org
+- .NET SDK (v 9.0)
+  https://dotnet.microsoft.com/en-us/download/dotnet/9.0
 
 ### Environment
 
@@ -291,11 +289,13 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 
 ### Clone
 
-- Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO`
+- Clone this repo to your local machine using `https://github.com/ita-social-projects/VictoryCenter-Back.git`
 
 ### Setup
 
 ### How to run local
+
+- Create `.env` in the WebAPI layer and insert all fields that are in `.env.example`.
 
 ### How to connect to db locally
 
@@ -320,7 +320,41 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 
 Now you can connect to your localhost instance with login (sa) and password (Admin@1234)!
 
-#### How to run Docker
+### Apply database migrations
+
+Run the following command to apply migrations and create the database schema:
+```bash
+dotnet ef database update --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+```
+
+If migrations are missing or need to be created, here is an example:
+```bash
+dotnet ef migrations add InitialCreate --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+dotnet ef database update --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+```
+
+### Run the application
+
+Start the **ASP.NET Core** application:
+```bash
+dotnet run --project VictoryCenter.WebAPI
+```
+
+Alternatively, if using **Visual Studio**:
+1. Open the **VictoryCenter.sln** solution.
+2. Set **VictoryCenter.WebAPI** as the startup project.
+3. Press **F5** to run in debug mode.
+
+Once started, the app will be accessible at:
+- **http://localhost:5000** (For HTTP)
+- **https://localhost:5001** (For HTTPS)
+
+#### If any dependencies are missing, install them with:
+```bash
+dotnet restore
+```
+
+### How to run Docker
 
 ### how to connect to db via docker
 
