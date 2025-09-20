@@ -82,7 +82,7 @@ public class UpdateTeamMemberTests
     [Theory]
     [InlineData("Valid Name")]
     [InlineData("Updated Name")]
-    [InlineData("AAAAA")]
+    [InlineData("AAAAAAAAA")]
     public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity(string testDescription)
     {
         var testUpdatedTeamMember = new TeamMember

@@ -18,7 +18,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     }
 
     [Theory]
-    [InlineData("AAAAA")]
+    [InlineData("AAAAAAAAA")]
     [InlineData("Test Description")]
     public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
     {
