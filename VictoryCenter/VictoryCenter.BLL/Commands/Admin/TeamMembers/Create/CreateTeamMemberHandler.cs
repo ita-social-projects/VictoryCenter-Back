@@ -8,7 +8,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
-using VictoryCenter.BLL.Services.ReorderService;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -19,19 +19,19 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
-    private readonly IReorderService _reorderService;
     private readonly IValidator<CreateTeamMemberCommand> _validator;
+    private readonly IReorderService _reorderService;
 
     public CreateTeamMemberHandler(
         IRepositoryWrapper repositoryWrapper,
-        IReorderService reorderService,
         IMapper mapper,
-        IValidator<CreateTeamMemberCommand> validator)
+        IValidator<CreateTeamMemberCommand> validator,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
-        _reorderService = reorderService;
         _validator = validator;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<TeamMemberDto>> Handle(CreateTeamMemberCommand request, CancellationToken cancellationToken)
@@ -47,7 +47,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             };
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+
+            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
                 {
                     Filter = c => c.Id == request.CreateTeamMemberDto.CategoryId
@@ -59,14 +60,15 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                     ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
-            TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
-            using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
+            var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
+
+            using (var scope = _repositoryWrapper.BeginTransaction())
             {
                 entity.CreatedAt = DateTimeOffset.UtcNow;
-                var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
-                    u => u.Priority,
-                    u => u.CategoryId == entity.CategoryId);
-                entity.Priority = (maxPriority ?? 0) + 1;
+
+                entity.Priority = await _reorderService.GetNextDisplayOrderAsync<TeamMember>(
+                    groupSelector: u => u.CategoryId == entity.CategoryId);
+
                 await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
                 if (await _repositoryWrapper.SaveChangesAsync() <= 0)
@@ -74,10 +76,10 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                     return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember)));
                 }
 
-                TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
+                var result = _mapper.Map<TeamMemberDto>(entity);
                 if (entity.ImageId != null)
                 {
-                    Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                    var imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
                         new QueryOptions<Image>
                         {
                             Filter = i => i.Id == entity.ImageId
