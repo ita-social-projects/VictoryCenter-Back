@@ -14,43 +14,60 @@ namespace VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFiltersQuery, Result<PaginationResult<TeamMemberDto>>>
 {
     private readonly IMapper _mapper;
-    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IRepositoryWrapper _repository;
 
-    public GetTeamMembersByFiltersHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetTeamMembersByFiltersHandler(IMapper mapper, IRepositoryWrapper repository)
     {
         _mapper = mapper;
-        _repositoryWrapper = repositoryWrapper;
+        _repository = repository;
     }
 
     public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
         var status = request.TeamMembersFilterDto.Status;
         var categoryId = request.TeamMembersFilterDto.CategoryId;
-        var offset = request.TeamMembersFilterDto.Offset is > 0 ? (int)request.TeamMembersFilterDto.Offset : 0;
-        var limit = request.TeamMembersFilterDto.Limit is > 0 ? (int)request.TeamMembersFilterDto.Limit : 0;
 
         Expression<Func<TeamMember, bool>> filter =
             t => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
 
-        var teamMembers = _repositoryWrapper.TeamMembersRepository.GetAllAsync(
-            new QueryOptions<TeamMember>
-            {
-                Filter = filter,
-                Offset = offset,
-                Limit = limit,
-                Include = tm => tm.Include(member => member.Image!),
-                OrderByASC = tm => tm.Priority
-            });
-
-        var totalItemsCount = await _repositoryWrapper.TeamMembersRepository.CountAsync(new QueryOptions<TeamMember>
+        var queryOptions = new QueryOptions<TeamMember>
         {
-            Filter = filter
-        });
+            Offset = request.TeamMembersFilterDto.Offset is > 0 ? (int)request.TeamMembersFilterDto.Offset : 0,
+            Limit = request.TeamMembersFilterDto.Limit is > 0 ? (int)request.TeamMembersFilterDto.Limit : 0,
+            Filter = filter,
+            Include = tm => tm.Include(member => member.Image!),
+            OrderByASC = tm => tm.Priority
+        };
 
-        var teamMembersDto = _mapper.Map<TeamMemberDto[]>(teamMembers);
+        IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
+        List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
 
-        return Result.Ok(new PaginationResult<TeamMemberDto>(teamMembersDto, totalItemsCount));
+        return Result.Ok(new PaginationResult<TeamMemberDto>([.. teamMembersDto], itemsTotalCount));
     }
+
+/*    public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
+    {
+        Status? status = request.TeamMembersFilterDto.Status;
+        var categoryId = request.TeamMembersFilterDto.CategoryId;
+        Expression<Func<TeamMember, bool>> filter =
+            t => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
+
+        var queryOptions = new QueryOptions<TeamMember>
+        {
+            Offset = request.TeamMembersFilterDto.Offset is > 0 ? (int)request.TeamMembersFilterDto.Offset : 0,
+            Limit = request.TeamMembersFilterDto.Limit is > 0 ? (int)request.TeamMembersFilterDto.Limit : 0,
+            Filter = filter,
+            Include = tm => tm.Include(member => member.Image!),
+            OrderByASC = tm => tm.Priority
+        };
+
+        IEnumerable<TeamMember> teamMembers = await _repository.TeamMembersRepository.GetAllAsync(queryOptions);
+        List<TeamMemberDto>? teamMembersDto = _mapper.Map<List<TeamMemberDto>>(teamMembers);
+        var itemsTotalCount = await _repository.TeamMembersRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
+
+        return Result.Ok(new PaginationResult<TeamMemberDto>([.. teamMembersDto], itemsTotalCount));
+    }*/
 }
 
 /*using System.Linq.Expressions;
