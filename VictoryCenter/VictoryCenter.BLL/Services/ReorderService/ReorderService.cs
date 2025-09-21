@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.Query;
-using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -8,15 +8,109 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Services.ReorderService;
 
-public class ReorderException : Exception
+public class ReorderService : IReorderService
 {
-    public ReorderException(string message)
-        : base(message)
+    private readonly IRepositoryWrapper _repositoryWrapper;
+
+    public ReorderService(IRepositoryWrapper repositoryWrapper)
     {
+        _repositoryWrapper = repositoryWrapper;
+    }
+
+    public async Task SwapElements<TEntity>(
+        List<long> idsOrder,
+        Expression<Func<TEntity, long>> idSelector,
+        Expression<Func<TEntity, bool>>? groupSelector = null)
+        where TEntity : class, IOrderableEntity
+    {
+        if (idsOrder == null || !idsOrder.Any())
+        {
+            return;
+        }
+
+        idsOrder = idsOrder.Distinct().ToList();
+
+        if (idsOrder.Count > ReorderConstants.MaxElementsSwapCount)
+        {
+            throw new ReorderException(ReorderConstants.ExceededMaxElementsSwapCount(idsOrder.Count));
+        }
+
+        var repository = _repositoryWrapper.GetRepository<TEntity>();
+        var idSelectorCompiled = idSelector.Compile();
+
+        var entities = (await repository.GetAllAsync(new QueryOptions<TEntity>
+        {
+            Filter = groupSelector,
+            AsNoTracking = false
+        })).Where(e => idsOrder.Contains(idSelectorCompiled(e))).ToList();
+
+        if (entities.Count != idsOrder.Count)
+        {
+            throw new ReorderException(ReorderConstants.NotAllEntitiesFoundForReorder(foundCount: entities.Count, expectedCount: idsOrder.Count));
+        }
+
+        var idToEntityMap = entities.ToDictionary(idSelectorCompiled);
+        var oldPriorities = entities.OrderBy(e => e.Priority).Select(e => e.Priority).ToList();
+
+        // Step 1: Temp priorities to avoid unique constraint issues (intermediate state)
+        for (int i = 0; i < entities.Count; i++)
+        {
+            entities[i].Priority = -i - 1;
+            repository.Update(entities[i]);
+        }
+
+        await _repositoryWrapper.SaveChangesAsync();
+
+        // Step 2: Assign new priorities based on idsOrder
+        for (int i = 0; i < idsOrder.Count; i++)
+        {
+            var currentId = idsOrder[i];
+            if (idToEntityMap.TryGetValue(currentId, out var entityToUpdate))
+            {
+                entityToUpdate.Priority = oldPriorities[i];
+                repository.Update(entityToUpdate);
+            }
+        }
+
+        await _repositoryWrapper.SaveChangesAsync();
+    }
+
+    public async Task<long> GetNextDisplayOrder<TEntity>(
+        Expression<Func<TEntity, bool>>? groupSelector = null)
+        where TEntity : class, IOrderableEntity
+    {
+        var repository = _repositoryWrapper.GetRepository<TEntity>();
+        var maxPriority = await repository.MaxAsync(e => e.Priority, groupSelector);
+        return (maxPriority ?? 0) + 1;
+    }
+
+    public async Task RenumberPriorityAsync<TEntity>(
+        Expression<Func<TEntity, bool>>? groupSelector = null)
+        where TEntity : class, IOrderableEntity
+    {
+        var repository = _repositoryWrapper.GetRepository<TEntity>();
+        var itemsToRenumber = (await repository.GetAllAsync(new QueryOptions<TEntity>
+        {
+            Filter = groupSelector,
+            OrderByASC = e => e.Priority,
+            AsNoTracking = false
+        })).ToList();
+
+        long currentPriority = 1;
+        foreach (var item in itemsToRenumber)
+        {
+            if (item.Priority != currentPriority)
+            {
+                item.Priority = currentPriority;
+                repository.Update(item);
+            }
+
+            currentPriority++;
+        }
     }
 }
 
-public class ReorderService : IReorderService
+/*public class ReorderService : IReorderService
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -28,7 +122,7 @@ public class ReorderService : IReorderService
     public async Task<TEntity?> GetLastElement<TEntity>(
         Expression<Func<TEntity, long>> idSelector,
         Expression<Func<TEntity, bool>>? groupSelector = null)
-        where TEntity : class, IOrderableEntity
+        where TEntity : class, ILinkOrderableEntity
     {
         var repository = _repositoryWrapper.GetRepository<TEntity>();
 
@@ -60,7 +154,7 @@ public class ReorderService : IReorderService
         long? prevElementId,
         Expression<Func<TEntity, long>> idSelector,
         Expression<Func<TEntity, bool>>? groupSelector = null)
-        where TEntity : class, IOrderableEntity
+        where TEntity : class, ILinkOrderableEntity
     {
         if (elementId == prevElementId)
         {
@@ -133,7 +227,7 @@ public class ReorderService : IReorderService
         Expression<Func<TEntity, long>> idSelector,
         Expression<Func<TEntity, bool>>? groupSelector = null,
         Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null)
-        where TEntity : class, IOrderableEntity
+        where TEntity : class, ILinkOrderableEntity
     {
         var repository = _repositoryWrapper.GetRepository<TEntity>();
 
@@ -190,7 +284,7 @@ public class ReorderService : IReorderService
         long elementId,
         Expression<Func<TEntity, long>> idSelector,
         Expression<Func<TEntity, bool>>? groupSelector = null)
-        where TEntity : class, IOrderableEntity
+        where TEntity : class, ILinkOrderableEntity
     {
         var idSelectorCompiled = idSelector.Compile();
         var repository = _repositoryWrapper.GetRepository<TEntity>();
@@ -221,7 +315,7 @@ public class ReorderService : IReorderService
         long elementId,
         Expression<Func<TEntity, long>> idSelector,
         Expression<Func<TEntity, bool>> groupSelector)
-        where TEntity : class, IOrderableEntity
+        where TEntity : class, ILinkOrderableEntity
     {
         var repository = _repositoryWrapper.GetRepository<TEntity>();
         var idSelectorCompiled = idSelector.Compile();
@@ -256,3 +350,4 @@ public class ReorderService : IReorderService
         await _repositoryWrapper.SaveChangesAsync();
     }
 }
+*/

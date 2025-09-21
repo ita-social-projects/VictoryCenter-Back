@@ -20,35 +20,26 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateTeamMemberCommand> _validator;
-    private readonly IReorderService _reorderService;
+    private readonly IIndexReorderService _indexReorderService;
 
     public CreateTeamMemberHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
         IValidator<CreateTeamMemberCommand> validator,
-        IReorderService reorderService)
+        IIndexReorderService indexReorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
-        _reorderService = reorderService;
+        _indexReorderService = indexReorderService;
     }
 
     public async Task<Result<TeamMemberDto>> Handle(CreateTeamMemberCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            request = request with
-            {
-                CreateTeamMemberDto = request.CreateTeamMemberDto with
-                {
-                    FullName = request.CreateTeamMemberDto.FullName.Trim()
-                }
-            };
-
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
                 {
                     Filter = c => c.Id == request.CreateTeamMemberDto.CategoryId
@@ -60,14 +51,13 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                     ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
-            var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
-
-            using (var scope = _repositoryWrapper.BeginTransaction())
+            TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
+            using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
             {
-                entity.CreatedAt = DateTimeOffset.UtcNow;
+                entity.CreatedAt = DateTime.UtcNow;
 
-                entity.Priority = await _reorderService.GetNextDisplayOrderAsync<TeamMember>(
-                    groupSelector: u => u.CategoryId == entity.CategoryId);
+                entity.Priority = await _indexReorderService.GetNextPriority<TeamMember>(
+                    u => u.CategoryId == entity.CategoryId);
 
                 await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
@@ -76,10 +66,10 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                     return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember)));
                 }
 
-                var result = _mapper.Map<TeamMemberDto>(entity);
+                TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
                 if (entity.ImageId != null)
                 {
-                    var imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                    Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
                         new QueryOptions<Image>
                         {
                             Filter = i => i.Id == entity.ImageId

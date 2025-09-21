@@ -3,7 +3,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class TeamMember : IOrderableEntity<long>
+public class TeamMember : IOrderableEntity
 {
     public long Id { get; set; }
 
@@ -28,5 +28,4 @@ public class TeamMember : IOrderableEntity<long>
     public Category Category { get; set; } = null!;
 
     public Image? Image { get; set; }
-    public long? NextElementId { get; set; }
 }

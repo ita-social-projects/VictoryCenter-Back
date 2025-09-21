@@ -1,8 +1,9 @@
 ﻿using FluentResults;
 using FluentValidation;
 using MediatR;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
-using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -12,16 +13,16 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
 {
     private readonly IValidator<ReorderTeamMembersCommand> _validator;
     private readonly IRepositoryWrapper _repositoryWrapper;
-    private readonly IIndexReorderService _indexReorderService;
+    private readonly IReorderService _reorderService;
 
     public ReorderTeamMembersHandler(
         IRepositoryWrapper repositoryWrapper,
         IValidator<ReorderTeamMembersCommand> validator,
-        IIndexReorderService indexReorderService)
+        IReorderService reorderService)
     {
         _validator = validator;
         _repositoryWrapper = repositoryWrapper;
-        _indexReorderService = indexReorderService;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<Unit>> Handle(ReorderTeamMembersCommand request, CancellationToken cancellationToken)
@@ -32,10 +33,10 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
 
             using (var scope = _repositoryWrapper.BeginTransaction())
             {
-                var orderedIds = request.ReorderTeamMembersDto.OrderedIds.Distinct().ToList();
+                var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
                 var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
-                await _indexReorderService.SwapElements<TeamMember>(
+                await _reorderService.SwapElements<TeamMember>(
                     orderedIds,
                     tm => tm.Id,
                     tm => tm.CategoryId == categoryId);
@@ -52,11 +53,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         }
         catch (ReorderException ex)
         {
-            return Result.Fail(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            return Result.Fail("An unexpected error occurred: " + ex.Message);
+            return Result.Fail(ReorderConstants.ErrorWithReordering(ex.Message));
         }
     }
 }
