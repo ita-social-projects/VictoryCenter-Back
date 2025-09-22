@@ -104,6 +104,8 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                         faq.Priority = -faq.Priority;
                     }
                 }
+
+                affectedRows += await _repositoryWrapper.SaveChangesAsync();
             }
 
             if (addedPageIds.Count > 0)
