@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.DTOs.Common;
+namespace VictoryCenter.BLL.DTOs.Common;
 
 public record ImageDto
 {
