@@ -3,11 +3,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Moq.Protected;
-using VictoryCenter.BLL.Commands.Payment.Common;
-using VictoryCenter.BLL.Commands.Payment.WayForPay;
+using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Commands.Public.Payment.WayForPay;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Payment;
-using VictoryCenter.BLL.DTOs.Payment.Common;
+using VictoryCenter.BLL.DTOs.Public.Payment;
+using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.Options.Payment;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Payment;
@@ -118,7 +118,7 @@ public class WayForPayPaymentCommandHandlerTests
         Assert.NotNull(capturedRequest);
         Assert.Equal(HttpMethod.Post, capturedRequest.Method);
 
-        var contentString = await capturedRequest.Content.ReadAsStringAsync();
+        var contentString = await capturedRequest.Content!.ReadAsStringAsync();
         var parsed = System.Web.HttpUtility.ParseQueryString(contentString);
 
         Assert.Equal(_options.Value.MerchantLogin, parsed["merchantAccount"]);
@@ -223,7 +223,7 @@ public class WayForPayPaymentCommandHandlerTests
             Times.Once);
     }
 
-    private WayForPayOptions GetDefaultOptions() => new()
+    private static WayForPayOptions GetDefaultOptions() => new()
     {
         MerchantLogin = "testLogin",
         MerchantSecretKey = "testSecret",

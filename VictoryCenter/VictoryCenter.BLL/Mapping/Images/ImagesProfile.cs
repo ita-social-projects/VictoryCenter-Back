@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.Images;

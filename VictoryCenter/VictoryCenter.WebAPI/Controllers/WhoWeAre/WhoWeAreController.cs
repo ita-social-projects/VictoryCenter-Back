@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.WhoWeAre.Update;
-using VictoryCenter.BLL.DTOs.WhoWeAreContent;
-using VictoryCenter.BLL.Queries.WhoWeAreSections.GetAll;
-using VictoryCenter.BLL.Queries.WhoWeAreSections.GetByType;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetAll;
+using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetByType;
 using VictoryCenter.DAL.Enums;
+using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.WhoWeAre;
 

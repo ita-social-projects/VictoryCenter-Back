@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.WhoWeAreContent;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.WhoWeAreSections;

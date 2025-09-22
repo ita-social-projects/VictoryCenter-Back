@@ -69,7 +69,7 @@ public class BlobServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetFileUrl_ShouldReturnOriginalBase64()
+    public Task GetFileUrl_ShouldReturnOriginalBase64()
     {
         var httpRequestMock = new Mock<HttpRequest>();
         var httpContextMock = new Mock<HttpContext>();
@@ -84,6 +84,7 @@ public class BlobServiceTests : IDisposable
         var result = _blobService.GetFileUrl(blobName, mimeType);
 
         Assert.Equal("https://example.com/Images/image123.png", result);
+        return Task.CompletedTask;
     }
 
     [Fact]
@@ -123,10 +124,10 @@ public class BlobServiceTests : IDisposable
 
     [Fact]
     public void DeleteFileInStorage_NonExistentFile_ShouldNotThrow()
-        {
-            var exception = Record.Exception(() => _blobService.DeleteFileInStorage("nonexistent", _mimeType));
-            Assert.Null(exception);
-        }
+    {
+        var exception = Record.Exception(() => _blobService.DeleteFileInStorage("nonexistent", _mimeType));
+        Assert.Null(exception);
+    }
 
     [Fact]
     public async Task SaveFileInStorage_InvalidBase64_ShouldThrowInvalidBase64FormatException()

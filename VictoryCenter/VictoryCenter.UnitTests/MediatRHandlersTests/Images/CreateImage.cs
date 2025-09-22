@@ -3,9 +3,10 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.Images.Create;
+using VictoryCenter.BLL.Commands.Admin.Images.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.Images;
@@ -17,8 +18,8 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 public class CreateImageHandlerTests
 {
     private readonly Mock<IBlobService> _mockBlobService;
-    private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IMapper> _mockMapper;
 
     private readonly CreateImageDto _testCreateImageDto = new()
     {
@@ -55,7 +56,6 @@ public class CreateImageHandlerTests
     public async Task Handle_ValidRequest_ShouldCreateImageAndReturnDto()
     {
         // Arrange
-        var fileName = "testblob";
         var fileWithExtension = "testblob.png";
         _mockBlobService.Setup(x =>
                 x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType))

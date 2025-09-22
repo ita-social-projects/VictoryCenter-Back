@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Queries.WhoWeAreSections.GetWhoWeArePage;
+using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetWhoWeArePage;
+using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 

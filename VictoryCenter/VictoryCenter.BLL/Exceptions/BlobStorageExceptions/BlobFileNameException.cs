@@ -1,8 +1,7 @@
 ﻿namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 /// <summary>
-/// Represents errors that occur when an invalid file name is provided.
-/// for blob storage operations.
+/// Represents errors that occur when an invalid file name is provided for blob storage operations.
 /// </summary>
 public class BlobFileNameException : BlobStorageException
 {

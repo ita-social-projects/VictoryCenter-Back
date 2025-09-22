@@ -1,5 +1,5 @@
 using AutoMapper;
-using VictoryCenter.BLL.DTOs.WhoWeAreSection;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.WhoWeAreSections;

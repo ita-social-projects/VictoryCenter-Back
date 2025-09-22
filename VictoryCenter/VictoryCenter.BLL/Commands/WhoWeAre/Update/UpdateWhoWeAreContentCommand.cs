@@ -1,7 +1,7 @@
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.DTOs.WhoWeAreContent;
-using VictoryCenter.BLL.DTOs.WhoWeAreSection;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Commands.WhoWeAre.Update;

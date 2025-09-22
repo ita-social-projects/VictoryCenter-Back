@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Auth.Login;
+using VictoryCenter.BLL.Commands.Admin.Auth.Login;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Auth;
+using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Validators.Auth;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Auth;
@@ -20,9 +20,9 @@ public class LoginCommandValidatorTests
     [InlineData(null)]
     public void Validate_EmailIsEmpty_ShouldHaveValidationError(string? email)
     {
-        var command = new LoginCommand(new LoginRequestDto(email, "password"));
+        var command = new LoginCommand(new LoginRequestDto(email!, "password"));
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.RequestDto.Email)
+        result.ShouldHaveValidationErrorFor(x => x.LoginRequestDto.Email)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Email"));
     }
 
@@ -32,7 +32,7 @@ public class LoginCommandValidatorTests
     {
         var command = new LoginCommand(new LoginRequestDto(email, "password"));
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.RequestDto.Email)
+        result.ShouldHaveValidationErrorFor(x => x.LoginRequestDto.Email)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat("Email"));
     }
 
@@ -41,9 +41,9 @@ public class LoginCommandValidatorTests
     [InlineData(null)]
     public void Validate_PasswordIsEmpty_ShouldHaveValidationError(string? password)
     {
-        var command = new LoginCommand(new LoginRequestDto("user@email.com", password));
+        var command = new LoginCommand(new LoginRequestDto("user@email.com", password!));
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(x => x.RequestDto.Password)
+        result.ShouldHaveValidationErrorFor(x => x.LoginRequestDto.Password)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Password"));
     }
 
@@ -52,7 +52,7 @@ public class LoginCommandValidatorTests
     {
         var command = new LoginCommand(new LoginRequestDto("user@email.com", "password123"));
         var result = _validator.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(x => x.RequestDto.Email);
-        result.ShouldNotHaveValidationErrorFor(x => x.RequestDto.Password);
+        result.ShouldNotHaveValidationErrorFor(x => x.LoginRequestDto.Email);
+        result.ShouldNotHaveValidationErrorFor(x => x.LoginRequestDto.Password);
     }
 }

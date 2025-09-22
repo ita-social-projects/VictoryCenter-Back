@@ -11,4 +11,6 @@ public static class AuthConstants
     public static readonly string InvalidTokenSignature = "Invalid Token signature";
     public static readonly string RefreshTokenIsInvalid = "Refresh token is invalid";
     public static readonly string RefreshTokenCannotBeNullOrEmpty = "Refresh token cannot be null or empty";
+    public static readonly string NotUpdated = "Not updated";
+    public static readonly string Unauthorized = "Unauthorized";
 }

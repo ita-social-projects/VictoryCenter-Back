@@ -61,14 +61,6 @@ jobs:
           mkdir -p ./.sonar/scanner
           dotnet tool update dotnet-sonarscanner --tool-path ./.sonar/scanner
 
-      - name: Set up Docker Compose
-        run: docker compose -f docker-compose.yml up -d
-
-      - name: Wait for SQL Server to be ready
-        run: |
-          echo "Waiting for SQL Server to start..."
-          sleep 30
-
       - name: Begin SonarCloud analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

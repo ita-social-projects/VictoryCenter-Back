@@ -4,11 +4,15 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
+using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Programs;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Categories;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
+using VictoryCenter.DAL.Repositories.Realizations.ProgramCategories;
+using VictoryCenter.DAL.Repositories.Realizations.Programs;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 
@@ -23,6 +27,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IImageRepository? _imageRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
+    private IProgramsRepository? _programsRepository;
+    private IProgramCategoriesRepository? _programCategoriesRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -37,6 +43,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
 
+    public IProgramsRepository ProgramsRepository => _programsRepository ??= new ProgramsRepository(_victoryCenterDbContext);
+
+    public IProgramCategoriesRepository ProgramCategoriesRepository => _programCategoriesRepository ??= new ProgramCategoriesRepository(_victoryCenterDbContext);
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();

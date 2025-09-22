@@ -1,40 +1,28 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.TeamMembers;
-using VictoryCenter.IntegrationTests.ControllerTests.DbFixture;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.GetById;
 
-[Collection("SharedIntegrationTests")]
-public class GetTeamMemberByIdTests : IAsyncLifetime
+public class GetTeamMemberByIdTests : BaseTestClass
 {
-    private readonly IntegrationTestDbFixture _fixture;
-
     public GetTeamMemberByIdTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
     {
-        _fixture = fixture;
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _fixture.CreateFreshWebApplication();
-    }
-
-    public async Task DisposeAsync()
-    {
-        await _fixture.SeederManager.DisposeAllAsync();
     }
 
     [Fact]
     public async Task GetTeamMemberById_ShouldReturnOk()
     {
         // Arrange
-        var existingEntity = await _fixture.DbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
+        var existingEntity = await Fixture.DbContext.TeamMembers.Include(tm => tm.Category).FirstOrDefaultAsync()
             ?? throw new InvalidOperationException("Couldn't setup existing entity");
 
         // Act
-        var response = await _fixture.HttpClient.GetAsync($"api/TeamMembers/{existingEntity!.Id}");
+        var response = await Fixture.HttpClient.GetAsync($"api/TeamMembers/{existingEntity!.Id}");
         var responseString = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions
@@ -60,7 +48,7 @@ public class GetTeamMemberByIdTests : IAsyncLifetime
     [Fact]
     public async Task GetTeamMemberById_ShouldFail_NotFound()
     {
-        var response = await _fixture.HttpClient.GetAsync($"api/TeamMembers/{-1}");
+        var response = await Fixture.HttpClient.GetAsync($"api/TeamMembers/{-1}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

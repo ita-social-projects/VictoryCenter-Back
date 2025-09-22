@@ -1,5 +1,5 @@
 using AutoMapper;
-using VictoryCenter.BLL.DTOs.WhoWeAreContent;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 
 namespace VictoryCenter.BLL.Mapping.WhoWeAreContents;

@@ -12,7 +12,7 @@ public static class ConfigurationBuilderExtensions
         return configurationBuilder;
     }
 
-    public static ConfigurationManager AddLocalEnvironmentVariables(this ConfigurationManager configuration)
+    public static IConfiguration AddLocalEnvironmentVariables(this IConfiguration configuration)
     {
         configuration["ConnectionStrings:DefaultConnection"] = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                                                                        ?? throw new InvalidOperationException("DB_CONNECTION_STRING is not set in configuration");

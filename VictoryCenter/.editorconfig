@@ -61,7 +61,7 @@ dotnet_style_parentheses_in_other_operators = never_if_unnecessary:warning
 dotnet_style_require_accessibility_modifiers = for_non_interface_members:error
 
 # Expression-level preferences
-dotnet_style_namespace_match_folder = true:warning
+dotnet_style_namespace_match_folder = true:error
 dotnet_style_operator_placement_when_wrapping = beginning_of_line:suggestion
 dotnet_style_prefer_compound_assignment = true:error
 dotnet_style_prefer_conditional_expression_over_assignment = true:warning
@@ -85,11 +85,6 @@ dotnet_style_readonly_field = true:warning
 # Suppression preferences
 dotnet_remove_unnecessary_suppression_exclusions = all
 dotnet_diagnostic.IDE0079.severity = error
-
-# var preferences
-csharp_style_var_for_built_in_types = true:suggestion
-csharp_style_var_when_type_is_apparent = true:suggestion
-csharp_style_var_elsewhere = false:suggestion
 
 # Pattern matching preferences
 csharp_style_pattern_matching_over_as_with_null_check = true:error

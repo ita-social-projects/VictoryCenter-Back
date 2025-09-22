@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.BLL.Queries.Images.GetByName;
+using VictoryCenter.BLL.Queries.Admin.Images.GetByName;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;

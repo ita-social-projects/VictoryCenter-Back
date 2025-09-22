@@ -2,9 +2,10 @@
 using AutoMapper;
 using FluentValidation;
 using Moq;
-using VictoryCenter.BLL.Commands.Images.Update;
+using VictoryCenter.BLL.Commands.Admin.Images.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Images;
+using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
@@ -31,7 +32,7 @@ public class UpdateImageHandlerTests
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
-        CreatedAt = new DateTime(2025, 7, 16, 14, 30, 0, DateTimeKind.Utc )
+        CreatedAt = new DateTime(2025, 7, 16, 14, 30, 0, DateTimeKind.Utc)
     };
 
     private readonly ImageDto _testImageDto = new()
@@ -62,9 +63,9 @@ public class UpdateImageHandlerTests
         _mockBlobService.Setup(x => x.UpdateFileInStorageAsync(
                 _testImage.BlobName,
                 _testImage.MimeType,
-                _testUpdateImageDto.Base64,
+                _testUpdateImageDto.Base64!,
                 _testImage.BlobName,
-                _testUpdateImageDto.MimeType))
+                _testUpdateImageDto.MimeType!))
             .ReturnsAsync(_testImage.BlobName);
 
         _mockMapper.Setup(x => x.Map<UpdateImageDto, Image>(It.IsAny<UpdateImageDto>()))
@@ -99,9 +100,9 @@ public class UpdateImageHandlerTests
             x => x.UpdateFileInStorageAsync(
             _testImage.BlobName,
             _testImage.MimeType,
-            _testUpdateImageDto.Base64,
+            _testUpdateImageDto.Base64!,
             _testImage.BlobName,
-            _testUpdateImageDto.MimeType), Times.Once);
+            _testUpdateImageDto.MimeType!), Times.Once);
     }
 
     [Fact]
@@ -144,9 +145,9 @@ public class UpdateImageHandlerTests
         _mockBlobService.Setup(x => x.UpdateFileInStorageAsync(
                 _testImage.BlobName,
                 _testImage.MimeType,
-                _testUpdateImageDto.Base64,
+                _testUpdateImageDto.Base64!,
                 _testImage.BlobName,
-                _testUpdateImageDto.MimeType))
+                _testUpdateImageDto.MimeType!))
             .ReturnsAsync(_testImage.BlobName);
 
         _mockMapper.Setup(x => x.Map<UpdateImageDto, Image>(It.IsAny<UpdateImageDto>()))
@@ -166,6 +167,6 @@ public class UpdateImageHandlerTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ImageConstants.FailToUpdateImage, result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)), result.Errors[0].Message);
     }
 }
