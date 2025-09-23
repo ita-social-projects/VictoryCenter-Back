@@ -12,7 +12,8 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
         RuleFor(x => x.FullName)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.FullName)))
             .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.FullName), FullNameMinLength))
-            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberDto.FullName), FullNameMaxLength));
+            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberDto.FullName), FullNameMaxLength))
+            .Matches(@"^[A-Za-zА-Яа-яҐґЄєІіЇї''\-\s]+$").WithMessage(ErrorMessagesConstants.FullNameInvalidPattern());
         RuleFor(x => x.CategoryId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberDto.CategoryId)));
         RuleFor(x => x.Status)

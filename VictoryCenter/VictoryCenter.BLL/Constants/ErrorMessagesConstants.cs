@@ -112,4 +112,9 @@ public static class ErrorMessagesConstants
     {
         return $"Blob error: {message}";
     }
+
+    public static string FullNameInvalidPattern()
+    {
+        return $"Поле може містити лише літери, пробіли, апострофи та дефіси. Поле не може містити цифри";
+    }
 }

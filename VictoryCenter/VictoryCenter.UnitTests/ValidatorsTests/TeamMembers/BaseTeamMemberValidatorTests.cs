@@ -115,4 +115,47 @@ public class BaseTeamMembersValidatorTests
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameContainsDigits()
+    {
+        var model = new CreateTeamMemberDto { FullName = "12345", CategoryId = 1 };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(ErrorMessagesConstants.FullNameInvalidPattern());
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameContainsSpecialCharacters()
+    {
+        var model = new CreateTeamMemberDto { FullName = "John@Doe", CategoryId = 1 };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(ErrorMessagesConstants.FullNameInvalidPattern());
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameMixedWithDigits()
+    {
+        var model = new CreateTeamMemberDto { FullName = "John123", CategoryId = 1 };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(ErrorMessagesConstants.FullNameInvalidPattern());
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldNotHaveError_WhenFullNameContainsValidCharacters()
+    {
+        var model = new CreateTeamMemberDto { FullName = "John O'Connor-Smith", CategoryId = 1 };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.FullName);
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldNotHaveError_WhenFullNameContainsCyrillicCharacters()
+    {
+        var model = new CreateTeamMemberDto { FullName = "Іван Петрович", CategoryId = 1 };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.FullName);
+    }
 }
