@@ -23,6 +23,10 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
         RuleFor(x => x.Description)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.Description)))
             .When(x => x.Status == Status.Published);
+        RuleFor(x => x.ImageId)
+            .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.ImageId)))
+            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberDto.ImageId)))
+            .When(x => x.Status == Status.Published);
     }
 
     public static int FullNameMinLength { get; } = 2;
