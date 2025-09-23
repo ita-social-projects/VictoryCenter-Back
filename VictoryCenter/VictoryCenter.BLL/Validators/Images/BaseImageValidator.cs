@@ -20,8 +20,13 @@ public abstract class BaseImageValidator<TImageCommand> : AbstractValidator<TIma
             base64 = base64[(commaIndex + 1)..];
         }
 
-        int padding = base64.EndsWith("==") ? 2 : base64.EndsWith('=') ? 1 : 0;
-        double originalSize = (base64.Length * 3 / 4.0) - padding;
+        int padding = base64 switch
+        {
+            not null when base64.EndsWith("==", StringComparison.InvariantCulture) => 2,
+            not null when base64.EndsWith('=') => 1,
+            _ => 0
+        };
+        double originalSize = (base64!.Length * 3 / 4.0) - padding;
 
         return originalSize <= MaxImageSize;
     }
