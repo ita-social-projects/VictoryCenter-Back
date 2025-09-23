@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using FluentValidation.TestHelper;
+﻿using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
@@ -50,7 +49,6 @@ public class ReorderTeamMembersValidatorTests
         };
         var command = new ReorderTeamMembersCommand(dto);
 
-        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.ReorderTeamMembersDto.OrderedIds);
     }
