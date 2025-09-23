@@ -4,7 +4,13 @@ namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 
 public record CreateTeamMemberDto
 {
-    public string FullName { get; init; } = null!;
+    private string _fullName;
+
+    public string FullName
+    {
+        init => _fullName = value == null ? string.Empty : value.Trim();
+        get => _fullName;
+    }
 
     public long CategoryId { get; init; }
 
