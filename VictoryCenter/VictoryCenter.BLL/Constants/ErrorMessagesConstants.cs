@@ -115,6 +115,6 @@ public static class ErrorMessagesConstants
 
     public static string FullNameInvalidPattern()
     {
-        return $"Поле може містити лише літери, пробіли, апострофи та дефіси. Поле не може містити цифри";
+        return "Field can only contain letters, spaces, apostrophes and hyphens. Field cannot contain digits";
     }
 }
