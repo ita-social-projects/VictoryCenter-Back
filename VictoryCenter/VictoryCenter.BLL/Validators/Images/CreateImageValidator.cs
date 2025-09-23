@@ -8,7 +8,7 @@ namespace VictoryCenter.BLL.Validators.Images;
 public class CreateImageValidator : AbstractValidator<CreateImageCommand>
 {
     private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
-    private static readonly int MaxImageSize = 4 * 1024;
+    private static readonly int MaxImageSize = 3 * 1024 * 1024;
 
     public CreateImageValidator()
     {
@@ -28,8 +28,16 @@ public class CreateImageValidator : AbstractValidator<CreateImageCommand>
     {
         try
         {
-            var bytes = Convert.FromBase64String(base64);
-            return bytes.Length <= MaxImageSize;
+            var commaIndex = base64.IndexOf(',');
+            if (commaIndex >= 0)
+            {
+                base64 = base64[(commaIndex + 1)..];
+            }
+
+            int padding = base64.EndsWith("==") ? 2 : base64.EndsWith("=") ? 1 : 0;
+            double originalSize = (base64.Length * 3 / 4.0) - padding;
+
+            return originalSize <= MaxImageSize;
         }
         catch
         {
