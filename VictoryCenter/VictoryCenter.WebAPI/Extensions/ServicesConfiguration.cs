@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
@@ -75,6 +76,8 @@ public static class ServicesConfiguration
                     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
             });
         });
+
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
     }
 
     public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
@@ -177,6 +180,33 @@ public static class ServicesConfiguration
     {
         await app.CreateInitialAdminAsync();
         await app.CreateInitialCategoriesAsync();
+        await app.SeedVisitorPagesAsync();
+    }
+
+    public static async Task SeedVisitorPagesAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        var existing = await dbContext.VisitorPages.ToListAsync();
+        var existingBySlug = existing.ToDictionary(p => p.Slug, StringComparer.OrdinalIgnoreCase);
+
+        var toAdd = new List<VisitorPage>();
+
+        foreach (var page in PageConstants.VisitorPages)
+        {
+            if (existingBySlug.TryGetValue(page.Slug, out VisitorPage? found))
+            {
+                found.Title = page.Title;
+            }
+            else
+            {
+                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTime.UtcNow });
+            }
+        }
+
+        dbContext.VisitorPages.AddRange(toAdd);
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task CreateInitialAdminAsync(this WebApplication app)

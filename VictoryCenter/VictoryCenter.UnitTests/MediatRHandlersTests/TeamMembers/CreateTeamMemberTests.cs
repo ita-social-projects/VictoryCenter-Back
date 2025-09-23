@@ -120,12 +120,11 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenExceptionThrown()
     {
-        var testMessage = "test message";
         SetupMapper(_teamMemberDto, _teamMember);
         _repositoryWrapperMock
             .Setup(repositoryWrapperMock =>
                 repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>()))
-            .ThrowsAsync(new DbUpdateException(testMessage));
+            .ThrowsAsync(new DbUpdateException());
         _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
             .ReturnsAsync(0L);
 
@@ -144,7 +143,7 @@ public class CreateTeamMemberTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)) + testMessage, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(TeamMemberDto memberDto, TeamMember member, int isSuccess)

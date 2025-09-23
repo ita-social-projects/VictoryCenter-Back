@@ -83,10 +83,9 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         {
             return Result.Fail<TeamMemberDto>(ImageConstants.ErrorWithUserImage(e.Message));
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         {
-            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.
-                FailedToCreateEntityInDatabase(typeof(TeamMember)) + ex.Message);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
         }
     }
 }
