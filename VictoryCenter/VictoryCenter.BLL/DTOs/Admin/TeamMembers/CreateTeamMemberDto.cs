@@ -13,6 +13,4 @@ public record CreateTeamMemberDto
     public string? Description { get; init; }
 
     public long? ImageId { get; init; }
-
-    public string? Email { get; init; }
 }

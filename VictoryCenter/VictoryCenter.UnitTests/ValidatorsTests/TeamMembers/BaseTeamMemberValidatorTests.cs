@@ -109,7 +109,8 @@ public class BaseTeamMembersValidatorTests
             FullName = "Anna",
             CategoryId = 1,
             Status = Status.Published,
-            Description = "Desc",
+            Description = "Description1",
+            ImageId = 1
         };
 
         var result = _validator.TestValidate(model);

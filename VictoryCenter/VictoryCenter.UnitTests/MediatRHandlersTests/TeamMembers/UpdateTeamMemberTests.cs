@@ -110,7 +110,6 @@ public class UpdateTeamMemberTests
             Priority = 1,
             Status = Status.Published,
             Description = testDescription,
-            Email = "test@gmail.com",
             Id = 1
         };
 
