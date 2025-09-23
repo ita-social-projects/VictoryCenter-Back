@@ -151,7 +151,8 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = category.Id,
             Status = Status.Published,
             Description = "Test Description",
-            Email = "test@email.com"
+            Email = "test@email.com",
+            ImageId = 123
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -172,7 +173,8 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = wrongId,
             Status = Status.Published,
             Description = "Test Description",
-            Email = "test@email.com"
+            Email = "test@email.com",
+            ImageId = 123
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
