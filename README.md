@@ -330,7 +330,7 @@ dotnet run —project ./VictoryCenter.DBUpdate
 If migrations are missing or need to be created, here is an example:
 ```bash
 dotnet ef migrations add InitialCreate --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
-dotnet ef database update --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+dotnet run —project ./VictoryCenter.DBUpdate
 ```
 
 ### Run the application
