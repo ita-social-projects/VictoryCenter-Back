@@ -348,6 +348,7 @@ Alternatively, if using **Visual Studio**:
 Once started, the app will be accessible at:
 - **http://localhost:5000** (For HTTP)
 - **https://localhost:5001** (For HTTPS)
+- **https://localhost:5001/swagger/index.html** (For Swagger)
 
 #### If any dependencies are missing, install them with:
 ```bash
