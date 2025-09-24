@@ -46,7 +46,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
         }
         catch (DbUpdateException ex)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)) + ex.Message);
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)));
         }
     }
 }

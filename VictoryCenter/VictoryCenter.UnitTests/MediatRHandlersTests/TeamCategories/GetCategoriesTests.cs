@@ -76,6 +76,6 @@ public class GetCategoriesTests
     {
         _mockRepositoryWrapper.Setup(repo => repo.TeamCategoriesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<TeamCategory>>()))
-            .ReturnsAsync(_testCategoryEntities);
+                .ReturnsAsync(_testCategoryEntities);
     }
 }

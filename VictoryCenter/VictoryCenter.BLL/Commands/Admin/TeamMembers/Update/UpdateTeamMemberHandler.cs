@@ -106,7 +106,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         }
         catch (DbUpdateException ex)
         {
-            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)) + ex.Message);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
         }
     }
 }

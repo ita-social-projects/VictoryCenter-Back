@@ -91,7 +91,7 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         }
         catch(DbUpdateException ex)
         {
-            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)) + ex.Message);
+            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
         }
     }
 }
