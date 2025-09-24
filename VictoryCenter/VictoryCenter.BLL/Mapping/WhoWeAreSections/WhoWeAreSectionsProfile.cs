@@ -9,11 +9,8 @@ public class WhoWeAreSectionsProfile : Profile
     public WhoWeAreSectionsProfile()
     {
         CreateMap<WhoWeAreSection, WhoWeAreSectionDto>();
+        CreateMap<WhoWeAreSection, WhoWeArePageSectionDto>();
         CreateMap<WhoWeAreSection, WhoWeAreSectionInfoDto>()
-            .ForMember(
-                dest => dest.SectionType,
-                opt => opt.MapFrom(src => src.SectionType.ToString()));
-        CreateMap<WhoWeAreSection, WhoWeArePageSectionDto>()
             .ForMember(
                 dest => dest.SectionType,
                 opt => opt.MapFrom(src => src.SectionType.ToString()));
