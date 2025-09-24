@@ -324,7 +324,7 @@ Now you can connect to your localhost instance with login (sa) and password (Adm
 
 Run the following command to apply migrations and create the database schema:
 ```bash
-dotnet ef database update --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+dotnet run —project ./VictoryCenter.DBUpdate
 ```
 
 If migrations are missing or need to be created, here is an example:
