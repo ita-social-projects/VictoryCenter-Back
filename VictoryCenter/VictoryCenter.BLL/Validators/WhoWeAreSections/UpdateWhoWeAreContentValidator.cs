@@ -1,5 +1,5 @@
 ﻿using FluentValidation;
-using VictoryCenter.BLL.Commands.WhoWeAre.Update;
+using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 
 namespace VictoryCenter.BLL.Validators.WhoWeAreSections;
 

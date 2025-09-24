@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Commands.WhoWeAre.Update;
+namespace VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 
 public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreContentCommand, Result<WhoWeAreSectionDto>>
 {

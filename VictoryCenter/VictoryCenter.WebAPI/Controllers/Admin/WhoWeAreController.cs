@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.WhoWeAre.Update;
+using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetAll;
 using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetByType;
