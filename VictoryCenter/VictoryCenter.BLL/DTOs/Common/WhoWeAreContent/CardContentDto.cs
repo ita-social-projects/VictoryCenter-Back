@@ -1,6 +1,4 @@
-using VictoryCenter.BLL.DTOs.Common;
-
-namespace VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+namespace VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
 
 public class CardContentDto : WhoWeAreContentDto
 {

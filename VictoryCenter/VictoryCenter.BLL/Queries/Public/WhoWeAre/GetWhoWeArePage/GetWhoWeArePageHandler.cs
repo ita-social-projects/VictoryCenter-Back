@@ -3,13 +3,13 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+using VictoryCenter.BLL.DTOs.Public.WhoWeArePage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetWhoWeArePage;
+namespace VictoryCenter.BLL.Queries.Public.WhoWeAre.GetWhoWeArePage;
 
 public class GetWhoWeArePageHandler : IRequestHandler<GetWhoWeArePageQuery, Result<List<WhoWeArePageSectionDto>>>
 {

@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using ContentType = VictoryCenter.DAL.Enums.ContentType;
 
-namespace VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+namespace VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
 
 [JsonDerivedType(typeof(DescriptionContentDto), typeDiscriminator: "description")]
 [JsonDerivedType(typeof(ImageContentDto), typeDiscriminator: "image")]

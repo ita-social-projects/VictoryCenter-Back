@@ -1,4 +1,4 @@
-namespace VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+namespace VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
 
 public class TitleContentDto : WhoWeAreContentDto
 {

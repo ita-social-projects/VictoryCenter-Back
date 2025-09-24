@@ -1,7 +1,7 @@
-﻿using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+﻿using VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
 using VictoryCenter.DAL.Enums;
 
-namespace VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+namespace VictoryCenter.BLL.DTOs.Public.WhoWeArePage;
 
 public class WhoWeArePageSectionDto
 {

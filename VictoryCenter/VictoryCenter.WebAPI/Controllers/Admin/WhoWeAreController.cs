@@ -6,9 +6,9 @@ using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetByType;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.WebAPI.Controllers.Common;
 
-namespace VictoryCenter.WebAPI.Controllers.WhoWeAre;
+namespace VictoryCenter.WebAPI.Controllers.Admin;
 
-public class WhoWeAreController : BaseApiController
+public class WhoWeAreController : AuthorizedApiController
 {
     [HttpPut("{sectionType}")]
     public async Task<IActionResult> UpdateWhoWeAreSection(List<CreateWhoWeAreContentDto> dtos, SectionType sectionType)
