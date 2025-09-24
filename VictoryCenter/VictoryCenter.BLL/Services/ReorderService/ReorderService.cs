@@ -8,6 +8,9 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Services.ReorderService;
 
+/// <summary>
+/// Service responsible for reordering entities that implement <see cref="IOrderableEntity"/>.
+/// </summary>
 public class ReorderService : IReorderService
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -17,7 +20,27 @@ public class ReorderService : IReorderService
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task SwapElements<TEntity>(
+    /// <summary>
+    /// Reorders entities by swapping their priorities according to the specified <paramref name="idsOrder"/>.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity being reordered. Must implement <see cref="IOrderableEntity"/>.</typeparam>
+    /// <param name="idsOrder">
+    /// A list of entity ids representing the desired order. The list may contain duplicates (they will be deduplicated).
+    /// If null or empty the method returns immediately without changes.
+    /// </param>
+    /// <param name="idSelector">Expression selecting the entity id from <typeparamref name="TEntity"/> (e.g. <c>e => e.Id</c>).</param>
+    /// <param name="groupSelector">Optional filter expression to restrict the set of entities that participate in reorder (e.g. entities of the same parent).</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <exception cref="ReorderException">
+    /// Thrown when distinct ids exceed the maximum allowed, or when some ids were not found in repository.
+    /// </exception>
+    /// <exception cref="ArgumentNullException">If <paramref name="idSelector"/> is null.</exception>
+    /// <exception cref="ArgumentException">If <paramref name="idSelector"/> returns two or more elements with same id.</exception>
+    /// <remarks>
+    /// The method performs the update in two steps: it assigns temporary negative priorities to avoid unique-constraint collisions,
+    /// then assigns new priorities from the original ordering. It calls <c>SaveChangesAsync</c> twice to persist intermediate and final states.
+    /// </remarks>
+    public async Task SwapElementsAsync<TEntity>(
         List<long> idsOrder,
         Expression<Func<TEntity, long>> idSelector,
         Expression<Func<TEntity, bool>>? groupSelector = null)
@@ -75,7 +98,17 @@ public class ReorderService : IReorderService
         await _repositoryWrapper.SaveChangesAsync();
     }
 
-    public async Task<long> GetNextDisplayOrder<TEntity>(
+    /// <summary>
+    /// Calculates the next display order (<see cref="IOrderableEntity.Priority"/>) for a new entity.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity. Must implement <see cref="IOrderableEntity"/>.</typeparam>
+    /// <param name="groupSelector">Optional filter expression narrowing the scope for which the next priority is calculated (e.g. same parent group).</param>
+    /// <returns>
+    /// A <see cref="Task{TResult}"/> whose result is the next free priority (maximum existing priority + 1).
+    /// If there are no entities, returns 1.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">If repository query fails or the underlying repository throws an exception.</exception>
+    public async Task<long> GetNextDisplayOrderAsync<TEntity>(
         Expression<Func<TEntity, bool>>? groupSelector = null)
         where TEntity : class, IOrderableEntity
     {
@@ -84,17 +117,28 @@ public class ReorderService : IReorderService
         return (maxPriority ?? 0) + 1;
     }
 
+    /// <summary>
+    /// Renumbers priorities for all entities in ascending order starting from 1.
+    /// </summary>
+    /// <typeparam name="TEntity">Type of entity. Must implement <see cref="IOrderableEntity"/>.</typeparam>
+    /// <param name="groupSelector">Optional filter expression to limit which entities to renumber (e.g. entities in the same group).</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    /// <remarks>
+    /// The current implementation updates entity priorities in the repository but <b>does not call</b> <c>SaveChangesAsync</c>.
+    /// The caller must call <c>SaveChangesAsync</c> on the repository wrapper to persist changes.
+    /// (Recommendation: call <c>SaveChangesAsync</c> inside this method or explicitly document expected behavior in the service contract.)
+    /// </remarks>
     public async Task RenumberPriorityAsync<TEntity>(
         Expression<Func<TEntity, bool>>? groupSelector = null)
         where TEntity : class, IOrderableEntity
     {
         var repository = _repositoryWrapper.GetRepository<TEntity>();
-        var itemsToRenumber = (await repository.GetAllAsync(new QueryOptions<TEntity>
+        var itemsToRenumber = await repository.GetAllAsync(new QueryOptions<TEntity>
         {
             Filter = groupSelector,
             OrderByASC = e => e.Priority,
             AsNoTracking = false
-        })).ToList();
+        });
 
         long currentPriority = 1;
         foreach (var item in itemsToRenumber)
@@ -109,245 +153,3 @@ public class ReorderService : IReorderService
         }
     }
 }
-
-/*public class ReorderService : IReorderService
-{
-    private readonly IRepositoryWrapper _repositoryWrapper;
-
-    public ReorderService(IRepositoryWrapper repositoryWrapper)
-    {
-        _repositoryWrapper = repositoryWrapper;
-    }
-
-    public async Task<TEntity?> GetLastElement<TEntity>(
-        Expression<Func<TEntity, long>> idSelector,
-        Expression<Func<TEntity, bool>>? groupSelector = null)
-        where TEntity : class, ILinkOrderableEntity
-    {
-        var repository = _repositoryWrapper.GetRepository<TEntity>();
-
-        var fetchedElements = await repository.GetAllAsync(new QueryOptions<TEntity>
-        {
-            AsNoTracking = true,
-            Filter = e => e.NextElementId == null,
-        });
-
-        if (!fetchedElements.Any())
-        {
-            return default;
-        }
-
-        var elements = groupSelector == null
-            ? fetchedElements.ToList()
-            : fetchedElements.Where(groupSelector.Compile()).ToList();
-
-        if (elements.Count > 1)
-        {
-            throw new InvalidOperationException("Multiple last elements found.");
-        }
-
-        return elements.SingleOrDefault();
-    }
-
-    public async Task MoveElement<TEntity>(
-        long elementId,
-        long? prevElementId,
-        Expression<Func<TEntity, long>> idSelector,
-        Expression<Func<TEntity, bool>>? groupSelector = null)
-        where TEntity : class, ILinkOrderableEntity
-    {
-        if (elementId == prevElementId)
-        {
-            throw new ReorderException("Cannot move an element after itself.");
-        }
-
-        var repository = _repositoryWrapper.GetRepository<TEntity>();
-
-        using var scope = _repositoryWrapper.BeginTransaction();
-
-        try
-        {
-            var allElementsInGroup = (await repository.GetAllAsync(new QueryOptions<TEntity>
-            {
-                AsNoTracking = true,
-                Filter = groupSelector
-            })).ToList();
-
-            var idSelectorCompiled = idSelector.Compile();
-
-            var elementToMove = allElementsInGroup.FirstOrDefault(e => idSelectorCompiled(e) == elementId);
-            if (elementToMove == null)
-            {
-                throw new ReorderException($"Element with ID {elementId} not found in the specified group.");
-            }
-
-            var currentPrevious = allElementsInGroup.FirstOrDefault(e => e.NextElementId == elementId);
-
-            if (currentPrevious != null)
-            {
-                currentPrevious.NextElementId = elementToMove.NextElementId;
-                repository.Update(currentPrevious);
-            }
-
-            if (prevElementId == null)
-            {
-                var currentHead = allElementsInGroup.FirstOrDefault(e =>
-                    idSelectorCompiled(e) != elementId &&
-                    !allElementsInGroup.Any(p => p.NextElementId == idSelectorCompiled(e)));
-
-                elementToMove.NextElementId = currentHead != null ? idSelectorCompiled(currentHead) : null;
-            }
-            else
-            {
-                var newPrevious = allElementsInGroup.FirstOrDefault(e => idSelectorCompiled(e) == prevElementId.Value);
-                if (newPrevious == null)
-                {
-                    throw new ReorderException($"Target element with ID {prevElementId} not found to move after.");
-                }
-
-                elementToMove.NextElementId = newPrevious.NextElementId;
-                newPrevious.NextElementId = elementId;
-                repository.Update(newPrevious);
-            }
-
-            repository.Update(elementToMove);
-
-            await _repositoryWrapper.SaveChangesAsync();
-            scope.Complete();
-        }
-        catch (Exception ex)
-        {
-            throw new ReorderException($"An error occurred during reordering: {ex.Message}");
-        }
-    }
-
-    public async Task<PaginationResult<TEntity>> GetOrderedPageAsync<TEntity>(
-        int offset,
-        int limit,
-        Expression<Func<TEntity, long>> idSelector,
-        Expression<Func<TEntity, bool>>? groupSelector = null,
-        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null)
-        where TEntity : class, ILinkOrderableEntity
-    {
-        var repository = _repositoryWrapper.GetRepository<TEntity>();
-
-        var queryOptions = new QueryOptions<TEntity>
-        {
-            Filter = groupSelector,
-            Include = include,
-            AsNoTracking = true
-        };
-        var allItemsInGroup = (await repository.GetAllAsync(queryOptions)).ToList();
-
-        if (allItemsInGroup.Count == 0)
-        {
-            return new PaginationResult<TEntity>([], 0);
-        }
-
-        var sortedList = new List<TEntity>(allItemsInGroup.Count);
-        var idSelectorCompiled = idSelector.Compile();
-        var itemsById = allItemsInGroup.ToDictionary(item => idSelectorCompiled(item));
-
-        var allNextIds = new HashSet<long>(allItemsInGroup
-            .Where(i => i.NextElementId.HasValue)
-            .Select(i => i.NextElementId!.Value));
-
-        TEntity? current = allItemsInGroup.FirstOrDefault(i => !allNextIds.Contains(idSelectorCompiled(i)));
-
-        // Якщо голова не знайдена (можливо, є цикл), повертаємо помилку або намагаємось відновити
-        if (current == null && allItemsInGroup.Any())
-        {
-            // Це може статись, якщо є циклічне посилання. Беремо перший для відновлення.
-            current = allItemsInGroup.First();
-        }
-
-        while (current != null && sortedList.Count < allItemsInGroup.Count)
-        {
-            sortedList.Add(current);
-            if (current.NextElementId.HasValue && itemsById.TryGetValue(current.NextElementId.Value, out var nextItem))
-            {
-                current = nextItem;
-            }
-            else
-            {
-                current = null;
-            }
-        }
-
-        var totalCount = sortedList.Count;
-        var paginatedItems = sortedList.Skip(offset).Take(limit).ToArray();
-
-        return new PaginationResult<TEntity>(paginatedItems, totalCount);
-    }
-
-    public async Task RemoveLinksFromListAsync<TEntity>(
-        long elementId,
-        Expression<Func<TEntity, long>> idSelector,
-        Expression<Func<TEntity, bool>>? groupSelector = null)
-        where TEntity : class, ILinkOrderableEntity
-    {
-        var idSelectorCompiled = idSelector.Compile();
-        var repository = _repositoryWrapper.GetRepository<TEntity>();
-
-        var allItems = (await repository.GetAllAsync(new QueryOptions<TEntity>
-        {
-            Filter = groupSelector,
-            AsNoTracking = false
-        })).ToList();
-
-        var elementToRemove = allItems.FirstOrDefault(e => idSelectorCompiled(e) == elementId);
-        if (elementToRemove != null)
-        {
-            throw new ReorderException($"Element with ID {elementId} is presented in specified group. Remove it before unkink");
-        }
-
-        var previousElement = allItems.FirstOrDefault(e => e.NextElementId == elementId);
-
-        if (previousElement != null)
-        {
-            previousElement.NextElementId = elementToRemove.NextElementId;
-            repository.Update(previousElement);
-            await _repositoryWrapper.SaveChangesAsync();
-        }
-    }
-
-    public async Task AppendToGroupEndAsync<TEntity>(
-        long elementId,
-        Expression<Func<TEntity, long>> idSelector,
-        Expression<Func<TEntity, bool>> groupSelector)
-        where TEntity : class, ILinkOrderableEntity
-    {
-        var repository = _repositoryWrapper.GetRepository<TEntity>();
-        var idSelectorCompiled = idSelector.Compile();
-
-        var allItemsInNewGroup = (await repository.GetAllAsync(new QueryOptions<TEntity>
-        {
-            Filter = groupSelector,
-            AsNoTracking = false
-        })).ToList();
-
-        var targetElement = allItemsInNewGroup.FirstOrDefault(e => idSelectorCompiled(e) == elementId);
-        if (targetElement == null)
-        {
-            throw new InvalidOperationException("Element to append does not belong to the specified group.");
-        }
-
-        if (targetElement.NextElementId != null)
-        {
-            throw new InvalidOperationException("Element to append is already in the list.");
-        }
-
-        var lastElement = allItemsInNewGroup.FirstOrDefault(e => e.NextElementId == null);
-
-        if (lastElement != null)
-        {
-            lastElement.NextElementId = idSelectorCompiled(targetElement);
-            repository.Update(lastElement);
-        }
-
-        targetElement.NextElementId = null;
-        repository.Update(targetElement);
-        await _repositoryWrapper.SaveChangesAsync();
-    }
-}
-*/

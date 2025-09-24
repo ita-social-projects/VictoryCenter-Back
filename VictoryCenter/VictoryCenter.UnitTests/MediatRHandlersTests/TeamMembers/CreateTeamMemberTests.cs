@@ -174,7 +174,7 @@ public class CreateTeamMemberTests
 
     private void SetupReorderService()
     {
-        _reorderServiceMock.Setup(r => r.GetNextDisplayOrder<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+        _reorderServiceMock.Setup(r => r.GetNextDisplayOrderAsync<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
             .ReturnsAsync(1L);
     }
 

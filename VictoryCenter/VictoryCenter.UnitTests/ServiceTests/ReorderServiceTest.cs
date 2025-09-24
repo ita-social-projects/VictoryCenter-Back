@@ -39,7 +39,7 @@ public class ReorderServiceTests
         Expression<Func<TestOrderableEntity, long>> idSelector = x => x.Id;
 
         // Act
-        await _reorderService.SwapElements(idsOrder, idSelector);
+        await _reorderService.SwapElementsAsync(idsOrder, idSelector);
 
         // Assert
         _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<TestOrderableEntity>>()), Times.Never);
@@ -54,7 +54,7 @@ public class ReorderServiceTests
         Expression<Func<TestOrderableEntity, long>> idSelector = x => x.Id;
 
         // Act
-        await _reorderService.SwapElements(idsOrder, idSelector);
+        await _reorderService.SwapElementsAsync(idsOrder, idSelector);
 
         // Assert
         _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<TestOrderableEntity>>()), Times.Never);
@@ -70,7 +70,7 @@ public class ReorderServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ReorderException>(() =>
-            _reorderService.SwapElements(idsOrder, idSelector));
+            _reorderService.SwapElementsAsync(idsOrder, idSelector));
 
         Assert.Equal(ReorderConstants.ExceededMaxElementsSwapCount(idsOrder.Count), exception.Message);
         _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<TestOrderableEntity>>()), Times.Never);
@@ -94,7 +94,7 @@ public class ReorderServiceTests
             .ReturnsAsync(entities);
 
         // Act
-        await _reorderService.SwapElements(idsOrder, idSelector);
+        await _reorderService.SwapElementsAsync(idsOrder, idSelector);
 
         // Assert
         _repositoryMock.Verify(x => x.Update(It.IsAny<TestOrderableEntity>()), Times.Exactly(6)); // 3 temp + 3 final
@@ -118,7 +118,7 @@ public class ReorderServiceTests
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ReorderException>(() =>
-            _reorderService.SwapElements(idsOrder, idSelector));
+            _reorderService.SwapElementsAsync(idsOrder, idSelector));
 
         Assert.Equal(ReorderConstants.NotAllEntitiesFoundForReorder(foundCount: 2, expectedCount: 3), exception.Message);
     }
@@ -140,7 +140,7 @@ public class ReorderServiceTests
             .ReturnsAsync(entities);
 
         // Act
-        await _reorderService.SwapElements(idsOrder, idSelector);
+        await _reorderService.SwapElementsAsync(idsOrder, idSelector);
 
         // Assert
         _repositoryMock.Verify(x => x.Update(It.IsAny<TestOrderableEntity>()), Times.Exactly(6));
@@ -170,7 +170,7 @@ public class ReorderServiceTests
             .ReturnsAsync(entities);
 
         // Act
-        await _reorderService.SwapElements(idsOrder, idSelector, groupSelector);
+        await _reorderService.SwapElementsAsync(idsOrder, idSelector, groupSelector);
 
         // Assert
         _repositoryMock.Verify(x => x.Update(It.IsAny<TestOrderableEntity>()), Times.Exactly(4));
@@ -190,7 +190,7 @@ public class ReorderServiceTests
             .ReturnsAsync((long?)null);
 
         // Act
-        var result = await _reorderService.GetNextDisplayOrder<TestOrderableEntity>();
+        var result = await _reorderService.GetNextDisplayOrderAsync<TestOrderableEntity>();
 
         // Assert
         Assert.Equal(1, result);
@@ -206,7 +206,7 @@ public class ReorderServiceTests
             .ReturnsAsync(maxPriority);
 
         // Act
-        var result = await _reorderService.GetNextDisplayOrder<TestOrderableEntity>();
+        var result = await _reorderService.GetNextDisplayOrderAsync<TestOrderableEntity>();
 
         // Assert
         Assert.Equal(maxPriority + 1, result);
@@ -223,7 +223,7 @@ public class ReorderServiceTests
             .ReturnsAsync(maxPriority);
 
         // Act
-        var result = await _reorderService.GetNextDisplayOrder(groupSelector);
+        var result = await _reorderService.GetNextDisplayOrderAsync(groupSelector);
 
         // Assert
         Assert.Equal(maxPriority + 1, result);

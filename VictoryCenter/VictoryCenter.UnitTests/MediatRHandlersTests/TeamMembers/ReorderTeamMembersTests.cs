@@ -6,8 +6,8 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
-using VictoryCenter.BLL.Exceptions.ReorderExceptions; // Додано імпорт для ReorderException
-using VictoryCenter.BLL.Interfaces.ReorderService; // Додано імпорт для IReorderService
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -17,7 +17,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 public class ReorderTeamMembersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IReorderService> _mockReorderService; // Додано мок для IReorderService
+    private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<ReorderTeamMembersCommand> _validator;
 
     private readonly ReorderTeamMembersDto _testValidReorderDto = new()
@@ -29,7 +29,7 @@ public class ReorderTeamMembersTests
     public ReorderTeamMembersTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _mockReorderService = new Mock<IReorderService>(); // Ініціалізація моку для IReorderService
+        _mockReorderService = new Mock<IReorderService>();
         _validator = new ReorderTeamMembersValidator();
     }
 
@@ -39,7 +39,6 @@ public class ReorderTeamMembersTests
         // Arrange
         SetupDependencies();
 
-        // Виправлено порядок параметрів у конструкторі
         var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(_testValidReorderDto);
 
@@ -48,11 +47,10 @@ public class ReorderTeamMembersTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(Unit.Value, result.Value); // Перевіряємо повернуте значення
+        Assert.Equal(Unit.Value, result.Value);
 
-        // Перевіряємо, що SwapElements був викликаний з правильними параметрами
         _mockReorderService.Verify(
-            x => x.SwapElements(
+            x => x.SwapElementsAsync(
             It.Is<List<long>>(ids => ids.SequenceEqual(_testValidReorderDto.OrderedIds)),
             It.IsAny<Expression<Func<TeamMember, long>>>(),
             It.IsAny<Expression<Func<TeamMember, bool>>>()),
@@ -154,14 +152,13 @@ public class ReorderTeamMembersTests
             result.Errors[0].Message);
     }
 
-    // Додано тест для обробки ReorderException
     [Fact]
     public async Task Handle_ReorderServiceThrowsReorderException_ShouldReturnReorderError()
     {
         // Arrange
         var reorderExceptionMessage = "Reorder operation failed";
 
-        _mockReorderService.Setup(x => x.SwapElements<TeamMember>(
+        _mockReorderService.Setup(x => x.SwapElementsAsync<TeamMember>(
                 It.IsAny<List<long>>(),
                 It.IsAny<Expression<Func<TeamMember, long>>>(),
                 It.IsAny<Expression<Func<TeamMember, bool>>>()))
@@ -182,13 +179,12 @@ public class ReorderTeamMembersTests
     private void SetupDependencies(int saveResult = 1)
     {
         SetupRepositoryWrapper(saveResult);
-        SetupReorderService(); // Додано налаштування реордер сервісу
+        SetupReorderService();
     }
 
-    // Додано новий метод для налаштування IReorderService
     private void SetupReorderService()
     {
-        _mockReorderService.Setup(x => x.SwapElements<TeamMember>(
+        _mockReorderService.Setup(x => x.SwapElementsAsync<TeamMember>(
                 It.IsAny<List<long>>(),
                 It.IsAny<Expression<Func<TeamMember, long>>>(),
                 It.IsAny<Expression<Func<TeamMember, bool>>>()))

@@ -1,6 +1,7 @@
 ﻿using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -36,12 +37,13 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
                 var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
                 var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
-                await _reorderService.SwapElements<TeamMember>(
+                await _reorderService.SwapElementsAsync<TeamMember>(
                     orderedIds,
                     tm => tm.Id,
                     tm => tm.CategoryId == categoryId);
 
                 await _repositoryWrapper.SaveChangesAsync();
+
                 scope.Complete();
 
                 return Result.Ok(Unit.Value);
@@ -55,34 +57,9 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         {
             return Result.Fail(ReorderConstants.ErrorWithReordering(ex.Message));
         }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<Unit>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(TeamMember)));
+        }
     }
 }
-
-/*using FluentResults;
-using MediatR;
-using VictoryCenter.BLL.Interfaces.ReorderService;
-using VictoryCenter.DAL.Entities;
-
-namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
-
-public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersCommand, Result<Unit>>
-{
-    private readonly IReorderService _reorderService;
-
-    public ReorderTeamMembersHandler(IReorderService reorderService)
-    {
-        _reorderService = reorderService;
-    }
-
-    public async Task<Result<Unit>> Handle(ReorderTeamMembersCommand request, CancellationToken cancellationToken)
-    {
-        await _reorderService.MoveElement<TeamMember>(
-            request.ReorderTeamMembersDto.TeamMemberId,
-            request.ReorderTeamMembersDto.AfterTeamMemberId,
-            tm => tm.Id,
-            tm => tm.CategoryId == request.ReorderTeamMembersDto.CategoryId);
-
-        return Result.Ok();
-    }
-}
-*/

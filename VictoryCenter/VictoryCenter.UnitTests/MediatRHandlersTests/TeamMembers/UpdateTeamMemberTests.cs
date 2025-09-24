@@ -264,7 +264,7 @@ public class UpdateTeamMemberTests
         _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
             .ReturnsAsync(_testCategory);
 
-        _mockReorderService.Setup(r => r.GetNextDisplayOrder(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+        _mockReorderService.Setup(r => r.GetNextDisplayOrderAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))
             .ThrowsAsync(new ReorderException(reorderExceptionMessage));
 
         SetupMapper();
@@ -301,7 +301,7 @@ public class UpdateTeamMemberTests
 
     private void SetupReorderService()
     {
-        _mockReorderService.Setup(r => r.GetNextDisplayOrder<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+        _mockReorderService.Setup(r => r.GetNextDisplayOrderAsync<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
             .ReturnsAsync(1L);
 
         _mockReorderService.Setup(r => r.RenumberPriorityAsync<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))

@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -15,16 +16,19 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
+    private readonly IReorderService _reorderService;
     private readonly IValidator<CreateFaqQuestionCommand> _validator;
 
     public CreateFaqQuestionHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
-        IValidator<CreateFaqQuestionCommand> validator)
+        IValidator<CreateFaqQuestionCommand> validator,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<FaqQuestionDto>> Handle(
@@ -37,21 +41,20 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
             var allPages = await _repositoryWrapper.VisitorPagesRepository.GetAllAsync();
             FaqQuestion entity = _mapper.Map<FaqQuestion>(request.CreateFaqQuestionDto);
 
-            foreach (var pageId in request.CreateFaqQuestionDto.PageIds)
+            foreach (var pageId in request.CreateFaqQuestionDto.PageIds.Distinct())
             {
                 if (!allPages.Any(p => p.Id == pageId))
                 {
                     return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(pageId, typeof(VisitorPage)));
                 }
 
-                var maxPriority = await _repositoryWrapper.FaqPlacementsRepository.MaxAsync(
-                        place => place.Priority,
-                        place => place.PageId == pageId);
+                var priority = await _reorderService.GetNextDisplayOrderAsync<FaqPlacement>(
+                    groupSelector: fp => fp.PageId == pageId);
 
                 entity.Placements.Add(new FaqPlacement
                 {
                     PageId = pageId,
-                    Priority = (maxPriority ?? 0) + 1
+                    Priority = priority
                 });
             }
 
