@@ -2,16 +2,16 @@ using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.IntegrationTests.Utils.Seeders.Categories;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders.TeamCategories;
 
-public class CategoriesSeeder : BaseSeeder<TeamCategory>
+public class TeamCategoriesSeeder : BaseSeeder<TeamCategory>
 {
-    public CategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<CategoriesSeeder> logger)
+    public TeamCategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<TeamCategoriesSeeder> logger)
         : base(dbContext, logger)
     {
     }
 
-    public override string Name => nameof(CategoriesSeeder);
+    public override string Name => nameof(TeamCategoriesSeeder);
     public override int Order => (int)SeederExecutionOrder.Categories;
 
     protected override Task<List<TeamCategory>> GenerateEntitiesAsync()
