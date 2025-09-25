@@ -12,8 +12,8 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250719140824_AddedModelsForFAQ")]
-    partial class AddedModelsForFAQ
+    [Migration("20250730154237_AddedProgramsAndProgramCategories")]
+    partial class AddedProgramsAndProgramCategories
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -158,7 +158,22 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.AdminUser", b =>
+            modelBuilder.Entity("ProgramProgramCategory", b =>
+                {
+                    b.Property<long>("CategoriesId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProgramsId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("CategoriesId", "ProgramsId");
+
+                    b.HasIndex("ProgramsId");
+
+                    b.ToTable("ProgramProgramCategories", (string)null);
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Admin", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -258,28 +273,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
-                {
-                    b.Property<long>("PageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("QuestionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Priority")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("PageId", "QuestionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.HasIndex("PageId", "Priority")
-                        .IsUnique();
-
-                    b.ToTable("FaqPlacements");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -287,14 +281,42 @@ namespace VictoryCenter.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("AnswerText")
+                    b.Property<string>("BlobName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("QuestionText")
+                    b.Property<string>("MimeType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Images", "media");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Program", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("ImageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -303,7 +325,31 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FaqQuestions");
+                    b.HasIndex("ImageId")
+                        .IsUnique()
+                        .HasFilter("[ImageId] IS NOT NULL");
+
+                    b.ToTable("Programs");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.ProgramCategory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProgramCategories");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
@@ -330,8 +376,8 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("Photo")
-                        .HasColumnType("varbinary(max)");
+                    b.Property<long?>("ImageId")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("Priority")
                         .HasColumnType("bigint");
@@ -341,40 +387,14 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ImageId")
+                        .IsUnique()
+                        .HasFilter("[ImageId] IS NOT NULL");
+
                     b.HasIndex("CategoryId", "Priority")
                         .IsUnique();
 
                     b.ToTable("TeamMembers");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.VisitorPage", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.HasIndex("Title")
-                        .IsUnique();
-
-                    b.ToTable("VisitorPages");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -388,7 +408,7 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<int>", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.AdminUser", null)
+                    b.HasOne("VictoryCenter.DAL.Entities.Admin", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -397,7 +417,7 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<int>", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.AdminUser", null)
+                    b.HasOne("VictoryCenter.DAL.Entities.Admin", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -412,7 +432,7 @@ namespace VictoryCenter.DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VictoryCenter.DAL.Entities.AdminUser", null)
+                    b.HasOne("VictoryCenter.DAL.Entities.Admin", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -421,30 +441,36 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.AdminUser", null)
+                    b.HasOne("VictoryCenter.DAL.Entities.Admin", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
+            modelBuilder.Entity("ProgramProgramCategory", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.VisitorPage", "Page")
-                        .WithMany("Questions")
-                        .HasForeignKey("PageId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("VictoryCenter.DAL.Entities.ProgramCategory", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("VictoryCenter.DAL.Entities.FaqQuestion", "Question")
-                        .WithMany("Placements")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("VictoryCenter.DAL.Entities.Program", null)
+                        .WithMany()
+                        .HasForeignKey("ProgramsId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
 
-                    b.Navigation("Page");
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Program", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
+                        .WithOne()
+                        .HasForeignKey("VictoryCenter.DAL.Entities.Program", "ImageId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("Question");
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
@@ -455,22 +481,18 @@ namespace VictoryCenter.DAL.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
+                        .WithOne()
+                        .HasForeignKey("VictoryCenter.DAL.Entities.TeamMember", "ImageId");
+
                     b.Navigation("Category");
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Category", b =>
                 {
                     b.Navigation("TeamMembers");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
-                {
-                    b.Navigation("Placements");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.VisitorPage", b =>
-                {
-                    b.Navigation("Questions");
                 });
 #pragma warning restore 612, 618
         }
