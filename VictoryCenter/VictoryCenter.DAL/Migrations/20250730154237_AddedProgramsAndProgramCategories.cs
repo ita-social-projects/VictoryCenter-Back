@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class AddedModelsForPrograms : Migration
+    public partial class AddedProgramsAndProgramCategories : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -50,7 +50,7 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProgramsProgramCategories",
+                name: "ProgramProgramCategories",
                 columns: table => new
                 {
                     CategoriesId = table.Column<long>(type: "bigint", nullable: false),
@@ -58,15 +58,15 @@ namespace VictoryCenter.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProgramsProgramCategories", x => new { x.CategoriesId, x.ProgramsId });
+                    table.PrimaryKey("PK_ProgramProgramCategories", x => new { x.CategoriesId, x.ProgramsId });
                     table.ForeignKey(
-                        name: "FK_ProgramsProgramCategories_ProgramCategories_CategoriesId",
+                        name: "FK_ProgramProgramCategories_ProgramCategories_CategoriesId",
                         column: x => x.CategoriesId,
                         principalTable: "ProgramCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ProgramsProgramCategories_Programs_ProgramsId",
+                        name: "FK_ProgramProgramCategories_Programs_ProgramsId",
                         column: x => x.ProgramsId,
                         principalTable: "Programs",
                         principalColumn: "Id",
@@ -74,23 +74,23 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ProgramProgramCategories_ProgramsId",
+                table: "ProgramProgramCategories",
+                column: "ProgramsId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Programs_ImageId",
                 table: "Programs",
                 column: "ImageId",
                 unique: true,
                 filter: "[ImageId] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProgramsProgramCategories_ProgramsId",
-                table: "ProgramsProgramCategories",
-                column: "ProgramsId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "ProgramsProgramCategories");
+                name: "ProgramProgramCategories");
 
             migrationBuilder.DropTable(
                 name: "ProgramCategories");
