@@ -27,14 +27,14 @@ public class UpdateProgramCategoryTests
     {
         Id = 1,
         Name = "Test1",
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
     };
 
     private readonly ProgramCategoryDto _programCategoryDto = new()
     {
         Id = 1,
         Name = "TestName1",
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
     };
 
     public UpdateProgramCategoryTests()

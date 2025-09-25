@@ -21,7 +21,7 @@ public class DeleteTeamMemberTests
         Status = Status.Published,
         Email = "email@test.com",
         Description = "Test description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
     };
 
     public DeleteTeamMemberTests()

@@ -52,7 +52,7 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
             }
 
             entity.Categories = [.. categories];
-            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedAt = DateTimeOffset.UtcNow;
 
             await _repositoryWrapper.ProgramsRepository.CreateAsync(entity);
 

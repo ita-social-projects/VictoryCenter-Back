@@ -127,11 +127,11 @@ public class TokenServiceTest
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(new[] { new Claim(ClaimTypes.Name, "TestUser") }),
-            Expires = DateTime.UtcNow.AddMinutes(-10),
+            Expires = DateTimeOffset.UtcNow.AddMinutes(-10).UtcDateTime,
             SigningCredentials = credentials,
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
-            NotBefore = DateTime.UtcNow.AddMinutes(-11)
+            NotBefore = DateTimeOffset.UtcNow.AddMinutes(-11).UtcDateTime
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -154,11 +154,11 @@ public class TokenServiceTest
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(-10),
+            Expires = DateTimeOffset.UtcNow.AddMinutes(-10).UtcDateTime,
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
             Issuer = _jwtOptions.Issuer,
             Audience = _jwtOptions.Audience,
-            NotBefore = DateTime.UtcNow.AddMinutes(-11),
+            NotBefore = DateTimeOffset.UtcNow.AddMinutes(-11).UtcDateTime,
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();

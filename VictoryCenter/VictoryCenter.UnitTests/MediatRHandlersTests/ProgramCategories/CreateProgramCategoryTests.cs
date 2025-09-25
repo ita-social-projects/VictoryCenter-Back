@@ -22,7 +22,7 @@ public class CreateProgramCategoryTests
     {
         Id = 1,
         Name = "TestCategory",
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10),
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
         Programs =
         [
             new()
@@ -40,7 +40,7 @@ public class CreateProgramCategoryTests
     {
         Id = 1,
         Name = "TestCategory",
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10),
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
         Programs =
         [
             new()
