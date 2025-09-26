@@ -1,4 +1,5 @@
-﻿using VictoryCenter.DAL.Data.BaseEntity;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
@@ -20,7 +21,7 @@ public class TeamMember : BaseEntity
 #pragma warning restore SA1011
 
     public string? Email { get; set; }
-
+    [ForeignKey(nameof(CategoryId))]
     public TeamCategory TeamCategory { get; set; } = null!;
 
     public Image? Image { get; set; }

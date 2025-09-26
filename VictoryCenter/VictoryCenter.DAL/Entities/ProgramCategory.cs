@@ -5,5 +5,5 @@ namespace VictoryCenter.DAL.Entities;
 public class ProgramCategory : BaseEntity
 {
     public string Name { get; set; } = null!;
-    public ICollection<Program> Programs { get; set; } = [];
+    public ICollection<Program> Programs { get; set; } = new List<Program>();
 }
