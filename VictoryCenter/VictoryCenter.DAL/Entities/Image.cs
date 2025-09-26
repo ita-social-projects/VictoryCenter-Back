@@ -11,4 +11,6 @@ public class Image : BaseEntity
     public string? Url { get; set; }
 
     public string MimeType { get; set; } = null!;
+
+    public DateTimeOffset CreatedAt { get; set; }
 }

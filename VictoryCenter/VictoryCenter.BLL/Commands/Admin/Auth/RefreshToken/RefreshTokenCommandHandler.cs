@@ -53,7 +53,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
-        if (admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTime.UtcNow)
+        if (admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTimeOffset.UtcNow)
         {
             return Result.Fail(AuthConstants.RefreshTokenIsInvalid);
         }
@@ -63,7 +63,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             email
         ]);
         var newRefreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, admin.Email!)]);
-        var refreshTokenExpires = DateTime.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
+        var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
         _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, newRefreshToken, new CookieOptions
         {
             HttpOnly = true,

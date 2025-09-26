@@ -30,7 +30,7 @@ public class SearchTeamMemberTests
             Status = Status.Draft,
             Description = "Long description",
             Email = "Test@gmail.com",
-            CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
         },
     ];
 

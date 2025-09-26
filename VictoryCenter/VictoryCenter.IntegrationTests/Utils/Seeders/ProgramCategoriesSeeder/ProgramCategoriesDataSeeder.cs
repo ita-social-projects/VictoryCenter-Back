@@ -22,31 +22,31 @@ public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
             {
                 Id = 1,
                 Name = "TestName1",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = 2,
                 Name = "TestName2",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = 3,
                 Name = "TestName3",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = 4,
                 Name = "TestName4",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = 5,
                 Name = "TestName5",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             }
         };
         return Task.FromResult(programCategories);

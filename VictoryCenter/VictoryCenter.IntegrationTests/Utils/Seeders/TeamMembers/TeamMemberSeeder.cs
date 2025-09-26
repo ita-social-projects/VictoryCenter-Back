@@ -40,7 +40,7 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
                 CategoryId = category.Id,
                 Priority = i + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
-                CreatedAt = DateTime.UtcNow.AddMinutes(-10 * i)
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10 * i)
             });
         }
 

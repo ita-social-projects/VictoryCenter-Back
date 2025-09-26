@@ -8,5 +8,7 @@ public class TeamCategory : BaseEntity
 
     public string? Description { get; set; }
 
+    public DateTimeOffset CreatedAt { get; set; }
+
     public ICollection<TeamMember> TeamMembers { get; set; } = [];
 }

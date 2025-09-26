@@ -14,6 +14,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<TeamCategory> TeamCategories { get; set; }
 
+    public DbSet<VisitorPage> VisitorPages { get; set; }
+
+    public DbSet<FaqPlacement> FaqPlacements { get; set; }
+
+    public DbSet<FaqQuestion> FaqQuestions { get; set; }
+
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     public DbSet<Image> Images { get; set; }

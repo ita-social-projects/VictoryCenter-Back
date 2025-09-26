@@ -8,19 +8,27 @@ public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
 {
     public void Configure(EntityTypeBuilder<TeamCategory> entity)
     {
-        entity.HasKey(e => e.Id);
+        entity
+            .HasKey(e => e.Id);
 
-        entity.Property(e => e.Id)
+        entity
+            .Property(e => e.Id)
             .ValueGeneratedOnAdd();
 
-        entity.Property(e => e.Name)
+        entity
+            .Property(e => e.Name)
             .IsRequired();
 
-        entity.Property(e => e.Description);
+        entity
+            .Property(e => e.Description);
 
-        entity.Property(e => e.CreatedAt)
+        entity
+            .Property(e => e.CreatedAt)
             .IsRequired();
 
+        entity
+            .HasMany(e => e.TeamMembers)
+            .WithOne(e => e.Category)
         entity.HasMany(e => e.TeamMembers)
             .WithOne(e => e.TeamCategory)
             .HasForeignKey(e => e.CategoryId)
