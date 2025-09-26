@@ -1,4 +1,3 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Enums;
 
@@ -21,9 +20,6 @@ public class TeamMember : BaseEntity
 #pragma warning restore SA1011
 
     public string? Email { get; set; }
-
-    public DateTimeOffset CreatedAt { get; set; }
-    [ForeignKey(nameof(CategoryId))]
     public TeamCategory TeamCategory { get; set; } = null!;
 
     public Image? Image { get; set; }

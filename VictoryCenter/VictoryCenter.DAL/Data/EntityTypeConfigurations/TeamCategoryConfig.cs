@@ -28,7 +28,7 @@ public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
 
         entity
             .HasMany(e => e.TeamMembers)
-            .WithOne(e => e.Category)
+            .WithOne(e => e.TeamCategory);
         entity.HasMany(e => e.TeamMembers)
             .WithOne(e => e.TeamCategory)
             .HasForeignKey(e => e.CategoryId)

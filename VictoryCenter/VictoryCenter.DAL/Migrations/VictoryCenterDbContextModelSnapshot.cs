@@ -247,35 +247,18 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Category", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Categories");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
                 {
                     b.Property<long>("PageId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("QuestionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("Id")
                         .HasColumnType("bigint");
 
                     b.Property<long>("Priority")
@@ -303,8 +286,8 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("QuestionText")
                         .IsRequired()
@@ -397,6 +380,29 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("ProgramCategories");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamCategory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TeamCategories");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
                 {
                     b.Property<long>("Id")
@@ -450,8 +456,8 @@ namespace VictoryCenter.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -569,7 +575,7 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.Category", "Category")
+                    b.HasOne("VictoryCenter.DAL.Entities.TeamCategory", "TeamCategory")
                         .WithMany("TeamMembers")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -579,19 +585,19 @@ namespace VictoryCenter.DAL.Migrations
                         .WithOne()
                         .HasForeignKey("VictoryCenter.DAL.Entities.TeamMember", "ImageId");
 
-                    b.Navigation("Category");
-
                     b.Navigation("Image");
-                });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Category", b =>
-                {
-                    b.Navigation("TeamMembers");
+                    b.Navigation("TeamCategory");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
                 {
                     b.Navigation("Placements");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamCategory", b =>
+                {
+                    b.Navigation("TeamMembers");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.VisitorPage", b =>

@@ -1,6 +1,8 @@
+using VictoryCenter.DAL.Data.BaseEntity;
+
 namespace VictoryCenter.DAL.Entities;
 
-public class FaqPlacement
+public class FaqPlacement : BaseEntity
 {
     public long PageId { get; set; }
 

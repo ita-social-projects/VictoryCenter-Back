@@ -1,5 +1,4 @@
 using System.Transactions;
-using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
@@ -13,7 +12,7 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 public interface IRepositoryWrapper
 {
-    ICategoriesRepository CategoriesRepository { get; }
+    ITeamCategoriesRepository TeamCategoriesRepository { get; }
     IFaqPlacementsRepository FaqPlacementsRepository { get; }
     IFaqQuestionsRepository FaqQuestionsRepository { get; }
     ITeamMembersRepository TeamMembersRepository { get; }
