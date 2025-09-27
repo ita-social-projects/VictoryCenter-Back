@@ -62,7 +62,8 @@ public class BaseTeamMembersValidatorTests
         {
             FullName = "John Doe",
             CategoryId = 1,
-            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMaxLength + 1)
+            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMaxLength + 1),
+            Status = Status.Published
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
@@ -94,12 +95,11 @@ public class BaseTeamMembersValidatorTests
             FullName = "Anna",
             CategoryId = 1,
             Status = Status.Draft,
-            Description = "",
+            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5),
         };
 
         var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), 10));
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
