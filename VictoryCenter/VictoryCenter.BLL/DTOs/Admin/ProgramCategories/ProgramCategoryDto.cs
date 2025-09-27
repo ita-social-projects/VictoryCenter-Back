@@ -5,6 +5,6 @@ public record ProgramCategoryDto
 {
     public long Id { get; init; }
     public string Name { get; set; } = null!;
-    public DateTime CreatedAt { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
     public List<ProgramDto> Programs { get; init; } = [];
 }

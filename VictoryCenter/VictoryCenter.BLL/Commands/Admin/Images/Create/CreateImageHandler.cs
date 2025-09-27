@@ -39,7 +39,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             Image image = _mapper.Map<Image>(request.CreateImageDto);
             image.BlobName = fileName;
-            image.CreatedAt = DateTime.UtcNow;
+            image.CreatedAt = DateTimeOffset.UtcNow;
 
             Image createdImage = await _repositoryWrapper.ImageRepository.CreateAsync(image);
 
