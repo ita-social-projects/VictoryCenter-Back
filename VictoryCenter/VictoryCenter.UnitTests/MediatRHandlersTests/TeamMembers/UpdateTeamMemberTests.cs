@@ -79,12 +79,10 @@ public class UpdateTeamMemberTests
         _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
     }
 
-    [Theory]
-    [InlineData("Valid Name")]
-    [InlineData("Updated Name")]
-    [InlineData("AAAAA")]
-    public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity(string testDescription)
+    [Fact]
+    public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity()
     {
+        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
         var testUpdatedTeamMember = new TeamMember
         {
             Id = 1,
@@ -92,7 +90,7 @@ public class UpdateTeamMemberTests
             CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
-            Description = testDescription,
+            Description = validDescription,
             CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
             Category = new Category
             {
@@ -109,7 +107,7 @@ public class UpdateTeamMemberTests
             CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
-            Description = testDescription,
+            Description = validDescription,
             Email = "test@gmail.com",
             Id = 1
         };
@@ -129,7 +127,7 @@ public class UpdateTeamMemberTests
                 {
                     FullName = "Updated Name",
                     CategoryId = _testExistingTeamMember.CategoryId,
-                    Description = testDescription
+                    Description = validDescription
                 },
                 _testExistingTeamMember.Id), CancellationToken.None);
 

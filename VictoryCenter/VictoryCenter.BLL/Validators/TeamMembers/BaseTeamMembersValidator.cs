@@ -18,10 +18,9 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage(ErrorMessagesConstants.UnknownStatusValue);
         RuleFor(x => x.Description)
-            .MinimumLength(DescriptionNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), DescriptionNameMinLength))
-            .MaximumLength(DescriptionNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), DescriptionNameMaxLength));
-        RuleFor(x => x.Description)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.Description)))
+            .MinimumLength(DescriptionNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), DescriptionNameMinLength))
+            .MaximumLength(DescriptionNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), DescriptionNameMaxLength))
             .When(x => x.Status == Status.Published);
     }
 
