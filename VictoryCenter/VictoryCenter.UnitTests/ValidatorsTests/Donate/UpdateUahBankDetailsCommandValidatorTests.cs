@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
@@ -53,7 +53,7 @@ public class UpdateUahBankDetailsCommandValidatorTests
         var command = new UpdateUahBankDetailsCommand(
             new UpdateUahBankDetailsDto
             {
-                Edrpou = "ABC123",
+                Edrpou = "ABC123AA",
                 Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
             },
             1L);
@@ -89,7 +89,7 @@ public class UpdateUahBankDetailsCommandValidatorTests
             new UpdateUahBankDetailsDto
             {
                 Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = "123ABC"
+                Iban = new string('a', UahBankDetailsConstants.Iban.MinLength)
             },
             1L);
 

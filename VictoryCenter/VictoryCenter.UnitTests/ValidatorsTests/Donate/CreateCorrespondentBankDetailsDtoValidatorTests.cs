@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.Validators.Donate;
@@ -87,7 +87,7 @@ public class CreateCorrespondentBankDetailsDtoValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanContainsNonDigits()
     {
-        var dto = new CreateCorrespondentBankDetailsDto { Swift = "VALIDSWIFT", Iban = "123ABC" };
+        var dto = new CreateCorrespondentBankDetailsDto { Swift = "VALIDSWIFT", Iban = new string('a', UahBankDetailsConstants.Iban.MinLength) };
         var result = _validator.TestValidate(dto);
         result.ShouldHaveValidationErrorFor(d => d.Iban)
             .WithErrorMessage(CorrespondentBankDetailsConstants.OnlyDigitsMessage);

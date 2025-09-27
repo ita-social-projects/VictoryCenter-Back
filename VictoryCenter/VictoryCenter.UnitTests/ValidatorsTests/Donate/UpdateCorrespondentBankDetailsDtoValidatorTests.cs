@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.Validators.Donate;
@@ -101,7 +101,7 @@ public class UpdateCorrespondentBankDetailsDtoValidatorTests
         var dto = new UpdateCorrespondentBankDetailsDto
         {
             Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MinLength),
-            Iban = "123ABC"
+            Iban = new string('a', CorrespondentBankDetailsConstants.Iban.MinLength)
         };
 
         var result = _validator.TestValidate(dto);
