@@ -162,7 +162,6 @@ public class UpdateTeamMemberTests
 
         Assert.False(result.IsSuccess);
         Assert.Contains(result.Errors, e => e.Message == ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)));
-
     }
 
     [Fact]
