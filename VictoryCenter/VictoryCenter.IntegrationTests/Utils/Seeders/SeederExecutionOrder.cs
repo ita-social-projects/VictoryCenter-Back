@@ -6,5 +6,8 @@ public enum SeederExecutionOrder
     TeamMembers,
     ProgramCategories,
     Programs,
-    Images
+    Images,
+    UahBankDetails,
+    SupportOptions,
+    ForeignBankDetails
 }
