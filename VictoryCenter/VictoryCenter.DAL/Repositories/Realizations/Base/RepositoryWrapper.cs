@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
@@ -28,6 +29,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Partners;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -51,6 +53,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ISupportOptionsRepository? _supportOptionsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
+    private IPartnerRepository? _partnerRepository;
+    private IPartnerSectionsRepository? _partnerSectionRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -80,6 +84,8 @@ public class RepositoryWrapper : IRepositoryWrapper
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
+    public IPartnerRepository PartnerRepository => _partnerRepository ??= new PartnerRepository(_victoryCenterDbContext);
+    public IPartnerSectionsRepository PartnerSectionsRepository => _partnerSectionRepository ??= new PartnerSectionsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
