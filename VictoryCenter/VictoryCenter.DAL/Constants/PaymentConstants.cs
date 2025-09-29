@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace VictoryCenter.BLL.Constants;
+namespace VictoryCenter.DAL.Constants;
 
 public static class PaymentConstants
 {

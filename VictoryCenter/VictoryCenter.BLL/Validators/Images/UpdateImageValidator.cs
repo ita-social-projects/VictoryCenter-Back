@@ -2,6 +2,7 @@ using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.BLL.Validators.Images;
 

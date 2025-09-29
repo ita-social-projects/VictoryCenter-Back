@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.DAL.Constants;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;

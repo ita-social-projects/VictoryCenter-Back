@@ -1,20 +1,18 @@
-﻿using System.Transactions;
+using System.Transactions;
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
 
-public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, Result<TeamMemberDto>>
+public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, TeamMemberDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -27,10 +25,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         _validator = validator;
     }
 
-    public async Task<Result<TeamMemberDto>> Handle(CreateTeamMemberCommand request, CancellationToken cancellationToken)
+    public override async Task<TeamMemberDto> HandleRequest(CreateTeamMemberCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
@@ -40,8 +36,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (category == null)
             {
-                return Result.Fail<TeamMemberDto>(
-                    ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
+                throw new Exception(ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
             TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
@@ -52,11 +47,19 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                     u => u.Priority,
                     u => u.CategoryId == entity.CategoryId);
                 entity.Priority = (maxPriority ?? 0) + 1;
-                await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
+
+                try
+                {
+                    await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
+                }
+                catch
+                {
+                    throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
+                }
 
                 if (await _repositoryWrapper.SaveChangesAsync() <= 0)
                 {
-                    return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember)));
+                    throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
                 }
 
                 TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
@@ -71,21 +74,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                     result.Image = _mapper.Map<ImageDto>(imageResult);
                 }
 
-                scope.Complete();
-                return Result.Ok(result);
+                return result;
             }
-        }
-        catch (ValidationException vex)
-        {
-            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
-        }
-        catch (BlobStorageException e)
-        {
-            return Result.Fail<TeamMemberDto>(ImageConstants.ErrorWithUserImage(e.Message));
-        }
-        catch (DbUpdateException)
-        {
-            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
-        }
     }
 }

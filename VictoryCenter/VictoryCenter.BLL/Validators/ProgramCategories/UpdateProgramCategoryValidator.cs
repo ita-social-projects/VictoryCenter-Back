@@ -2,6 +2,7 @@ using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
+using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.BLL.Validators.ProgramCategories;
 

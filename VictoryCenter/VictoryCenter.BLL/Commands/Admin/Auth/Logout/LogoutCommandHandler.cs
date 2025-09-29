@@ -3,7 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using VictoryCenter.BLL.Constants;
+using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Logout;

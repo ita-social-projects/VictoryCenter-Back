@@ -1,14 +1,12 @@
-using FluentResults;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Delete;
-
-public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, Result<long>>
+public class DeleteTeamMemberHandler : BaseHandler<DeleteTeamMemberCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -17,10 +15,12 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<long>> Handle(DeleteTeamMemberCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(
+        DeleteTeamMemberCommand request,
+        CancellationToken cancellationToken)
     {
-        var entityToDelete =
-            await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+        var entityToDelete = await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<TeamMember>
             {
                 Filter = entity => entity.Id == request.Id,
                 Include = query => query.Include(tm => tm.Category)
@@ -28,18 +28,20 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+            throw new Exception(
+                ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
         }
 
         entityToDelete.Category = null!;
 
         _repositoryWrapper.TeamMembersRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        var changes = await _repositoryWrapper.SaveChangesAsync();
+        if (changes <= 0)
         {
-            return Result.Ok(entityToDelete.Id);
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMember)));
         }
 
-        return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember)));
+        return entityToDelete.Id;
     }
 }

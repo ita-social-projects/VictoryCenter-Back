@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.UnitTests.ServiceTests;
 

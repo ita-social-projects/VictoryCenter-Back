@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Public.Payment;
 using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.UnitTests.ServiceTests;
 

@@ -3,6 +3,8 @@ using VictoryCenter.BLL.Commands.Admin.ProgramCategories.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
 using VictoryCenter.BLL.Validators.ProgramCategories;
+using VictoryCenter.DAL.Constants;
+
 namespace VictoryCenter.UnitTests.ValidatorsTests.ProgramCategories;
 
 public class UpdateProgramCategoryValidatorTests

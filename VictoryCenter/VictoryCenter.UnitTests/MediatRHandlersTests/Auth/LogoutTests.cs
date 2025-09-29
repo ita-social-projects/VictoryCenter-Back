@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Auth.Logout;
-using VictoryCenter.BLL.Constants;
+using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;

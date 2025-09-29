@@ -4,10 +4,10 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
+using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.RefreshToken;

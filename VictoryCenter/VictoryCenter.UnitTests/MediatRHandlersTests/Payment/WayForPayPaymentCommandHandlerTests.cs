@@ -5,10 +5,10 @@ using Moq;
 using Moq.Protected;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Commands.Public.Payment.WayForPay;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.Payment;
 using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Payment;
 

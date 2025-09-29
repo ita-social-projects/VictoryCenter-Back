@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
 using FluentResults;
@@ -85,7 +85,7 @@ public class CreateTeamMemberTests
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenSaveChangeFails()
     {
-        var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember));
+        var failMessage = ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember));
         SetupDependencies(_teamMemberDto, _teamMember, -1);
 
         var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
