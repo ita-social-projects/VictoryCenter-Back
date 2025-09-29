@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Queries.Admin.TeamMembers.Search;
 using VictoryCenter.BLL.Validators.TeamMembers;
@@ -108,6 +109,112 @@ public class SearchTeamMemberTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchTeamMemberDto.FullName)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_WithImage_ShouldReturnImage()
+    {
+        // Arrange
+        var members = new List<TeamMember>
+        {
+            new()
+            {
+                Id = 2,
+                FullName = "With Image",
+                Priority = 1,
+                CategoryId = 1,
+                Status = Status.Published,
+                Description = "desc",
+                Email = "with@img.com",
+                Image = new Image
+                {
+                    Id = 10,
+                    BlobName = "blob.jpg",
+                    Url = "https://cdn.example.com/blob.jpg",
+                    MimeType = "image/jpeg",
+                    CreatedAt = DateTimeOffset.UtcNow.AddHours(-1)
+                },
+                CreatedAt = DateTimeOffset.UtcNow
+            }
+        };
+        var dtos = new List<TeamMemberDto>
+        {
+            new()
+            {
+                Id = 2,
+                FullName = "With Image",
+                Priority = 1,
+                Status = Status.Published,
+                Description = "desc",
+                Email = "with@img.com",
+                Image = new ImageDto
+                {
+                    Id = 10,
+                    BlobName = "blob.jpg",
+                    Url = "https://cdn.example.com/blob.jpg",
+                    MimeType = "image/jpeg",
+                    CreatedAt = members[0].Image!.CreatedAt
+                }
+            }
+        };
+        SetupMapper(dtos);
+        SetupRepositoryWrapper(members);
+
+        var dto = new SearchTeamMemberDto { FullName = "With Image" };
+        var query = new SearchTeamMemberQuery(dto);
+        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
+
+        // Act
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(Assert.Single(result.Value!.Items).Image);
+    }
+
+    [Fact]
+    public async Task Handle_WithoutImage_ShouldReturnNullImage()
+    {
+        // Arrange
+        var members = new List<TeamMember>
+        {
+            new()
+            {
+                Id = 3,
+                FullName = "No Image",
+                Priority = 1,
+                CategoryId = 1,
+                Status = Status.Published,
+                Description = "desc",
+                Email = "no@img.com",
+                Image = null,
+                CreatedAt = DateTimeOffset.UtcNow
+            }
+        };
+        var dtos = new List<TeamMemberDto>
+        {
+            new()
+            {
+                Id = 3,
+                FullName = "No Image",
+                Priority = 1,
+                Status = Status.Published,
+                Description = "desc",
+                Email = "no@img.com",
+                Image = null
+            }
+        };
+        SetupMapper(dtos);
+        SetupRepositoryWrapper(members);
+
+        var dto = new SearchTeamMemberDto { FullName = "No Image" };
+        var query = new SearchTeamMemberQuery(dto);
+        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
+
+        // Act
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.Null(Assert.Single(result.Value!.Items).Image);
     }
 
     private void SetupMapper(List<TeamMemberDto> teamMemberDtos)
