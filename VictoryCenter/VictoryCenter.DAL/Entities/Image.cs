@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 using VictoryCenter.DAL.Data.BaseEntity;
 
 namespace VictoryCenter.DAL.Entities;
@@ -11,6 +11,4 @@ public class Image : BaseEntity
     public string? Url { get; set; }
 
     public string MimeType { get; set; } = null!;
-
-    public DateTimeOffset CreatedAt { get; set; }
 }
