@@ -47,11 +47,12 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
             };
 
             var searchExpression = _searchService.CreateSearchExpression(searchTerm);
+
             var teamMembers = await _repositoryWrapper.TeamMembersRepository.GetAllAsync(new QueryOptions<TeamMember>
             {
-                Include = tm => tm
+                Include = q => q
                     .Include(tm => tm.Category)
-                    .Include(tm => tm.Image),
+                    .Include(tm => tm.Image!),
                 Filter = searchExpression,
                 Offset = dto.Offset is > 0 ? (int)dto.Offset : 0,
                 Limit = dto.Limit is > 0 ? (int)dto.Limit : 0,
