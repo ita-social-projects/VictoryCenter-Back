@@ -57,7 +57,7 @@ public class ReorderQuestionsTests : BaseTestClass
         var reorderDto = new ReorderFaqQuestionsDto
         {
             PageId = page.Id,
-            OrderedIds = [orderedIds[2], orderedIds[0], -1]
+            OrderedIds = [orderedIds[2], orderedIds[0]]
         };
         var serializedDto = JsonSerializer.Serialize(reorderDto);
 

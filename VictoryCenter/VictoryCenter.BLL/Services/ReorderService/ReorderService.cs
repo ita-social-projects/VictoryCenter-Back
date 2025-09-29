@@ -46,7 +46,7 @@ public class ReorderService : IReorderService
         Expression<Func<TEntity, bool>>? groupSelector = null)
         where TEntity : class, IOrderableEntity
     {
-        if (idsOrder == null || !idsOrder.Any())
+        if (idsOrder == null || idsOrder.Count <= 1)
         {
             return;
         }
@@ -74,6 +74,15 @@ public class ReorderService : IReorderService
 
         var idToEntityMap = entities.ToDictionary(idSelectorCompiled);
         var oldPriorities = entities.OrderBy(e => e.Priority).Select(e => e.Priority).ToList();
+
+        // Check sequential order of old priorities
+        for (int i = 1; i < oldPriorities.Count; i++)
+        {
+            if (oldPriorities[i] != oldPriorities[i - 1] + 1)
+            {
+                throw new ReorderException(ReorderConstants.ElementsPrioritiesIsNotInSeqentialOrder);
+            }
+        }
 
         // Step 1: Temp priorities to avoid unique constraint issues (intermediate state)
         for (int i = 0; i < entities.Count; i++)

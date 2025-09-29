@@ -124,6 +124,32 @@ public class ReorderServiceTests
     }
 
     [Fact]
+    public async Task SwapElements_PrioritiesAreNotSequential_ThrowsReorderException()
+    {
+        // Arrange
+        var idsOrder = new List<long> { 1, 2, 3 };
+        var entities = new List<TestOrderableEntity>
+    {
+        new() { Id = 1, Priority = 1 },
+        new() { Id = 2, Priority = 2 },
+        new() { Id = 3, Priority = 4 }
+    };
+        Expression<Func<TestOrderableEntity, long>> idSelector = x => x.Id;
+
+        _repositoryMock.Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<TestOrderableEntity>>()))
+                       .ReturnsAsync(entities);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<ReorderException>(() =>
+            _reorderService.SwapElementsAsync(idsOrder, idSelector));
+
+        Assert.Equal(ReorderConstants.ElementsPrioritiesIsNotInSeqentialOrder, exception.Message);
+
+        _repositoryMock.Verify(x => x.Update(It.IsAny<TestOrderableEntity>()), Times.Never);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
     public async Task SwapElements_ValidRequest_SwapsElementsSuccessfully()
     {
         // Arrange
