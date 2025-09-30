@@ -17,7 +17,7 @@ public class UpdateImageValidator : BaseImageValidator<UpdateImageCommand>
 
         RuleFor(x => x.UpdateImageDto.MimeType)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.MimeType)))
-            .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
+            .Must(mimeType => AllowedMimeTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }
 }

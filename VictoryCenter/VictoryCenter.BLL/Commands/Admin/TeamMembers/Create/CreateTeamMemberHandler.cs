@@ -31,6 +31,14 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
     {
         try
         {
+            request = request with
+            {
+                CreateTeamMemberDto = request.CreateTeamMemberDto with
+                {
+                    FullName = request.CreateTeamMemberDto.FullName.Trim()
+                }
+            };
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
