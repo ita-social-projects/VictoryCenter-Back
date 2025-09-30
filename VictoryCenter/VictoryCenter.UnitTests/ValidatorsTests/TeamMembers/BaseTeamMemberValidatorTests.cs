@@ -139,6 +139,7 @@ public class BaseTeamMembersValidatorTests
             CategoryId = 1,
             Status = Status.Published,
             Description = "Desc",
+            ImageId = 123
         };
 
         var result = _validator.TestValidate(model);
