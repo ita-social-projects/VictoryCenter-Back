@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -17,13 +18,11 @@ public class UpdateTeamMemberTests : BaseTestClass
     {
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
+    [Fact]
+    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember()
     {
+        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
+
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
                                         .LastOrDefaultAsync(tm => tm.Status == Status.Draft)
@@ -35,7 +34,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             FullName = "Test Name",
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
-            Description = testDescription,
+            Description = validDescription,
             Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
