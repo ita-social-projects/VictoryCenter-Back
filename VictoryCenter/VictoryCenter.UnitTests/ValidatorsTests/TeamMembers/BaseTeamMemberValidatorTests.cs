@@ -145,4 +145,35 @@ public class BaseTeamMembersValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), BaseTeamMembersValidator.DescriptionNameMinLength));
     }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenImageIdIsNullForPublished()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "John Doe",
+            CategoryId = 1,
+            Status = Status.Published,
+            Description = "Valid description",
+            ImageId = null
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.ImageId)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.ImageId)));
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldNotHaveError_WhenImageIdIsNullForDraft()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "John Doe",
+            CategoryId = 1,
+            Status = Status.Draft,
+            Description = "",
+            ImageId = null
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.ImageId);
+    }
 }
