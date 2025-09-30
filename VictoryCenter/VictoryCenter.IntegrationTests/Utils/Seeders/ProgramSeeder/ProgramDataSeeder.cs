@@ -34,7 +34,7 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.Program>
                 Name = "TestName" + (i + 1),
                 Description = "TestDescription" + (i + 1),
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 Categories = selectedCategories
             });
         }

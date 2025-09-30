@@ -63,7 +63,7 @@ public class GetImageByNameTest : BaseTestClass
             BlobName = "",
             MimeType = "image/png",
             Url = "http://test.com/empty.png",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         Fixture.DbContext.Images.Add(imageWithEmptyBlobName);

@@ -31,7 +31,7 @@ public class TokenService : ITokenService
 
     public string CreateAccessToken(Claim[] claims)
     {
-        var issuedAt = DateTime.UtcNow;
+        var issuedAt = DateTimeOffset.UtcNow.UtcDateTime;
         claims =
         [
             ..claims,
@@ -53,7 +53,7 @@ public class TokenService : ITokenService
 
     public string CreateRefreshToken(Claim[] claims)
     {
-        var issuedAt = DateTime.UtcNow;
+        var issuedAt = DateTimeOffset.UtcNow.UtcDateTime;
         claims =
         [
             ..claims,

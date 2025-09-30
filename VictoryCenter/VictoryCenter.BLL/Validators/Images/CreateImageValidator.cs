@@ -21,7 +21,7 @@ public class CreateImageValidator : AbstractValidator<CreateImageCommand>
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
     }
 
-    private bool IsValidBase64(string? base64)
+    private static bool IsValidBase64(string? base64)
     {
         if (string.IsNullOrWhiteSpace(base64))
         {

@@ -4,7 +4,7 @@
 
 > Subtitle or Short Description Goes Here
 
-> ideally one sentence
+> Ideally one sentence
 
 > include terms/tags that can be searched
 
@@ -65,6 +65,11 @@ VictoryCenter-Back/
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   └── Update
+│   │   │   │   ├── FaqQuestions
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   ├── Reorder
+│   │   │   │   │   └── Update
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
@@ -92,12 +97,15 @@ VictoryCenter-Back/
 │   │   │   │   ├── Auth
 │   │   │   │   ├── Categories
 │   │   │   │   ├── Common
+│   │   │   │   ├── FaqQuestions
 │   │   │   │   ├── Images
 │   │   │   │   ├── ProgramCategories
 │   │   │   │   ├── Programs
-│   │   │   │   └── TeamMembers
+│   │   │   │   ├── TeamMembers
+│   │   │   │   └── VisitorPages
 │   │   │   ├── Common
 │   │   │   └── Public
+│   │   │       ├── FaqQuestions
 │   │   │       ├── Payment
 │   │   │       │   ├── Common
 │   │   │       │   └── WayForPay
@@ -113,16 +121,21 @@ VictoryCenter-Back/
 │   │   │   └── TokenService
 │   │   ├── Mapping
 │   │   │   ├── Categories
+│   │   │   ├── FaqQuestions
 │   │   │   ├── Images
 │   │   │   ├── ProgramCategories
 │   │   │   ├── Programs
-│   │   │   └── TeamMembers
+│   │   │   ├── TeamMembers
+│   │   │   └── VisitorPages
 │   │   ├── Options
 │   │   │   └── Payment
 │   │   ├── Queries
 │   │   │   ├── Admin
 │   │   │   │   ├── Categories
 │   │   │   │   │   └── GetAll
+│   │   │   │   ├── FaqQuestions
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── GetById
 │   │   │   │   │   └── GetByName
@@ -130,11 +143,15 @@ VictoryCenter-Back/
 │   │   │   │   ├── Programs
 │   │   │   │   │   ├── GetByFilters
 │   │   │   │   │   └── GetById
-│   │   │   │   └── TeamMembers
-│   │   │   │       ├── GetByFilters
-│   │   │   │       ├── GetById
-│   │   │   │       └── Search
+│   │   │   │   ├── TeamMembers
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   ├── GetById
+│   │   │   │   │   └── Search
+│   │   │   │   └── VisitorPages
+│   │   │   │       └── GetAll
 │   │   │   └── Public
+│   │   │       ├── FaqQuestions
+│   │   │       │   └── GetPublished
 │   │   │       ├── Programs
 │   │   │       │   └── GetPublished
 │   │   │       └── TeamPage
@@ -148,6 +165,7 @@ VictoryCenter-Back/
 │   │   └── Validators
 │   │       ├── Auth
 │   │       ├── Categories
+│   │       ├── FaqQuestions
 │   │       ├── Images
 │   │       ├── Payment
 │   │       ├── ProgramCategories
@@ -163,18 +181,24 @@ VictoryCenter-Back/
 │   │       ├── Interfaces
 │   │       │   ├── Base
 │   │       │   ├── Categories
+│   │       │   ├── FaqPlacements
+│   │       │   ├── FaqQuestions
 │   │       │   ├── Media
 │   │       │   ├── ProgramCategories
 │   │       │   ├── Programs
-│   │       │   └── TeamMembers
+│   │       │   ├── TeamMembers
+│   │       │   └── VisitorPages
 │   │       ├── Options
 │   │       └── Realizations
 │   │           ├── Base
 │   │           ├── Categories
+│   │           ├── FaqPlacements
+│   │           ├── FaqQuestions
 │   │           ├── Media
 │   │           ├── ProgramCategories
 │   │           ├── Programs
-│   │           └── TeamMembers
+│   │           ├── TeamMembers
+│   │           └── VisitorPages
 │   ├── VictoryCenter.DbUpdate
 │   │   └── Helpers
 │   ├── VictoryCenter.IntegrationTests
@@ -184,6 +208,14 @@ VictoryCenter-Back/
 │   │   │   │   ├── Create
 │   │   │   │   ├── Delete
 │   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── FaqQuestions
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   ├── Reorder
 │   │   │   │   └── Update
 │   │   │   ├── Images
 │   │   │   │   ├── Create
@@ -204,20 +236,23 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetFiltered
 │   │   │   │   ├── GetPublished
 │   │   │   │   └── Update
-│   │   │   └── TeamMembers
-│   │   │       ├── Create
-│   │   │       ├── Delete
-│   │   │       ├── GetById
-│   │   │       ├── GetFiltered
-│   │   │       ├── GetPublished
-│   │   │       ├── Reorder
-│   │   │       ├── Search
-│   │   │       └── Update
+│   │   │   ├── TeamMembers
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   ├── Reorder
+│   │   │   │   ├── Search
+│   │   │   │   └── Update
+│   │   │   └── VisitorPages
+│   │   │       └── GetAll
 │   │   ├── MiddlewareTests
 │   │   └── Utils
 │   │       ├── DbFixture
 │   │       └── Seeders
 │   │           ├── Categories
+│   │           ├── FaqQuestions
 │   │           ├── Images
 │   │           ├── ProgramCategoriesSeeder
 │   │           ├── ProgramSeeder
@@ -226,33 +261,37 @@ VictoryCenter-Back/
 │   │   ├── MediatRHandlersTests
 │   │   │   ├── Auth
 │   │   │   ├── Categories
+│   │   │   ├── FaqQuestions
 │   │   │   ├── Images
 │   │   │   ├── Payment
 │   │   │   ├── ProgramCategories
 │   │   │   ├── Programs
-│   │   │   └── TeamMembers
+│   │   │   ├── TeamMembers
+│   │   │   └── VisitorPages
 │   │   ├── MiddlewareTests
 │   │   ├── ServiceTests
 │   │   │   └── Payment
 │   │   └── ValidatorsTests
 │   │       ├── Auth
 │   │       ├── Categories
+│   │       ├── FaqQuestions
 │   │       ├── Payment
 │   │       ├── ProgramCategories
 │   │       ├── Programs
 │   │       └── TeamMembers
-│   ├── VictoryCenter.WebAPI
-│   │   ├── Controllers
-│   │   │   ├── Admin
-│   │   │   ├── Common
-│   │   │   └── Public
-│   │   ├── Extensions
-│   │   ├── Factories
-│   │   ├── Middleware
-│   │   ├── Properties
-│   │   ├── Utils
-│   │   │   └── Settings
-│   │   └── wwwroot
+│   └── VictoryCenter.WebAPI
+│       ├── Controllers
+│       │   ├── Admin
+│       │   ├── Common
+│       │   └── Public
+│       ├── Extensions
+│       ├── Factories
+│       ├── Middleware
+│       ├── Properties
+│       ├── Utils
+│       │   └── Settings
+│       └── wwwroot
+│           └── Images
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md
@@ -267,10 +306,8 @@ VictoryCenter-Back/
 
 - MS Visual Studio (2022 or later)
   https://visualstudio.microsoft.com/ru/downloads
-- .NET SDK (v 6.0.101)
-  https://dotnet.microsoft.com/en-us/download/dotnet/6.0
-- NodeJS (v 16.13.2)
-  https://nodejs.org
+- .NET SDK (v 9.0)
+  https://dotnet.microsoft.com/en-us/download/dotnet/9.0
 
 ### Environment
 
@@ -291,11 +328,13 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 
 ### Clone
 
-- Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO`
+- Clone this repo to your local machine using `https://github.com/ita-social-projects/VictoryCenter-Back.git`
 
 ### Setup
 
 ### How to run local
+
+- Create `.env` in the WebAPI layer and insert all fields that are in `.env.example`.
 
 ### How to connect to db locally
 
@@ -320,7 +359,42 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 
 Now you can connect to your localhost instance with login (sa) and password (Admin@1234)!
 
-#### How to run Docker
+### Apply database migrations
+
+Run the following command to apply migrations and create the database schema:
+```bash
+dotnet run --project VictoryCenter.DbUpdate
+```
+
+If migrations are missing or need to be created, here is an example:
+```bash
+dotnet ef migrations add InitialCreate --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+dotnet run --project VictoryCenter.DbUpdate
+```
+
+### Run the application
+
+Start the **ASP.NET Core** application:
+```bash
+dotnet run --project VictoryCenter.WebAPI
+```
+
+Alternatively, if using **Visual Studio**:
+1. Open the **VictoryCenter.sln** solution.
+2. Set **VictoryCenter.WebAPI** as the startup project.
+3. Press **F5** to run in debug mode.
+
+Once started, the app will be accessible at:
+- **http://localhost:5000** (For HTTP)
+- **https://localhost:5001** (For HTTPS)
+- **https://localhost:5001/swagger/index.html** (For Swagger)
+
+#### If any dependencies are missing, install them with:
+```bash
+dotnet restore
+```
+
+### How to run Docker
 
 ### how to connect to db via docker
 
