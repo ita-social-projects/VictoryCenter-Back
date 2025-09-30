@@ -46,8 +46,8 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
                     .NotFound(request.Id, typeof(HypotherapyProgram)));
             }
 
-            IEnumerable<ProgramCategory> newCategories = await _repositoryWrapper.ProgramCategoriesRepository.GetAllAsync(
-                new QueryOptions<ProgramCategory>
+            IEnumerable<HypotherapyProgramCategory> newCategories = await _repositoryWrapper.HypotherapyProgramCategoriesRepository.GetAllAsync(
+                new QueryOptions<HypotherapyProgramCategory>
                 {
                     Filter = category => request.UpdateProgramDto.CategoryIds.Contains(category.Id),
                     AsNoTracking = false
@@ -68,7 +68,7 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
 
             programToUpdate.Categories.Clear();
 
-            foreach (ProgramCategory category in newCategories)
+            foreach (HypotherapyProgramCategory category in newCategories)
             {
                 programToUpdate.Categories.Add(category);
             }

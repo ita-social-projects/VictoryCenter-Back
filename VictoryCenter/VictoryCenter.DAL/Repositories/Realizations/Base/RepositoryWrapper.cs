@@ -3,17 +3,17 @@ using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.HypotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HypotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
-using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.HypotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HypotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
-using VictoryCenter.DAL.Repositories.Realizations.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
@@ -30,7 +30,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ITeamMembersRepository? _teamMembersRepository;
     private IVisitorPagesRepository? _visitorPagesRepository;
     private IImageRepository? _imageRepository;
-    private IProgramCategoriesRepository? _programCategoriesRepository;
+    private IHypotherapyProgramCategoriesRepository? _programCategoriesRepository;
     private IHypotherapyProgramsRepository? _hypotherapyProgramsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
@@ -44,8 +44,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ITeamMembersRepository TeamMembersRepository => _teamMembersRepository ??= new TeamMembersRepository(_victoryCenterDbContext);
     public IVisitorPagesRepository VisitorPagesRepository => _visitorPagesRepository ??= new VisitorPagesRepository(_victoryCenterDbContext);
     public IImageRepository ImageRepository => _imageRepository ??= new ImageRepository(_victoryCenterDbContext);
-    public IProgramCategoriesRepository ProgramCategoriesRepository => _programCategoriesRepository
-        ??= new ProgramCategoriesRepository(_victoryCenterDbContext);
+    public IHypotherapyProgramCategoriesRepository HypotherapyProgramCategoriesRepository => _programCategoriesRepository
+        ??= new HypotherapyProgramCategoriesRepository(_victoryCenterDbContext);
     public IHypotherapyProgramsRepository HypotherapyProgramsRepository => _hypotherapyProgramsRepository ??= new HypotherapyProgramsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()

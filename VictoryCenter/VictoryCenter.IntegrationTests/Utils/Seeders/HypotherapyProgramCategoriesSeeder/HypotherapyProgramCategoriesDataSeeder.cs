@@ -4,9 +4,9 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders.HypotherapyProgramCategoriesSeeder;
 
-public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
+public class HypotherapyProgramCategoriesSeeder : BaseSeeder<HypotherapyProgramCategory>
 {
-    public ProgramCategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<ProgramCategoriesSeeder> logger)
+    public HypotherapyProgramCategoriesSeeder(VictoryCenterDbContext dbContext, ILogger<HypotherapyProgramCategoriesSeeder> logger)
         : base(dbContext, logger)
     {
     }
@@ -14,9 +14,9 @@ public class ProgramCategoriesSeeder : BaseSeeder<ProgramCategory>
     public override string Name => "ProgramCategoriesSeeder";
     public override int Order => (int)SeederExecutionOrder.ProgramCategories;
 
-    protected override Task<List<ProgramCategory>> GenerateEntitiesAsync()
+    protected override Task<List<HypotherapyProgramCategory>> GenerateEntitiesAsync()
     {
-        var programCategories = new List<ProgramCategory>
+        var programCategories = new List<HypotherapyProgramCategory>
         {
             new()
             {

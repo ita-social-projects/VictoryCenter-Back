@@ -9,6 +9,6 @@ public class HypotherapyProgram : BaseEntity
     public string? Description { get; set; }
     public Status Status { get; set; }
     public long? ImageId { get; set; }
-    public ICollection<ProgramCategory> Categories { get; set; } = [];
+    public ICollection<HypotherapyProgramCategory> Categories { get; set; } = [];
     public Image? Image { get; set; }
 }

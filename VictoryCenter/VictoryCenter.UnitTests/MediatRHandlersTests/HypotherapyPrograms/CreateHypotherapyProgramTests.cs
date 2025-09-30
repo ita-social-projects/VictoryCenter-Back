@@ -46,7 +46,7 @@ public class CreateHypotherapyProgramTests
         Image = new ImageDto()
     };
 
-    private readonly IEnumerable<ProgramCategory> _programCategories = new List<ProgramCategory>
+    private readonly IEnumerable<HypotherapyProgramCategory> _programCategories = new List<HypotherapyProgramCategory>
     {
         new()
         {
@@ -133,8 +133,8 @@ public class CreateHypotherapyProgramTests
 
     private void SetUpRepositoryWrapper(int saveResult)
     {
-        _repositoryWrapperMock.Setup(r => r.ProgramCategoriesRepository
-            .GetAllAsync(It.IsAny<QueryOptions<ProgramCategory>>())).ReturnsAsync(_programCategories);
+        _repositoryWrapperMock.Setup(r => r.HypotherapyProgramCategoriesRepository
+            .GetAllAsync(It.IsAny<QueryOptions<HypotherapyProgramCategory>>())).ReturnsAsync(_programCategories);
         _repositoryWrapperMock.Setup(r => r.ImageRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(_image);
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository

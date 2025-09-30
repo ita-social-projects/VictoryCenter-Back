@@ -31,8 +31,8 @@ public class CreateHypotherapyProgramHandler : IRequestHandler<CreateHypotherapy
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            IEnumerable<ProgramCategory> categories = await _repositoryWrapper
-                .ProgramCategoriesRepository.GetAllAsync(new QueryOptions<ProgramCategory>
+            IEnumerable<HypotherapyProgramCategory> categories = await _repositoryWrapper
+                .HypotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HypotherapyProgramCategory>
                 {
                     Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id),
                     AsNoTracking = false

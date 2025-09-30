@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250930135620_changeProgramToHypotherapyProgram")]
+    partial class changeProgramToHypotherapyProgram
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace VictoryCenter.DAL.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("HypotherapyProgramHypotherapyProgramCategory", b =>
+            modelBuilder.Entity("HypotherapyProgramProgramCategory", b =>
                 {
                     b.Property<long>("CategoriesId")
                         .HasColumnType("bigint");
@@ -328,26 +331,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("Programs");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HypotherapyProgramCategory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ProgramCategories");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
                 {
                     b.Property<long>("Id")
@@ -372,6 +355,26 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Images", "media");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.ProgramCategory", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ProgramCategories");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamCategory", b =>
@@ -472,9 +475,9 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("VisitorPages");
                 });
 
-            modelBuilder.Entity("HypotherapyProgramHypotherapyProgramCategory", b =>
+            modelBuilder.Entity("HypotherapyProgramProgramCategory", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.HypotherapyProgramCategory", null)
+                    b.HasOne("VictoryCenter.DAL.Entities.ProgramCategory", null)
                         .WithMany()
                         .HasForeignKey("CategoriesId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -24,7 +24,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<Image> Images { get; set; }
 
-    public DbSet<ProgramCategory> ProgramCategories { get; set; }
+    public DbSet<HypotherapyProgramCategory> ProgramCategories { get; set; }
 
     public DbSet<HypotherapyProgram> Programs { get; set; }
 
