@@ -159,7 +159,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)), result.Errors[0].Message);
+        Assert.Contains(result.Errors, e => e.Message == ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)));
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class UpdateTeamMemberTests
             new UpdateTeamMemberCommand(
                 new UpdateTeamMemberDto
                 {
-                    FullName = "test1",
+                    FullName = "testOne",
                     CategoryId = 10000,
                     Description = "Updated Description"
                 }, _testExistingTeamMember.Id), CancellationToken.None);

@@ -36,7 +36,7 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
             var category = selectedCategories[i % selectedCategories.Count];
             teamMembers.Add(new TeamMember
             {
-                FullName = $"FirstName{i} LastName{i}",
+                FullName = $"FirstName LastName",
                 CategoryId = category.Id,
                 Priority = i + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),

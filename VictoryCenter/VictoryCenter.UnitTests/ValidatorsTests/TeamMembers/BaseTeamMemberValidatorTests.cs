@@ -47,6 +47,34 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameConsistSymbols()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "@#$",
+        };
+
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(
+                ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateTeamMemberDto.FullName)));
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameConsistNumbers()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "123",
+        };
+
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(
+                ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateTeamMemberDto.FullName)));
+    }
+
+    [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenCategoryIdIsZero()
     {
         var model = new CreateTeamMemberDto { FullName = "John Doe", CategoryId = 0 };
