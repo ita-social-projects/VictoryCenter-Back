@@ -21,7 +21,7 @@ public class GetProgramsTests
             Name = "TestName1",
             Description = "TestDescription1",
             Status = Status.Published,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             ImageId = 1,
         },
         new()
@@ -30,7 +30,7 @@ public class GetProgramsTests
             Name = "TestName2",
             Description = "TestDescription2",
             Status = Status.Draft,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             ImageId = 2,
         },
         new()
@@ -39,7 +39,7 @@ public class GetProgramsTests
             Name = "TestName3",
             Description = "TestDescription3",
             Status = Status.Published,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             ImageId = 3,
         },
         new()
@@ -48,7 +48,7 @@ public class GetProgramsTests
             Name = "TestName4",
             Description = "TestDescription4",
             Status = Status.Draft,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             ImageId = 4,
         },
         new()
@@ -57,7 +57,7 @@ public class GetProgramsTests
             Name = "TestName5",
             Description = "TestDescription5",
             Status = Status.Published,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
             ImageId = 5,
         }
 

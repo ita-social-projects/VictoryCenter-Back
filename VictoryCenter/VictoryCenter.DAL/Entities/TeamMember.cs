@@ -22,7 +22,7 @@ public class TeamMember
 
     public string? Email { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 
     public Category Category { get; set; } = null!;
 

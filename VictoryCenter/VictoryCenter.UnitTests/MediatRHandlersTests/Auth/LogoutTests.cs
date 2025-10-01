@@ -87,14 +87,14 @@ public class LogoutTests
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         Assert.Null(admin.RefreshToken);
-        Assert.Equal(admin.RefreshTokenValidTo, DateTime.MinValue);
+        Assert.Equal(admin.RefreshTokenValidTo, DateTimeOffset.MinValue);
     }
 
     [Fact]
     public async Task Handle_ValidData_SucceedsAndClearsCookies()
     {
         var cmd = new LogoutCommand();
-        var admin = new AdminUser { RefreshToken = "refresh_token", RefreshTokenValidTo = DateTime.UtcNow.AddDays(1) };
+        var admin = new AdminUser { RefreshToken = "refresh_token", RefreshTokenValidTo = DateTimeOffset.UtcNow.AddDays(1) };
         var mockHttpContext = new Mock<HttpContext>();
         var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "admin@gmail.com") }));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
@@ -111,7 +111,7 @@ public class LogoutTests
         Assert.True(result.IsSuccess);
         Assert.Equal(Unit.Value, result.Value);
         Assert.Null(admin.RefreshToken);
-        Assert.Equal(admin.RefreshTokenValidTo, DateTime.MinValue);
+        Assert.Equal(admin.RefreshTokenValidTo, DateTimeOffset.MinValue);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         mockResponseCookies.Verify(

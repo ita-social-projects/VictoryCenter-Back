@@ -4,6 +4,7 @@ namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 
 public record CreateTeamMemberDto
 {
+
     public string FullName { get; init; } = null!;
 
     public long CategoryId { get; init; }

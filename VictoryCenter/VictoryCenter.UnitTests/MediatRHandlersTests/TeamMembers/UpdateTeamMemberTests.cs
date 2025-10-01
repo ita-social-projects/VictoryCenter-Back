@@ -35,7 +35,7 @@ public class UpdateTeamMemberTests
         Priority = 1,
         Status = Status.Published,
         Description = "Test description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
         Category = new Category
         {
             Id = 1,
@@ -54,7 +54,7 @@ public class UpdateTeamMemberTests
         Priority = 1,
         Status = Status.Published,
         Description = "Test updated description",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
         Category = new Category
         {
             Id = 1,
@@ -79,12 +79,10 @@ public class UpdateTeamMemberTests
         _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
     }
 
-    [Theory]
-    [InlineData("Valid Name")]
-    [InlineData("Updated Name")]
-    [InlineData("A")]
-    public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity(string testDescription)
+    [Fact]
+    public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity()
     {
+        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
         var testUpdatedTeamMember = new TeamMember
         {
             Id = 1,
@@ -92,7 +90,7 @@ public class UpdateTeamMemberTests
             CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
-            Description = testDescription,
+            Description = validDescription,
             CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
             Category = new Category
             {
@@ -109,7 +107,7 @@ public class UpdateTeamMemberTests
             CategoryId = 1,
             Priority = 1,
             Status = Status.Published,
-            Description = testDescription,
+            Description = validDescription,
             Id = 1
         };
 
@@ -128,7 +126,7 @@ public class UpdateTeamMemberTests
                 {
                     FullName = "Updated Name",
                     CategoryId = _testExistingTeamMember.CategoryId,
-                    Description = testDescription
+                    Description = validDescription
                 },
                 _testExistingTeamMember.Id), CancellationToken.None);
 
@@ -160,7 +158,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)), result.Errors[0].Message);
+        Assert.Contains(result.Errors, e => e.Message == ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberDto.FullName)));
     }
 
     [Fact]
@@ -181,7 +179,7 @@ public class UpdateTeamMemberTests
             new UpdateTeamMemberCommand(
                 new UpdateTeamMemberDto
                 {
-                    FullName = "test1",
+                    FullName = "testOne",
                     CategoryId = 10000,
                     Description = "Updated Description"
                 }, _testExistingTeamMember.Id), CancellationToken.None);

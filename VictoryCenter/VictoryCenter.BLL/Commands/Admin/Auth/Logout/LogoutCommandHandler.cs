@@ -34,7 +34,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         }
 
         admin.RefreshToken = null;
-        admin.RefreshTokenValidTo = DateTime.MinValue;
+        admin.RefreshTokenValidTo = DateTimeOffset.MinValue;
 
         var updateAdmin = await _userManager.UpdateAsync(admin);
 
