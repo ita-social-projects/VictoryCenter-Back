@@ -35,8 +35,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             FullName = "Test Name",
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
-            Description = testDescription,
-            Email = existingEntity.Email
+            Description = testDescription
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -52,7 +51,6 @@ public class UpdateTeamMemberTests : BaseTestClass
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
-        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Fact]
@@ -71,7 +69,6 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = existingEntity.Description,
-            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -87,7 +84,6 @@ public class UpdateTeamMemberTests : BaseTestClass
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
-        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Theory]
@@ -115,7 +111,6 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = "Test Description",
-            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -150,8 +145,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             FullName = "Test Name",
             CategoryId = category.Id,
             Status = Status.Published,
-            Description = "Test Description",
-            Email = "test@email.com"
+            Description = "Test Description"
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -171,8 +165,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             FullName = "Test Name",
             CategoryId = wrongId,
             Status = Status.Published,
-            Description = "Test Description",
-            Email = "test@email.com"
+            Description = "Test Description"
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
