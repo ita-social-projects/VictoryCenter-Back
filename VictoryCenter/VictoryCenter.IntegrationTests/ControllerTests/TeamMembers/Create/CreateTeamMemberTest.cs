@@ -26,7 +26,6 @@ public class CreateTeamMemberTest : BaseTestClass
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
-            Email = "Test@gmail.com",
         };
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
@@ -47,7 +46,6 @@ public class CreateTeamMemberTest : BaseTestClass
             CategoryId = 10000,
             Status = Status.Draft,
             Description = "Long description",
-            Email = "Test@gmail.com",
         };
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
@@ -69,7 +67,6 @@ public class CreateTeamMemberTest : BaseTestClass
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
-            Email = "Test@gmail.com",
         };
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
