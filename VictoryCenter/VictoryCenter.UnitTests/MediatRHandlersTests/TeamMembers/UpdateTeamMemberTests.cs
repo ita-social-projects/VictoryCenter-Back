@@ -158,7 +158,7 @@ public class UpdateTeamMemberTests
                 }, _testExistingTeamMember.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.Errors, "FullName must be in a valid format");
+        Assert.Contains(result.Errors, e => e.Message == "FullName must be in a valid format");
     }
 
     [Fact]
