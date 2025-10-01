@@ -27,8 +27,7 @@ public class CreateTeamMemberTests
         FullName = "TestName",
         CategoryId = 1,
         Status = Status.Draft,
-        Description = "Long description",
-        Email = "Test@gmail.com"
+        Description = "Long description"
     };
 
     private readonly TeamMember _teamMember = new()
@@ -50,8 +49,7 @@ public class CreateTeamMemberTests
         Priority = 1,
         CategoryId = 1,
         Status = Status.Draft,
-        Description = "Long description",
-        Email = "Test@gmail.com"
+        Description = "Long description"
     };
 
     private readonly Category _category = new()

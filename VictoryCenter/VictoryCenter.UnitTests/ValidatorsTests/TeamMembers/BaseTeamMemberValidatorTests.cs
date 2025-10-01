@@ -21,7 +21,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = "", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.FullName)));
+            .WithErrorMessage("FullName must be in a valid format");
     }
 
     [Fact]
