@@ -1,4 +1,3 @@
-﻿using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -59,8 +58,6 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
                 return Result.Fail<TeamMemberDto>(
                     ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
             }
-
-
 
             var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
 

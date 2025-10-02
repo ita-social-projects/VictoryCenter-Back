@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
@@ -143,7 +143,7 @@ public class ReorderServiceTests
         var exception = await Assert.ThrowsAsync<ReorderException>(() =>
             _reorderService.SwapElementsAsync(idsOrder, idSelector));
 
-        Assert.Equal(ReorderConstants.ElementsPrioritiesIsNotInSeqentialOrder, exception.Message);
+        Assert.Equal(ReorderConstants.ElementsPrioritiesIsNotInSequentialOrder, exception.Message);
 
         _repositoryMock.Verify(x => x.Update(It.IsAny<TestOrderableEntity>()), Times.Never);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);

@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
 using FluentResults;
@@ -73,7 +73,7 @@ public class CreateTeamMemberTests
     public async Task CreateTeamMemberHandle_ShouldReturnTeamMemberDto_WhenCreationIsValid()
     {
         SetupDependencies(_teamMemberDto, _teamMember, 1);
-        var handler = new CreateTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator.Object, _reorderServiceMock.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -89,7 +89,7 @@ public class CreateTeamMemberTests
         var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember));
         SetupDependencies(_teamMemberDto, _teamMember, -1);
 
-        var handler = new CreateTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator.Object, _reorderServiceMock.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -110,7 +110,7 @@ public class CreateTeamMemberTests
         SetupValidator();
         SetupReorderService();
 
-        var handler = new CreateTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator.Object, _reorderServiceMock.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -142,7 +142,7 @@ public class CreateTeamMemberTests
 
         SetupValidator();
 
-        var handler = new CreateTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator.Object, _reorderServiceMock.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);

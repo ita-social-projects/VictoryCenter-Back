@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -32,7 +32,8 @@ public class ReorderService : IReorderService
     /// <param name="groupSelector">Optional filter expression to restrict the set of entities that participate in reorder (e.g. entities of the same parent).</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
     /// <exception cref="ReorderException">
-    /// Thrown when distinct ids exceed the maximum allowed, or when some ids were not found in repository.
+    /// Thrown when distinct ids exceed the maximum allowed, element priorities is not consequetive or
+    /// when some ids were not found in repository.
     /// </exception>
     /// <exception cref="ArgumentNullException">If <paramref name="idSelector"/> is null.</exception>
     /// <exception cref="ArgumentException">If <paramref name="idSelector"/> returns two or more elements with same id.</exception>
@@ -80,7 +81,7 @@ public class ReorderService : IReorderService
         {
             if (oldPriorities[i] != oldPriorities[i - 1] + 1)
             {
-                throw new ReorderException(ReorderConstants.ElementsPrioritiesIsNotInSeqentialOrder);
+                throw new ReorderException(ReorderConstants.ElementsPrioritiesIsNotInSequentialOrder);
             }
         }
 
@@ -160,5 +161,7 @@ public class ReorderService : IReorderService
 
             currentPriority++;
         }
+
+        await _repositoryWrapper.SaveChangesAsync();
     }
 }

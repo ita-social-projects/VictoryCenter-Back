@@ -1,4 +1,4 @@
-﻿using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
@@ -17,9 +17,7 @@ public class TeamMember : IOrderableEntity
 
     public string? Description { get; set; }
 
-#pragma warning disable SA1011
     public long? ImageId { get; set; }
-#pragma warning restore SA1011
 
     public string? Email { get; set; }
 
