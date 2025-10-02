@@ -7,5 +7,6 @@ public enum SeederExecutionOrder
     TeamMembers,
     ProgramCategories,
     Programs,
-    Images
+    Images,
+    WhoWeAre
 }
