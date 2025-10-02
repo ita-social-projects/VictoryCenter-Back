@@ -133,11 +133,6 @@ public class ReorderService : IReorderService
     /// <typeparam name="TEntity">Type of entity. Must implement <see cref="IOrderableEntity"/>.</typeparam>
     /// <param name="groupSelector">Optional filter expression to limit which entities to renumber (e.g. entities in the same group).</param>
     /// <returns>A task that represents the asynchronous operation.</returns>
-    /// <remarks>
-    /// The current implementation updates entity priorities in the repository but <b>does not call</b> <c>SaveChangesAsync</c>.
-    /// The caller must call <c>SaveChangesAsync</c> on the repository wrapper to persist changes.
-    /// (Recommendation: call <c>SaveChangesAsync</c> inside this method or explicitly document expected behavior in the service contract.)
-    /// </remarks>
     public async Task RenumberPriorityAsync<TEntity>(
         Expression<Func<TEntity, bool>>? groupSelector = null)
         where TEntity : class, IOrderableEntity
