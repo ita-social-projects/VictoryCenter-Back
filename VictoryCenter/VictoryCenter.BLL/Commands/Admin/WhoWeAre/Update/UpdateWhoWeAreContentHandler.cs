@@ -68,9 +68,9 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         {
             return Result.Fail(vex.Errors.Select(x => x.ErrorMessage));
         }
-        catch (ArgumentNullException e)
+        catch (ArgumentException e)
         {
-            return Result.Fail("Section was not found");
+            return Result.Fail(e.Message);
         }
     }
 

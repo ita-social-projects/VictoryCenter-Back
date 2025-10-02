@@ -11,6 +11,7 @@ public class UpdateWhoWeAreContentValidator : AbstractValidator<UpdateWhoWeAreCo
             .IsInEnum();
 
         RuleForEach(x => x.Content)
+            .NotNull().WithMessage("Content cannot be null.")
             .SetValidator(content => new WhoWeAreSectionValidator(content.SectionType));
     }
 }
