@@ -1,36 +1,11 @@
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
-using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 
 public class WhoWeAreContentFactory : IWhoWeAreContentFactory
 {
-    public TitleContent CreateTitle(CreateWhoWeAreContentDto dto)
-    {
-        return new TitleContent()
-        {
-            ContentType = ContentType.Title,
-            Title = dto.Title
-        };
-    }
-
-    public ImageContent CreateImage(CreateWhoWeAreContentDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    public DescriptionContent CreateDescription(CreateWhoWeAreContentDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
-    public CardContent CreateCard(CreateWhoWeAreContentDto dto)
-    {
-        throw new NotImplementedException();
-    }
-
     public TitleContent UpdateTitle(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
         var result = entity as TitleContent ?? throw new InvalidOperationException("Entity is not Title");
