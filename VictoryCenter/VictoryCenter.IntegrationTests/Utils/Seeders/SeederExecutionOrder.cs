@@ -5,7 +5,7 @@ public enum SeederExecutionOrder
     Categories,
     FaqQuestions,
     TeamMembers,
-    ProgramCategories,
-    Programs,
+    HypotherapyProgramCategories,
+    HypotherapyPrograms,
     Images
 }

@@ -50,9 +50,19 @@ public class UpdateHypotherapyProgramCategoryTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        _programCategoryEntity.Name = name!;
-        _programCategoryDto.Name = name!;
-        SetupDependencies();
+        var testEntity = new HypotherapyProgramCategory
+         {
+            Id = 1,
+            Name = name!,
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+         };
+        var testDto = new HypotherapyProgramCategoryDto
+        {
+            Id = 1,
+            Name = name!,
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+        };
+        SetupDependencies(testEntity, testDto);
         var handler = new UpdateHypotherapyProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
         Result<HypotherapyProgramCategoryDto> result = await handler
@@ -64,7 +74,7 @@ public class UpdateHypotherapyProgramCategoryTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
-        SetupDependencies(-1);
+        SetupDependencies(null, null, -1);
         var handler = new UpdateHypotherapyProgramCategoryHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
         Result<HypotherapyProgramCategoryDto> result = await handler
             .Handle(new UpdateHypotherapyProgramCategoryCommand(_updateProgramCategoryDto, 1), CancellationToken.None);
@@ -82,9 +92,12 @@ public class UpdateHypotherapyProgramCategoryTests
         Assert.Equal(result.Value.Name, _programCategoryDto.Name);
     }
 
-    private void SetupDependencies(int saveResult = 1)
+    private void SetupDependencies(HypotherapyProgramCategory? entity = null, HypotherapyProgramCategoryDto? dto = null, int saveResult = 1)
     {
-        SetUpAutomapper(_programCategoryEntity, _programCategoryDto);
+        var programCategoryEntity = entity ?? _programCategoryEntity;
+        var programCategoryDto = dto ?? _programCategoryDto;
+
+        SetUpAutomapper(programCategoryEntity, programCategoryDto);
         SetUpRepositoryWrapper(saveResult);
     }
 

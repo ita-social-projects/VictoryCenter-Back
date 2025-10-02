@@ -126,7 +126,7 @@ public class GetHypotherapyProgramsTests
 
         SetUpDependencies(programResponseDto, programEntities);
 
-        var handler = new GetProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
+        var handler = new GetHypotherapyProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
 
         HypotherapyProgramsFilterDto requestDto = new()
         {
@@ -137,7 +137,7 @@ public class GetHypotherapyProgramsTests
         };
 
         var result = await handler
-            .Handle(new GetProgramsByFiltersQuery(requestDto), CancellationToken.None);
+            .Handle(new GetHypotherapyProgramsByFiltersQuery(requestDto), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -161,8 +161,8 @@ public class GetHypotherapyProgramsTests
             CategoryId = null
         };
 
-        var handler = new GetProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
-        var result = await handler.Handle(new GetProgramsByFiltersQuery(requestDto), CancellationToken.None);
+        var handler = new GetHypotherapyProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
+        var result = await handler.Handle(new GetHypotherapyProgramsByFiltersQuery(requestDto), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);

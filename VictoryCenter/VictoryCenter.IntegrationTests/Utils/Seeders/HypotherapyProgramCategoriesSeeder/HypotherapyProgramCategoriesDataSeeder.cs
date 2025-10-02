@@ -11,8 +11,8 @@ public class HypotherapyProgramCategoriesSeeder : BaseSeeder<HypotherapyProgramC
     {
     }
 
-    public override string Name => "ProgramCategoriesSeeder";
-    public override int Order => (int)SeederExecutionOrder.ProgramCategories;
+    public override string Name => "HypotherapyProgramCategoriesSeeder";
+    public override int Order => (int)SeederExecutionOrder.HypotherapyProgramCategories;
 
     protected override Task<List<HypotherapyProgramCategory>> GenerateEntitiesAsync()
     {

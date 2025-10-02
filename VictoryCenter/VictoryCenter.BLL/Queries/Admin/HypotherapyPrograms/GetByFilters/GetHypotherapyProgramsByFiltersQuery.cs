@@ -5,4 +5,4 @@ using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.Queries.Admin.HypotherapyPrograms.GetByFilters;
 
-public record GetProgramsByFiltersQuery(HypotherapyProgramsFilterDto? RequestDto) : IRequest<Result<PaginationResult<HypotherapyProgramDto>>>;
+public record GetHypotherapyProgramsByFiltersQuery(HypotherapyProgramsFilterDto? RequestDto) : IRequest<Result<PaginationResult<HypotherapyProgramDto>>>;

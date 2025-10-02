@@ -15,12 +15,12 @@ public class DeleteHypotherapyProgramTests : BaseTestClass
     [Fact]
     public async Task DeleteProgram_ShouldDeleteProgram()
     {
-        DAL.Entities.HypotherapyProgram? existingEntity = await Fixture.DbContext.Programs.FirstOrDefaultAsync();
+        DAL.Entities.HypotherapyProgram? existingEntity = await Fixture.DbContext.HypotherapyPrograms.FirstOrDefaultAsync();
         HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/HypotherapyPrograms/{existingEntity!.Id}");
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await Fixture.DbContext.Programs.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Assert.Null(await Fixture.DbContext.HypotherapyPrograms.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]

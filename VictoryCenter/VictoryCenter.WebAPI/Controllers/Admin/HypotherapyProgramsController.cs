@@ -14,7 +14,7 @@ public class HypotherapyProgramsController : AuthorizedApiController
     [HttpGet]
     public async Task<IActionResult> GetFilteredPrograms([FromQuery] HypotherapyProgramsFilterDto requestDto)
     {
-        return HandleResult(await Mediator.Send(new GetProgramsByFiltersQuery(requestDto)));
+        return HandleResult(await Mediator.Send(new GetHypotherapyProgramsByFiltersQuery(requestDto)));
     }
 
     [HttpPost]
@@ -41,6 +41,6 @@ public class HypotherapyProgramsController : AuthorizedApiController
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(HypotherapyProgramDto))]
     public async Task<IActionResult> GetProgram([FromRoute] long id)
     {
-        return HandleResult(await Mediator.Send(new GetProgramByIdQuery(id)));
+        return HandleResult(await Mediator.Send(new GetHypotherapyProgramByIdQuery(id)));
     }
 }

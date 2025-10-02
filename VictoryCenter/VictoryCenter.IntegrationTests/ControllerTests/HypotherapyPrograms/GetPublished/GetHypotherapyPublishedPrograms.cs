@@ -1,5 +1,5 @@
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.Admin.HypotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Public.HypotherapyPrograms;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -13,12 +13,12 @@ public class GetHypotherapyPublishedPrograms : BaseTestClass
     }
 
     [Fact]
-    public async Task GetPublishedPrograms_ShouldReturnPublishedPrograms()
+    public async Task GetHypotherapyPublishedPrograms_ShouldReturnPublishedPrograms()
     {
         HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/HypotherapyPrograms/published/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
-        IEnumerable<HypotherapyProgramDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<HypotherapyProgramDto>>(responseString);
+        IEnumerable<PublishedHypotherapyProgramDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<PublishedHypotherapyProgramDto>>(responseString);
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
     }

@@ -24,9 +24,9 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<Image> Images { get; set; }
 
-    public DbSet<HypotherapyProgramCategory> ProgramCategories { get; set; }
+    public DbSet<HypotherapyProgramCategory> HypotherapyProgramCategories { get; set; }
 
-    public DbSet<HypotherapyProgram> Programs { get; set; }
+    public DbSet<HypotherapyProgram> HypotherapyPrograms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

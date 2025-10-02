@@ -11,7 +11,8 @@ public class HypotherapyProgramCategoriesProfile : Profile
     {
         CreateMap<HypotherapyProgramCategory, HypotherapyProgramCategoryDto>();
         CreateMap<CreateHypotherapyProgramCategoryDto, HypotherapyProgramCategory>();
-        CreateMap<UpdateHypotherapyProgramCategoryDto, HypotherapyProgramCategory>();
+        CreateMap<UpdateHypotherapyProgramCategoryDto, HypotherapyProgramCategory>()
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
         CreateMap<HypotherapyProgramCategory, ProgramCategoryShortDto>();
     }
 }

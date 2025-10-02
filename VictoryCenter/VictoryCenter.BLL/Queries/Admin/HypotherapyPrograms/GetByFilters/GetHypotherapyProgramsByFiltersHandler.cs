@@ -12,18 +12,18 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Admin.HypotherapyPrograms.GetByFilters;
 
-public class GetProgramsByFiltersHandler : IRequestHandler<GetProgramsByFiltersQuery, Result<PaginationResult<HypotherapyProgramDto>>>
+public class GetHypotherapyProgramsByFiltersHandler : IRequestHandler<GetHypotherapyProgramsByFiltersQuery, Result<PaginationResult<HypotherapyProgramDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetProgramsByFiltersHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetHypotherapyProgramsByFiltersHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<PaginationResult<HypotherapyProgramDto>>> Handle(GetProgramsByFiltersQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginationResult<HypotherapyProgramDto>>> Handle(GetHypotherapyProgramsByFiltersQuery request, CancellationToken cancellationToken)
     {
         Status? status = request.RequestDto?.Status;
         List<long>? programCategories = request.RequestDto?.CategoryId;

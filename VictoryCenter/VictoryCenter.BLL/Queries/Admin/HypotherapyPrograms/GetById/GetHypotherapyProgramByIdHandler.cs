@@ -10,18 +10,18 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Admin.HypotherapyPrograms.GetById;
 
-public class GetProgramByIdHandler : IRequestHandler<GetProgramByIdQuery, Result<HypotherapyProgramDto>>
+public class GetHypotherapyProgramByIdHandler : IRequestHandler<GetHypotherapyProgramByIdQuery, Result<HypotherapyProgramDto>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetProgramByIdHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetHypotherapyProgramByIdHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<HypotherapyProgramDto>> Handle(GetProgramByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<HypotherapyProgramDto>> Handle(GetHypotherapyProgramByIdQuery request, CancellationToken cancellationToken)
     {
         var queryOptions = new QueryOptions<HypotherapyProgram>
         {

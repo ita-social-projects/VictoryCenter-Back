@@ -45,8 +45,8 @@ public class GetHypotherapyProgramByIdTests
     {
         SetUpDependencies(_programEntity);
         var handler =
-            new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
-        Result<HypotherapyProgramDto> result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
+            new GetHypotherapyProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
+        Result<HypotherapyProgramDto> result = await handler.Handle(new GetHypotherapyProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(_programDto.Name, result.Value.Name);
@@ -62,8 +62,8 @@ public class GetHypotherapyProgramByIdTests
     {
         SetUpDependencies();
         var handler =
-            new GetProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
-        Result<HypotherapyProgramDto> result = await handler.Handle(new GetProgramByIdQuery(_programEntity.Id), CancellationToken.None);
+            new GetHypotherapyProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
+        Result<HypotherapyProgramDto> result = await handler.Handle(new GetHypotherapyProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(_programEntity.Id, typeof(HypotherapyProgram)), result.Errors[0].Message);
     }

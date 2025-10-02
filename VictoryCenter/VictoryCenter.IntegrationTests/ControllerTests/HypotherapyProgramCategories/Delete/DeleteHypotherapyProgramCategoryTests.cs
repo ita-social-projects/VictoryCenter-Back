@@ -16,7 +16,7 @@ public class DeleteHypotherapyProgramCategoryTests : BaseTestClass
     [Fact]
     public async Task DeleteProgramCategory_ShouldDeleteProgramCategory()
     {
-        HypotherapyProgramCategory? existingEntity = await Fixture.DbContext.ProgramCategories
+        HypotherapyProgramCategory? existingEntity = await Fixture.DbContext.HypotherapyProgramCategories
             .FirstOrDefaultAsync(e => e.Id == 1);
         Assert.NotNull(existingEntity);
 
@@ -24,7 +24,7 @@ public class DeleteHypotherapyProgramCategoryTests : BaseTestClass
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Null(await Fixture.DbContext.ProgramCategories.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Assert.Null(await Fixture.DbContext.HypotherapyProgramCategories.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
     }
 
     [Theory]

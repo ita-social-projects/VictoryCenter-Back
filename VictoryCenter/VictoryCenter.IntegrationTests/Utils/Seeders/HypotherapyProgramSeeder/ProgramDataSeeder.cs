@@ -16,12 +16,12 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.HypotherapyProgram>
     }
 
     public override string Name => "ProgramsSeeder";
-    public override int Order => (int)SeederExecutionOrder.Programs;
+    public override int Order => (int)SeederExecutionOrder.HypotherapyPrograms;
 
     protected override async Task<List<DAL.Entities.HypotherapyProgram>> GenerateEntitiesAsync()
     {
         var programs = new List<DAL.Entities.HypotherapyProgram>();
-        var categories = await DbContext.ProgramCategories.Take(4).ToListAsync();
+        var categories = await DbContext.HypotherapyProgramCategories.Take(4).ToListAsync();
         for (var i = 0; i < ProgramCount; i++)
         {
             var selectedCategories = categories

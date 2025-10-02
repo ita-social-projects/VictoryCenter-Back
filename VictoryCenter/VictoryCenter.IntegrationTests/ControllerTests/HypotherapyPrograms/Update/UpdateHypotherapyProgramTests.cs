@@ -8,9 +8,9 @@ using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.HypotherapyPrograms.Update;
 
-public class UpdateProgramTests : BaseTestClass
+public class UpdateHypotherapyProgramTests : BaseTestClass
 {
-    public UpdateProgramTests(IntegrationTestDbFixture fixture)
+    public UpdateHypotherapyProgramTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
     }

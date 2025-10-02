@@ -42,7 +42,6 @@ public class UpdateHypotherapyProgramCategoryHandler : IRequestHandler<UpdateHyp
             }
 
             HypotherapyProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
-            entityToUpdate.CreatedAt = programCategoryEntity.CreatedAt;
 
             _repositoryWrapper.HypotherapyProgramCategoriesRepository.Update(entityToUpdate);
 
