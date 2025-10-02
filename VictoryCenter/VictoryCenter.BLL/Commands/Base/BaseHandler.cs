@@ -2,7 +2,6 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 namespace VictoryCenter.BLL.Commands.Base;
 
@@ -21,15 +20,7 @@ public abstract class BaseHandler<TRequest, TResponse>
         {
             return Result.Fail<TResponse>(ex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (BlobStorageException ex)
-        {
-            return Result.Fail<TResponse>(ex.Message);
-        }
         catch (DbUpdateException ex)
-        {
-            return Result.Fail<TResponse>(ex.Message);
-        }
-        catch (Exception ex)
         {
             return Result.Fail<TResponse>(ex.Message);
         }

@@ -48,14 +48,7 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
                     u => u.CategoryId == entity.CategoryId);
                 entity.Priority = (maxPriority ?? 0) + 1;
 
-                try
-                {
-                    await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
-                }
-                catch
-                {
-                    throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
-                }
+                await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
 
                 if (await _repositoryWrapper.SaveChangesAsync() <= 0)
                 {
