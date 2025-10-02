@@ -38,6 +38,9 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            using var scope = _repositoryWrapper.BeginTransaction();
+
             var allPages = await _repositoryWrapper.VisitorPagesRepository.GetAllAsync();
             FaqQuestion entity = _mapper.Map<FaqQuestion>(request.CreateFaqQuestionDto);
 
@@ -59,7 +62,7 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
             }
 
             entity.CreatedAt = DateTime.UtcNow;
-            using TransactionScope scope = _repositoryWrapper.BeginTransaction();
+
             await _repositoryWrapper.FaqQuestionsRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
