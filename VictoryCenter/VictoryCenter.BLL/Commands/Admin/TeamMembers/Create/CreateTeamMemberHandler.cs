@@ -31,6 +31,14 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
     {
         try
         {
+            request = request with
+            {
+                CreateTeamMemberDto = request.CreateTeamMemberDto with
+                {
+                    FullName = request.CreateTeamMemberDto.FullName.Trim()
+                }
+            };
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
@@ -47,7 +55,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
             using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
             {
-                entity.CreatedAt = DateTime.UtcNow;
+                entity.CreatedAt = DateTimeOffset.UtcNow;
                 var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
                     u => u.Priority,
                     u => u.CategoryId == entity.CategoryId);
@@ -83,10 +91,9 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         {
             return Result.Fail<TeamMemberDto>(ImageConstants.ErrorWithUserImage(e.Message));
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         {
-            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.
-                FailedToCreateEntityInDatabase(typeof(TeamMember)) + ex.Message);
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
         }
     }
 }

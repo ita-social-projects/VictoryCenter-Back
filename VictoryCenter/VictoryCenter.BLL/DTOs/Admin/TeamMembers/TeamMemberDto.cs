@@ -17,7 +17,5 @@ public record TeamMemberDto
 
     public string? Description { get; init; }
 
-    public string? Email { get; init; }
-
     public ImageDto? Image { get; set; }
 }

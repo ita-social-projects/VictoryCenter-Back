@@ -40,7 +40,6 @@ public class GetTeamMemberByIdTests : BaseTestClass
             () => Assert.Equal(existingEntity.FullName, responseContent.FullName),
             () => Assert.Equal(existingEntity.Category.Id, responseContent.CategoryId),
             () => Assert.Equal(existingEntity.Description, responseContent.Description),
-            () => Assert.Equal(existingEntity.Email, responseContent.Email),
             () => Assert.Equal(existingEntity.Status, responseContent.Status),
             () => Assert.Equal(existingEntity.Priority, responseContent.Priority));
     }

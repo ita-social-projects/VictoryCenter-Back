@@ -117,9 +117,9 @@ public class IntegrationTestDbFixture : IAsyncLifetime
                 UserName = testEmail,
                 Email = testEmail,
                 EmailConfirmed = true,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTimeOffset.UtcNow,
                 RefreshToken = "refresh_token",
-                RefreshTokenValidTo = DateTime.MaxValue
+                RefreshTokenValidTo = DateTimeOffset.MaxValue
             };
             var result = await userManager.CreateAsync(admin, testPassword);
             if (!result.Succeeded)

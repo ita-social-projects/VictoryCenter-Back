@@ -20,7 +20,7 @@ public class SearchServiceTests
             Status = Status.Draft,
             Description = "Long test1 description",
             Email = "Test1@gmail.com",
-            CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
         },
         new TeamMember
         {
@@ -31,7 +31,7 @@ public class SearchServiceTests
             Status = Status.Draft,
             Description = "Long not test2 description",
             Email = "NotTest2@gmail.com",
-            CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
         },
     ];
 

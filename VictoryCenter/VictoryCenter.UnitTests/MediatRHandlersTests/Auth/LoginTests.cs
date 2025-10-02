@@ -138,7 +138,7 @@ public class LoginTests
         Assert.True(result.IsSuccess);
         Assert.Equal("access_token", result.Value.AccessToken);
         Assert.Equal("refresh_token", admin.RefreshToken);
-        Assert.True(admin.RefreshTokenValidTo > DateTime.UtcNow);
+        Assert.True(admin.RefreshTokenValidTo > DateTimeOffset.UtcNow);
         mockResponseCookies.Verify(
             c => c.Append(
             It.Is<string>(s => s == "refreshToken"),

@@ -13,5 +13,5 @@ public class Image
 
     public string MimeType { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }

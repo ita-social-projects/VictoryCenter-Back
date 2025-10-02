@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -17,13 +18,11 @@ public class UpdateTeamMemberTests : BaseTestClass
     {
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
+    [Fact]
+    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember()
     {
+        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
+
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
                                         .Include(tm => tm.Category)
                                         .LastOrDefaultAsync(tm => tm.Status == Status.Draft)
@@ -35,8 +34,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             FullName = "Test Name",
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
-            Description = testDescription,
-            Email = existingEntity.Email
+            Description = validDescription,
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -52,7 +50,6 @@ public class UpdateTeamMemberTests : BaseTestClass
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
-        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Fact]
@@ -71,7 +68,6 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = existingEntity.Description,
-            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -87,7 +83,6 @@ public class UpdateTeamMemberTests : BaseTestClass
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
-        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Theory]
@@ -115,7 +110,6 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = existingEntity.Category.Id,
             Status = existingEntity.Status,
             Description = "Test Description",
-            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -151,7 +145,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = category.Id,
             Status = Status.Published,
             Description = "Test Description",
-            Email = "test@email.com"
+            ImageId = 123
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -172,7 +166,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = wrongId,
             Status = Status.Published,
             Description = "Test Description",
-            Email = "test@email.com"
+            ImageId = 123
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 

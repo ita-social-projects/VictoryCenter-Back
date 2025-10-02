@@ -11,7 +11,9 @@ public sealed class SeederManager
     {
         _serviceProvider = serviceProvider;
 
-        _seeders = [.. (seeders ?? CreateDefaultSeeders()).OrderBy(s => s.Order)];
+        _seeders = (seeders ?? CreateDefaultSeeders())
+            .OrderBy(s => s.Order)
+            .ToList();
     }
 
     public void ClearSeeders()
