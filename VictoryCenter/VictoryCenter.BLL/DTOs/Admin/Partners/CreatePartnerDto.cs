@@ -1,7 +1,6 @@
 ﻿namespace VictoryCenter.BLL.DTOs.Admin.Partners;
 
-public record CreatePartnerDto
+public record CreatePartnerDto : BasePartnerCreateUpdateDto
 {
-    public string Description { get; init; } = null!;
     public CreatePartnerImageDto Image { get; init; } = null!;
 }

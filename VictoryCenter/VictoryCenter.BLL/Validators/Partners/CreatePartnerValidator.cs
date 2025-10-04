@@ -1,22 +1,11 @@
-﻿using FluentValidation;
-using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Partners;
+﻿using VictoryCenter.BLL.DTOs.Admin.Partners;
 
 namespace VictoryCenter.BLL.Validators.Partners;
 
-public class CreatePartnerValidator : AbstractValidator<CreatePartnerDto>
+public class CreatePartnerValidator : BasePartnerValidator<CreatePartnerDto>
 {
-    public static readonly int DescriptionMaxLength = 50;
-
     public CreatePartnerValidator()
     {
-        RuleFor(x => x.Description)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreatePartnerDto.Description)))
-            .MaximumLength(DescriptionMaxLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreatePartnerDto.Description), DescriptionMaxLength));
-
         RuleFor(x => x.Image)
             .SetValidator(new CreatePartnerImageValidator());
     }
