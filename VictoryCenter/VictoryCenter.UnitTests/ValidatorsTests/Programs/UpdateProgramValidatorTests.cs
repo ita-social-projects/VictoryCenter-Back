@@ -3,7 +3,6 @@ using VictoryCenter.BLL.Commands.Admin.Programs.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Programs;
 using VictoryCenter.BLL.Validators.Programs;
-using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Programs;

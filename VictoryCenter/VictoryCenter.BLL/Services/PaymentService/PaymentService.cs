@@ -1,9 +1,9 @@
 using FluentResults;
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.Interfaces.PaymentService;
-using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.BLL.Services.PaymentService;
 

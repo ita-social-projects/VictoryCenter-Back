@@ -10,7 +10,6 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Validators.Images;
-using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 

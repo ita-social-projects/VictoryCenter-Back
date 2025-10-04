@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
-using VictoryCenter.DAL.Constants;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 

@@ -7,10 +7,10 @@ using FluentResults;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.Payment.Common;
 using VictoryCenter.BLL.DTOs.Public.Payment.WayForPay;
 using VictoryCenter.BLL.Options.Payment;
-using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.BLL.Commands.Public.Payment.WayForPay;
 

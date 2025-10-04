@@ -19,7 +19,7 @@ using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
-using VictoryCenter.DAL.Constants;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

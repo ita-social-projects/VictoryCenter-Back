@@ -2,7 +2,7 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 using VictoryCenter.BLL.Queries.Public.FaqQuestions.GetPublished;
-using VictoryCenter.DAL.Constants;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

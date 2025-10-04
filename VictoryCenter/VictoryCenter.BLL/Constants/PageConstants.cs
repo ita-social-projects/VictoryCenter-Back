@@ -1,6 +1,6 @@
 ﻿using VictoryCenter.DAL.Entities;
 
-namespace VictoryCenter.DAL.Constants;
+namespace VictoryCenter.BLL.Constants;
 
 public static class PageConstants
 {

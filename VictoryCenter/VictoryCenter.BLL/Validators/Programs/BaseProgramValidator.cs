@@ -1,7 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Programs;
-using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.Programs;

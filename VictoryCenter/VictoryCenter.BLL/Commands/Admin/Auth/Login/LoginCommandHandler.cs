@@ -7,7 +7,7 @@ using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
-using VictoryCenter.DAL.Constants;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Login;
