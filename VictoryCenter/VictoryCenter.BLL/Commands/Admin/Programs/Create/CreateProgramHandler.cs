@@ -1,19 +1,17 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Programs;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
-using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Programs.Create;
 
-public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result<ProgramDto>>
+public class CreateProgramHandler : BaseHandler<CreateProgramCommand, ProgramDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -26,51 +24,42 @@ public class CreateProgramHandler : IRequestHandler<CreateProgramCommand, Result
         _validator = validator;
     }
 
-    public async Task<Result<ProgramDto>> Handle(CreateProgramCommand request, CancellationToken cancellationToken)
+    public override async Task<ProgramDto> HandleRequest(CreateProgramCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            IEnumerable<ProgramCategory> categories = await _repositoryWrapper
-                .ProgramCategoriesRepository.GetAllAsync(new QueryOptions<ProgramCategory>
-                {
-                    Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id),
-                    AsNoTracking = false
-                });
-
-            Program entity = _mapper.Map<Program>(request.CreateProgramDto);
-
-            if (entity.ImageId != null)
+        IEnumerable<ProgramCategory> categories = await _repositoryWrapper
+            .ProgramCategoriesRepository.GetAllAsync(new QueryOptions<ProgramCategory>
             {
-                Image? newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
-                {
-                    Filter = image => image.Id == request.CreateProgramDto.ImageId,
-                    AsNoTracking = false
-                });
+                Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id),
+                AsNoTracking = false
+            });
 
-                entity.Image = newImage;
-            }
+        Program entity = _mapper.Map<Program>(request.CreateProgramDto);
 
-            entity.Categories = [.. categories];
-            entity.CreatedAt = DateTimeOffset.UtcNow;
-
-            await _repositoryWrapper.ProgramsRepository.CreateAsync(entity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (entity.ImageId != null)
+        {
+            Image? newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
-                return Result.Ok(_mapper.Map<ProgramDto>(entity));
-            }
+                Filter = image => image.Id == request.CreateProgramDto.ImageId,
+                AsNoTracking = false
+            });
 
-            return Result.Fail<ProgramDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(Program)));
+            entity.Image = newImage;
         }
-        catch (ValidationException ex)
+
+        entity.Categories = [.. categories];
+        entity.CreatedAt = DateTimeOffset.UtcNow;
+
+        await _repositoryWrapper.ProgramsRepository.CreateAsync(entity);
+
+        if (await _repositoryWrapper.SaveChangesAsync() < 0)
         {
-            return Result.Fail<ProgramDto>(ex.Message);
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(Program)));
         }
-        catch (BlobStorageException)
-        {
-            return Result.Fail<ProgramDto>(ProgramConstants.FailedRetrievingProgramPhoto);
-        }
+
+        ProgramDto result = _mapper.Map<ProgramDto>(entity);
+
+        return result;
     }
 }

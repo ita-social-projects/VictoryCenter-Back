@@ -24,6 +24,10 @@ public abstract class BaseHandler<TRequest, TResponse>
         {
             return Result.Fail<TResponse>(ex.Message);
         }
+        catch (Exception ex)
+        {
+            return Result.Fail<TResponse>(ex.Message);
+        }
     }
 
     public abstract Task<TResponse> HandleRequest(TRequest request, CancellationToken cancellationToken);
