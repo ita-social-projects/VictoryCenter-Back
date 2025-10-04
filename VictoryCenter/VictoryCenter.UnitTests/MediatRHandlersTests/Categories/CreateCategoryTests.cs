@@ -86,7 +86,7 @@ public class CreateCategoryTests
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(Category.Name)), result.Errors[0].Message);
     }
 
     [Fact]

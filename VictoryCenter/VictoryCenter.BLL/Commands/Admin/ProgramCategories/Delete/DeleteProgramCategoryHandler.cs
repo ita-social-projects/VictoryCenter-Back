@@ -1,6 +1,5 @@
-using FluentResults;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
@@ -9,7 +8,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.ProgramCategories.Delete;
 
-public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategoryCommand, Result<long>>
+public class DeleteProgramCategoryHandler : BaseHandler<DeleteProgramCategoryCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -18,7 +17,7 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<long>> Handle(DeleteProgramCategoryCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(DeleteProgramCategoryCommand request, CancellationToken cancellationToken)
     {
         ProgramCategory? entityToDelete = await _repositoryWrapper.ProgramCategoriesRepository
             .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
@@ -30,22 +29,22 @@ public class DeleteProgramCategoryHandler : IRequestHandler<DeleteProgramCategor
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants
+            throw new Exception(ErrorMessagesConstants
                 .NotFound(request.Id, typeof(ProgramCategory)));
         }
 
         if (entityToDelete.Programs.Count != 0)
         {
-            return Result.Fail(ProgramCategoryConstants.CantDeleteProgramCategoryWhileAssociatedWithAnyProgram);
+            throw new Exception(ProgramCategoryConstants.CantDeleteProgramCategoryWhileAssociatedWithAnyProgram);
         }
 
         _repositoryWrapper.ProgramCategoriesRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
-            return Result.Ok(entityToDelete.Id);
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(ProgramCategory)));
         }
 
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(ProgramCategory)));
+        return entityToDelete.Id;
     }
 }

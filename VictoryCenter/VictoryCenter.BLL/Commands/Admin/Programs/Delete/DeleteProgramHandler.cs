@@ -1,6 +1,5 @@
-using FluentResults;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -8,7 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Programs.Delete;
 
-public class DeleteProgramHandler : IRequestHandler<DeleteProgramCommand, Result<long>>
+public class DeleteProgramHandler : BaseHandler<DeleteProgramCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -17,7 +16,7 @@ public class DeleteProgramHandler : IRequestHandler<DeleteProgramCommand, Result
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<long>> Handle(DeleteProgramCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(DeleteProgramCommand request, CancellationToken cancellationToken)
     {
         Program? entityToDelete = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<Program>
         {
@@ -27,18 +26,18 @@ public class DeleteProgramHandler : IRequestHandler<DeleteProgramCommand, Result
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants
+            throw new Exception(ErrorMessagesConstants
                 .NotFound(request.Id, typeof(Program)));
         }
 
         entityToDelete.Categories.Clear();
         _repositoryWrapper.ProgramsRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (await _repositoryWrapper.SaveChangesAsync() < 0)
         {
-            return Result.Ok(entityToDelete.Id);
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Program)));
         }
 
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Program)));
+        return entityToDelete.Id;
     }
 }

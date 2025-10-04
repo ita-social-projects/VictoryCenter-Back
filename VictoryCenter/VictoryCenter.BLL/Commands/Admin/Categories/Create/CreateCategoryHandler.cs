@@ -1,7 +1,7 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Categories;
 using VictoryCenter.DAL.Entities;
@@ -9,7 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.Categories.Create;
 
-public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Result<CategoryDto>>
+public class CreateCategoryHandler : BaseHandler<CreateCategoryCommand, CategoryDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -25,28 +25,21 @@ public class CreateCategoryHandler : IRequestHandler<CreateCategoryCommand, Resu
         _validator = validator;
     }
 
-    public async Task<Result<CategoryDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public override async Task<CategoryDto> HandleRequest(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
-        try
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var entity = _mapper.Map<Category>(request.CreateCategoryDto);
+        entity.CreatedAt = DateTimeOffset.UtcNow;
+
+        await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
+
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var entity = _mapper.Map<Category>(request.CreateCategoryDto);
-            entity.CreatedAt = DateTimeOffset.UtcNow;
-
-            await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                var resultDto = _mapper.Map<CategoryDto>(entity);
-                return Result.Ok(resultDto);
-            }
-
-            return Result.Fail<CategoryDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(Category)));
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(Category)));
         }
-        catch (ValidationException ex)
-        {
-            return Result.Fail<CategoryDto>(ex.Message);
-        }
+
+        var resultDto = _mapper.Map<CategoryDto>(entity);
+        return resultDto;
     }
 }

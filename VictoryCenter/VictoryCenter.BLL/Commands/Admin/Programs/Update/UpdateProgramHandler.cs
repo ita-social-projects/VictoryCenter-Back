@@ -1,11 +1,9 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Programs;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -13,7 +11,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Programs.Update;
 
-public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result<ProgramDto>>
+public class UpdateProgramHandler : BaseHandler<UpdateProgramCommand,  ProgramDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -26,10 +24,8 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
         _validator = validator;
     }
 
-    public async Task<Result<ProgramDto>> Handle(UpdateProgramCommand request, CancellationToken cancellationToken)
+    public override async Task<ProgramDto> HandleRequest(UpdateProgramCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             Program? programToUpdate = await _repositoryWrapper.ProgramsRepository.GetFirstOrDefaultAsync(
@@ -42,7 +38,7 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
 
             if (programToUpdate is null)
             {
-                return Result.Fail<ProgramDto>(ErrorMessagesConstants
+               throw new Exception(ErrorMessagesConstants
                     .NotFound(request.Id, typeof(Program)));
             }
 
@@ -75,21 +71,12 @@ public class UpdateProgramHandler : IRequestHandler<UpdateProgramCommand, Result
 
             _repositoryWrapper.ProgramsRepository.Update(programToUpdate);
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            if (await _repositoryWrapper.SaveChangesAsync() < 0)
             {
-                ProgramDto responseDto = _mapper.Map<ProgramDto>(programToUpdate);
-                return Result.Ok(responseDto);
+                throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Program)));
             }
 
-            return Result.Fail<ProgramDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Program)));
-        }
-        catch (ValidationException ex)
-        {
-            return Result.Fail<ProgramDto>(ex.Message);
-        }
-        catch (BlobStorageException)
-        {
-            return Result.Fail<ProgramDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Program)));
-        }
+            ProgramDto responseDto = _mapper.Map<ProgramDto>(programToUpdate);
+            return responseDto;
     }
 }

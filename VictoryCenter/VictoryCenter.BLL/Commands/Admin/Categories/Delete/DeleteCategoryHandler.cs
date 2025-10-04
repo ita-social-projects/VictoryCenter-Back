@@ -1,6 +1,5 @@
-using FluentResults;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
@@ -9,7 +8,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Categories.Delete;
 
-public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Result<long>>
+public class DeleteCategoryHandler : BaseHandler<DeleteCategoryCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -18,7 +17,7 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<long>> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
         var entityToDelete =
             await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
@@ -29,21 +28,21 @@ public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryCommand, Resu
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(Category)));
+            throw new Exception(ErrorMessagesConstants.NotFound(request.Id, typeof(Category)));
         }
 
         if (entityToDelete.TeamMembers.Count != 0)
         {
-            return Result.Fail<long>(CategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyTeamMember);
+            throw new Exception(CategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyTeamMember);
         }
 
         _repositoryWrapper.CategoriesRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
-            return Result.Ok(entityToDelete.Id);
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Category)));
         }
 
-        return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Category)));
+        return entityToDelete.Id;
     }
 }

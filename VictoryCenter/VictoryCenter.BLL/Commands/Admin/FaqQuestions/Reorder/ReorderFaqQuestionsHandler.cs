@@ -1,7 +1,6 @@
-using FluentResults;
 using FluentValidation;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
@@ -10,7 +9,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
 
-public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCommand, Result<Unit>>
+public class ReorderFaqQuestionsHandler : BaseHandler<ReorderFaqQuestionsCommand, Unit>
 {
     private readonly IValidator<ReorderFaqQuestionsCommand> _validator;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -23,71 +22,60 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<Unit>> Handle(ReorderFaqQuestionsCommand request, CancellationToken cancellationToken)
+    public override async Task<Unit> HandleRequest(ReorderFaqQuestionsCommand request, CancellationToken cancellationToken)
     {
-        try
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var orderedIds = request.ReorderFaqQuestionsDto.OrderedIds;
+        var pageId = request.ReorderFaqQuestionsDto.PageId;
+
+        var questionsToReorder = (await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
+            new QueryOptions<FaqPlacement>
+            {
+                Filter = e => e.PageId == pageId && orderedIds.Contains(e.QuestionId),
+                OrderByASC = e => e.Priority
+            })).ToList();
+
+        if (questionsToReorder.Count == 0)
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var orderedIds = request.ReorderFaqQuestionsDto.OrderedIds;
-            var pageId = request.ReorderFaqQuestionsDto.PageId;
-
-            var questionsToReorder = (await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                new QueryOptions<FaqPlacement>
-                {
-                    Filter = e => e.PageId == pageId && orderedIds.Contains(e.QuestionId),
-                    OrderByASC = e => e.Priority
-                })).ToList();
-
-            if (questionsToReorder.Count == 0)
-            {
-                return Result.Fail<Unit>(FaqConstants.PageNotFoundOrContainsNoFaqQuestions);
-            }
-
-            var notFoundIds = orderedIds.Except(questionsToReorder.Select(f => f.QuestionId));
-            if (notFoundIds.Any())
-            {
-                return Result.Fail<Unit>(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(FaqQuestion), notFoundIds));
-            }
-
-            var prioritiesFound = questionsToReorder.Select(q => q.Priority).OrderBy(p => p).ToList();
-            for (var i = 1; i < prioritiesFound.Count; i++)
-            {
-                if (prioritiesFound[i] - prioritiesFound[i - 1] != 1)
-                {
-                    return Result.Fail<Unit>(FaqConstants.IdsAreNonConsecutive);
-                }
-            }
-
-            using var transactionScope = _repositoryWrapper.BeginTransaction();
-            long minPriorityToSet = questionsToReorder.MinBy(e => e.Priority)!.Priority;
-
-            // Temporarily assign negative priorities to avoid unique constraint conflicts during update
-            foreach (var faq in questionsToReorder)
-            {
-                faq.Priority = -faq.Priority;
-            }
-
-            _repositoryWrapper.FaqPlacementsRepository.UpdateRange(questionsToReorder);
-            await _repositoryWrapper.SaveChangesAsync();
-
-            foreach (var questionId in orderedIds)
-            {
-                questionsToReorder.Single(e => e.QuestionId == questionId).Priority = minPriorityToSet++;
-            }
-
-            await _repositoryWrapper.SaveChangesAsync();
-            transactionScope.Complete();
-
-            return Result.Ok();
+            throw new Exception(FaqConstants.PageNotFoundOrContainsNoFaqQuestions);
         }
-        catch (ValidationException ex)
+
+        var notFoundIds = orderedIds.Except(questionsToReorder.Select(f => f.QuestionId));
+        if (notFoundIds.Any())
         {
-            return Result.Fail<Unit>(ex.Message);
+            throw new Exception(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(FaqQuestion), notFoundIds));
         }
-        catch (DbUpdateException)
+
+        var prioritiesFound = questionsToReorder.Select(q => q.Priority).OrderBy(p => p).ToList();
+        for (var i = 1; i < prioritiesFound.Count; i++)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)));
+            if (prioritiesFound[i] - prioritiesFound[i - 1] != 1)
+            {
+                throw new Exception(FaqConstants.IdsAreNonConsecutive);
+            }
         }
+
+        using var transactionScope = _repositoryWrapper.BeginTransaction();
+        long minPriorityToSet = questionsToReorder.MinBy(e => e.Priority)!.Priority;
+
+        // Temporarily assign negative priorities to avoid unique constraint conflicts during update
+        foreach (var faq in questionsToReorder)
+        {
+            faq.Priority = -faq.Priority;
+        }
+
+        _repositoryWrapper.FaqPlacementsRepository.UpdateRange(questionsToReorder);
+        await _repositoryWrapper.SaveChangesAsync();
+
+        foreach (var questionId in orderedIds)
+        {
+            questionsToReorder.Single(e => e.QuestionId == questionId).Priority = minPriorityToSet++;
+        }
+
+        await _repositoryWrapper.SaveChangesAsync();
+        transactionScope.Complete();
+
+        return default;
     }
 }

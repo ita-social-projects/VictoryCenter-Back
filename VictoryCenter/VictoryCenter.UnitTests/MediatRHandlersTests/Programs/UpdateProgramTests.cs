@@ -98,7 +98,7 @@ public class UpdateProgramTests
         var handler = new UpdateProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
         Result<ProgramDto> result = await handler.Handle(new UpdateProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Name)), result.Errors[0].Message);
     }
 
     [Fact]

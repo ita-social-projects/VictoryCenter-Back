@@ -1,14 +1,14 @@
 using System.Security.Claims;
-using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Logout;
 
-public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
+public class LogoutCommandHandler : BaseHandler<LogoutCommand, Unit>
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AdminUser> _userManager;
@@ -19,18 +19,18 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         _userManager = userManager;
     }
 
-    public async Task<Result<Unit>> Handle(LogoutCommand request, CancellationToken cancellationToken)
+    public override async Task<Unit> HandleRequest(LogoutCommand request, CancellationToken cancellationToken)
     {
         var email = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
         if (email == null)
         {
-            return Result.Fail(AuthConstants.Unauthorized);
+            throw new Exception(AuthConstants.Unauthorized);
         }
 
         var admin = await _userManager.FindByEmailAsync(email);
         if (admin == null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            throw new Exception(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
         admin.RefreshToken = null;
@@ -40,10 +40,10 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 
         if (!updateAdmin.Succeeded)
         {
-            return Result.Fail(AuthConstants.NotUpdated);
+            throw new Exception(AuthConstants.NotUpdated);
         }
 
         _httpContextAccessor.HttpContext!.Response.Cookies.Delete(AuthConstants.RefreshTokenCookieName);
-        return Result.Ok(Unit.Value);
+        return Unit.Value;
     }
 }

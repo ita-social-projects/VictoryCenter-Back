@@ -1,7 +1,7 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
 using VictoryCenter.DAL.Entities;
@@ -10,7 +10,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.ProgramCategories.Update;
 
-public class UpdateProgramCategoryHandler : IRequestHandler<UpdateProgramCategoryCommand, Result<ProgramCategoryDto>>
+public class UpdateProgramCategoryHandler : BaseHandler<UpdateProgramCategoryCommand, ProgramCategoryDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -23,40 +23,33 @@ public class UpdateProgramCategoryHandler : IRequestHandler<UpdateProgramCategor
         _validator = validator;
     }
 
-    public async Task<Result<ProgramCategoryDto>> Handle(UpdateProgramCategoryCommand request, CancellationToken cancellationToken)
+    public override async Task<ProgramCategoryDto> HandleRequest(UpdateProgramCategoryCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            ProgramCategory? programCategoryEntity = await _repositoryWrapper.ProgramCategoriesRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
-                {
-                    Filter = programCategory => programCategory.Id == request.Id
-                });
-
-            if (programCategoryEntity is null)
+        ProgramCategory? programCategoryEntity = await _repositoryWrapper.ProgramCategoriesRepository
+            .GetFirstOrDefaultAsync(new QueryOptions<ProgramCategory>
             {
-                return Result.Fail<ProgramCategoryDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(ProgramCategory)));
-            }
+                Filter = programCategory => programCategory.Id == request.Id
+            });
 
-            ProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
-            entityToUpdate.CreatedAt = programCategoryEntity.CreatedAt;
-
-            _repositoryWrapper.ProgramCategoriesRepository.Update(entityToUpdate);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                ProgramCategoryDto responseDto = _mapper.Map<ProgramCategoryDto>(entityToUpdate);
-                return Result.Ok(responseDto);
-            }
-
-            return Result.Fail<ProgramCategoryDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(ProgramCategory)));
-        }
-        catch (ValidationException ex)
+        if (programCategoryEntity is null)
         {
-            return Result.Fail<ProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            throw new Exception(ErrorMessagesConstants
+                .NotFound(request.Id, typeof(ProgramCategory)));
         }
+
+        ProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
+        entityToUpdate.CreatedAt = programCategoryEntity.CreatedAt;
+
+        _repositoryWrapper.ProgramCategoriesRepository.Update(entityToUpdate);
+
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+        {
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(ProgramCategory)));
+        }
+
+        ProgramCategoryDto responseDto = _mapper.Map<ProgramCategoryDto>(entityToUpdate);
+        return responseDto;
     }
 }

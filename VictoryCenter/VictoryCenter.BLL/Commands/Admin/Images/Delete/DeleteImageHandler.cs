@@ -1,6 +1,6 @@
 using System.Transactions;
-using FluentResults;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -10,7 +10,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Images.Delete;
 
-public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<long>>
+public class DeleteImageHandler : BaseHandler<DeleteImageCommand, long>
 {
     private readonly IBlobService _blobService;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -21,7 +21,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
         _blobService = blobService;
     }
 
-    public async Task<Result<long>> Handle(DeleteImageCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(DeleteImageCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -33,7 +33,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
+               throw new Exception(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
             using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
@@ -42,7 +42,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Image)));
+                throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Image)));
             }
 
             if (!string.IsNullOrEmpty(entityToDelete.BlobName))
@@ -52,11 +52,11 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             transaction.Complete();
 
-            return Result.Ok(entityToDelete.Id);
+            return entityToDelete.Id;
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.BlobStorageError(e.Message));
+            throw new Exception(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

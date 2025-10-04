@@ -1,9 +1,8 @@
 using System.Security.Claims;
-using FluentResults;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
@@ -12,7 +11,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.RefreshToken;
 
-public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, Result<AuthResponseDto>>
+public class RefreshTokenCommandHandler : BaseHandler<RefreshTokenCommand, AuthResponseDto>
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<AdminUser> _userManager;
@@ -27,35 +26,35 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         _jwtOptions = jwtOptions;
     }
 
-    public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+    public override async Task<AuthResponseDto> HandleRequest(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
-            return Result.Fail(AuthConstants.RefreshTokenIsNotPresent);
+            throw new Exception(AuthConstants.RefreshTokenIsNotPresent);
         }
 
         var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
         if (principalResult.IsFailed)
         {
-            return Result.Fail(principalResult.Errors[0].Message);
+            throw new Exception(principalResult.Errors[0].Message);
         }
 
         var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
-            return Result.Fail(AuthConstants.InvalidToken);
+           throw new Exception(AuthConstants.InvalidToken);
         }
 
         var admin = await _userManager.FindByEmailAsync(email.Value);
         if (admin is null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            throw new Exception(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
         if (admin.RefreshToken != refreshToken || admin.RefreshTokenValidTo <= DateTimeOffset.UtcNow)
         {
-            return Result.Fail(AuthConstants.RefreshTokenIsInvalid);
+            throw new Exception(AuthConstants.RefreshTokenIsInvalid);
         }
 
         var accessToken = _tokenService.CreateAccessToken([
@@ -79,7 +78,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var result = await _userManager.UpdateAsync(admin);
 
         return result.Succeeded
-            ? Result.Ok(new AuthResponseDto(accessToken))
-            : Result.Fail(result.Errors.First().Description);
+            ? new AuthResponseDto(accessToken)
+            : throw new Exception(result.Errors.First().Description);
     }
 }

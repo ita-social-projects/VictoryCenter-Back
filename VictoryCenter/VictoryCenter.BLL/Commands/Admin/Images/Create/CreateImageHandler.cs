@@ -1,8 +1,8 @@
 using System.Transactions;
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
@@ -13,7 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.Images.Create;
 
-public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<ImageDto>>
+public class CreateImageHandler : BaseHandler<CreateImageCommand, ImageDto>
 {
     private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
@@ -28,7 +28,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         _validator = validator;
     }
 
-    public async Task<Result<ImageDto>> Handle(CreateImageCommand request, CancellationToken cancellationToken)
+    public override async Task<ImageDto> HandleRequest(CreateImageCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -46,7 +46,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Fail<ImageDto>(ImageConstants.FailToSaveImageInDatabase);
+                throw new DbUpdateException(ImageConstants.FailToSaveImageInDatabase);
             }
 
             await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
@@ -55,15 +55,11 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             transaction.Complete();
 
-            return Result.Ok(response);
-        }
-        catch (ValidationException vex)
-        {
-            return Result.Fail<ImageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return response;
         }
         catch (BlobStorageException e)
         {
-            return Result.Fail<ImageDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
+            throw new Exception(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
     }
 }

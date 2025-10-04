@@ -1,7 +1,7 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ProgramCategories;
 using VictoryCenter.DAL.Entities;
@@ -9,7 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.ProgramCategories.Create;
 
-public class CreateProgramCategoryHandler : IRequestHandler<CreateProgramCategoryCommand, Result<ProgramCategoryDto>>
+public class CreateProgramCategoryHandler : BaseHandler<CreateProgramCategoryCommand, ProgramCategoryDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -22,27 +22,20 @@ public class CreateProgramCategoryHandler : IRequestHandler<CreateProgramCategor
         _validator = validator;
     }
 
-    public async Task<Result<ProgramCategoryDto>> Handle(CreateProgramCategoryCommand request, CancellationToken cancellationToken)
+    public override async Task<ProgramCategoryDto> HandleRequest(CreateProgramCategoryCommand request, CancellationToken cancellationToken)
     {
-        try
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+        ProgramCategory entity = _mapper.Map<ProgramCategory>(request.ProgramCategoryDto);
+        entity.CreatedAt = DateTimeOffset.UtcNow;
+        await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity);
+
+        if (await _repositoryWrapper.SaveChangesAsync() < 0)
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            ProgramCategory entity = _mapper.Map<ProgramCategory>(request.ProgramCategoryDto);
-            entity.CreatedAt = DateTimeOffset.UtcNow;
-            await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                ProgramCategoryDto responseDto = _mapper.Map<ProgramCategoryDto>(entity);
-                return Result.Ok(responseDto);
-            }
-
-            return Result.Fail<ProgramCategoryDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(ProgramCategory)));
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(ProgramCategory)));
         }
-        catch (ValidationException ex)
-        {
-            return Result.Fail<ProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
-        }
+
+        ProgramCategoryDto responseDto = _mapper.Map<ProgramCategoryDto>(entity);
+        return responseDto;
     }
 }

@@ -1,10 +1,9 @@
 using System.Security.Claims;
-using FluentResults;
 using FluentValidation;
-using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
@@ -13,7 +12,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Login;
 
-public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResponseDto>>
+public class LoginCommandHandler : BaseHandler<LoginCommand, AuthResponseDto>
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<AdminUser> _userManager;
@@ -35,24 +34,24 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         _jwtOptions = jwtOptions;
     }
 
-    public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public override async Task<AuthResponseDto> HandleRequest(LoginCommand request, CancellationToken cancellationToken)
     {
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
-            return Result.Fail(validationResult.Errors.Select(e => e.ErrorMessage));
+            throw new Exception(string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage)));
         }
 
         var admin = await _userManager.FindByEmailAsync(request.LoginRequestDto.Email);
         if (admin is null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            throw new Exception(AuthConstants.AdminWithGivenEmailWasNotFound);
         }
 
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
         if (!result)
         {
-            return Result.Fail(AuthConstants.IncorrectPassword);
+            throw new Exception(AuthConstants.IncorrectPassword);
         }
 
         var accessToken = _tokenService.CreateAccessToken([
@@ -76,7 +75,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var updateResult = await _userManager.UpdateAsync(admin);
 
         return !updateResult.Succeeded
-            ? Result.Fail(updateResult.Errors.Select(x => x.Description))
-            : Result.Ok(new AuthResponseDto(accessToken));
+            ? throw new Exception(string.Join("; ", updateResult.Errors.Select(x => x.Description)))
+            : new AuthResponseDto(accessToken);
     }
 }
