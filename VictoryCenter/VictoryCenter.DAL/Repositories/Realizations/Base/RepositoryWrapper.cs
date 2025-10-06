@@ -55,6 +55,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
     private IPartnerRepository? _partnerRepository;
     private IPartnerSectionsRepository? _partnerSectionRepository;
+    private IPartnersPageBannersRepository? _partnersPageBannersRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -86,6 +87,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
     public IPartnerRepository PartnerRepository => _partnerRepository ??= new PartnerRepository(_victoryCenterDbContext);
     public IPartnerSectionsRepository PartnerSectionsRepository => _partnerSectionRepository ??= new PartnerSectionsRepository(_victoryCenterDbContext);
+    public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
