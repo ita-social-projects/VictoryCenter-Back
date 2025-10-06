@@ -165,7 +165,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
                 }
 
                 _mapper.Map(request.UpdateDto, section); // Update section properties
-                await _repositoryWrapper.SaveChangesAsync(cancellationToken);
+                await _repositoryWrapper.SaveChangesAsync();
 
                 // Final reordering
                 finalPartnerIdsOrder = request.UpdateDto.Partners.Select(p => p.Id)
@@ -180,7 +180,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
                        p => p.PartnersSectionId == section.Id);
                 }
 
-                await _repositoryWrapper.SaveChangesAsync(cancellationToken);
+                await _repositoryWrapper.SaveChangesAsync();
                 scope.Complete();
             }
 

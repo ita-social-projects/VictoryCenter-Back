@@ -4,30 +4,25 @@ using VictoryCenter.BLL.DTOs.Admin.Partners;
 
 namespace VictoryCenter.BLL.Validators.Partners;
 
-public abstract class BasePartnerSectionValidator<TPartnerDto> : AbstractValidator<BasePartnerSectionCreateUpdateDto<TPartnerDto>>
-    where TPartnerDto : BasePartnerCreateUpdateDto
+public abstract class BasePartnerSectionValidator<TPartnerDto> : AbstractValidator<TPartnerDto>
+    where TPartnerDto : BasePartnerSectionCreateUpdateDto
 {
     protected BasePartnerSectionValidator()
     {
         RuleFor(x => x.Title)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto<TPartnerDto>.Title)))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto.Title)))
             .MaximumLength(PartnerConstants.TitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BasePartnerSectionCreateUpdateDto<TPartnerDto>.Title), PartnerConstants.TitleMaxLength));
+                nameof(BasePartnerSectionCreateUpdateDto.Title), PartnerConstants.TitleMaxLength));
 
         RuleFor(x => x.Description)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto<TPartnerDto>.Description)))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto.Description)))
             .MaximumLength(PartnerConstants.DescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BasePartnerSectionCreateUpdateDto<TPartnerDto>.Description), PartnerConstants.DescriptionMaxLength));
-
-        RuleFor(x => x.Partners)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(BasePartnerSectionCreateUpdateDto<TPartnerDto>.Partners)))
-            .Must(partners => partners.Count <= PartnerConstants.PartnersMaxCount)
-            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(BasePartnerSectionCreateUpdateDto<TPartnerDto>.Partners), PartnerConstants.PartnersMaxCount));
+                nameof(BasePartnerSectionCreateUpdateDto.Description), PartnerConstants.DescriptionMaxLength));
     }
 }

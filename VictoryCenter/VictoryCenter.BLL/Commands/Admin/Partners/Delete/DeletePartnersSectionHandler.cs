@@ -61,11 +61,11 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
 
             _repositoryWrapper.PartnerSectionsRepository.Delete(sectionToDelete);
 
-            await _repositoryWrapper.SaveChangesAsync(cancellationToken);
+            await _repositoryWrapper.SaveChangesAsync();
 
             await _reorderService.RenumberPriorityAsync<PartnerSection>();
 
-            await _repositoryWrapper.SaveChangesAsync(cancellationToken);
+            await _repositoryWrapper.SaveChangesAsync();
 
             foreach (var image in imagesToDelete)
             {

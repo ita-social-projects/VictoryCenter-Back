@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -18,17 +19,20 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
     private readonly IValidator<CreatePartnersSectionCommand> _validator;
     private readonly IMapper _mapper;
     private readonly IBlobService _blobService;
+    private readonly IReorderService _reorderService;
 
     public CreatePartnersSectionHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
         IValidator<CreatePartnersSectionCommand> validator,
-        IBlobService blobService)
+        IBlobService blobService,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
         _blobService = blobService;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<PartnersSectionDto>> Handle(CreatePartnersSectionCommand request, CancellationToken cancellationToken)
@@ -42,8 +46,8 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
             var sectionEntity = _mapper.Map<PartnerSection>(request.CreatePartnersSectionDto);
             sectionEntity.CreatedAt = DateTimeOffset.UtcNow;
 
-            var maxPriority = await _repositoryWrapper.PartnerSectionsRepository.MaxAsync(s => s.Priority);
-            sectionEntity.Priority = (maxPriority ?? 0) + 1;
+            var nextPriority = await _reorderService.GetNextDisplayOrderAsync<PartnerSection>();
+            sectionEntity.Priority = nextPriority;
 
             var partnerEntities = new List<Partner>();
             var imageEntities = new List<Image>();
@@ -107,7 +111,7 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
             using (var scope = _repositoryWrapper.BeginTransaction())
             {
                 await _repositoryWrapper.PartnerSectionsRepository.CreateAsync(sectionEntity);
-                await _repositoryWrapper.SaveChangesAsync(cancellationToken);
+                await _repositoryWrapper.SaveChangesAsync();
                 scope.Complete();
             }
 

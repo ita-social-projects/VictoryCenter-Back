@@ -10,7 +10,9 @@ public abstract class BasePartnerValidator<TPartnerDto> : AbstractValidator<TPar
     protected BasePartnerValidator()
     {
         RuleFor(x => x.Description)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)))
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)))
             .MaximumLength(PartnerConstants.PartnerDescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMaxLength));
