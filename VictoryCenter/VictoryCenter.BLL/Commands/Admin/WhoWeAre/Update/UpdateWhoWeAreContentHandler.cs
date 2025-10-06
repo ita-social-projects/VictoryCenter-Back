@@ -3,6 +3,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
@@ -37,23 +38,23 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
             var dictEntities = await GetContentMappedToDictionary(request.Content);
             var sectionId = await GetSectionIdByType(request.SectionType) ??
-                            throw new ArgumentException("Section type is invalid");
+                            throw new ArgumentException(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(request.SectionType)));
 
             foreach (var dto in request.Content)
             {
                 if (!dictEntities.TryGetValue(dto.Id, out var entity))
                 {
-                    return Result.Fail("Content was not found");
+                    return Result.Fail(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent)));
                 }
 
                 if (entity.SectionId != sectionId)
                 {
-                    return Result.Fail("Entity didnt belong to this section");
+                    return Result.Fail(WhoWeAreConstants.EntityDoNotBelongToTheSection(typeof(WhoWeAreContent), sectionId));
                 }
 
                 if (entity.ContentType != dto.ContentType)
                 {
-                    return Result.Fail("Wrong Content type");
+                    return Result.Fail(WhoWeAreConstants.WrongContentType);
                 }
 
                 UpdateContent(dto, entity);
@@ -71,6 +72,10 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         catch (ArgumentException e)
         {
             return Result.Fail(e.Message);
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(WhoWeAreContent)));
         }
     }
 

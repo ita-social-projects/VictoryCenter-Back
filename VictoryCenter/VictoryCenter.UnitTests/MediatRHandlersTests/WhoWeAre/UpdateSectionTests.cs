@@ -98,7 +98,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Content was not found", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.NotFound(command.Content.First().Id, typeof(WhoWeAreContent)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Entity didnt belong to this section", result.Errors[0].Message);
+        Assert.Contains(WhoWeAreConstants.EntityDoNotBelongToTheSection(typeof(WhoWeAreContent), command.Content.First().Id), result.Errors[0].Message);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Wrong Content type", result.Errors[0].Message);
+        Assert.Contains(WhoWeAreConstants.WrongContentType, result.Errors[0].Message);
     }
 
     [Fact]
@@ -158,7 +158,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Section type is invalid", result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(command.SectionType)), result.Errors[0].Message);
     }
 
     [Theory]

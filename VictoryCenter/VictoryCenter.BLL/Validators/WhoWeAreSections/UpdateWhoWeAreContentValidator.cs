@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.WhoWeAreSections;
 
@@ -11,7 +12,7 @@ public class UpdateWhoWeAreContentValidator : AbstractValidator<UpdateWhoWeAreCo
             .IsInEnum();
 
         RuleForEach(x => x.Content)
-            .NotNull().WithMessage("Content cannot be null.")
+            .NotNull().WithMessage(WhoWeAreConstants.ContentCanNotBeNull)
             .SetValidator(content => new WhoWeAreSectionValidator(content.SectionType));
     }
 }

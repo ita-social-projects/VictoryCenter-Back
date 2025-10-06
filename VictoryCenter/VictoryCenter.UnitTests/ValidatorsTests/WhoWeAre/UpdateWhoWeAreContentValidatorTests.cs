@@ -5,6 +5,8 @@ using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.Validators.WhoWeAreSections;
 using VictoryCenter.DAL.Enums;
 
+namespace VictoryCenter.UnitTests.ValidatorsTests.WhoWeAre;
+
 public class UpdateWhoWeAreContentValidatorTests
 {
     private readonly UpdateWhoWeAreContentValidator _validator;
