@@ -76,6 +76,8 @@ public static class ServicesConfiguration
                     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
             });
         });
+
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
     }
 
     public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
