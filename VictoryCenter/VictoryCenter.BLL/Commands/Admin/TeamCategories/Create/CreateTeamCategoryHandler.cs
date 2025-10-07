@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
@@ -50,7 +51,14 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamCategoryDto>(entity);
+                var createdEntity = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<TeamCategory>
+                    {
+                        Filter = tc => tc.Id == entity.Id,
+                        Include = tc => tc.Include(tc => tc.TeamMembers)
+                    });
+
+                var resultDto = _mapper.Map<TeamCategoryDto>(createdEntity);
                 return Result.Ok(resultDto);
             }
 

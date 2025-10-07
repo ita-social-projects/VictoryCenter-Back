@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
@@ -62,7 +63,14 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamCategory, TeamCategoryDto>(entityToUpdate);
+                var updatedEntity = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<TeamCategory>
+                    {
+                        Filter = tc => tc.Id == request.Id,
+                        Include = tc => tc.Include(tc => tc.TeamMembers)
+                    });
+
+                var resultDto = _mapper.Map<TeamCategory, TeamCategoryDto>(updatedEntity!);
                 return Result.Ok(resultDto);
             }
 
