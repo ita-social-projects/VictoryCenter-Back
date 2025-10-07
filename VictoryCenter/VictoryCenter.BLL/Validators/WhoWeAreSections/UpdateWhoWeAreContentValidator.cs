@@ -12,7 +12,9 @@ public class UpdateWhoWeAreContentValidator : AbstractValidator<UpdateWhoWeAreCo
             .IsInEnum();
 
         RuleForEach(x => x.Content)
-            .NotNull().WithMessage(WhoWeAreConstants.ContentCanNotBeNull)
+            .NotNull().WithMessage(WhoWeAreConstants.ContentCanNotBeNull);
+
+        RuleForEach(x => x.Content)
             .SetValidator(content => new WhoWeAreSectionValidator(content.SectionType));
     }
 }
