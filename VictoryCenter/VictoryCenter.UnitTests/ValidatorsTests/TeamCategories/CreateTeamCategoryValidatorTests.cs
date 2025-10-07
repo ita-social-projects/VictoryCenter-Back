@@ -12,7 +12,7 @@ public class CreateTeamCategoryValidatorTests
 
     public CreateTeamCategoryValidatorTests()
     {
-        _validator = new CreateTeamCategoryValidator();
+        _validator = new CreateTeamCategoryValidator(new BaseTeamCategoryValidator());
     }
 
     [Theory]
@@ -25,7 +25,7 @@ public class CreateTeamCategoryValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.CreateCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.CreateTeamCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 
@@ -36,6 +36,6 @@ public class CreateTeamCategoryValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldNotHaveValidationErrorFor(c => c.CreateCategoryDto.Name);
+        result.ShouldNotHaveValidationErrorFor(c => c.CreateTeamCategoryDto.Name);
     }
 }

@@ -201,7 +201,7 @@ public static class ServicesConfiguration
             }
             else
             {
-                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTime.UtcNow });
+                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTimeOffset.UtcNow });
             }
         }
 

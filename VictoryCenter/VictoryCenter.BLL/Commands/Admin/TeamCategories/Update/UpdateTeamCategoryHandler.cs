@@ -32,6 +32,17 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
+            var duplicateCategory =
+                await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
+                {
+                    Filter = entity => entity.Name == request.UpdateTeamCategoryDto.Name && entity.Id != request.Id
+                });
+
+            if (duplicateCategory is not null)
+            {
+                return Result.Fail<TeamCategoryDto>(TeamCategoryConstants.DuplicateCategoryName);
+            }
+
             var categoryEntity =
                 await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
                 {
@@ -43,7 +54,7 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
                 return Result.Fail<TeamCategoryDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory)));
             }
 
-            var entityToUpdate = _mapper.Map<UpdateTeamCategoryDto, TeamCategory>(request.UpdateCategoryDto);
+            var entityToUpdate = _mapper.Map<UpdateTeamCategoryDto, TeamCategory>(request.UpdateTeamCategoryDto);
             entityToUpdate.Id = request.Id;
             entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
 

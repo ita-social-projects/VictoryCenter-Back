@@ -11,26 +11,26 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class TeamCategoriesController : AuthorizedApiController
 {
     [HttpGet]
-    public async Task<IActionResult> GetCategories()
+    public async Task<IActionResult> GetTeamCategories()
     {
         return HandleResult(await Mediator.Send(new GetAllTeamCategoriesQuery()));
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateCategory([FromBody] CreateTeamCategoryDto createCategoryDto)
+    public async Task<IActionResult> CreateTeamCategory([FromBody] CreateTeamCategoryDto createTeamCategoryDto)
     {
-        return HandleResult(await Mediator.Send(new CreateTeamCategoryCommand(createCategoryDto)));
+        return HandleResult(await Mediator.Send(new CreateTeamCategoryCommand(createTeamCategoryDto)));
     }
 
     [HttpPut("{id:long}")]
-    public async Task<IActionResult> UpdateCategory([FromBody] UpdateTeamCategoryDto updateCategoryDto, long id)
+    public async Task<IActionResult> UpdateTeamCategory([FromBody] UpdateTeamCategoryDto updateTeamCategoryDto, long id)
     {
-        return HandleResult(await Mediator.Send(new UpdateTeamCategoryCommand(updateCategoryDto, id)));
+        return HandleResult(await Mediator.Send(new UpdateTeamCategoryCommand(updateTeamCategoryDto, id)));
     }
 
     [HttpDelete]
     [Route("{id:long}")]
-    public async Task<IActionResult> DeleteCategory(long id)
+    public async Task<IActionResult> DeleteTeamCategory(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteTeamCategoryCommand(id)));
     }

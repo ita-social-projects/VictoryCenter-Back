@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamCategories.Create;
 
@@ -31,8 +32,19 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var entity = _mapper.Map<TeamCategory>(request.CreateCategoryDto);
-            entity.CreatedAt = DateTime.UtcNow;
+            var duplicateCategory =
+                await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
+                {
+                    Filter = entity => entity.Name == request.CreateTeamCategoryDto.Name
+                });
+
+            if (duplicateCategory is not null)
+            {
+                return Result.Fail<TeamCategoryDto>(TeamCategoryConstants.DuplicateCategoryName);
+            }
+
+            var entity = _mapper.Map<TeamCategory>(request.CreateTeamCategoryDto);
+            entity.CreatedAt = DateTimeOffset.UtcNow;
 
             await _repositoryWrapper.TeamCategoriesRepository.CreateAsync(entity);
 

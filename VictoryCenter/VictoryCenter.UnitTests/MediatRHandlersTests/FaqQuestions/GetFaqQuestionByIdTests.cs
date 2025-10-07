@@ -24,7 +24,7 @@ public class GetFaqQuestionByIdTests
                     new FaqPlacement { PageId = 1, QuestionId = 1, Priority = 1 },
                     new FaqPlacement { PageId = 2, QuestionId = 1, Priority = 2 },
                     ],
-        CreatedAt = DateTime.UtcNow.AddMinutes(-20)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-20)
     };
     private readonly FaqQuestionDto _faqQuestionDto = new()
     {

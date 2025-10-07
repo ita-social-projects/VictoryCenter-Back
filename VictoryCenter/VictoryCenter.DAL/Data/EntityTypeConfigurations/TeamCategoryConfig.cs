@@ -20,6 +20,10 @@ public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
             .IsRequired();
 
         entity
+            .HasIndex(e => e.Name)
+            .IsUnique();
+
+        entity
             .Property(e => e.Description);
 
         entity
@@ -29,6 +33,7 @@ public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
         entity
             .HasMany(e => e.TeamMembers)
             .WithOne(e => e.TeamCategory);
+
         entity.HasMany(e => e.TeamMembers)
             .WithOne(e => e.TeamCategory)
             .HasForeignKey(e => e.CategoryId)

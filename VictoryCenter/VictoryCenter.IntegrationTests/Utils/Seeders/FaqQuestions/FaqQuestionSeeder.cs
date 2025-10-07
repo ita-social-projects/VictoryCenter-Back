@@ -32,7 +32,7 @@ public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
                 QuestionText = "How can I reset my password?",
                 AnswerText = "Click the 'Forgot Password' link on the login page and follow the instructions.",
                 Status = Status.Published,
-                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-10),
                 Placements =
                 [
                     new()
@@ -52,7 +52,7 @@ public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
                 QuestionText = "Where can I view my purchase history?",
                 AnswerText = "Go to your profile and click 'Order History' to see all your past orders.",
                 Status = Status.Published,
-                CreatedAt = DateTime.UtcNow.AddDays(-8),
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-8),
                 Placements =
                 [
                     new()
@@ -77,7 +77,7 @@ public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
                 QuestionText = "How do I contact customer support?",
                 AnswerText = "Use the form on our 'Contact Us' page or call 1-800-555-0199.",
                 Status = Status.Draft,
-                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-5),
                 Placements =
                 [
                     new()
@@ -97,7 +97,7 @@ public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
                 QuestionText = "Can I change my delivery address?",
                 AnswerText = "Yes, before shipment, go to your order details and update the address.",
                 Status = Status.Published,
-                CreatedAt = DateTime.UtcNow.AddDays(-2),
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-2),
                 Placements =
                 [
                     new()
@@ -112,7 +112,7 @@ public class FaqQuestionSeeder : BaseSeeder<FaqQuestion>
                 QuestionText = "What is the best way to reach your support team?",
                 AnswerText = "You can submit a request through the 'Contact Us' page or call us directly at 1-800-555-0199.",
                 Status = Status.Draft,
-                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                CreatedAt = DateTimeOffset.UtcNow.AddDays(-5),
                 Placements =
                 [
                     new()
