@@ -15,10 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="VictoryCenter.UnitTests" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="AutoMapper" Version="12.0.1" />
       <PackageReference Include="FluentResults" Version="3.16.0" />
       <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />

@@ -29,10 +29,10 @@ public class UpdateWhoWeAreContentValidatorTests
     public void ShouldHaveError_WhenContentItemIsNull()
     {
         var command =
-            new UpdateWhoWeAreContentCommand(SectionType.Main, new List<CreateWhoWeAreContentDto?> { null } !);
+            new UpdateWhoWeAreContentCommand(SectionType.Main, new List<CreateWhoWeAreContentDto> { null! } );
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Content[0]").WithErrorMessage("Content cannot be null.");
+        result.ShouldHaveValidationErrorFor("Content[0]").WithErrorMessage(WhoWeAreConstants.ContentCanNotBeNull);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Main,
             new List<CreateWhoWeAreContentDto>
             {
-                new() { Title = "short", Description = new string('A', 50), Id = 1 }
+                new() { Title = "short", ContentType = ContentType.Title, Id = 1 }
             });
 
         var result = _validator.TestValidate(command);
@@ -59,7 +59,7 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Main,
             new List<CreateWhoWeAreContentDto>
             {
-                new() { Title = new string('A', 51), Description = new string('A', 50), Id = 1 }
+                new() { Title = new string('A', 51), ContentType = ContentType.Title, Id = 1 }
             });
 
         var result = _validator.TestValidate(command);
@@ -69,38 +69,48 @@ public class UpdateWhoWeAreContentValidatorTests
                 nameof(CreateWhoWeAreContentDto.Title), 50));
     }
 
-    [Fact]
-    public void ShouldHaveError_WhenDescriptionTooShort()
+    [Theory]
+    [InlineData(SectionType.Main)]
+    [InlineData(SectionType.WhatWeDo)]
+    [InlineData(SectionType.WhoWeSupport)]
+    [InlineData(SectionType.Team)]
+    [InlineData(SectionType.People)]
+    public void ShouldHaveError_WhenDescriptionTooShort(SectionType sectionType)
     {
         var command = new UpdateWhoWeAreContentCommand(
-            SectionType.WhatWeDo,
+            sectionType,
             new List<CreateWhoWeAreContentDto>
             {
-                new() { Title = "Valid Title", Description = "Short", Id = 1 }
+                new() { ContentType = ContentType.Description, Description = "Short", Id = 1 }
             });
 
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor("Content[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Description), 10));
+                nameof(CreateWhoWeAreContentDto.Description),  WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen));
     }
 
-    [Fact]
-    public void ShouldHaveError_WhenDescriptionTooLong()
+    [Theory]
+    [InlineData(SectionType.Main)]
+    [InlineData(SectionType.WhatWeDo)]
+    [InlineData(SectionType.WhoWeSupport)]
+    [InlineData(SectionType.Team)]
+    [InlineData(SectionType.People)]
+    public void ShouldHaveError_WhenDescriptionTooLong(SectionType sectionType)
     {
         var command = new UpdateWhoWeAreContentCommand(
-            SectionType.WhatWeDo,
+            sectionType,
             new List<CreateWhoWeAreContentDto>
             {
-                new() { Title = "Valid Title", Description = new string('A', 301), Id = 1 }
+                new() { ContentType = ContentType.Description, Description = new string('A', 400), Id = 1 }
             });
 
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor("Content[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Description), 300));
+                nameof(CreateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen));
     }
 
     [Fact]
@@ -110,7 +120,8 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Main,
             new List<CreateWhoWeAreContentDto>
             {
-                new() { Title = "Valid Title Here", Description = new string('A', 50), Id = 1 }
+                new() { ContentType = ContentType.Title, Title = "Valid Title", Id = 1 },
+                new() { ContentType = ContentType.Description, Description = "Valid description", Id = 2 }
             });
 
         var result = _validator.TestValidate(command);
@@ -125,7 +136,7 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Team,
             new List<CreateWhoWeAreContentDto>
             {
-                new() { Title = null, Description = new string('A', 100), Id = 1 }
+                new() { ContentType = ContentType.Description, Description = new string('A', 100), Id = 1 }
             });
 
         var result = _validator.TestValidate(command);
