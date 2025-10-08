@@ -36,6 +36,7 @@ public interface IRepositoryWrapper
     IWhoWeAreSectionsRepository WhoWeAreSectionsRepository { get; }
     IPartnerRepository PartnerRepository { get; }
     IPartnerSectionsRepository PartnerSectionsRepository { get; }
+    IPartnersPageBannersRepository PartnersPageBannersRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
