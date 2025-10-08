@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20250930141225_changeProgramCategoryToHypotherapyProgramCategory")]
+    [Migration("20251008092103_changeProgramCategoryToHypotherapyProgramCategory")]
     partial class changeProgramCategoryToHypotherapyProgramCategory
     {
         /// <inheritdoc />
@@ -328,7 +328,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("Programs");
+                    b.ToTable("HypotherapyPrograms");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HypotherapyProgramCategory", b =>
@@ -348,7 +348,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProgramCategories");
+                    b.ToTable("HypotherapyProgramCategories");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
