@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 
@@ -8,14 +8,16 @@ public class UpdatePartnerSectionValidator : BasePartnerSectionValidator<UpdateP
 {
     public UpdatePartnerSectionValidator()
     {
-        RuleFor(x => x.Partners)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(UpdatePartnersSectionDto.Partners)))
+        RuleFor(x => x.PartnersToUpdate)
+            .NotNull()
             .Must(partners => partners.Count <= PartnerConstants.PartnersMaxCount)
             .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
                 nameof(CreatePartnersSectionDto.Partners), PartnerConstants.PartnersMaxCount));
 
-        RuleForEach(x => x.Partners)
+        RuleForEach(x => x.PartnersToUpdate)
             .SetValidator(new UpdatePartnerValidator());
+
+        RuleFor(x => x.PartnerIdsToDelete)
+            .NotNull();
     }
 }

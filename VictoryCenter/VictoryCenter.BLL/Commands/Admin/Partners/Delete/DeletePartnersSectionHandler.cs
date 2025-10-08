@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
@@ -28,51 +28,47 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
 
     public async Task<Result<long>> Handle(DeletePartnersSectionCommand request, CancellationToken cancellationToken)
     {
-        using var scope = _repositoryWrapper.BeginTransaction();
-
-        var sectionToDelete = await _repositoryWrapper.PartnerSectionsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<PartnerSection>
-            {
-                Filter = s => s.Id == request.Id,
-                Include = q => q.Include(s => s.Partners)
-                                .ThenInclude(p => p.Image!),
-                AsNoTracking = false
-            });
-
-        if (sectionToDelete is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
-        }
-
-        var partnersToDelete = sectionToDelete.Partners.ToList();
-        var imagesToDelete = partnersToDelete.Select(p => p.Image).Where(img => img != null).ToList();
-
         try
         {
-            if (imagesToDelete.Any())
+            var sectionToDelete = await _repositoryWrapper.PartnerSectionsRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<PartnerSection>
+                {
+                    Filter = s => s.Id == request.Id,
+                    Include = q => q.Include(s => s.Partners).ThenInclude(p => p.Image!)
+                });
+
+            if (sectionToDelete is null)
             {
-                _repositoryWrapper.ImageRepository.DeleteRange(imagesToDelete!);
+                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
             }
 
-            if (partnersToDelete.Any())
+            var blobsToDelete = sectionToDelete.Partners
+                .Where(p => p.Image != null)
+                .Select(p => (name: p.Image!.BlobName, mimeType: p.Image!.MimeType))
+                .ToList();
+
+            using (var scope = _repositoryWrapper.BeginTransaction())
             {
-                _repositoryWrapper.PartnerRepository.DeleteRange(partnersToDelete);
+                _repositoryWrapper.PartnerSectionsRepository.Delete(sectionToDelete);
+                await _repositoryWrapper.SaveChangesAsync();
+
+                await _reorderService.RenumberPriorityAsync<PartnerSection>();
+                await _repositoryWrapper.SaveChangesAsync();
+
+                scope.Complete();
             }
 
-            _repositoryWrapper.PartnerSectionsRepository.Delete(sectionToDelete);
-
-            await _repositoryWrapper.SaveChangesAsync();
-
-            await _reorderService.RenumberPriorityAsync<PartnerSection>();
-
-            await _repositoryWrapper.SaveChangesAsync();
-
-            foreach (var image in imagesToDelete)
+            foreach (var (name, mimeType) in blobsToDelete)
             {
-                _blobService.DeleteFileInStorage(image!.BlobName, image.MimeType);
+                try
+                {
+                    _blobService.DeleteFileInStorage(name, mimeType);
+                }
+                catch (Exception)
+                {
+                    // Ignore blob deletion errors
+                }
             }
-
-            scope.Complete();
 
             return Result.Ok(request.Id);
         }

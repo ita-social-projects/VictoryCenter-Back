@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Partners.Update;
 
 namespace VictoryCenter.BLL.Validators.Partners;

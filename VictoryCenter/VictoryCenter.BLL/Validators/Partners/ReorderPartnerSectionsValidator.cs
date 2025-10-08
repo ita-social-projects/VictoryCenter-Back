@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Partners.Reorder;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
