@@ -4,4 +4,5 @@ using VictoryCenter.BLL.DTOs.Admin.Partners;
 
 namespace VictoryCenter.BLL.Commands.Admin.Partners.Create;
 
-public record CreatePartnersSectionCommand(CreatePartnersSectionDto CreatePartnersSectionDto) : IRequest<Result<PartnersSectionDto>>;
+public record CreatePartnersSectionCommand(CreatePartnersSectionDto CreatePartnersSectionDto)
+    : IRequest<Result<PartnersSectionDto>>;
