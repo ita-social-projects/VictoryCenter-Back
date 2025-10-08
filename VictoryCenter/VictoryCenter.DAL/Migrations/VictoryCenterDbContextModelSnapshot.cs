@@ -325,7 +325,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("Programs");
+                    b.ToTable("HypotherapyPrograms");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HypotherapyProgramCategory", b =>
@@ -345,7 +345,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ProgramCategories");
+                    b.ToTable("HypotherapyProgramCategories");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
