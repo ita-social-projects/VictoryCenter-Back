@@ -1,0 +1,74 @@
+name: Monitoring pipeline (manual, stage)
+
+on:
+  workflow_dispatch:
+    inputs:
+      network_name:
+        description: 'Existing Docker network on stage (e.g., victorycenter-back_default)'
+        required: false
+        default: 'victorycenter-back_default'
+      devops_ref:
+        description: 'Git ref (branch/tag/sha) of VictoryCenter-DevOps to deploy'
+        required: false
+        default: 'feature/add-signose-stage'
+
+jobs:
+  deploy-signoz-stage:
+    name: Deploy SigNoz to stage
+    runs-on: self-hosted
+    env:
+      NETWORK_NAME: ${{ inputs.network_name }}
+
+    steps:
+      - name: Checkout DevOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ita-social-projects/VictoryCenter-DevOps
+          ref: ${{ inputs.devops_ref }}
+          path: devops
+
+      - name: Create minimal runtime override (attach to existing network)
+        working-directory: devops/monitoring/signoz
+        run: |
+          cat > _runtime.override.yml <<EOF
+          version: "3.8"
+          networks:
+            ext:
+              external: true
+              name: ${NETWORK_NAME}
+          services:
+            signoz:               { networks: [signoz-net, ext] }
+            otel-collector:
+              networks: [signoz-net, ext]
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock:ro
+                - /proc:/hostfs/proc:ro
+                - /sys:/hostfs/sys:ro
+                - /:/hostfs:ro
+            clickhouse:           { networks: [signoz-net, ext] }
+            zookeeper-1:          { networks: [signoz-net, ext] }
+            schema-migrator-sync: { networks: [signoz-net, ext] }
+            schema-migrator-async:{ networks: [signoz-net, ext] }
+          EOF
+          echo "Using NETWORK_NAME=${NETWORK_NAME}"
+
+      - name: Prepare .env for SigNoz (ClickHouse password)
+        working-directory: devops/monitoring/signoz
+        env:
+          SIGNOZ_CLICKHOUSE_PASSWORD: ${{ secrets.SIGNOZ_CLICKHOUSE_PASSWORD }}
+        run: |
+          if [ ! -f .env.signoz ]; then
+            echo "CLICKHOUSE_PASSWORD=${SIGNOZ_CLICKHOUSE_PASSWORD:-signoz@123}" > .env.signoz
+          fi
+
+      - name: Deploy SigNoz (from repo files)
+        working-directory: devops
+        run: |
+          docker compose \
+            -f monitoring/signoz/deploy/docker/docker-compose.yaml \
+            -f monitoring/signoz/_runtime.override.yml \
+            --env-file monitoring/signoz/.env.signoz \
+            up -d --remove-orphans
+
+      - name: List SigNoz containers
+        run: docker ps --format "table {{.Names}}\t{{.Networks}}\t{{.Status}}\t{{.Ports}}"
