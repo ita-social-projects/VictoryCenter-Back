@@ -21,6 +21,9 @@ public interface IRepositoryWrapper
     IProgramCategoriesRepository ProgramCategoriesRepository { get; }
     IProgramsRepository ProgramsRepository { get; }
 
+    IRepositoryBase<TEntity> GetRepository<TEntity>()
+        where TEntity : class;
+
     int SaveChanges();
 
     Task<int> SaveChangesAsync();
