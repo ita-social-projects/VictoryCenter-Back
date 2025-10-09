@@ -27,30 +27,57 @@ jobs:
           ref: ${{ inputs.devops_ref }}
           path: devops
 
-      - name: Create minimal runtime override (attach to existing network)
+      - name: Create runtime override (attach to existing network)
         working-directory: devops/monitoring/signoz
         run: |
-          cat > _runtime.override.yml <<EOF
+          cat > _runtime.override.yml <<'YAML'
           version: "3.8"
+
           networks:
             ext:
               external: true
               name: ${NETWORK_NAME}
+
           services:
-            signoz:               { networks: [signoz-net, ext] }
+            signoz:
+              networks:
+                - signoz-net
+                - ext
+
             otel-collector:
-              networks: [signoz-net, ext]
+              networks:
+                - signoz-net
+                - ext
               volumes:
                 - /var/run/docker.sock:/var/run/docker.sock:ro
                 - /proc:/hostfs/proc:ro
                 - /sys:/hostfs/sys:ro
                 - /:/hostfs:ro
-            clickhouse:           { networks: [signoz-net, ext] }
-            zookeeper-1:          { networks: [signoz-net, ext] }
-            schema-migrator-sync: { networks: [signoz-net, ext] }
-            schema-migrator-async:{ networks: [signoz-net, ext] }
-          EOF
+
+            clickhouse:
+              networks:
+                - signoz-net
+                - ext
+
+            zookeeper-1:
+              networks:
+                - signoz-net
+                - ext
+
+            schema-migrator-sync:
+              networks:
+                - signoz-net
+                - ext
+
+            schema-migrator-async:
+              networks:
+                - signoz-net
+                - ext
+          YAML
+
           echo "Using NETWORK_NAME=${NETWORK_NAME}"
+          echo "--- _runtime.override.yml ---"
+          sed -n '1,160p' _runtime.override.yml
 
       - name: Prepare .env for SigNoz (ClickHouse password)
         working-directory: devops/monitoring/signoz
@@ -60,6 +87,15 @@ jobs:
           if [ ! -f .env.signoz ]; then
             echo "CLICKHOUSE_PASSWORD=${SIGNOZ_CLICKHOUSE_PASSWORD:-signoz@123}" > .env.signoz
           fi
+          chmod 600 .env.signoz
+
+      - name: Validate compose config
+        working-directory: devops
+        run: |
+          docker compose \
+            -f monitoring/signoz/deploy/docker/docker-compose.yaml \
+            -f monitoring/signoz/_runtime.override.yml \
+            config >/dev/null
 
       - name: Deploy SigNoz (from repo files)
         working-directory: devops
