@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Partners.Create;
 using VictoryCenter.BLL.Commands.Admin.Partners.Delete;
 using VictoryCenter.BLL.Commands.Admin.Partners.Reorder;

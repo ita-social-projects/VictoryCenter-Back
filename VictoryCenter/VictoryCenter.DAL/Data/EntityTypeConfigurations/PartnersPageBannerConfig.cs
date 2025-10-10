@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VictoryCenter.DAL.Entities;
 
@@ -28,7 +28,7 @@ internal class PartnersPageBannerConfig : IEntityTypeConfiguration<PartnersPageB
         entity
             .HasOne(e => e.Image)
             .WithOne()
-            .HasForeignKey<Partner>(e => e.ImageId);
+            .HasForeignKey<PartnersPageBanner>(e => e.ImageId);
 
         entity
             .Property(e => e.CreatedAt)
