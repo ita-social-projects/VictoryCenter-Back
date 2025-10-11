@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Donate;
 public class CreateForeignBankDetailsCommandValidatorTests
@@ -81,7 +82,8 @@ public class CreateForeignBankDetailsCommandValidatorTests
                     Swift = new string('B', CorrespondentBankDetailsConstants.Swift.MinLength),
                     Iban = new string('1', CorrespondentBankDetailsConstants.Iban.MinLength)
                 }
-                }
+                },
+                Currency = BankCurrency.Usd,
             });
 
         var result = _validator.TestValidate(command);

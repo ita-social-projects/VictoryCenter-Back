@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
@@ -57,7 +58,8 @@ public class CreateForeignBankDetailsTests
                     Receiver = "Receiver Name",
                     Iban = "123456789012345678901234567",
                     Swift = "12345678901",
-                    Address = "Bank Street 123"
+                    Address = "Bank Street 123",
+                    Currency = BankCurrency.Usd,
                 }),
                 CancellationToken.None);
 
@@ -108,7 +110,8 @@ public class CreateForeignBankDetailsTests
                     Receiver = "Receiver Name",
                     Iban = "123456789012345678901234567",
                     Swift = "12345678901",
-                    Address = "Bank Street 123"
+                    Address = "Bank Street 123",
+                    Currency = BankCurrency.Usd,
                 }),
                 CancellationToken.None);
 

@@ -1,10 +1,11 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ForeignBankDetails.Create;
 public class CreateForeignBankDetailsTests : BaseTestClass
@@ -24,6 +25,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
             Iban = "123456789012345678901234567",
             Swift = "12345678901",
             Address = "New York, USA",
+            Currency = BankCurrency.Usd,
             CorrespondentBanks = new List<CreateCorrespondentBankDetailsDto>
             {
                 new()
