@@ -34,7 +34,7 @@ public class CreateTeamCategoryTests
     {
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
-        _validator = new CreateTeamCategoryValidator();
+        _validator = new CreateTeamCategoryValidator(new BaseTeamCategoryValidator());
     }
 
     [Theory]

@@ -41,7 +41,7 @@ public class UpdateCategoryTests
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _validator = new UpdateTeamCategoryValidator();
+        _validator = new UpdateTeamCategoryValidator(new BaseTeamCategoryValidator());
     }
 
     [Theory]

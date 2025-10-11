@@ -35,7 +35,7 @@ public class UpdateTeamMemberTests
         Priority = 1,
         Status = Status.Published,
         Description = "Test description",
-        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
         TeamCategory = new TeamCategory
         {
             Id = 1,
@@ -54,7 +54,7 @@ public class UpdateTeamMemberTests
         Priority = 1,
         Status = Status.Published,
         Description = "Test updated description",
-        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
         TeamCategory = new TeamCategory
         {
             Id = 1,
@@ -91,7 +91,7 @@ public class UpdateTeamMemberTests
             Priority = 1,
             Status = Status.Published,
             Description = validDescription,
-            CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+            CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
             TeamCategory = new TeamCategory
             {
                 Id = 1,
