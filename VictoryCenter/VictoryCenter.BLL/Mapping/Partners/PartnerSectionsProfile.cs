@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.DAL.Entities;
 
@@ -8,13 +8,25 @@ public class PartnerProfile : Profile
 {
     public PartnerProfile()
     {
-        CreateMap<CreatePartnersSectionDto, PartnerSection>();
-        CreateMap<UpdatePartnersSectionDto, PartnerSection>();
+        CreateMap<CreatePartnerDto, Partner>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+        CreateMap<CreatePartnersSectionDto, PartnerSection>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
-        CreateMap<CreatePartnerDto, Partner>();
-        CreateMap<UpdatePartnerDto, Partner>();
+        CreateMap<UpdatePartnerDto, Partner>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+        CreateMap<UpdatePartnersSectionDto, PartnerSection>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+        CreateMap<UpdatePartnersPageBannerDto, PartnersPageBanner>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
         CreateMap<Partner, PartnerDto>();
         CreateMap<PartnerSection, PartnersSectionDto>();
+        CreateMap<PartnersPageBanner, PartnersPageBannerDto>();
     }
 }

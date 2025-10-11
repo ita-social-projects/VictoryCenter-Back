@@ -2,9 +2,9 @@ using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Partners;
 
-public record PartnerDto
+public record PartnersPageBannerDto
 {
-    public long Id { get; init; }
-    public string Description { get; init; }
+    public string Title { get; init; } = null!;
+    public string Description { get; init; } = null!;
     public ImageDto Image { get; init; } = null!;
 }

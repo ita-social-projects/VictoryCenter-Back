@@ -3,33 +3,50 @@ using VictoryCenter.BLL.Commands.Admin.Partners.Create;
 using VictoryCenter.BLL.Commands.Admin.Partners.Delete;
 using VictoryCenter.BLL.Commands.Admin.Partners.Reorder;
 using VictoryCenter.BLL.Commands.Admin.Partners.Update;
-using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
-using VictoryCenter.BLL.Queries.Admin.Partners.GetAll;
+using VictoryCenter.BLL.Queries.Admin.Partners.GetBanner;
+using VictoryCenter.BLL.Queries.Admin.Partners.GetPartnerSections;
+using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
-public class PartnersController : AuthController
+public class PartnersController : AuthorizedApiController
 {
-    [HttpGet("pages")]
+    [HttpGet]
     [ProducesResponseType(typeof(List<PartnersSectionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPartnersSections()
     {
-        return HandleResult(await Mediator.Send(new GetAllPartnersSectionsQuery()));
+        return HandleResult(await Mediator.Send(new GetPartnerSectionsQuery()));
+    }
+
+    [HttpGet("banner")]
+    [ProducesResponseType(typeof(PartnersPageBannerDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPartnersPageBanner()
+    {
+        return HandleResult(await Mediator.Send(new GetPartnersPageBannerQuery()));
+    }
+
+    [HttpPut("banner")]
+    [ProducesResponseType(typeof(PartnersPageBannerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdatePartnersPageBanner([FromBody] UpdatePartnersPageBannerDto updatePartnersPageBannerDto)
+    {
+        return HandleResult(await Mediator.Send(new UpdatePartnersPageBannerCommand(updatePartnersPageBannerDto)));
     }
 
     [HttpPost]
-    [ProducesResponseType(typeof(FaqQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PartnersSectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreatePartnersSection([FromBody] CreatePartnersSectionDto createPartnersSectionDto)
     {
-               return HandleResult(await Mediator.Send(new CreatePartnersSectionCommand(createPartnersSectionDto)));
+        return HandleResult(await Mediator.Send(new CreatePartnersSectionCommand(createPartnersSectionDto)));
     }
 
     [HttpPut]
     [Route("{id:long}")]
-    [ProducesResponseType(typeof(FaqQuestionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PartnersSectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePartnersSection([FromBody] UpdatePartnersSectionDto updatePartnersSectionDto, long id)

@@ -4,50 +4,27 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 
-public record UpdatePartnersPageBannerDto
-{
-    public string Title { get; init; } = null!;
-    public string Description { get; init; } = null!;
-    public long ImageId { get; init; }
-
-}
-
-public record PartnersPageBannerDto
-{
-    public long Id { get; init; }
-    public string Title { get; init; } = null!;
-    public string Description { get; init; } = null!;
-    public ImageDto Image { get; init; } = null!;
-}
-
-public record UpdatePartnersPageBannerCommand(UpdatePartnersPageBannerDto Dto)
-    : IRequest<Result<PartnersPageBannerDto>>;
-
 public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPageBannerCommand, Result<PartnersPageBannerDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
     private readonly IValidator<UpdatePartnersPageBannerCommand> _validator;
-    private readonly IBlobService _blobService;
 
     public UpdatePartnersPageBannerHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
-        IValidator<UpdatePartnersPageBannerCommand> validator,
-        IBlobService blobService)
+        IValidator<UpdatePartnersPageBannerCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
-        _blobService = blobService;
     }
 
     public async Task<Result<PartnersPageBannerDto>> Handle(UpdatePartnersPageBannerCommand request, CancellationToken cancellationToken)
@@ -58,7 +35,8 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
 
             var existingImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
-                Filter = i => i.Id == request.Dto.ImageId
+                Filter = i => i.Id == request.Dto.ImageId,
+                AsNoTracking = true
             });
 
             if (existingImage == null)
@@ -72,8 +50,6 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
                     Include = q => q.Include(b => b.Image!)
                 });
 
-            Image? oldImageToDelete = null;
-
             using (var scope = _repositoryWrapper.BeginTransaction())
             {
                 if (bannerEntity == null)
@@ -84,36 +60,13 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
                 }
                 else
                 {
-                    if (bannerEntity.ImageId != request.Dto.ImageId)
-                    {
-                        oldImageToDelete = bannerEntity.Image;
-                    }
-
                     _mapper.Map(request.Dto, bannerEntity);
                     _repositoryWrapper.PartnersPageBannersRepository.Update(bannerEntity);
                 }
 
                 await _repositoryWrapper.SaveChangesAsync();
 
-                if (oldImageToDelete != null)
-                {
-                    _repositoryWrapper.ImageRepository.Delete(oldImageToDelete);
-                    await _repositoryWrapper.SaveChangesAsync();
-                }
-
                 scope.Complete();
-            }
-
-            if (oldImageToDelete != null)
-            {
-                try
-                {
-                    _blobService.DeleteFileInStorage(oldImageToDelete.BlobName, oldImageToDelete.MimeType);
-                }
-                catch (Exception)
-                {
-                    // Ignore exception
-                }
             }
 
             var result = await _repositoryWrapper.PartnersPageBannersRepository.GetFirstOrDefaultAsync(new()

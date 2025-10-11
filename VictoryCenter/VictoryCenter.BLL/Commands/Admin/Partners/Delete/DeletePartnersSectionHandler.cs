@@ -2,7 +2,6 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -14,16 +13,13 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IReorderService _reorderService;
-    private readonly IBlobService _blobService;
 
     public DeletePartnersSectionHandler(
         IRepositoryWrapper repositoryWrapper,
-        IReorderService reorderService,
-        IBlobService blobService)
+        IReorderService reorderService)
     {
         _reorderService = reorderService;
         _repositoryWrapper = repositoryWrapper;
-        _blobService = blobService;
     }
 
     public async Task<Result<long>> Handle(DeletePartnersSectionCommand request, CancellationToken cancellationToken)
@@ -34,18 +30,13 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
                 new QueryOptions<PartnerSection>
                 {
                     Filter = s => s.Id == request.Id,
-                    Include = q => q.Include(s => s.Partners).ThenInclude(p => p.Image!)
+                    Include = q => q.Include(s => s.Partners)
                 });
 
             if (sectionToDelete is null)
             {
                 return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
             }
-
-            var blobsToDelete = sectionToDelete.Partners
-                .Where(p => p.Image != null)
-                .Select(p => (name: p.Image!.BlobName, mimeType: p.Image!.MimeType))
-                .ToList();
 
             using (var scope = _repositoryWrapper.BeginTransaction())
             {
@@ -56,18 +47,6 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
                 await _repositoryWrapper.SaveChangesAsync();
 
                 scope.Complete();
-            }
-
-            foreach (var (name, mimeType) in blobsToDelete)
-            {
-                try
-                {
-                    _blobService.DeleteFileInStorage(name, mimeType);
-                }
-                catch (Exception)
-                {
-                    // Ignore blob deletion errors
-                }
             }
 
             return Result.Ok(request.Id);

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -7,22 +7,22 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.Admin.Partners.GetAll;
+namespace VictoryCenter.BLL.Queries.Admin.Partners.GetPartnerSections;
 
-public class GetAllPartnersSectionsQueryHandler
-    : IRequestHandler<GetAllPartnersSectionsQuery, Result<IEnumerable<PartnersSectionDto>>>
+public class GetPartnerSectionsHandler
+    : IRequestHandler<GetPartnerSectionsQuery, Result<IEnumerable<PartnersSectionDto>>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
 
-    public GetAllPartnersSectionsQueryHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public GetPartnerSectionsHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
     }
 
     public async Task<Result<IEnumerable<PartnersSectionDto>>> Handle(
-        GetAllPartnersSectionsQuery request,
+        GetPartnerSectionsQuery request,
         CancellationToken cancellationToken)
     {
         var sections = await _repositoryWrapper.PartnerSectionsRepository.GetAllAsync(

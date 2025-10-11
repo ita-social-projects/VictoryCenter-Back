@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.DTOs.Admin.Partners;
+namespace VictoryCenter.BLL.DTOs.Admin.Partners;
 
 public abstract record BasePartnerSectionCreateUpdateDto
 {

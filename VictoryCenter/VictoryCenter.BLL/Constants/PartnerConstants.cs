@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Constants;
+namespace VictoryCenter.BLL.Constants;
 
 public static class PartnerConstants
 {
@@ -7,6 +7,9 @@ public static class PartnerConstants
     public static readonly int PartnersMaxCount = 50;
 
     public static readonly int PartnerDescriptionMaxLength = 50;
+
+    public static readonly int PartnersPageBannerTitleMaxLength = 50;
+    public static readonly int PartnersPageBannerDescriptionMaxLength = 100;
 
     public static readonly string[] AllowedImageMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
 
