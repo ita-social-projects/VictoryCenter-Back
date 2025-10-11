@@ -46,7 +46,7 @@ namespace VictoryCenter.DAL.Migrations
 
             migrationBuilder.AlterColumn<DateTimeOffset>(
                 name: "CreatedAt",
-                table: "TeamCategories",
+                table: "Categories",
                 type: "datetimeoffset",
                 nullable: false,
                 oldClrType: typeof(DateTime),
@@ -196,7 +196,7 @@ namespace VictoryCenter.DAL.Migrations
 
             migrationBuilder.AlterColumn<DateTime>(
                 name: "CreatedAt",
-                table: "TeamCategories",
+                table: "Categories",
                 type: "datetime2",
                 nullable: false,
                 oldClrType: typeof(DateTimeOffset),
