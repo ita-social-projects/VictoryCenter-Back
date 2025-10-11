@@ -8,5 +8,5 @@ public static class TeamCategoryConstants
     public static readonly int MinNameLength = 5;
     public static readonly int MaxNameLength = 20;
     public static readonly int MinDescriptionLength = 10;
-    public static readonly int MaxDescriptionLength = 500;
+    public static readonly int MaxDescriptionLength = 200;
 }
