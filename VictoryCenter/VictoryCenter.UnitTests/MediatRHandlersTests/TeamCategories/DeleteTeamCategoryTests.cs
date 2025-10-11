@@ -7,7 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamCategories;
 
-public class DeleteCategoryTests
+public class DeleteTeamCategoryTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
@@ -19,7 +19,7 @@ public class DeleteCategoryTests
         CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Local.BaseUtcOffset),
     };
 
-    public DeleteCategoryTests()
+    public DeleteTeamCategoryTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
     }

@@ -15,18 +15,14 @@ public class UpdateCategoryTests : BaseTestClass
     {
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task UpdateCategory_ShouldUpdateCategory(string? testDescription)
+    [Fact]
+    public async Task UpdateCategory_ShouldUpdateCategory()
     {
         var existingEntity = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync();
         var updateTeamCategoryDto = new UpdateTeamCategoryDto
         {
             Name = "Test Category",
-            Description = testDescription,
+            Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
 

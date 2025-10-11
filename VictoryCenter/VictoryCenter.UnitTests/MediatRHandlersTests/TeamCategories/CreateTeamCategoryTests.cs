@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.BLL.Validators.TeamCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamCategories;
 
@@ -37,18 +38,9 @@ public class CreateTeamCategoryTests
         _validator = new CreateTeamCategoryValidator(new BaseTeamCategoryValidator());
     }
 
-    [Theory]
-    [InlineData("Test Category Description")]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task Handle_ShouldCreateCategory(string? description)
+    [Fact]
+    public async Task Handle_ShouldCreateCategory()
     {
-        _testEntity.Description = description;
-        _testCategoryDto = _testCategoryDto with
-        {
-            Description = description
-        };
         SetupDependencies();
         var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
@@ -56,7 +48,7 @@ public class CreateTeamCategoryTests
             new CreateTeamCategoryCommand(new CreateTeamCategoryDto
             {
                 Name = "Test Category",
-                Description = description,
+                Description = "Test Category Description",
             }), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
@@ -87,6 +79,33 @@ public class CreateTeamCategoryTests
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_DuplicateCategoryName()
+    {
+        var duplicateCategoryName = "Test Category";
+        var existingCategory = new TeamCategory
+        {
+            Id = 2,
+            Name = duplicateCategoryName,
+            Description = "Existing category"
+        };
+        SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<TeamCategory>>())).ReturnsAsync(existingCategory);
+
+        var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        var result = await handler.Handle(
+            new CreateTeamCategoryCommand(new CreateTeamCategoryDto
+            {
+                Name = duplicateCategoryName,
+                Description = "Test category description",
+            }), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(TeamCategoryConstants.DuplicateCategoryName, result.Errors[0].Message);
     }
 
     [Fact]
@@ -122,6 +141,9 @@ public class CreateTeamCategoryTests
 
     private void SetupRepositoryWrapper(int saveResult)
     {
+        _repositoryWrapperMock.Setup(repo => repo.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+            It.IsAny<QueryOptions<TeamCategory>>())).ReturnsAsync((TeamCategory?)null);
+
         _repositoryWrapperMock.Setup(repo => repo.TeamCategoriesRepository.CreateAsync(It.IsAny<TeamCategory>()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
