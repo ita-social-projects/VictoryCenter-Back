@@ -1,8 +1,9 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.BLL.Queries.Admin.Donate.ForeignBankDetails.GetAll;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
@@ -14,54 +15,45 @@ public class GetAllForeignBankDetailsTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly IEnumerable<Entities.ForeignBankDetails> _testEntities =
+    private readonly IEnumerable<Entities.ForeignBankDetails> _usdBankDetails =
     [
         new()
         {
             Id = 1,
-            Name = "Foreign Bank 1",
+            Name = "Foreign Bank USD 1",
             Receiver = "Receiver 1",
             Iban = "123456789012345678901234567",
             Swift = "12345678901",
             Address = "Address 1",
+            Currency = BankCurrency.Usd,
             CorrespondentBanks = []
         },
         new()
         {
             Id = 2,
-            Name = "Foreign Bank 2",
+            Name = "Foreign Bank USD 2",
             Receiver = "Receiver 2",
             Iban = "123456789012345678901234567",
             Swift = "12345678901",
             Address = "Address 2",
+            Currency = BankCurrency.Usd,
             CorrespondentBanks = []
-        }
-
+        },
     ];
 
-    private readonly IEnumerable<ForeignBankDetailsDto> _testDtos =
+    private readonly IEnumerable<Entities.ForeignBankDetails> _eurBankDetails =
     [
         new()
         {
-            Id = 1,
-            Name = "Foreign Bank 1",
-            Receiver = "Receiver 1",
+            Id = 3,
+            Name = "Foreign Bank EUR 1",
+            Receiver = "Receiver 3",
             Iban = "123456789012345678901234567",
             Swift = "12345678901",
-            Address = "Address 1",
+            Address = "Address 3",
+            Currency = BankCurrency.Eur,
             CorrespondentBanks = []
         },
-        new()
-        {
-            Id = 2,
-            Name = "Foreign Bank 2",
-            Receiver = "Receiver 2",
-            Iban = "123456789012345678901234567",
-            Swift = "12345678901",
-            Address = "Address 2",
-            CorrespondentBanks = []
-        }
-
     ];
 
     public GetAllForeignBankDetailsTests()
@@ -71,27 +63,76 @@ public class GetAllForeignBankDetailsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnAllForeignBankDetails()
+    public async Task Handle_ShouldReturnUsdForeignBankDetails()
     {
-        SetupDependencies();
+        SetupDependencies(BankCurrency.Usd, _usdBankDetails);
         var handler = new GetAllForeignBankDetailsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<ForeignBankDetailsDto>> result = await handler.Handle(new GetAllForeignBankDetailsQuery(), CancellationToken.None);
+        Result<List<ForeignBankDetailsDto>> result = await handler.Handle(
+            new GetAllForeignBankDetailsQuery(BankCurrency.Usd),
+            CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(2, result.Value.Count);
-        Assert.Equal("Foreign Bank 1", result.Value[0].Name);
-        Assert.Equal("Foreign Bank 2", result.Value[1].Name);
+        Assert.Equal("Foreign Bank USD 1", result.Value[0].Name);
+        Assert.Equal("Foreign Bank USD 2", result.Value[1].Name);
     }
 
-    private void SetupDependencies()
+    [Fact]
+    public async Task Handle_ShouldReturnEurForeignBankDetails()
     {
-        _mockMapper.Setup(m => m.Map<IEnumerable<ForeignBankDetailsDto>>(It.IsAny<IEnumerable<Entities.ForeignBankDetails>>()))
-            .Returns(_testDtos);
+        SetupDependencies(BankCurrency.Eur, _eurBankDetails);
+        var handler = new GetAllForeignBankDetailsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        _mockRepositoryWrapper.Setup(r => r.ForeignBankDetailsRepository
-            .GetAllAsync(It.IsAny<QueryOptions<Entities.ForeignBankDetails>>()))
-            .ReturnsAsync(_testEntities);
+        Result<List<ForeignBankDetailsDto>> result = await handler.Handle(
+            new GetAllForeignBankDetailsQuery(BankCurrency.Eur),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+        Assert.Equal("Foreign Bank EUR 1", result.Value[0].Name);
+    }
+
+    [Theory]
+    [InlineData(BankCurrency.Usd)]
+    [InlineData(BankCurrency.Eur)]
+    public async Task Handle_ShouldCallRepositoryWithCorrectCurrency(BankCurrency currency)
+    {
+        var bankDetails = currency == BankCurrency.Usd ? _usdBankDetails : _eurBankDetails;
+        SetupDependencies(currency, bankDetails);
+        var handler = new GetAllForeignBankDetailsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+
+        await handler.Handle(new GetAllForeignBankDetailsQuery(currency), CancellationToken.None);
+
+        _mockRepositoryWrapper.Verify(
+            r => r.ForeignBankDetailsRepository.GetAllAsync(
+                It.Is<QueryOptions<Entities.ForeignBankDetails>>(
+                    opts => opts.Filter != null)),
+            Times.Once);
+    }
+
+    private void SetupDependencies(BankCurrency currency, IEnumerable<Entities.ForeignBankDetails> bankDetails)
+    {
+        _mockRepositoryWrapper
+            .Setup(r => r.ForeignBankDetailsRepository.GetAllAsync(
+                It.Is<QueryOptions<Entities.ForeignBankDetails>>(
+                    opts => opts.Filter != null)))
+            .ReturnsAsync(bankDetails);
+
+        _mockMapper
+            .Setup(m => m.Map<IEnumerable<ForeignBankDetailsDto>>(It.IsAny<IEnumerable<Entities.ForeignBankDetails>>()))
+            .Returns<IEnumerable<Entities.ForeignBankDetails>>(entities =>
+                entities.Select(e => new ForeignBankDetailsDto
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    Receiver = e.Receiver,
+                    Iban = e.Iban,
+                    Swift = e.Swift,
+                    Address = e.Address,
+                    CorrespondentBanks = []
+                }).ToList());
     }
 }

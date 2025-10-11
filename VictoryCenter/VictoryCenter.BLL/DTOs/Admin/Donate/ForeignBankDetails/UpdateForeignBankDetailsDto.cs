@@ -1,12 +1,12 @@
-﻿using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
+using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 public record UpdateForeignBankDetailsDto
 {
-    public string Name { get; set; }
-    public string Receiver { get; set; }
-    public string Iban { get; set; }
-    public string Swift { get; set; }
-    public string Address { get; set; }
+    public string Name { get; set; } = null!;
+    public string Receiver { get; set; } = null!;
+    public string Iban { get; set; } = null!;
+    public string Swift { get; set; } = null!;
+    public string Address { get; set; } = null!;
     public List<UpdateCorrespondentBankDetailsDto> CorrespondentBanks { get; set; } = [];
 }

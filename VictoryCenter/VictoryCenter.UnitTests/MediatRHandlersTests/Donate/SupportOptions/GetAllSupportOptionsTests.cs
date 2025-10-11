@@ -1,49 +1,47 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.BLL.Queries.Admin.Donate.SupportOptions.GetAll;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.SupportOptions;
+
 public class GetAllSupportOptionsTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly IEnumerable<Entities.SupportOptions> _testEntities =
+    private readonly IEnumerable<Entities.SupportOptions> _usdSupportOptions =
     [
         new()
         {
             Id = 1,
-            Name = "Option1",
-            Value = "Value1"
+            Name = "USD Option 1",
+            Value = "Value 1",
+            Currency = BankCurrency.Usd
         },
         new()
         {
             Id = 2,
-            Name = "Option2",
-            Value = "Value2"
-        }
-
+            Name = "USD Option 2",
+            Value = "Value 2",
+            Currency = BankCurrency.Usd
+        },
     ];
 
-    private readonly IEnumerable<SupportOptionsDto> _testDtos =
+    private readonly IEnumerable<Entities.SupportOptions> _eurSupportOptions =
     [
         new()
         {
-            Id = 1,
-            Name = "Option1",
-            Value = "Value1"
+            Id = 3,
+            Name = "EUR Option 1",
+            Value = "Value 3",
+            Currency = BankCurrency.Eur
         },
-        new()
-        {
-            Id = 2,
-            Name = "Option2",
-            Value = "Value2"
-        }
-
     ];
 
     public GetAllSupportOptionsTests()
@@ -53,28 +51,73 @@ public class GetAllSupportOptionsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnAllSupportOptions()
+    public async Task Handle_ShouldReturnUsdSupportOptions()
     {
-        SetupDependencies();
-
+        SetupDependencies(BankCurrency.Usd, _usdSupportOptions);
         var handler = new GetAllSupportOptionsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<SupportOptionsDto>> result =
-            await handler.Handle(new GetAllSupportOptionsQuery(), CancellationToken.None);
+        Result<List<SupportOptionsDto>> result = await handler.Handle(
+            new GetAllSupportOptionsQuery(BankCurrency.Usd),
+            CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(2, result.Value.Count);
-        Assert.Equal("Option1", result.Value[0].Name);
-        Assert.Equal("Option2", result.Value[1].Name);
+        Assert.Equal("USD Option 1", result.Value[0].Name);
+        Assert.Equal("USD Option 2", result.Value[1].Name);
     }
 
-    private void SetupDependencies()
+    [Fact]
+    public async Task Handle_ShouldReturnEurSupportOptions()
     {
-        _mockMapper.Setup(m => m.Map<IEnumerable<SupportOptionsDto>>(It.IsAny<IEnumerable<Entities.SupportOptions>>()))
-            .Returns(_testDtos);
+        SetupDependencies(BankCurrency.Eur, _eurSupportOptions);
+        var handler = new GetAllSupportOptionsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        _mockRepositoryWrapper.Setup(r => r.SupportOptionsRepository.GetAllAsync(null))
-            .ReturnsAsync(_testEntities);
+        Result<List<SupportOptionsDto>> result = await handler.Handle(
+            new GetAllSupportOptionsQuery(BankCurrency.Eur),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+        Assert.Equal("EUR Option 1", result.Value[0].Name);
+    }
+
+    [Theory]
+    [InlineData(BankCurrency.Usd)]
+    [InlineData(BankCurrency.Eur)]
+    public async Task Handle_ShouldCallRepositoryWithCorrectCurrency(BankCurrency currency)
+    {
+        var supportOptions = currency == BankCurrency.Usd ? _usdSupportOptions : _eurSupportOptions;
+
+        SetupDependencies(currency, supportOptions);
+        var handler = new GetAllSupportOptionsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+
+        await handler.Handle(new GetAllSupportOptionsQuery(currency), CancellationToken.None);
+
+        _mockRepositoryWrapper.Verify(
+            r => r.SupportOptionsRepository.GetAllAsync(
+                It.Is<QueryOptions<Entities.SupportOptions>>(
+                    opts => opts.Filter != null)),
+            Times.Once);
+    }
+
+    private void SetupDependencies(BankCurrency currency, IEnumerable<Entities.SupportOptions> supportOptions)
+    {
+        _mockRepositoryWrapper
+            .Setup(r => r.SupportOptionsRepository.GetAllAsync(
+                It.Is<QueryOptions<Entities.SupportOptions>>(
+                    opts => opts.Filter != null)))
+            .ReturnsAsync(supportOptions);
+
+        _mockMapper
+            .Setup(m => m.Map<IEnumerable<SupportOptionsDto>>(It.IsAny<IEnumerable<Entities.SupportOptions>>()))
+            .Returns<IEnumerable<Entities.SupportOptions>>(entities =>
+                entities.Select(e => new SupportOptionsDto
+                {
+                    Id = e.Id,
+                    Name = e.Name,
+                    Value = e.Value
+                }).ToList());
     }
 }

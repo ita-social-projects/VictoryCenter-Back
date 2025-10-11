@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +23,7 @@ public class GetAllForeignBankDetailsHandler : IRequestHandler<GetAllForeignBank
     {
         IEnumerable<Entities.ForeignBankDetails> foreignBankDetails = await _repositoryWrapper.ForeignBankDetailsRepository.GetAllAsync(new QueryOptions<Entities.ForeignBankDetails>
         {
+            Filter = so => so.Currency == request.Currency,
             Include = entity => entity
                 .Include(e => e.CorrespondentBanks)
         });
