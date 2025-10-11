@@ -1,8 +1,8 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
-using VictoryCenter.BLL.Validators.Donate;
+using VictoryCenter.BLL.Validators.Donate.SupportOptions;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Donate;
 public class UpdateSupportOptionsCommandValidatorTests

@@ -1,14 +1,14 @@
-﻿using FluentValidation;
-using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Update;
+using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 
-namespace VictoryCenter.BLL.Validators.Donate;
-public class UpdateForeignBankDetailsCommandValidator : AbstractValidator<UpdateForeignBankDetailsCommand>
+namespace VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
+public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
+    where T : CreateForeignBankDetailsDto
 {
-    public UpdateForeignBankDetailsCommandValidator()
+    public ForeignBankDetailsDtoValidator()
     {
-        RuleFor(command => command.UpdateForeignBankDetailsDto.Swift)
+        RuleFor(dto => dto.Swift)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Swift)))
             .MaximumLength(ForeignBankDetailsConstants.Swift.MaxLength)
@@ -18,7 +18,7 @@ public class UpdateForeignBankDetailsCommandValidator : AbstractValidator<Update
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Swift), ForeignBankDetailsConstants.Swift.MinLength));
 
-        RuleFor(command => command.UpdateForeignBankDetailsDto.Iban)
+        RuleFor(dto => dto.Iban)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)))
             .MaximumLength(ForeignBankDetailsConstants.Iban.MaxLength)
@@ -29,8 +29,5 @@ public class UpdateForeignBankDetailsCommandValidator : AbstractValidator<Update
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Iban), ForeignBankDetailsConstants.Iban.MinLength))
             .Matches(ForeignBankDetailsConstants.OnlyDigits)
             .WithMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
-
-        RuleForEach(command => command.UpdateForeignBankDetailsDto.CorrespondentBanks)
-            .SetValidator(new UpdateCorrespondentBankDetailsDtoValidator());
     }
 }

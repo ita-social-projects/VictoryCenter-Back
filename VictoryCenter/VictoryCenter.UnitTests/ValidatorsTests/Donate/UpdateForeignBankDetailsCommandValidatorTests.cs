@@ -3,7 +3,7 @@ using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
-using VictoryCenter.BLL.Validators.Donate;
+using VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Donate;
 public class UpdateForeignBankDetailsCommandValidatorTests

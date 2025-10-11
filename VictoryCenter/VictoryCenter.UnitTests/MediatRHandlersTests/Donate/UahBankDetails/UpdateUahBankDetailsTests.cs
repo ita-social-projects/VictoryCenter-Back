@@ -1,11 +1,11 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
-using VictoryCenter.BLL.Validators.Donate;
+using VictoryCenter.BLL.Validators.Donate.UahBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;

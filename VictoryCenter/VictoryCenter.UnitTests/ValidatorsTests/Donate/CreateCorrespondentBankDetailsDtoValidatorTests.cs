@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
-using VictoryCenter.BLL.Validators.Donate;
+using VictoryCenter.BLL.Validators.Donate.CorrespondentBankDetails;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Donate;
 public class CreateCorrespondentBankDetailsDtoValidatorTests

@@ -1,14 +1,14 @@
-﻿using FluentValidation;
-using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;
+using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 
-namespace VictoryCenter.BLL.Validators.Donate;
-public class UpdateUahBankDetailsCommandValidator : AbstractValidator<UpdateUahBankDetailsCommand>
+namespace VictoryCenter.BLL.Validators.Donate.UahBankDetails;
+public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
+    where T : CreateUahBankDetailsDto
 {
-    public UpdateUahBankDetailsCommandValidator()
+    public UahBankDetailsDtoValidator()
     {
-        RuleFor(command => command.UpdateUahBankDetailsDto.Edrpou)
+        RuleFor(dto => dto.Edrpou)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Edrpou)))
             .MaximumLength(UahBankDetailsConstants.Edrpou.MaxLength)
@@ -20,7 +20,7 @@ public class UpdateUahBankDetailsCommandValidator : AbstractValidator<UpdateUahB
             .Matches(UahBankDetailsConstants.OnlyDigits)
             .WithMessage(UahBankDetailsConstants.OnlyDigitsMessage);
 
-        RuleFor(command => command.UpdateUahBankDetailsDto.Iban)
+        RuleFor(dto => dto.Iban)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Iban)))
             .MaximumLength(UahBankDetailsConstants.Iban.MaxLength)

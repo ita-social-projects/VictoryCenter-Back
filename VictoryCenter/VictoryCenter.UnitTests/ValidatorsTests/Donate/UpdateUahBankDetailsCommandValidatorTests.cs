@@ -2,7 +2,7 @@ using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
-using VictoryCenter.BLL.Validators.Donate;
+using VictoryCenter.BLL.Validators.Donate.UahBankDetails;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Donate;
 public class UpdateUahBankDetailsCommandValidatorTests

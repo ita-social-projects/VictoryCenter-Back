@@ -1,14 +1,15 @@
-﻿using FluentValidation;
-using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Create;
+using FluentValidation;
+using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
+using VictoryCenter.BLL.Validators.Donate.CorrespondentBankDetails;
 
-namespace VictoryCenter.BLL.Validators.Donate;
-public class CreateForeignBankDetailsCommandValidator : AbstractValidator<CreateForeignBankDetailsCommand>
+namespace VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
+public class UpdateForeignBankDetailsCommandValidator : AbstractValidator<UpdateForeignBankDetailsCommand>
 {
-    public CreateForeignBankDetailsCommandValidator()
+    public UpdateForeignBankDetailsCommandValidator()
     {
-        RuleFor(command => command.CreateForeignBankDetailsDto.Swift)
+        RuleFor(command => command.UpdateForeignBankDetailsDto.Swift)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Swift)))
             .MaximumLength(ForeignBankDetailsConstants.Swift.MaxLength)
@@ -18,7 +19,7 @@ public class CreateForeignBankDetailsCommandValidator : AbstractValidator<Create
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Swift), ForeignBankDetailsConstants.Swift.MinLength));
 
-        RuleFor(command => command.CreateForeignBankDetailsDto.Iban)
+        RuleFor(command => command.UpdateForeignBankDetailsDto.Iban)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)))
             .MaximumLength(ForeignBankDetailsConstants.Iban.MaxLength)
@@ -30,7 +31,7 @@ public class CreateForeignBankDetailsCommandValidator : AbstractValidator<Create
             .Matches(ForeignBankDetailsConstants.OnlyDigits)
             .WithMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
 
-        RuleForEach(command => command.CreateForeignBankDetailsDto.CorrespondentBanks)
-            .SetValidator(new CreateCorrespondentBankDetailsDtoValidator());
+        RuleForEach(command => command.UpdateForeignBankDetailsDto.CorrespondentBanks)
+            .SetValidator(new UpdateCorrespondentBankDetailsDtoValidator());
     }
 }
