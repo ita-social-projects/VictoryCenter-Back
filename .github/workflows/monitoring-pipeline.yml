@@ -45,6 +45,7 @@ jobs:
                 - ext
 
             otel-collector:
+              user: "0:0"
               networks:
                 - signoz-net
                 - ext
