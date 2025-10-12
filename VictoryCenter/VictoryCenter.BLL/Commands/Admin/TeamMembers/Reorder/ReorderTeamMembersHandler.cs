@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -60,10 +60,6 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         catch (DbUpdateException)
         {
             return Result.Fail<Unit>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(TeamMember)));
-        }
-        catch(DbUpdateException ex)
-        {
-            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
         }
     }
 }

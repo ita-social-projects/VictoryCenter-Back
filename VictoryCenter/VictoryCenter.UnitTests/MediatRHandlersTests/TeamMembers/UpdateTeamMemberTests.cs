@@ -261,7 +261,7 @@ public class UpdateTeamMemberTests
                 x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(testTeamMemberWithDifferentCategory);
 
-        _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+        _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(_testCategory);
 
         _mockReorderService.Setup(r => r.GetNextDisplayOrderAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))

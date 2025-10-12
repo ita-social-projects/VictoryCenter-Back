@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class TeamMember : BaseEntity , IOrderableEntity
+public class TeamMember : BaseEntity, IOrderableEntity
 {
     public string FullName { get; set; } = null!;
 
