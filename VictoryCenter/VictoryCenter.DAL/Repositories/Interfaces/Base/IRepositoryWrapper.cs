@@ -2,6 +2,8 @@ using System.Transactions;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Programs;
@@ -20,6 +22,8 @@ public interface IRepositoryWrapper
     IImageRepository ImageRepository { get; }
     IProgramCategoriesRepository ProgramCategoriesRepository { get; }
     IProgramsRepository ProgramsRepository { get; }
+    ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }
+    ITeamMemberLocalizationsRepository TeamMemberLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
