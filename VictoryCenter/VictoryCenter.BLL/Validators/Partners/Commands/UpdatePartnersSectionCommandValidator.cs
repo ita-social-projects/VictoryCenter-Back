@@ -1,5 +1,5 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.Admin.Partners.Update;
+using VictoryCenter.BLL.Commands.Admin.Partners.UpdateSection;
 using VictoryCenter.BLL.Validators.Partners.Dto;
 
 namespace VictoryCenter.BLL.Validators.Partners.Commands;

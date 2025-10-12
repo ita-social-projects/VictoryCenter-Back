@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Partners.Create;
 using VictoryCenter.BLL.Commands.Admin.Partners.Delete;
-using VictoryCenter.BLL.Commands.Admin.Partners.Reorder;
-using VictoryCenter.BLL.Commands.Admin.Partners.Update;
+using VictoryCenter.BLL.Commands.Admin.Partners.ReorderPartners;
+using VictoryCenter.BLL.Commands.Admin.Partners.ReorderSections;
 using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
+using VictoryCenter.BLL.Commands.Admin.Partners.UpdateSection;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.Queries.Admin.Partners.GetBanner;
 using VictoryCenter.BLL.Queries.Admin.Partners.GetPartnerSections;
@@ -68,7 +69,16 @@ public class PartnersController : AuthorizedApiController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ReorderPartnerSections([FromBody] ReorderPartnersSectionsDto reorderPartnersSectionsDto)
+    public async Task<IActionResult> ReorderPartners([FromBody] ReorderPartnersDto reorderPartnersDto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderPartnersCommand(reorderPartnersDto)));
+    }
+
+    [HttpPut("sections/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReorderPartnersSections([FromBody] ReorderPartnersSectionsDto reorderPartnersSectionsDto)
     {
         return HandleResult(await Mediator.Send(new ReorderPartnersSectionsCommand(reorderPartnersSectionsDto)));
     }

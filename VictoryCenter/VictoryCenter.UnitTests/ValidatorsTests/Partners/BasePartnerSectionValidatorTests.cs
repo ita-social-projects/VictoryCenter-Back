@@ -1,7 +1,7 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
-using VictoryCenter.BLL.Validators.Partners;
+using VictoryCenter.BLL.Validators.Partners.Dto;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Partners;
 
@@ -13,8 +13,6 @@ public class BasePartnerSectionValidatorTests
     private readonly string _tooLongTitle;
     private readonly string _validDescription;
     private readonly string _tooLongDescription;
-    private readonly List<TestPartnerDto> _validPartners;
-    private readonly List<TestPartnerDto> _tooManyPartners;
 
     private class TestBasePartnerSectionValidator : BasePartnerSectionValidator<TestPartnerSectionDto>
     {
@@ -33,15 +31,10 @@ public class BasePartnerSectionValidatorTests
         _validator = new TestBasePartnerSectionValidator();
 
         _validTitle = "Valid Title";
-        _tooLongTitle = new string('T', PartnerConstants.TitleMaxLength + 1);
+        _tooLongTitle = new string('T', PartnerConstants.PartnersSectionTitleMaxLength + 1);
 
         _validDescription = "A valid section description.";
-        _tooLongDescription = new string('D', PartnerConstants.DescriptionMaxLength + 1);
-
-        _validPartners = new List<TestPartnerDto> { new() };
-        _tooManyPartners = Enumerable.Range(0, PartnerConstants.PartnersMaxCount + 1)
-                                     .Select(_ => new TestPartnerDto())
-                                     .ToList();
+        _tooLongDescription = new string('D', PartnerConstants.PartnersSectionDescriptionMaxLength + 1);
     }
 
     [Fact]

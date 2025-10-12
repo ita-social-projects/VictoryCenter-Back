@@ -1,7 +1,7 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
-using VictoryCenter.BLL.Validators.Partners;
+using VictoryCenter.BLL.Validators.Partners.Dto;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Partners;
 

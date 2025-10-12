@@ -10,17 +10,24 @@ public class PartnerProfile : Profile
     {
         CreateMap<CreatePartnerDto, Partner>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore())
+            .ForMember(dest => dest.PartnersSectionId, opt => opt.Ignore());
         CreateMap<CreatePartnersSectionDto, PartnerSection>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore());
 
         CreateMap<UpdatePartnerDto, Partner>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore())
+            .ForMember(dest => dest.PartnersSectionId, opt => opt.Ignore());
         CreateMap<UpdatePartnersSectionDto, PartnerSection>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore())
+            .ForMember(dest => dest.Partners, opt => opt.Ignore());
         CreateMap<UpdatePartnersPageBannerDto, PartnersPageBanner>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());

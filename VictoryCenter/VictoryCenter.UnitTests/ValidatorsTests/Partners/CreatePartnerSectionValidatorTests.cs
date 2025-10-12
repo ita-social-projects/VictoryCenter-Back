@@ -1,7 +1,7 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
-using VictoryCenter.BLL.Validators.Partners;
+using VictoryCenter.BLL.Validators.Partners.Dto;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Partners;
 
@@ -17,11 +17,19 @@ public class CreatePartnerSectionValidatorTests
     public CreatePartnerSectionValidatorTests()
     {
         _validator = new CreatePartnerSectionValidator();
-        _validTitle = new string('A', PartnerConstants.TitleMaxLength - 1);
-        _validDescription = new string('A', PartnerConstants.DescriptionMaxLength - 1);
+        _validTitle = new string('A', PartnerConstants.PartnersSectionTitleMaxLength - 1);
+        _validDescription = new string('A', PartnerConstants.PartnersSectionDescriptionMaxLength - 1);
 
-        _validPartners = new List<CreatePartnerDto> { new() };
-        _tooManyPartners = Enumerable.Range(0, PartnerConstants.PartnersMaxCount + 1)
+        _validPartners = [
+            new CreatePartnerDto
+            {
+                Description = "Valid Partner Description",
+                ImageId = 1
+            }
+
+        ];
+
+        _tooManyPartners = Enumerable.Range(0, PartnerConstants.PartnersSectionPartnersMaxCount + 1)
                                      .Select(_ => new CreatePartnerDto())
                                      .ToList();
     }

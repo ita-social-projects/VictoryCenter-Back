@@ -10,7 +10,7 @@ public static class ErrorMessagesConstants
         return "Not Found";
     }
 
-    public static string NotFound(IEnumerable<object?> ids, Type entityType)
+    public static string NotFound(IEnumerable<long> ids, Type entityType)
     {
         return $"Entitis {entityType.Name} with id(s) '{string.Join(", ", ids)}' was not found";
     }

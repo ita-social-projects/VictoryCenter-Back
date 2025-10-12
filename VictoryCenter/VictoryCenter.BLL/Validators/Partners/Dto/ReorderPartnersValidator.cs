@@ -8,7 +8,7 @@ namespace VictoryCenter.BLL.Validators.Partners.Dto;
 public class ReorderPartnersValidator : BaseReorderValidator<ReorderPartnersDto>
 {
     public ReorderPartnersValidator()
-        : base(PartnerConstants.PartnersMaxCount)
+        : base(PartnerConstants.PartnersSectionPartnersMaxCount)
     {
         RuleFor(x => x.PartnersSectionId)
             .GreaterThan(0)

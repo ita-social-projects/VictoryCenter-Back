@@ -13,16 +13,16 @@ public abstract class BasePartnerSectionValidator<TPartnerDto> : AbstractValidat
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto.Title)))
-            .MaximumLength(PartnerConstants.TitleMaxLength)
+            .MaximumLength(PartnerConstants.PartnersSectionTitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BasePartnerSectionCreateUpdateDto.Title), PartnerConstants.TitleMaxLength));
+                nameof(BasePartnerSectionCreateUpdateDto.Title), PartnerConstants.PartnersSectionTitleMaxLength));
 
         RuleFor(x => x.Description)
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto.Description)))
-            .MaximumLength(PartnerConstants.DescriptionMaxLength)
+            .MaximumLength(PartnerConstants.PartnersSectionDescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BasePartnerSectionCreateUpdateDto.Description), PartnerConstants.DescriptionMaxLength));
+                nameof(BasePartnerSectionCreateUpdateDto.Description), PartnerConstants.PartnersSectionDescriptionMaxLength));
     }
 }

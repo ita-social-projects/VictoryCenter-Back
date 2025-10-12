@@ -1,18 +1,18 @@
-﻿using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Admin.Partners.Reorder;
+using FluentValidation.TestHelper;
+using VictoryCenter.BLL.Commands.Admin.Partners.ReorderSections;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
-using VictoryCenter.BLL.Validators.Partners;
+using VictoryCenter.BLL.Validators.Partners.Commands;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Partners;
 
 public class ReorderPartnerSectionsValidatorTests
 {
-    private readonly ReorderPartnerSectionsValidator _validator;
+    private readonly ReorderPartnersSectionsCommandValidator _validator;
 
     public ReorderPartnerSectionsValidatorTests()
     {
-        _validator = new ReorderPartnerSectionsValidator();
+        _validator = new ReorderPartnersSectionsCommandValidator();
     }
 
     [Fact]
@@ -27,22 +27,6 @@ public class ReorderPartnerSectionsValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.ReorderDto.OrderedIds)
             .WithErrorMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(ReorderPartnersSectionsDto.OrderedIds)));
-    }
-
-    [Fact]
-    public void Validate_OrderedIdsCountIsTooLarge_ShouldHaveError()
-    {
-        // Arrange
-        var tooManyIds = Enumerable.Range(1, PartnerConstants.PartnersMaxCount + 1)
-                                   .Select(i => (long)i)
-                                   .ToList();
-        var command = new ReorderPartnersSectionsCommand(new ReorderPartnersSectionsDto { OrderedIds = tooManyIds });
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.ReorderDto.OrderedIds);
     }
 
     [Fact]

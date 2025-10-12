@@ -11,9 +11,9 @@ public class CreatePartnerSectionValidator : BasePartnerSectionValidator<CreateP
         RuleFor(x => x.Partners)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(CreatePartnersSectionDto.Partners)))
-            .Must(partners => partners.Count <= PartnerConstants.PartnersMaxCount)
+            .Must(partners => partners.Count <= PartnerConstants.PartnersSectionPartnersMaxCount)
             .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(CreatePartnersSectionDto.Partners), PartnerConstants.PartnersMaxCount));
+                nameof(CreatePartnersSectionDto.Partners), PartnerConstants.PartnersSectionPartnersMaxCount));
 
         RuleForEach(x => x.Partners)
             .SetValidator(new CreatePartnerValidator());
