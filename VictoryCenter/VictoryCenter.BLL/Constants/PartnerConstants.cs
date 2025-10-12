@@ -14,4 +14,5 @@ public static class PartnerConstants
     public static readonly string[] AllowedImageMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
 
     public static readonly string HaveNotFoundAnyPartnersForReorder = "Have not found any partners for reorder";
+    public static readonly string HaveNotFoundAnyPartnersSectionsForReorder = "Have not found any partners sections for reorder";
 }

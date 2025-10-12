@@ -3,11 +3,11 @@ using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 
-namespace VictoryCenter.BLL.Validators.Partners;
+namespace VictoryCenter.BLL.Validators.Partners.Commands;
 
-public class UpdatePartnersPageBannerValidator : AbstractValidator<UpdatePartnersPageBannerCommand>
+public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<UpdatePartnersPageBannerCommand>
 {
-    public UpdatePartnersPageBannerValidator()
+    public UpdatePartnersPageBannerCommandValidator()
     {
         RuleFor(x => x.Dto.Title)
             .NotEmpty()

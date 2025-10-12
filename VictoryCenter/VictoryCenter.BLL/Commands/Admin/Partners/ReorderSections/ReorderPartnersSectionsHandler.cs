@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Commands.Admin.Partners.Reorder;
+namespace VictoryCenter.BLL.Commands.Admin.Partners.ReorderSections;
 
 public class ReorderPartnersSectionsHandler : IRequestHandler<ReorderPartnersSectionsCommand, Result<Unit>>
 {
@@ -43,7 +43,7 @@ public class ReorderPartnersSectionsHandler : IRequestHandler<ReorderPartnersSec
 
             if (sectionsToReorderCount == 0)
             {
-                return Result.Fail<Unit>(PartnerConstants.HaveNotFoundAnyPartnersForReorder);
+                return Result.Fail<Unit>(PartnerConstants.HaveNotFoundAnyPartnersSectionsForReorder);
             }
 
             using var transactionScope = _repositoryWrapper.BeginTransaction();

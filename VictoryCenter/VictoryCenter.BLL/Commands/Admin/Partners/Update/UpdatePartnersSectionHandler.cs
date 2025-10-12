@@ -51,12 +51,18 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
             }
 
             // Step 1: Validate all referenced images exist
-            var imageIds = request.UpdateDto.PartnersToUpdate.Select(p => p.ImageId).Distinct().ToList();
+            var imageIds = request.UpdateDto.PartnersToUpdate
+                .Select(p => p.ImageId)
+                .Distinct()
+                .ToList();
 
             if (imageIds.Any())
             {
                 var existingImageIds = (await _repositoryWrapper.ImageRepository
-                    .GetAllAsync(new QueryOptions<Image> { Filter = i => imageIds.Contains(i.Id) }))
+                    .GetAllAsync(new QueryOptions<Image>
+                    {
+                        Filter = i => imageIds.Contains(i.Id)
+                    }))
                     .Select(i => i.Id)
                     .ToHashSet();
 

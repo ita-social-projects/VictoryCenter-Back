@@ -1,8 +1,8 @@
-﻿using FluentValidation;
+using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 
-namespace VictoryCenter.BLL.Validators.Partners;
+namespace VictoryCenter.BLL.Validators.Partners.Dto;
 
 public abstract class BasePartnerValidator<TPartnerDto> : AbstractValidator<TPartnerDto>
     where TPartnerDto : BasePartnerCreateUpdateDto

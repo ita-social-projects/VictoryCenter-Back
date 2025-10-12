@@ -2,7 +2,7 @@ using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 
-namespace VictoryCenter.BLL.Validators.Partners;
+namespace VictoryCenter.BLL.Validators.Partners.Dto;
 
 public class UpdatePartnerSectionValidator : BasePartnerSectionValidator<UpdatePartnersSectionDto>
 {

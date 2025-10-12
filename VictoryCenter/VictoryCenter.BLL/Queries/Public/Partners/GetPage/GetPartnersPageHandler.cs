@@ -24,7 +24,7 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
 
     public async Task<Result<PartnersPageDto>> Handle(GetPartnersPageQuery request, CancellationToken cancellationToken)
     {
-        var sectionsTask = _repositoryWrapper.PartnerSectionsRepository
+        var partnerSections = await _repositoryWrapper.PartnerSectionsRepository
             .GetAllAsync(new QueryOptions<PartnerSection>
             {
                 Include = q => q
@@ -34,20 +34,32 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
                 AsNoTracking = true
             });
 
-        var bannerTask = _repositoryWrapper.PartnersPageBannersRepository.GetFirstOrDefaultAsync(new()
+        var banner = await _repositoryWrapper.PartnersPageBannersRepository
+            .GetFirstOrDefaultAsync(new()
+            {
+                Include = q => q.Include(b => b.Image!),
+                AsNoTracking = true
+            });
+
+        PartnersPageBannerDto bannerDto;
+
+        if (banner == null)
         {
-            Include = q => q.Include(b => b.Image!),
-            AsNoTracking = true
-        });
-
-        await Task.WhenAll(sectionsTask, bannerTask);
-
-        var partnerSections = await sectionsTask;
-        var banner = await bannerTask;
+            bannerDto = new PartnersPageBannerDto
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                Image = null
+            };
+        }
+        else
+        {
+            bannerDto = _mapper.Map<PartnersPageBannerDto>(banner);
+        }
 
         var partnersPageDto = new PartnersPageDto
         {
-            Banner = _mapper.Map<PartnersPageBannerDto>(banner),
+            Banner = bannerDto,
             Sections = _mapper.Map<IEnumerable<PartnersSectionDto>>(partnerSections)
         };
 

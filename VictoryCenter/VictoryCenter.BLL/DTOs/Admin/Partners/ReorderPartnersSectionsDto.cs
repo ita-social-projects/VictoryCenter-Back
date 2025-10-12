@@ -1,6 +1,5 @@
-﻿namespace VictoryCenter.BLL.DTOs.Admin.Partners;
+using VictoryCenter.BLL.DTOs.Common;
 
-public record ReorderPartnersSectionsDto
-{
-    public List<long> OrderedIds { get; init; } = [];
-}
+namespace VictoryCenter.BLL.DTOs.Admin.Partners;
+
+public record ReorderPartnersSectionsDto : BaseReorderDto { }
