@@ -3,9 +3,9 @@ using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 
 namespace VictoryCenter.BLL.Validators.Localization.TeamMembers;
 
-public class CreateTeamMemberLocalizationsValidator : AbstractValidator<CreateTeamMemberLocalizationCommand>
+public class CreateTeamMemberLocalizationValidator : AbstractValidator<CreateTeamMemberLocalizationCommand>
 {
-    public CreateTeamMemberLocalizationsValidator(BaseTeamMemberLocalizationsValidator baseTeamMemberLocalizationsValidator)
+    public CreateTeamMemberLocalizationValidator(BaseTeamMemberLocalizationValidator baseTeamMemberLocalizationsValidator)
     {
         RuleFor(c => c.CreateTeamMemberLocalizationDto).SetValidator(baseTeamMemberLocalizationsValidator);
     }

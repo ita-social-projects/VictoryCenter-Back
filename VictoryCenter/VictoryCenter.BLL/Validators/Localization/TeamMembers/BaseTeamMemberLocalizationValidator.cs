@@ -5,9 +5,9 @@ using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 
 namespace VictoryCenter.BLL.Validators.Localization.TeamMembers;
 
-public class BaseTeamMemberLocalizationsValidator : AbstractValidator<CreateTeamMemberLocalizationDto>
+public class BaseTeamMemberLocalizationValidator : AbstractValidator<CreateTeamMemberLocalizationDto>
 {
-    public BaseTeamMemberLocalizationsValidator()
+    public BaseTeamMemberLocalizationValidator()
     {
         RuleFor(x => x.LanguageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberDto.CategoryId)));
