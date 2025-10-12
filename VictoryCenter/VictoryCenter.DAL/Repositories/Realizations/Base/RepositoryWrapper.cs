@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Transactions;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -61,5 +62,23 @@ public class RepositoryWrapper : IRepositoryWrapper
     public TransactionScope BeginTransaction()
     {
         return new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+    }
+
+    public IRepositoryBase<TEntity> GetRepository<TEntity>()
+        where TEntity : class
+    {
+        var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var property in properties)
+        {
+            var propertyValue = property.GetValue(this);
+
+            if (propertyValue is IRepositoryBase<TEntity> matchingRepository)
+            {
+                return matchingRepository;
+            }
+        }
+
+        throw new NotImplementedException($"Repository for entity type '{typeof(TEntity).Name}' is not found in {nameof(RepositoryWrapper)}.");
     }
 }

@@ -21,6 +21,9 @@ public interface IRepositoryWrapper
     IHypotherapyProgramCategoriesRepository HypotherapyProgramCategoriesRepository { get; }
     IHypotherapyProgramsRepository HypotherapyProgramsRepository { get; }
 
+    IRepositoryBase<TEntity> GetRepository<TEntity>()
+        where TEntity : class;
+
     int SaveChanges();
 
     Task<int> SaveChangesAsync();

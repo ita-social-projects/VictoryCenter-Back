@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
 using FluentResults;
@@ -6,6 +7,8 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -18,6 +21,7 @@ public class UpdateTeamMemberTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<UpdateTeamMemberCommand> _validator;
 
     private readonly TeamCategory _testCategory = new()
@@ -76,6 +80,7 @@ public class UpdateTeamMemberTests
         var baseTeamMembersValidator = new BaseTeamMembersValidator();
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockReorderService = new Mock<IReorderService>();
         _validator = new UpdateTeamMemberValidator(baseTeamMembersValidator);
     }
 
@@ -111,14 +116,15 @@ public class UpdateTeamMemberTests
             Id = 1
         };
 
-        _mockMapper.Setup(x => x.Map<UpdateTeamMemberDto, TeamMember>(It.IsAny<UpdateTeamMemberDto>()))
-            .Returns(testUpdatedTeamMember);
+        _mockMapper.Setup(x => x.Map(It.IsAny<UpdateTeamMemberDto>(), It.IsAny<TeamMember>()));
 
         _mockMapper.Setup(x => x.Map<TeamMember, TeamMemberDto>(It.IsAny<TeamMember>()))
             .Returns(testUpdatedTeamMemberDto);
 
         SetupRepositoryWrapper(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        SetupReorderService();
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -147,7 +153,8 @@ public class UpdateTeamMemberTests
     {
         _testUpdatedTeamMember.FullName = testName!;
         SetupDependencies(_testExistingTeamMember);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -176,7 +183,9 @@ public class UpdateTeamMemberTests
             .Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync((TeamCategory?)null);
         SetupMapper();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        SetupReorderService();
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -197,7 +206,8 @@ public class UpdateTeamMemberTests
     public async Task Handle_TeamMemberNotFound_ShouldReturnNotFoundError(long testId)
     {
         SetupDependencies();
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -216,7 +226,8 @@ public class UpdateTeamMemberTests
     public async Task Handle_SaveChangesFails_ShouldReturnFailureError()
     {
         SetupDependencies(_testExistingTeamMember, -1);
-        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<TeamMemberDto> result = await handler.Handle(
             new UpdateTeamMemberCommand(
@@ -231,19 +242,70 @@ public class UpdateTeamMemberTests
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)), result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ReorderServiceThrowsReorderException_ShouldReturnReorderError()
+    {
+        var reorderExceptionMessage = "Reorder operation failed";
+        var testTeamMemberWithDifferentCategory = new TeamMember
+        {
+            Id = 1,
+            FullName = "Test",
+            CategoryId = 2,
+            Priority = 1,
+            Status = Status.Published,
+            Description = "Test description",
+            Email = "test@gmail.com"
+        };
+
+        _mockRepositoryWrapper.Setup(x =>
+                x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(testTeamMemberWithDifferentCategory);
+
+        _mockRepositoryWrapper.Setup(x => x.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+            .ReturnsAsync(_testCategory);
+
+        _mockReorderService.Setup(r => r.GetNextDisplayOrderAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .ThrowsAsync(new ReorderException(reorderExceptionMessage));
+
+        SetupMapper();
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = "Updated Name",
+                    CategoryId = 1,
+                    Description = "Updated Description"
+                }, testTeamMemberWithDifferentCategory.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReorderConstants.ErrorWithReordering(reorderExceptionMessage), result.Errors[0].Message);
+    }
+
     private void SetupDependencies(TeamMember? teamMemberToReturn = null, int saveResult = 1)
     {
         SetupMapper();
         SetupRepositoryWrapper(teamMemberToReturn, saveResult);
+        SetupReorderService();
     }
 
     private void SetupMapper()
     {
-        _mockMapper.Setup(x => x.Map<UpdateTeamMemberDto, TeamMember>(It.IsAny<UpdateTeamMemberDto>()))
-            .Returns(_testUpdatedTeamMember);
+        _mockMapper.Setup(x => x.Map(It.IsAny<UpdateTeamMemberDto>(), It.IsAny<TeamMember>()));
 
         _mockMapper.Setup(x => x.Map<TeamMember, TeamMemberDto>(It.IsAny<TeamMember>()))
             .Returns(_testUpdatedTeamMemberDto);
+    }
+
+    private void SetupReorderService()
+    {
+        _mockReorderService.Setup(r => r.GetNextDisplayOrderAsync<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .ReturnsAsync(1L);
+
+        _mockReorderService.Setup(r => r.RenumberPriorityAsync<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .Returns(Task.CompletedTask);
     }
 
     private void SetupRepositoryWrapper(TeamMember? teamMemberToReturn = null, int saveResult = 1)

@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -16,17 +18,20 @@ namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Update;
 public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, Result<TeamMemberDto>>
 {
     private readonly IMapper _mapper;
-    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateTeamMemberCommand> _validator;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IReorderService _indexReorderService;
 
     public UpdateTeamMemberHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateTeamMemberCommand> validator)
+        IValidator<UpdateTeamMemberCommand> validator,
+        IReorderService indexReorderService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _indexReorderService = indexReorderService;
     }
 
     public async Task<Result<TeamMemberDto>> Handle(UpdateTeamMemberCommand request, CancellationToken cancellationToken)
@@ -35,74 +40,95 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            TeamMember? teamMemberEntity =
-                await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
-                {
-                    Filter = entity => entity.Id == request.Id
-                });
+            var entityToUpdate = await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+            {
+                Filter = entity => entity.Id == request.Id,
+                AsNoTracking = false
+            });
 
-            if (teamMemberEntity is null)
+            if (entityToUpdate is null)
             {
                 return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
             }
 
-            TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.UpdateTeamMemberDto);
-            entityToUpdate.Id = request.Id;
-            using TransactionScope scope = _repositoryWrapper.BeginTransaction();
-            entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
+            var oldCategoryId = entityToUpdate.CategoryId;
+            var newCategoryId = request.UpdateTeamMemberDto.CategoryId;
+            var categoryChanged = oldCategoryId != newCategoryId;
 
-            TeamCategory? category = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<TeamCategory>
+            if (categoryChanged)
+            {
+                var newCategory = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
                 {
-                    Filter = entity => entity.Id == request.UpdateTeamMemberDto.CategoryId
+                    Filter = c => c.Id == newCategoryId,
+                    AsNoTracking = true
                 });
-            if (category is null)
-            {
-                return Result.Fail<TeamMemberDto>(
-                    ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(TeamCategory)));
-            }
 
-            if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
-            {
-                entityToUpdate.Priority = teamMemberEntity.Priority;
-            }
-            else
-            {
-                var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
-                    u => u.Priority,
-                    u => u.CategoryId == entityToUpdate.CategoryId);
-                entityToUpdate.Priority = (maxPriority ?? 0) + 1;
-            }
-
-            _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                if (entityToUpdate.ImageId != null)
+                if (newCategory == null)
                 {
-                    Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
-                        new QueryOptions<Image>
-                        {
-                            Filter = i => i.Id == entityToUpdate.ImageId
-                        });
-                    entityToUpdate.Image = image;
+                    return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(newCategoryId, typeof(Category)));
+                }
+            }
+
+            using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
+            {
+                var rowsAffected = 0;
+
+                _mapper.Map(request.UpdateTeamMemberDto, entityToUpdate);
+
+                if (categoryChanged)
+                {
+                    entityToUpdate.Priority = await _indexReorderService.GetNextDisplayOrderAsync<TeamMember>(
+                        groupSelector: tm => tm.CategoryId == newCategoryId);
                 }
 
-                TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+                _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
+                rowsAffected += await _repositoryWrapper.SaveChangesAsync();
 
-                scope.Complete();
-                return Result.Ok(resultDto);
+                if (categoryChanged)
+                {
+                    await _indexReorderService.RenumberPriorityAsync<TeamMember>(
+                        groupSelector: tm => tm.CategoryId == oldCategoryId);
+                }
+
+                rowsAffected += await _repositoryWrapper.SaveChangesAsync();
+
+                if (rowsAffected > 0)
+                {
+                    if (entityToUpdate.ImageId != null)
+                    {
+                        Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                            new QueryOptions<Image>
+                            {
+                                Filter = i => i.Id == entityToUpdate.ImageId
+                            });
+                        entityToUpdate.Image = image;
+                    }
+
+                    TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+
+                    scope.Complete();
+
+                    return Result.Ok(resultDto);
+                }
+
+                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
             }
-
-            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
+        }
+        catch (ValidationException vex)
+        {
+            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
         catch (BlobStorageException e)
         {
             return Result.Fail<TeamMemberDto>(ImageConstants.ErrorWithUserImage(e.Message));
         }
-        catch (ValidationException vex)
+        catch (ReorderException e)
         {
-            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamMemberDto>(ReorderConstants.ErrorWithReordering(e.Message));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
         }
         catch (DbUpdateException ex)
         {
