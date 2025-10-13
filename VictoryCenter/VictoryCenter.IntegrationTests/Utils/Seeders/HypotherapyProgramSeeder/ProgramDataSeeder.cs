@@ -21,7 +21,7 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.HippotherapyProgram>
     protected override async Task<List<DAL.Entities.HippotherapyProgram>> GenerateEntitiesAsync()
     {
         var programs = new List<DAL.Entities.HippotherapyProgram>();
-        var categories = await DbContext.HypotherapyProgramCategories.Take(4).ToListAsync();
+        var categories = await DbContext.HippotherapyProgramCategories.Take(4).ToListAsync();
         for (var i = 0; i < ProgramCount; i++)
         {
             var selectedCategories = categories
