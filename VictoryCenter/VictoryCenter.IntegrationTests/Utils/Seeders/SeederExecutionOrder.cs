@@ -10,5 +10,6 @@ public enum SeederExecutionOrder
     Images,
     UahBankDetails,
     SupportOptions,
-    ForeignBankDetails
+    ForeignBankDetails,
+    CorrespondentBankDetails
 }

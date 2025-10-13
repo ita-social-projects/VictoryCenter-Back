@@ -2,7 +2,6 @@ using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
-using VictoryCenter.BLL.Validators.Donate.CorrespondentBankDetails;
 
 namespace VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
 public class UpdateForeignBankDetailsCommandValidator : AbstractValidator<UpdateForeignBankDetailsCommand>
@@ -30,8 +29,5 @@ public class UpdateForeignBankDetailsCommandValidator : AbstractValidator<Update
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Iban), ForeignBankDetailsConstants.Iban.MinLength))
             .Matches(ForeignBankDetailsConstants.OnlyDigits)
             .WithMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
-
-        RuleForEach(command => command.UpdateForeignBankDetailsDto.CorrespondentBanks)
-            .SetValidator(new UpdateCorrespondentBankDetailsDtoValidator());
     }
 }

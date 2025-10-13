@@ -1,8 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -41,38 +40,13 @@ public class UpdateForeignBankDetailsHandler : IRequestHandler<UpdateForeignBank
                     .NotFound(request.Id, typeof(Entities.ForeignBankDetails)));
             }
 
-            _mapper.Map(request.UpdateForeignBankDetailsDto, foreignBankDetailsEntity);
+            Entities.ForeignBankDetails entityToUpdate = _mapper.Map(request.UpdateForeignBankDetailsDto, foreignBankDetailsEntity);
 
-            var existingCorrespondentBanks = await _repositoryWrapper.CorrespondentBankDetailsRepository
-                .GetAllAsync(new QueryOptions<Entities.CorrespondentBankDetails>
-                {
-                    Filter = cb => cb.ForeignBankDetailsId == request.Id
-                });
-
-            foreach (var existingCb in existingCorrespondentBanks)
-            {
-                _repositoryWrapper.CorrespondentBankDetailsRepository.Delete(existingCb);
-            }
-
-            foreach (var cbDto in request.UpdateForeignBankDetailsDto.CorrespondentBanks)
-            {
-                var cbEntity = _mapper.Map<Entities.CorrespondentBankDetails>(cbDto);
-                cbEntity.ForeignBankDetailsId = foreignBankDetailsEntity.Id;
-                cbEntity.Id = 0;
-                await _repositoryWrapper.CorrespondentBankDetailsRepository.CreateAsync(cbEntity);
-            }
-
-            _repositoryWrapper.ForeignBankDetailsRepository.Update(foreignBankDetailsEntity);
+            _repositoryWrapper.ForeignBankDetailsRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var updatedEntity = await _repositoryWrapper.ForeignBankDetailsRepository
-                    .GetFirstOrDefaultAsync(new QueryOptions<Entities.ForeignBankDetails>
-                    {
-                        Filter = fb => fb.Id == request.Id,
-                        Include = q => q.Include(fb => fb.CorrespondentBanks)
-                    });
-                ForeignBankDetailsDto responseDto = _mapper.Map<ForeignBankDetailsDto>(updatedEntity);
+                ForeignBankDetailsDto responseDto = _mapper.Map<ForeignBankDetailsDto>(entityToUpdate);
                 return Result.Ok(responseDto);
             }
 

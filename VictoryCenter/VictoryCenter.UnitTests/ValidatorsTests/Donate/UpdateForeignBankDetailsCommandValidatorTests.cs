@@ -1,7 +1,6 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Update;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
 
@@ -70,26 +69,6 @@ public class UpdateForeignBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenCorrespondentBankInvalid()
-    {
-        var command = new UpdateForeignBankDetailsCommand(
-            new UpdateForeignBankDetailsDto
-            {
-                Swift = new string('A', ForeignBankDetailsConstants.Swift.MinLength),
-                Iban = new string('1', ForeignBankDetailsConstants.Iban.MinLength),
-                CorrespondentBanks = new List<UpdateCorrespondentBankDetailsDto>
-                {
-                    new() { Swift = "", Iban = "123" }
-                }
-            },
-            1L);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor("UpdateForeignBankDetailsDto.CorrespondentBanks[0].Swift");
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         var command = new UpdateForeignBankDetailsCommand(
@@ -97,14 +76,6 @@ public class UpdateForeignBankDetailsCommandValidatorTests
             {
                 Swift = new string('A', ForeignBankDetailsConstants.Swift.MinLength),
                 Iban = new string('1', ForeignBankDetailsConstants.Iban.MinLength),
-                CorrespondentBanks = new List<UpdateCorrespondentBankDetailsDto>
-                {
-                    new()
-                    {
-                        Swift = new string('B', CorrespondentBankDetailsConstants.Swift.MinLength),
-                        Iban = new string('1', CorrespondentBankDetailsConstants.Iban.MinLength)
-                    }
-                }
             },
             1L);
 

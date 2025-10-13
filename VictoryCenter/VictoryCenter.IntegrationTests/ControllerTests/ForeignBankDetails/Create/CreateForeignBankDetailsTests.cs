@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
-using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
@@ -26,16 +25,6 @@ public class CreateForeignBankDetailsTests : BaseTestClass
             Swift = "12345678901",
             Address = "New York, USA",
             Currency = BankCurrency.Usd,
-            CorrespondentBanks = new List<CreateCorrespondentBankDetailsDto>
-            {
-                new()
-                {
-                    Name = "Deutsche Bank",
-                    Swift = "12345678901",
-                    Account = "4008867001",
-                    Iban = "123456789012345678901234567"
-                }
-            }
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);
 
@@ -64,7 +53,6 @@ public class CreateForeignBankDetailsTests : BaseTestClass
             Iban = "UA000000000000000000000000000",
             Swift = "BADX",
             Address = "Invalid",
-            CorrespondentBanks = []
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);
 

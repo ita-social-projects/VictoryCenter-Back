@@ -19,8 +19,6 @@ public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CorrespondentBankDetailsDto.Swift), CorrespondentBankDetailsConstants.Swift.MinLength));
 
         RuleFor(dto => dto.Iban)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Iban)))
             .MaximumLength(CorrespondentBankDetailsConstants.Iban.MaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CorrespondentBankDetailsDto.Iban), CorrespondentBankDetailsConstants.Iban.MaxLength))
@@ -28,6 +26,7 @@ public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CorrespondentBankDetailsDto.Iban), CorrespondentBankDetailsConstants.Iban.MinLength))
             .Matches(CorrespondentBankDetailsConstants.OnlyDigits)
-            .WithMessage(CorrespondentBankDetailsConstants.OnlyDigitsMessage);
+            .WithMessage(CorrespondentBankDetailsConstants.OnlyDigitsMessage)
+            .When(dto => !string.IsNullOrEmpty(dto.Iban));
     }
 }

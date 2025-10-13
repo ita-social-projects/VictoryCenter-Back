@@ -1,7 +1,6 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Create;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
 using VictoryCenter.DAL.Enums;
@@ -50,24 +49,6 @@ public class CreateForeignBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenCorrespondentBankIsInvalid()
-    {
-        var command = new CreateForeignBankDetailsCommand(
-            new CreateForeignBankDetailsDto
-            {
-                Swift = "VALIDSWIFT",
-                Iban = "123456789",
-                CorrespondentBanks = new List<CreateCorrespondentBankDetailsDto>
-                {
-                    new() { Swift = "", Iban = "123" }
-                }
-            });
-
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor("CreateForeignBankDetailsDto.CorrespondentBanks[0].Swift");
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         var command = new CreateForeignBankDetailsCommand(
@@ -75,14 +56,6 @@ public class CreateForeignBankDetailsCommandValidatorTests
             {
                 Swift = new string('A', ForeignBankDetailsConstants.Swift.MinLength),
                 Iban = new string('1', ForeignBankDetailsConstants.Iban.MinLength),
-                CorrespondentBanks = new List<CreateCorrespondentBankDetailsDto>
-                {
-                new()
-                {
-                    Swift = new string('B', CorrespondentBankDetailsConstants.Swift.MinLength),
-                    Iban = new string('1', CorrespondentBankDetailsConstants.Iban.MinLength)
-                }
-                },
                 Currency = BankCurrency.Usd,
             });
 

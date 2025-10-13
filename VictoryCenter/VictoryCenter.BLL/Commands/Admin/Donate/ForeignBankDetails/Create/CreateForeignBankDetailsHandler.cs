@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
@@ -23,26 +23,24 @@ public class CreateForeignBankDetailsHandler : IRequestHandler<CreateForeignBank
 
     public async Task<Result<ForeignBankDetailsDto>> Handle(CreateForeignBankDetailsCommand request, CancellationToken cancellationToken)
     {
+        try
         {
-            try
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            Entities.ForeignBankDetails entity = _mapper.Map<Entities.ForeignBankDetails>(request.CreateForeignBankDetailsDto);
+            await _repositoryWrapper.ForeignBankDetailsRepository.CreateAsync(entity);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-                Entities.ForeignBankDetails entity = _mapper.Map<Entities.ForeignBankDetails>(request.CreateForeignBankDetailsDto);
-                await _repositoryWrapper.ForeignBankDetailsRepository.CreateAsync(entity);
-
-                if (await _repositoryWrapper.SaveChangesAsync() > 0)
-                {
-                    ForeignBankDetailsDto responseDto = _mapper.Map<ForeignBankDetailsDto>(entity);
-                    return Result.Ok(responseDto);
-                }
-
-                return Result.Fail<ForeignBankDetailsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.ForeignBankDetails)));
+                ForeignBankDetailsDto responseDto = _mapper.Map<ForeignBankDetailsDto>(entity);
+                return Result.Ok(responseDto);
             }
-            catch (ValidationException ex)
-            {
-                return Result.Fail<ForeignBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
-            }
+
+            return Result.Fail<ForeignBankDetailsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.ForeignBankDetails)));
+        }
+        catch (ValidationException ex)
+        {
+            return Result.Fail<ForeignBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
         }
     }
 }

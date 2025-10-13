@@ -5,4 +5,6 @@ public record CreateCorrespondentBankDetailsDto
     public string Swift { get; set; } = null!;
     public string Account { get; set; } = null!;
     public string? Iban { get; set; } = null!;
+    public long ForeignBankDetailsId { get; set; }
+
 }

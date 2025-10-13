@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
-using VictoryCenter.DAL.Entities;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders.ForeignBankDetails;
@@ -26,17 +25,6 @@ public class ForeignBankDetailsSeeder : BaseSeeder<Entities.ForeignBankDetails>
                 Iban = "123456789012345678901234567",
                 Swift = "12345678901",
                 Address = "Kyiv, Ukraine",
-                CorrespondentBanks = new List<CorrespondentBankDetails>
-                {
-                    new()
-                    {
-                        Id = 1,
-                        Name = "Deutsche Bank",
-                        Swift = "12345678901",
-                        Account = "4008867001",
-                        Iban = "123456789012345678901234567"
-                    }
-                }
             },
             new()
             {

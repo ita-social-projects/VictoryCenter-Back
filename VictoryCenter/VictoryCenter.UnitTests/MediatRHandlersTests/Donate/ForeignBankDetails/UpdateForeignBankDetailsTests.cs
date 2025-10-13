@@ -25,7 +25,6 @@ public class UpdateForeignBankDetailsTests
         Iban = "123456789012345678901234567",
         Swift = "12345678901",
         Address = "Updated Address",
-        CorrespondentBanks = []
     };
 
     private readonly Entities.ForeignBankDetails _foreignBankDetailsEntity = new()
