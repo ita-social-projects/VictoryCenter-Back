@@ -32,8 +32,8 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            HypotherapyProgram? programToUpdate = await _repositoryWrapper.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<HypotherapyProgram>
+            HippotherapyProgram? programToUpdate = await _repositoryWrapper.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<HippotherapyProgram>
                 {
                     Filter = program => program.Id == request.Id,
                     Include = program => program.Include(p => p.Categories),
@@ -43,11 +43,11 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
             if (programToUpdate is null)
             {
                 return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(HypotherapyProgram)));
+                    .NotFound(request.Id, typeof(HippotherapyProgram)));
             }
 
-            IEnumerable<HypotherapyProgramCategory> newCategories = await _repositoryWrapper.HypotherapyProgramCategoriesRepository.GetAllAsync(
-                new QueryOptions<HypotherapyProgramCategory>
+            IEnumerable<HippotherapyProgramCategory> newCategories = await _repositoryWrapper.HypotherapyProgramCategoriesRepository.GetAllAsync(
+                new QueryOptions<HippotherapyProgramCategory>
                 {
                     Filter = category => request.UpdateProgramDto.CategoryIds.Contains(category.Id),
                     AsNoTracking = false
@@ -68,7 +68,7 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
 
             programToUpdate.Categories.Clear();
 
-            foreach (HypotherapyProgramCategory category in newCategories)
+            foreach (HippotherapyProgramCategory category in newCategories)
             {
                 programToUpdate.Categories.Add(category);
             }
@@ -81,7 +81,7 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
                 return Result.Ok(responseDto);
             }
 
-            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HypotherapyProgram)));
+            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
         }
         catch (ValidationException ex)
         {
@@ -89,7 +89,7 @@ public class UpdateHypotherapyProgramHandler : IRequestHandler<UpdateHypotherapy
         }
         catch (BlobStorageException)
         {
-            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HypotherapyProgram)));
+            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
         }
     }
 }

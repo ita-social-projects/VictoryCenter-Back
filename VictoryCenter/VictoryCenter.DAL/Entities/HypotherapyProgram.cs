@@ -3,12 +3,12 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class HypotherapyProgram : BaseEntity
+public class HippotherapyProgram : BaseEntity
 {
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public Status Status { get; set; }
     public long? ImageId { get; set; }
-    public ICollection<HypotherapyProgramCategory> Categories { get; set; } = [];
+    public ICollection<HippotherapyProgramCategory> Categories { get; set; } = [];
     public Image? Image { get; set; }
 }

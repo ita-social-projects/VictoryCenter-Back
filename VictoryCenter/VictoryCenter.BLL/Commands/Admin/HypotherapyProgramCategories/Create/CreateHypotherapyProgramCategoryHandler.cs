@@ -28,7 +28,7 @@ public class CreateHypotherapyProgramCategoryHandler : IRequestHandler<CreateHyp
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            HypotherapyProgramCategory entity = _mapper.Map<HypotherapyProgramCategory>(request.ProgramCategoryDto);
+            HippotherapyProgramCategory entity = _mapper.Map<HippotherapyProgramCategory>(request.ProgramCategoryDto);
             entity.CreatedAt = DateTimeOffset.UtcNow;
             await _repositoryWrapper.HypotherapyProgramCategoriesRepository.CreateAsync(entity);
 
@@ -38,7 +38,7 @@ public class CreateHypotherapyProgramCategoryHandler : IRequestHandler<CreateHyp
                 return Result.Ok(responseDto);
             }
 
-            return Result.Fail<HypotherapyProgramCategoryDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HypotherapyProgramCategory)));
+            return Result.Fail<HypotherapyProgramCategoryDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgramCategory)));
         }
         catch (ValidationException ex)
         {

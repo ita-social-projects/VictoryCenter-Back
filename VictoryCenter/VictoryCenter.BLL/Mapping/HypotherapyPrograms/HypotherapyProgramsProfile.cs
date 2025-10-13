@@ -9,11 +9,11 @@ public class HypotherapyProgramsProfile : Profile
 {
     public HypotherapyProgramsProfile()
     {
-        CreateMap<HypotherapyProgram, HypotherapyProgramDto>();
-        CreateMap<HypotherapyProgram, PublishedHypotherapyProgramDto>();
-        CreateMap<CreateHypotherapyProgramDto, HypotherapyProgram>()
+        CreateMap<HippotherapyProgram, HypotherapyProgramDto>();
+        CreateMap<HippotherapyProgram, PublishedHypotherapyProgramDto>();
+        CreateMap<CreateHypotherapyProgramDto, HippotherapyProgram>()
             .ForMember(dest => dest.Categories, opt => opt.Ignore());
-        CreateMap<HypotherapyUpdateProgramDto, HypotherapyProgram>()
+        CreateMap<HypotherapyUpdateProgramDto, HippotherapyProgram>()
             .ForMember(dest => dest.Categories, opt => opt.Ignore());
     }
 }

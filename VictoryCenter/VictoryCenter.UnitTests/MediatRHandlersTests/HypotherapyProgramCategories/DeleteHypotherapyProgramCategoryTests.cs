@@ -11,21 +11,21 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.HypotherapyProgramCategor
 public class DeleteHypotherapyProgramCategoryTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
-    private readonly HypotherapyProgramCategory _programCategoryWithNoPrograms;
-    private readonly HypotherapyProgramCategory _programCategoryWithPrograms;
+    private readonly HippotherapyProgramCategory _programCategoryWithNoPrograms;
+    private readonly HippotherapyProgramCategory _programCategoryWithPrograms;
 
     public DeleteHypotherapyProgramCategoryTests()
     {
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
 
-        _programCategoryWithNoPrograms = new HypotherapyProgramCategory
+        _programCategoryWithNoPrograms = new HippotherapyProgramCategory
         {
             Id = 1,
             Name = "Without Programs",
             Programs = []
         };
 
-        _programCategoryWithPrograms = new HypotherapyProgramCategory
+        _programCategoryWithPrograms = new HippotherapyProgramCategory
         {
             Id = 2,
             Name = "With Programs",
@@ -83,13 +83,13 @@ public class DeleteHypotherapyProgramCategoryTests
         Result<long> result = await handler.Handle(new DeleteHypotherapyProgramCategoryCommand(_programCategoryWithNoPrograms.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HypotherapyProgramCategory)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgramCategory)), result.Errors[0].Message);
     }
 
-    private void SetupCategoryRetrieval(HypotherapyProgramCategory? category)
+    private void SetupCategoryRetrieval(HippotherapyProgramCategory? category)
     {
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramCategoriesRepository
-            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HypotherapyProgramCategory>>()))
+            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync(category);
     }
 }

@@ -27,12 +27,12 @@ public class GetHypotherapyProgramsByFiltersHandler : IRequestHandler<GetHypothe
     {
         Status? status = request.RequestDto?.Status;
         List<long>? programCategories = request.RequestDto?.CategoryId;
-        Expression<Func<HypotherapyProgram, bool>> filter =
+        Expression<Func<HippotherapyProgram, bool>> filter =
             t => (status == null || t.Status == status) &&
                  (programCategories == null || programCategories.Count == 0 ||
                   t.Categories.Any(c => programCategories.Contains(c.Id)));
 
-        var queryOptions = new QueryOptions<HypotherapyProgram>
+        var queryOptions = new QueryOptions<HippotherapyProgram>
         {
             Offset = request.RequestDto?.Offset is > 0 ? (int)request.RequestDto.Offset : 0,
             Limit = request.RequestDto?.Limit is > 0 ? (int)request.RequestDto.Limit : 0,
@@ -42,7 +42,7 @@ public class GetHypotherapyProgramsByFiltersHandler : IRequestHandler<GetHypothe
                 .Include(p => p.Categories)
         };
 
-        IEnumerable<HypotherapyProgram> programs = await _repositoryWrapper.HypotherapyProgramsRepository.GetAllAsync(queryOptions);
+        IEnumerable<HippotherapyProgram> programs = await _repositoryWrapper.HypotherapyProgramsRepository.GetAllAsync(queryOptions);
         var totalCount = await _repositoryWrapper.HypotherapyProgramsRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
         var programDto = _mapper.Map<IEnumerable<HypotherapyProgramDto>>(programs).ToList();
 

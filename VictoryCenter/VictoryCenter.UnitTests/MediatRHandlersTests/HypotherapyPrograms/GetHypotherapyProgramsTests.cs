@@ -13,7 +13,7 @@ public class GetHypotherapyProgramsTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
 
-    private readonly List<DAL.Entities.HypotherapyProgram> _programs =
+    private readonly List<DAL.Entities.HippotherapyProgram> _programs =
     [
         new()
         {
@@ -169,7 +169,7 @@ public class GetHypotherapyProgramsTests
         Assert.Equal(programResponseDtos, result.Value.Items);
     }
 
-    private void SetUpDependencies(IEnumerable<HypotherapyProgramDto> responseDto, IEnumerable<DAL.Entities.HypotherapyProgram> programs)
+    private void SetUpDependencies(IEnumerable<HypotherapyProgramDto> responseDto, IEnumerable<DAL.Entities.HippotherapyProgram> programs)
     {
         SetUpMapper(responseDto);
         SetUpRepositoryWrapper(programs);
@@ -177,14 +177,14 @@ public class GetHypotherapyProgramsTests
 
     private void SetUpMapper(IEnumerable<HypotherapyProgramDto> responseDto)
     {
-        _mockMapper.Setup(m => m.Map<IEnumerable<HypotherapyProgramDto>>(It.IsAny<IEnumerable<DAL.Entities.HypotherapyProgram>>()))
+        _mockMapper.Setup(m => m.Map<IEnumerable<HypotherapyProgramDto>>(It.IsAny<IEnumerable<DAL.Entities.HippotherapyProgram>>()))
             .Returns(responseDto);
     }
 
-    private void SetUpRepositoryWrapper(IEnumerable<DAL.Entities.HypotherapyProgram> programs)
+    private void SetUpRepositoryWrapper(IEnumerable<DAL.Entities.HippotherapyProgram> programs)
     {
         _repositoryWrapper.Setup(r => r.HypotherapyProgramsRepository
-                .GetAllAsync(It.IsAny<QueryOptions<DAL.Entities.HypotherapyProgram>>()))
+                .GetAllAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>()))
             .ReturnsAsync(programs);
     }
 }

@@ -22,7 +22,7 @@ public class GetHypotherapyProgramCategoriesHandler : IRequestHandler<GetHypothe
 
     public async Task<Result<List<HypotherapyProgramCategoryDto>>> Handle(GetHypotherapyProgramCategoriesQuery request, CancellationToken cancellationToken)
     {
-        IEnumerable<HypotherapyProgramCategory> programCategories = await _repositoryWrapper.HypotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HypotherapyProgramCategory>
+        IEnumerable<HippotherapyProgramCategory> programCategories = await _repositoryWrapper.HypotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HippotherapyProgramCategory>
         {
             Include = programCategory => programCategory
                 .Include(p => p.Programs)

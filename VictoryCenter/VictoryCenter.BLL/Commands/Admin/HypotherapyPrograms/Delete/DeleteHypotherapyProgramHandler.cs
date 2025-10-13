@@ -19,7 +19,7 @@ public class DeleteHypotherapyProgramHandler : IRequestHandler<DeleteHypotherapy
 
     public async Task<Result<long>> Handle(DeleteHypotherapyProgramCommand request, CancellationToken cancellationToken)
     {
-        HypotherapyProgram? entityToDelete = await _repositoryWrapper.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HypotherapyProgram>
+        HippotherapyProgram? entityToDelete = await _repositoryWrapper.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
         {
             Filter = program => program.Id == request.Id,
             Include = program => program.Include(p => p.Categories)
@@ -28,7 +28,7 @@ public class DeleteHypotherapyProgramHandler : IRequestHandler<DeleteHypotherapy
         if (entityToDelete is null)
         {
             return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(HypotherapyProgram)));
+                .NotFound(request.Id, typeof(HippotherapyProgram)));
         }
 
         entityToDelete.Categories.Clear();
@@ -39,6 +39,6 @@ public class DeleteHypotherapyProgramHandler : IRequestHandler<DeleteHypotherapy
             return Result.Ok(entityToDelete.Id);
         }
 
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HypotherapyProgram)));
+        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgram)));
     }
 }

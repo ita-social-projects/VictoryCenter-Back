@@ -15,7 +15,7 @@ public class DeleteHypotherapyProgramTests : BaseTestClass
     [Fact]
     public async Task DeleteProgram_ShouldDeleteProgram()
     {
-        DAL.Entities.HypotherapyProgram? existingEntity = await Fixture.DbContext.HypotherapyPrograms.FirstOrDefaultAsync();
+        DAL.Entities.HippotherapyProgram? existingEntity = await Fixture.DbContext.HypotherapyPrograms.FirstOrDefaultAsync();
         HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/HypotherapyPrograms/{existingEntity!.Id}");
         response.EnsureSuccessStatusCode();
 

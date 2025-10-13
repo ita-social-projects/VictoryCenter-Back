@@ -2,8 +2,8 @@ using VictoryCenter.DAL.Data.BaseEntity;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class HypotherapyProgramCategory : BaseEntity
+public class HippotherapyProgramCategory : BaseEntity
 {
     public string Name { get; set; } = null!;
-    public ICollection<HypotherapyProgram> Programs { get; set; } = new List<HypotherapyProgram>();
+    public ICollection<HippotherapyProgram> Programs { get; set; } = new List<HippotherapyProgram>();
 }

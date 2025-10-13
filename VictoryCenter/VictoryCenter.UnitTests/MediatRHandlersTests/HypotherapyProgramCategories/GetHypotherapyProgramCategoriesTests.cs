@@ -14,7 +14,7 @@ public class GetHypotherapyProgramCategoriesTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly IEnumerable<HypotherapyProgramCategory> _testProgramCategories =
+    private readonly IEnumerable<HippotherapyProgramCategory> _testProgramCategories =
     [
         new()
         {
@@ -66,14 +66,14 @@ public class GetHypotherapyProgramCategoriesTests
 
     private void SetupMapper()
     {
-        _mockMapper.Setup(x => x.Map<IEnumerable<HypotherapyProgramCategoryDto>>(It.IsAny<IEnumerable<HypotherapyProgramCategory>>()))
+        _mockMapper.Setup(x => x.Map<IEnumerable<HypotherapyProgramCategoryDto>>(It.IsAny<IEnumerable<HippotherapyProgramCategory>>()))
             .Returns(_testProgramCategoriesDtos);
     }
 
     private void SetupRepositoryWrapper()
     {
         _mockRepositoryWrapper.Setup(repo => repo.HypotherapyProgramCategoriesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<HypotherapyProgramCategory>>()))
+                It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync(_testProgramCategories);
     }
 }

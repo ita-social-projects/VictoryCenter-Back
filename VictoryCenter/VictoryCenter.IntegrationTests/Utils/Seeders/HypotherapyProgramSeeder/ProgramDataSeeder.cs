@@ -6,7 +6,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.IntegrationTests.Utils.Seeders.HypotherapyProgramSeeder;
 
-public class ProgramSeeder : BaseSeeder<DAL.Entities.HypotherapyProgram>
+public class ProgramSeeder : BaseSeeder<DAL.Entities.HippotherapyProgram>
 {
     private const int ProgramCount = 8;
 
@@ -18,9 +18,9 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.HypotherapyProgram>
     public override string Name => "ProgramsSeeder";
     public override int Order => (int)SeederExecutionOrder.HypotherapyPrograms;
 
-    protected override async Task<List<DAL.Entities.HypotherapyProgram>> GenerateEntitiesAsync()
+    protected override async Task<List<DAL.Entities.HippotherapyProgram>> GenerateEntitiesAsync()
     {
-        var programs = new List<DAL.Entities.HypotherapyProgram>();
+        var programs = new List<DAL.Entities.HippotherapyProgram>();
         var categories = await DbContext.HypotherapyProgramCategories.Take(4).ToListAsync();
         for (var i = 0; i < ProgramCount; i++)
         {

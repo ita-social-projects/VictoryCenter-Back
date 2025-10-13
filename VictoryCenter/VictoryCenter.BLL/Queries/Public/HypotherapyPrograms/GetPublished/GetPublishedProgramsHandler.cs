@@ -24,7 +24,7 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
 
     public async Task<Result<List<PublishedHypotherapyProgramDto>>> Handle(GetPublishedProgramsQuery request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<HypotherapyProgram>
+        var queryOptions = new QueryOptions<HippotherapyProgram>
         {
             Filter = program => program.Status == Status.Published,
             Include = program => program
@@ -32,7 +32,7 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
                 .Include(program => program.Image)!
         };
 
-        IEnumerable<HypotherapyProgram> publishedPrograms = await _repositoryWrapper.HypotherapyProgramsRepository.GetAllAsync(queryOptions);
+        IEnumerable<HippotherapyProgram> publishedPrograms = await _repositoryWrapper.HypotherapyProgramsRepository.GetAllAsync(queryOptions);
         var publishedProgramsDto = _mapper.Map<IEnumerable<PublishedHypotherapyProgramDto>>(publishedPrograms).ToList();
 
         return Result.Ok(publishedProgramsDto);
