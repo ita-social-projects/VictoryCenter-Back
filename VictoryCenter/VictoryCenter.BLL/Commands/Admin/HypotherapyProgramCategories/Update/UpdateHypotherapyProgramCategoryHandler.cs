@@ -29,8 +29,8 @@ public class UpdateHypotherapyProgramCategoryHandler : IRequestHandler<UpdateHyp
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            HypotherapyProgramCategory? programCategoryEntity = await _repositoryWrapper.HypotherapyProgramCategoriesRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<HypotherapyProgramCategory>
+            HippotherapyProgramCategory? programCategoryEntity = await _repositoryWrapper.HypotherapyProgramCategoriesRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
                 {
                     Filter = programCategory => programCategory.Id == request.Id
                 });
@@ -38,10 +38,10 @@ public class UpdateHypotherapyProgramCategoryHandler : IRequestHandler<UpdateHyp
             if (programCategoryEntity is null)
             {
                 return Result.Fail<HypotherapyProgramCategoryDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(HypotherapyProgramCategory)));
+                    .NotFound(request.Id, typeof(HippotherapyProgramCategory)));
             }
 
-            HypotherapyProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
+            HippotherapyProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
 
             _repositoryWrapper.HypotherapyProgramCategoriesRepository.Update(entityToUpdate);
 
@@ -51,7 +51,7 @@ public class UpdateHypotherapyProgramCategoryHandler : IRequestHandler<UpdateHyp
                 return Result.Ok(responseDto);
             }
 
-            return Result.Fail<HypotherapyProgramCategoryDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HypotherapyProgramCategory)));
+            return Result.Fail<HypotherapyProgramCategoryDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgramCategory)));
         }
         catch (ValidationException ex)
         {

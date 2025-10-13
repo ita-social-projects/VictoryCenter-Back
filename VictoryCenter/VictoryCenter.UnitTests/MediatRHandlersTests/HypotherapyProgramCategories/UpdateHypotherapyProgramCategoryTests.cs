@@ -23,7 +23,7 @@ public class UpdateHypotherapyProgramCategoryTests
         Name = "TestName1"
     };
 
-    private readonly HypotherapyProgramCategory _programCategoryEntity = new()
+    private readonly HippotherapyProgramCategory _programCategoryEntity = new()
     {
         Id = 1,
         Name = "Test1",
@@ -50,12 +50,12 @@ public class UpdateHypotherapyProgramCategoryTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
-        var testEntity = new HypotherapyProgramCategory
-         {
+        var testEntity = new HippotherapyProgramCategory
+        {
             Id = 1,
             Name = name!,
             CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
-         };
+        };
         var testDto = new HypotherapyProgramCategoryDto
         {
             Id = 1,
@@ -79,7 +79,7 @@ public class UpdateHypotherapyProgramCategoryTests
         Result<HypotherapyProgramCategoryDto> result = await handler
             .Handle(new UpdateHypotherapyProgramCategoryCommand(_updateProgramCategoryDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HypotherapyProgramCategory)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgramCategory)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class UpdateHypotherapyProgramCategoryTests
         Assert.Equal(result.Value.Name, _programCategoryDto.Name);
     }
 
-    private void SetupDependencies(HypotherapyProgramCategory? entity = null, HypotherapyProgramCategoryDto? dto = null, int saveResult = 1)
+    private void SetupDependencies(HippotherapyProgramCategory? entity = null, HypotherapyProgramCategoryDto? dto = null, int saveResult = 1)
     {
         var programCategoryEntity = entity ?? _programCategoryEntity;
         var programCategoryDto = dto ?? _programCategoryDto;
@@ -101,23 +101,23 @@ public class UpdateHypotherapyProgramCategoryTests
         SetUpRepositoryWrapper(saveResult);
     }
 
-    private void SetUpAutomapper(HypotherapyProgramCategory outputProgramCategoryEntity, HypotherapyProgramCategoryDto outputProgramCategoryDto)
+    private void SetUpAutomapper(HippotherapyProgramCategory outputProgramCategoryEntity, HypotherapyProgramCategoryDto outputProgramCategoryDto)
     {
-        _mockMapper.Setup(m => m.Map<HypotherapyProgramCategoryDto>(It.IsAny<HypotherapyProgramCategory>()))
+        _mockMapper.Setup(m => m.Map<HypotherapyProgramCategoryDto>(It.IsAny<HippotherapyProgramCategory>()))
             .Returns(outputProgramCategoryDto);
         _mockMapper.Setup(m => m.Map(
                 It.IsAny<UpdateHypotherapyProgramCategoryDto>(),
-                It.IsAny<HypotherapyProgramCategory>()))
+                It.IsAny<HippotherapyProgramCategory>()))
             .Returns(outputProgramCategoryEntity);
     }
 
     private void SetUpRepositoryWrapper(int saveResult)
     {
         _repositoryWrapperMock.Setup(repo => repo.HypotherapyProgramCategoriesRepository
-            .Update(It.IsAny<HypotherapyProgramCategory>()));
+            .Update(It.IsAny<HippotherapyProgramCategory>()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
         _repositoryWrapperMock.Setup(repo => repo.HypotherapyProgramCategoriesRepository
-                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HypotherapyProgramCategory>>()))
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
                 .ReturnsAsync(_programCategoryEntity);
     }
 }

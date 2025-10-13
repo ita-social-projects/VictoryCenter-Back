@@ -4,9 +4,9 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
 
-public class HypotherapyProgramConfig : IEntityTypeConfiguration<HypotherapyProgram>
+public class HypotherapyProgramConfig : IEntityTypeConfiguration<HippotherapyProgram>
 {
-    public void Configure(EntityTypeBuilder<HypotherapyProgram> builder)
+    public void Configure(EntityTypeBuilder<HippotherapyProgram> builder)
     {
         builder.HasKey(e => e.Id);
 
@@ -28,7 +28,7 @@ public class HypotherapyProgramConfig : IEntityTypeConfiguration<HypotherapyProg
 
         builder.HasOne(e => e.Image)
             .WithOne()
-            .HasForeignKey<HypotherapyProgram>(e => e.ImageId)
+            .HasForeignKey<HippotherapyProgram>(e => e.ImageId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(e => e.Categories)

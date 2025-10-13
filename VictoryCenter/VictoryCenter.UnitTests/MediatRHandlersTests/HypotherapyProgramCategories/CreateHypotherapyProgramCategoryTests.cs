@@ -18,7 +18,7 @@ public class CreateHypotherapyProgramCategoryTests
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly IValidator<CreateHypotherapyProgramCategoryCommand> _validatorMock;
 
-    private readonly HypotherapyProgramCategory _program = new()
+    private readonly HippotherapyProgramCategory _program = new()
     {
         Id = 1,
         Name = "TestCategory",
@@ -98,7 +98,7 @@ public class CreateHypotherapyProgramCategoryTests
         Result<HypotherapyProgramCategoryDto> result = await handler
             .Handle(new CreateHypotherapyProgramCategoryCommand(new CreateHypotherapyProgramCategoryDto { Name = "TestName" }), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HypotherapyProgramCategory)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgramCategory)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)
@@ -107,18 +107,18 @@ public class CreateHypotherapyProgramCategoryTests
         SetupRepositoryWrapper(saveResult);
     }
 
-    private void SetUpAutomapper(HypotherapyProgramCategory outputProgramCategoryEntity, HypotherapyProgramCategoryDto outputProgramCategoryDto)
+    private void SetUpAutomapper(HippotherapyProgramCategory outputProgramCategoryEntity, HypotherapyProgramCategoryDto outputProgramCategoryDto)
     {
-        _mapperMock.Setup(m => m.Map<HypotherapyProgramCategory>(It.IsAny<CreateHypotherapyProgramCategoryDto>()))
+        _mapperMock.Setup(m => m.Map<HippotherapyProgramCategory>(It.IsAny<CreateHypotherapyProgramCategoryDto>()))
             .Returns(outputProgramCategoryEntity);
-        _mapperMock.Setup(m => m.Map<HypotherapyProgramCategoryDto>(It.IsAny<HypotherapyProgramCategory>()))
+        _mapperMock.Setup(m => m.Map<HypotherapyProgramCategoryDto>(It.IsAny<HippotherapyProgramCategory>()))
             .Returns(outputProgramCategoryDto);
     }
 
     private void SetupRepositoryWrapper(int saveResult)
     {
         _repositoryWrapperMock.Setup(repo => repo.HypotherapyProgramCategoriesRepository
-            .CreateAsync(It.IsAny<HypotherapyProgramCategory>()));
+            .CreateAsync(It.IsAny<HippotherapyProgramCategory>()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

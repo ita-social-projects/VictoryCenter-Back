@@ -16,7 +16,7 @@ public class DeleteHypotherapyProgramCategoryTests : BaseTestClass
     [Fact]
     public async Task DeleteProgramCategory_ShouldDeleteProgramCategory()
     {
-        HypotherapyProgramCategory? existingEntity = await Fixture.DbContext.HypotherapyProgramCategories
+        HippotherapyProgramCategory? existingEntity = await Fixture.DbContext.HypotherapyProgramCategories
             .FirstOrDefaultAsync(e => e.Id == 1);
         Assert.NotNull(existingEntity);
 

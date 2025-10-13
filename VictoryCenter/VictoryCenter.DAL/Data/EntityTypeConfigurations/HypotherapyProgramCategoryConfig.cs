@@ -4,9 +4,9 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
 
-public class HypotherapyProgramCategoryConfig : IEntityTypeConfiguration<HypotherapyProgramCategory>
+public class HypotherapyProgramCategoryConfig : IEntityTypeConfiguration<HippotherapyProgramCategory>
 {
-    public void Configure(EntityTypeBuilder<HypotherapyProgramCategory> builder)
+    public void Configure(EntityTypeBuilder<HippotherapyProgramCategory> builder)
     {
         builder.HasKey(e => e.Id);
 

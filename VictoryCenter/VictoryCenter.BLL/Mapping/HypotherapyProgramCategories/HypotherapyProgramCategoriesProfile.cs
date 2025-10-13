@@ -9,10 +9,10 @@ public class HypotherapyProgramCategoriesProfile : Profile
 {
     public HypotherapyProgramCategoriesProfile()
     {
-        CreateMap<HypotherapyProgramCategory, HypotherapyProgramCategoryDto>();
-        CreateMap<CreateHypotherapyProgramCategoryDto, HypotherapyProgramCategory>();
-        CreateMap<UpdateHypotherapyProgramCategoryDto, HypotherapyProgramCategory>()
+        CreateMap<HippotherapyProgramCategory, HypotherapyProgramCategoryDto>();
+        CreateMap<CreateHypotherapyProgramCategoryDto, HippotherapyProgramCategory>();
+        CreateMap<UpdateHypotherapyProgramCategoryDto, HippotherapyProgramCategory>()
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
-        CreateMap<HypotherapyProgramCategory, ProgramCategoryShortDto>();
+        CreateMap<HippotherapyProgramCategory, ProgramCategoryShortDto>();
     }
 }

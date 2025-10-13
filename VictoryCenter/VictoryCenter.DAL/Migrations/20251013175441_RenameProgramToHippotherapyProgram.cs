@@ -5,7 +5,7 @@
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class changeProgramCategoryToHypotherapyProgramCategory : Migration
+    public partial class RenameProgramToHippotherapyProgram : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -32,30 +32,30 @@ namespace VictoryCenter.DAL.Migrations
 
             migrationBuilder.RenameTable(
                 name: "Programs",
-                newName: "HypotherapyPrograms");
+                newName: "HippotherapyPrograms");
 
             migrationBuilder.RenameTable(
                 name: "ProgramCategories",
-                newName: "HypotherapyProgramCategories");
+                newName: "HippotherapyProgramCategories");
 
             migrationBuilder.RenameIndex(
                 name: "IX_Programs_ImageId",
-                table: "HypotherapyPrograms",
-                newName: "IX_HypotherapyPrograms_ImageId");
+                table: "HippotherapyPrograms",
+                newName: "IX_HippotherapyPrograms_ImageId");
 
             migrationBuilder.AddPrimaryKey(
-                name: "PK_HypotherapyPrograms",
-                table: "HypotherapyPrograms",
+                name: "PK_HippotherapyPrograms",
+                table: "HippotherapyPrograms",
                 column: "Id");
 
             migrationBuilder.AddPrimaryKey(
-                name: "PK_HypotherapyProgramCategories",
-                table: "HypotherapyProgramCategories",
+                name: "PK_HippotherapyProgramCategories",
+                table: "HippotherapyProgramCategories",
                 column: "Id");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_HypotherapyPrograms_Images_ImageId",
-                table: "HypotherapyPrograms",
+                name: "FK_HippotherapyPrograms_Images_ImageId",
+                table: "HippotherapyPrograms",
                 column: "ImageId",
                 principalSchema: "media",
                 principalTable: "Images",
@@ -63,18 +63,18 @@ namespace VictoryCenter.DAL.Migrations
                 onDelete: ReferentialAction.SetNull);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ProgramsProgramCategories_HypotherapyProgramCategories_CategoriesId",
+                name: "FK_ProgramsProgramCategories_HippotherapyProgramCategories_CategoriesId",
                 table: "ProgramsProgramCategories",
                 column: "CategoriesId",
-                principalTable: "HypotherapyProgramCategories",
+                principalTable: "HippotherapyProgramCategories",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_ProgramsProgramCategories_HypotherapyPrograms_ProgramsId",
+                name: "FK_ProgramsProgramCategories_HippotherapyPrograms_ProgramsId",
                 table: "ProgramsProgramCategories",
                 column: "ProgramsId",
-                principalTable: "HypotherapyPrograms",
+                principalTable: "HippotherapyPrograms",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
         }
@@ -83,35 +83,35 @@ namespace VictoryCenter.DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_HypotherapyPrograms_Images_ImageId",
-                table: "HypotherapyPrograms");
+                name: "FK_HippotherapyPrograms_Images_ImageId",
+                table: "HippotherapyPrograms");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_ProgramsProgramCategories_HypotherapyProgramCategories_CategoriesId",
+                name: "FK_ProgramsProgramCategories_HippotherapyProgramCategories_CategoriesId",
                 table: "ProgramsProgramCategories");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_ProgramsProgramCategories_HypotherapyPrograms_ProgramsId",
+                name: "FK_ProgramsProgramCategories_HippotherapyPrograms_ProgramsId",
                 table: "ProgramsProgramCategories");
 
             migrationBuilder.DropPrimaryKey(
-                name: "PK_HypotherapyPrograms",
-                table: "HypotherapyPrograms");
+                name: "PK_HippotherapyPrograms",
+                table: "HippotherapyPrograms");
 
             migrationBuilder.DropPrimaryKey(
-                name: "PK_HypotherapyProgramCategories",
-                table: "HypotherapyProgramCategories");
+                name: "PK_HippotherapyProgramCategories",
+                table: "HippotherapyProgramCategories");
 
             migrationBuilder.RenameTable(
-                name: "HypotherapyPrograms",
+                name: "HippotherapyPrograms",
                 newName: "Programs");
 
             migrationBuilder.RenameTable(
-                name: "HypotherapyProgramCategories",
+                name: "HippotherapyProgramCategories",
                 newName: "ProgramCategories");
 
             migrationBuilder.RenameIndex(
-                name: "IX_HypotherapyPrograms_ImageId",
+                name: "IX_HippotherapyPrograms_ImageId",
                 table: "Programs",
                 newName: "IX_Programs_ImageId");
 

@@ -23,7 +23,7 @@ public class GetHypotherapyProgramByIdHandler : IRequestHandler<GetHypotherapyPr
 
     public async Task<Result<HypotherapyProgramDto>> Handle(GetHypotherapyProgramByIdQuery request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<HypotherapyProgram>
+        var queryOptions = new QueryOptions<HippotherapyProgram>
         {
             Filter = program => program.Id == request.Id,
             Include = program => program
@@ -31,11 +31,11 @@ public class GetHypotherapyProgramByIdHandler : IRequestHandler<GetHypotherapyPr
                 .Include(p => p.Image)!
         };
 
-        HypotherapyProgram? program = await _repositoryWrapper.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(queryOptions);
+        HippotherapyProgram? program = await _repositoryWrapper.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(queryOptions);
 
         if (program is null)
         {
-            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(HypotherapyProgram)));
+            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(HippotherapyProgram)));
         }
 
         HypotherapyProgramDto responseDto = _mapper.Map<HypotherapyProgramDto>(program);

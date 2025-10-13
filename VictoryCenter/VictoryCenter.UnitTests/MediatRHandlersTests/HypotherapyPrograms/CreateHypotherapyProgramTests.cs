@@ -30,7 +30,7 @@ public class CreateHypotherapyProgramTests
         CategoryIds = [1, 2]
     };
 
-    private readonly DAL.Entities.HypotherapyProgram _programEntity = new()
+    private readonly DAL.Entities.HippotherapyProgram _programEntity = new()
     {
         Name = "TestName",
         Description = "TestDescription",
@@ -46,7 +46,7 @@ public class CreateHypotherapyProgramTests
         Image = new ImageDto()
     };
 
-    private readonly IEnumerable<HypotherapyProgramCategory> _programCategories = new List<HypotherapyProgramCategory>
+    private readonly IEnumerable<HippotherapyProgramCategory> _programCategories = new List<HippotherapyProgramCategory>
     {
         new()
         {
@@ -107,7 +107,7 @@ public class CreateHypotherapyProgramTests
         var handler = new CreateHypotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
         Result<HypotherapyProgramDto> result = await handler.Handle(new CreateHypotherapyProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HypotherapyProgram)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
     private void SetUpDependencies(int saveResult = 1)
@@ -119,9 +119,9 @@ public class CreateHypotherapyProgramTests
 
     private void SetUpAutomapper()
     {
-        _mapperMock.Setup(m => m.Map<DAL.Entities.HypotherapyProgram>(It.IsAny<CreateHypotherapyProgramDto>()))
+        _mapperMock.Setup(m => m.Map<DAL.Entities.HippotherapyProgram>(It.IsAny<CreateHypotherapyProgramDto>()))
             .Returns(_programEntity);
-        _mapperMock.Setup(m => m.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HypotherapyProgram>())).Returns(_programDto);
+        _mapperMock.Setup(m => m.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HippotherapyProgram>())).Returns(_programDto);
     }
 
     private void SetUpBlobService()
@@ -134,11 +134,11 @@ public class CreateHypotherapyProgramTests
     private void SetUpRepositoryWrapper(int saveResult)
     {
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramCategoriesRepository
-            .GetAllAsync(It.IsAny<QueryOptions<HypotherapyProgramCategory>>())).ReturnsAsync(_programCategories);
+            .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>())).ReturnsAsync(_programCategories);
         _repositoryWrapperMock.Setup(r => r.ImageRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(_image);
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository
-            .CreateAsync(It.IsAny<DAL.Entities.HypotherapyProgram>()));
+            .CreateAsync(It.IsAny<DAL.Entities.HippotherapyProgram>()));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

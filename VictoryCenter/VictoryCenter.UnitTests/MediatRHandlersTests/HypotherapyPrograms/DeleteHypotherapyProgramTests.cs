@@ -12,7 +12,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.HypotherapyPrograms;
 public class DeleteHypotherapyProgramTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
-    private readonly DAL.Entities.HypotherapyProgram _programEntity = new()
+    private readonly DAL.Entities.HippotherapyProgram _programEntity = new()
     {
         Id = 1,
         Name = "TestName",
@@ -42,7 +42,7 @@ public class DeleteHypotherapyProgramTests
         var handler = new DeleteHypotherapyProgramHandler(_repositoryWrapperMock.Object);
         Result<long> result = await handler.Handle(new DeleteHypotherapyProgramCommand(1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(HypotherapyProgram)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -52,19 +52,19 @@ public class DeleteHypotherapyProgramTests
         var handler = new DeleteHypotherapyProgramHandler(_repositoryWrapperMock.Object);
         Result<long> result = await handler.Handle(new DeleteHypotherapyProgramCommand(1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HypotherapyProgram)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
-    private void SetUpDependencies(DAL.Entities.HypotherapyProgram program = null!, int saveResult = 1)
+    private void SetUpDependencies(DAL.Entities.HippotherapyProgram program = null!, int saveResult = 1)
     {
         SetUpRepositoryWrapper(saveResult, program);
     }
 
-    private void SetUpRepositoryWrapper(int saveResult, DAL.Entities.HypotherapyProgram program)
+    private void SetUpRepositoryWrapper(int saveResult, DAL.Entities.HippotherapyProgram program)
     {
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository
-            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HypotherapyProgram>>())).ReturnsAsync(program);
-        _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository.Delete(It.IsAny<DAL.Entities.HypotherapyProgram>()));
+            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>())).ReturnsAsync(program);
+        _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository.Delete(It.IsAny<DAL.Entities.HippotherapyProgram>()));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

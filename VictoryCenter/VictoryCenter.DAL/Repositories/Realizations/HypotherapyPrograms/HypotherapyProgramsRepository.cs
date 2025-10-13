@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.HypotherapyPrograms;
 
-public class HypotherapyProgramsRepository : RepositoryBase<HypotherapyProgram>, IHypotherapyProgramsRepository
+public class HypotherapyProgramsRepository : RepositoryBase<HippotherapyProgram>, IHypotherapyProgramsRepository
 {
     public HypotherapyProgramsRepository(VictoryCenterDbContext context)
         : base(context)

@@ -17,7 +17,7 @@ public class GetHypotherapyProgramByIdTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
-    private readonly DAL.Entities.HypotherapyProgram _programEntity = new()
+    private readonly DAL.Entities.HippotherapyProgram _programEntity = new()
     {
         Id = 1,
         Name = "TestName",
@@ -53,8 +53,8 @@ public class GetHypotherapyProgramByIdTests
         Assert.Equal(_programDto.Description, result.Value.Description);
         Assert.Equal(_programDto.Status, result.Value.Status);
 
-        _mockRepositoryWrapper.Verify(x => x.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HypotherapyProgram>>()), Times.Once);
-        _mapperMock.Verify(x => x.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HypotherapyProgram>()), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.HypotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>()), Times.Once);
+        _mapperMock.Verify(x => x.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HippotherapyProgram>()), Times.Once);
     }
 
     [Fact]
@@ -65,10 +65,10 @@ public class GetHypotherapyProgramByIdTests
             new GetHypotherapyProgramByIdHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
         Result<HypotherapyProgramDto> result = await handler.Handle(new GetHypotherapyProgramByIdQuery(_programEntity.Id), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound(_programEntity.Id, typeof(HypotherapyProgram)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(_programEntity.Id, typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
-    private void SetUpDependencies(DAL.Entities.HypotherapyProgram program = null!)
+    private void SetUpDependencies(DAL.Entities.HippotherapyProgram program = null!)
     {
         SetUpAutoMapper();
         SetUpRepositoryWrapper(program);
@@ -76,12 +76,12 @@ public class GetHypotherapyProgramByIdTests
 
     private void SetUpAutoMapper()
     {
-        _mapperMock.Setup(x => x.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HypotherapyProgram>())).Returns(_programDto);
+        _mapperMock.Setup(x => x.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HippotherapyProgram>())).Returns(_programDto);
     }
 
-    private void SetUpRepositoryWrapper(DAL.Entities.HypotherapyProgram program)
+    private void SetUpRepositoryWrapper(DAL.Entities.HippotherapyProgram program)
     {
         _mockRepositoryWrapper.Setup(x => x.HypotherapyProgramsRepository
-            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HypotherapyProgram>>())).ReturnsAsync(program);
+            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>())).ReturnsAsync(program);
     }
 }

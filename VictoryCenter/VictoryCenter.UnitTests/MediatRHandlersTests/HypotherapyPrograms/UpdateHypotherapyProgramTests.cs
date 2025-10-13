@@ -30,7 +30,7 @@ public class UpdateHypotherapyProgramTests
         CategoryIds = [1, 2, 3]
     };
 
-    private readonly DAL.Entities.HypotherapyProgram _programEntity = new()
+    private readonly DAL.Entities.HippotherapyProgram _programEntity = new()
     {
         Id = 1,
         Name = "TestProgramName",
@@ -48,7 +48,7 @@ public class UpdateHypotherapyProgramTests
         Image = new ImageDto()
     };
 
-    private readonly IEnumerable<HypotherapyProgramCategory> _programCategories = new List<HypotherapyProgramCategory>
+    private readonly IEnumerable<HippotherapyProgramCategory> _programCategories = new List<HippotherapyProgramCategory>
     {
         new()
         {
@@ -108,7 +108,7 @@ public class UpdateHypotherapyProgramTests
         var handler = new UpdateHypotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
         Result<HypotherapyProgramDto> result = await handler.Handle(new UpdateHypotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HypotherapyProgram)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -118,10 +118,10 @@ public class UpdateHypotherapyProgramTests
         var handler = new UpdateHypotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
         Result<HypotherapyProgramDto> result = await handler.Handle(new UpdateHypotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(DAL.Entities.HypotherapyProgram)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(DAL.Entities.HippotherapyProgram)), result.Errors[0].Message);
     }
 
-    private void SetUpDependencies(DAL.Entities.HypotherapyProgram programEntity = null!, int saveResult = 1)
+    private void SetUpDependencies(DAL.Entities.HippotherapyProgram programEntity = null!, int saveResult = 1)
     {
         SetUpAutomapper();
         SetUpBlobService();
@@ -130,9 +130,9 @@ public class UpdateHypotherapyProgramTests
 
     private void SetUpAutomapper()
     {
-        _mapperMock.Setup(m => m.Map(It.IsAny<HypotherapyUpdateProgramDto>(), It.IsAny<DAL.Entities.HypotherapyProgram>()))
+        _mapperMock.Setup(m => m.Map(It.IsAny<HypotherapyUpdateProgramDto>(), It.IsAny<DAL.Entities.HippotherapyProgram>()))
             .Returns(_programEntity);
-        _mapperMock.Setup(m => m.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HypotherapyProgram>())).Returns(_programDto);
+        _mapperMock.Setup(m => m.Map<HypotherapyProgramDto>(It.IsAny<DAL.Entities.HippotherapyProgram>())).Returns(_programDto);
     }
 
     private void SetUpBlobService()
@@ -142,15 +142,15 @@ public class UpdateHypotherapyProgramTests
             .Returns("https://localhost:5000/supersecretimage.png");
     }
 
-    private void SetUpRepositoryWrapper(int saveResult, DAL.Entities.HypotherapyProgram programEntity)
+    private void SetUpRepositoryWrapper(int saveResult, DAL.Entities.HippotherapyProgram programEntity)
     {
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository
-            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HypotherapyProgram>>())).ReturnsAsync(programEntity);
+            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>())).ReturnsAsync(programEntity);
         _repositoryWrapperMock.Setup(r => r.HypotherapyProgramCategoriesRepository
-            .GetAllAsync(It.IsAny<QueryOptions<HypotherapyProgramCategory>>())).ReturnsAsync(_programCategories);
+            .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>())).ReturnsAsync(_programCategories);
         _repositoryWrapperMock.Setup(r => r.ImageRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(_image);
-        _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository.Update(It.IsAny<DAL.Entities.HypotherapyProgram>()));
+        _repositoryWrapperMock.Setup(r => r.HypotherapyProgramsRepository.Update(It.IsAny<DAL.Entities.HippotherapyProgram>()));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

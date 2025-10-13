@@ -31,14 +31,14 @@ public class CreateHypotherapyProgramHandler : IRequestHandler<CreateHypotherapy
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            IEnumerable<HypotherapyProgramCategory> categories = await _repositoryWrapper
-                .HypotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HypotherapyProgramCategory>
+            IEnumerable<HippotherapyProgramCategory> categories = await _repositoryWrapper
+                .HypotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HippotherapyProgramCategory>
                 {
                     Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id),
                     AsNoTracking = false
                 });
 
-            HypotherapyProgram entity = _mapper.Map<HypotherapyProgram>(request.CreateProgramDto);
+            HippotherapyProgram entity = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
             if (entity.ImageId != null)
             {
@@ -61,7 +61,7 @@ public class CreateHypotherapyProgramHandler : IRequestHandler<CreateHypotherapy
                 return Result.Ok(_mapper.Map<HypotherapyProgramDto>(entity));
             }
 
-            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HypotherapyProgram)));
+            return Result.Fail<HypotherapyProgramDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)));
         }
         catch (ValidationException ex)
         {
