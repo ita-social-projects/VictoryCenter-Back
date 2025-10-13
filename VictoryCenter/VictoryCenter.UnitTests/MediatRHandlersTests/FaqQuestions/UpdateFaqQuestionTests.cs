@@ -188,7 +188,7 @@ public class UpdateFaqQuestionTests
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
-    [Fact(Skip = "wip")]
+    [Fact]
     public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
     {
         List<long> pageIds = [1];
@@ -207,7 +207,7 @@ public class UpdateFaqQuestionTests
         SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
         SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
-        .ThrowsAsync(new DbUpdateException());
+        .ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion))));
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
         Result<FaqQuestionDto> result = await handler.Handle(

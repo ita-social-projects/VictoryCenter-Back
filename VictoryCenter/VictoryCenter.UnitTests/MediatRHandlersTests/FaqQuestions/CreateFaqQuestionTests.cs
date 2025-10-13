@@ -111,7 +111,7 @@ public class CreateFaqQuestionTests
         Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(VisitorPage)), result.Errors[0].Message);
     }
 
-    [Fact(Skip="wip")]
+    [Fact]
     public async Task Handle_WhenDbExceptionThrown_ShouldReturnFailure()
     {
         var testMessage = "test message";
@@ -128,7 +128,7 @@ public class CreateFaqQuestionTests
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
+        Assert.Equal(testMessage, result.Errors[0].Message);
     }
 
     private void SetupDependencies(FaqQuestionDto faqQuestionDto, FaqQuestion faqQuestion, int isSuccess)

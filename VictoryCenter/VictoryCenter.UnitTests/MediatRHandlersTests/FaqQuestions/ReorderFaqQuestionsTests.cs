@@ -138,7 +138,7 @@ public class ReorderFaqQuestionsTests
         Assert.Equal(FaqConstants.IdsAreNonConsecutive, result.Errors[0].Message);
     }
 
-    [Fact(Skip = "wip")]
+    [Fact]
     public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
     {
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [2, 1] });
@@ -149,7 +149,7 @@ public class ReorderFaqQuestionsTests
                 It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(mockPlacements);
 
         _mockRepoWrapper.Setup(x => x.SaveChangesAsync())
-            .ThrowsAsync(new DbUpdateException());
+            .ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion))));
 
         _mockRepoWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));

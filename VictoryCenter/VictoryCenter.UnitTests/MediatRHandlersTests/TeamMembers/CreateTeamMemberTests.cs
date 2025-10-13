@@ -117,14 +117,14 @@ public class CreateTeamMemberTests
         Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(Category)), result.Errors[0].Message);
     }
 
-    [Fact(Skip = "wip")]
+    [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnFailure_WhenExceptionThrown()
     {
         SetupMapper(_teamMemberDto, _teamMember);
         _repositoryWrapperMock
             .Setup(repositoryWrapperMock =>
                 repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>()))
-            .ThrowsAsync(new DbUpdateException());
+            .ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember))));
         _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
             .ReturnsAsync(0L);
 

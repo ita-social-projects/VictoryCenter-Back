@@ -76,7 +76,7 @@ public class DeleteFaqQuestionTests
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
-    [Fact(Skip = "wip")]
+    [Fact]
     public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
     {
         _mockRepoWrapper.Setup(
@@ -85,7 +85,7 @@ public class DeleteFaqQuestionTests
         _mockRepoWrapper.Setup(
             repoWrapper => repoWrapper.FaqPlacementsRepository.GetAllAsync(
                 It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(_existingFaqQuestion.Placements);
-        _mockRepoWrapper.Setup(repoWrapper => repoWrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
+        _mockRepoWrapper.Setup(repoWrapper => repoWrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(FaqQuestion))));
         _mockRepoWrapper.Setup(repoWrapper => repoWrapper.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
         var command = new DeleteFaqQuestionCommand(_existingFaqQuestion.Id);
