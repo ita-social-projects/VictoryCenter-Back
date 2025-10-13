@@ -72,6 +72,6 @@ public class ReorderPartnersTests : BaseTestClass
         var response = await Fixture.HttpClient.PutAsync(_endpointUri, content);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }

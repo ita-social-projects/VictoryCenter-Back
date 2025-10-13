@@ -1,13 +1,13 @@
 using System.Transactions;
 using AutoMapper;
 using FluentValidation;
-using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Validators.Partners.Commands;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -18,7 +18,7 @@ public class UpdatePartnersPageBannerTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IValidator<UpdatePartnersPageBannerCommand>> _mockValidator;
+    private readonly IValidator<UpdatePartnersPageBannerCommand> _validator;
 
     private readonly UpdatePartnersPageBannerDto _updateDto = new()
     {
@@ -48,7 +48,7 @@ public class UpdatePartnersPageBannerTests
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _mockValidator = new Mock<IValidator<UpdatePartnersPageBannerCommand>>();
+        _validator = new UpdatePartnersPageBannerCommandValidator();
     }
 
     [Fact]
@@ -56,12 +56,11 @@ public class UpdatePartnersPageBannerTests
     {
         // Arrange
         var createdEntity = new PartnersPageBanner { Id = 1 };
-        SetupValidator(isValid: true);
         SetupRepositoryWrapper(imageToReturn: _imageEntity, bannerToReturn: null, finalBannerToReturn: createdEntity);
         SetupMapper(createdEntity, _resultDto);
 
         var command = new UpdatePartnersPageBannerCommand(_updateDto);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _mockValidator.Object);
+        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -77,12 +76,11 @@ public class UpdatePartnersPageBannerTests
     public async Task Handle_BannerExists_ShouldUpdateBannerAndReturnOk()
     {
         // Arrange
-        SetupValidator(isValid: true);
         SetupRepositoryWrapper(imageToReturn: _imageEntity, bannerToReturn: _existingBannerEntity, finalBannerToReturn: _existingBannerEntity);
         SetupMapper(null, _resultDto);
 
         var command = new UpdatePartnersPageBannerCommand(_updateDto);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _mockValidator.Object);
+        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -98,11 +96,10 @@ public class UpdatePartnersPageBannerTests
     public async Task Handle_ImageNotFound_ShouldReturnFailure()
     {
         // Arrange
-        SetupValidator(isValid: true);
         SetupRepositoryWrapper(imageToReturn: null, bannerToReturn: null, finalBannerToReturn: null);
 
         var command = new UpdatePartnersPageBannerCommand(_updateDto);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _mockValidator.Object);
+        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -116,30 +113,26 @@ public class UpdatePartnersPageBannerTests
     public async Task Handle_InvalidData_ShouldReturnValidationFailure()
     {
         // Arrange
-        var validationError = "Validation failed";
-        SetupValidator(isValid: false, errorMessage: validationError);
-
-        var command = new UpdatePartnersPageBannerCommand(_updateDto);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _mockValidator.Object);
+        var invalidDto = _updateDto with { Description = new string('A', PartnerConstants.PartnersPageBannerDescriptionMaxLength + 1) };
+        var command = new UpdatePartnersPageBannerCommand(invalidDto);
+        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Contains(validationError, result.Errors.Select(e => e.Message));
     }
 
     [Fact]
     public async Task Handle_DbUpdateException_ShouldReturnFailure()
     {
         // Arrange
-        SetupValidator(isValid: true);
         SetupRepositoryWrapper(imageToReturn: _imageEntity, bannerToReturn: _existingBannerEntity, finalBannerToReturn: _existingBannerEntity);
         _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
 
         var command = new UpdatePartnersPageBannerCommand(_updateDto);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _mockValidator.Object);
+        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -147,17 +140,6 @@ public class UpdatePartnersPageBannerTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(PartnersPageBanner)), result.Errors[0].Message);
-    }
-
-    private void SetupValidator(bool isValid, string errorMessage = "Error")
-    {
-        var validationResult = isValid
-            ? new ValidationResult()
-            : new ValidationResult([new ValidationFailure("Property", errorMessage)]);
-
-        _mockValidator
-            .Setup(v => v.ValidateAsync(It.IsAny<UpdatePartnersPageBannerCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(validationResult);
     }
 
     private void SetupMapper(PartnersPageBanner? entityToCreate, PartnersPageBannerDto dtoToReturn)

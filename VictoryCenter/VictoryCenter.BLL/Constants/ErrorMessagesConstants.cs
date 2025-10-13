@@ -29,6 +29,11 @@ public static class ErrorMessagesConstants
         return $"Entity {entityType.Name} with identifier '{identifier}' was not found";
     }
 
+    public static string CannotUpdateAndDeleteSameEntity(IEnumerable<long> ids, Type entityType)
+    {
+        return $"Cannot update and delete the same entity {entityType.Name}. Conflicting IDs: {string.Join(", ", ids)}";
+    }
+
     public static string FailedToCreateEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);

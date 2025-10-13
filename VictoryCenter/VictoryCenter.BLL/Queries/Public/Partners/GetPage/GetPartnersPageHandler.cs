@@ -4,7 +4,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.DTOs.Public.Partners;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -16,7 +15,7 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetPartnersPageHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IBlobService blobService)
+    public GetPartnersPageHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;

@@ -90,7 +90,7 @@ public class ReorderPartnersSectionsTests
         // Assert
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
-        Assert.Equal(PartnerConstants.HaveNotFoundAnyPartnersForReorder, result.Errors[0].Message);
+        Assert.Equal(PartnerConstants.HaveNotFoundAnyPartnersSectionsForReorder, result.Errors[0].Message);
     }
 
     [Fact]

@@ -43,7 +43,7 @@ public class PartnerSectionSeeder : BaseSeeder<PartnerSection>
                     {
                         Description = "Community Builders Alliance",
                         Priority = 3,
-                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-17)
+                        CreatedAt = DateTimeOffset.UtcNow.AddDays(-17),
                     }
 
                 ]

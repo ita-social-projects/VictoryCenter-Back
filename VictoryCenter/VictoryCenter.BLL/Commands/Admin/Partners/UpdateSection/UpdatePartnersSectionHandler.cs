@@ -15,10 +15,10 @@ namespace VictoryCenter.BLL.Commands.Admin.Partners.UpdateSection;
 
 public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectionCommand, Result<PartnersSectionDto>>
 {
+    private readonly IReorderService _reorderService;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdatePartnersSectionCommand> _validator;
     private readonly IMapper _mapper;
-    private readonly IReorderService _reorderService;
 
     public UpdatePartnersSectionHandler(
         IRepositoryWrapper repositoryWrapper,
@@ -51,20 +51,28 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
                 return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
             }
 
-            // Step 2: Validate that all referenced images exist
+            // Step 2: Validate that there are no overlapping IDs in update and delete lists
+            var overlapValidationResult = ValidateNoDeleteAndUpdateIdsOverlap(request.UpdateDto);
+            if (overlapValidationResult.IsFailed)
+            {
+                return overlapValidationResult;
+            }
+
+            // Step 3: Validate that all referenced images exist
             var imageValidationResult = await ValidateImageIdsAsync(request.UpdateDto);
             if (imageValidationResult.IsFailed)
             {
-                return imageValidationResult.ToResult<PartnersSectionDto>();
+                return imageValidationResult;
             }
 
-            // Step 3: Validate that all partners to be updated or deleted actually exist in this section
+            // Step 4: Validate that all partners to be updated or deleted actually exist in this section
             var subEntityValidationResult = ValidateSubEntitiesExist(request.UpdateDto, section);
             if (subEntityValidationResult.IsFailed)
             {
                 return subEntityValidationResult;
             }
 
+            // Step 5: Perform updates within a transaction
             using (var scope = _repositoryWrapper.BeginTransaction())
             {
                 _mapper.Map(request.UpdateDto, section);
@@ -77,7 +85,8 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
                 await _repositoryWrapper.SaveChangesAsync();
 
-                await _reorderService.RenumberPriorityAsync<Partner>(p => p.PartnersSectionId == section.Id);
+                await _reorderService.RenumberPriorityAsync<Partner>(
+                    groupSelector: p => p.PartnersSectionId == section.Id);
 
                 await _repositoryWrapper.SaveChangesAsync();
 
@@ -107,6 +116,22 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         }
     }
 
+    private Result<PartnersSectionDto> ValidateNoDeleteAndUpdateIdsOverlap(UpdatePartnersSectionDto dto)
+    {
+        var idsToUpdate = dto.PartnersToUpdate.Select(p => p.Id).ToHashSet();
+        var idsToDelete = dto.PartnerIdsToDelete.ToHashSet();
+
+        var overlappingIds = idsToUpdate.Intersect(idsToDelete).ToList();
+
+        if (overlappingIds.Any())
+        {
+            return Result.Fail<PartnersSectionDto>(
+                ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(overlappingIds, typeof(Partner)));
+        }
+
+        return Result.Ok();
+    }
+
     private Result<PartnersSectionDto> ValidateSubEntitiesExist(UpdatePartnersSectionDto dto, PartnerSection section)
     {
         var existingPartnerIds = section.Partners.Select(p => p.Id).ToHashSet();
@@ -123,7 +148,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         return Result.Ok();
     }
 
-    private async Task<Result> ValidateImageIdsAsync(UpdatePartnersSectionDto dto)
+    private async Task<Result<PartnersSectionDto>> ValidateImageIdsAsync(UpdatePartnersSectionDto dto)
     {
         var imageIds = dto.PartnersToCreate.Select(p => p.ImageId)
             .Concat(dto.PartnersToUpdate.Select(p => p.ImageId))
@@ -144,7 +169,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         if (nonExistingImageIds.Any())
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image)));
+            return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image)));
         }
 
         return Result.Ok();

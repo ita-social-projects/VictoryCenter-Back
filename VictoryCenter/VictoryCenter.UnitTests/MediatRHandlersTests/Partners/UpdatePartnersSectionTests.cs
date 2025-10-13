@@ -21,7 +21,6 @@ public class UpdatePartnersSectionHandlerTests
     private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<UpdatePartnersSectionCommand> _validator;
 
-    // --- Test Data (винесено в поля для перевикористання) ---
     private static readonly List<Image> _availableImages =
     [
         new() { Id = 100, BlobName = "image1.jpg", MimeType = "image/jpeg" },
@@ -73,10 +72,16 @@ public class UpdatePartnersSectionHandlerTests
     public async Task Handle_WhenSectionNotFound_ShouldReturnNotFoundError()
     {
         // Arrange
-        SetUpDependencies(null); // Передаємо null, щоб симулювати відсутність секції
+        SetUpDependencies(null);
+        var updateDto = new UpdatePartnersSectionDto
+        {
+            Title = "New Title",
+            Description = "New Description",
+        };
+
         var handler = new UpdatePartnersSectionHandler(
             _mockRepositoryWrapper.Object, _mockMapper.Object, _validator, _mockReorderService.Object);
-        var command = new UpdatePartnersSectionCommand(new UpdatePartnersSectionDto(), 999);
+        var command = new UpdatePartnersSectionCommand(updateDto, 999);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -93,7 +98,16 @@ public class UpdatePartnersSectionHandlerTests
         var existingSection = GetExistingSection();
         var updateDto = new UpdatePartnersSectionDto
         {
-            PartnersToCreate = [new() { Description = "Partner", ImageId = 999 }] // Неіснуючий ImageId
+            Title = "New Title",
+            Description = "New Description",
+            PartnersToCreate = [
+                new()
+                {
+                    Description = "Partner",
+                    ImageId = 999
+                }
+
+            ]
         };
 
         SetUpDependencies(existingSection);
@@ -116,7 +130,17 @@ public class UpdatePartnersSectionHandlerTests
         var existingSection = GetExistingSection();
         var updateDto = new UpdatePartnersSectionDto
         {
-            PartnersToUpdate = [new() { Id = 999, Description = "Fake", ImageId = 100 }] // Неіснуючий PartnerId
+            Title = "New Title",
+            Description = "New Description",
+            PartnersToUpdate = [
+                new()
+                {
+                    Id = 999,
+                    Description = "Fake",
+                    ImageId = 100
+                }
+
+            ]
         };
 
         SetUpDependencies(existingSection);
@@ -137,7 +161,11 @@ public class UpdatePartnersSectionHandlerTests
     {
         // Arrange
         var existingSection = GetExistingSection();
-        var updateDto = new UpdatePartnersSectionDto();
+        var updateDto = new UpdatePartnersSectionDto
+        {
+            Title = "New Title",
+            Description = "New Description"
+        };
 
         SetUpDependencies(existingSection);
         _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new Microsoft.EntityFrameworkCore.DbUpdateException());

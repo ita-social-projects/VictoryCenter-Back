@@ -31,10 +31,18 @@ public class UpdatePartnersSectionTests : BaseTestClass
         var partnerToDelete = sectionToUpdate.Partners.First();
         var partnerToUpdate = sectionToUpdate.Partners.Last();
 
-        var imageForNewPartner = await Fixture.DbContext.Images
+        var usedImageIds = sectionToUpdate.Partners.Select(p => p.ImageId).ToList();
+
+        var unsusedImageIds = await Fixture.DbContext.Images
             .AsNoTracking()
-            .FirstOrDefaultAsync(i => sectionToUpdate.Partners.All(p => p.ImageId != i.Id))
-            ?? throw new InvalidOperationException("Seeder must provide at least one unused image.");
+            .Where(i => !usedImageIds.Contains(i.Id))
+            .Select(i => i.Id)
+            .ToListAsync();
+
+        if (unsusedImageIds.Count < 2)
+        {
+            throw new InvalidOperationException("Seeder must provide at least 2 different images for partners in the section.");
+        }
 
         var updateDto = new UpdatePartnersSectionDto
         {
@@ -43,11 +51,22 @@ public class UpdatePartnersSectionTests : BaseTestClass
             PartnerIdsToDelete = [partnerToDelete.Id],
             PartnersToUpdate =
             [
-                new() { Id = partnerToUpdate.Id, Description = "Updated Partner Description", ImageId = partnerToUpdate.ImageId }
+                new()
+                {
+                    Id = partnerToUpdate.Id,
+                    Description = "Updated Partner Description",
+                    ImageId = unsusedImageIds[0]
+                }
+
             ],
             PartnersToCreate =
             [
-                new() { Description = "A Brand New Partner", ImageId = imageForNewPartner.Id }
+                new()
+                {
+                    Description = "A Brand New Partner",
+                    ImageId = unsusedImageIds[1]
+                }
+
             ]
         };
 

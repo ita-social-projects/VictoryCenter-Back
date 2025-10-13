@@ -9,7 +9,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Partners.GetPage;
 
 public class GetPublicPartnersPageTests : BaseTestClass
 {
-    private readonly Uri _endpointUri = new("/api/Public/Partners", UriKind.Relative);
+    private readonly Uri _endpointUri = new("/api/Partners/page", UriKind.Relative);
 
     public GetPublicPartnersPageTests(IntegrationTestDbFixture fixture)
         : base(fixture)

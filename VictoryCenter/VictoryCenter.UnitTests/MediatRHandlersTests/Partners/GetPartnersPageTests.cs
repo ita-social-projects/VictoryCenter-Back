@@ -2,7 +2,6 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Queries.Public.Partners.GetPage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -14,7 +13,6 @@ public class GetPartnersPageTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
-    private readonly Mock<IBlobService> _mockBlobService;
 
     private readonly PartnersPageBanner _bannerEntity = new()
     {
@@ -45,7 +43,6 @@ public class GetPartnersPageTests
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepoWrapper = new Mock<IRepositoryWrapper>();
-        _mockBlobService = new Mock<IBlobService>();
     }
 
     [Fact]
@@ -55,7 +52,7 @@ public class GetPartnersPageTests
         SetupRepositoryWrapper(_bannerEntity, _partnerSectionEntities);
         SetupMapper(_bannerDto, _partnerSectionDtos);
 
-        var handler = new GetPartnersPageHandler(_mockMapper.Object, _mockRepoWrapper.Object, _mockBlobService.Object);
+        var handler = new GetPartnersPageHandler(_mockMapper.Object, _mockRepoWrapper.Object);
         var query = new GetPartnersPageQuery();
 
         // Act
@@ -79,7 +76,7 @@ public class GetPartnersPageTests
         SetupRepositoryWrapper(null, _partnerSectionEntities);
         SetupMapper(null, _partnerSectionDtos);
 
-        var handler = new GetPartnersPageHandler(_mockMapper.Object, _mockRepoWrapper.Object, _mockBlobService.Object);
+        var handler = new GetPartnersPageHandler(_mockMapper.Object, _mockRepoWrapper.Object);
         var query = new GetPartnersPageQuery();
 
         // Act
@@ -111,7 +108,7 @@ public class GetPartnersPageTests
         SetupRepositoryWrapper(_bannerEntity, emptySectionsList);
         SetupMapper(_bannerDto, emptySectionsDtoList);
 
-        var handler = new GetPartnersPageHandler(_mockMapper.Object, _mockRepoWrapper.Object, _mockBlobService.Object);
+        var handler = new GetPartnersPageHandler(_mockMapper.Object, _mockRepoWrapper.Object);
         var query = new GetPartnersPageQuery();
 
         // Act
