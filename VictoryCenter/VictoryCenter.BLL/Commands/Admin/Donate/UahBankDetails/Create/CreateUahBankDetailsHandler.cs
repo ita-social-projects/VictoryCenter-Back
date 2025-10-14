@@ -4,7 +4,6 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
