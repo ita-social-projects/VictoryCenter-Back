@@ -2,7 +2,9 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
@@ -41,6 +43,10 @@ public class CreateForeignBankDetailsHandler : IRequestHandler<CreateForeignBank
         catch (ValidationException ex)
         {
             return Result.Fail<ForeignBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<ForeignBankDetailsDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.ForeignBankDetails)));
         }
     }
 }

@@ -1,6 +1,8 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
@@ -17,25 +19,32 @@ public class DeleteCorrespondentBankDetailsHandler : IRequestHandler<DeleteCorre
 
     public async Task<Result<long>> Handle(DeleteCorrespondentBankDetailsCommand request, CancellationToken cancellationToken)
     {
-        Entities.CorrespondentBankDetails? entityToDelete = await _repositoryWrapper.CorrespondentBankDetailsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<Entities.CorrespondentBankDetails>
+        try
+        {
+            Entities.CorrespondentBankDetails? entityToDelete = await _repositoryWrapper.CorrespondentBankDetailsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<Entities.CorrespondentBankDetails>
+                {
+                    Filter = correspondentBankDetails => correspondentBankDetails.Id == request.Id
+                });
+
+            if (entityToDelete is null)
             {
-                Filter = correspondentBankDetails => correspondentBankDetails.Id == request.Id
-            });
+                return Result.Fail<long>(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(Entities.CorrespondentBankDetails)));
+            }
 
-        if (entityToDelete is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(Entities.CorrespondentBankDetails)));
+            _repositoryWrapper.CorrespondentBankDetailsRepository.Delete(entityToDelete);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+
+            return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.CorrespondentBankDetails)));
         }
-
-        _repositoryWrapper.CorrespondentBankDetailsRepository.Delete(entityToDelete);
-
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        catch (DbUpdateException)
         {
-            return Result.Ok(entityToDelete.Id);
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(Entities.CorrespondentBankDetails)));
         }
-
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.CorrespondentBankDetails)));
     }
 }

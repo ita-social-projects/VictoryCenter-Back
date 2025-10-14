@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
@@ -20,7 +20,7 @@ public class GetAllUahBankDetailsHandler : IRequestHandler<GetAllUahBankDetailsQ
     public async Task<Result<List<UahBankDetailsDto>>> Handle(GetAllUahBankDetailsQuery request, CancellationToken cancellationToken)
     {
         IEnumerable<Entities.UahBankDetails> uahBankDetails = await _repositoryWrapper.UahBankDetailsRepository.GetAllAsync();
-        var mapped = _mapper.Map<IEnumerable<UahBankDetailsDto>>(uahBankDetails).ToList();
+        var mapped = _mapper.Map<List<UahBankDetailsDto>>(uahBankDetails).ToList();
 
         return Result.Ok(mapped);
     }

@@ -2,8 +2,11 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
@@ -54,6 +57,10 @@ public class CreateCorrespondentBankDetailsHandler : IRequestHandler<CreateCorre
         catch (ValidationException ex)
         {
             return Result.Fail<CorrespondentBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<CorrespondentBankDetailsDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.CorrespondentBankDetails)));
         }
     }
 }

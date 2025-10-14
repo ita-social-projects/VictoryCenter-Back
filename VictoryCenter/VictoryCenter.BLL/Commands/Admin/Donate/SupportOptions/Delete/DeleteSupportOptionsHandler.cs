@@ -1,5 +1,6 @@
-﻿using FluentResults;
+using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,25 +18,32 @@ public class DeleteSupportOptionsHandler : IRequestHandler<DeleteSupportOptionsC
 
     public async Task<Result<long>> Handle(DeleteSupportOptionsCommand request, CancellationToken cancellationToken)
     {
-        Entities.SupportOptions? entityToDelete = await _repositoryWrapper.SupportOptionsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<Entities.SupportOptions>
+        try
+        {
+            Entities.SupportOptions? entityToDelete = await _repositoryWrapper.SupportOptionsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<Entities.SupportOptions>
+                {
+                    Filter = supportOptions => supportOptions.Id == request.Id
+                });
+
+            if (entityToDelete is null)
             {
-                Filter = supportOptions => supportOptions.Id == request.Id
-            });
+                return Result.Fail<long>(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(Entities.SupportOptions)));
+            }
 
-        if (entityToDelete is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(Entities.SupportOptions)));
+            _repositoryWrapper.SupportOptionsRepository.Delete(entityToDelete);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+
+            return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.SupportOptions)));
         }
-
-        _repositoryWrapper.SupportOptionsRepository.Delete(entityToDelete);
-
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        catch (DbUpdateException)
         {
-            return Result.Ok(entityToDelete.Id);
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(Entities.SupportOptions)));
         }
-
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.SupportOptions)));
     }
 }

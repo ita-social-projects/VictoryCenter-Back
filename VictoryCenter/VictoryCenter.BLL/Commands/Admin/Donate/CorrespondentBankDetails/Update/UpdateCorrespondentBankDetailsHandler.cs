@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -55,6 +56,10 @@ public class UpdateCorrespondentBankDetailsHandler : IRequestHandler<UpdateCorre
         catch (ValidationException ex)
         {
             return Result.Fail<CorrespondentBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<CorrespondentBankDetailsDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(Entities.CorrespondentBankDetails)));
         }
     }
 }

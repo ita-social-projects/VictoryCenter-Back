@@ -1,7 +1,8 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -55,6 +56,10 @@ public class UpdateSupportOptionsHandler : IRequestHandler<UpdateSupportOptionsC
         catch (ValidationException ex)
         {
             return Result.Fail<SupportOptionsDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<SupportOptionsDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(Entities.SupportOptions)));
         }
     }
 }

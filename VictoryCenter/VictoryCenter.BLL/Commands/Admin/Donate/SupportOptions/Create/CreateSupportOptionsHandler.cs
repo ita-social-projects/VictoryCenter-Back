@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
@@ -41,6 +43,10 @@ public class CreateSupportOptionsHandler : IRequestHandler<CreateSupportOptionsC
         catch (ValidationException ex)
         {
             return Result.Fail<SupportOptionsDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<SupportOptionsDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.SupportOptions)));
         }
     }
 }

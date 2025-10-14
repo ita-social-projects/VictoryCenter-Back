@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
@@ -82,7 +82,7 @@ public class GetAllUahBankDetailsTests
     private void SetupDependencies()
     {
         _mockMapper.Setup(m => m.Map<IEnumerable<UahBankDetailsDto>>(It.IsAny<IEnumerable<Entities.UahBankDetails>>()))
-            .Returns(_testDtos);
+            .Returns(_testDtos.ToList());
 
         _mockRepositoryWrapper.Setup(r => r.UahBankDetailsRepository.GetAllAsync(null))
             .ReturnsAsync(_testEntities);

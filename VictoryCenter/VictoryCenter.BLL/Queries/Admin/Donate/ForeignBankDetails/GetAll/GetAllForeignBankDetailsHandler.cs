@@ -27,7 +27,7 @@ public class GetAllForeignBankDetailsHandler : IRequestHandler<GetAllForeignBank
             Include = entity => entity
                 .Include(e => e.CorrespondentBanks)
         });
-        var mapped = _mapper.Map<IEnumerable<ForeignBankDetailsDto>>(foreignBankDetails).ToList();
+        var mapped = _mapper.Map<List<ForeignBankDetailsDto>>(foreignBankDetails).ToList();
 
         return Result.Ok(mapped);
     }
