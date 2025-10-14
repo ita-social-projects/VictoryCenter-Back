@@ -26,7 +26,7 @@ public class GetAllSupportOptionsHandler : IRequestHandler<GetAllSupportOptionsQ
                     Filter = so => so.Currency == request.Currency
                 });
 
-        var mapped = _mapper.Map<List<SupportOptionsDto>>(supportOptions).ToList();
+        var mapped = _mapper.Map<List<SupportOptionsDto>>(supportOptions);
 
         return Result.Ok(mapped);
     }

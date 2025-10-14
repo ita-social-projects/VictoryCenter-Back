@@ -20,7 +20,7 @@ public class GetAllUahBankDetailsHandler : IRequestHandler<GetAllUahBankDetailsQ
     public async Task<Result<List<UahBankDetailsDto>>> Handle(GetAllUahBankDetailsQuery request, CancellationToken cancellationToken)
     {
         IEnumerable<Entities.UahBankDetails> uahBankDetails = await _repositoryWrapper.UahBankDetailsRepository.GetAllAsync();
-        var mapped = _mapper.Map<List<UahBankDetailsDto>>(uahBankDetails).ToList();
+        var mapped = _mapper.Map<List<UahBankDetailsDto>>(uahBankDetails);
 
         return Result.Ok(mapped);
     }

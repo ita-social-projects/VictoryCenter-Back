@@ -1,5 +1,5 @@
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
-public record UpdateForeignBankDetailsDto
+public record UpdateForeignBankDetailsDto : IForeignBankDetails
 {
     public string Name { get; set; } = null!;
     public string Receiver { get; set; } = null!;

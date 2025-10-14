@@ -1,11 +1,10 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
-using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
 public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
-    where T : CreateForeignBankDetailsDto
+    where T : IForeignBankDetails
 {
     public ForeignBankDetailsDtoValidator()
     {
@@ -30,9 +29,5 @@ public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Iban), ForeignBankDetailsConstants.Iban.MinLength))
             .Matches(ForeignBankDetailsConstants.OnlyDigits)
             .WithMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
-
-        RuleFor(dto => dto.Currency)
-            .Must(currency => currency is BankCurrency.Usd or BankCurrency.Eur)
-            .WithMessage(ForeignBankDetailsConstants.OnlyUsdOrEurMassage);
     }
 }
