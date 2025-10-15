@@ -28,6 +28,14 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyProgram> HippotherapyPrograms { get; set; }
 
+    public DbSet<UahBankDetails> UahBankDetails { get; set; }
+
+    public DbSet<ForeignBankDetails> ForeignBankDetails { get; set; }
+
+    public DbSet<CorrespondentBankDetails> CorrespondentBankDetails { get; set; }
+
+    public DbSet<SupportOptions> SupportOptions { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

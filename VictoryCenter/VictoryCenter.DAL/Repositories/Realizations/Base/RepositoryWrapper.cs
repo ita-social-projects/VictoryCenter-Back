@@ -6,6 +6,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
@@ -14,6 +15,7 @@ using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
@@ -33,6 +35,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IImageRepository? _imageRepository;
     private IHippotherapyProgramCategoriesRepository? _programCategoriesRepository;
     private IHippotherapyProgramsRepository? _hippotherapyProgramsRepository;
+    private IUahBankDetailsRepository? _uahBankDetailsRepository;
+    private IForeignBankDetailsRepository? _foreignBankDetailsRepository;
+    private ICorrespondentBankDetailsRepository? _correspondentBankDetailsRepository;
+    private ISupportOptionsRepository? _supportOptionsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -49,6 +55,14 @@ public class RepositoryWrapper : IRepositoryWrapper
         ??= new HippotherapyProgramCategoriesRepository(_victoryCenterDbContext);
     public IHippotherapyProgramsRepository HippotherapyProgramsRepository => _hippotherapyProgramsRepository ??= new HippotherapyProgramsRepository(_victoryCenterDbContext);
 
+    public IUahBankDetailsRepository UahBankDetailsRepository => _uahBankDetailsRepository
+        ??= new UahBankDetailsRepository(_victoryCenterDbContext);
+    public IForeignBankDetailsRepository ForeignBankDetailsRepository => _foreignBankDetailsRepository
+        ??= new ForeignBankDetailsRepository(_victoryCenterDbContext);
+    public ICorrespondentBankDetailsRepository CorrespondentBankDetailsRepository => _correspondentBankDetailsRepository
+        ??= new CorrespondentBankDetailsRepository(_victoryCenterDbContext);
+    public ISupportOptionsRepository SupportOptionsRepository => _supportOptionsRepository
+        ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();

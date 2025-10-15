@@ -8,4 +8,8 @@ public enum SeederExecutionOrder
     HippotherapyProgramCategories,
     HippotherapyPrograms,
     Images
+    UahBankDetails,
+    SupportOptions,
+    ForeignBankDetails,
+    CorrespondentBankDetails
 }
