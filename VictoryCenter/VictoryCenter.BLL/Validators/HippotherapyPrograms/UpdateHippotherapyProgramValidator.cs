@@ -7,6 +7,8 @@ public class UpdateHippotherapyProgramValidator : AbstractValidator<UpdateHippot
 {
     public UpdateHippotherapyProgramValidator(BaseHippotherapyProgramValidator baseProgramValidator)
     {
-        RuleFor(x => x.UpdateProgramDto).SetValidator(baseProgramValidator);
+        RuleFor(x => x.UpdateProgramDto)
+            .NotNull()
+            .SetValidator(baseProgramValidator);
     }
 }

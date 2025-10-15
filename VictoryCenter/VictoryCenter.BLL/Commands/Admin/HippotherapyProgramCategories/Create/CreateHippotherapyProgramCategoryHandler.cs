@@ -28,7 +28,7 @@ public class CreateHippotherapyProgramCategoryHandler : IRequestHandler<CreateHi
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            HippotherapyProgramCategory entity = _mapper.Map<HippotherapyProgramCategory>(request.ProgramCategoryDto);
+            HippotherapyProgramCategory entity = _mapper.Map<HippotherapyProgramCategory>(request.CreateProgramCategoryDto);
             entity.CreatedAt = DateTimeOffset.UtcNow;
             await _repositoryWrapper.HippotherapyProgramCategoriesRepository.CreateAsync(entity);
 

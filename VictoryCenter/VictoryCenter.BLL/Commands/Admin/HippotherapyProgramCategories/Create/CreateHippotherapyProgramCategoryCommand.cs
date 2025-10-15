@@ -4,5 +4,5 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyProgramCategories.Create;
 
-public record CreateHippotherapyProgramCategoryCommand(CreateHippotherapyProgramCategoryDto ProgramCategoryDto)
+public record CreateHippotherapyProgramCategoryCommand(CreateHippotherapyProgramCategoryDto CreateProgramCategoryDto)
     : IRequest<Result<HippotherapyProgramCategoryDto>>;

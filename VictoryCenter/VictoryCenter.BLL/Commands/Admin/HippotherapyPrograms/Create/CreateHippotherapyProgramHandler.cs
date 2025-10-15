@@ -5,7 +5,6 @@ using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -18,7 +17,7 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateHippotherapyProgramCommand> _validator;
 
-    public CreateHippotherapyProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<CreateHippotherapyProgramCommand> validator, IBlobService blobService)
+    public CreateHippotherapyProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<CreateHippotherapyProgramCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -34,7 +33,7 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
             IEnumerable<HippotherapyProgramCategory> categories = await _repositoryWrapper
                 .HippotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HippotherapyProgramCategory>
                 {
-                    Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id),
+                    Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id!),
                     AsNoTracking = false
                 });
 

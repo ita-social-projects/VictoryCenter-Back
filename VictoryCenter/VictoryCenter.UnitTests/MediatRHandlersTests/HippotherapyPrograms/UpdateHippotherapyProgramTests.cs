@@ -81,7 +81,7 @@ public class UpdateHippotherapyProgramTests
     public async Task Handle_ShouldUpdateProgram()
     {
         SetUpDependencies(_programEntity);
-        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new UpdateHippotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _updateProgramDto.Name);
@@ -95,7 +95,7 @@ public class UpdateHippotherapyProgramTests
     {
         _updateProgramDto.Name = name!;
         SetUpDependencies(_programEntity);
-        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new UpdateHippotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
@@ -105,7 +105,7 @@ public class UpdateHippotherapyProgramTests
     public async Task Handle_ShouldFailUpdate_SaveFail()
     {
         SetUpDependencies(_programEntity, -1);
-        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new UpdateHippotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
@@ -115,7 +115,7 @@ public class UpdateHippotherapyProgramTests
     public async Task Handle_ShouldFailUpdate_NotFoundProgram()
     {
         SetUpDependencies();
-        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new UpdateHippotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(DAL.Entities.HippotherapyProgram)), result.Errors[0].Message);

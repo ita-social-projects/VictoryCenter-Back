@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -19,7 +18,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateHippotherapyProgramCommand> _validator;
 
-    public UpdateHippotherapyProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<UpdateHippotherapyProgramCommand> validator, IBlobService blobService)
+    public UpdateHippotherapyProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<UpdateHippotherapyProgramCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;

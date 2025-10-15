@@ -79,7 +79,7 @@ public class CreateHippotherapyProgramTests
     public async Task Handle_ShouldCreateProgram()
     {
         SetUpDependencies();
-        var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new CreateHippotherapyProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value.Name, _programEntity.Name);
@@ -94,7 +94,7 @@ public class CreateHippotherapyProgramTests
         _createProgramDto.Name = name!;
         _programEntity.Name = name!;
         SetUpDependencies();
-        var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new CreateHippotherapyProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
@@ -104,7 +104,7 @@ public class CreateHippotherapyProgramTests
     public async Task Handle_ShouldFail_SaveChangesFail()
     {
         SetUpDependencies(-1);
-        var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _blobServiceMock.Object);
+        var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new CreateHippotherapyProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);

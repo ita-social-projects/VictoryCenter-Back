@@ -9,7 +9,7 @@ public class CreateHippotherapyProgramCategoryValidator : AbstractValidator<Crea
 {
     public CreateHippotherapyProgramCategoryValidator()
     {
-        RuleFor(command => command.ProgramCategoryDto.Name)
+        RuleFor(command => command.CreateProgramCategoryDto.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(HippotherapyProgramCategoryDto.Name)))
             .MaximumLength(HippotherapyProgramCategoryConstants.MaxNameLength)

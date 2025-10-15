@@ -23,7 +23,7 @@ public class CreateHippotherapyProgramCategoryValidatorTests
     {
         var command = new CreateHippotherapyProgramCategoryCommand(new CreateHippotherapyProgramCategoryDto { Name = name });
         TestValidationResult<CreateHippotherapyProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.ProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.CreateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("Name"));
     }
 
@@ -37,7 +37,7 @@ public class CreateHippotherapyProgramCategoryValidatorTests
         var name = new string('a', nameLength);
         var command = new CreateHippotherapyProgramCategoryCommand(new CreateHippotherapyProgramCategoryDto { Name = name });
         TestValidationResult<CreateHippotherapyProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.ProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.CreateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters("Name", HippotherapyProgramCategoryConstants.MinNameLength));
     }
@@ -48,7 +48,7 @@ public class CreateHippotherapyProgramCategoryValidatorTests
         var name = new string('a', HippotherapyProgramCategoryConstants.MaxNameLength + 1);
         var command = new CreateHippotherapyProgramCategoryCommand(new CreateHippotherapyProgramCategoryDto { Name = name });
         TestValidationResult<CreateHippotherapyProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.ProgramCategoryDto.Name)
+        result.ShouldHaveValidationErrorFor(c => c.CreateProgramCategoryDto.Name)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters("Name", HippotherapyProgramCategoryConstants.MaxNameLength));
     }
@@ -58,6 +58,6 @@ public class CreateHippotherapyProgramCategoryValidatorTests
     {
         var command = new CreateHippotherapyProgramCategoryCommand(new CreateHippotherapyProgramCategoryDto { Name = "Valid Name" });
         TestValidationResult<CreateHippotherapyProgramCategoryCommand> result = _validatorTests.TestValidate(command);
-        result.ShouldNotHaveValidationErrorFor(c => c.ProgramCategoryDto.Name);
+        result.ShouldNotHaveValidationErrorFor(c => c.CreateProgramCategoryDto.Name);
     }
 }
