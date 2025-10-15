@@ -39,16 +39,6 @@ public class CreateForeignBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenIbanContainsNonDigits()
-    {
-        var command = new CreateForeignBankDetailsCommand(
-            new CreateForeignBankDetailsDto { Swift = "VALIDSWIFT", Iban = new string('a', UahBankDetailsConstants.Iban.MinLength) });
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Iban)
-            .WithErrorMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         var command = new CreateForeignBankDetailsCommand(

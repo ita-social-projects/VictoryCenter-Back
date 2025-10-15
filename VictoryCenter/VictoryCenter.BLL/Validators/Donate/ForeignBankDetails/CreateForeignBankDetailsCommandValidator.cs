@@ -14,6 +14,6 @@ public class CreateForeignBankDetailsCommandValidator : AbstractValidator<Create
 
         RuleFor(command => command.CreateForeignBankDetailsDto.Currency)
             .Must(currency => currency is BankCurrency.Usd or BankCurrency.Eur)
-            .WithMessage(ForeignBankDetailsConstants.OnlyUsdOrEurMassage);
+            .WithMessage(ForeignBankDetailsConstants.OnlyUsdOrEurMessage);
     }
 }

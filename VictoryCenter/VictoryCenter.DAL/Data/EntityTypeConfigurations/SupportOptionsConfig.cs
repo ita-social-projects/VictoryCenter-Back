@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
@@ -13,10 +13,12 @@ public class SupportOptionsConfig : IEntityTypeConfiguration<SupportOptions>
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.Name)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(200);
 
         builder.Property(e => e.Value)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(200);
 
         builder.ToTable("SupportOptions");
     }

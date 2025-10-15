@@ -114,25 +114,6 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CorrespondentBankDetailsDto.Iban), CorrespondentBankDetailsConstants.Iban.MaxLength));
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenIbanNotDigits()
-    {
-        var command = new CreateCorrespondentBankDetailsCommand(
-            new CreateCorrespondentBankDetailsDto
-            {
-                Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MinLength),
-                Iban = new string('a', CorrespondentBankDetailsConstants.Iban.MinLength),
-                Name = "Test",
-                Account = "Test",
-                ForeignBankDetailsId = 1
-            });
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Iban)
-            .WithErrorMessage(CorrespondentBankDetailsConstants.OnlyDigitsMessage);
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]

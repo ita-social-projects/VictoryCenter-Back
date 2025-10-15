@@ -32,7 +32,7 @@ public class UpdateForeignBankDetailsHandler : IRequestHandler<UpdateForeignBank
             Entities.ForeignBankDetails? foreignBankDetailsEntity = await _repositoryWrapper.ForeignBankDetailsRepository
                 .GetFirstOrDefaultAsync(new QueryOptions<Entities.ForeignBankDetails>
                 {
-                    Filter = foreignhBankDetails => foreignhBankDetails.Id == request.Id
+                    Filter = foreignBankDetails => foreignBankDetails.Id == request.Id
                 });
 
             if (foreignBankDetailsEntity is null)

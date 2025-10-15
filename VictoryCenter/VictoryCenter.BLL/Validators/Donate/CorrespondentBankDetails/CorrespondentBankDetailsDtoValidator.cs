@@ -25,8 +25,6 @@ public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
             .MinimumLength(CorrespondentBankDetailsConstants.Iban.MinLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CorrespondentBankDetailsDto.Iban), CorrespondentBankDetailsConstants.Iban.MinLength))
-            .Matches(CorrespondentBankDetailsConstants.OnlyDigits)
-            .WithMessage(CorrespondentBankDetailsConstants.OnlyDigitsMessage)
             .When(dto => !string.IsNullOrEmpty(dto.Iban));
     }
 }

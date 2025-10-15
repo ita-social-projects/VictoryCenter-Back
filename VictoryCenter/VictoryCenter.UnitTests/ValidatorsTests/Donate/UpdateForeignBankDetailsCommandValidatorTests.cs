@@ -52,23 +52,6 @@ public class UpdateForeignBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenIbanNotDigits()
-    {
-        var command = new UpdateForeignBankDetailsCommand(
-            new UpdateForeignBankDetailsDto
-            {
-                Swift = new string('A', ForeignBankDetailsConstants.Swift.MinLength),
-                Iban = new string('a', ForeignBankDetailsConstants.Iban.MinLength)
-            },
-            1L);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
-            .WithErrorMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         var command = new UpdateForeignBankDetailsCommand(

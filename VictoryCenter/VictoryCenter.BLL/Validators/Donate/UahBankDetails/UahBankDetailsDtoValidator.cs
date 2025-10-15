@@ -28,8 +28,6 @@ public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MaxLength))
             .MinimumLength(UahBankDetailsConstants.Iban.MinLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength))
-            .Matches(UahBankDetailsConstants.OnlyDigits)
-            .WithMessage(UahBankDetailsConstants.OnlyDigitsMessage);
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength));
     }
 }

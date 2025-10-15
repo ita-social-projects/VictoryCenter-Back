@@ -129,22 +129,6 @@ public class CreateUahBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenIbanNotDigits()
-    {
-        var command = new CreateUahBankDetailsCommand(
-            new CreateUahBankDetailsDto
-            {
-                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('a', UahBankDetailsConstants.Iban.MinLength)
-            });
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.Iban)
-            .WithErrorMessage(UahBankDetailsConstants.OnlyDigitsMessage);
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         var command = new CreateUahBankDetailsCommand(

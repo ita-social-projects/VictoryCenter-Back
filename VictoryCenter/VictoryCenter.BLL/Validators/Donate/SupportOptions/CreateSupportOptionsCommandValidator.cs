@@ -13,6 +13,6 @@ public class CreateSupportOptionsCommandValidator : AbstractValidator<CreateSupp
 
         RuleFor(command => command.CreateSupportOptionsDto.Currency)
             .IsInEnum()
-            .WithMessage(SupportOptionsConstants.OnlyUsdOrEurOrUahMassage);
+            .WithMessage(SupportOptionsConstants.OnlyUsdOrEurOrUahMessage);
     }
 }

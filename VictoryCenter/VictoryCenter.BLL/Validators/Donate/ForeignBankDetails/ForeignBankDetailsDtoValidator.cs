@@ -26,8 +26,6 @@ public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Iban), ForeignBankDetailsConstants.Iban.MaxLength))
             .MinimumLength(ForeignBankDetailsConstants.Iban.MinLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Iban), ForeignBankDetailsConstants.Iban.MinLength))
-            .Matches(ForeignBankDetailsConstants.OnlyDigits)
-            .WithMessage(ForeignBankDetailsConstants.OnlyDigitsMessage);
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Iban), ForeignBankDetailsConstants.Iban.MinLength));
     }
 }
