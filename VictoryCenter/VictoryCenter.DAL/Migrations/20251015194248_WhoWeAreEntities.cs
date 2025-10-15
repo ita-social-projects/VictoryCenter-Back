@@ -21,7 +21,10 @@ namespace VictoryCenter.DAL.Migrations
                     Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
-                constraints: table => { table.PrimaryKey("PK_WhoWeAreSections", x => x.Id); });
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WhoWeAreSections", x => x.Id);
+                });
 
             migrationBuilder.CreateTable(
                 name: "WhoWeAreContents",
@@ -60,7 +63,6 @@ namespace VictoryCenter.DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-
             migrationBuilder.CreateIndex(
                 name: "IX_WhoWeAreContents_CardContent_ImageId",
                 table: "WhoWeAreContents",
@@ -89,7 +91,6 @@ namespace VictoryCenter.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "WhoWeAreSections");
-
         }
     }
 }
