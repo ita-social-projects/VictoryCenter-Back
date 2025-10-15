@@ -11,7 +11,9 @@ public class FaqQuestionsProfile : Profile
     {
         CreateMap<CreateFaqQuestionDto, FaqQuestion>();
 
-        CreateMap<UpdateFaqQuestionDto, FaqQuestion>();
+        CreateMap<UpdateFaqQuestionDto, FaqQuestion>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
         CreateMap<FaqQuestion, FaqQuestionDto>()
             .ForMember(dest => dest.PageIds, opt => opt.MapFrom(src => src.Placements.Select(p => p.PageId)));

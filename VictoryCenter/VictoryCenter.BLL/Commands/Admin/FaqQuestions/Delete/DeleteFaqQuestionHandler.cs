@@ -2,19 +2,23 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-
 namespace VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
 
 public class DeleteFaqQuestionHandler : IRequestHandler<DeleteFaqQuestionCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IReorderService _reorderService;
 
-    public DeleteFaqQuestionHandler(IRepositoryWrapper repositoryWrapper)
+    public DeleteFaqQuestionHandler(
+        IRepositoryWrapper repositoryWrapper,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<long>> Handle(DeleteFaqQuestionCommand request, CancellationToken cancellationToken)
@@ -22,11 +26,11 @@ public class DeleteFaqQuestionHandler : IRequestHandler<DeleteFaqQuestionCommand
         try
         {
             var questionToDelete = await _repositoryWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<FaqQuestion>
-            {
-                Filter = entity => entity.Id == request.Id,
-                Include = e => e.Include(q => q.Placements),
-            });
+                new QueryOptions<FaqQuestion>
+                {
+                    Filter = entity => entity.Id == request.Id,
+                    Include = e => e.Include(q => q.Placements),
+                });
 
             if (questionToDelete is null)
             {
@@ -34,42 +38,20 @@ public class DeleteFaqQuestionHandler : IRequestHandler<DeleteFaqQuestionCommand
             }
 
             var placementsToDelete = questionToDelete.Placements.ToList();
+            var removedPageIds = placementsToDelete.Select(fp => fp.PageId).Distinct().ToList();
+            var affectedRows = 0;
+
             using var transactionScope = _repositoryWrapper.BeginTransaction();
-
-            int affectedRows = 0;
-
-            var removedPageIds = placementsToDelete.Select(fp => fp.PageId).ToList();
-            var pageGroups = (await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                new QueryOptions<FaqPlacement>
-                {
-                    Filter = fp => removedPageIds.Contains(fp.PageId),
-                }))
-                .GroupBy(p => p.PageId).ToList();
 
             _repositoryWrapper.FaqPlacementsRepository.DeleteRange(placementsToDelete);
             affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-            foreach (var id in removedPageIds)
+            foreach (var pageId in removedPageIds)
             {
-                var question = placementsToDelete.Single(q => q.PageId == id);
-                var group = pageGroups
-                    .Single(g => g.Key == id)
-                    .OrderBy(q => q.Priority)
-                    .Skip((int)question.Priority)
-                    .ToList();
+                await _reorderService.RenumberPriorityAsync<FaqPlacement>(
+                    groupSelector: fp => fp.PageId == pageId);
 
-                foreach (var faq in group)
-                {
-                    faq.Priority = -(faq.Priority - 1);
-                }
-
-                _repositoryWrapper.FaqPlacementsRepository.UpdateRange(group);
                 affectedRows += await _repositoryWrapper.SaveChangesAsync();
-
-                foreach (var faq in group)
-                {
-                    faq.Priority = -faq.Priority;
-                }
             }
 
             _repositoryWrapper.FaqQuestionsRepository.Delete(questionToDelete);
