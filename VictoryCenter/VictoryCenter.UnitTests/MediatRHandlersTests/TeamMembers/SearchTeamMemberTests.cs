@@ -150,6 +150,7 @@ public class SearchTeamMemberTests
             Status = status,
             Description = "desc",
             Email = email,
+            ImageId = image?.Id,
             Image = image,
             CreatedAt = DateTimeOffset.UtcNow
         };
