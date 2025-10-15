@@ -21,30 +21,14 @@ public class SearchTeamMemberTests
     private readonly Mock<ISearchService<TeamMember>> _searchServiceMock;
     private readonly IValidator<SearchTeamMemberQuery> _validator;
 
-    private readonly List<TeamMember> _teamMembers = [
-        new TeamMember
-        {
-            Id = 1,
-            FullName = "TestName",
-            Priority = 1,
-            CategoryId = 1,
-            Status = Status.Draft,
-            Description = "Long description",
-            Email = "Test@gmail.com",
-            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
-        },
+    private readonly List<TeamMember> _teamMembers =
+    [
+        CreateTeamMember(1, "TestName", Status.Draft, "Test@gmail.com")
     ];
 
-    private readonly List<TeamMemberDto> _teamMemberDtos = [
-        new TeamMemberDto
-        {
-            Id = 1,
-            FullName = "TestName",
-            Priority = 1,
-            Status = Status.Draft,
-            Description = "Long description",
-            Email = "Test@gmail.com"
-        },
+    private readonly List<TeamMemberDto> _teamMemberDtos =
+    [
+        CreateTeamMemberDto(1, "TestName", Status.Draft, "Test@gmail.com")
     ];
 
     public SearchTeamMemberTests()
@@ -115,53 +99,16 @@ public class SearchTeamMemberTests
     public async Task Handle_WithImage_ShouldReturnImage()
     {
         // Arrange
-        var members = new List<TeamMember>
-        {
-            new()
-            {
-                Id = 2,
-                FullName = "With Image",
-                Priority = 1,
-                CategoryId = 1,
-                Status = Status.Published,
-                Description = "desc",
-                Email = "with@img.com",
-                Image = new Image
-                {
-                    Id = 10,
-                    BlobName = "blob.jpg",
-                    Url = "https://cdn.example.com/blob.jpg",
-                    MimeType = "image/jpeg",
-                    CreatedAt = DateTimeOffset.UtcNow.AddHours(-1)
-                },
-                CreatedAt = DateTimeOffset.UtcNow
-            }
-        };
-        var dtos = new List<TeamMemberDto>
-        {
-            new()
-            {
-                Id = 2,
-                FullName = "With Image",
-                Priority = 1,
-                Status = Status.Published,
-                Description = "desc",
-                Email = "with@img.com",
-                Image = new ImageDto
-                {
-                    Id = 10,
-                    BlobName = "blob.jpg",
-                    Url = "https://cdn.example.com/blob.jpg",
-                    MimeType = "image/jpeg",
-                    CreatedAt = members[0].Image!.CreatedAt
-                }
-            }
-        };
-        SetupMapper(dtos);
-        SetupRepositoryWrapper(members);
+        var image = CreateImage(10, "blob.jpg", "https://cdn.example.com/blob.jpg");
+        var member = CreateTeamMember(2, "With Image", Status.Published, "with@img.com", image);
+        var imageDto = CreateImageDto(10, "blob.jpg", "https://cdn.example.com/blob.jpg", image.CreatedAt);
+        var dto = CreateTeamMemberDto(2, "With Image", Status.Published, "with@img.com", imageDto);
 
-        var dto = new SearchTeamMemberDto { FullName = "With Image" };
-        var query = new SearchTeamMemberQuery(dto);
+        SetupMapper([dto]);
+        SetupRepositoryWrapper([member]);
+
+        var searchDto = new SearchTeamMemberDto { FullName = "With Image" };
+        var query = new SearchTeamMemberQuery(searchDto);
         var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
 
         // Act
@@ -175,39 +122,14 @@ public class SearchTeamMemberTests
     public async Task Handle_WithoutImage_ShouldReturnNullImage()
     {
         // Arrange
-        var members = new List<TeamMember>
-        {
-            new()
-            {
-                Id = 3,
-                FullName = "No Image",
-                Priority = 1,
-                CategoryId = 1,
-                Status = Status.Published,
-                Description = "desc",
-                Email = "no@img.com",
-                Image = null,
-                CreatedAt = DateTimeOffset.UtcNow
-            }
-        };
-        var dtos = new List<TeamMemberDto>
-        {
-            new()
-            {
-                Id = 3,
-                FullName = "No Image",
-                Priority = 1,
-                Status = Status.Published,
-                Description = "desc",
-                Email = "no@img.com",
-                Image = null
-            }
-        };
-        SetupMapper(dtos);
-        SetupRepositoryWrapper(members);
+        var member = CreateTeamMember(3, "No Image", Status.Published, "no@img.com");
+        var dto = CreateTeamMemberDto(3, "No Image", Status.Published, "no@img.com");
 
-        var dto = new SearchTeamMemberDto { FullName = "No Image" };
-        var query = new SearchTeamMemberQuery(dto);
+        SetupMapper([dto]);
+        SetupRepositoryWrapper([member]);
+
+        var searchDto = new SearchTeamMemberDto { FullName = "No Image" };
+        var query = new SearchTeamMemberQuery(searchDto);
         var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
 
         // Act
@@ -215,6 +137,60 @@ public class SearchTeamMemberTests
 
         // Assert
         Assert.Null(Assert.Single(result.Value!.Items).Image);
+    }
+
+    private static TeamMember CreateTeamMember(int id, string fullName, Status status, string email, Image? image = null)
+    {
+        return new TeamMember
+        {
+            Id = id,
+            FullName = fullName,
+            Priority = 1,
+            CategoryId = 1,
+            Status = status,
+            Description = "desc",
+            Email = email,
+            Image = image,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private static TeamMemberDto CreateTeamMemberDto(int id, string fullName, Status status, string email, ImageDto? image = null)
+    {
+        return new TeamMemberDto
+        {
+            Id = id,
+            FullName = fullName,
+            Priority = 1,
+            Status = status,
+            Description = "desc",
+            Email = email,
+            Image = image
+        };
+    }
+
+    private static Image CreateImage(int id, string blobName, string url)
+    {
+        return new Image
+        {
+            Id = id,
+            BlobName = blobName,
+            Url = url,
+            MimeType = "image/jpeg",
+            CreatedAt = DateTimeOffset.UtcNow.AddHours(-1)
+        };
+    }
+
+    private static ImageDto CreateImageDto(int id, string blobName, string url, DateTimeOffset createdAt)
+    {
+        return new ImageDto
+        {
+            Id = id,
+            BlobName = blobName,
+            Url = url,
+            MimeType = "image/jpeg",
+            CreatedAt = createdAt
+        };
     }
 
     private void SetupMapper(List<TeamMemberDto> teamMemberDtos)
