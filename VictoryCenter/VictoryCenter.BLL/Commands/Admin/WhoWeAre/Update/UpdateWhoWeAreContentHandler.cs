@@ -54,7 +54,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 if (entity.ContentType != dto.ContentType)
                 {
-                    return Result.Fail(WhoWeAreConstants.WrongContentType);
+                    return Result.Fail(WhoWeAreConstants.DtoHasWrongContentType(dto.Id, entity.ContentType, dto.ContentType));
                 }
 
                 UpdateContent(dto, entity);

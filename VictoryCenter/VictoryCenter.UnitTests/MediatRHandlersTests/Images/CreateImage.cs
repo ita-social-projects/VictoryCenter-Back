@@ -18,8 +18,8 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 public class CreateImageHandlerTests
 {
     private readonly Mock<IBlobService> _mockBlobService;
-    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IMapper> _mockMapper;
+    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
 
     private readonly CreateImageDto _testCreateImageDto = new()
     {

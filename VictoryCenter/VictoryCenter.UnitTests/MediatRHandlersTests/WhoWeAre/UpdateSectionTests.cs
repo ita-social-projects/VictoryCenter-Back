@@ -98,7 +98,9 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.NotFound(command.Contents.First().Id, typeof(WhoWeAreContent)), result.Errors[0].Message);
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(command.Contents.First().Id, typeof(WhoWeAreContent)),
+            result.Errors[0].Message);
     }
 
     [Fact]
@@ -120,7 +122,9 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), command.Contents.First().Id), result.Errors[0].Message);
+        Assert.Contains(
+            WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), command.Contents.First().Id),
+            result.Errors[0].Message);
     }
 
     [Fact]
@@ -140,7 +144,10 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(WhoWeAreConstants.WrongContentType, result.Errors[0].Message);
+        var dto = command.Contents.First();
+        Assert.Contains(
+            WhoWeAreConstants.DtoHasWrongContentType(dto.Id, ContentType.Description, dto.ContentType),
+            result.Errors[0].Message);
     }
 
     [Fact]
@@ -158,7 +165,9 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(command.SectionType)), result.Errors[0].Message);
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(command.SectionType)),
+            result.Errors[0].Message);
     }
 
     [Theory]
@@ -170,7 +179,8 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description, Description = description } });
+            new List<CreateWhoWeAreContentDto>
+                { new() { Id = 1, ContentType = ContentType.Description, Description = description } });
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
@@ -184,12 +194,16 @@ public class UpdateWhoWeAreContentTests
             result.Errors[0].Message);
     }
 
-    private void SetupRepositiryWrapper(WhoWeAreSection? sectionToReturn = null, List<WhoWeAreContent>? contentsToReturn = null)
+    private void SetupRepositiryWrapper(
+        WhoWeAreSection? sectionToReturn = null,
+        List<WhoWeAreContent>? contentsToReturn = null)
     {
-        _mockRepositoryWrapper.Setup(r => r.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<WhoWeAreSection>>()))
+        _mockRepositoryWrapper.Setup(r =>
+                r.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<WhoWeAreSection>>()))
             .ReturnsAsync(sectionToReturn);
 
-        _mockRepositoryWrapper.Setup(r => r.WhoWeAreContentsRepository.GetAllAsync(It.IsAny<QueryOptions<WhoWeAreContent>>()))
+        _mockRepositoryWrapper.Setup(r =>
+                r.WhoWeAreContentsRepository.GetAllAsync(It.IsAny<QueryOptions<WhoWeAreContent>>()))
             .ReturnsAsync(contentsToReturn ?? new List<WhoWeAreContent>());
 
         _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);

@@ -13,8 +13,13 @@ public static class WhoWeAreConstants
         { SectionType.People, (10, 60) }
     };
     public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(10, 50);
-    public static string WrongContentType => "Content has wrong content type";
     public static string ContentCanNotBeNull => "Content cannot be null";
+
+    public static string DtoHasWrongContentType(long dtoId, ContentType expected, ContentType received)
+    {
+        return $"Dto with id {dtoId} has wrong content type. Expected: {expected}, Received: {received}";
+    }
+
     public static string EntityDoesNotBelongToTheSection(Type entity, long sectionId)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
@@ -26,6 +31,11 @@ public static class WhoWeAreConstants
     {
         ArgumentNullException.ThrowIfNull(content, nameof(content));
 
-        return $"Entity is not {nameof(content)}";
+        return $"Entity is not {content.Name}";
+    }
+
+    public static string NoValidationRulesDefinedForSectionType(SectionType sectionType)
+    {
+        return $"No validation rules defined for section type: {sectionType}";
     }
 }

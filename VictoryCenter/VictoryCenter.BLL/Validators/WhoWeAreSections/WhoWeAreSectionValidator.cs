@@ -22,6 +22,11 @@ internal class WhoWeAreSectionValidator : AbstractValidator<CreateWhoWeAreConten
                         nameof(CreateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen));
         }
 
+        if (!WhoWeAreConstants.ValidationDescriptionRules.ContainsKey(sectionType))
+        {
+            throw new ArgumentException(WhoWeAreConstants.NoValidationRulesDefinedForSectionType(sectionType));
+        }
+
         RuleFor(x => x.Description)
             .MinimumLength(WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(

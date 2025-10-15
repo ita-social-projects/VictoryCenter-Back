@@ -17,7 +17,7 @@ public class WhoWeAreContentConfig : IEntityTypeConfiguration<WhoWeAreContent>
         builder.Property(c => c.SectionId)
             .IsRequired();
 
-        builder.HasOne(c => c.Section) // FK to AboutUsSection
+        builder.HasOne(c => c.Section)
             .WithMany(s => s.Contents)
             .HasForeignKey(c => c.SectionId);
         builder.Property(c => c.ContentType)
