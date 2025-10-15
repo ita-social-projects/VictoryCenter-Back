@@ -28,7 +28,7 @@ public class SearchTeamMemberTests
 
     private readonly List<TeamMemberDto> _teamMemberDtos =
     [
-        CreateTeamMemberDto(1, "TestName", Status.Draft, "Test@gmail.com")
+        CreateTeamMemberDto(1, "TestName", Status.Draft)
     ];
 
     public SearchTeamMemberTests()
@@ -102,7 +102,7 @@ public class SearchTeamMemberTests
         var image = CreateImage(10, "blob.jpg", "https://cdn.example.com/blob.jpg");
         var member = CreateTeamMember(2, "With Image", Status.Published, "with@img.com", image);
         var imageDto = CreateImageDto(10, "blob.jpg", "https://cdn.example.com/blob.jpg", image.CreatedAt);
-        var dto = CreateTeamMemberDto(2, "With Image", Status.Published, "with@img.com", imageDto);
+        var dto = CreateTeamMemberDto(2, "With Image", Status.Published, imageDto);
 
         SetupMapper([dto]);
         SetupRepositoryWrapper([member]);
@@ -123,7 +123,7 @@ public class SearchTeamMemberTests
     {
         // Arrange
         var member = CreateTeamMember(3, "No Image", Status.Published, "no@img.com");
-        var dto = CreateTeamMemberDto(3, "No Image", Status.Published, "no@img.com");
+        var dto = CreateTeamMemberDto(3, "No Image", Status.Published);
 
         SetupMapper([dto]);
         SetupRepositoryWrapper([member]);
@@ -155,7 +155,7 @@ public class SearchTeamMemberTests
         };
     }
 
-    private static TeamMemberDto CreateTeamMemberDto(int id, string fullName, Status status, string email, ImageDto? image = null)
+    private static TeamMemberDto CreateTeamMemberDto(int id, string fullName, Status status, ImageDto? image = null)
     {
         return new TeamMemberDto
         {
@@ -164,7 +164,6 @@ public class SearchTeamMemberTests
             Priority = 1,
             Status = status,
             Description = "desc",
-            Email = email,
             Image = image
         };
     }
