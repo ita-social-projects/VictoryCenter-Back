@@ -36,11 +36,11 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var dictEntities = await GetContentMappedToDictionary(request.Content);
+            var dictEntities = await GetContentMappedToDictionary(request.Contents);
             var sectionId = await GetSectionIdByType(request.SectionType) ??
                             throw new ArgumentException(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(request.SectionType)));
 
-            foreach (var dto in request.Content)
+            foreach (var dto in request.Contents)
             {
                 if (!dictEntities.TryGetValue(dto.Id, out var entity))
                 {
@@ -49,7 +49,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 if (entity.SectionId != sectionId)
                 {
-                    return Result.Fail(WhoWeAreConstants.EntityDoNotBelongToTheSection(typeof(WhoWeAreContent), sectionId));
+                    return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), sectionId));
                 }
 
                 if (entity.ContentType != dto.ContentType)

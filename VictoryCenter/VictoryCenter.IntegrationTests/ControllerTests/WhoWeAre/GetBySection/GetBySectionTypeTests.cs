@@ -15,7 +15,7 @@ public class GetBySectionTypeTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetAllSections_ShouldReturnAllSections()
+    public async Task GetSection_ShouldReturnSection()
     {
         var response = await Fixture.HttpClient.GetAsync($"/api/WhoWeAre/{(int)SectionType.Main}");
         var responseString = await response.Content.ReadAsStringAsync();

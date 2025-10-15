@@ -86,7 +86,7 @@ public class GetAllSectionsTests
         {
             Id = 3,
             SectionType = SectionType.WhoWeSupport,
-            Title = "Кого підтримуємо",
+            Title = "Кого ми підтримуємо",
             CreatedAt = DateTime.Now,
             Contents = null!
         },

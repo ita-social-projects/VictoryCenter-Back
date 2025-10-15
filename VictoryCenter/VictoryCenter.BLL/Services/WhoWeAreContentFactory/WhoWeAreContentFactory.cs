@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
@@ -8,7 +9,8 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
 {
     public TitleContent UpdateTitle(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
-        var result = entity as TitleContent ?? throw new InvalidOperationException("Entity is not Title");
+        var result = entity as TitleContent
+                     ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(TitleContent)));
 
         result.Title = dto.Title;
         return result;
@@ -16,7 +18,8 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
 
     public ImageContent UpdateImage(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
-        var result = entity as ImageContent ?? throw new InvalidOperationException("Entity is not Image");
+        var result = entity as ImageContent
+                     ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(ImageContent)));
 
         result.ImageId = dto.ImageId;
 
@@ -25,7 +28,8 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
 
     public DescriptionContent UpdateDescription(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
-        var result = entity as DescriptionContent ?? throw new InvalidOperationException("Entity is not Description");
+        var result = entity as DescriptionContent
+                     ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(DescriptionContent)));
 
         result.Description = dto.Description;
         return result;
@@ -33,7 +37,9 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
 
     public CardContent UpdateCard(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
-        var result = entity as CardContent ?? throw new InvalidOperationException("Entity is not Image");
+        var result = entity as CardContent
+                     ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(CardContent)));
+
         result.ImageId = dto.ImageId;
         result.Description = dto.Description;
         return result;

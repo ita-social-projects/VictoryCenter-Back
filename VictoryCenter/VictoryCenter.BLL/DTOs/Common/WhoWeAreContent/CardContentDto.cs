@@ -4,5 +4,5 @@ public class CardContentDto : WhoWeAreContentDto
 {
     public string? Description { get; init; }
 
-    public ImageDto Image { get; set; }
+    public ImageDto? Image { get; set; }
 }

@@ -15,10 +15,17 @@ public static class WhoWeAreConstants
     public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(10, 50);
     public static string WrongContentType => "Content has wrong content type";
     public static string ContentCanNotBeNull => "Content cannot be null";
-    public static string EntityDoNotBelongToTheSection(Type entity, long sectionId)
+    public static string EntityDoesNotBelongToTheSection(Type entity, long sectionId)
     {
         ArgumentNullException.ThrowIfNull(entity, nameof(entity));
 
         return $"Entity {entity.Name} does not belong to the section with id {sectionId}";
+    }
+
+    public static string EntityIsNotRightContent(Type content)
+    {
+        ArgumentNullException.ThrowIfNull(content, nameof(content));
+
+        return $"Entity is not {nameof(content)}";
     }
 }

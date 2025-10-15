@@ -98,7 +98,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.NotFound(command.Content.First().Id, typeof(WhoWeAreContent)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.NotFound(command.Contents.First().Id, typeof(WhoWeAreContent)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(WhoWeAreConstants.EntityDoNotBelongToTheSection(typeof(WhoWeAreContent), command.Content.First().Id), result.Errors[0].Message);
+        Assert.Contains(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), command.Contents.First().Id), result.Errors[0].Message);
     }
 
     [Fact]

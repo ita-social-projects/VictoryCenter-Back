@@ -24,5 +24,12 @@ public class GetAllSectionsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.True(responseContent.Count > 0);
+        var sections = responseContent.Select(x => x.SectionType).ToList();
+        Assert.True(sections.Any());
+        Assert.Contains("Main", sections);
+        Assert.Contains("WhatWeDo", sections);
+        Assert.Contains("WhoWeSupport", sections);
+        Assert.Contains("People", sections);
+        Assert.Contains("Team", sections);
     }
 }
