@@ -7,7 +7,7 @@ public enum SeederExecutionOrder
     TeamMembers,
     HippotherapyProgramCategories,
     HippotherapyPrograms,
-    Images
+    Images,
     UahBankDetails,
     SupportOptions,
     ForeignBankDetails,
