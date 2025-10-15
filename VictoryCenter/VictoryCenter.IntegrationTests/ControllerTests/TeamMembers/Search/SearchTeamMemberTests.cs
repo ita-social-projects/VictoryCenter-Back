@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 

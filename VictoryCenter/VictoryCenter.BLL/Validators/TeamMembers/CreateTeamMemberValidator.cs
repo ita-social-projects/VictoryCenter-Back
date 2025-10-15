@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
 
 namespace VictoryCenter.BLL.Validators.TeamMembers;

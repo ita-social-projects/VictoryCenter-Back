@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;

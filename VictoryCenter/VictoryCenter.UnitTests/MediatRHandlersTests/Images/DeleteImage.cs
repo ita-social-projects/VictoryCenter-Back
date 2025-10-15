@@ -1,4 +1,4 @@
-﻿using System.Transactions;
+using System.Transactions;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Images.Delete;
 using VictoryCenter.BLL.Constants;

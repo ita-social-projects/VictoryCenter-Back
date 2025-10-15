@@ -1,4 +1,4 @@
-п»їusing VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Constants;
 
@@ -6,8 +6,8 @@ public static class PageConstants
 {
     public static readonly List<VisitorPage> VisitorPages =
         [
-            new() { Title = "РџСЂРѕРіСЂР°РјРё", Slug = "program-page" },
-            new() { Title = "РџСЂРѕ С–РїРѕС‚РµСЂР°РїС–СЋ", Slug = "about-hippotherapy" },
-            new() { Title = "Р”РѕРЅР°С‚Рё", Slug = "donate-page" }
+            new() { Title = "Програми", Slug = "program-page" },
+            new() { Title = "Про іпотерапію", Slug = "about-hippotherapy" },
+            new() { Title = "Донати", Slug = "donate-page" }
         ];
 }

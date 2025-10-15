@@ -2,16 +2,16 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Public.HypotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Public.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.Public.HypotherapyPrograms.GetPublished;
+namespace VictoryCenter.BLL.Queries.Public.HippotherapyPrograms.GetPublished;
 
-public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQuery, Result<List<PublishedHypotherapyProgramDto>>>
+public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQuery, Result<List<PublishedHippotherapyProgramDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -22,7 +22,7 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<List<PublishedHypotherapyProgramDto>>> Handle(GetPublishedProgramsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<PublishedHippotherapyProgramDto>>> Handle(GetPublishedProgramsQuery request, CancellationToken cancellationToken)
     {
         var queryOptions = new QueryOptions<HippotherapyProgram>
         {
@@ -32,8 +32,8 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
                 .Include(program => program.Image)!
         };
 
-        IEnumerable<HippotherapyProgram> publishedPrograms = await _repositoryWrapper.HypotherapyProgramsRepository.GetAllAsync(queryOptions);
-        var publishedProgramsDto = _mapper.Map<IEnumerable<PublishedHypotherapyProgramDto>>(publishedPrograms).ToList();
+        IEnumerable<HippotherapyProgram> publishedPrograms = await _repositoryWrapper.HippotherapyProgramsRepository.GetAllAsync(queryOptions);
+        var publishedProgramsDto = _mapper.Map<IEnumerable<PublishedHippotherapyProgramDto>>(publishedPrograms).ToList();
 
         return Result.Ok(publishedProgramsDto);
     }

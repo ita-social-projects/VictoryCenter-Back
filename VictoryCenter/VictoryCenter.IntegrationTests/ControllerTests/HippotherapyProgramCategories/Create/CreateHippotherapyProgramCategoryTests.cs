@@ -1,0 +1,57 @@
+using System.Net;
+using System.Text;
+using Newtonsoft.Json;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
+
+namespace VictoryCenter.IntegrationTests.ControllerTests.HippotherapyProgramCategories.Create;
+
+public class CreateHippotherapyProgramCategoryTests : BaseTestClass
+{
+    public CreateHippotherapyProgramCategoryTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
+    {
+    }
+
+    [Fact]
+    public async Task ProgramCategory_ShouldCreateProgramCategory()
+    {
+        var createProgramCategoryDto = new CreateHippotherapyProgramCategoryDto
+        {
+            Name = "NewName1"
+        };
+        var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyProgramCategory/", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        HippotherapyProgramCategoryDto? responseContent = JsonConvert.DeserializeObject<HippotherapyProgramCategoryDto>(responseString);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(responseContent);
+        Assert.Equal(createProgramCategoryDto.Name, responseContent.Name);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task ProgramCategory_ShouldNotCreateProgramCategory_InvalidName(string? name)
+    {
+        var createProgramCategoryDto = new CreateHippotherapyProgramCategoryDto
+        {
+            Name = name!
+        };
+        var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyProgramCategory/", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+}

@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 
 public record SearchTeamMemberDto
 {

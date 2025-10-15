@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using VictoryCenter.BLL.Services.Search.Helpers;
 
 namespace VictoryCenter.BLL.Interfaces.Search;
