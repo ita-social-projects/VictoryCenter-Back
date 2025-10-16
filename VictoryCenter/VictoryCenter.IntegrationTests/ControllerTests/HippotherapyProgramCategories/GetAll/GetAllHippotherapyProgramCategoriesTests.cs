@@ -15,7 +15,7 @@ public class GetAllHippotherapyProgramCategoriesTests : BaseTestClass
     [Fact]
     public async Task ProgramCategory_ShouldReturnAllProgramCategories()
     {
-        HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/HippotherapyProgramCategory/");
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/HippotherapyProgramCategories/");
         response.EnsureSuccessStatusCode();
         var responseString = await response.Content.ReadAsStringAsync();
         IEnumerable<HippotherapyProgramCategoryDto>? responseContent = JsonConvert.DeserializeObject<IEnumerable<HippotherapyProgramCategoryDto>>(responseString);
