@@ -84,7 +84,7 @@ public class CreateUahBankDetailsTests
                 Name = name!,
                 Receiver = "Receiver",
                 Edrpou = "12345678",
-                Iban = "UA123456789012345678901234567",
+                Iban = "UA12345678901234567890123456712",
                 PaymentPurpose = "Purpose"
             }), CancellationToken.None);
 
