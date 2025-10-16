@@ -32,7 +32,7 @@ public class UpdateWhoWeAreContentValidatorTests
             new UpdateWhoWeAreContentCommand(SectionType.Main, new List<CreateWhoWeAreContentDto> { null! } );
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Content[0]").WithErrorMessage(WhoWeAreConstants.ContentCanNotBeNull);
+        result.ShouldHaveValidationErrorFor("Contents[0]").WithErrorMessage(WhoWeAreConstants.ContentCanNotBeNull);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Content[0].Title")
+        result.ShouldHaveValidationErrorFor("Contents[0].Title")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateWhoWeAreContentDto.Title), 10));
     }
@@ -64,7 +64,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Content[0].Title")
+        result.ShouldHaveValidationErrorFor("Contents[0].Title")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateWhoWeAreContentDto.Title), 50));
     }
@@ -86,7 +86,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Content[0].Description")
+        result.ShouldHaveValidationErrorFor("Contents[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateWhoWeAreContentDto.Description),  WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen));
     }
@@ -108,7 +108,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Content[0].Description")
+        result.ShouldHaveValidationErrorFor("Contents[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen));
     }
