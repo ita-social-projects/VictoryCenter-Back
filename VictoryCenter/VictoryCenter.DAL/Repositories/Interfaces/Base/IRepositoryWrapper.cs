@@ -1,8 +1,9 @@
 using System.Transactions;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.HypotherapyProgramCategories;
-using VictoryCenter.DAL.Repositories.Interfaces.HypotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
@@ -18,8 +19,15 @@ public interface IRepositoryWrapper
     ITeamMembersRepository TeamMembersRepository { get; }
     IVisitorPagesRepository VisitorPagesRepository { get; }
     IImageRepository ImageRepository { get; }
-    IHypotherapyProgramCategoriesRepository HypotherapyProgramCategoriesRepository { get; }
-    IHypotherapyProgramsRepository HypotherapyProgramsRepository { get; }
+    IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository { get; }
+    IHippotherapyProgramsRepository HippotherapyProgramsRepository { get; }
+    IUahBankDetailsRepository UahBankDetailsRepository { get; }
+    IForeignBankDetailsRepository ForeignBankDetailsRepository { get; }
+    ICorrespondentBankDetailsRepository CorrespondentBankDetailsRepository { get; }
+    ISupportOptionsRepository SupportOptionsRepository { get; }
+
+    IRepositoryBase<TEntity> GetRepository<TEntity>()
+        where TEntity : class;
 
     int SaveChanges();
 

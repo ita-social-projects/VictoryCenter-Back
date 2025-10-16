@@ -1,4 +1,5 @@
-ï»¿using System.Transactions;
+using System.Linq.Expressions;
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -7,6 +8,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -19,6 +21,7 @@ public class UpdateFaqQuestionTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<UpdateFaqQuestionCommand> _validator;
 
     private readonly FaqQuestion _existingFaqQuestion = new()
@@ -80,6 +83,7 @@ public class UpdateFaqQuestionTests
         var baseFaqQuestionsValidator = new BaseFaqQuestionValidator();
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockReorderService = new Mock<IReorderService>();
         _validator = new UpdateFaqQuestionValidator(baseFaqQuestionsValidator);
     }
 
@@ -104,7 +108,9 @@ public class UpdateFaqQuestionTests
 
         SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
         SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
-        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        SetupReorderService();
+
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
             new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
@@ -132,7 +138,9 @@ public class UpdateFaqQuestionTests
 
         SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
         SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
-        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        SetupReorderService();
+
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
             new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
@@ -149,8 +157,10 @@ public class UpdateFaqQuestionTests
         var invalidUpdateFaqQuestionDto = _updateFaqQuestionDto with
         { QuestionText = questionText! };
         SetupRepositoryWrapper(null, null);
+        SetupReorderService();
 
-        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        // ÇÌ²ÍÅÍÎ: Äîäàíî reorderService â êîíñòðóêòîð
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
             new UpdateFaqQuestionCommand(invalidUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
@@ -165,7 +175,9 @@ public class UpdateFaqQuestionTests
     public async Task Handle_FaqQuestionNotFound_ShouldReturnNotFoundError(long testId)
     {
         SetupRepositoryWrapper(null, null);
-        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        SetupReorderService();
+
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
             new UpdateFaqQuestionCommand(_updateFaqQuestionDto, testId), CancellationToken.None);
@@ -179,7 +191,9 @@ public class UpdateFaqQuestionTests
     {
         SetupRepositoryWrapper(_existingFaqQuestion, _existingFaqQuestion, -1);
         SetupMapper(_existingFaqQuestion, _faqQuestionDto);
-        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        SetupReorderService();
+
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
             new UpdateFaqQuestionCommand(_updateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
@@ -206,9 +220,11 @@ public class UpdateFaqQuestionTests
 
         SetupRepositoryWrapper(existingFaqQuestion, updateFaqQuestion);
         SetupMapper(updateFaqQuestion, validResultFaqQuestionDto);
+        SetupReorderService();
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
         .ThrowsAsync(new DbUpdateException());
-        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
             new UpdateFaqQuestionCommand(validUpdateFaqQuestionDto, _existingFaqQuestion.Id), CancellationToken.None);
@@ -216,6 +232,19 @@ public class UpdateFaqQuestionTests
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
+    }
+
+    private void SetupReorderService()
+    {
+        _mockReorderService
+            .Setup(service => service.RenumberPriorityAsync<FaqPlacement>(
+                It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
+            .Returns(Task.CompletedTask);
+
+        _mockReorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<FaqPlacement>(
+                It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
+            .ReturnsAsync(1L);
     }
 
     private void SetupMapper(FaqQuestion updateFaqQuestion, FaqQuestionDto updatedFaqQuestionDto)
@@ -275,5 +304,15 @@ public class UpdateFaqQuestionTests
 
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        // ÄÎÄÀÍÎ: Setup äëÿ DeleteRange òà CreateRangeAsync
+        _mockRepositoryWrapper.Setup(x =>
+            x.FaqPlacementsRepository.DeleteRange(It.IsAny<IEnumerable<FaqPlacement>>()));
+
+        _mockRepositoryWrapper.Setup(x =>
+            x.FaqPlacementsRepository.CreateRangeAsync(It.IsAny<IEnumerable<FaqPlacement>>()));
+
+        _mockRepositoryWrapper.Setup(x =>
+            x.FaqQuestionsRepository.Update(It.IsAny<FaqQuestion>()));
     }
 }

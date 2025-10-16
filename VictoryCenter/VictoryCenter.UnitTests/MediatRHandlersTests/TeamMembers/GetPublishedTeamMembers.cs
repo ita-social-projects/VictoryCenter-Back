@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;

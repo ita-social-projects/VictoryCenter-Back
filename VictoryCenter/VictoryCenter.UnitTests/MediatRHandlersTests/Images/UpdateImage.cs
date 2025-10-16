@@ -1,4 +1,4 @@
-﻿using System.Transactions;
+using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Moq;

@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;

@@ -1,9 +1,10 @@
+using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class TeamMember : BaseEntity
+public class TeamMember : BaseEntity, IOrderableEntity
 {
     public string FullName { get; set; } = null!;
 
@@ -15,9 +16,7 @@ public class TeamMember : BaseEntity
 
     public string? Description { get; set; }
 
-#pragma warning disable SA1011
     public long? ImageId { get; set; }
-#pragma warning restore SA1011
 
     public string? Email { get; set; }
     public TeamCategory TeamCategory { get; set; } = null!;

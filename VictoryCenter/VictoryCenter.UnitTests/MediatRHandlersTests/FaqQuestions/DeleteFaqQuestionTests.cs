@@ -1,8 +1,10 @@
+using System.Linq.Expressions;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -13,6 +15,8 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.FaqQuestions;
 public class DeleteFaqQuestionTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
+    private readonly Mock<IReorderService> _mockReorderService;
+
     private readonly FaqQuestion _existingFaqQuestion = new()
     {
         Id = 1,
@@ -29,6 +33,7 @@ public class DeleteFaqQuestionTests
     public DeleteFaqQuestionTests()
     {
         _mockRepoWrapper = new Mock<IRepositoryWrapper>();
+        _mockReorderService = new Mock<IReorderService>();
     }
 
     [Theory]
@@ -39,7 +44,7 @@ public class DeleteFaqQuestionTests
     {
         SetupRepositoryWrapper();
         var command = new DeleteFaqQuestionCommand(questionId);
-        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -52,22 +57,29 @@ public class DeleteFaqQuestionTests
     public async Task Handle_EntityExists_ShouldReturnOk()
     {
         SetupRepositoryWrapper(_existingFaqQuestion);
+        SetupReorderService();
         var command = new DeleteFaqQuestionCommand(_existingFaqQuestion.Id);
-        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
         Assert.Equal(result.Value, _existingFaqQuestion.Id);
+
+        _mockReorderService.Verify(
+            service => service.RenumberPriorityAsync(
+                It.IsAny<Expression<Func<FaqPlacement, bool>>>()),
+            Times.Exactly(2));
     }
 
     [Fact]
     public async Task Handle_SaveChangesFails_ShouldReturnFailure()
     {
         SetupRepositoryWrapper(_existingFaqQuestion, 0);
+        SetupReorderService();
         var command = new DeleteFaqQuestionCommand(_existingFaqQuestion.Id);
-        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -82,21 +94,33 @@ public class DeleteFaqQuestionTests
         _mockRepoWrapper.Setup(
             repoWrapper => repoWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<FaqQuestion>>())).ReturnsAsync(_existingFaqQuestion);
+
         _mockRepoWrapper.Setup(
-            repoWrapper => repoWrapper.FaqPlacementsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(_existingFaqQuestion.Placements);
+            repoWrapper => repoWrapper.FaqPlacementsRepository.DeleteRange(
+                It.IsAny<IEnumerable<FaqPlacement>>()));
+
         _mockRepoWrapper.Setup(repoWrapper => repoWrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
         _mockRepoWrapper.Setup(repoWrapper => repoWrapper.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        SetupReorderService();
+
         var command = new DeleteFaqQuestionCommand(_existingFaqQuestion.Id);
 
-        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object);
-
+        var handler = new DeleteFaqQuestionHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
         var result = await handler.Handle(command, CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
+    }
+
+    private void SetupReorderService()
+    {
+        _mockReorderService
+            .Setup(service => service.RenumberPriorityAsync(
+                It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
+            .Returns(Task.CompletedTask);
     }
 
     private void SetupRepositoryWrapper(FaqQuestion? entityToDelete = null, int saveResult = 1)
@@ -105,13 +129,15 @@ public class DeleteFaqQuestionTests
             repoWrapper => repoWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<FaqQuestion>>())).ReturnsAsync(entityToDelete);
 
-        _mockRepoWrapper.Setup(
-            repoWrapper => repoWrapper.FaqPlacementsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(entityToDelete?.Placements ?? []);
-
         _mockRepoWrapper.Setup(repoWrapper => repoWrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
 
         _mockRepoWrapper.Setup(repoWrapper => repoWrapper.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        _mockRepoWrapper.Setup(repoWrapper =>
+            repoWrapper.FaqPlacementsRepository.DeleteRange(It.IsAny<IEnumerable<FaqPlacement>>()));
+
+        _mockRepoWrapper.Setup(repoWrapper =>
+            repoWrapper.FaqQuestionsRepository.Delete(It.IsAny<FaqQuestion>()));
     }
 }

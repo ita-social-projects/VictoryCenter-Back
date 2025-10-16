@@ -9,6 +9,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -21,6 +22,7 @@ public class CreateFaqQuestionTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<CreateFaqQuestionCommand>> _validator;
+    private readonly Mock<IReorderService> _reorderServiceMock;
 
     private readonly CreateFaqQuestionDto _createFaqQuestionDto = new()
     {
@@ -37,6 +39,7 @@ public class CreateFaqQuestionTests
         AnswerText = "Some very smart answer to give, also I need to write more text so here it is.",
         Status = Status.Draft,
         CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+        Placements = []
     };
 
     private readonly FaqQuestionDto _faqQuestionDto = new()
@@ -59,13 +62,14 @@ public class CreateFaqQuestionTests
         _validator = new Mock<IValidator<CreateFaqQuestionCommand>>();
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
+        _reorderServiceMock = new Mock<IReorderService>();
     }
 
     [Fact]
     public async Task Handle_WhenCreationIsValid_ShouldReturnFaqQuestionDto()
     {
         SetupDependencies(_faqQuestionDto, _faqQuestion, 1);
-        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<FaqQuestionDto> result =
             await handler.Handle(new CreateFaqQuestionCommand(_createFaqQuestionDto), CancellationToken.None);
@@ -81,7 +85,7 @@ public class CreateFaqQuestionTests
         var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(FaqQuestion));
         SetupDependencies(_faqQuestionDto, _faqQuestion, -1);
 
-        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<FaqQuestionDto> result =
             await handler.Handle(new CreateFaqQuestionCommand(_createFaqQuestionDto), CancellationToken.None);
@@ -101,7 +105,7 @@ public class CreateFaqQuestionTests
                     It.IsAny<QueryOptions<VisitorPage>>()))
             .ReturnsAsync([]);
 
-        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<FaqQuestionDto> result =
             await handler.Handle(new CreateFaqQuestionCommand(_createFaqQuestionDto), CancellationToken.None);
@@ -121,7 +125,7 @@ public class CreateFaqQuestionTests
                 repositoryWrapperMock.FaqQuestionsRepository.CreateAsync(It.IsAny<FaqQuestion>()))
             .ThrowsAsync(new DbUpdateException(testMessage));
 
-        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<FaqQuestionDto> result =
             await handler.Handle(new CreateFaqQuestionCommand(_createFaqQuestionDto), CancellationToken.None);
@@ -136,6 +140,7 @@ public class CreateFaqQuestionTests
         SetupMapper(faqQuestionDto, faqQuestion);
         SetupRepositoryWrapper(faqQuestion, isSuccess);
         SetupValidator();
+        SetupReorderService();
     }
 
     private void SetupMapper(FaqQuestionDto faqQuestionDto, FaqQuestion faqQuestion)
@@ -150,14 +155,18 @@ public class CreateFaqQuestionTests
             .ReturnsAsync(new ValidationResult());
     }
 
+    private void SetupReorderService()
+    {
+        _reorderServiceMock
+            .Setup(service => service.GetNextDisplayOrderAsync<FaqPlacement>(It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
+            .ReturnsAsync(1L);
+    }
+
     private void SetupRepositoryWrapper(FaqQuestion faqQuestion, int isSuccess)
     {
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.FaqQuestionsRepository
                 .CreateAsync(It.IsAny<FaqQuestion>()))
             .ReturnsAsync(faqQuestion);
-
-        _repositoryWrapperMock.Setup(r => r.FaqPlacementsRepository.MaxAsync(It.IsAny<Expression<Func<FaqPlacement, long>>>(), It.IsAny<Expression<Func<FaqPlacement, bool>>?>()))
-            .ReturnsAsync(1L);
 
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.SaveChangesAsync())
             .ReturnsAsync(isSuccess);

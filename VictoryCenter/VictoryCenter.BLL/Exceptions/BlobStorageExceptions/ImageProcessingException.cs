@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 /// <summary>
 /// Represents errors that occur during image processing operations (e.g., saving, reading, or generating URLs for images in blob storage).

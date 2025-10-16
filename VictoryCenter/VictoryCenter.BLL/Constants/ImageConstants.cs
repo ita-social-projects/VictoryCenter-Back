@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Constants;
+namespace VictoryCenter.BLL.Constants;
 
 public static class ImageConstants
 {

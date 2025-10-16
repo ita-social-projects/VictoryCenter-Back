@@ -1,4 +1,4 @@
-﻿using System.Transactions;
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,15 +18,18 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateFaqQuestionCommand> _validator;
+    private readonly IReorderService _reorderService;
 
     public UpdateFaqQuestionHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateFaqQuestionCommand> validator)
+        IValidator<UpdateFaqQuestionCommand> validator,
+        IReorderService reorderService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<FaqQuestionDto>> Handle(UpdateFaqQuestionCommand request, CancellationToken cancellationToken)
@@ -34,21 +38,19 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            FaqQuestion? faqQuestionEntity =
-                await _repositoryWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(new QueryOptions<FaqQuestion>
+            FaqQuestion? entityToUpdate = await _repositoryWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<FaqQuestion>
                 {
                     Filter = entity => entity.Id == request.Id,
                     Include = e => e.Include(q => q.Placements),
                 });
 
-            if (faqQuestionEntity is null)
+            if (entityToUpdate is null)
             {
                 return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
             }
 
-            FaqQuestion? entityToUpdate = _mapper.Map<UpdateFaqQuestionDto, FaqQuestion>(request.UpdateFaqQuestionDto);
-            entityToUpdate.Id = request.Id;
-            entityToUpdate.CreatedAt = faqQuestionEntity.CreatedAt;
+            _mapper.Map(request.UpdateFaqQuestionDto, entityToUpdate);
 
             using TransactionScope scope = _repositoryWrapper.BeginTransaction();
 
@@ -57,13 +59,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
             _repositoryWrapper.FaqQuestionsRepository.Update(entityToUpdate);
             affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-            var questionPlacements = (await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                new QueryOptions<FaqPlacement>
-                {
-                    Filter = fp => fp.QuestionId == request.Id,
-                    OrderByASC = fp => fp.Priority,
-                })).ToList();
-
+            var questionPlacements = entityToUpdate.Placements.ToList();
             var allPageIds = (await _repositoryWrapper.VisitorPagesRepository.GetAllAsync()).Select(p => p.Id).ToList();
             var existingPageIds = questionPlacements.Select(p => p.PageId).ToList();
             var removedPageIds = existingPageIds.Except(request.UpdateFaqQuestionDto.PageIds).ToList();
@@ -71,38 +67,14 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (removedPageIds.Count > 0)
             {
-                var affectedPages = await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                    new QueryOptions<FaqPlacement>
-                    {
-                        Filter = fp => removedPageIds.Contains(fp.PageId),
-                    });
-                var pageGroups = affectedPages.GroupBy(p => p.PageId).ToList();
-
-                var deleted = questionPlacements.Where(p => removedPageIds.Contains(p.PageId)).ToList();
-                _repositoryWrapper.FaqPlacementsRepository.DeleteRange(deleted);
+                var deletedPlacements = questionPlacements.Where(p => removedPageIds.Contains(p.PageId)).ToList();
+                _repositoryWrapper.FaqPlacementsRepository.DeleteRange(deletedPlacements);
                 affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-                foreach (var id in removedPageIds)
+                foreach (var pageId in removedPageIds)
                 {
-                    var question = questionPlacements.Single(q => q.PageId == id && q.QuestionId == request.Id);
-                    var group = pageGroups
-                        .Single(g => g.Key == id)
-                        .OrderBy(q => q.Priority)
-                        .Skip((int)question.Priority)
-                        .ToList();
-
-                    foreach (var faq in group)
-                    {
-                        faq.Priority = -(faq.Priority - 1);
-                    }
-
-                    _repositoryWrapper.FaqPlacementsRepository.UpdateRange(group);
-                    affectedRows += await _repositoryWrapper.SaveChangesAsync();
-
-                    foreach (var faq in group)
-                    {
-                        faq.Priority = -faq.Priority;
-                    }
+                    await _reorderService.RenumberPriorityAsync<FaqPlacement>(
+                        groupSelector: fp => fp.PageId == pageId);
                 }
 
                 affectedRows += await _repositoryWrapper.SaveChangesAsync();
@@ -110,32 +82,23 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (addedPageIds.Count > 0)
             {
-                foreach (var addedId in addedPageIds)
+                // Validate that all pages exist
+                var missingPageIds = addedPageIds.Except(allPageIds).ToList();
+                if (missingPageIds.Any())
                 {
-                    if (!allPageIds.Contains(addedId))
-                    {
-                        return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
-                    }
+                    return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
                 }
-
-                var affectedPages = await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                    new QueryOptions<FaqPlacement>
-                    {
-                        Filter = fp => addedPageIds.Contains(fp.PageId),
-                    });
-                var pageGroups = affectedPages.GroupBy(p => p.PageId).ToList();
 
                 var newPlacements = new List<FaqPlacement>();
 
-                foreach (var id in addedPageIds)
+                foreach (var pageId in addedPageIds)
                 {
-                    var group = pageGroups.FirstOrDefault(g => g.Key == id)?.ToList();
-                    var maxPriority = group != null ? group.Max(fp => fp.Priority) : 0;
+                    var nextPriority = await _reorderService.GetNextDisplayOrderAsync<FaqPlacement>(fp => fp.PageId == pageId);
                     var newPlacement = new FaqPlacement
                     {
-                        PageId = id,
+                        PageId = pageId,
                         QuestionId = entityToUpdate.Id,
-                        Priority = maxPriority + 1
+                        Priority = nextPriority
                     };
                     newPlacements.Add(newPlacement);
                 }
@@ -146,12 +109,13 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (affectedRows > 0)
             {
-                FaqQuestion? resultEntity =
-                await _repositoryWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(new QueryOptions<FaqQuestion>
-                {
-                    Filter = entity => entity.Id == request.Id,
-                    Include = e => e.Include(q => q.Placements),
-                });
+                FaqQuestion? resultEntity = await _repositoryWrapper.FaqQuestionsRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<FaqQuestion>
+                    {
+                        Filter = entity => entity.Id == request.Id,
+                        Include = e => e.Include(q => q.Placements),
+                    });
+
                 scope.Complete();
                 FaqQuestionDto? resultDto = _mapper.Map<FaqQuestion, FaqQuestionDto>(resultEntity!);
                 return Result.Ok(resultDto);

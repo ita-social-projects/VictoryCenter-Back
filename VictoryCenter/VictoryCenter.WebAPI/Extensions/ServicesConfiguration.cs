@@ -12,12 +12,14 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
@@ -49,11 +51,11 @@ public static class ServicesConfiguration
             .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
 
         services.Configure<CookiePolicyOptions>(options =>
@@ -117,6 +119,8 @@ public static class ServicesConfiguration
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped<IReorderService, ReorderService>();
 
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 

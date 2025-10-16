@@ -1,4 +1,4 @@
-﻿using VictoryCenter.BLL.Interfaces.Search;
+using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.Search.Helpers;
 using VictoryCenter.DAL.Entities;

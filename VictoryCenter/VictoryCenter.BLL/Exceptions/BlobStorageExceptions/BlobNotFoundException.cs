@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 /// <summary>
 /// Represents errors that occur when a requested file is not found in the blob storage.
