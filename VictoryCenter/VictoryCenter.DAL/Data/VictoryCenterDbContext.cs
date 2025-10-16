@@ -32,7 +32,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<LocalizationLanguage> LocalizationLanguages { get; set; }
 
     public DbSet<TeamMemberLocalization> TeamMemberLocalizations { get; set; }
-    
+
     public DbSet<UahBankDetails> UahBankDetails { get; set; }
 
     public DbSet<ForeignBankDetails> ForeignBankDetails { get; set; }

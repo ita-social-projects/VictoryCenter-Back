@@ -72,7 +72,7 @@ public class RepositoryWrapper : IRepositoryWrapper
         ??= new CorrespondentBankDetailsRepository(_victoryCenterDbContext);
     public ISupportOptionsRepository SupportOptionsRepository => _supportOptionsRepository
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
-        
+
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();
