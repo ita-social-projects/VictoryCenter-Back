@@ -4,6 +4,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Programs;
@@ -24,6 +25,10 @@ public interface IRepositoryWrapper
     IProgramsRepository ProgramsRepository { get; }
     ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }
     ITeamMemberLocalizationsRepository TeamMemberLocalizationsRepository { get; }
+    IUahBankDetailsRepository UahBankDetailsRepository { get; }
+    IForeignBankDetailsRepository ForeignBankDetailsRepository { get; }
+    ICorrespondentBankDetailsRepository CorrespondentBankDetailsRepository { get; }
+    ISupportOptionsRepository SupportOptionsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
