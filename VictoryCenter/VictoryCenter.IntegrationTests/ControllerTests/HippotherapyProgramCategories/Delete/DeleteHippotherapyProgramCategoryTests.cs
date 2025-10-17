@@ -20,7 +20,7 @@ public class DeleteHippotherapyProgramCategoryTests : BaseTestClass
             .FirstOrDefaultAsync(e => e.Id == 1);
         Assert.NotNull(existingEntity);
 
-        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/HippotherapyProgramCategory/{existingEntity.Id}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/HippotherapyProgramCategories/{existingEntity.Id}");
         response.EnsureSuccessStatusCode();
 
         Assert.True(response.IsSuccessStatusCode);
@@ -32,7 +32,7 @@ public class DeleteHippotherapyProgramCategoryTests : BaseTestClass
     [InlineData(0)]
     public async Task DeleteProgramCategory_ShouldNotDeleteProgramCategory(int testId)
     {
-        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/HippotherapyProgramCategory/{testId}");
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"/api/HippotherapyProgramCategories/{testId}");
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

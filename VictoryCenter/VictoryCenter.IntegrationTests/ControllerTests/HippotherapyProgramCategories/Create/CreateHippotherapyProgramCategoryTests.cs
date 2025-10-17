@@ -23,7 +23,7 @@ public class CreateHippotherapyProgramCategoryTests : BaseTestClass
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyProgramCategory/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyProgramCategories/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -48,7 +48,7 @@ public class CreateHippotherapyProgramCategoryTests : BaseTestClass
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramCategoryDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyProgramCategory/", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyProgramCategories/", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);

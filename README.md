@@ -61,24 +61,41 @@ VictoryCenter-Back/
 │   │   │   │   │   ├── Login
 │   │   │   │   │   ├── Logout
 │   │   │   │   │   └── RefreshToken
-│   │   │   │   ├── Categories
-│   │   │   │   │   ├── Create
-│   │   │   │   │   ├── Delete
-│   │   │   │   │   └── Update
+│   │   │   │   ├── Donate
+│   │   │   │   │   ├── CorrespondentBankDetails
+│   │   │   │   │   │   ├── Create
+│   │   │   │   │   │   ├── Delete
+│   │   │   │   │   │   └── Update
+│   │   │   │   │   ├── ForeignBankDetails
+│   │   │   │   │   │   ├── Create
+│   │   │   │   │   │   ├── Delete
+│   │   │   │   │   │   └── Update
+│   │   │   │   │   ├── SupportOptions
+│   │   │   │   │   │   ├── Create
+│   │   │   │   │   │   ├── Delete
+│   │   │   │   │   │   └── Update
+│   │   │   │   │   └── UahBankDetails
+│   │   │   │   │       ├── Create
+│   │   │   │   │       ├── Delete
+│   │   │   │   │       └── Update
 │   │   │   │   ├── FaqQuestions
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   ├── Reorder
 │   │   │   │   │   └── Update
+│   │   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── HippotherapyPrograms
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   └── Update
-│   │   │   │   ├── ProgramCategories
-│   │   │   │   │   ├── Create
-│   │   │   │   │   ├── Delete
-│   │   │   │   │   └── Update
-│   │   │   │   ├── Programs
+│   │   │   │   ├── TeamCategories
 │   │   │   │   │   ├── Create
 │   │   │   │   │   ├── Delete
 │   │   │   │   │   └── Update
@@ -95,54 +112,69 @@ VictoryCenter-Back/
 │   │   ├── DTOs
 │   │   │   ├── Admin
 │   │   │   │   ├── Auth
-│   │   │   │   ├── Categories
 │   │   │   │   ├── Common
+│   │   │   │   ├── Donate
+│   │   │   │   │   ├── CorrespondentBankDetails
+│   │   │   │   │   ├── ForeignBankDetails
+│   │   │   │   │   ├── SupportOptions
+│   │   │   │   │   └── UahBankDetails
 │   │   │   │   ├── FaqQuestions
+│   │   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   ├── HippotherapyPrograms
 │   │   │   │   ├── Images
-│   │   │   │   ├── ProgramCategories
-│   │   │   │   ├── Programs
+│   │   │   │   ├── TeamCategories
 │   │   │   │   ├── TeamMembers
 │   │   │   │   └── VisitorPages
 │   │   │   ├── Common
 │   │   │   └── Public
 │   │   │       ├── FaqQuestions
+│   │   │       ├── HippotherapyPrograms
 │   │   │       ├── Payment
 │   │   │       │   ├── Common
 │   │   │       │   └── WayForPay
-│   │   │       ├── Programs
 │   │   │       └── TeamPage
 │   │   ├── Exceptions
-│   │   │   └── BlobStorageExceptions
+│   │   │   ├── BlobStorageExceptions
+│   │   │   └── ReorderExceptions
 │   │   ├── Helpers
 │   │   ├── Interfaces
 │   │   │   ├── BlobStorage
 │   │   │   ├── PaymentService
+│   │   │   ├── ReorderService
 │   │   │   ├── Search
 │   │   │   └── TokenService
 │   │   ├── Mapping
-│   │   │   ├── Categories
+│   │   │   ├── Donate
 │   │   │   ├── FaqQuestions
+│   │   │   ├── HippotherapyProgramCategories
+│   │   │   ├── HippotherapyPrograms
 │   │   │   ├── Images
-│   │   │   ├── ProgramCategories
-│   │   │   ├── Programs
+│   │   │   ├── TeamCategories
 │   │   │   ├── TeamMembers
 │   │   │   └── VisitorPages
 │   │   ├── Options
 │   │   │   └── Payment
 │   │   ├── Queries
 │   │   │   ├── Admin
-│   │   │   │   ├── Categories
-│   │   │   │   │   └── GetAll
+│   │   │   │   ├── Donate
+│   │   │   │   │   ├── ForeignBankDetails
+│   │   │   │   │   │   └── GetAll
+│   │   │   │   │   ├── SupportOptions
+│   │   │   │   │   │   └── GetAll
+│   │   │   │   │   └── UahBankDetails
+│   │   │   │   │       └── GetAll
 │   │   │   │   ├── FaqQuestions
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
+│   │   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   ├── HippotherapyPrograms
 │   │   │   │   │   ├── GetByFilters
 │   │   │   │   │   └── GetById
 │   │   │   │   ├── Images
 │   │   │   │   │   ├── GetById
 │   │   │   │   │   └── GetByName
-│   │   │   │   ├── ProgramCategories
-│   │   │   │   ├── Programs
-│   │   │   │   │   ├── GetByFilters
-│   │   │   │   │   └── GetById
+│   │   │   │   ├── TeamCategories
+│   │   │   │   │   └── GetAll
 │   │   │   │   ├── TeamMembers
 │   │   │   │   │   ├── GetByFilters
 │   │   │   │   │   ├── GetById
@@ -152,51 +184,61 @@ VictoryCenter-Back/
 │   │   │   └── Public
 │   │   │       ├── FaqQuestions
 │   │   │       │   └── GetPublished
-│   │   │       ├── Programs
+│   │   │       ├── HippotherapyPrograms
 │   │   │       │   └── GetPublished
 │   │   │       └── TeamPage
 │   │   │           └── GetPublished
 │   │   ├── Services
 │   │   │   ├── BlobStorage
 │   │   │   ├── PaymentService
+│   │   │   ├── ReorderService
 │   │   │   ├── Search
 │   │   │   │   └── Helpers
 │   │   │   └── TokenService
 │   │   └── Validators
 │   │       ├── Auth
-│   │       ├── Categories
+│   │       ├── Donate
+│   │       │   ├── CorrespondentBankDetails
+│   │       │   ├── ForeignBankDetails
+│   │       │   ├── SupportOptions
+│   │       │   └── UahBankDetails
 │   │       ├── FaqQuestions
+│   │       ├── HippotherapyProgramCategories
+│   │       ├── HippotherapyPrograms
 │   │       ├── Images
 │   │       ├── Payment
-│   │       ├── ProgramCategories
-│   │       ├── Programs
+│   │       ├── TeamCategories
 │   │       └── TeamMembers
 │   ├── VictoryCenter.DAL
 │   │   ├── Data
+│   │   │   ├── BaseEntity
 │   │   │   └── EntityTypeConfigurations
 │   │   ├── Entities
+│   │   │   └── Interfaces
 │   │   ├── Enums
 │   │   ├── Migrations
 │   │   └── Repositories
 │   │       ├── Interfaces
 │   │       │   ├── Base
-│   │       │   ├── Categories
+│   │       │   ├── Donate
 │   │       │   ├── FaqPlacements
 │   │       │   ├── FaqQuestions
+│   │       │   ├── HippotherapyProgramCategories
+│   │       │   ├── HippotherapyPrograms
 │   │       │   ├── Media
-│   │       │   ├── ProgramCategories
-│   │       │   ├── Programs
+│   │       │   ├── TeamCategories
 │   │       │   ├── TeamMembers
 │   │       │   └── VisitorPages
 │   │       ├── Options
 │   │       └── Realizations
 │   │           ├── Base
-│   │           ├── Categories
+│   │           ├── Donate
 │   │           ├── FaqPlacements
 │   │           ├── FaqQuestions
+│   │           ├── HippotherapyProgramCategories
+│   │           ├── HippotherapyPrograms
 │   │           ├── Media
-│   │           ├── ProgramCategories
-│   │           ├── Programs
+│   │           ├── TeamCategories
 │   │           ├── TeamMembers
 │   │           └── VisitorPages
 │   ├── VictoryCenter.DbUpdate
@@ -204,10 +246,9 @@ VictoryCenter-Back/
 │   ├── VictoryCenter.IntegrationTests
 │   │   ├── ControllerTests
 │   │   │   ├── Auth
-│   │   │   ├── Categories
+│   │   │   ├── CorrespondentBankDetails
 │   │   │   │   ├── Create
 │   │   │   │   ├── Delete
-│   │   │   │   ├── GetAll
 │   │   │   │   └── Update
 │   │   │   ├── FaqQuestions
 │   │   │   │   ├── Create
@@ -217,6 +258,23 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetPublished
 │   │   │   │   ├── Reorder
 │   │   │   │   └── Update
+│   │   │   ├── ForeignBankDetails
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── HippotherapyPrograms
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   └── Update
 │   │   │   ├── Images
 │   │   │   │   ├── Create
 │   │   │   │   ├── Delete
@@ -224,17 +282,15 @@ VictoryCenter-Back/
 │   │   │   │   ├── GetByName
 │   │   │   │   └── Update
 │   │   │   ├── Payments
-│   │   │   ├── ProgramCategories
+│   │   │   ├── SupportOptions
 │   │   │   │   ├── Create
 │   │   │   │   ├── Delete
 │   │   │   │   ├── GetAll
 │   │   │   │   └── Update
-│   │   │   ├── Programs
+│   │   │   ├── TeamCategories
 │   │   │   │   ├── Create
 │   │   │   │   ├── Delete
-│   │   │   │   ├── GetById
-│   │   │   │   ├── GetFiltered
-│   │   │   │   ├── GetPublished
+│   │   │   │   ├── GetAll
 │   │   │   │   └── Update
 │   │   │   ├── TeamMembers
 │   │   │   │   ├── Create
@@ -245,27 +301,41 @@ VictoryCenter-Back/
 │   │   │   │   ├── Reorder
 │   │   │   │   ├── Search
 │   │   │   │   └── Update
+│   │   │   ├── UahBankDetails
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
 │   │   │   └── VisitorPages
 │   │   │       └── GetAll
 │   │   ├── MiddlewareTests
 │   │   └── Utils
 │   │       ├── DbFixture
 │   │       └── Seeders
-│   │           ├── Categories
+│   │           ├── CorrespondentBankDetails
 │   │           ├── FaqQuestions
+│   │           ├── ForeignBankDetails
+│   │           ├── HippotherapyProgramCategoriesSeeder
+│   │           ├── HippotherapyProgramSeeder
 │   │           ├── Images
-│   │           ├── ProgramCategoriesSeeder
-│   │           ├── ProgramSeeder
-│   │           └── TeamMembers
+│   │           ├── SupportOptions
+│   │           ├── TeamCategories
+│   │           ├── TeamMembers
+│   │           └── UahBankDetails
 │   ├── VictoryCenter.UnitTests
 │   │   ├── MediatRHandlersTests
 │   │   │   ├── Auth
-│   │   │   ├── Categories
+│   │   │   ├── Donate
+│   │   │   │   ├── CorrespondentBankDetails
+│   │   │   │   ├── ForeignBankDetails
+│   │   │   │   ├── SupportOptions
+│   │   │   │   └── UahBankDetails
 │   │   │   ├── FaqQuestions
+│   │   │   ├── HippotherapyProgramCategories
+│   │   │   ├── HippotherapyPrograms
 │   │   │   ├── Images
 │   │   │   ├── Payment
-│   │   │   ├── ProgramCategories
-│   │   │   ├── Programs
+│   │   │   ├── TeamCategories
 │   │   │   ├── TeamMembers
 │   │   │   └── VisitorPages
 │   │   ├── MiddlewareTests
@@ -273,11 +343,12 @@ VictoryCenter-Back/
 │   │   │   └── Payment
 │   │   └── ValidatorsTests
 │   │       ├── Auth
-│   │       ├── Categories
+│   │       ├── Donate
 │   │       ├── FaqQuestions
+│   │       ├── HippotherapyProgramCategories
+│   │       ├── HippotherapyPrograms
 │   │       ├── Payment
-│   │       ├── ProgramCategories
-│   │       ├── Programs
+│   │       ├── TeamCategories
 │   │       └── TeamMembers
 │   └── VictoryCenter.WebAPI
 │       ├── Controllers

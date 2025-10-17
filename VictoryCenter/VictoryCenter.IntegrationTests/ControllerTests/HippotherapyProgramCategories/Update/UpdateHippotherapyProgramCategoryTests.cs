@@ -23,7 +23,7 @@ public class UpdateHippotherapyProgramCategoryTests : BaseTestClass
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyProgramCategory/1", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyProgramCategories/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
@@ -48,7 +48,7 @@ public class UpdateHippotherapyProgramCategoryTests : BaseTestClass
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyProgramCategory/1", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyProgramCategories/1", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
@@ -66,7 +66,7 @@ public class UpdateHippotherapyProgramCategoryTests : BaseTestClass
         };
         var serializedDto = JsonConvert.SerializeObject(updateProgramCategoryDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/HippotherapyProgramCategory/{id}", new StringContent(
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/HippotherapyProgramCategories/{id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
