@@ -13,6 +13,6 @@ public static class UahBankDetailsConstants
     public static class Iban
     {
         public static readonly int MaxLength = 29;
-        public static readonly int MinLength = 27;
+        public static readonly int MinLength = 29;
     }
 }
