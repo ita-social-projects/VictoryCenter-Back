@@ -60,7 +60,7 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
                 });
             }
 
-            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedAt = DateTimeOffset.UtcNow;
 
             await _repositoryWrapper.FaqQuestionsRepository.CreateAsync(entity);
 

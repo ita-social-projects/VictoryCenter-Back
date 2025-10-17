@@ -8,7 +8,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
-public class HippotherapyProgramCategoryController : AuthorizedApiController
+public class HippotherapyProgramCategoriesController : AuthorizedApiController
 {
     [HttpPost]
     public async Task<IActionResult> CreateProgramCategory([FromBody] CreateHippotherapyProgramCategoryDto programCategoryDto)
