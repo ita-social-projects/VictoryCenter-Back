@@ -26,18 +26,6 @@ public class GetPartnersPageBannerHandler : IRequestHandler<GetPartnersPageBanne
                 Include = q => q.Include(b => b.Image!)
             });
 
-        if (bannerEntity == null)
-        {
-            var emptyBannerDto = new PartnersPageBannerDto
-            {
-                Title = string.Empty,
-                Description = string.Empty,
-                Image = null
-            };
-
-            return Result.Ok(emptyBannerDto);
-        }
-
         var bannerDto = _mapper.Map<PartnersPageBannerDto>(bannerEntity);
         return Result.Ok(bannerDto);
     }

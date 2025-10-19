@@ -6,6 +6,6 @@ public class PartnersPageBanner
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;
     public DateTimeOffset CreatedAt { get; set; }
-    public long ImageId { get; set; }
-    public Image Image { get; set; } = null!;
+    public long? ImageId { get; set; }
+    public Image? Image { get; set; }
 }

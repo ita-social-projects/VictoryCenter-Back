@@ -28,7 +28,8 @@ internal class PartnersPageBannerConfig : IEntityTypeConfiguration<PartnersPageB
         entity
             .HasOne(e => e.Image)
             .WithOne()
-            .HasForeignKey<PartnersPageBanner>(e => e.ImageId);
+            .HasForeignKey<PartnersPageBanner>(e => e.ImageId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         entity
             .Property(e => e.CreatedAt)

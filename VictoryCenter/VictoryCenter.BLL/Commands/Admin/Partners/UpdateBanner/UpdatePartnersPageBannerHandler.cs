@@ -33,15 +33,18 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var existingImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+            if (request.Dto.ImageId != null)
             {
-                Filter = i => i.Id == request.Dto.ImageId,
-                AsNoTracking = true
-            });
+                var existingImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
+                {
+                    Filter = i => i.Id == request.Dto.ImageId,
+                    AsNoTracking = true
+                });
 
-            if (existingImage == null)
-            {
-                return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.NotFound(request.Dto.ImageId, typeof(Image)));
+                if (existingImage == null)
+                {
+                    return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.NotFound(request.Dto.ImageId, typeof(Image)));
+                }
             }
 
             var bannerEntity = await _repositoryWrapper.PartnersPageBannersRepository

@@ -22,7 +22,6 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerDescriptionMaxLength));
         RuleFor(x => x.Dto.ImageId)
-            .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.ImageId)))
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdatePartnersPageBannerDto.ImageId)));
     }
 }

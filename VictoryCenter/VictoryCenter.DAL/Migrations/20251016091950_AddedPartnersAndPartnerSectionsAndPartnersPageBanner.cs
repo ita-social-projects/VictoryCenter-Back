@@ -12,23 +12,7 @@ namespace VictoryCenter.DAL.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "PartnerSection",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Priority = table.Column<long>(type: "bigint", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PartnerSection", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PartnersPageBanner",
+                name: "PartnersPageBanners",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -40,9 +24,9 @@ namespace VictoryCenter.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PartnersPageBanner", x => x.Id);
+                    table.PrimaryKey("PK_PartnersPageBanners", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PartnersPageBanner_Images_ImageId",
+                        name: "FK_PartnersPageBanners_Images_ImageId",
                         column: x => x.ImageId,
                         principalSchema: "media",
                         principalTable: "Images",
@@ -51,7 +35,23 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Partner",
+                name: "PartnersSections",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Priority = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PartnersSections", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Partners",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
@@ -64,44 +64,44 @@ namespace VictoryCenter.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Partner", x => x.Id);
+                    table.PrimaryKey("PK_Partners", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Partner_Images_ImageId",
+                        name: "FK_Partners_Images_ImageId",
                         column: x => x.ImageId,
                         principalSchema: "media",
                         principalTable: "Images",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Partner_PartnerSection_PartnersSectionId",
+                        name: "FK_Partners_PartnersSections_PartnersSectionId",
                         column: x => x.PartnersSectionId,
-                        principalTable: "PartnerSection",
+                        principalTable: "PartnersSections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Partner_ImageId",
-                table: "Partner",
+                name: "IX_Partners_ImageId",
+                table: "Partners",
                 column: "ImageId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Partner_PartnersSectionId_Priority",
-                table: "Partner",
+                name: "IX_Partners_PartnersSectionId_Priority",
+                table: "Partners",
                 columns: new[] { "PartnersSectionId", "Priority" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PartnerSection_Priority",
-                table: "PartnerSection",
-                column: "Priority",
+                name: "IX_PartnersPageBanners_ImageId",
+                table: "PartnersPageBanners",
+                column: "ImageId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_PartnersPageBanner_ImageId",
-                table: "PartnersPageBanner",
-                column: "ImageId",
+                name: "IX_PartnersSections_Priority",
+                table: "PartnersSections",
+                column: "Priority",
                 unique: true);
         }
 
@@ -109,13 +109,13 @@ namespace VictoryCenter.DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Partner");
+                name: "Partners");
 
             migrationBuilder.DropTable(
-                name: "PartnersPageBanner");
+                name: "PartnersPageBanners");
 
             migrationBuilder.DropTable(
-                name: "PartnerSection");
+                name: "PartnersSections");
         }
     }
 }

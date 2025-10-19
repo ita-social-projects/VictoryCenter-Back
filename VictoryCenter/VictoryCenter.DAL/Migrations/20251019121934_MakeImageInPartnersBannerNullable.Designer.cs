@@ -12,8 +12,8 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20251010095419_AddedPartnersAndPartnerSectionsAndPartnersPageBanner")]
-    partial class AddedPartnersAndPartnerSectionsAndPartnersPageBanner
+    [Migration("20251019121934_MakeImageInPartnersBannerNullable")]
+    partial class MakeImageInPartnersBannerNullable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -379,7 +379,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("PartnersSectionId", "Priority")
                         .IsUnique();
 
-                    b.ToTable("Partner");
+                    b.ToTable("Partners");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnerSection", b =>
@@ -409,7 +409,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("Priority")
                         .IsUnique();
 
-                    b.ToTable("PartnerSection");
+                    b.ToTable("PartnersSections");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnersPageBanner", b =>
@@ -427,7 +427,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("ImageId")
+                    b.Property<long?>("ImageId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Title")
@@ -437,9 +437,10 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ImageId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("PartnersPageBanner");
+                    b.ToTable("PartnersPageBanners");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Program", b =>
@@ -679,8 +680,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
                         .WithOne()
                         .HasForeignKey("VictoryCenter.DAL.Entities.PartnersPageBanner", "ImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Image");
                 });
