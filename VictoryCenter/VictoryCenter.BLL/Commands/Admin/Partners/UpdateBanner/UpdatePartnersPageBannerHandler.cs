@@ -45,10 +45,7 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
             }
 
             var bannerEntity = await _repositoryWrapper.PartnersPageBannersRepository
-                .GetFirstOrDefaultAsync(new()
-                {
-                    Include = q => q.Include(b => b.Image!)
-                });
+                .GetFirstOrDefaultAsync();
 
             using (var scope = _repositoryWrapper.BeginTransaction())
             {

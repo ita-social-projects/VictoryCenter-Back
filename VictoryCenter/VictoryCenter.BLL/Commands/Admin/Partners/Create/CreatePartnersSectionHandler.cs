@@ -37,8 +37,6 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var imageIds = request.CreatePartnersSectionDto.Partners.Select(p => p.ImageId).ToList();
-
             var requestedImageIds = request.CreatePartnersSectionDto.Partners
                 .Select(p => p.ImageId)
                 .Distinct()
