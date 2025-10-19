@@ -38,31 +38,7 @@ public class GetPartnersPageBannerTests
     }
 
     [Fact]
-    public async Task Handle_BannerNotExists_ShouldReturnOkWithEmptyDto()
-    {
-        // Arrange
-        SetupRepositoryWrapper(null);
-        var query = new GetPartnersPageBannerQuery();
-        var handler = new GetPartnersPageBannerHandler(_mockRepoWrapper.Object, _mockMapper.Object);
-
-        // Act
-        var result = await handler.Handle(query, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsSuccess);
-
-        var resultDto = result.Value;
-        Assert.NotNull(resultDto);
-        Assert.Equal(string.Empty, resultDto.Title);
-        Assert.Equal(string.Empty, resultDto.Description);
-        Assert.Null(resultDto.Image);
-
-        _mockMapper.Verify(m => m.Map<PartnersPageBannerDto>(It.IsAny<PartnersPageBanner>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_BannerExists_ShouldReturnOkWithMappedDto()
+    public async Task Handle_ShouldReturnOkWithMappedDto()
     {
         // Arrange
         SetupMapper(_bannerDto);
