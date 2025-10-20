@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -16,80 +17,98 @@ public class UpdateTeamMemberHandler : BaseHandler<UpdateTeamMemberCommand, Team
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateTeamMemberCommand> _validator;
+    private readonly IReorderService _indexReorderService;
 
     public UpdateTeamMemberHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateTeamMemberCommand> validator)
+        IValidator<UpdateTeamMemberCommand> validator,
+        IReorderService indexReorderService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _indexReorderService = indexReorderService;
     }
 
     public override async Task<TeamMemberDto> HandleRequest(UpdateTeamMemberCommand request, CancellationToken cancellationToken)
     {
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-        TeamMember? teamMemberEntity =
-            await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
+        var entityToUpdate = await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<TeamMember>
             {
-                Filter = entity => entity.Id == request.Id
+                Filter = entity => entity.Id == request.Id,
+                AsNoTracking = false
             });
 
-        if (teamMemberEntity is null)
+        if (entityToUpdate is null)
         {
             throw new Exception(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
         }
 
-        TeamMember? entityToUpdate = _mapper.Map<UpdateTeamMemberDto, TeamMember>(request.UpdateTeamMemberDto);
-        entityToUpdate.Id = request.Id;
-        using TransactionScope scope = _repositoryWrapper.BeginTransaction();
-        entityToUpdate.CreatedAt = teamMemberEntity.CreatedAt;
+        var oldCategoryId = entityToUpdate.CategoryId;
+        var newCategoryId = request.UpdateTeamMemberDto.CategoryId;
+        var categoryChanged = oldCategoryId != newCategoryId;
 
-        Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<Category>
+        if (categoryChanged)
+        {
+            var newCategory = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<Category>
+                {
+                    Filter = c => c.Id == newCategoryId,
+                    AsNoTracking = true
+                });
+
+            if (newCategory == null)
             {
-                Filter = entity => entity.Id == request.UpdateTeamMemberDto.CategoryId
-            });
-        if (category is null)
-        {
-            throw new Exception(
-                ErrorMessagesConstants.NotFound(request.UpdateTeamMemberDto.CategoryId, typeof(Category)));
+                throw new Exception(ErrorMessagesConstants.NotFound(newCategoryId, typeof(Category)));
+            }
         }
 
-        if (entityToUpdate.CategoryId == teamMemberEntity.CategoryId)
+        using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
         {
-            entityToUpdate.Priority = teamMemberEntity.Priority;
-        }
-        else
-        {
-            var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
-                u => u.Priority,
-                u => u.CategoryId == entityToUpdate.CategoryId);
-            entityToUpdate.Priority = (maxPriority ?? 0) + 1;
-        }
+            var rowsAffected = 0;
 
-        _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
+            _mapper.Map(request.UpdateTeamMemberDto, entityToUpdate);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
-        {
-            if (entityToUpdate.ImageId != null)
+            if (categoryChanged)
             {
-                Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
-                    new QueryOptions<Image>
-                    {
-                        Filter = i => i.Id == entityToUpdate.ImageId
-                    });
-                entityToUpdate.Image = image;
+                entityToUpdate.Priority = await _indexReorderService.GetNextDisplayOrderAsync<TeamMember>(
+                    groupSelector: tm => tm.CategoryId == newCategoryId);
             }
 
-            TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+            _repositoryWrapper.TeamMembersRepository.Update(entityToUpdate);
+            rowsAffected += await _repositoryWrapper.SaveChangesAsync();
 
-            scope.Complete();
-            return resultDto;
+            if (categoryChanged)
+            {
+                await _indexReorderService.RenumberPriorityAsync<TeamMember>(
+                    groupSelector: tm => tm.CategoryId == oldCategoryId);
+            }
+
+            rowsAffected += await _repositoryWrapper.SaveChangesAsync();
+
+            if (rowsAffected > 0)
+            {
+                if (entityToUpdate.ImageId != null)
+                {
+                    Image? image = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                        new QueryOptions<Image>
+                        {
+                            Filter = i => i.Id == entityToUpdate.ImageId
+                        });
+                    entityToUpdate.Image = image;
+                }
+
+                TeamMemberDto? resultDto = _mapper.Map<TeamMember, TeamMemberDto>(entityToUpdate);
+
+                scope.Complete();
+
+                return resultDto;
+            }
+
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
         }
-
-        throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
     }
 }

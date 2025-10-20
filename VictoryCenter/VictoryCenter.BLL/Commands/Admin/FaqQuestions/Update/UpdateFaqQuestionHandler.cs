@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
-using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,18 +16,15 @@ public class UpdateFaqQuestionHandler : BaseHandler<UpdateFaqQuestionCommand, Fa
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateFaqQuestionCommand> _validator;
-    private readonly IReorderService _reorderService;
 
     public UpdateFaqQuestionHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateFaqQuestionCommand> validator,
-        IReorderService reorderService)
+        IValidator<UpdateFaqQuestionCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
-        _reorderService = reorderService;
     }
 
     public override async Task<FaqQuestionDto> HandleRequest(UpdateFaqQuestionCommand request, CancellationToken cancellationToken)

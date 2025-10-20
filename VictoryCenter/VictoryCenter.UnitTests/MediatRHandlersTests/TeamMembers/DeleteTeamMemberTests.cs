@@ -41,7 +41,7 @@ public class DeleteTeamMemberTests
         SetupRepositoryWrapper(_testExistingTeamMember);
         SetupReorderService();
 
-        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object, _mockReorderService.Object);
+        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteTeamMemberCommand(_testExistingTeamMember.Id), CancellationToken.None);
 
@@ -57,7 +57,7 @@ public class DeleteTeamMemberTests
         SetupRepositoryWrapper();
         SetupReorderService();
 
-        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object, _mockReorderService.Object);
+        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteTeamMemberCommand(teamMemberId), CancellationToken.None);
 
@@ -71,7 +71,7 @@ public class DeleteTeamMemberTests
         SetupRepositoryWrapper(_testExistingTeamMember, -1);
         SetupReorderService();
 
-        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object, _mockReorderService.Object);
+        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteTeamMemberCommand(_testExistingTeamMember.Id), CancellationToken.None);
 
@@ -87,14 +87,14 @@ public class DeleteTeamMemberTests
             .ReturnsAsync(_testExistingTeamMember);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
-            .ThrowsAsync(new DbUpdateException("Database error"));
+            .ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMember))));
 
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         SetupReorderService();
 
-        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object, _mockReorderService.Object);
+        var handler = new DeleteTeamMemberHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteTeamMemberCommand(_testExistingTeamMember.Id), CancellationToken.None);
 

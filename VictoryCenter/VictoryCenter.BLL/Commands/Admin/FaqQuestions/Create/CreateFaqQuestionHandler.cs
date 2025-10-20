@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -32,24 +33,24 @@ public class CreateFaqQuestionHandler : BaseHandler<CreateFaqQuestionCommand, Fa
     public override async Task<FaqQuestionDto> HandleRequest(CreateFaqQuestionCommand request, CancellationToken cancellationToken)
     {
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
+
         var allPages = await _repositoryWrapper.VisitorPagesRepository.GetAllAsync();
         FaqQuestion entity = _mapper.Map<FaqQuestion>(request.CreateFaqQuestionDto);
 
-        foreach (var pageId in request.CreateFaqQuestionDto.PageIds)
+        foreach (var pageId in request.CreateFaqQuestionDto.PageIds.Distinct())
         {
             if (!allPages.Any(p => p.Id == pageId))
             {
                 throw new Exception(ErrorMessagesConstants.NotFound(pageId, typeof(VisitorPage)));
             }
 
-            var maxPriority = await _repositoryWrapper.FaqPlacementsRepository.MaxAsync(
-                    place => place.Priority,
-                    place => place.PageId == pageId);
+            var priority = await _reorderService.GetNextDisplayOrderAsync<FaqPlacement>(
+                groupSelector: fp => fp.PageId == pageId);
 
             entity.Placements.Add(new FaqPlacement
             {
                 PageId = pageId,
-                Priority = (maxPriority ?? 0) + 1
+                Priority = priority
             });
         }
 

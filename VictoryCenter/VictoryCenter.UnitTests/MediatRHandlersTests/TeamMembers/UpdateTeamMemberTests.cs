@@ -265,7 +265,7 @@ public class UpdateTeamMemberTests
             .ReturnsAsync(_testCategory);
 
         _mockReorderService.Setup(r => r.GetNextDisplayOrderAsync(It.IsAny<Expression<Func<TeamMember, bool>>>()))
-            .ThrowsAsync(new ReorderException(reorderExceptionMessage));
+            .ThrowsAsync(new ReorderException(ReorderConstants.ErrorWithReordering(reorderExceptionMessage)));
 
         SetupMapper();
 

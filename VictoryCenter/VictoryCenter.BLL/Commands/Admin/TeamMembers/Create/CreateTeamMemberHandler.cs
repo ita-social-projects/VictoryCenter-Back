@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -21,13 +22,11 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
     public CreateTeamMemberHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
-        IValidator<CreateTeamMemberCommand> validator,
-        IReorderService reorderService)
+        IValidator<CreateTeamMemberCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
-        _reorderService = reorderService;
     }
 
     public override async Task<TeamMemberDto> HandleRequest(CreateTeamMemberCommand request, CancellationToken cancellationToken)
