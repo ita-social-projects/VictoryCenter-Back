@@ -1,38 +1,24 @@
+using System.Linq.Expressions;
 using System.Transactions;
 using FluentValidation;
+using MediatR;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
 public class ReorderTeamMembersTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<ReorderTeamMembersCommand> _validator;
-
-    private readonly List<TeamMember> _testCategoryMembers =
-    [
-        new() { Id = 1, CategoryId = 1, Priority = 0 },
-        new() { Id = 2, CategoryId = 1, Priority = 1 },
-        new() { Id = 3, CategoryId = 1, Priority = 2 },
-        new() { Id = 4, CategoryId = 1, Priority = 3 },
-        new() { Id = 5, CategoryId = 1, Priority = 4 }
-    ];
-
-    private readonly List<TeamMember> _testMixedCategoryMembers =
-    [
-        new() { Id = 1, CategoryId = 1, Priority = 0 },
-        new() { Id = 2, CategoryId = 1, Priority = 1 },
-        new() { Id = 3, CategoryId = 2, Priority = 0 },
-        new() { Id = 4, CategoryId = 1, Priority = 2 },
-        new() { Id = 5, CategoryId = 2, Priority = 1 }
-    ];
 
     private readonly ReorderTeamMembersDto _testValidReorderDto = new()
     {
@@ -43,6 +29,7 @@ public class ReorderTeamMembersTests
     public ReorderTeamMembersTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockReorderService = new Mock<IReorderService>();
         _validator = new ReorderTeamMembersValidator();
     }
 
@@ -50,8 +37,9 @@ public class ReorderTeamMembersTests
     public async Task Handle_ValidRequest_ShouldReorderMembers()
     {
         // Arrange
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
+        SetupDependencies();
+
+        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(_testValidReorderDto);
 
         // Act
@@ -59,116 +47,14 @@ public class ReorderTeamMembersTests
 
         // Assert
         Assert.True(result.IsSuccess);
+        Assert.Equal(Unit.Value, result.Value);
 
-        // Verify priorities are updated correctly
-        var member1 = _testCategoryMembers.First(m => m.Id == 1);
-        var member2 = _testCategoryMembers.First(m => m.Id == 2);
-        var member3 = _testCategoryMembers.First(m => m.Id == 3);
-        var member4 = _testCategoryMembers.First(m => m.Id == 4);
-        var member5 = _testCategoryMembers.First(m => m.Id == 5);
-
-        Assert.Equal(0, member4.Priority);
-        Assert.Equal(1, member2.Priority);
-        Assert.Equal(2, member5.Priority);
-        Assert.Equal(3, member1.Priority);
-        Assert.Equal(4, member3.Priority);
-    }
-
-    [Fact]
-    public async Task Handle_PartialReorderIdsProvided_ShouldReorderPartialMembers()
-    {
-        // Arrange
-        var partialReorderDto = new ReorderTeamMembersDto
-        {
-            CategoryId = 1,
-            OrderedIds = [3, 1]
-        };
-
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(partialReorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-
-        // Verify reordered members get new positions
-        var member1 = _testCategoryMembers.First(m => m.Id == 1);
-        var member3 = _testCategoryMembers.First(m => m.Id == 3);
-        Assert.Equal(0, member3.Priority);
-        Assert.Equal(1, member1.Priority);
-
-        // Verify unchanged members maintain their relative order but get new positions
-        var member2 = _testCategoryMembers.First(m => m.Id == 2);
-        var member4 = _testCategoryMembers.First(m => m.Id == 4);
-        var member5 = _testCategoryMembers.First(m => m.Id == 5);
-        Assert.Equal(2, member2.Priority);
-        Assert.Equal(3, member4.Priority);
-        Assert.Equal(4, member5.Priority);
-    }
-
-    [Fact]
-    public async Task Handle_NonExistingCategoryId_ShouldReturnError()
-    {
-        // Arrange
-        SetupDependencies([]);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(_testValidReorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(TeamMemberConstants.CategoryNotFoundOrContainsNoTeamMembers, result.Errors[0].Message);
-    }
-
-    [Fact]
-    public async Task Handle_NonExistingMemberIds_ShouldReturnError()
-    {
-        // Arrange
-        var invalidReorderDto = new ReorderTeamMembersDto
-        {
-            CategoryId = 1,
-            OrderedIds = [1, 2, 99]
-        };
-
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(invalidReorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(TeamMember), [99]), result.Errors[0].Message);
-    }
-
-    [Theory]
-    [InlineData(-1)]
-    [InlineData(0)]
-    public async Task Handle_InvalidCategoryId_ShouldReturnError(long invalidCategoryId)
-    {
-        // Arrange
-        var invalidReorderDto = new ReorderTeamMembersDto
-        {
-            CategoryId = invalidCategoryId,
-            OrderedIds = [1, 2, 3]
-        };
-
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(invalidReorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"), result.Errors[0].Message);
+        _mockReorderService.Verify(
+            x => x.SwapElementsAsync(
+            It.Is<List<long>>(ids => ids.SequenceEqual(_testValidReorderDto.OrderedIds)),
+            It.IsAny<Expression<Func<TeamMember, long>>>(),
+            It.IsAny<Expression<Func<TeamMember, bool>>>()),
+            Times.Once);
     }
 
     [Fact]
@@ -181,8 +67,8 @@ public class ReorderTeamMembersTests
             OrderedIds = []
         };
 
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
+        SetupDependencies();
+        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -203,8 +89,8 @@ public class ReorderTeamMembersTests
             OrderedIds = [1, 2, 2, 3]
         };
 
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
+        SetupDependencies();
+        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -213,6 +99,30 @@ public class ReorderTeamMembersTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(ReorderTeamMembersDto.OrderedIds)), result.Errors[0].Message);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public async Task Handle_InvalidCategoryId_ShouldReturnError(long invalidCategoryId)
+    {
+        // Arrange
+        var invalidReorderDto = new ReorderTeamMembersDto
+        {
+            CategoryId = invalidCategoryId,
+            OrderedIds = [1, 2, 3]
+        };
+
+        SetupDependencies();
+        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var command = new ReorderTeamMembersCommand(invalidReorderDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"), result.Errors[0].Message);
     }
 
     [Theory]
@@ -227,8 +137,8 @@ public class ReorderTeamMembersTests
             OrderedIds = [1, 2, invalidId]
         };
 
-        SetupDependencies(_testCategoryMembers);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
+        SetupDependencies();
+        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -243,130 +153,48 @@ public class ReorderTeamMembersTests
     }
 
     [Fact]
-    public async Task Handle_ThreeMembersFromSameCategory_ShouldBeSuccessful()
+    public async Task Handle_ReorderServiceThrowsReorderException_ShouldReturnReorderError()
     {
         // Arrange
-        var reorderDto = new ReorderTeamMembersDto
-        {
-            CategoryId = 1,
-            OrderedIds = [4, 1, 2]
-        };
+        var reorderExceptionMessage = "Reorder operation failed";
 
-        var teamMemberInCategory = _testMixedCategoryMembers.Where(x => x.CategoryId == 1).ToList();
+        _mockReorderService.Setup(x => x.SwapElementsAsync<TeamMember>(
+                It.IsAny<List<long>>(),
+                It.IsAny<Expression<Func<TeamMember, long>>>(),
+                It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .ThrowsAsync(new ReorderException(ReorderConstants.ErrorWithReordering(reorderExceptionMessage)));
 
-        SetupDependencies(teamMemberInCategory);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(reorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-
-        // Verify priorities are updated correctly for reordered members
-        var member1 = _testMixedCategoryMembers.First(m => m.Id == 1);
-        var member2 = _testMixedCategoryMembers.First(m => m.Id == 2);
-        var member4 = _testMixedCategoryMembers.First(m => m.Id == 4);
-        Assert.Equal(0, member4.Priority);
-        Assert.Equal(1, member1.Priority);
-        Assert.Equal(2, member2.Priority);
-
-        // Verify members from other categories are not affected
-        var member3 = _testMixedCategoryMembers.First(m => m.Id == 3);
-        var member5 = _testMixedCategoryMembers.First(m => m.Id == 5);
-        Assert.Equal(0, member3.Priority);
-        Assert.Equal(1, member5.Priority);
-    }
-
-    [Fact]
-    public async Task Handle_TwoMembersFromSameCategory_ShouldUpdatePrioritiesAndPreserveUnchanged()
-    {
-        // Arrange
-        var reorderDto = new ReorderTeamMembersDto
-        {
-            CategoryId = 1,
-            OrderedIds = [2, 4]
-        };
-
-        var teamMemberInCategory = _testMixedCategoryMembers.Where(x => x.CategoryId == 1).ToList();
-
-        SetupDependencies(teamMemberInCategory);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(reorderDto);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-
-        // Verify priorities are updated correctly for reordered members
-        var member2 = _testMixedCategoryMembers.First(m => m.Id == 2);
-        var member4 = _testMixedCategoryMembers.First(m => m.Id == 4);
-        Assert.Equal(0, member2.Priority);
-        Assert.Equal(1, member4.Priority);
-
-        // Verify unchanged member from same category gets next position
-        var member1 = _testMixedCategoryMembers.First(m => m.Id == 1);
-        Assert.Equal(2, member1.Priority);
-
-        // Verify members from other categories are not affected
-        var member3 = _testMixedCategoryMembers.First(m => m.Id == 3);
-        var member5 = _testMixedCategoryMembers.First(m => m.Id == 5);
-        Assert.Equal(0, member3.Priority);
-        Assert.Equal(1, member5.Priority);
-    }
-
-    [Fact]
-    public async Task Handle_OrderedIdsIncludeIdFromAnotherCategory_ShouldReturnError()
-    {
-        // Arrange
-        var reorderDto = new ReorderTeamMembersDto
-        {
-            CategoryId = 1,
-            OrderedIds = [1, 2, 3] // ID 3 belongs to CategoryId = 2, not 1
-        };
-
-        var teamMemberInCategory = _testMixedCategoryMembers.Where(x => x.CategoryId == 1).ToList();
-
-        SetupDependencies(teamMemberInCategory);
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator);
-        var command = new ReorderTeamMembersCommand(reorderDto);
+        SetupRepositoryWrapper();
+        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var command = new ReorderTeamMembersCommand(_testValidReorderDto);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(TeamMember), [3]), result.Errors[0].Message);
-
-        // Verify no priorities were changed since operation failed
-        var member1 = _testMixedCategoryMembers.First(m => m.Id == 1);
-        var member2 = _testMixedCategoryMembers.First(m => m.Id == 2);
-        var member3 = _testMixedCategoryMembers.First(m => m.Id == 3);
-        var member4 = _testMixedCategoryMembers.First(m => m.Id == 4);
-        var member5 = _testMixedCategoryMembers.First(m => m.Id == 5);
-
-        Assert.Equal(0, member1.Priority);
-        Assert.Equal(1, member2.Priority);
-        Assert.Equal(0, member3.Priority);
-        Assert.Equal(2, member4.Priority);
-        Assert.Equal(1, member5.Priority);
+        Assert.Equal(ReorderConstants.ErrorWithReordering(reorderExceptionMessage), result.Errors[0].Message);
     }
 
-    private void SetupDependencies(IEnumerable<TeamMember> membersToReturn, int saveResult = 1)
+    private void SetupDependencies(int saveResult = 1)
     {
-        SetupRepositoryWrapper(membersToReturn, saveResult);
+        SetupRepositoryWrapper(saveResult);
+        SetupReorderService();
     }
 
-    private void SetupRepositoryWrapper(IEnumerable<TeamMember> membersToReturn, int saveResult = 1)
+    private void SetupReorderService()
     {
-        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetAllAsync(
-                It.IsAny<QueryOptions<TeamMember>>()))
-            .ReturnsAsync(membersToReturn);
+        _mockReorderService.Setup(x => x.SwapElementsAsync<TeamMember>(
+                It.IsAny<List<long>>(),
+                It.IsAny<Expression<Func<TeamMember, long>>>(),
+                It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .Returns(Task.CompletedTask);
+    }
 
-        _mockRepositoryWrapper.Setup(x => x.BeginTransaction()).Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+    private void SetupRepositoryWrapper(int saveResult = 1)
+    {
+        _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);

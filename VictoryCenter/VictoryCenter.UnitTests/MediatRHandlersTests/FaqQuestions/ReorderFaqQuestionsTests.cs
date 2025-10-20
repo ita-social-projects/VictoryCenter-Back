@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Transactions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,8 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.FaqQuestions.Reorder;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -14,14 +17,14 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.FaqQuestions;
 
 public class ReorderFaqQuestionsTests
 {
-    private readonly List<FaqPlacement> _mockPlacements = [..Enumerable.Range(1, 5).Select(i =>
-            new FaqPlacement { PageId = 1, QuestionId = i, Priority = i })];
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
+    private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<ReorderFaqQuestionsCommand> _validator;
 
     public ReorderFaqQuestionsTests()
     {
         _mockRepoWrapper = new Mock<IRepositoryWrapper>();
+        _mockReorderService = new Mock<IReorderService>();
         _validator = new ReorderFaqQuestionsValidator();
     }
 
@@ -34,9 +37,10 @@ public class ReorderFaqQuestionsTests
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [.. pageIds] });
-        var mockPlacements = FilterList(command);
-        SetupRepositoryWrapper(mockPlacements, 1);
-        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
+        SetupRepositoryWrapper(pageIds.Length);
+        SetupReorderService();
+
+        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -45,17 +49,11 @@ public class ReorderFaqQuestionsTests
         Assert.NotNull(result);
         Assert.True(result.IsSuccess);
 
-        long[] affected = [.._mockPlacements.Where(p => pageIds.Contains(p.QuestionId))
-            .OrderBy(p => p.Priority).Select(p => p.QuestionId)];
-        Assert.Equal(pageIds, affected);
-
-        var unaffected = _mockPlacements.Where(p => !pageIds.Contains(p.QuestionId))
-            .OrderBy(p => p.QuestionId).ToArray();
-
-        for (var i = 0; i < unaffected.Length; i++)
-        {
-            Assert.Equal(unaffected[i].QuestionId, unaffected[i].Priority);
-        }
+        _mockReorderService.Verify(
+            service => service.SwapElementsAsync(
+            It.Is<List<long>>(ids => ids.SequenceEqual(pageIds)),
+            It.IsAny<Expression<Func<FaqPlacement, long>>>(),
+            It.IsAny<Expression<Func<FaqPlacement, bool>>>()), Times.Once);
     }
 
     [Fact]
@@ -63,9 +61,10 @@ public class ReorderFaqQuestionsTests
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = -10, OrderedIds = [2, 1] });
-        var mockPlacements = FilterList(command);
-        SetupRepositoryWrapper(mockPlacements, 0);
-        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
+        SetupRepositoryWrapper(0);
+        SetupReorderService();
+
+        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -84,9 +83,9 @@ public class ReorderFaqQuestionsTests
     {
         // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1000, OrderedIds = [2, 1] });
-        var mockPlacements = FilterList(command);
-        SetupRepositoryWrapper(mockPlacements, 0);
-        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
+        SetupRepositoryWrapper(0);
+        SetupReorderService();
+        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -98,86 +97,77 @@ public class ReorderFaqQuestionsTests
     }
 
     [Fact]
-    public async Task Handle_OrderedIdsContainsInvalidId_ShouldReturnFailure()
-    {
-        // Arrange
-        var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [1000, 1] });
-        var mockPlacements = FilterList(command);
-        SetupRepositoryWrapper(mockPlacements, 0);
-        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsFailed);
-        Assert.Equal(
-            ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(FaqQuestion), [1000]),
-            result.Errors[0].Message);
-    }
-
-    [Theory]
-    [InlineData(4L, 2L)]
-    [InlineData(4L, 2L, 1L)]
-    [InlineData(5L, 4L, 2L, 1L)]
-    public async Task Handle_OrderedIdsAreNonConsecutive_ShouldReturnFailure(params long[] pageIds)
-    {
-        // Arrange
-        var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [.. pageIds] });
-        var mockPlacements = FilterList(command);
-        SetupRepositoryWrapper(mockPlacements, 0);
-        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsFailed);
-        Assert.Equal(FaqConstants.IdsAreNonConsecutive, result.Errors[0].Message);
-    }
-
-    [Fact]
     public async Task Handle_DbExceptionThrown_ShouldReturnFailure()
     {
+        // Arrange
         var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [2, 1] });
-        var mockPlacements = FilterList(command);
 
-        _mockRepoWrapper.Setup(
-            repositoryWrapper => repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(mockPlacements);
+        SetupRepositoryWrapper(2);
 
-        _mockRepoWrapper.Setup(x => x.SaveChangesAsync())
+        _mockReorderService.Setup(service => service.SwapElementsAsync<FaqPlacement>(
+            It.IsAny<List<long>>(),
+            It.IsAny<Expression<Func<FaqPlacement, long>>>(),
+            It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
             .ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion))));
 
         _mockRepoWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
-        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object);
 
+        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+
+        // Act
         var result = await handler.Handle(command, CancellationToken.None);
 
+        // Assert
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FaqQuestion)), result.Errors[0].Message);
     }
 
-    private List<FaqPlacement> FilterList(ReorderFaqQuestionsCommand command)
+    [Fact]
+    public async Task Handle_ReorderExceptionThrown_ShouldReturnFailure()
     {
-        return [.. _mockPlacements
-            .Where(e => e.PageId == command.ReorderFaqQuestionsDto.PageId
-                && command.ReorderFaqQuestionsDto.OrderedIds.Contains(e.QuestionId))
-            .OrderBy(e => e.Priority)];
+        // Arrange
+        var command = new ReorderFaqQuestionsCommand(new() { PageId = 1, OrderedIds = [2, 1] });
+        var reorderErrorMessage = "Test reorder error";
+
+        SetupRepositoryWrapper(2);
+
+        _mockReorderService.Setup(service => service.SwapElementsAsync(
+            It.IsAny<List<long>>(),
+            It.IsAny<Expression<Func<FaqPlacement, long>>>(),
+            It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
+            .ThrowsAsync(new ReorderException(ReorderConstants.ErrorWithReordering(reorderErrorMessage)));
+
+        _mockRepoWrapper.Setup(x => x.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
+        var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Equal(ReorderConstants.ErrorWithReordering(reorderErrorMessage), result.Errors[0].Message);
     }
 
-    private void SetupRepositoryWrapper(List<FaqPlacement> placements, int saveResult = 1)
+    private void SetupReorderService()
+    {
+        _mockReorderService
+            .Setup(service => service.SwapElementsAsync<FaqPlacement>(
+                It.IsAny<List<long>>(),
+                It.IsAny<Expression<Func<FaqPlacement, long>>>(),
+                It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
+            .Returns(Task.CompletedTask);
+    }
+
+    private void SetupRepositoryWrapper(int countResult)
     {
         _mockRepoWrapper.Setup(
-            repositoryWrapper => repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(placements);
-
-        _mockRepoWrapper.Setup(x => x.SaveChangesAsync())
-            .ReturnsAsync(saveResult);
+            repositoryWrapper => repositoryWrapper.FaqPlacementsRepository.CountAsync(
+                It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(countResult);
 
         _mockRepoWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
