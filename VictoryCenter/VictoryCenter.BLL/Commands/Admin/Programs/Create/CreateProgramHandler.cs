@@ -28,16 +28,16 @@ public class CreateProgramHandler : BaseHandler<CreateProgramCommand, ProgramDto
     {
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-        IEnumerable<ProgramCategory> categories = await _repositoryWrapper
+        var categories = (await _repositoryWrapper
             .ProgramCategoriesRepository.GetAllAsync(new QueryOptions<ProgramCategory>
             {
                 Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id),
                 AsNoTracking = false
-            });
+            })).ToList();
 
         Program entity = _mapper.Map<Program>(request.CreateProgramDto);
 
-        if (entity.ImageId != null)
+        if (request.CreateProgramDto.ImageId is not null)
         {
             Image? newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
@@ -45,7 +45,18 @@ public class CreateProgramHandler : BaseHandler<CreateProgramCommand, ProgramDto
                 AsNoTracking = false
             });
 
+            if(newImage is null)
+            {
+                throw new Exception(ErrorMessagesConstants.NotFound(request.CreateProgramDto.ImageId.Value, typeof(Image)));
+            }
+
             entity.Image = newImage;
+        }
+
+        var notFound = request.CreateProgramDto.CategoryIds.Except(categories.Select(c => c.Id)).ToList();
+        if (notFound.Count > 0)
+        {
+            throw new Exception(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(ProgramCategory), notFound));
         }
 
         entity.Categories = [.. categories];
@@ -53,7 +64,7 @@ public class CreateProgramHandler : BaseHandler<CreateProgramCommand, ProgramDto
 
         await _repositoryWrapper.ProgramsRepository.CreateAsync(entity);
 
-        if (await _repositoryWrapper.SaveChangesAsync() < 0)
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
             throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(Program)));
         }

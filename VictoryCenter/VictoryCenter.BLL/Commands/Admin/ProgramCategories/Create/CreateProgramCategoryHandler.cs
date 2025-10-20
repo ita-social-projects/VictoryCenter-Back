@@ -30,7 +30,7 @@ public class CreateProgramCategoryHandler : BaseHandler<CreateProgramCategoryCom
         entity.CreatedAt = DateTimeOffset.UtcNow;
         await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity);
 
-        if (await _repositoryWrapper.SaveChangesAsync() < 0)
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
             throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(ProgramCategory)));
         }

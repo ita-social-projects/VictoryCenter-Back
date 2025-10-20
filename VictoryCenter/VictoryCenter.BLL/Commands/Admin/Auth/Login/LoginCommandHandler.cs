@@ -45,7 +45,7 @@ public class LoginCommandHandler : BaseHandler<LoginCommand, AuthResponseDto>
         var admin = await _userManager.FindByEmailAsync(request.LoginRequestDto.Email);
         if (admin is null)
         {
-            throw new Exception(AuthConstants.AdminWithGivenEmailWasNotFound);
+            throw new Exception(AuthConstants.IncorrectPassword);
         }
 
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);

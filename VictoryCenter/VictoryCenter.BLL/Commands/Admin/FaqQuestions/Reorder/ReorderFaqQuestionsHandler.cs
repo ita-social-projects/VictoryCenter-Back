@@ -27,6 +27,15 @@ public class ReorderFaqQuestionsHandler : BaseHandler<ReorderFaqQuestionsCommand
 
         var orderedIds = request.ReorderFaqQuestionsDto.OrderedIds;
         var pageId = request.ReorderFaqQuestionsDto.PageId;
+        var duplicateIds = orderedIds
+            .GroupBy(id => id)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+        if (duplicateIds.Count > 0)
+        {
+            throw new Exception(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(request.ReorderFaqQuestionsDto.OrderedIds)));
+        }
 
         var questionsToReorder = (await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(
             new QueryOptions<FaqPlacement>

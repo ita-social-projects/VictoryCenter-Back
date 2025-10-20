@@ -71,7 +71,7 @@ public class UpdateProgramHandler : BaseHandler<UpdateProgramCommand,  ProgramDt
 
             _repositoryWrapper.ProgramsRepository.Update(programToUpdate);
 
-            if (await _repositoryWrapper.SaveChangesAsync() < 0)
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
                 throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Program)));
             }

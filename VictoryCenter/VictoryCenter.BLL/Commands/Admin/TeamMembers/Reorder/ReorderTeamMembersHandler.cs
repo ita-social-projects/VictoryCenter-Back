@@ -41,6 +41,11 @@ public class ReorderTeamMembersHandler : BaseHandler<ReorderTeamMembersCommand, 
             throw new Exception(TeamMemberConstants.CategoryNotFoundOrContainsNoTeamMembers);
         }
 
+        if(orderedIds.Count != orderedIds.Distinct().Count())
+        {
+            throw new Exception(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(request.ReorderTeamMembersDto.OrderedIds)));
+        }
+
         // Ensure all provided IDs exist within the selected category
         var notFoundIds = orderedIds.Except(allCategoryMembers.Select(m => m.Id)).ToList();
         if (notFoundIds.Any())

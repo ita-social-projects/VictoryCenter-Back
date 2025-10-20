@@ -28,6 +28,11 @@ public class RefreshTokenCommandHandler : BaseHandler<RefreshTokenCommand, AuthR
 
     public override async Task<AuthResponseDto> HandleRequest(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
+        if (_httpContextAccessor.HttpContext is null)
+        {
+            throw new Exception(AuthConstants.Unauthorized);
+        }
+
         var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {

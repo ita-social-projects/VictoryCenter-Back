@@ -94,7 +94,7 @@ public class LoginTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Admin with given email was not found", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.IncorrectPassword, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
     }
 
