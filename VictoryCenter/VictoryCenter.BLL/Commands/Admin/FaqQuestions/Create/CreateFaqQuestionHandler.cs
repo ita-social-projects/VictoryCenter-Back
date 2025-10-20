@@ -1,10 +1,10 @@
-using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -14,16 +14,19 @@ public class CreateFaqQuestionHandler : BaseHandler<CreateFaqQuestionCommand, Fa
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
+    private readonly IReorderService _reorderService;
     private readonly IValidator<CreateFaqQuestionCommand> _validator;
 
     public CreateFaqQuestionHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
-        IValidator<CreateFaqQuestionCommand> validator)
+        IValidator<CreateFaqQuestionCommand> validator,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _reorderService = reorderService;
     }
 
     public override async Task<FaqQuestionDto> HandleRequest(CreateFaqQuestionCommand request, CancellationToken cancellationToken)

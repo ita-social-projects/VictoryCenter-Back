@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -36,9 +36,9 @@ public class TeamMembersSeeder : BaseSeeder<TeamMember>
             var category = selectedCategories[i % selectedCategories.Count];
             teamMembers.Add(new TeamMember
             {
-                FullName = $"FirstName{i} LastName{i}",
+                FullName = $"FirstName LastName",
                 CategoryId = category.Id,
-                Priority = i + 1,
+                Priority = (i / selectedCategories.Count) + 1,
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
                 CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10 * i)
             });

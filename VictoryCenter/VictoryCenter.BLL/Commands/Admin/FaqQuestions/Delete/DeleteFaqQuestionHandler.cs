@@ -1,19 +1,23 @@
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-
 namespace VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
 
 public class DeleteFaqQuestionHandler : BaseHandler<DeleteFaqQuestionCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IReorderService _reorderService;
 
-    public DeleteFaqQuestionHandler(IRepositoryWrapper repositoryWrapper)
+    public DeleteFaqQuestionHandler(
+        IRepositoryWrapper repositoryWrapper,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
+        _reorderService = reorderService;
     }
 
     public override async Task<long> HandleRequest(DeleteFaqQuestionCommand request, CancellationToken cancellationToken)

@@ -5,30 +5,19 @@ using VictoryCenter.BLL.DTOs.Admin.Images;
 
 namespace VictoryCenter.BLL.Validators.Images;
 
-public class UpdateImageValidator : AbstractValidator<UpdateImageCommand>
+public class UpdateImageValidator : BaseImageValidator<UpdateImageCommand>
 {
-    private static readonly string[] AllowedMimeTypes = { "image/jpeg", "image/jpg", "image/png", "image/webp" };
     public UpdateImageValidator()
     {
         RuleFor(x => x.UpdateImageDto).NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageCommand.UpdateImageDto)));
         RuleFor(x => x.UpdateImageDto.Base64)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.Base64)))
-            .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError);
+            .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError)
+            .Must(IsValidSize).WithMessage(ImageConstants.InvalidImageSize);
 
         RuleFor(x => x.UpdateImageDto.MimeType)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.MimeType)))
-            .Must(mimeType => AllowedMimeTypes.Contains(mimeType))
+            .Must(mimeType => AllowedMimeTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase))
             .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
-    }
-
-    private static bool IsValidBase64(string? base64)
-    {
-        if (string.IsNullOrWhiteSpace(base64))
-        {
-            return false;
-        }
-
-        Span<byte> buffer = new(new byte[base64.Length]);
-        return Convert.TryFromBase64String(base64, buffer, out _);
     }
 }

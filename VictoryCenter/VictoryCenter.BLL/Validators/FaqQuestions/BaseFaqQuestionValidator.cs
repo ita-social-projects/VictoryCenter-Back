@@ -14,7 +14,6 @@ public class BaseFaqQuestionValidator : AbstractValidator<CreateFaqQuestionDto>
     public BaseFaqQuestionValidator()
     {
         RuleFor(x => x.QuestionText)
-            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.QuestionText)))
             .MinimumLength(QuestionTextMinLength)
@@ -25,7 +24,6 @@ public class BaseFaqQuestionValidator : AbstractValidator<CreateFaqQuestionDto>
                             .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), QuestionTextMaxLength));
 
         RuleFor(x => x.AnswerText)
-            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)))
             .MinimumLength(AnswerTextMinLength)

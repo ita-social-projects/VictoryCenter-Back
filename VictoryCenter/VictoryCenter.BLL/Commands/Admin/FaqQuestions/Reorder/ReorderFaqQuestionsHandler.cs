@@ -2,6 +2,8 @@ using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -12,13 +14,16 @@ public class ReorderFaqQuestionsHandler : BaseHandler<ReorderFaqQuestionsCommand
 {
     private readonly IValidator<ReorderFaqQuestionsCommand> _validator;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IReorderService _reorderService;
 
     public ReorderFaqQuestionsHandler(
         IValidator<ReorderFaqQuestionsCommand> validator,
-        IRepositoryWrapper repositoryWrapper)
+        IRepositoryWrapper repositoryWrapper,
+        IReorderService reorderService)
     {
         _validator = validator;
         _repositoryWrapper = repositoryWrapper;
+        _reorderService = reorderService;
     }
 
     public override async Task<Unit> HandleRequest(ReorderFaqQuestionsCommand request, CancellationToken cancellationToken)

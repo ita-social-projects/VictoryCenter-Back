@@ -1,4 +1,3 @@
-using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -17,18 +16,25 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateTeamMemberCommand> _validator;
+    private readonly IReorderService _reorderService;
 
-    public CreateTeamMemberHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberCommand> validator)
+    public CreateTeamMemberHandler(
+        IRepositoryWrapper repositoryWrapper,
+        IMapper mapper,
+        IValidator<CreateTeamMemberCommand> validator,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _reorderService = reorderService;
     }
 
     public override async Task<TeamMemberDto> HandleRequest(CreateTeamMemberCommand request, CancellationToken cancellationToken)
     {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            Category? category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
+
+            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
                 {
                     Filter = c => c.Id == request.CreateTeamMemberDto.CategoryId
@@ -39,8 +45,9 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
                 throw new Exception(ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
             }
 
-            TeamMember? entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
-            using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
+            var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
+
+            using (var scope = _repositoryWrapper.BeginTransaction())
             {
                 entity.CreatedAt = DateTimeOffset.UtcNow;
                 var maxPriority = await _repositoryWrapper.TeamMembersRepository.MaxAsync(
@@ -55,10 +62,10 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
                     throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)));
                 }
 
-                TeamMemberDto? result = _mapper.Map<TeamMemberDto>(entity);
+                var result = _mapper.Map<TeamMemberDto>(entity);
                 if (entity.ImageId != null)
                 {
-                    Image? imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
+                    var imageResult = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(
                         new QueryOptions<Image>
                         {
                             Filter = i => i.Id == entity.ImageId

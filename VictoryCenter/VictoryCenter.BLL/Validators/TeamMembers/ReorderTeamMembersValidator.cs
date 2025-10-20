@@ -14,7 +14,6 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReorderTeamMembersDto.CategoryId)));
 
         RuleFor(x => x.ReorderTeamMembersDto.OrderedIds)
-            .Cascade(CascadeMode.Stop)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ReorderTeamMembersDto.OrderedIds)))
             .Must(ids => ids.Count > 0)
