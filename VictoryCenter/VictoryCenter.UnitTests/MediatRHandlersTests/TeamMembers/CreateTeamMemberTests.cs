@@ -121,7 +121,7 @@ public class CreateTeamMemberTests
         SetupMapper(_teamMemberDto, _teamMember);
         _repositoryWrapperMock
             .Setup(repositoryWrapperMock =>
-                repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>()))
+                repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>(), new CancellationToken()))
             .ThrowsAsync(new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember))));
         _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
             .ReturnsAsync(0L);
@@ -166,7 +166,7 @@ public class CreateTeamMemberTests
     private void SetupRepositoryWrapper(TeamMember teamMember, int isSuccess)
     {
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository
-                .CreateAsync(It.IsAny<TeamMember>()))
+                .CreateAsync(It.IsAny<TeamMember>(), new CancellationToken()))
             .ReturnsAsync(teamMember);
 
         _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))

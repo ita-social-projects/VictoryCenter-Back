@@ -56,7 +56,7 @@ public class CreateFaqQuestionHandler : BaseHandler<CreateFaqQuestionCommand, Fa
 
         entity.CreatedAt = DateTime.UtcNow;
         using TransactionScope scope = _repositoryWrapper.BeginTransaction();
-        await _repositoryWrapper.FaqQuestionsRepository.CreateAsync(entity);
+        await _repositoryWrapper.FaqQuestionsRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {

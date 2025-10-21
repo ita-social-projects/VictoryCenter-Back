@@ -26,7 +26,7 @@ public class CreateSupportOptionsHandler : BaseHandler<CreateSupportOptionsComma
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
         Entities.SupportOptions entity = _mapper.Map<Entities.SupportOptions>(request.CreateSupportOptionsDto);
-        await _repositoryWrapper.SupportOptionsRepository.CreateAsync(entity);
+        await _repositoryWrapper.SupportOptionsRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {

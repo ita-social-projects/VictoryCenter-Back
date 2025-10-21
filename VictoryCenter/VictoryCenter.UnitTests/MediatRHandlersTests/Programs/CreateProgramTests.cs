@@ -138,7 +138,7 @@ public class CreateProgramTests
         _repositoryWrapperMock.Setup(r => r.ImageRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(_image);
         _repositoryWrapperMock.Setup(r => r.ProgramsRepository
-            .CreateAsync(It.IsAny<DAL.Entities.Program>()));
+            .CreateAsync(It.IsAny<DAL.Entities.Program>(), new CancellationToken()));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

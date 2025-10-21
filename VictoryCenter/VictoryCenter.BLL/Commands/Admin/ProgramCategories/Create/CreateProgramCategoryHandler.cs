@@ -28,7 +28,7 @@ public class CreateProgramCategoryHandler : BaseHandler<CreateProgramCategoryCom
 
         ProgramCategory entity = _mapper.Map<ProgramCategory>(request.ProgramCategoryDto);
         entity.CreatedAt = DateTimeOffset.UtcNow;
-        await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity);
+        await _repositoryWrapper.ProgramCategoriesRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {

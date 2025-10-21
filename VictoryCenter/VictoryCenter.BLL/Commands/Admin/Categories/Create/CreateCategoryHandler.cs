@@ -32,7 +32,7 @@ public class CreateCategoryHandler : BaseHandler<CreateCategoryCommand, Category
         var entity = _mapper.Map<Category>(request.CreateCategoryDto);
         entity.CreatedAt = DateTimeOffset.UtcNow;
 
-        await _repositoryWrapper.CategoriesRepository.CreateAsync(entity);
+        await _repositoryWrapper.CategoriesRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {

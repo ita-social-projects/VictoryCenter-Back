@@ -122,7 +122,7 @@ public class CreateCategoryTests
 
     private void SetupRepositoryWrapper(int saveResult)
     {
-        _repositoryWrapperMock.Setup(repo => repo.CategoriesRepository.CreateAsync(It.IsAny<Category>()));
+        _repositoryWrapperMock.Setup(repo => repo.CategoriesRepository.CreateAsync(It.IsAny<Category>(), new CancellationToken()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

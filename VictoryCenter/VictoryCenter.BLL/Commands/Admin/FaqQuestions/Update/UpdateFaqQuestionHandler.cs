@@ -113,8 +113,13 @@ public class UpdateFaqQuestionHandler : BaseHandler<UpdateFaqQuestionCommand, Fa
                     Include = e => e.Include(q => q.Placements),
                 });
 
+            if (resultEntity is null)
+            {
+                throw new Exception(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
+            }
+
             scope.Complete();
-            FaqQuestionDto? resultDto = _mapper.Map<FaqQuestion, FaqQuestionDto>(resultEntity!);
+            FaqQuestionDto? resultDto = _mapper.Map<FaqQuestion, FaqQuestionDto>(resultEntity);
             return resultDto;
         }
 

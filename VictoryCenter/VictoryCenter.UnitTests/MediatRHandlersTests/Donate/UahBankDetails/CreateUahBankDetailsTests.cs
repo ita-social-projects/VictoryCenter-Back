@@ -130,7 +130,7 @@ public class CreateUahBankDetailsTests
     private void SetupRepositoryWrapper(int saveResult)
     {
         _repositoryWrapperMock.Setup(repo => repo.UahBankDetailsRepository
-            .CreateAsync(It.IsAny<Entities.UahBankDetails>()));
+            .CreateAsync(It.IsAny<Entities.UahBankDetails>(), new CancellationToken()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

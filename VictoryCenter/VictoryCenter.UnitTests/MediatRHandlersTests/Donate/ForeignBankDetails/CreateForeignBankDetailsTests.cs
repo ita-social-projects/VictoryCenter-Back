@@ -136,7 +136,7 @@ public class CreateForeignBankDetailsTests
     private void SetupRepositoryWrapper(int saveResult)
     {
         _repositoryWrapperMock.Setup(repo => repo.ForeignBankDetailsRepository
-            .CreateAsync(It.IsAny<Entities.ForeignBankDetails>()));
+            .CreateAsync(It.IsAny<Entities.ForeignBankDetails>(), new CancellationToken()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

@@ -39,7 +39,7 @@ public class CreateCorrespondentBankDetailsHandler : BaseHandler<CreateCorrespon
         }
 
         Entities.CorrespondentBankDetails entity = _mapper.Map<Entities.CorrespondentBankDetails>(request.CreateCorrespondentBankDetailsDto);
-        await _repositoryWrapper.CorrespondentBankDetailsRepository.CreateAsync(entity);
+        await _repositoryWrapper.CorrespondentBankDetailsRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {

@@ -64,7 +64,7 @@ public class CreateImageHandlerTests
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDto>()))
             .Returns(_testImage);
 
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>()))
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>(), new CancellationToken()))
             .ReturnsAsync(_testImage);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
@@ -97,7 +97,7 @@ public class CreateImageHandlerTests
         _mockBlobService.Verify(
             x => x.SaveFileInStorageAsync(_testCreateImageDto.Base64, It.IsAny<string>(), _testCreateImageDto.MimeType),
             Times.Once);
-        _mockRepositoryWrapper.Verify(x => x.ImageRepository.CreateAsync(It.IsAny<Image>()), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.CreateAsync(It.IsAny<Image>(), new CancellationToken()), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
         _mockMapper.Verify(x => x.Map<Image>(It.IsAny<CreateImageDto>()), Times.Once);
         _mockMapper.Verify(x => x.Map<ImageDto>(It.IsAny<Image>()), Times.Once);
@@ -135,7 +135,7 @@ public class CreateImageHandlerTests
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDto>()))
             .Returns(_testImage);
 
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>()))
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>(), new CancellationToken()))
             .ReturnsAsync(_testImage);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
@@ -162,7 +162,7 @@ public class CreateImageHandlerTests
     {
         // Arrange
         _mockMapper.Setup(x => x.Map<Image>(It.IsAny<CreateImageDto>())).Returns(_testImage);
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>())).ReturnsAsync(_testImage);
+        _mockRepositoryWrapper.Setup(x => x.ImageRepository.CreateAsync(It.IsAny<Image>(), new CancellationToken())).ReturnsAsync(_testImage);
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
         _mockBlobService
             .Setup(x => x.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))

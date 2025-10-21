@@ -62,7 +62,7 @@ public class CreateProgramHandler : BaseHandler<CreateProgramCommand, ProgramDto
         entity.Categories = [.. categories];
         entity.CreatedAt = DateTimeOffset.UtcNow;
 
-        await _repositoryWrapper.ProgramsRepository.CreateAsync(entity);
+        await _repositoryWrapper.ProgramsRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {

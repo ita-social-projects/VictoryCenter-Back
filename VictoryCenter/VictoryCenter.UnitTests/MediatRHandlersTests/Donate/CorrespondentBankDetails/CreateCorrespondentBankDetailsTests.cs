@@ -171,7 +171,7 @@ public class CreateCorrespondentBankDetailsTests
             .ReturnsAsync(foreignBankDetailsExists ? _foreignBankDetails : null);
 
         _repositoryWrapperMock.Setup(repo => repo.CorrespondentBankDetailsRepository
-            .CreateAsync(It.IsAny<Entities.CorrespondentBankDetails>()));
+            .CreateAsync(It.IsAny<Entities.CorrespondentBankDetails>(), new CancellationToken()));
 
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }

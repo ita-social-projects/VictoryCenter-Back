@@ -26,7 +26,7 @@ public class CreateUahBankDetailsHandler : BaseHandler<CreateUahBankDetailsComma
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
         Entities.UahBankDetails entity = _mapper.Map<Entities.UahBankDetails>(request.CreateUahBankDetailsDto);
-        await _repositoryWrapper.UahBankDetailsRepository.CreateAsync(entity);
+        await _repositoryWrapper.UahBankDetailsRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {

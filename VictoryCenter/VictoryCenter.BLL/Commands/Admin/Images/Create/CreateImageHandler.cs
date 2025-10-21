@@ -41,7 +41,7 @@ public class CreateImageHandler : BaseHandler<CreateImageCommand, ImageDto>
             image.BlobName = fileName;
             image.CreatedAt = DateTimeOffset.UtcNow;
 
-            Image createdImage = await _repositoryWrapper.ImageRepository.CreateAsync(image);
+            Image createdImage = await _repositoryWrapper.ImageRepository.CreateAsync(image, cancellationToken);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {

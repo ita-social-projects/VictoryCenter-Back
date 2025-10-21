@@ -44,7 +44,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return await query.FirstOrDefaultAsync();
     }
 
-    public async Task<T> CreateAsync(T entity)
+    public async Task<T> CreateAsync(T entity, CancellationToken cancellationToken)
     {
         return (await DbContext.Set<T>().AddAsync(entity)).Entity;
     }

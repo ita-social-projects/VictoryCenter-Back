@@ -54,7 +54,7 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
                     u => u.CategoryId == entity.CategoryId);
                 entity.Priority = (maxPriority ?? 0) + 1;
 
-                await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity);
+                await _repositoryWrapper.TeamMembersRepository.CreateAsync(entity, cancellationToken);
 
                 if (await _repositoryWrapper.SaveChangesAsync() <= 0)
                 {

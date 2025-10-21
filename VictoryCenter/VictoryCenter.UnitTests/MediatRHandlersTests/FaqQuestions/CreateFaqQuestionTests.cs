@@ -122,7 +122,7 @@ public class CreateFaqQuestionTests
         SetupDependencies(_faqQuestionDto, _faqQuestion, -1);
         _repositoryWrapperMock
             .Setup(repositoryWrapperMock =>
-                repositoryWrapperMock.FaqQuestionsRepository.CreateAsync(It.IsAny<FaqQuestion>()))
+                repositoryWrapperMock.FaqQuestionsRepository.CreateAsync(It.IsAny<FaqQuestion>(), new CancellationToken()))
             .ThrowsAsync(new DbUpdateException(testMessage));
 
         var handler = new CreateFaqQuestionHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
@@ -165,7 +165,7 @@ public class CreateFaqQuestionTests
     private void SetupRepositoryWrapper(FaqQuestion faqQuestion, int isSuccess)
     {
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.FaqQuestionsRepository
-                .CreateAsync(It.IsAny<FaqQuestion>()))
+                .CreateAsync(It.IsAny<FaqQuestion>(), new CancellationToken()))
             .ReturnsAsync(faqQuestion);
 
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.SaveChangesAsync())

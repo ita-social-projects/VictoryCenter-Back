@@ -89,7 +89,7 @@ public class CreateSupportOptionsTests
             .Returns(_supportOptionsDto);
 
         _repositoryWrapperMock.Setup(repo => repo.SupportOptionsRepository
-            .CreateAsync(It.IsAny<Entities.SupportOptions>()));
+            .CreateAsync(It.IsAny<Entities.SupportOptions>(), new CancellationToken()));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

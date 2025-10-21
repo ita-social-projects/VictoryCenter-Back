@@ -26,7 +26,7 @@ public class CreateForeignBankDetailsHandler : BaseHandler<CreateForeignBankDeta
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
         Entities.ForeignBankDetails entity = _mapper.Map<Entities.ForeignBankDetails>(request.CreateForeignBankDetailsDto);
-        await _repositoryWrapper.ForeignBankDetailsRepository.CreateAsync(entity);
+        await _repositoryWrapper.ForeignBankDetailsRepository.CreateAsync(entity, cancellationToken);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {

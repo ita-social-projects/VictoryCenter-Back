@@ -11,7 +11,7 @@ public interface IRepositoryBase<T>
 
     Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null);
 
-    Task<T> CreateAsync(T entity);
+    Task<T> CreateAsync(T entity, CancellationToken cancellationToken);
 
     Task CreateRangeAsync(params T[] entities);
 
