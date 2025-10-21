@@ -1,8 +1,7 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -10,7 +9,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;
-public class UpdateUahBankDetailsHandler : IRequestHandler<UpdateUahBankDetailsCommand, Result<UahBankDetailsDto>>
+public class UpdateUahBankDetailsHandler : BaseHandler<UpdateUahBankDetailsCommand, UahBankDetailsDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -23,43 +22,32 @@ public class UpdateUahBankDetailsHandler : IRequestHandler<UpdateUahBankDetailsC
         _validator = validator;
     }
 
-    public async Task<Result<UahBankDetailsDto>> Handle(UpdateUahBankDetailsCommand request, CancellationToken cancellationToken)
+    public override async Task<UahBankDetailsDto> HandleRequest(UpdateUahBankDetailsCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            Entities.UahBankDetails? uahBankDetailsEntity = await _repositoryWrapper.UahBankDetailsRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<Entities.UahBankDetails>
-                {
-                    Filter = uahBankDetails => uahBankDetails.Id == request.Id
-                });
-
-            if (uahBankDetailsEntity is null)
+        Entities.UahBankDetails? uahBankDetailsEntity = await _repositoryWrapper.UahBankDetailsRepository
+            .GetFirstOrDefaultAsync(new QueryOptions<Entities.UahBankDetails>
             {
-                return Result.Fail<UahBankDetailsDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(Entities.UahBankDetails)));
-            }
+                Filter = uahBankDetails => uahBankDetails.Id == request.Id
+            });
 
-            Entities.UahBankDetails entityToUpdate = _mapper.Map(request.UpdateUahBankDetailsDto, uahBankDetailsEntity);
-
-            _repositoryWrapper.UahBankDetailsRepository.Update(entityToUpdate);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                UahBankDetailsDto responseDto = _mapper.Map<UahBankDetailsDto>(entityToUpdate);
-                return Result.Ok(responseDto);
-            }
-
-            return Result.Fail<UahBankDetailsDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Entities.UahBankDetails)));
-        }
-        catch (ValidationException ex)
+        if (uahBankDetailsEntity is null)
         {
-            return Result.Fail<UahBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            throw new Exception(ErrorMessagesConstants
+                .NotFound(request.Id, typeof(Entities.UahBankDetails)));
         }
-        catch (DbUpdateException)
+
+        Entities.UahBankDetails entityToUpdate = _mapper.Map(request.UpdateUahBankDetailsDto, uahBankDetailsEntity);
+
+        _repositoryWrapper.UahBankDetailsRepository.Update(entityToUpdate);
+
+        if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
-            return Result.Fail<UahBankDetailsDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(Entities.UahBankDetails)));
+            UahBankDetailsDto responseDto = _mapper.Map<UahBankDetailsDto>(entityToUpdate);
+            return responseDto;
         }
+
+        throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Entities.UahBankDetails)));
     }
 }

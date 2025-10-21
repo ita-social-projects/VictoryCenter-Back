@@ -1,15 +1,14 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Create;
-public class CreateSupportOptionsHandler : IRequestHandler<CreateSupportOptionsCommand, Result<SupportOptionsDto>>
+public class CreateSupportOptionsHandler : BaseHandler<CreateSupportOptionsCommand, SupportOptionsDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -22,30 +21,19 @@ public class CreateSupportOptionsHandler : IRequestHandler<CreateSupportOptionsC
         _validator = validator;
     }
 
-    public async Task<Result<SupportOptionsDto>> Handle(CreateSupportOptionsCommand request, CancellationToken cancellationToken)
+    public override async Task<SupportOptionsDto> HandleRequest(CreateSupportOptionsCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+        await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            Entities.SupportOptions entity = _mapper.Map<Entities.SupportOptions>(request.CreateSupportOptionsDto);
-            await _repositoryWrapper.SupportOptionsRepository.CreateAsync(entity);
+        Entities.SupportOptions entity = _mapper.Map<Entities.SupportOptions>(request.CreateSupportOptionsDto);
+        await _repositoryWrapper.SupportOptionsRepository.CreateAsync(entity);
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                SupportOptionsDto responseDto = _mapper.Map<SupportOptionsDto>(entity);
-                return Result.Ok(responseDto);
-            }
+        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        {
+            SupportOptionsDto responseDto = _mapper.Map<SupportOptionsDto>(entity);
+            return responseDto;
+        }
 
-            return Result.Fail<SupportOptionsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.SupportOptions)));
-        }
-        catch (ValidationException ex)
-        {
-            return Result.Fail<SupportOptionsDto>(ex.Errors.Select(e => e.ErrorMessage));
-        }
-        catch (DbUpdateException)
-        {
-            return Result.Fail<SupportOptionsDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.SupportOptions)));
-        }
+        throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.SupportOptions)));
     }
 }
