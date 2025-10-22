@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
@@ -19,6 +20,7 @@ using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
@@ -122,6 +124,8 @@ public static class ServicesConfiguration
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped<IReorderService, ReorderService>();
 
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 

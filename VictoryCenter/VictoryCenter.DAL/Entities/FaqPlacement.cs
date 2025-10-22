@@ -1,6 +1,8 @@
+using VictoryCenter.DAL.Entities.Interfaces;
+
 namespace VictoryCenter.DAL.Entities;
 
-public class FaqPlacement
+public class FaqPlacement : IOrderableEntity
 {
     public long PageId { get; set; }
 

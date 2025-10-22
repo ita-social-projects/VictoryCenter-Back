@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using AutoMapper;
 using FluentResults;
 using MediatR;
@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -25,8 +24,9 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
 
     public async Task<Result<PaginationResult<TeamMemberDto>>> Handle(GetTeamMembersByFiltersQuery request, CancellationToken cancellationToken)
     {
-        Status? status = request.TeamMembersFilterDto.Status;
+        var status = request.TeamMembersFilterDto.Status;
         var categoryId = request.TeamMembersFilterDto.CategoryId;
+
         Expression<Func<TeamMember, bool>> filter =
             t => (status == null || t.Status == status) && (categoryId == null || t.Category.Id == categoryId);
 

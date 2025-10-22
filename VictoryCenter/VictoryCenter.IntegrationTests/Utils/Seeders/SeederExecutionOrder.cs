@@ -8,5 +8,9 @@ public enum SeederExecutionOrder
     ProgramCategories,
     Programs,
     Images,
+    UahBankDetails,
+    SupportOptions,
+    ForeignBankDetails,
+    CorrespondentBankDetails,
     WhoWeAre
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Transactions;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -5,6 +6,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Categories;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Programs;
@@ -15,6 +17,7 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Categories;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.ProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Programs;
@@ -34,10 +37,14 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ITeamMembersRepository? _teamMembersRepository;
     private IVisitorPagesRepository? _visitorPagesRepository;
     private IImageRepository? _imageRepository;
+    private IProgramCategoriesRepository? _programCategoriesRepository;
+    private IProgramsRepository? _programsRepository;
+    private IUahBankDetailsRepository? _uahBankDetailsRepository;
+    private IForeignBankDetailsRepository? _foreignBankDetailsRepository;
+    private ICorrespondentBankDetailsRepository? _correspondentBankDetailsRepository;
+    private ISupportOptionsRepository? _supportOptionsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
-    private IProgramsRepository? _programsRepository;
-    private IProgramCategoriesRepository? _programCategoriesRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -50,14 +57,19 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ITeamMembersRepository TeamMembersRepository => _teamMembersRepository ??= new TeamMembersRepository(_victoryCenterDbContext);
     public IVisitorPagesRepository VisitorPagesRepository => _visitorPagesRepository ??= new VisitorPagesRepository(_victoryCenterDbContext);
     public IImageRepository ImageRepository => _imageRepository ??= new ImageRepository(_victoryCenterDbContext);
-
+    public IProgramCategoriesRepository ProgramCategoriesRepository => _programCategoriesRepository ??= new ProgramCategoriesRepository(_victoryCenterDbContext);
+    public IProgramsRepository ProgramsRepository => _programsRepository ??= new ProgramsRepository(_victoryCenterDbContext);
+    public IUahBankDetailsRepository UahBankDetailsRepository => _uahBankDetailsRepository
+        ??= new UahBankDetailsRepository(_victoryCenterDbContext);
+    public IForeignBankDetailsRepository ForeignBankDetailsRepository => _foreignBankDetailsRepository
+        ??= new ForeignBankDetailsRepository(_victoryCenterDbContext);
+    public ICorrespondentBankDetailsRepository CorrespondentBankDetailsRepository => _correspondentBankDetailsRepository
+        ??= new CorrespondentBankDetailsRepository(_victoryCenterDbContext);
+    public ISupportOptionsRepository SupportOptionsRepository => _supportOptionsRepository
+        ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
-
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
 
-    public IProgramsRepository ProgramsRepository => _programsRepository ??= new ProgramsRepository(_victoryCenterDbContext);
-
-    public IProgramCategoriesRepository ProgramCategoriesRepository => _programCategoriesRepository ??= new ProgramCategoriesRepository(_victoryCenterDbContext);
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();
@@ -71,5 +83,23 @@ public class RepositoryWrapper : IRepositoryWrapper
     public TransactionScope BeginTransaction()
     {
         return new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+    }
+
+    public IRepositoryBase<TEntity> GetRepository<TEntity>()
+        where TEntity : class
+    {
+        var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+        foreach (var property in properties)
+        {
+            var propertyValue = property.GetValue(this);
+
+            if (propertyValue is IRepositoryBase<TEntity> matchingRepository)
+            {
+                return matchingRepository;
+            }
+        }
+
+        throw new NotImplementedException($"Repository for entity type '{typeof(TEntity).Name}' is not found in {nameof(RepositoryWrapper)}.");
     }
 }
