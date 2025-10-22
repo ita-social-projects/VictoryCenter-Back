@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
-using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetAll;
+using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetPreviews;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -9,19 +9,19 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.WhoWeAre;
 
-public class GetAllSectionsTests
+public class GetPreviewsTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
     private readonly Mock<IMapper> _mapper;
 
-    public GetAllSectionsTests()
+    public GetPreviewsTests()
     {
         _repositoryWrapper = new Mock<IRepositoryWrapper>();
         _mapper = new Mock<IMapper>();
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnAllSections()
+    public async Task Handle_ShouldReturnSectionPreviews()
     {
         // Arrange
         var entities = GetEntities();
@@ -30,8 +30,8 @@ public class GetAllSectionsTests
         SetupRepositoryWrapper(entities);
         SetupMapper(expectedDtos);
 
-        var handler = new GetAllWhoWeAreSectionsHandler(_repositoryWrapper.Object, _mapper.Object);
-        var query = new GetAllWhoWeAreSectionsQuery();
+        var handler = new GetWhoWeAreSectionPreviewsHandler(_repositoryWrapper.Object, _mapper.Object);
+        var query = new GetWhoWeAreSectionPreviewsQuery();
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

@@ -60,7 +60,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { Id = 1, ContentType = ContentType.Description, Description = updatedText }
             });
@@ -76,7 +76,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        _mockFactory.Verify(f => f.UpdateDescription(It.IsAny<CreateWhoWeAreContentDto>(), _testContent), Times.Once);
+        _mockFactory.Verify(f => f.UpdateDescription(It.IsAny<UpdateWhoWeAreContentDto>(), _testContent), Times.Once);
         _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testContent), Times.Once);
         _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
@@ -87,7 +87,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description } });
 
         SetupRepositiryWrapper(_testSection, new List<WhoWeAreContent>());
 
@@ -109,7 +109,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description } });
 
         var foreignContent = new DescriptionContent { Id = 1, SectionId = 999, ContentType = ContentType.Description };
 
@@ -133,7 +133,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Image } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Image } });
 
         SetupRepositiryWrapper(_testSection, new List<WhoWeAreContent> { _testContent });
 
@@ -154,7 +154,7 @@ public class UpdateWhoWeAreContentTests
     public async Task Handle_InvalidSection_ShouldReturnFailure()
     {
         // Arrange
-        var command = new UpdateWhoWeAreContentCommand(SectionType.Main, new List<CreateWhoWeAreContentDto>());
+        var command = new UpdateWhoWeAreContentCommand(SectionType.Main, new List<UpdateWhoWeAreContentDto>());
 
         SetupRepositiryWrapper();
 
@@ -179,7 +179,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
                 { new() { Id = 1, ContentType = ContentType.Description, Description = description } });
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -190,7 +190,7 @@ public class UpdateWhoWeAreContentTests
         Assert.False(result.IsSuccess);
         Assert.Contains(
             ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Description), 10),
+                nameof(UpdateWhoWeAreContentDto.Description), 10),
             result.Errors[0].Message);
     }
 

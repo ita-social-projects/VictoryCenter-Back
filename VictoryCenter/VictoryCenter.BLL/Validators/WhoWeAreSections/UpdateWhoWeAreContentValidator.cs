@@ -12,9 +12,9 @@ public class UpdateWhoWeAreContentValidator : AbstractValidator<UpdateWhoWeAreCo
             .IsInEnum();
 
         RuleForEach(x => x.Contents)
-            .NotNull().WithMessage(WhoWeAreConstants.ContentCanNotBeNull);
+            .NotNull().WithMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateWhoWeAreContentCommand.Contents)));
 
         RuleForEach(x => x.Contents)
-            .SetValidator(content => new WhoWeAreSectionValidator(content.SectionType));
+            .SetValidator(command => new WhoWeAreSectionValidator(command.SectionType));
     }
 }

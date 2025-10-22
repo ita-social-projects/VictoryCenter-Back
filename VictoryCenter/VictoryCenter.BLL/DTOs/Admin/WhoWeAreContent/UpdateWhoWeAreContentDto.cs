@@ -2,7 +2,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 
-public class CreateWhoWeAreContentDto
+public class UpdateWhoWeAreContentDto
 {
     public ContentType ContentType { get; init; }
 

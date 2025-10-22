@@ -13,7 +13,6 @@ public static class WhoWeAreConstants
         { SectionType.People, (10, 60) }
     };
     public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(10, 50);
-    public static string ContentCanNotBeNull => "Content cannot be null";
 
     public static string DtoHasWrongContentType(long dtoId, ContentType expected, ContentType received)
     {

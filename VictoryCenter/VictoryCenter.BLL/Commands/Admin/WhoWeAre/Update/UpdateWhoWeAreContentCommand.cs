@@ -6,4 +6,4 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 
-public record UpdateWhoWeAreContentCommand(SectionType SectionType, List<CreateWhoWeAreContentDto> Contents) : IRequest<Result<WhoWeAreSectionDto>>;
+public record UpdateWhoWeAreContentCommand(SectionType SectionType, List<UpdateWhoWeAreContentDto> Contents) : IRequest<Result<WhoWeAreSectionDto>>;

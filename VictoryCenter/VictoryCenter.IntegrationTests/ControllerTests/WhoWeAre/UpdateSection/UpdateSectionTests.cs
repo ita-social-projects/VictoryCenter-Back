@@ -29,7 +29,7 @@ public class UpdateSectionTests : BaseTestClass
         var contentId = section.Contents.FirstOrDefault(c => c.ContentType == ContentType.Description)?.Id ??
                         throw new InvalidOperationException("Description content does not exist in the database.");
 
-        var contentToUpdate = new List<CreateWhoWeAreContentDto>
+        var contentToUpdate = new List<UpdateWhoWeAreContentDto>
         {
             new()
             {
@@ -65,7 +65,7 @@ public class UpdateSectionTests : BaseTestClass
 
         var fakeContentId = -1;
 
-        var contentToUpdate = new List<CreateWhoWeAreContentDto>
+        var contentToUpdate = new List<UpdateWhoWeAreContentDto>
         {
             new()
             {
@@ -99,7 +99,7 @@ public class UpdateSectionTests : BaseTestClass
         var contentId = section.Contents.FirstOrDefault()?.Id
                         ?? throw new InvalidOperationException("Section does not contain any content.");
 
-        var contentToUpdate = new List<CreateWhoWeAreContentDto>
+        var contentToUpdate = new List<UpdateWhoWeAreContentDto>
         {
             new()
             {
@@ -129,7 +129,7 @@ public class UpdateSectionTests : BaseTestClass
         var content = section.Contents.FirstOrDefault()
                       ?? throw new InvalidOperationException("Section does not contain any content.");
 
-        var contentToUpdate = new List<CreateWhoWeAreContentDto>
+        var contentToUpdate = new List<UpdateWhoWeAreContentDto>
         {
             new()
             {
@@ -161,7 +161,7 @@ public class UpdateSectionTests : BaseTestClass
         var contentId = section.Contents.FirstOrDefault()?.Id
                         ?? throw new InvalidOperationException("Section does not contain any content.");
 
-        var contentToUpdate = new List<CreateWhoWeAreContentDto>
+        var contentToUpdate = new List<UpdateWhoWeAreContentDto>
         {
             new()
             {

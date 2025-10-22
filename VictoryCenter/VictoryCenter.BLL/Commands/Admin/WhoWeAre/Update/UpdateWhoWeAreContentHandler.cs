@@ -63,6 +63,12 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
             await _repository.SaveChangesAsync();
 
             var updatedSection = await GetSection(request.SectionType);
+
+            if (updatedSection == null)
+            {
+                return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+            }
+
             return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(updatedSection));
         }
         catch (ValidationException vex)
@@ -79,7 +85,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         }
     }
 
-    private async Task<Dictionary<long, WhoWeAreContent>> GetContentMappedToDictionary(List<CreateWhoWeAreContentDto> content)
+    private async Task<Dictionary<long, WhoWeAreContent>> GetContentMappedToDictionary(List<UpdateWhoWeAreContentDto> content)
     {
         var contentIds = content.Select(x => x.Id).ToList();
 
@@ -105,7 +111,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
             });
     }
 
-    private void UpdateContent(CreateWhoWeAreContentDto contentDto, WhoWeAreContent entity)
+    private void UpdateContent(UpdateWhoWeAreContentDto contentDto, WhoWeAreContent entity)
     {
         switch (contentDto.ContentType)
         {

@@ -19,7 +19,7 @@ public class UpdateWhoWeAreContentValidatorTests
     [Fact]
     public void ShouldHaveError_WhenSectionTypeIsInvalid()
     {
-        var command = new UpdateWhoWeAreContentCommand((SectionType)999, new List<CreateWhoWeAreContentDto>());
+        var command = new UpdateWhoWeAreContentCommand((SectionType)999, new List<UpdateWhoWeAreContentDto>());
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor(x => x.SectionType);
@@ -29,10 +29,11 @@ public class UpdateWhoWeAreContentValidatorTests
     public void ShouldHaveError_WhenContentItemIsNull()
     {
         var command =
-            new UpdateWhoWeAreContentCommand(SectionType.Main, new List<CreateWhoWeAreContentDto> { null! } );
+            new UpdateWhoWeAreContentCommand(SectionType.Main, new List<UpdateWhoWeAreContentDto> { null! } );
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor("Contents[0]").WithErrorMessage(WhoWeAreConstants.ContentCanNotBeNull);
+        result.ShouldHaveValidationErrorFor("Contents[0]")
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateWhoWeAreContentCommand.Contents)));
     }
 
     [Fact]
@@ -40,7 +41,7 @@ public class UpdateWhoWeAreContentValidatorTests
     {
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { Title = "short", ContentType = ContentType.Title, Id = 1 }
             });
@@ -49,7 +50,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         result.ShouldHaveValidationErrorFor("Contents[0].Title")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Title), 10));
+                nameof(UpdateWhoWeAreContentDto.Title), 10));
     }
 
     [Fact]
@@ -57,7 +58,7 @@ public class UpdateWhoWeAreContentValidatorTests
     {
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { Title = new string('A', 51), ContentType = ContentType.Title, Id = 1 }
             });
@@ -66,7 +67,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         result.ShouldHaveValidationErrorFor("Contents[0].Title")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Title), 50));
+                nameof(UpdateWhoWeAreContentDto.Title), 50));
     }
 
     [Theory]
@@ -79,7 +80,7 @@ public class UpdateWhoWeAreContentValidatorTests
     {
         var command = new UpdateWhoWeAreContentCommand(
             sectionType,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { ContentType = ContentType.Description, Description = "Short", Id = 1 }
             });
@@ -88,7 +89,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         result.ShouldHaveValidationErrorFor("Contents[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Description),  WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen));
+                nameof(UpdateWhoWeAreContentDto.Description),  WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen));
     }
 
     [Theory]
@@ -101,7 +102,7 @@ public class UpdateWhoWeAreContentValidatorTests
     {
         var command = new UpdateWhoWeAreContentCommand(
             sectionType,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { ContentType = ContentType.Description, Description = new string('A', 400), Id = 1 }
             });
@@ -110,7 +111,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         result.ShouldHaveValidationErrorFor("Contents[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen));
+                nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen));
     }
 
     [Fact]
@@ -118,7 +119,7 @@ public class UpdateWhoWeAreContentValidatorTests
     {
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { ContentType = ContentType.Title, Title = "Valid Title", Id = 1 },
                 new() { ContentType = ContentType.Description, Description = "Valid description", Id = 2 }
@@ -134,7 +135,7 @@ public class UpdateWhoWeAreContentValidatorTests
     {
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Team,
-            new List<CreateWhoWeAreContentDto>
+            new List<UpdateWhoWeAreContentDto>
             {
                 new() { ContentType = ContentType.Description, Description = new string('A', 100), Id = 1 }
             });

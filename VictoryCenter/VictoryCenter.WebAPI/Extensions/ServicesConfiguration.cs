@@ -396,7 +396,7 @@ public static class ServicesConfiguration
                         ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
-                            "Партнери, які поділяють наші мрії та цінності",
+                            "Учасники/ці, які вірять і довіряють",
                     },
                     new CardContent()
                     {
@@ -410,13 +410,13 @@ public static class ServicesConfiguration
                         ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
-                            "волонтери/ки, які поруч, аби підтримати.",
+                            "Волонтери/ки, які поруч, аби підтримати.",
                     },
                     new CardContent()
                     {
                         ContentType = ContentType.Card,
                         ImageId = null,
-                        Description = "благодійники/ці, які допомагають втілити ідеї в реальність",
+                        Description = "Благодійники/ці, які допомагають втілити ідеї в реальність",
                     },
                 }
             },

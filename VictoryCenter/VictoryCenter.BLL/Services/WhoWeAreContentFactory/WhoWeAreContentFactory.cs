@@ -7,7 +7,7 @@ namespace VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 
 public class WhoWeAreContentFactory : IWhoWeAreContentFactory
 {
-    public TitleContent UpdateTitle(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
+    public TitleContent UpdateTitle(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
         var result = entity as TitleContent
                      ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(TitleContent)));
@@ -16,7 +16,7 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
         return result;
     }
 
-    public ImageContent UpdateImage(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
+    public ImageContent UpdateImage(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
         var result = entity as ImageContent
                      ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(ImageContent)));
@@ -26,7 +26,7 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
         return result;
     }
 
-    public DescriptionContent UpdateDescription(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
+    public DescriptionContent UpdateDescription(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
         var result = entity as DescriptionContent
                      ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(DescriptionContent)));
@@ -35,7 +35,7 @@ public class WhoWeAreContentFactory : IWhoWeAreContentFactory
         return result;
     }
 
-    public CardContent UpdateCard(CreateWhoWeAreContentDto dto, WhoWeAreContent entity)
+    public CardContent UpdateCard(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity)
     {
         var result = entity as CardContent
                      ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(CardContent)));

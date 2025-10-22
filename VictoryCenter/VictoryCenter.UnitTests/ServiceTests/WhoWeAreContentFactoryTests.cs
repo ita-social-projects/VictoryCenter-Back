@@ -16,7 +16,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateTitle_ShouldUpdateTitle_WhenEntityIsTitleContent()
     {
-        var dto = new CreateWhoWeAreContentDto { Title = "New Title" };
+        var dto = new UpdateWhoWeAreContentDto { Title = "New Title" };
         var entity = new TitleContent { Title = "Old Title" };
 
         var result = _factory.UpdateTitle(dto, entity);
@@ -27,7 +27,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateTitle_ShouldThrow_WhenEntityIsNotTitleContent()
     {
-        var dto = new CreateWhoWeAreContentDto { Title = "New Title" };
+        var dto = new UpdateWhoWeAreContentDto { Title = "New Title" };
         var entity = new ImageContent();
 
         Assert.Throws<InvalidOperationException>(() => _factory.UpdateTitle(dto, entity));
@@ -36,7 +36,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateImage_ShouldUpdateImageId_WhenEntityIsImageContent()
     {
-        var dto = new CreateWhoWeAreContentDto { ImageId = 123 };
+        var dto = new UpdateWhoWeAreContentDto { ImageId = 123 };
         var entity = new ImageContent { ImageId = 1 };
 
         var result = _factory.UpdateImage(dto, entity);
@@ -47,7 +47,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateImage_ShouldThrow_WhenEntityIsNotImageContent()
     {
-        var dto = new CreateWhoWeAreContentDto { ImageId = 123 };
+        var dto = new UpdateWhoWeAreContentDto { ImageId = 123 };
         var entity = new TitleContent();
 
         Assert.Throws<InvalidOperationException>(() => _factory.UpdateImage(dto, entity));
@@ -56,7 +56,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateDescription_ShouldUpdateDescription_WhenEntityIsDescriptionContent()
     {
-        var dto = new CreateWhoWeAreContentDto { Description = "New Description" };
+        var dto = new UpdateWhoWeAreContentDto { Description = "New Description" };
         var entity = new DescriptionContent { Description = "Old Description" };
 
         var result = _factory.UpdateDescription(dto, entity);
@@ -67,7 +67,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateDescription_ShouldThrow_WhenEntityIsNotDescriptionContent()
     {
-        var dto = new CreateWhoWeAreContentDto { Description = "New Description" };
+        var dto = new UpdateWhoWeAreContentDto { Description = "New Description" };
         var entity = new TitleContent();
 
         Assert.Throws<InvalidOperationException>(() => _factory.UpdateDescription(dto, entity));
@@ -76,7 +76,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateCard_ShouldUpdateDescriptionAndImageId_WhenEntityIsCardContent()
     {
-        var dto = new CreateWhoWeAreContentDto { Description = "Description", ImageId = 55 };
+        var dto = new UpdateWhoWeAreContentDto { Description = "Description", ImageId = 55 };
         var entity = new CardContent { Description = "Old Description", ImageId = 1 };
 
         var result = _factory.UpdateCard(dto, entity);
@@ -88,7 +88,7 @@ public class WhoWeAreContentFactoryTests
     [Fact]
     public void UpdateCard_ShouldThrow_WhenEntityIsNotCardContent()
     {
-        var dto = new CreateWhoWeAreContentDto { Description = "Desc", ImageId = 55 };
+        var dto = new UpdateWhoWeAreContentDto { Description = "Desc", ImageId = 55 };
         var entity = new DescriptionContent();
 
         Assert.Throws<InvalidOperationException>(() => _factory.UpdateCard(dto, entity));
