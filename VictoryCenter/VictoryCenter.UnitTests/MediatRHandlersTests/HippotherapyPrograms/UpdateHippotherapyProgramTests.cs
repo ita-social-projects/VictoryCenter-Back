@@ -21,7 +21,7 @@ public class UpdateHippotherapyProgramTests
     private readonly Mock<IBlobService> _blobServiceMock;
     private readonly UpdateHippotherapyProgramValidator _validator;
 
-    private readonly HippotherapyUpdateProgramDto _updateProgramDto = new()
+    private readonly UpdateHippotherapyProgramDto _updateProgramDto = new()
     {
         Name = "TestProgramName",
         Description = "TestProgramDescription",
@@ -130,7 +130,7 @@ public class UpdateHippotherapyProgramTests
 
     private void SetUpAutomapper()
     {
-        _mapperMock.Setup(m => m.Map(It.IsAny<HippotherapyUpdateProgramDto>(), It.IsAny<DAL.Entities.HippotherapyProgram>()))
+        _mapperMock.Setup(m => m.Map(It.IsAny<UpdateHippotherapyProgramDto>(), It.IsAny<DAL.Entities.HippotherapyProgram>()))
             .Returns(_programEntity);
         _mapperMock.Setup(m => m.Map<HippotherapyProgramDto>(It.IsAny<DAL.Entities.HippotherapyProgram>())).Returns(_programDto);
     }

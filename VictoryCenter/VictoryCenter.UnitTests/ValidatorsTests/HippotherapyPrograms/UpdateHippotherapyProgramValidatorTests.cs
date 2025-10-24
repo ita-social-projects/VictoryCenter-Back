@@ -22,7 +22,7 @@ public class UpdateHippotherapyProgramValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenNameIsNotValid(string? name)
     {
-        var command = new UpdateHippotherapyProgramCommand(new HippotherapyUpdateProgramDto { Name = name!, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
+        var command = new UpdateHippotherapyProgramCommand(new UpdateHippotherapyProgramDto { Name = name!, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
         TestValidationResult<UpdateHippotherapyProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(HippotherapyProgramDto.Name)));
@@ -36,7 +36,7 @@ public class UpdateHippotherapyProgramValidatorTests
     public void Validate_ShouldHaveError_WhenNameIsTooShort(string name)
     {
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
+            new UpdateHippotherapyProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
         TestValidationResult<UpdateHippotherapyProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Name)
             .WithErrorMessage(
@@ -48,7 +48,7 @@ public class UpdateHippotherapyProgramValidatorTests
     {
         var name = new string('a', HippotherapyProgramConstants.MaxNameLength + 1);
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
+            new UpdateHippotherapyProgramDto { Name = name, Description = "ValidDescription", Status = Status.Draft, CategoryIds = [1, 2] }, 1);
         TestValidationResult<UpdateHippotherapyProgramCommand> result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(p => p.UpdateProgramDto.Name)
             .WithErrorMessage(
@@ -59,7 +59,7 @@ public class UpdateHippotherapyProgramValidatorTests
     public void Validate_ShouldNotHaveError_WhenNameIsValid()
     {
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto
+            new UpdateHippotherapyProgramDto
             {
                 Name = "ValidName",
                 Description = "ValidDescription",
@@ -76,7 +76,7 @@ public class UpdateHippotherapyProgramValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenDescriptionIsNotValid(string? description)
     {
-        var updateProgramDto = new HippotherapyUpdateProgramDto
+        var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "TestName",
             Status = Status.Published,
@@ -97,7 +97,7 @@ public class UpdateHippotherapyProgramValidatorTests
     {
         var description = new string('a', descriptionLength);
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto
+            new UpdateHippotherapyProgramDto
             {
                 Name = "ValidName",
                 Description = description,
@@ -115,7 +115,7 @@ public class UpdateHippotherapyProgramValidatorTests
     {
         var description = new string('a', HippotherapyProgramConstants.MaxDescriptionLength + 1);
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto
+            new UpdateHippotherapyProgramDto
             {
                 Name = "ValidName",
                 Description = description,
@@ -132,7 +132,7 @@ public class UpdateHippotherapyProgramValidatorTests
     public void Validate_ShouldNotHaveError_WhenDescriptionIsValid()
     {
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto
+            new UpdateHippotherapyProgramDto
             {
                 Name = "ValidName",
                 Description = "ValidDescription!!!",
@@ -147,7 +147,7 @@ public class UpdateHippotherapyProgramValidatorTests
     public void Validate_ShouldHaveError_WhenCategoriesAreEmpty()
     {
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto
+            new UpdateHippotherapyProgramDto
             {
                 Name = "ValidName",
                 Description = "ValidDescription!!!",
@@ -163,7 +163,7 @@ public class UpdateHippotherapyProgramValidatorTests
     public void Validate_ShouldNotHaveError_WhenCategoriesAreNotEmpty()
     {
         var command = new UpdateHippotherapyProgramCommand(
-            new HippotherapyUpdateProgramDto
+            new UpdateHippotherapyProgramDto
             {
                 Name = "ValidName",
                 Description = "ValidDescription!!!",

@@ -13,7 +13,7 @@ public class HippotherapyProgramsProfile : Profile
         CreateMap<HippotherapyProgram, PublishedHippotherapyProgramDto>();
         CreateMap<CreateHippotherapyProgramDto, HippotherapyProgram>()
             .ForMember(dest => dest.Categories, opt => opt.Ignore());
-        CreateMap<HippotherapyUpdateProgramDto, HippotherapyProgram>()
+        CreateMap<UpdateHippotherapyProgramDto, HippotherapyProgram>()
             .ForMember(dest => dest.Categories, opt => opt.Ignore());
     }
 }
