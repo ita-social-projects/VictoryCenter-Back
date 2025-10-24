@@ -7,6 +7,6 @@ public class UpdateTeamCategoryValidator : AbstractValidator<UpdateTeamCategoryC
 {
     public UpdateTeamCategoryValidator(BaseTeamCategoryValidator baseValidator)
     {
-        RuleFor(x => x.UpdateTeamCategoryDto).SetValidator(baseValidator);
+        RuleFor(x => x.UpdateTeamCategoryDto).NotNull().SetValidator(baseValidator);
     }
 }
