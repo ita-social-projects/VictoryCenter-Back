@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class RenameProgramToHippotherapyProgram : Migration
+    public partial class ChangedEntitiesNames : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,6 +22,10 @@ namespace VictoryCenter.DAL.Migrations
                 name: "FK_ProgramsProgramCategories_Programs_ProgramsId",
                 table: "ProgramsProgramCategories");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_TeamMembers_Categories_CategoryId",
+                table: "TeamMembers");
+
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Programs",
                 table: "Programs");
@@ -30,6 +34,10 @@ namespace VictoryCenter.DAL.Migrations
                 name: "PK_ProgramCategories",
                 table: "ProgramCategories");
 
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_Categories",
+                table: "Categories");
+
             migrationBuilder.RenameTable(
                 name: "Programs",
                 newName: "HippotherapyPrograms");
@@ -37,6 +45,10 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.RenameTable(
                 name: "ProgramCategories",
                 newName: "HippotherapyProgramCategories");
+
+            migrationBuilder.RenameTable(
+                name: "Categories",
+                newName: "TeamCategories");
 
             migrationBuilder.RenameIndex(
                 name: "IX_Programs_ImageId",
@@ -51,6 +63,11 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.AddPrimaryKey(
                 name: "PK_HippotherapyProgramCategories",
                 table: "HippotherapyProgramCategories",
+                column: "Id");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_TeamCategories",
+                table: "TeamCategories",
                 column: "Id");
 
             migrationBuilder.AddForeignKey(
@@ -77,6 +94,14 @@ namespace VictoryCenter.DAL.Migrations
                 principalTable: "HippotherapyPrograms",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_TeamMembers_TeamCategories_CategoryId",
+                table: "TeamMembers",
+                column: "CategoryId",
+                principalTable: "TeamCategories",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
@@ -94,6 +119,14 @@ namespace VictoryCenter.DAL.Migrations
                 name: "FK_ProgramsProgramCategories_HippotherapyPrograms_ProgramsId",
                 table: "ProgramsProgramCategories");
 
+            migrationBuilder.DropForeignKey(
+                name: "FK_TeamMembers_TeamCategories_CategoryId",
+                table: "TeamMembers");
+
+            migrationBuilder.DropPrimaryKey(
+                name: "PK_TeamCategories",
+                table: "TeamCategories");
+
             migrationBuilder.DropPrimaryKey(
                 name: "PK_HippotherapyPrograms",
                 table: "HippotherapyPrograms");
@@ -101,6 +134,10 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.DropPrimaryKey(
                 name: "PK_HippotherapyProgramCategories",
                 table: "HippotherapyProgramCategories");
+
+            migrationBuilder.RenameTable(
+                name: "TeamCategories",
+                newName: "Categories");
 
             migrationBuilder.RenameTable(
                 name: "HippotherapyPrograms",
@@ -114,6 +151,11 @@ namespace VictoryCenter.DAL.Migrations
                 name: "IX_HippotherapyPrograms_ImageId",
                 table: "Programs",
                 newName: "IX_Programs_ImageId");
+
+            migrationBuilder.AddPrimaryKey(
+                name: "PK_Categories",
+                table: "Categories",
+                column: "Id");
 
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Programs",
@@ -149,6 +191,14 @@ namespace VictoryCenter.DAL.Migrations
                 principalTable: "Programs",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_TeamMembers_Categories_CategoryId",
+                table: "TeamMembers",
+                column: "CategoryId",
+                principalTable: "Categories",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
     }
 }
