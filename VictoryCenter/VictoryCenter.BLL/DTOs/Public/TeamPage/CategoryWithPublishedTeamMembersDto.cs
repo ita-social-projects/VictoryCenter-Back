@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.DTOs.Public.TeamPage;
+namespace VictoryCenter.BLL.DTOs.Public.TeamPage;
 
 public record CategoryWithPublishedTeamMembersDto
 {

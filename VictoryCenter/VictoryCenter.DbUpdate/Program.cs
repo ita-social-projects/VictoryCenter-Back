@@ -1,4 +1,4 @@
-﻿using dotenv.net;
+using dotenv.net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

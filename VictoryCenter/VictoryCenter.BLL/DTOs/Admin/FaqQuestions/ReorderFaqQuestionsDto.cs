@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+namespace VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 
 public record ReorderFaqQuestionsDto
 {

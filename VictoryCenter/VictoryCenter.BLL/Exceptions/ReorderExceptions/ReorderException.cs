@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Exceptions.ReorderExceptions;
+namespace VictoryCenter.BLL.Exceptions.ReorderExceptions;
 
 public class ReorderException : Exception
 {

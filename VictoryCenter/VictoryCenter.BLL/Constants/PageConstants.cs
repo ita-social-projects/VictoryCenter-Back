@@ -1,4 +1,4 @@
-﻿using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Constants;
 

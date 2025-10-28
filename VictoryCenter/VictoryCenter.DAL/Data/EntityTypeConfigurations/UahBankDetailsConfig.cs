@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
+
 public class UahBankDetailsConfig : IEntityTypeConfiguration<UahBankDetails>
 {
     public void Configure(EntityTypeBuilder<UahBankDetails> builder)

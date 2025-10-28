@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Services.BlobStorage;
+namespace VictoryCenter.BLL.Services.BlobStorage;
 
 public sealed record BlobEnvironmentVariables
 {

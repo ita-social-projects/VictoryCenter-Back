@@ -51,7 +51,7 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
             var teamMembers = await _repositoryWrapper.TeamMembersRepository.GetAllAsync(new QueryOptions<TeamMember>
             {
                 Include = q => q
-                    .Include(tm => tm.Category)
+                    .Include(tm => tm.TeamCategory)
                     .Include(tm => tm.Image!),
                 Filter = searchExpression,
                 Offset = dto.Offset is > 0 ? (int)dto.Offset : 0,

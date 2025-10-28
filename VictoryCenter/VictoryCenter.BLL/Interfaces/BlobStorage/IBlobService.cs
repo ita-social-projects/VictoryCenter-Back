@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Interfaces.BlobStorage;
+namespace VictoryCenter.BLL.Interfaces.BlobStorage;
 
 public interface IBlobService
 {

@@ -1,4 +1,4 @@
-﻿using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Realizations.Base;

@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Common;
 

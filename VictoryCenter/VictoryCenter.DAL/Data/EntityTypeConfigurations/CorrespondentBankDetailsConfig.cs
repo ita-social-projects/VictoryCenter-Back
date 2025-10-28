@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
+
 public class CorrespondentBankDetailsConfig : IEntityTypeConfiguration<CorrespondentBankDetails>
 {
     public void Configure(EntityTypeBuilder<CorrespondentBankDetails> builder)

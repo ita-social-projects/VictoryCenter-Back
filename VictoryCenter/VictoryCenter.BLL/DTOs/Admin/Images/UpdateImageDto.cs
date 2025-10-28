@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.DTOs.Admin.Images;
+namespace VictoryCenter.BLL.DTOs.Admin.Images;
 
 public record UpdateImageDto
 {
