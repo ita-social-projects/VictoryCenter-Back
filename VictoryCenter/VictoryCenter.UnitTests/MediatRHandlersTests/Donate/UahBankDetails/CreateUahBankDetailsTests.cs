@@ -56,7 +56,7 @@ public class CreateUahBankDetailsTests
                 Name = "Bank Name",
                 Receiver = "Receiver Name",
                 Edrpou = "12345678",
-                Iban = "123456789012345678901234567",
+                Iban = "UA123456789012345678901234567",
                 PaymentPurpose = "Payment for services"
             }), CancellationToken.None);
 
@@ -69,10 +69,13 @@ public class CreateUahBankDetailsTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task Handle_ShouldFail_InvalidName(string? name)
+    [InlineData("123")]
+    [InlineData("UA12345678901234567890123456")]
+    [InlineData("UA1234567890123456789012345678")]
+    [InlineData("1234567890123456789012345678")]
+    [InlineData("123456789012345678901234567")]
+    public async Task Handle_ShouldFail_InvalidIban(string? iban)
     {
-        _uahBankDetails.Name = name!;
-        _uahBankDetailsDto.Name = name!;
         SetupDependencies();
 
         var handler = new CreateUahBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
@@ -81,10 +84,10 @@ public class CreateUahBankDetailsTests
             .Handle(
             new CreateUahBankDetailsCommand(new CreateUahBankDetailsDto
             {
-                Name = name!,
+                Name = "Bank Name",
                 Receiver = "Receiver",
                 Edrpou = "12345678",
-                Iban = "UA123456789012345678901234567",
+                Iban = iban!,
                 PaymentPurpose = "Purpose"
             }), CancellationToken.None);
 
@@ -105,7 +108,7 @@ public class CreateUahBankDetailsTests
                 Name = "Bank Name",
                 Receiver = "Receiver",
                 Edrpou = "12345678",
-                Iban = "123456789012345678901234567",
+                Iban = "UA123456789012345678901234567",
                 PaymentPurpose = "Purpose"
             }), CancellationToken.None);
 
