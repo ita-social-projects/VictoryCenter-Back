@@ -3,8 +3,10 @@ using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Delete;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Update;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetById;
+using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -35,6 +37,13 @@ public class HippotherapyProgramsController : AuthorizedApiController
     public async Task<IActionResult> UpdateProgram([FromBody] HippotherapyUpdateProgramDto updateProgramDto, long id)
     {
         return HandleResult(await Mediator.Send(new UpdateHippotherapyProgramCommand(updateProgramDto, id)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginationResult<HippotherapyProgramDto>))]
+    public async Task<IActionResult> SearchPrograms([FromQuery] SearchHippotherapyProgramDto searchHippotherapyProgramDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchHippotherapyProgramsQuery(searchHippotherapyProgramDto)));
     }
 
     [HttpGet("{id:long}")]
