@@ -31,6 +31,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
     public async Task<Result<WhoWeAreSectionDto>> Handle(UpdateWhoWeAreContentCommand request, CancellationToken cancellationToken)
     {
+        var itemToDelete = new List<Image>();
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
@@ -56,7 +57,13 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                     return Result.Fail("Wrong Content type");
                 }
 
-                UpdateContent(dto, entity);
+                await UpdateContent(dto, entity, itemToDelete);
+                await _repository.SaveChangesAsync();
+            }
+
+            foreach (var image in itemToDelete)
+            {
+                _repository.ImageRepository.Delete(image);
             }
 
             await _repository.SaveChangesAsync();
@@ -100,7 +107,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
             });
     }
 
-    private void UpdateContent(CreateWhoWeAreContentDto contentDto, WhoWeAreContent entity)
+    private async Task UpdateContent(CreateWhoWeAreContentDto contentDto, WhoWeAreContent entity, List<Image> deleteList)
     {
         switch (contentDto.ContentType)
         {
@@ -117,6 +124,16 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 break;
 
             case ContentType.Image:
+                var ent = entity as ImageContent;
+                var image = await _repository.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>()
+                {
+                    Filter = i => i.Id == ent.ImageId
+                });
+                if (image is not null)
+                {
+                    deleteList.Add(image);
+                }
+
                 _factory.UpdateImage(contentDto, entity);
                 break;
         }
