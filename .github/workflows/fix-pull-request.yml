@@ -76,7 +76,8 @@ jobs:
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
-      run: docker stop nginx certbot frontend backend 
+      # run: docker stop nginx certbot frontend backend
+      run: echo "Skipping container stop temporarily"
     - name: Delete additon info
       run: docker system prune -f
     - name: Set up enviroments and Deploy
