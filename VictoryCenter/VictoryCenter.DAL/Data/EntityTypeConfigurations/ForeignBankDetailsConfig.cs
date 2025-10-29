@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
+
 public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDetails>
 {
     public void Configure(EntityTypeBuilder<ForeignBankDetails> builder)

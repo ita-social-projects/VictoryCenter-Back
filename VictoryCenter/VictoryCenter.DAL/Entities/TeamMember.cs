@@ -1,12 +1,11 @@
 using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class TeamMember : IOrderableEntity
+public class TeamMember : BaseEntity, IOrderableEntity
 {
-    public long Id { get; set; }
-
     public string FullName { get; set; } = null!;
 
     public long CategoryId { get; set; }
@@ -20,10 +19,7 @@ public class TeamMember : IOrderableEntity
     public long? ImageId { get; set; }
 
     public string? Email { get; set; }
-
-    public DateTimeOffset CreatedAt { get; set; }
-
-    public Category Category { get; set; } = null!;
+    public TeamCategory TeamCategory { get; set; } = null!;
 
     public Image? Image { get; set; }
 }

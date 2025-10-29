@@ -1,4 +1,4 @@
-﻿using VictoryCenter.BLL.DTOs.Admin.Common;
+using VictoryCenter.BLL.DTOs.Admin.Common;
 
 namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 

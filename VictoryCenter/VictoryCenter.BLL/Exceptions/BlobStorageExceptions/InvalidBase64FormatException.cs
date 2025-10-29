@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 /// <summary>
 /// Represents errors that occur when a provided Base64 string is invalid or cannot be converted to bytes.

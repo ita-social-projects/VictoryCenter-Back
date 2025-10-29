@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.DAL.Entities;

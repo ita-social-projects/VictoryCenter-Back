@@ -55,11 +55,11 @@ public static class ServicesConfiguration
             .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
 
         services.Configure<CookiePolicyOptions>(options =>
@@ -260,7 +260,7 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var categories = new List<Category>
+        var categories = new List<TeamCategory>
         {
             new()
             {
@@ -284,9 +284,9 @@ public static class ServicesConfiguration
 
         foreach (var category in categories)
         {
-            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+            if (!await dbContext.TeamCategories.AnyAsync(c => c.Name == category.Name))
             {
-                dbContext.Categories.Add(category);
+                dbContext.TeamCategories.Add(category);
                 await dbContext.SaveChangesAsync();
             }
         }

@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;

@@ -57,7 +57,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             if (categoryChanged)
             {
-                var newCategory = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<Category>
+                var newCategory = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
                 {
                     Filter = c => c.Id == newCategoryId,
                     AsNoTracking = true
@@ -65,7 +65,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
                 if (newCategory == null)
                 {
-                    return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(newCategoryId, typeof(Category)));
+                    return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(newCategoryId, typeof(TeamCategory)));
                 }
             }
 

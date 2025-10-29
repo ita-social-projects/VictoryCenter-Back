@@ -1,0 +1,3 @@
+namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
+
+public record UpdateHippotherapyProgramCategoryDto : CreateHippotherapyProgramCategoryDto;

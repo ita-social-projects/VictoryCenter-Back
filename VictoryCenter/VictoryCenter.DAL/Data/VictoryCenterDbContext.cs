@@ -13,7 +13,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     {
     }
 
-    public DbSet<Category> Categories { get; set; }
+    public DbSet<TeamCategory> TeamCategories { get; set; }
 
     public DbSet<VisitorPage> VisitorPages { get; set; }
 
@@ -25,12 +25,13 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<Image> Images { get; set; }
 
+    public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
+
+    public DbSet<HippotherapyProgram> HippotherapyPrograms { get; set; }
+
     public DbSet<WhoWeAreSection> WhoWeAreSections { get; set; }
 
     public DbSet<WhoWeAreContent> WhoWeAreContents { get; set; }
-    public DbSet<ProgramCategory> ProgramCategories { get; set; }
-
-    public DbSet<Program> Programs { get; set; }
 
     public DbSet<UahBankDetails> UahBankDetails { get; set; }
 

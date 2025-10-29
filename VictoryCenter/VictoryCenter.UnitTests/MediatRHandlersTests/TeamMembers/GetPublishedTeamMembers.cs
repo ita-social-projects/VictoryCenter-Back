@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;
@@ -44,11 +44,11 @@ public class GetPublishedTeamMembers
         Assert.Equal(expectedDto, result.Value);
     }
 
-    private static List<Category> GetCategoriesWithTeamMembers()
+    private static List<TeamCategory> GetCategoriesWithTeamMembers()
     {
         return
         [
-            new Category
+            new TeamCategory
             {
                 Id = 1,
                 Name = "Cool category 1",
@@ -75,7 +75,7 @@ public class GetPublishedTeamMembers
                     },
                 ]
             },
-            new Category
+            new TeamCategory
             {
                 Id = 2,
                 Name = "Cool category 2",
@@ -143,17 +143,17 @@ public class GetPublishedTeamMembers
         ];
     }
 
-    private void SetupRepository(IEnumerable<Category> categories)
+    private void SetupRepository(IEnumerable<TeamCategory> categories)
     {
-        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.CategoriesRepository.GetAllAsync(
-             It.IsAny<QueryOptions<Category>>()))
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamCategoriesRepository.GetAllAsync(
+             It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(categories);
     }
 
     private void SetupMapper(IEnumerable<CategoryWithPublishedTeamMembersDto> expectedDto)
     {
         _mockMapper
-            .Setup(x => x.Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(It.IsAny<IEnumerable<Category>>()))
+            .Setup(x => x.Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(It.IsAny<IEnumerable<TeamCategory>>()))
             .Returns(expectedDto);
     }
 }
