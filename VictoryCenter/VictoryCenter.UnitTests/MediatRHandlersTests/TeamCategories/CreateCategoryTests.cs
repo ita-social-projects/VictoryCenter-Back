@@ -86,7 +86,7 @@ public class CreateTeamCategoryTests
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(Category.Name)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(TeamCategory.Name)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class CreateTeamCategoryTests
 
     private void SetupRepositoryWrapper(int saveResult)
     {
-        _repositoryWrapperMock.Setup(repo => repo.TeamCategoriesRepository.CreateAsync(It.IsAny<TeamCategory>()));
+        _repositoryWrapperMock.Setup(repo => repo.TeamCategoriesRepository.CreateAsync(It.IsAny<TeamCategory>(), CancellationToken.None));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

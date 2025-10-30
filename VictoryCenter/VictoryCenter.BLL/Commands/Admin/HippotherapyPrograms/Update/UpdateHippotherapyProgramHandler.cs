@@ -3,15 +3,14 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Programs;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Update;
 
-public class UpdateHippotherapyProgramHandler : BaseHandler<UpdateProgramCommand,  ProgramDto>
+public class UpdateHippotherapyProgramHandler : BaseHandler<UpdateHippotherapyProgramCommand, HippotherapyProgramDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -24,7 +23,7 @@ public class UpdateHippotherapyProgramHandler : BaseHandler<UpdateProgramCommand
         _validator = validator;
     }
 
-    public override async Task<HippotherapyProgramDto> HandleRequest(UpdateProgramCommand request, CancellationToken cancellationToken)
+    public override async Task<HippotherapyProgramDto> HandleRequest(UpdateHippotherapyProgramCommand request, CancellationToken cancellationToken)
     {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
@@ -39,7 +38,7 @@ public class UpdateHippotherapyProgramHandler : BaseHandler<UpdateProgramCommand
             if (programToUpdate is null)
             {
                throw new Exception(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(Program)));
+                    .NotFound(request.Id, typeof(HippotherapyProgram)));
             }
 
             IEnumerable<HippotherapyProgramCategory> newCategories = await _repositoryWrapper.HippotherapyProgramCategoriesRepository.GetAllAsync(
@@ -73,10 +72,10 @@ public class UpdateHippotherapyProgramHandler : BaseHandler<UpdateProgramCommand
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Program)));
+                throw new DbUpdateException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
             }
 
-            ProgramDto responseDto = _mapper.Map<ProgramDto>(programToUpdate);
+            HippotherapyProgramDto responseDto = _mapper.Map<HippotherapyProgramDto>(programToUpdate);
             return responseDto;
     }
 }

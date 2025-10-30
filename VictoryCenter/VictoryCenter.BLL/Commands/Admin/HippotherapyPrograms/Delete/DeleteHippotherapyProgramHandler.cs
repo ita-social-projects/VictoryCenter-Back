@@ -7,7 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Delete;
 
-public class DeleteHippotherapyProgramHandler : BaseHandler<DeleteProgramCommand, long>
+public class DeleteHippotherapyProgramHandler : BaseHandler<DeleteHippotherapyProgramCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -16,7 +16,7 @@ public class DeleteHippotherapyProgramHandler : BaseHandler<DeleteProgramCommand
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public override async Task<long> HandleRequest(DeleteProgramCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(DeleteHippotherapyProgramCommand request, CancellationToken cancellationToken)
     {
         HippotherapyProgram? entityToDelete = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
         {
@@ -27,7 +27,7 @@ public class DeleteHippotherapyProgramHandler : BaseHandler<DeleteProgramCommand
         if (entityToDelete is null)
         {
             throw new Exception(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(Program)));
+                .NotFound(request.Id, typeof(HippotherapyProgram)));
         }
 
         entityToDelete.Categories.Clear();
@@ -35,7 +35,7 @@ public class DeleteHippotherapyProgramHandler : BaseHandler<DeleteProgramCommand
 
         if (await _repositoryWrapper.SaveChangesAsync() < 0)
         {
-            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Program)));
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgram)));
         }
 
         return entityToDelete.Id;

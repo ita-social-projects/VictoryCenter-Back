@@ -97,7 +97,7 @@ public class CreateHippotherapyProgramTests
         var handler = new CreateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new CreateHippotherapyProgramCommand(_createProgramDto), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Name)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(HippotherapyProgramDto.Name)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -138,7 +138,7 @@ public class CreateHippotherapyProgramTests
         _repositoryWrapperMock.Setup(r => r.ImageRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(_image);
         _repositoryWrapperMock.Setup(r => r.HippotherapyProgramsRepository
-            .CreateAsync(It.IsAny<DAL.Entities.HippotherapyProgram>()));
+            .CreateAsync(It.IsAny<DAL.Entities.HippotherapyProgram>(), CancellationToken.None));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

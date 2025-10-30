@@ -27,19 +27,19 @@ public class DeleteTeamCategoryHandler : BaseHandler<DeleteTeamCategoryCommand, 
 
         if (entityToDelete is null)
         {
-            throw new Exception(ErrorMessagesConstants.NotFound(request.Id, typeof(Category)));
+            throw new Exception(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory)));
         }
 
         if (entityToDelete.TeamMembers.Count != 0)
         {
-            throw new Exception(CategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyTeamMember);
+            throw new Exception(TeamCategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyTeamMember);
         }
 
         _repositoryWrapper.TeamCategoriesRepository.Delete(entityToDelete);
 
         if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
-            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Category)));
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamCategory)));
         }
 
         return entityToDelete.Id;

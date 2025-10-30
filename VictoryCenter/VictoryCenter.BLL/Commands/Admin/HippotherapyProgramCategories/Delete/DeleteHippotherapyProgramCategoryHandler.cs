@@ -7,7 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyProgramCategories.Delete;
 
-public class DeleteHippotherapyProgramCategoryHandler : IRequestHandler<DeleteHippotherapyProgramCategoryCommand, Result<long>>
+public class DeleteHippotherapyProgramCategoryHandler : BaseHandler<DeleteHippotherapyProgramCategoryCommand, long>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -16,7 +16,7 @@ public class DeleteHippotherapyProgramCategoryHandler : IRequestHandler<DeleteHi
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public override async Task<long> HandleRequest(DeleteProgramCategoryCommand request, CancellationToken cancellationToken)
+    public override async Task<long> HandleRequest(DeleteHippotherapyProgramCategoryCommand request, CancellationToken cancellationToken)
     {
         HippotherapyProgramCategory? entityToDelete = await _repositoryWrapper.HippotherapyProgramCategoriesRepository
             .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
@@ -29,19 +29,19 @@ public class DeleteHippotherapyProgramCategoryHandler : IRequestHandler<DeleteHi
         if (entityToDelete is null)
         {
             throw new Exception(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(ProgramCategory)));
+                .NotFound(request.Id, typeof(HippotherapyProgramCategory)));
         }
 
         if (entityToDelete.Programs.Count != 0)
         {
-            throw new Exception(ProgramCategoryConstants.CantDeleteProgramCategoryWhileAssociatedWithAnyProgram);
+            throw new Exception(HippotherapyProgramCategoryConstants.CantDeleteProgramCategoryWhileAssociatedWithAnyProgram);
         }
 
         _repositoryWrapper.HippotherapyProgramCategoriesRepository.Delete(entityToDelete);
 
         if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
-            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(ProgramCategory)));
+            throw new DbUpdateException(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgramCategory)));
         }
 
         return entityToDelete.Id;

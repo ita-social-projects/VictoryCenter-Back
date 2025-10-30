@@ -104,7 +104,7 @@ public class CreateHippotherapyProgramCategoryTests
     private void SetupDependencies(int saveResult = 1)
     {
         SetUpAutomapper(_program, _programCategoryDto);
-        SetupRepositoryWrapper(saveResult);
+        SetupRepositoryWrapper(saveResult, CancellationToken.None);
     }
 
     private void SetUpAutomapper(HippotherapyProgramCategory outputProgramCategoryEntity, HippotherapyProgramCategoryDto outputProgramCategoryDto)
@@ -115,10 +115,10 @@ public class CreateHippotherapyProgramCategoryTests
             .Returns(outputProgramCategoryDto);
     }
 
-    private void SetupRepositoryWrapper(int saveResult)
+    private void SetupRepositoryWrapper(int saveResult, CancellationToken cancellationToken)
     {
         _repositoryWrapperMock.Setup(repo => repo.HippotherapyProgramCategoriesRepository
-            .CreateAsync(It.IsAny<HippotherapyProgramCategory>()));
+            .CreateAsync(It.IsAny<HippotherapyProgramCategory>(), cancellationToken));
         _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

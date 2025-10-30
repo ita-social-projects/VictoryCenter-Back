@@ -98,7 +98,7 @@ public class UpdateHippotherapyProgramTests
         var handler = new UpdateHippotherapyProgramHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
         Result<HippotherapyProgramDto> result = await handler.Handle(new UpdateHippotherapyProgramCommand(_updateProgramDto, 1), CancellationToken.None);
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(ProgramDto.Name)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(HippotherapyProgramDto.Name)), result.Errors[0].Message);
     }
 
     [Fact]

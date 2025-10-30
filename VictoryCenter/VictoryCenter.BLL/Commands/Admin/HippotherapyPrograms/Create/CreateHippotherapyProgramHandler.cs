@@ -4,14 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Base;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 
-public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippotherapyProgramCommand, Result<HippotherapyProgramDto>>
+public class CreateHippotherapyProgramHandler : BaseHandler<CreateHippotherapyProgramCommand, HippotherapyProgramDto>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -24,18 +23,18 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
         _validator = validator;
     }
 
-    public async Task<Result<HippotherapyProgramDto>> Handle(CreateHippotherapyProgramCommand request, CancellationToken cancellationToken)
+    public override async Task<HippotherapyProgramDto> HandleRequest(CreateHippotherapyProgramCommand request, CancellationToken cancellationToken)
     {
         await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            IEnumerable<HippotherapyProgramCategory> categories = await _repositoryWrapper
+        IEnumerable<HippotherapyProgramCategory> categories = await _repositoryWrapper
                 .HippotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HippotherapyProgramCategory>
                 {
                     Filter = category => request.CreateProgramDto.CategoryIds.Contains(category.Id!),
                     AsNoTracking = false
                 });
 
-            HippotherapyProgram entity = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
+        HippotherapyProgram entity = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
         if (request.CreateProgramDto.ImageId is not null)
         {
@@ -56,28 +55,20 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
         var notFound = request.CreateProgramDto.CategoryIds.Except(categories.Select(c => c.Id)).ToList();
         if (notFound.Count > 0)
         {
-            throw new Exception(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(ProgramCategory), notFound));
+            throw new Exception(ErrorMessagesConstants.ReorderingContainsInvalidIds(typeof(HippotherapyProgramCategory), notFound));
         }
 
         entity.Categories = [.. categories];
         entity.CreatedAt = DateTimeOffset.UtcNow;
 
-            await _repositoryWrapper.HippotherapyProgramsRepository.CreateAsync(entity);
+        await _repositoryWrapper.HippotherapyProgramsRepository.CreateAsync(entity, cancellationToken);
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Ok(_mapper.Map<HippotherapyProgramDto>(entity));
+                throw new DbUpdateException(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)));
             }
 
-            return Result.Fail<HippotherapyProgramDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)));
-        }
-        catch (ValidationException ex)
-        {
-            return Result.Fail<HippotherapyProgramDto>(ex.Message);
-        }
-        catch (BlobStorageException)
-        {
-            return Result.Fail<HippotherapyProgramDto>(HippotherapyProgramConstants.FailedRetrievingProgramPhoto);
-        }
+        HippotherapyProgramDto responceDto = _mapper.Map<HippotherapyProgramDto>(entity);
+        return responceDto;
     }
 }

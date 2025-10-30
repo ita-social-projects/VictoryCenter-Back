@@ -40,7 +40,7 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
 
             if (category == null)
             {
-                throw new Exception(ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(Category)));
+                throw new Exception(ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(TeamMember)));
             }
 
             var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);

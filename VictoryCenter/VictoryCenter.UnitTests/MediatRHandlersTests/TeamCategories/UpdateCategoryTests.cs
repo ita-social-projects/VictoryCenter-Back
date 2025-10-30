@@ -97,7 +97,7 @@ public class UpdateCategoryTests
                 }, _testExistingCategory.Id), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(Category.Name)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(TeamCategory.Name)), result.Errors[0].Message);
     }
 
     [Theory]

@@ -34,7 +34,7 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
             var entity = _mapper.Map<TeamCategory>(request.CreateCategoryDto);
             entity.CreatedAt = DateTime.UtcNow;
 
-            await _repositoryWrapper.TeamCategoriesRepository.CreateAsync(entity);
+            await _repositoryWrapper.TeamCategoriesRepository.CreateAsync(entity, cancellationToken);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
