@@ -7,5 +7,5 @@ public class WhoWeArePageSectionDto
 {
     public SectionType SectionType { get; set; }
 
-    public List<WhoWeAreContentDto> Contents { get; set; }
+    public List<WhoWeAreContentDto> Contents { get; set; } = [];
 }

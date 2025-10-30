@@ -69,7 +69,6 @@ jobs:
           dotnet sonarscanner begin \
             /k:"ita-social-projects_VictoryCenter-Back" \
             /o:"ita-social-projects" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
             /d:sonar.exclusions="**/Migrations/**"
@@ -92,5 +91,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          dotnet sonarscanner end \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+          dotnet sonarscanner end

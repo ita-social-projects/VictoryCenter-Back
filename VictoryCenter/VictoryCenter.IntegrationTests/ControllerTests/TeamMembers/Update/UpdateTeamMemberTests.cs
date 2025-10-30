@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -17,15 +18,13 @@ public class UpdateTeamMemberTests : BaseTestClass
     {
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember(string? testDescription)
+    [Fact]
+    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember()
     {
+        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
+
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .LastOrDefaultAsync(tm => tm.Status == Status.Draft)
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -33,10 +32,9 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = "Test Name",
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
-            Description = testDescription,
-            Email = existingEntity.Email
+            Description = validDescription,
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -52,14 +50,13 @@ public class UpdateTeamMemberTests : BaseTestClass
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
-        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Fact]
     public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .Where(tm => tm.Status == Status.Draft)
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
@@ -68,10 +65,9 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = existingEntity.FullName,
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = existingEntity.Description,
-            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -87,7 +83,6 @@ public class UpdateTeamMemberTests : BaseTestClass
         Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
         Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
         Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
-        Assert.Equal(updateTeamMemberDto.Email, responseContent.Email);
     }
 
     [Theory]
@@ -97,7 +92,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .FirstOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -112,10 +107,9 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = testName!,
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = "Test Description",
-            Email = existingEntity.Email
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -142,7 +136,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     [InlineData(0)]
     public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
     {
-        Category category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ??
+        TeamCategory category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ??
                             throw new InvalidOperationException("Couldn't setup existing entity");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto
@@ -151,7 +145,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = category.Id,
             Status = Status.Published,
             Description = "Test Description",
-            Email = "test@email.com"
+            ImageId = 123
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 
@@ -172,7 +166,7 @@ public class UpdateTeamMemberTests : BaseTestClass
             CategoryId = wrongId,
             Status = Status.Published,
             Description = "Test Description",
-            Email = "test@email.com"
+            ImageId = 123
         };
         var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
 

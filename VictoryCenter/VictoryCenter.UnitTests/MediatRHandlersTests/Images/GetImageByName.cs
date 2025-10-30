@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
@@ -105,7 +105,7 @@ public class GetImageByNameHandlerTests
             Id = id,
             BlobName = "",
             MimeType = "image/png",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))

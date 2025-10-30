@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
-using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetAll;
 using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetByType;
+using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetPreviews;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.WebAPI.Controllers.Common;
 
@@ -11,7 +11,7 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class WhoWeAreController : AuthorizedApiController
 {
     [HttpPut("{sectionType}")]
-    public async Task<IActionResult> UpdateWhoWeAreSection(List<CreateWhoWeAreContentDto> dtos, SectionType sectionType)
+    public async Task<IActionResult> UpdateWhoWeAreSection(List<UpdateWhoWeAreContentDto> dtos, SectionType sectionType)
     {
         return HandleResult(await Mediator.Send(new UpdateWhoWeAreContentCommand(sectionType, dtos)));
     }
@@ -22,9 +22,9 @@ public class WhoWeAreController : AuthorizedApiController
         return HandleResult(await Mediator.Send(new GetWhoWeAreSectionQuery(sectionType)));
     }
 
-    [HttpGet]
-    public async Task<IActionResult> GetAllWhoWeAreSections()
+    [HttpGet("previews")]
+    public async Task<IActionResult> GetWhoWeAreSectionPreviews()
     {
-        return HandleResult(await Mediator.Send(new GetAllWhoWeAreSectionsQuery()));
+        return HandleResult(await Mediator.Send(new GetWhoWeAreSectionPreviewsQuery()));
     }
 }

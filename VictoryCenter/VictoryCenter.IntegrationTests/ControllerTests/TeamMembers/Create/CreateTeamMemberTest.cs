@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -19,14 +19,13 @@ public class CreateTeamMemberTest : BaseTestClass
     [Fact]
     public async Task CreateTeamMember_ShouldReturnOk()
     {
-        var category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FullName = "TestName",
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
-            Email = "Test@gmail.com",
         };
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
@@ -47,7 +46,6 @@ public class CreateTeamMemberTest : BaseTestClass
             CategoryId = 10000,
             Status = Status.Draft,
             Description = "Long description",
-            Email = "Test@gmail.com",
         };
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);
@@ -62,14 +60,13 @@ public class CreateTeamMemberTest : BaseTestClass
     [Fact]
     public async Task CreateTeamMember_ShouldFail_InvalidFullNameLength()
     {
-        var category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FullName = "A",
             CategoryId = category.Id,
             Status = Status.Draft,
             Description = "Long description",
-            Email = "Test@gmail.com",
         };
 
         var serializedDto = JsonConvert.SerializeObject(createTeamMemberDto);

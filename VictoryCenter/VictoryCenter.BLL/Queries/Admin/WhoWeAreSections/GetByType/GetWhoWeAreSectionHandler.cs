@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
@@ -33,6 +34,11 @@ public class GetWhoWeAreSectionHandler : IRequestHandler<GetWhoWeAreSectionQuery
                     .Include(sec => sec.Contents)
                     .ThenInclude(c => (c as CardContent)!.Image)!
             });
+
+        if (section == null)
+        {
+            return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+        }
 
         return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(section));
     }

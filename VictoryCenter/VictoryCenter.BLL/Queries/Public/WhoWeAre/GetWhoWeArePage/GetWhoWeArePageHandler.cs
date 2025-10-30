@@ -1,5 +1,4 @@
-﻿#pragma warning disable IDE0005
-using AutoMapper;
+﻿using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

@@ -10,5 +10,5 @@ public abstract class WhoWeAreContent
 
     public ContentType ContentType { get; set; }
 
-    public WhoWeAreSection Section { get; set; }
+    public WhoWeAreSection Section { get; set; } = null!;
 }

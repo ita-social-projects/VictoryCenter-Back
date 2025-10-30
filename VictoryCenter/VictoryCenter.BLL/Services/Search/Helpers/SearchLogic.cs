@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Services.Search.Helpers;
+namespace VictoryCenter.BLL.Services.Search.Helpers;
 
 // More different types of search can be added here
 

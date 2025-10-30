@@ -1,10 +1,16 @@
-﻿namespace VictoryCenter.IntegrationTests.Utils.Seeders;
+namespace VictoryCenter.IntegrationTests.Utils.Seeders;
 
 public enum SeederExecutionOrder
 {
     Categories,
+    FaqQuestions,
     TeamMembers,
-    ProgramCategories,
-    Programs,
-    Images
+    HippotherapyProgramCategories,
+    HippotherapyPrograms,
+    Images,
+    UahBankDetails,
+    SupportOptions,
+    ForeignBankDetails,
+    CorrespondentBankDetails,
+    WhoWeAre
 }

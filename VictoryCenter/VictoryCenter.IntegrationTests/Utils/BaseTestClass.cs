@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.Utils;

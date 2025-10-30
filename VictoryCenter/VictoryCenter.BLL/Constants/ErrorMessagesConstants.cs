@@ -16,6 +16,13 @@ public static class ErrorMessagesConstants
         return $"Entity {entityType.Name} with id '{id}' was not found";
     }
 
+    public static string NotFoundByIdentifier(object? identifier, Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Entity {entityType.Name} with identifier '{identifier}' was not found";
+    }
+
     public static string FailedToCreateEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
@@ -37,6 +44,13 @@ public static class ErrorMessagesConstants
         return $"Failed to update {entityType.Name}";
     }
 
+    public static string FailedToUpdateEntityInDatabase(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to update {entityType.Name} in the database";
+    }
+
     public static string FailedToDeleteEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
@@ -44,11 +58,18 @@ public static class ErrorMessagesConstants
         return $"Failed to delete {entityType.Name}";
     }
 
+    public static string FailedToDeleteEntityInDatabase(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to delete {entityType.Name} in the database";
+    }
+
     public static string ReorderingContainsInvalidIds(Type entityType, IEnumerable<long> ids)
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
-        return $"Invalid IDs found while reodering {entityType.Name}: {string.Join(", ", ids)}";
+        return $"Invalid IDs found while reordering {entityType.Name}: {string.Join(", ", ids)}";
     }
 
     public static string PropertyMustHaveAMinimumLengthOfNCharacters(string property, int length)
@@ -96,6 +117,11 @@ public static class ErrorMessagesConstants
     public static string CollectionMustContainUniqueValues(string collection)
     {
         return $"{collection} must contain unique values";
+    }
+
+    public static string CollectionCannotContainNullElements(string collectionName)
+    {
+        return $"{collectionName} cannot contain null elements";
     }
 
     public static string PropertyMustHaveALengthOfNCharacters(string property, int length)

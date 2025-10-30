@@ -3,6 +3,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
@@ -36,52 +37,56 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var dictEntities = await GetContentMappedToDictionary(request.Content);
+            var dictEntities = await GetContentMappedToDictionary(request.Contents);
             var sectionId = await GetSectionIdByType(request.SectionType) ??
-                            throw new ArgumentException("Section type is invalid");
+                            throw new ArgumentException(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(request.SectionType)));
 
-            foreach (var dto in request.Content)
+            foreach (var dto in request.Contents)
             {
                 if (!dictEntities.TryGetValue(dto.Id, out var entity))
                 {
-                    return Result.Fail("Content was not found");
+                    return Result.Fail(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent)));
                 }
 
                 if (entity.SectionId != sectionId)
                 {
-                    return Result.Fail("Entity didnt belong to this section");
+                    return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), sectionId));
                 }
 
                 if (entity.ContentType != dto.ContentType)
                 {
-                    return Result.Fail("Wrong Content type");
+                    return Result.Fail(WhoWeAreConstants.DtoHasWrongContentType(dto.Id, entity.ContentType, dto.ContentType));
                 }
 
-                await UpdateContent(dto, entity, itemToDelete);
-                await _repository.SaveChangesAsync();
-            }
-
-            foreach (var image in itemToDelete)
-            {
-                _repository.ImageRepository.Delete(image);
+                UpdateContent(dto, entity, itemToDelete);
             }
 
             await _repository.SaveChangesAsync();
 
             var updatedSection = await GetSection(request.SectionType);
+
+            if (updatedSection == null)
+            {
+                return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+            }
+
             return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(updatedSection));
         }
         catch (ValidationException vex)
         {
             return Result.Fail(vex.Errors.Select(x => x.ErrorMessage));
         }
-        catch (ArgumentNullException e)
+        catch (ArgumentException e)
         {
-            return Result.Fail("Section was not found");
+            return Result.Fail(e.Message);
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(WhoWeAreContent)));
         }
     }
 
-    private async Task<Dictionary<long, WhoWeAreContent>> GetContentMappedToDictionary(List<CreateWhoWeAreContentDto> content)
+    private async Task<Dictionary<long, WhoWeAreContent>> GetContentMappedToDictionary(List<UpdateWhoWeAreContentDto> content)
     {
         var contentIds = content.Select(x => x.Id).ToList();
 
@@ -107,7 +112,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
             });
     }
 
-    private async Task UpdateContent(CreateWhoWeAreContentDto contentDto, WhoWeAreContent entity, List<Image> deleteList)
+    private async Task UpdateContent(UpdateWhoWeAreContentDto contentDto, WhoWeAreContent entity, List<Image> deleteList)
     {
         switch (contentDto.ContentType)
         {

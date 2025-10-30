@@ -21,7 +21,7 @@ public class WhoWeAreSectionConfig : IEntityTypeConfiguration<WhoWeAreSection>
             .HasMaxLength(200);
 
         entity.Property(e => e.CreatedAt)
-            .IsRequired(); // default in SQL Server
+            .IsRequired();
 
         entity.HasMany(e => e.Contents)
             .WithOne(c => c.Section)

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -103,7 +103,7 @@ public class UpdateImageTest : BaseTestClass
             Id = 1100,
             MimeType = "image/png",
             BlobName = "test123",
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTimeOffset.UtcNow
         };
         Fixture.DbContext.Images.Add(testImage);
 

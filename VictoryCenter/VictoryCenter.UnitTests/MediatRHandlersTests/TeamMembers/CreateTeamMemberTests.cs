@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
 using FluentResults;
@@ -9,6 +9,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -21,14 +22,14 @@ public class CreateTeamMemberTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<CreateTeamMemberCommand>> _validator;
+    private readonly Mock<IReorderService> _reorderServiceMock;
 
     private readonly CreateTeamMemberDto _createTeamMemberDto = new()
     {
         FullName = "TestName",
         CategoryId = 1,
         Status = Status.Draft,
-        Description = "Long description",
-        Email = "Test@gmail.com"
+        Description = "Long description"
     };
 
     private readonly TeamMember _teamMember = new()
@@ -40,7 +41,7 @@ public class CreateTeamMemberTests
         Status = Status.Draft,
         Description = "Long description",
         Email = "Test@gmail.com",
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
     };
 
     private readonly TeamMemberDto _teamMemberDto = new()
@@ -50,15 +51,14 @@ public class CreateTeamMemberTests
         Priority = 1,
         CategoryId = 1,
         Status = Status.Draft,
-        Description = "Long description",
-        Email = "Test@gmail.com"
+        Description = "Long description"
     };
 
-    private readonly Category _category = new()
+    private readonly TeamCategory _category = new()
     {
         Id = 1,
         Name = "Test",
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
     };
 
     public CreateTeamMemberTests()
@@ -66,13 +66,14 @@ public class CreateTeamMemberTests
         _validator = new Mock<IValidator<CreateTeamMemberCommand>>();
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
+        _reorderServiceMock = new Mock<IReorderService>();
     }
 
     [Fact]
     public async Task CreateTeamMemberHandle_ShouldReturnTeamMemberDto_WhenCreationIsValid()
     {
         SetupDependencies(_teamMemberDto, _teamMember, 1);
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -88,7 +89,7 @@ public class CreateTeamMemberTests
         var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMember));
         SetupDependencies(_teamMemberDto, _teamMember, -1);
 
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
@@ -103,18 +104,20 @@ public class CreateTeamMemberTests
     {
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
-            .ReturnsAsync((Category?)null);
+                repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
+            .ReturnsAsync((TeamCategory?)null);
         SetupMapper(_teamMemberDto, _teamMember);
         SetupValidator();
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        SetupReorderService();
+
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(Category)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(_createTeamMemberDto.CategoryId, typeof(TeamCategory)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -126,25 +129,27 @@ public class CreateTeamMemberTests
             .Setup(repositoryWrapperMock =>
                 repositoryWrapperMock.TeamMembersRepository.CreateAsync(It.IsAny<TeamMember>()))
             .ThrowsAsync(new DbUpdateException(testMessage));
-        _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
-            .ReturnsAsync(0L);
+
+        SetupReorderService();
 
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Category>>()))
+                repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(_category);
 
-        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object);
+        SetupValidator();
+
+        var handler = new CreateTeamMemberHandler(_repositoryWrapperMock.Object, _mapperMock.Object, _validator.Object, _reorderServiceMock.Object);
 
         Result<TeamMemberDto> result =
             await handler.Handle(new CreateTeamMemberCommand(_createTeamMemberDto), CancellationToken.None);
 
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)) + testMessage, result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(TeamMember)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(TeamMemberDto memberDto, TeamMember member, int isSuccess)
@@ -152,6 +157,7 @@ public class CreateTeamMemberTests
         SetupMapper(memberDto, member);
         SetupRepositoryWrapper(member, isSuccess);
         SetupValidator();
+        SetupReorderService();
     }
 
     private void SetupMapper(TeamMemberDto teamMemberDto, TeamMember teamMember)
@@ -166,14 +172,17 @@ public class CreateTeamMemberTests
             .ReturnsAsync(new ValidationResult());
     }
 
+    private void SetupReorderService()
+    {
+        _reorderServiceMock.Setup(r => r.GetNextDisplayOrderAsync<TeamMember>(It.IsAny<Expression<Func<TeamMember, bool>>>()))
+            .ReturnsAsync(1L);
+    }
+
     private void SetupRepositoryWrapper(TeamMember teamMember, int isSuccess)
     {
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository
                 .CreateAsync(It.IsAny<TeamMember>()))
             .ReturnsAsync(teamMember);
-
-        _repositoryWrapperMock.Setup(r => r.TeamMembersRepository.MaxAsync(It.IsAny<Expression<Func<TeamMember, long>>>(), It.IsAny<Expression<Func<TeamMember, bool>>?>()))
-            .ReturnsAsync(0L);
 
         _repositoryWrapperMock.Setup(repositoryWrapper => repositoryWrapper.SaveChangesAsync())
             .ReturnsAsync(isSuccess);
@@ -183,8 +192,8 @@ public class CreateTeamMemberTests
 
         _repositoryWrapperMock
             .Setup(repositoryWrapper =>
-                repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                    It.IsAny<QueryOptions<Category>>()))
+                repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                    It.IsAny<QueryOptions<TeamCategory>>()))
             .ReturnsAsync(_category);
     }
 }

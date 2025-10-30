@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +19,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_ValidRequest_ShouldReturnOk()
     {
         // Arrange
-        var categoryId = (await Fixture.DbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await Fixture.DbContext.TeamCategories.FirstAsync()).Id;
 
         var originalTeamMemberIdsOrder = await Fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
@@ -59,7 +59,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_PartialTeamMemberIds_ShouldReorderPartialMembers()
     {
         // Arrange
-        var categoryId = (await Fixture.DbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await Fixture.DbContext.TeamCategories.FirstAsync()).Id;
 
         var allTeamMemberIdsOrder = await Fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
@@ -123,7 +123,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_EmptyOrderedIds_ShouldReturnBadRequest()
     {
         // Arrange
-        var categoryId = (await Fixture.DbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await Fixture.DbContext.TeamCategories.FirstAsync()).Id;
 
         var reorderDto = new ReorderTeamMembersDto
         {
@@ -144,7 +144,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_DuplicateIds_ShouldReturnBadRequest()
     {
         // Arrange
-        var categoryId = (await Fixture.DbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await Fixture.DbContext.TeamCategories.FirstAsync()).Id;
 
         var existingIds = await Fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
@@ -178,7 +178,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_InvalidIdInOrderedIds_ShouldReturnBadRequest(long invalidId)
     {
         // Arrange
-        var categoryId = (await Fixture.DbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await Fixture.DbContext.TeamCategories.FirstAsync()).Id;
 
         var existingIds = await Fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
@@ -208,7 +208,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_NonExistentMemberIds_ShouldReturnBadRequest()
     {
         // Arrange
-        var categoryId = (await Fixture.DbContext.Categories.FirstAsync()).Id;
+        var categoryId = (await Fixture.DbContext.TeamCategories.FirstAsync()).Id;
 
         var existingIds = await Fixture.DbContext.TeamMembers
             .Where(x => x.CategoryId == categoryId)
@@ -239,7 +239,7 @@ public class ReorderTeamMemberTests : BaseTestClass
     public async Task ReorderTeamMembers_MemberFromDifferentCategory_ShouldReturnBadRequest()
     {
         // Arrange
-        var categories = await Fixture.DbContext.Categories.ToListAsync();
+        var categories = await Fixture.DbContext.TeamCategories.ToListAsync();
 
         if (categories.Count < 2)
         {

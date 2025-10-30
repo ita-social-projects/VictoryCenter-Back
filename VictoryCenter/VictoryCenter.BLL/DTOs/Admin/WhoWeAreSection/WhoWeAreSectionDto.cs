@@ -9,7 +9,5 @@ public class WhoWeAreSectionDto
 
     public required string Title { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public List<WhoWeAreContentDto> Contents { get; set; }
+    public List<WhoWeAreContentDto> Contents { get; set; } = [];
 }

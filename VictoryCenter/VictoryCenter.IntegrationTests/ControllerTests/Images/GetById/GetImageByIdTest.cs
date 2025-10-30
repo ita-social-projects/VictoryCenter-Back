@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Common;
@@ -50,7 +50,7 @@ public class GetImageByIdTest : BaseTestClass
             BlobName = "",
             MimeType = "image/png",
             Url = "http://test.com/empty.png",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         Fixture.DbContext.Images.Add(imageWithEmptyBlobName);

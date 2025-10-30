@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Constants;
+namespace VictoryCenter.BLL.Constants;
 
 public static class ImageConstants
 {
@@ -13,6 +13,7 @@ public static class ImageConstants
     public static readonly string FailedToReadImage = "Failed to retrieve the image.";
     public static readonly string HttpContextIsNotAvailable = "HttpContext is not available.";
     public static readonly string FailToCreateDirectory = "Failed to create blob storage directory";
+    public static readonly string InvalidImageSize = "Invalid image size";
 
     public static string MimeTypeValidationError(string[] types)
     {

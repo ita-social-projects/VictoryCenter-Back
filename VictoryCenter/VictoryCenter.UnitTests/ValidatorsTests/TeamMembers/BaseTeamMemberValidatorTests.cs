@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
@@ -21,7 +21,7 @@ public class BaseTeamMembersValidatorTests
         var model = new CreateTeamMemberDto { FullName = "", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.FullName)));
+            .WithErrorMessage("FullName must be in a valid format");
     }
 
     [Fact]
@@ -47,6 +47,34 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameConsistSymbols()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "@#$",
+        };
+
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(
+                ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateTeamMemberDto.FullName)));
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameConsistNumbers()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "123",
+        };
+
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.FullName)
+            .WithErrorMessage(
+                ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateTeamMemberDto.FullName)));
+    }
+
+    [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenCategoryIdIsZero()
     {
         var model = new CreateTeamMemberDto { FullName = "John Doe", CategoryId = 0 };
@@ -62,7 +90,8 @@ public class BaseTeamMembersValidatorTests
         {
             FullName = "John Doe",
             CategoryId = 1,
-            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMaxLength + 1)
+            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMaxLength + 1),
+            Status = Status.Published
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
@@ -94,7 +123,7 @@ public class BaseTeamMembersValidatorTests
             FullName = "Anna",
             CategoryId = 1,
             Status = Status.Draft,
-            Description = "",
+            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5),
         };
 
         var result = _validator.TestValidate(model);
@@ -110,9 +139,42 @@ public class BaseTeamMembersValidatorTests
             CategoryId = 1,
             Status = Status.Published,
             Description = "Desc",
+            ImageId = 123
         };
 
         var result = _validator.TestValidate(model);
-        result.ShouldNotHaveAnyValidationErrors();
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), BaseTeamMembersValidator.DescriptionNameMinLength));
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenImageIdIsNullForPublished()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "John Doe",
+            CategoryId = 1,
+            Status = Status.Published,
+            Description = "Valid description",
+            ImageId = null
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.ImageId)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.ImageId)));
+    }
+
+    [Fact]
+    public void BaseTeamMembersValidator_ShouldNotHaveError_WhenImageIdIsNullForDraft()
+    {
+        var model = new CreateTeamMemberDto
+        {
+            FullName = "John Doe",
+            CategoryId = 1,
+            Status = Status.Draft,
+            Description = "",
+            ImageId = null
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.ImageId);
     }
 }

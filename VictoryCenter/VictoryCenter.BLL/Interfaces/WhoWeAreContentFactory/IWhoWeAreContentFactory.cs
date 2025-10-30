@@ -5,19 +5,11 @@ namespace VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 
 public interface IWhoWeAreContentFactory
 {
-    TitleContent CreateTitle(CreateWhoWeAreContentDto dto);
+    TitleContent UpdateTitle(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity);
 
-    ImageContent CreateImage(CreateWhoWeAreContentDto dto);
+    ImageContent UpdateImage(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity);
 
-    DescriptionContent CreateDescription(CreateWhoWeAreContentDto dto);
+    DescriptionContent UpdateDescription(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity);
 
-    CardContent CreateCard(CreateWhoWeAreContentDto dto);
-
-    TitleContent UpdateTitle(CreateWhoWeAreContentDto dto, WhoWeAreContent content);
-
-    ImageContent UpdateImage(CreateWhoWeAreContentDto dto, WhoWeAreContent content);
-
-    DescriptionContent UpdateDescription(CreateWhoWeAreContentDto dto, WhoWeAreContent content);
-
-    CardContent UpdateCard(CreateWhoWeAreContentDto dto, WhoWeAreContent content);
+    CardContent UpdateCard(UpdateWhoWeAreContentDto dto, WhoWeAreContent entity);
 }

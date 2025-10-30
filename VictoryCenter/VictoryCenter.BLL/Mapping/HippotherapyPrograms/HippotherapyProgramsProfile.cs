@@ -1,0 +1,19 @@
+using AutoMapper;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Public.HippotherapyPrograms;
+using VictoryCenter.DAL.Entities;
+
+namespace VictoryCenter.BLL.Mapping.HippotherapyPrograms;
+
+public class HippotherapyProgramsProfile : Profile
+{
+    public HippotherapyProgramsProfile()
+    {
+        CreateMap<HippotherapyProgram, HippotherapyProgramDto>();
+        CreateMap<HippotherapyProgram, PublishedHippotherapyProgramDto>();
+        CreateMap<CreateHippotherapyProgramDto, HippotherapyProgram>()
+            .ForMember(dest => dest.Categories, opt => opt.Ignore());
+        CreateMap<HippotherapyUpdateProgramDto, HippotherapyProgram>()
+            .ForMember(dest => dest.Categories, opt => opt.Ignore());
+    }
+}

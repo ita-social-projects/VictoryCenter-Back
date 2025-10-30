@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
@@ -18,6 +20,7 @@ using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
@@ -52,11 +55,11 @@ public static class ServicesConfiguration
             .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
 
         services.Configure<CookiePolicyOptions>(options =>
@@ -79,6 +82,8 @@ public static class ServicesConfiguration
                     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
             });
         });
+
+        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
     }
 
     public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
@@ -119,6 +124,8 @@ public static class ServicesConfiguration
         services.AddSingleton<ITokenService, TokenService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
+
+        services.AddScoped<IReorderService, ReorderService>();
 
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
@@ -182,7 +189,34 @@ public static class ServicesConfiguration
     {
         await app.CreateInitialAdminAsync();
         await app.CreateInitialCategoriesAsync();
+        await app.SeedVisitorPagesAsync();
         await app.CreateInitialWhoWeArePages();
+    }
+
+    public static async Task SeedVisitorPagesAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        var existing = await dbContext.VisitorPages.ToListAsync();
+        var existingBySlug = existing.ToDictionary(p => p.Slug, StringComparer.OrdinalIgnoreCase);
+
+        var toAdd = new List<VisitorPage>();
+
+        foreach (var page in PageConstants.VisitorPages)
+        {
+            if (existingBySlug.TryGetValue(page.Slug, out VisitorPage? found))
+            {
+                found.Title = page.Title;
+            }
+            else
+            {
+                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTime.UtcNow });
+            }
+        }
+
+        dbContext.VisitorPages.AddRange(toAdd);
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task CreateInitialAdminAsync(this WebApplication app)
@@ -203,8 +237,8 @@ public static class ServicesConfiguration
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
-                CreatedAt = DateTime.UtcNow,
-                RefreshTokenValidTo = DateTime.UtcNow.AddDays(30),
+                CreatedAt = DateTimeOffset.UtcNow,
+                RefreshTokenValidTo = DateTimeOffset.UtcNow.AddDays(30),
 
                 // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
                 RefreshToken = tokenService.CreateRefreshToken([])
@@ -226,33 +260,33 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var categories = new List<Category>
+        var categories = new List<TeamCategory>
         {
             new()
             {
                 Name = "Основна команда",
                 Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Name = "Наглядова рада",
                 Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Name = "Радники",
                 Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             }
         };
 
         foreach (var category in categories)
         {
-            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
+            if (!await dbContext.TeamCategories.AnyAsync(c => c.Name == category.Name))
             {
-                dbContext.Categories.Add(category);
+                dbContext.TeamCategories.Add(category);
                 await dbContext.SaveChangesAsync();
             }
         }
@@ -300,7 +334,7 @@ public static class ServicesConfiguration
                     {
                         ContentType = ContentType.Description,
                         Description =
-                            "Ми створюємо терапевтичні програми, які поєднують взаємодію з кіньми, тілесні практики, контакт із природою, психологічний супровід, спільноту підтримки. Кожна програма адаптується під індивідуальні запити учасників/ць групи.Кожна програма адаптується",
+                            "Ми створюємо терапевтичні програми, які поєднують взаємодію з кіньми, тілесні практики, контакт із природою, психологічний супровід, спільноту підтримки. Кожна програма адаптується під індивідуальні запити учасників/ць групи.",
                     },
                 }
             },
@@ -323,7 +357,7 @@ public static class ServicesConfiguration
                         ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
-                            "Волонтерів/ок та цивільних, які відчувають потребу в емоційному відновленні іпрагнуть продовжувати підтримувати інших.",
+                            "Волонтерів/ок та цивільних, які відчувають потребу в емоційному відновленні і прагнуть продовжувати підтримувати інших.",
                     },
                     new CardContent()
                     {
@@ -350,7 +384,7 @@ public static class ServicesConfiguration
                     {
                         ContentType = ContentType.Description,
                         Description =
-                            "Волонтерів/ок та цивільних, які відчувають потребу в емоційному відновленні іпрагнуть продовжувати підтримувати інших.",
+                            "Victory Center — це спільна робота психологів, фасилітаторів, координаторів, волонтерів, а також партнерських локацій (ранчо), об’єднаних прагненням створити безпечне середовище для відновлення.\n\nНаша команда працює з військовими/ветеранами, дітьми та їхніми родинами, проходить регулярне навчання, дотримується етичного кодексу, не знецінює, а цінує та підтримує",
                     },
                 }
             },
@@ -366,7 +400,7 @@ public static class ServicesConfiguration
                         ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
-                            "Партнери, які поділяють наші мрії та цінності",
+                            "Учасники/ці, які вірять і довіряють",
                     },
                     new CardContent()
                     {
@@ -380,13 +414,13 @@ public static class ServicesConfiguration
                         ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
-                            "волонтери/ки, які поруч, аби підтримати.",
+                            "Волонтери/ки, які поруч, аби підтримати.",
                     },
                     new CardContent()
                     {
                         ContentType = ContentType.Card,
                         ImageId = null,
-                        Description = "благодійники/ці, які допомагають втілити ідеї в реальність",
+                        Description = "Благодійники/ці, які допомагають втілити ідеї в реальність",
                     },
                 }
             },
