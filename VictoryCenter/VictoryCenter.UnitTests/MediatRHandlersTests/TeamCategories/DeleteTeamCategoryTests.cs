@@ -16,7 +16,7 @@ public class DeleteTeamCategoryTests
         Id = 1,
         Name = "Test name",
         Description = "Test description",
-        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Local.BaseUtcOffset),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
     };
 
     public DeleteTeamCategoryTests()

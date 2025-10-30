@@ -22,7 +22,7 @@ public class CreateTeamCategoryTests
         Id = 1,
         Name = "Test Category",
         Description = "Test Category Description",
-        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Local.BaseUtcOffset),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
     };
 
     private TeamCategoryDto _testCategoryDto = new()
