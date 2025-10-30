@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -19,7 +19,7 @@ public class CreateTeamMemberTest : BaseTestClass
     [Fact]
     public async Task CreateTeamMember_ShouldReturnOk()
     {
-        var category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FullName = "TestName",
@@ -60,7 +60,7 @@ public class CreateTeamMemberTest : BaseTestClass
     [Fact]
     public async Task CreateTeamMember_ShouldFail_InvalidFullNameLength()
     {
-        var category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createTeamMemberDto = new CreateTeamMemberDto
         {
             FullName = "A",

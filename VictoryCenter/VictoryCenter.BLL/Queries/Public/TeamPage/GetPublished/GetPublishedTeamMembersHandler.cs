@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +24,7 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
 
     public async Task<Result<List<CategoryWithPublishedTeamMembersDto>>> Handle(GetPublishedTeamMembersQuery request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<Category>
+        var queryOptions = new QueryOptions<TeamCategory>
         {
             Filter = category => category.TeamMembers.Any(member => member.Status == Status.Published),
             Include = categories => categories.Include(category => category.TeamMembers
@@ -33,8 +33,8 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
                 .ThenInclude(member => member.Image!)
         };
 
-        IEnumerable<Category> categoriesWithPublishedMembers =
-            await _repository.CategoriesRepository.GetAllAsync(queryOptions);
+        IEnumerable<TeamCategory> categoriesWithPublishedMembers =
+            await _repository.TeamCategoriesRepository.GetAllAsync(queryOptions);
 
         var publishedCategoriesDto = _mapper
             .Map<IEnumerable<CategoryWithPublishedTeamMembersDto>>(categoriesWithPublishedMembers)

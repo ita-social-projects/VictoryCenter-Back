@@ -32,9 +32,8 @@ public class CreateTeamMemberHandler : BaseHandler<CreateTeamMemberCommand, Team
     public override async Task<TeamMemberDto> HandleRequest(CreateTeamMemberCommand request, CancellationToken cancellationToken)
     {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var category = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<Category>
+            TeamCategory? category = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<TeamCategory>
                 {
                     Filter = c => c.Id == request.CreateTeamMemberDto.CategoryId
                 });

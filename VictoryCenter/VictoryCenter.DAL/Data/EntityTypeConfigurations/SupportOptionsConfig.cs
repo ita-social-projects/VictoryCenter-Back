@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
+
 public class SupportOptionsConfig : IEntityTypeConfiguration<SupportOptions>
 {
     public void Configure(EntityTypeBuilder<SupportOptions> builder)

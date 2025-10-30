@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+namespace VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 
 /// <summary>
 /// Serves as the base class for all blob storage-related exceptions.

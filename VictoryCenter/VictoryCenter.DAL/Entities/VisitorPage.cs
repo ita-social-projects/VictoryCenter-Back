@@ -1,14 +1,12 @@
+using VictoryCenter.DAL.Data.BaseEntity;
+
 namespace VictoryCenter.DAL.Entities;
 
-public class VisitorPage
+public class VisitorPage : BaseEntity
 {
-    public long Id { get; set; }
-
     public string Slug { get; set; } = null!;
 
     public string Title { get; set; } = null!;
-
-    public DateTime CreatedAt { get; set; }
 
     public ICollection<FaqPlacement> Questions { get; set; } = [];
 }

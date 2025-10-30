@@ -24,7 +24,7 @@ public class UpdateTeamMemberTests : BaseTestClass
         var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
 
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .LastOrDefaultAsync(tm => tm.Status == Status.Draft)
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -32,7 +32,7 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = "Test Name",
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = validDescription,
         };
@@ -56,7 +56,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .Where(tm => tm.Status == Status.Draft)
                                         .LastOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
@@ -65,7 +65,7 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = existingEntity.FullName,
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = existingEntity.Description,
         };
@@ -92,7 +92,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
     {
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
-                                        .Include(tm => tm.Category)
+                                        .Include(tm => tm.TeamCategory)
                                         .FirstOrDefaultAsync()
                                     ?? throw new InvalidOperationException(
                                         "No TeamMember entity exists in the database.");
@@ -107,7 +107,7 @@ public class UpdateTeamMemberTests : BaseTestClass
         var updateTeamMemberDto = new UpdateTeamMemberDto
         {
             FullName = testName!,
-            CategoryId = existingEntity.Category.Id,
+            CategoryId = existingEntity.TeamCategory.Id,
             Status = existingEntity.Status,
             Description = "Test Description",
         };
@@ -136,7 +136,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     [InlineData(0)]
     public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
     {
-        Category category = await Fixture.DbContext.Categories.FirstOrDefaultAsync() ??
+        TeamCategory category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ??
                             throw new InvalidOperationException("Couldn't setup existing entity");
 
         var updateTeamMemberDto = new UpdateTeamMemberDto

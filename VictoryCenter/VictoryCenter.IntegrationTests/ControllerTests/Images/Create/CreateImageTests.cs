@@ -1,4 +1,4 @@
-п»їusing System.Net;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Admin.Images;
@@ -89,12 +89,12 @@ public class CreateImageTests : BaseTestClass
         Assert.NotNull(responseContext);
         Assert.Equal(mimeType, responseContext.MimeType);
 
-        // РџРµСЂРµРІС–СЂСЏС”РјРѕ С‰Рѕ С„Р°Р№Р» СЃС‚РІРѕСЂРµРЅРѕ Р· РїСЂР°РІРёР»СЊРЅРёРј СЂРѕР·С€РёСЂРµРЅРЅСЏРј
+        // Перевіряємо що файл створено з правильним розширенням
         string expectedExtension = GetExtensionFromMimeType(mimeType);
         string filePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, $"{responseContext.BlobName}.{expectedExtension}");
         Assert.True(File.Exists(filePath));
 
-        // РџРµСЂРµРІС–СЂСЏС”РјРѕ С‰Рѕ URL РјС–СЃС‚РёС‚СЊ РїСЂР°РІРёР»СЊРЅРµ СЂРѕР·С€РёСЂРµРЅРЅСЏ
+        // Перевіряємо що URL містить правильне розширення
         Assert.Contains($".{expectedExtension}", responseContext.Url);
     }
 

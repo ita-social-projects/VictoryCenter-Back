@@ -51,16 +51,32 @@ public class UpdateTeamMemberHandler : BaseHandler<UpdateTeamMemberCommand, Team
         var newCategoryId = request.UpdateTeamMemberDto.CategoryId;
         var categoryChanged = oldCategoryId != newCategoryId;
 
+<<<<<<< HEAD
         if (categoryChanged)
         {
             var newCategory = await _repositoryWrapper.CategoriesRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<Category>
+=======
+            if (categoryChanged)
+            {
+                var newCategory = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
+>>>>>>> release/1.0.0
                 {
                     Filter = c => c.Id == newCategoryId,
                     AsNoTracking = true
                 });
 
+<<<<<<< HEAD
             if (newCategory == null)
+=======
+                if (newCategory == null)
+                {
+                    return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(newCategoryId, typeof(TeamCategory)));
+                }
+            }
+
+            using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
+>>>>>>> release/1.0.0
             {
                 throw new Exception(ErrorMessagesConstants.NotFound(newCategoryId, typeof(Category)));
             }

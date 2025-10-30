@@ -22,7 +22,7 @@ public class UpdateUahBankDetailsTests
         Name = "Updated Bank",
         Receiver = "Updated Receiver",
         Edrpou = "87654321",
-        Iban = "123456789012345678901234567",
+        Iban = "UA123456789012345678901234567",
         PaymentPurpose = "Updated purpose"
     };
 
@@ -32,7 +32,7 @@ public class UpdateUahBankDetailsTests
         Name = "Bank Name",
         Receiver = "Receiver Name",
         Edrpou = "12345678",
-        Iban = "123456789012345678901234567",
+        Iban = "UA123456789012345678901234567",
         PaymentPurpose = "Old purpose"
     };
 
@@ -42,7 +42,7 @@ public class UpdateUahBankDetailsTests
         Name = "Updated Bank",
         Receiver = "Updated Receiver",
         Edrpou = "87654321",
-        Iban = "123456789012345678901234567",
+        Iban = "UA123456789012345678901234567",
         PaymentPurpose = "Updated purpose"
     };
 
