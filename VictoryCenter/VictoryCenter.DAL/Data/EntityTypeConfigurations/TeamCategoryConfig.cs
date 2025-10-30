@@ -30,10 +30,6 @@ public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
             .Property(e => e.CreatedAt)
             .IsRequired();
 
-        entity
-            .HasMany(e => e.TeamMembers)
-            .WithOne(e => e.TeamCategory);
-
         entity.HasMany(e => e.TeamMembers)
             .WithOne(e => e.TeamCategory)
             .HasForeignKey(e => e.CategoryId)
