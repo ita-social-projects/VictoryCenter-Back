@@ -384,7 +384,7 @@ public static class ServicesConfiguration
                     {
                         ContentType = ContentType.Description,
                         Description =
-                            "Victory Center — це спільна робота психологів, фасилітаторів, координаторів, волонтерів, а також партнерських локацій (ранчо), об’єднаних прагненням створити безпечне середовище для відновлення.\n\nНаша команда працює з військовими/ветеранами, дітьми та їхніми родинами, проходить регулярне навчання, дотримується етичного кодексу, не знецінює, а цінує та підтримує",
+                            "Victory Center — це спільна робота психологів, фасилітаторів, координаторів, волонтерів, а також партнерських локацій (ранчо), об’єднаних прагненням створити безпечне середовище для відновлення. Наша команда працює з військовими/ветеранами, дітьми та їхніми родинами, проходить регулярне навчання, дотримується етичного кодексу, не знецінює, а цінує та підтримує",
                     },
                 }
             },
@@ -425,13 +425,19 @@ public static class ServicesConfiguration
                 }
             },
         };
-        foreach (var section in sections)
+
+        var existingSections = await dbContext.WhoWeAreSections
+            .Select(c => c.SectionType)
+            .ToListAsync();
+
+        var sectionsToAdd = sections
+            .Where(section => !existingSections.Contains(section.SectionType))
+            .ToList();
+
+        if(sectionsToAdd.Count > 0)
         {
-            if (!await dbContext.WhoWeAreSections.AnyAsync(c => c.SectionType == section.SectionType))
-            {
-                dbContext.WhoWeAreSections.Add(section);
-                await dbContext.SaveChangesAsync();
-            }
+            dbContext.AddRange(sectionsToAdd);
+            await dbContext.SaveChangesAsync();
         }
     }
 

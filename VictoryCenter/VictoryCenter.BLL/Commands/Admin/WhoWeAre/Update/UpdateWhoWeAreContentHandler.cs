@@ -50,7 +50,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 if (entity.SectionId != sectionId)
                 {
-                    return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), sectionId));
+                    return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), request.SectionType));
                 }
 
                 if (entity.ContentType != dto.ContentType)
@@ -58,7 +58,13 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                     return Result.Fail(WhoWeAreConstants.DtoHasWrongContentType(dto.Id, entity.ContentType, dto.ContentType));
                 }
 
-                UpdateContent(dto, entity, itemToDelete);
+                await UpdateContent(dto, entity, itemToDelete);
+                await _repository.SaveChangesAsync();
+            }
+
+            foreach (var image in itemToDelete)
+            {
+                _repository.ImageRepository.Delete(image);
             }
 
             await _repository.SaveChangesAsync();
@@ -129,11 +135,14 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 break;
 
             case ContentType.Image:
-                var ent = entity as ImageContent;
+                var ent = entity as ImageContent
+                          ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(ImageContent)));
+
                 var image = await _repository.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>()
                 {
                     Filter = i => i.Id == ent.ImageId
                 });
+
                 if (image is not null)
                 {
                     deleteList.Add(image);

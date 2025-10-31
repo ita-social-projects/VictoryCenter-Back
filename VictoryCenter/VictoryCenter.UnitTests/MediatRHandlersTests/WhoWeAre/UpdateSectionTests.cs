@@ -123,7 +123,7 @@ public class UpdateWhoWeAreContentTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(
-            WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), command.Contents.First().Id),
+            WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), command.SectionType),
             result.Errors[0].Message);
     }
 
