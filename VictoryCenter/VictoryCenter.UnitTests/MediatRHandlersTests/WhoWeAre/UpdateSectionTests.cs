@@ -78,7 +78,7 @@ public class UpdateWhoWeAreContentTests
         Assert.True(result.IsSuccess);
         _mockFactory.Verify(f => f.UpdateDescription(It.IsAny<UpdateWhoWeAreContentDto>(), _testContent), Times.Once);
         _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testContent), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
     }
 
     [Fact]

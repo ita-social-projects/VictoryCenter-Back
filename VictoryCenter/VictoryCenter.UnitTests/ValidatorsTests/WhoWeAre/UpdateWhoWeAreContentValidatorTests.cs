@@ -104,7 +104,7 @@ public class UpdateWhoWeAreContentValidatorTests
             sectionType,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { ContentType = ContentType.Description, Description = new string('A', 400), Id = 1 }
+                new() { ContentType = ContentType.Description, Description = new string('A', 401), Id = 1 }
             });
 
         var result = _validator.TestValidate(command);
