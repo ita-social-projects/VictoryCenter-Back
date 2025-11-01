@@ -11,8 +11,13 @@ public class UpdateWhoWeAreContentValidator : AbstractValidator<UpdateWhoWeAreCo
         RuleFor(x => x.SectionType)
             .IsInEnum();
 
+        RuleFor(x => x.Contents)
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateWhoWeAreContentCommand.Contents)));
+
         RuleForEach(x => x.Contents)
-            .NotNull().WithMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateWhoWeAreContentCommand.Contents)));
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateWhoWeAreContentCommand.Contents)));
 
         RuleForEach(x => x.Contents)
             .SetValidator(command => new WhoWeAreSectionValidator(command.SectionType));
