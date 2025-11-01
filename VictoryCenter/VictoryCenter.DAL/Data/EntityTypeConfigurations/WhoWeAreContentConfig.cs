@@ -39,8 +39,8 @@ public class CardContentConfig : IEntityTypeConfiguration<CardContent>
         builder.Property(c => c.Description);
 
         builder.HasOne(c => c.Image)
-            .WithOne()
-            .HasForeignKey<CardContent>(c => c.ImageId);
+            .WithMany()
+            .HasForeignKey(c => c.ImageId);
     }
 }
 
@@ -57,8 +57,8 @@ public class ImageContentConfig : IEntityTypeConfiguration<ImageContent>
     public void Configure(EntityTypeBuilder<ImageContent> builder)
     {
         builder.HasOne(c => c.Image)
-            .WithOne()
-            .HasForeignKey<ImageContent>(c => c.ImageId);
+            .WithMany()
+            .HasForeignKey(c => c.ImageId);
     }
 }
 
