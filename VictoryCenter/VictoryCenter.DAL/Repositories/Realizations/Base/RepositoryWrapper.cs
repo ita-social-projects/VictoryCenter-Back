@@ -11,6 +11,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
+using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
@@ -20,6 +22,8 @@ using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
+using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -39,6 +43,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IForeignBankDetailsRepository? _foreignBankDetailsRepository;
     private ICorrespondentBankDetailsRepository? _correspondentBankDetailsRepository;
     private ISupportOptionsRepository? _supportOptionsRepository;
+    private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
+    private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -63,6 +69,9 @@ public class RepositoryWrapper : IRepositoryWrapper
         ??= new CorrespondentBankDetailsRepository(_victoryCenterDbContext);
     public ISupportOptionsRepository SupportOptionsRepository => _supportOptionsRepository
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
+    public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
+    public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
+
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();

@@ -11,5 +11,6 @@ public enum SeederExecutionOrder
     UahBankDetails,
     SupportOptions,
     ForeignBankDetails,
-    CorrespondentBankDetails
+    CorrespondentBankDetails,
+    WhoWeAre
 }
