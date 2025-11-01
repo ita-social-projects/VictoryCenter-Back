@@ -32,7 +32,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
     public async Task<Result<WhoWeAreSectionDto>> Handle(UpdateWhoWeAreContentCommand request, CancellationToken cancellationToken)
     {
-        var itemToDelete = new List<Image>();
+        var imageIdsToDelete = new List<long>();
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
@@ -58,16 +58,21 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                     return Result.Fail(WhoWeAreConstants.DtoHasWrongContentType(dto.Id, entity.ContentType, dto.ContentType));
                 }
 
-                await UpdateContent(dto, entity, itemToDelete);
-                await _repository.SaveChangesAsync();
-            }
-
-            foreach (var image in itemToDelete)
-            {
-                _repository.ImageRepository.Delete(image);
+                UpdateContent(dto, entity, imageIdsToDelete);
             }
 
             await _repository.SaveChangesAsync();
+
+            if (imageIdsToDelete.Count > 0)
+            {
+                var imagesToDelete = await _repository.ImageRepository.GetAllAsync(new QueryOptions<Image>()
+                {
+                    Filter = image => imageIdsToDelete.Contains(image.Id)
+                });
+
+                _repository.ImageRepository.DeleteRange(imagesToDelete);
+                await _repository.SaveChangesAsync();
+            }
 
             var updatedSection = await GetSection(request.SectionType);
 
@@ -118,7 +123,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
             });
     }
 
-    private async Task UpdateContent(UpdateWhoWeAreContentDto contentDto, WhoWeAreContent entity, List<Image> deleteList)
+    private void UpdateContent(UpdateWhoWeAreContentDto contentDto, WhoWeAreContent entity, List<long> imageIdsToDelete)
     {
         switch (contentDto.ContentType)
         {
@@ -126,26 +131,29 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 _factory.UpdateDescription(contentDto, entity);
                 break;
 
-            case ContentType.Card:
-                _factory.UpdateCard(contentDto, entity);
-                break;
-
             case ContentType.Title:
                 _factory.UpdateTitle(contentDto, entity);
                 break;
 
+            case ContentType.Card:
+                var cardContent = entity as CardContent
+                                  ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(CardContent)));
+
+                if (cardContent.ImageId != null && cardContent.ImageId != contentDto.ImageId)
+                {
+                    imageIdsToDelete.Add(cardContent.ImageId!.Value);
+                }
+
+                _factory.UpdateCard(contentDto, entity);
+                break;
+
             case ContentType.Image:
-                var ent = entity as ImageContent
+                var imageContent = entity as ImageContent
                           ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(ImageContent)));
 
-                var image = await _repository.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>()
+                if (imageContent.ImageId != null && imageContent.ImageId != contentDto.ImageId)
                 {
-                    Filter = i => i.Id == ent.ImageId
-                });
-
-                if (image is not null)
-                {
-                    deleteList.Add(image);
+                    imageIdsToDelete.Add(imageContent.ImageId!.Value);
                 }
 
                 _factory.UpdateImage(contentDto, entity);

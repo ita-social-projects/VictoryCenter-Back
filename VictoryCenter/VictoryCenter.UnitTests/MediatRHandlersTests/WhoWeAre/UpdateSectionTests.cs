@@ -30,12 +30,30 @@ public class UpdateWhoWeAreContentTests
         Contents = null!
     };
 
-    private readonly DescriptionContent _testContent = new()
+    private readonly DescriptionContent _testDescriptionContent = new()
     {
         Id = 1,
         SectionId = 1,
         ContentType = ContentType.Description,
         Description = "Description"
+    };
+
+    private readonly CardContent _testCardContent = new()
+    {
+        Id = 1,
+        SectionId = 1,
+        ImageId = 1,
+        ContentType = ContentType.Card,
+        Description = "Description 1"
+    };
+
+    private readonly Image _testImage = new()
+    {
+        Id = 1,
+        CreatedAt = DateTimeOffset.Now,
+        Url = "test.png",
+        BlobName = "testBlobName",
+        MimeType = "image/png"
     };
 
     private readonly WhoWeAreSectionDto _testSectionDto = new()
@@ -65,7 +83,7 @@ public class UpdateWhoWeAreContentTests
                 new() { Id = 1, ContentType = ContentType.Description, Description = updatedText }
             });
 
-        SetupRepositiryWrapper(_testSection, new List<WhoWeAreContent> { _testContent });
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });
         _mockMapper.Setup(m => m.Map<WhoWeAreSectionDto>(_testSection))
             .Returns(_testSectionDto);
 
@@ -76,9 +94,58 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        _mockFactory.Verify(f => f.UpdateDescription(It.IsAny<UpdateWhoWeAreContentDto>(), _testContent), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testContent), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
+        _mockFactory.Verify(f => f.UpdateDescription(It.IsAny<UpdateWhoWeAreContentDto>(), _testDescriptionContent), Times.Once);
+        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testDescriptionContent), Times.Once);
+        _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateEntityAndDeleteOldImage()
+    {
+        // Arrange
+        var command = new UpdateWhoWeAreContentCommand(
+            SectionType.WhoWeSupport,
+            new List<UpdateWhoWeAreContentDto>
+            {
+                new() { Id = 1, ContentType = ContentType.Card, ImageId = 3, Description = "Description 1" }
+            });
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testCardContent });
+
+        // Act
+        var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _mockFactory.Verify(f => f.UpdateCard(It.IsAny<UpdateWhoWeAreContentDto>(), _testCardContent), Times.Once);
+        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testCardContent), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.DeleteRange(new List<Image> { _testImage }), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateEntityAndNotDeleteOldImage()
+    {
+        // Arrange
+        var command = new UpdateWhoWeAreContentCommand(
+            SectionType.WhoWeSupport,
+            new List<UpdateWhoWeAreContentDto>
+            {
+                new() { Id = 1, ContentType = ContentType.Card, ImageId = 1, Description = "Description 1" }
+            });
+
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testCardContent });
+
+        // Act
+        var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _mockFactory.Verify(f => f.UpdateCard(It.IsAny<UpdateWhoWeAreContentDto>(), _testCardContent), Times.Once);
+        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testCardContent), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.ImageRepository.DeleteRange(It.IsAny<IEnumerable<Image>>()), Times.Never);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -89,7 +156,7 @@ public class UpdateWhoWeAreContentTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description } });
 
-        SetupRepositiryWrapper(_testSection, new List<WhoWeAreContent>());
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent>());
 
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -113,7 +180,7 @@ public class UpdateWhoWeAreContentTests
 
         var foreignContent = new DescriptionContent { Id = 1, SectionId = 999, ContentType = ContentType.Description };
 
-        SetupRepositiryWrapper(_testSection, new List<WhoWeAreContent> { foreignContent });
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { foreignContent });
 
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -135,7 +202,7 @@ public class UpdateWhoWeAreContentTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Image } });
 
-        SetupRepositiryWrapper(_testSection, new List<WhoWeAreContent> { _testContent });
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });
 
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -156,7 +223,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(SectionType.Main, new List<UpdateWhoWeAreContentDto>());
 
-        SetupRepositiryWrapper();
+        SetupRepositoryWrapper();
 
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -194,7 +261,7 @@ public class UpdateWhoWeAreContentTests
             result.Errors[0].Message);
     }
 
-    private void SetupRepositiryWrapper(
+    private void SetupRepositoryWrapper(
         WhoWeAreSection? sectionToReturn = null,
         List<WhoWeAreContent>? contentsToReturn = null)
     {
@@ -207,5 +274,9 @@ public class UpdateWhoWeAreContentTests
             .ReturnsAsync(contentsToReturn ?? new List<WhoWeAreContent>());
 
         _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
+        _mockRepositoryWrapper.Setup(r =>
+            r.ImageRepository
+                .GetAllAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(new List<Image> { _testImage });
     }
 }
