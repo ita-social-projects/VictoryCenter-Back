@@ -84,8 +84,6 @@ public class UpdateWhoWeAreContentTests
             });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });
-        _mockMapper.Setup(m => m.Map<WhoWeAreSectionDto>(_testSection))
-            .Returns(_testSectionDto);
 
         // Act
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
@@ -104,7 +102,7 @@ public class UpdateWhoWeAreContentTests
     {
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
-            SectionType.WhoWeSupport,
+            SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
                 new() { Id = 1, ContentType = ContentType.Card, ImageId = 3, Description = "Description 1" }
@@ -128,7 +126,7 @@ public class UpdateWhoWeAreContentTests
     {
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
-            SectionType.WhoWeSupport,
+            SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
                 new() { Id = 1, ContentType = ContentType.Card, ImageId = 1, Description = "Description 1" }
@@ -278,5 +276,8 @@ public class UpdateWhoWeAreContentTests
         _mockRepositoryWrapper.Setup(r =>
             r.ImageRepository
                 .GetAllAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(new List<Image> { _testImage });
+
+        _mockMapper.Setup(m => m.Map<WhoWeAreSectionDto>(_testSection))
+            .Returns(_testSectionDto);
     }
 }
