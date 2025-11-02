@@ -7,6 +7,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -25,6 +27,8 @@ public interface IRepositoryWrapper
     IForeignBankDetailsRepository ForeignBankDetailsRepository { get; }
     ICorrespondentBankDetailsRepository CorrespondentBankDetailsRepository { get; }
     ISupportOptionsRepository SupportOptionsRepository { get; }
+    IWhoWeAreContentsRepository WhoWeAreContentsRepository { get; }
+    IWhoWeAreSectionsRepository WhoWeAreSectionsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

@@ -16,6 +16,13 @@ public static class ErrorMessagesConstants
         return $"Entity {entityType.Name} with id '{id}' was not found";
     }
 
+    public static string NotFoundByIdentifier(object? identifier, Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Entity {entityType.Name} with identifier '{identifier}' was not found";
+    }
+
     public static string FailedToCreateEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
@@ -110,6 +117,11 @@ public static class ErrorMessagesConstants
     public static string CollectionMustContainUniqueValues(string collection)
     {
         return $"{collection} must contain unique values";
+    }
+
+    public static string CollectionCannotContainNullElements(string collectionName)
+    {
+        return $"{collectionName} cannot contain null elements";
     }
 
     public static string PropertyMustHaveALengthOfNCharacters(string property, int length)
