@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.UahBankDetails;
+
 public class GetAllUahBankDetailsTests
 {
     private readonly Mock<IMapper> _mockMapper;

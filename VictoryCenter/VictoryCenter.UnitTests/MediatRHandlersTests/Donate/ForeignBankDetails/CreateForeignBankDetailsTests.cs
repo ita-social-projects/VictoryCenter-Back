@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.ForeignBankDetails;
+
 public class CreateForeignBankDetailsTests
 {
     private readonly Mock<IMapper> _mapperMock;

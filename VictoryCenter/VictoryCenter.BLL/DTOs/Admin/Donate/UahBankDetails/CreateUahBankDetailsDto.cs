@@ -1,4 +1,5 @@
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
+
 public record CreateUahBankDetailsDto
 {
     public string Name { get; init; } = null!;

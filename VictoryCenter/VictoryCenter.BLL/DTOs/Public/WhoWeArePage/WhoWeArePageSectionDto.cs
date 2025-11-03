@@ -1,4 +1,4 @@
-﻿using VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
+using VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Public.WhoWeArePage;

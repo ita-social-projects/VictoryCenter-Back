@@ -1,2 +1,3 @@
-﻿namespace VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
+namespace VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
+
 public record UpdateUahBankDetailsDto : CreateUahBankDetailsDto;

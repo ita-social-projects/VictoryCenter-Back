@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Create;
+
 public class CreateUahBankDetailsHandler : IRequestHandler<CreateUahBankDetailsCommand, Result<UahBankDetailsDto>>
 {
     private readonly IMapper _mapper;

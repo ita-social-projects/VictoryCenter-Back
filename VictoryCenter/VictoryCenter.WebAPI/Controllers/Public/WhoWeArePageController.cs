@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Queries.Public.WhoWeAre.GetWhoWeArePage;
 using VictoryCenter.WebAPI.Controllers.Common;
 

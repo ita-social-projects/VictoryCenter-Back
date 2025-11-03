@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.CorrespondentBankDetails.Update;
+
 public class UpdateCorrespondentBankDetailsHandler : IRequestHandler<UpdateCorrespondentBankDetailsCommand, Result<CorrespondentBankDetailsDto>>
 {
     private readonly IMapper _mapper;

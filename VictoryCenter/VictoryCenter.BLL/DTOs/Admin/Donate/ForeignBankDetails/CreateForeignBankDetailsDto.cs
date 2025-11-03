@@ -1,6 +1,7 @@
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
+
 public record CreateForeignBankDetailsDto : IForeignBankDetails
 {
     public string Name { get; set; } = null!;

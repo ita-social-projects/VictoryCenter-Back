@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;

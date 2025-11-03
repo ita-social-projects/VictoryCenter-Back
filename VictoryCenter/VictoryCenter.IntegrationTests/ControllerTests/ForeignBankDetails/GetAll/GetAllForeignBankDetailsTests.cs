@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
-using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ForeignBankDetails.GetAll;
+
 public class GetAllForeignBankDetailsTests : BaseTestClass
 {
     public GetAllForeignBankDetailsTests(IntegrationTestDbFixture fixture)

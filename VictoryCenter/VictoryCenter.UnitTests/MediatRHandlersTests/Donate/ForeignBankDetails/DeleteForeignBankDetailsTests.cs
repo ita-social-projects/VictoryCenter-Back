@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Delete;
 using VictoryCenter.BLL.Constants;

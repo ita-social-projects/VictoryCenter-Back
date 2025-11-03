@@ -1,4 +1,4 @@
-﻿using FluentValidation.TestHelper;
+using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
@@ -29,7 +29,7 @@ public class UpdateWhoWeAreContentValidatorTests
     public void ShouldHaveError_WhenContentItemIsNull()
     {
         var command =
-            new UpdateWhoWeAreContentCommand(SectionType.Main, new List<UpdateWhoWeAreContentDto> { null! } );
+            new UpdateWhoWeAreContentCommand(SectionType.Main, new List<UpdateWhoWeAreContentDto> { null! });
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor("Contents[0]")
@@ -89,7 +89,7 @@ public class UpdateWhoWeAreContentValidatorTests
 
         result.ShouldHaveValidationErrorFor("Contents[0].Description")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateWhoWeAreContentDto.Description),  WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen));
+                nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen));
     }
 
     [Theory]
