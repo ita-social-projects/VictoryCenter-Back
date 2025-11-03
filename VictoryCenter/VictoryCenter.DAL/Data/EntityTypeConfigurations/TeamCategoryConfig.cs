@@ -20,6 +20,10 @@ public class TeamCategoryConfig : IEntityTypeConfiguration<TeamCategory>
             .IsRequired();
 
         entity
+            .HasIndex(e => e.Name)
+            .IsUnique();
+
+        entity
             .Property(e => e.Description);
 
         entity

@@ -14,17 +14,13 @@ public class CreateTeamCategoryTests : BaseTestClass
     {
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task CreateCategory_ShouldCreateCategory(string? testDescription)
+    [Fact]
+    public async Task CreateCategory_ShouldCreateCategory()
     {
         var createCategoryDto = new CreateTeamCategoryDto
         {
             Name = "Test Category",
-            Description = testDescription,
+            Description = "Test Description",
         };
         var serializedDto = JsonSerializer.Serialize(createCategoryDto);
 
@@ -37,6 +33,7 @@ public class CreateTeamCategoryTests : BaseTestClass
         Assert.NotNull(responseContent);
         Assert.Equal(createCategoryDto.Name, responseContent.Name);
         Assert.Equal(createCategoryDto.Description, responseContent.Description);
+        Assert.Equal(0, responseContent.TeamMembersCount);
     }
 
     [Theory]

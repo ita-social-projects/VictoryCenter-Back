@@ -10,8 +10,10 @@ public class TeamCategoriesProfile : Profile
     public TeamCategoriesProfile()
     {
         CreateMap<CreateTeamCategoryDto, TeamCategory>();
-        CreateMap<TeamCategory, TeamCategoryDto>();
         CreateMap<UpdateTeamCategoryDto, TeamCategory>();
+
+        CreateMap<TeamCategory, TeamCategoryDto>()
+            .ForMember(dest => dest.TeamMembersCount, opt => opt.MapFrom(src => src.TeamMembers.Count));
 
         CreateMap<TeamCategory, CategoryWithPublishedTeamMembersDto>()
             .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Name));

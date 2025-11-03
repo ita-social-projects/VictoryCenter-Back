@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251030173802_AddedTeamCatUniqueConstraint")]
+    partial class AddedTeamCatUniqueConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -617,111 +620,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("VisitorPages");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("ContentType")
-                        .HasColumnType("int");
-
-                    b.Property<long>("SectionId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SectionId");
-
-                    b.ToTable("WhoWeAreContents");
-
-                    b.HasDiscriminator<int>("ContentType");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreSection", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SectionType")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("WhoWeAreSections");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.CardContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.HasIndex("ImageId");
-
-                    b.ToTable("WhoWeAreContents", t =>
-                        {
-                            t.Property("Description")
-                                .HasColumnName("CardContent_Description");
-
-                            t.Property("ImageId")
-                                .HasColumnName("CardContent_ImageId");
-                        });
-
-                    b.HasDiscriminator().HasValue(3);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.DescriptionContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(1);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.ImageContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent");
-
-                    b.Property<long?>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.HasIndex("ImageId");
-
-                    b.HasDiscriminator().HasValue(2);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.TitleContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(0);
-                });
-
             modelBuilder.Entity("HippotherapyProgramHippotherapyProgramCategory", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.HippotherapyProgramCategory", null)
@@ -845,35 +743,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("TeamCategory");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.WhoWeAreSection", "Section")
-                        .WithMany("Contents")
-                        .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Section");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.CardContent", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageId");
-
-                    b.Navigation("Image");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.ImageContent", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageId");
-
-                    b.Navigation("Image");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
                 {
                     b.Navigation("Placements");
@@ -892,11 +761,6 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.VisitorPage", b =>
                 {
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreSection", b =>
-                {
-                    b.Navigation("Contents");
                 });
 #pragma warning restore 612, 618
         }

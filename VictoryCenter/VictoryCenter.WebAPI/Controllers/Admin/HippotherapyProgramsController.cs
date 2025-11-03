@@ -32,7 +32,7 @@ public class HippotherapyProgramsController : AuthorizedApiController
 
     [HttpPut]
     [Route("{id:long}")]
-    public async Task<IActionResult> UpdateProgram([FromBody] HippotherapyUpdateProgramDto updateProgramDto, long id)
+    public async Task<IActionResult> UpdateProgram([FromBody] UpdateHippotherapyProgramDto updateProgramDto, long id)
     {
         return HandleResult(await Mediator.Send(new UpdateHippotherapyProgramCommand(updateProgramDto, id)));
     }

@@ -188,7 +188,6 @@ public static class ServicesConfiguration
     public static async Task CreateInitialDataAsync(this WebApplication app)
     {
         await app.CreateInitialAdminAsync();
-        await app.CreateInitialCategoriesAsync();
         await app.SeedVisitorPagesAsync();
         await app.CreateInitialWhoWeArePages();
     }
@@ -211,7 +210,7 @@ public static class ServicesConfiguration
             }
             else
             {
-                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTime.UtcNow });
+                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTimeOffset.UtcNow });
             }
         }
 
@@ -252,42 +251,6 @@ public static class ServicesConfiguration
             {
                 var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to create initial admin: {errors}");
-            }
-        }
-    }
-
-    private static async Task CreateInitialCategoriesAsync(this WebApplication app)
-    {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var categories = new List<TeamCategory>
-        {
-            new()
-            {
-                Name = "Основна команда",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTimeOffset.UtcNow
-            },
-            new()
-            {
-                Name = "Наглядова рада",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTimeOffset.UtcNow
-            },
-            new()
-            {
-                Name = "Радники",
-                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
-                CreatedAt = DateTimeOffset.UtcNow
-            }
-        };
-
-        foreach (var category in categories)
-        {
-            if (!await dbContext.TeamCategories.AnyAsync(c => c.Name == category.Name))
-            {
-                dbContext.TeamCategories.Add(category);
-                await dbContext.SaveChangesAsync();
             }
         }
     }
@@ -434,7 +397,7 @@ public static class ServicesConfiguration
             .Where(section => !existingSections.Contains(section.SectionType))
             .ToList();
 
-        if(sectionsToAdd.Count > 0)
+        if (sectionsToAdd.Count > 0)
         {
             dbContext.AddRange(sectionsToAdd);
             await dbContext.SaveChangesAsync();

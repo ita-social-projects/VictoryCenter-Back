@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
@@ -32,6 +33,17 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
+            var duplicateCategory =
+                await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
+                {
+                    Filter = entity => entity.Name == request.UpdateTeamCategoryDto.Name && entity.Id != request.Id
+                });
+
+            if (duplicateCategory is not null)
+            {
+                return Result.Fail<TeamCategoryDto>(TeamCategoryConstants.DuplicateCategoryName);
+            }
+
             var categoryEntity =
                 await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
                 {
@@ -43,7 +55,7 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
                 return Result.Fail<TeamCategoryDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory)));
             }
 
-            var entityToUpdate = _mapper.Map<UpdateTeamCategoryDto, TeamCategory>(request.UpdateCategoryDto);
+            var entityToUpdate = _mapper.Map<UpdateTeamCategoryDto, TeamCategory>(request.UpdateTeamCategoryDto);
             entityToUpdate.Id = request.Id;
             entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
 
@@ -51,7 +63,14 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamCategory, TeamCategoryDto>(entityToUpdate);
+                var updatedEntity = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<TeamCategory>
+                    {
+                        Filter = tc => tc.Id == request.Id,
+                        Include = tc => tc.Include(tc => tc.TeamMembers)
+                    });
+
+                var resultDto = _mapper.Map<TeamCategory, TeamCategoryDto>(updatedEntity!);
                 return Result.Ok(resultDto);
             }
 

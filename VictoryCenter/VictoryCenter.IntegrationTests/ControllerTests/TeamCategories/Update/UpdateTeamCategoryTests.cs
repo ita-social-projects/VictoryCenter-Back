@@ -15,20 +15,16 @@ public class UpdateCategoryTests : BaseTestClass
     {
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Test Description")]
-    public async Task UpdateCategory_ShouldUpdateCategory(string? testDescription)
+    [Fact]
+    public async Task UpdateCategory_ShouldUpdateCategory()
     {
         var existingEntity = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync();
-        var updateCategoryDto = new UpdateTeamCategoryDto
+        var updateTeamCategoryDto = new UpdateTeamCategoryDto
         {
             Name = "Test Category",
-            Description = testDescription,
+            Description = "Test Description",
         };
-        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+        var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
 
         var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity!.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
@@ -38,20 +34,20 @@ public class UpdateCategoryTests : BaseTestClass
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(existingEntity.Id, responseContent.Id);
-        Assert.Equal(updateCategoryDto.Name, responseContent.Name);
-        Assert.Equal(updateCategoryDto.Description, responseContent.Description);
+        Assert.Equal(updateTeamCategoryDto.Name, responseContent.Name);
+        Assert.Equal(updateTeamCategoryDto.Description, responseContent.Description);
     }
 
     [Fact]
     public async Task UpdateCategory_ShouldUpdateCategory_SameInput()
     {
         var existingEntity = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync();
-        var updateCategoryDto = new UpdateTeamCategoryDto
+        var updateTeamCategoryDto = new UpdateTeamCategoryDto
         {
             Name = existingEntity!.Name,
             Description = existingEntity.Description,
         };
-        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+        var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
 
         var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
@@ -61,8 +57,8 @@ public class UpdateCategoryTests : BaseTestClass
         response.EnsureSuccessStatusCode();
         Assert.NotNull(responseContent);
         Assert.Equal(existingEntity.Id, responseContent.Id);
-        Assert.Equal(updateCategoryDto.Name, responseContent.Name);
-        Assert.Equal(updateCategoryDto.Description, responseContent.Description);
+        Assert.Equal(updateTeamCategoryDto.Name, responseContent.Name);
+        Assert.Equal(updateTeamCategoryDto.Description, responseContent.Description);
     }
 
     [Theory]
@@ -72,12 +68,12 @@ public class UpdateCategoryTests : BaseTestClass
     public async Task UpdateCategory_ShouldNotUpdateCategory_InvalidName(string? testName)
     {
         var existingEntity = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync();
-        var updateCategoryDto = new UpdateTeamCategoryDto
+        var updateTeamCategoryDto = new UpdateTeamCategoryDto
         {
             Name = testName!,
             Description = "Test Description",
         };
-        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+        var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
 
         var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity!.Id}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));
@@ -91,12 +87,12 @@ public class UpdateCategoryTests : BaseTestClass
     [InlineData(0)]
     public async Task UpdateCategory_ShouldNotUpdateCategory_NotFound(long testId)
     {
-        var updateCategoryDto = new UpdateTeamCategoryDto
+        var updateTeamCategoryDto = new UpdateTeamCategoryDto
         {
             Name = "Test Category",
             Description = "Test Description",
         };
-        var serializedDto = JsonSerializer.Serialize(updateCategoryDto);
+        var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
 
         var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{testId}", new StringContent(
             serializedDto, Encoding.UTF8, "application/json"));

@@ -2,10 +2,12 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamCategories.Create;
 
@@ -31,14 +33,32 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var entity = _mapper.Map<TeamCategory>(request.CreateCategoryDto);
-            entity.CreatedAt = DateTime.UtcNow;
+            var duplicateCategory =
+                await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
+                {
+                    Filter = entity => entity.Name == request.CreateTeamCategoryDto.Name
+                });
+
+            if (duplicateCategory is not null)
+            {
+                return Result.Fail<TeamCategoryDto>(TeamCategoryConstants.DuplicateCategoryName);
+            }
+
+            var entity = _mapper.Map<TeamCategory>(request.CreateTeamCategoryDto);
+            entity.CreatedAt = DateTimeOffset.UtcNow;
 
             await _repositoryWrapper.TeamCategoriesRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                var resultDto = _mapper.Map<TeamCategoryDto>(entity);
+                var createdEntity = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<TeamCategory>
+                    {
+                        Filter = tc => tc.Id == entity.Id,
+                        Include = tc => tc.Include(tc => tc.TeamMembers)
+                    });
+
+                var resultDto = _mapper.Map<TeamCategoryDto>(createdEntity);
                 return Result.Ok(resultDto);
             }
 

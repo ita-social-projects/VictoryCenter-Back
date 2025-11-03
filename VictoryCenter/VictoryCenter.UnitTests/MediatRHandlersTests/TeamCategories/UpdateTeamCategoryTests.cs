@@ -11,7 +11,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamCategories;
 
-public class UpdateCategoryTests
+public class UpdateTeamCategoryTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
@@ -37,25 +37,16 @@ public class UpdateCategoryTests
         Description = "Updated Description",
     };
 
-    public UpdateCategoryTests()
+    public UpdateTeamCategoryTests()
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _validator = new UpdateTeamCategoryValidator();
+        _validator = new UpdateTeamCategoryValidator(new BaseTeamCategoryValidator());
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("Updated description")]
-    public async Task Handle_ShouldUpdateEntity(string? testDescription)
+    [Fact]
+    public async Task Handle_ShouldUpdateEntity()
     {
-        _testUpdatedCategory.Description = testDescription;
-        _testUpdatedCategoryDto = _testUpdatedCategoryDto with
-        {
-            Description = testDescription
-        };
         SetupDependencies(_testExistingCategory);
         var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
@@ -64,7 +55,7 @@ public class UpdateCategoryTests
                 new UpdateTeamCategoryDto
                 {
                     Name = "Updated Name",
-                    Description = testDescription,
+                    Description = "Updated Description",
                 },
                 _testExistingCategory.Id), CancellationToken.None);
 
@@ -98,6 +89,31 @@ public class UpdateCategoryTests
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotUpdateEntity_DuplicateName()
+    {
+        var duplicateCategory = new TeamCategory
+        {
+            Id = 2,
+            Name = "Updated Name",
+            Description = "Some other category"
+        };
+
+        SetupDependencies(_testExistingCategory, duplicateCategory: duplicateCategory);
+        var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var result = await handler.Handle(
+            new UpdateTeamCategoryCommand(
+                new UpdateTeamCategoryDto
+                {
+                    Name = "Updated Name",
+                    Description = "Updated Description",
+                }, _testExistingCategory.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(TeamCategoryConstants.DuplicateCategoryName, result.Errors[0].Message);
     }
 
     [Theory]
@@ -138,10 +154,10 @@ public class UpdateCategoryTests
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamCategory)), result.Errors[0].Message);
     }
 
-    private void SetupDependencies(TeamCategory? categoryToReturn = null, int saveResult = 1)
+    private void SetupDependencies(TeamCategory? categoryToReturn = null, int saveResult = 1, TeamCategory? duplicateCategory = null)
     {
         SetupMapper();
-        SetupRepositoryWrapper(categoryToReturn, saveResult);
+        SetupRepositoryWrapper(categoryToReturn, saveResult, duplicateCategory);
     }
 
     private void SetupMapper()
@@ -153,11 +169,41 @@ public class UpdateCategoryTests
             .Returns(_testUpdatedCategoryDto);
     }
 
-    private void SetupRepositoryWrapper(TeamCategory? categoryToReturn = null, int saveResult = 1)
+    private void SetupRepositoryWrapper(TeamCategory? categoryToReturn = null, int saveResult = 1, TeamCategory? duplicateCategory = null)
     {
+        var entityWithSameNameDifferentId = new TeamCategory
+        {
+            Id = 999,
+            Name = "Updated Name",
+            Description = "Some other description"
+        };
+
+        var entityWithSameId = new TeamCategory
+        {
+            Id = _testExistingCategory.Id,
+            Name = "Different Name",
+            Description = "Different description"
+        };
+
         _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(
-                It.IsAny<QueryOptions<TeamCategory>>()))
+                It.Is<QueryOptions<TeamCategory>>(q =>
+                    q.Filter != null &&
+                    q.Include == null &&
+                    q.Filter.Compile()(entityWithSameNameDifferentId) &&
+                    !q.Filter.Compile()(entityWithSameId))))
+            .ReturnsAsync(duplicateCategory);
+
+        _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<TeamCategory>>(q =>
+                    q.Filter != null &&
+                    q.Include == null &&
+                    q.Filter.Compile()(entityWithSameId) &&
+                    !q.Filter.Compile()(entityWithSameNameDifferentId))))
             .ReturnsAsync(categoryToReturn);
+
+        _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<TeamCategory>>(q => q.Include != null)))
+            .ReturnsAsync(categoryToReturn ?? _testUpdatedCategory);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);

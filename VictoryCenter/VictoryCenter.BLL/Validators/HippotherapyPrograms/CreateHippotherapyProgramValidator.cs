@@ -7,6 +7,6 @@ public class CreateHippotherapyProgramValidator : AbstractValidator<CreateHippot
 {
     public CreateHippotherapyProgramValidator(BaseHippotherapyProgramValidator baseProgramValidator)
     {
-        RuleFor(x => x.CreateProgramDto).SetValidator(baseProgramValidator);
+        RuleFor(x => x.CreateProgramDto).NotNull().SetValidator(baseProgramValidator);
     }
 }

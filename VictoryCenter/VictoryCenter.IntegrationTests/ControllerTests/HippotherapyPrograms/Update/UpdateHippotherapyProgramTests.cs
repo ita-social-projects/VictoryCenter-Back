@@ -18,7 +18,7 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
     [Fact]
     public async Task UpdatePublishedProgram_ShouldUpdateProgram()
     {
-        var updateProgramDto = new HippotherapyUpdateProgramDto
+        var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "UpdatedName",
             Description = "UpdatedDescription",
@@ -48,7 +48,7 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
     [InlineData(" ")]
     public async Task UpdateProgramWithInvalidName_ShouldReturnBadRequest_InvalidName(string? invalidName)
     {
-        var updateProgramDto = new HippotherapyUpdateProgramDto
+        var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = invalidName!,
             Description = "UpdatedDescription",
@@ -70,7 +70,7 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
     public async Task UpdateProgram_ShouldReturnBadRequest_InvalidDescription(
         string? invalidDescription)
     {
-        var updateProgramDto = new HippotherapyUpdateProgramDto
+        var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "TestName",
             Description = invalidDescription,
@@ -89,7 +89,7 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
     [InlineData(null)]
     public async Task UpdateProgram_ShouldUpdateToDraft(string? description)
     {
-        var updateProgramDto = new HippotherapyUpdateProgramDto
+        var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "TestName",
             Description = description,
@@ -112,7 +112,7 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
     [InlineData(0)]
     public async Task UpdateProgram_ShouldNotUpdateProgram_NotFound(int id)
     {
-        var updateProgramDto = new HippotherapyUpdateProgramDto
+        var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "TestName",
             Description = "TestDescription",

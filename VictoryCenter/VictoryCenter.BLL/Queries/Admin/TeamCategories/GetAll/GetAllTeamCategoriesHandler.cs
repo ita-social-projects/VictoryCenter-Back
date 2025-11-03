@@ -1,8 +1,11 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Admin.TeamCategories.GetAll;
 
@@ -21,7 +24,11 @@ public class GetAllTeamCategoriesHandler : IRequestHandler<GetAllTeamCategoriesQ
         GetAllTeamCategoriesQuery request,
         CancellationToken cancellationToken)
     {
-        var entities = await _repositoryWrapper.TeamCategoriesRepository.GetAllAsync();
+        var entities = await _repositoryWrapper.TeamCategoriesRepository.GetAllAsync(
+            new QueryOptions<TeamCategory>
+            {
+                Include = tc => tc.Include(tc => tc.TeamMembers)
+            });
         return Result.Ok(_mapper.Map<IEnumerable<TeamCategoryDto>>(entities));
     }
 }
