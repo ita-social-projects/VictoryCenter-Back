@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 using VictoryCenter.DAL.Entities;
 
@@ -8,6 +8,7 @@ public class UahBankDetailsProfile : Profile
     public UahBankDetailsProfile()
     {
         CreateMap<UahBankDetails, UahBankDetailsDto>();
+        CreateMap<UahBankDetails, DTOs.Public.Donate.UahBankDetails.UahBankDetailsDto>();
         CreateMap<CreateUahBankDetailsDto, UahBankDetails>();
         CreateMap<UpdateUahBankDetailsDto, UahBankDetails>();
     }

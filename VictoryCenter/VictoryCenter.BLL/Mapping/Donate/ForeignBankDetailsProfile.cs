@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 using VictoryCenter.DAL.Entities;
 
@@ -8,6 +8,7 @@ public class ForeignBankDetailsProfile : Profile
     public ForeignBankDetailsProfile()
     {
         CreateMap<ForeignBankDetails, ForeignBankDetailsDto>();
+        CreateMap<ForeignBankDetails, DTOs.Public.Donate.ForeignBankDetails.ForeignBankDetailsDto>();
         CreateMap<CreateForeignBankDetailsDto, ForeignBankDetails>();
         CreateMap<UpdateForeignBankDetailsDto, ForeignBankDetails>()
             .ForMember(dest => dest.CorrespondentBanks, opt => opt.Ignore())

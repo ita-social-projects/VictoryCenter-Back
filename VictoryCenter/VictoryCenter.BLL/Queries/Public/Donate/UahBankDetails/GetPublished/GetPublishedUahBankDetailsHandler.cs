@@ -1,7 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
+using VictoryCenter.BLL.DTOs.Public.Donate.UahBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
