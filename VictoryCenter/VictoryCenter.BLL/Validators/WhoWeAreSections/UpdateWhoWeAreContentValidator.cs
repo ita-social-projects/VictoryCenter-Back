@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 using VictoryCenter.BLL.Constants;
 

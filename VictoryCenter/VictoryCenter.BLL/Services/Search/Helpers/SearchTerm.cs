@@ -15,15 +15,25 @@ public class SearchTerm<TEntity>
     /// Gets or sets an expression that selects the string property of <typeparamref name="TEntity"/>
     /// to which the search term should be applied.
     /// </summary>
+    /// <value>
+    /// <placeholder>An expression that selects the string property of <typeparamref name="TEntity"/>
+    /// to which the search term should be applied.</placeholder>
+    /// </value>
     public Expression<Func<TEntity, string>> TermSelector { get; set; } = null!;
 
     /// <summary>
-    /// The value to be searched for. If null or empty, this term is ignored.
+    /// Gets or sets the value to be searched for. If null or empty, this term is ignored.
     /// </summary>
+    /// <value>
+    /// <placeholder>The value to be searched for. If null or empty, this term is ignored.</placeholder>
+    /// </value>
     public string? TermValue { get; set; }
 
     /// <summary>
-    /// Defines the type of search logic to apply, such as exact match or prefix match.
+    /// Gets or sets defines the type of search logic to apply, such as exact match or prefix match.
     /// </summary>
+    /// <value>
+    /// <placeholder>Defines the type of search logic to apply, such as exact match or prefix match.</placeholder>
+    /// </value>
     public SearchLogic SearchLogic { get; set; }
 }

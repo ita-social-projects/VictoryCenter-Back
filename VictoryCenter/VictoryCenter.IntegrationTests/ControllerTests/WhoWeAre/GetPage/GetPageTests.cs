@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Public.WhoWeArePage;
 using VictoryCenter.DAL.Enums;

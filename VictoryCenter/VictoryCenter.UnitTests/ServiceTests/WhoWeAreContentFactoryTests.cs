@@ -1,4 +1,4 @@
-﻿using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
+using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 

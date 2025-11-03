@@ -159,7 +159,7 @@ public class UpdateFaqQuestionTests
         SetupRepositoryWrapper(null, null);
         SetupReorderService();
 
-        // ЗМІНЕНО: Додано reorderService в конструктор
+        // Г‡ГЊВІГЌГ…ГЌГЋ: Г„Г®Г¤Г Г­Г® reorderService Гў ГЄГ®Г­Г±ГІГ°ГіГЄГІГ®Г°
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
@@ -305,7 +305,7 @@ public class UpdateFaqQuestionTests
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
-        // ДОДАНО: Setup для DeleteRange та CreateRangeAsync
+        // Г„ГЋГ„ГЂГЌГЋ: Setup Г¤Г«Гї DeleteRange ГІГ  CreateRangeAsync
         _mockRepositoryWrapper.Setup(x =>
             x.FaqPlacementsRepository.DeleteRange(It.IsAny<IEnumerable<FaqPlacement>>()));
 

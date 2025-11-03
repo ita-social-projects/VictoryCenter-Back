@@ -1,5 +1,5 @@
-using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;

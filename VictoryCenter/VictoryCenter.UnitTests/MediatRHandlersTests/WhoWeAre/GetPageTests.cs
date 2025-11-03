@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
