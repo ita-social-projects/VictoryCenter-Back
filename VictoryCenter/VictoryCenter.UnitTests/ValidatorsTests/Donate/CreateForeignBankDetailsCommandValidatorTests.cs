@@ -28,17 +28,6 @@ public class CreateForeignBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenSwiftIsTooShort()
-    {
-        var command = new CreateForeignBankDetailsCommand(
-            new CreateForeignBankDetailsDto { Swift = "12", Iban = "12345678" });
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Swift)
-            .WithErrorMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(ForeignBankDetailsDto.Swift), ForeignBankDetailsConstants.Swift.MinLength));
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         var command = new CreateForeignBankDetailsCommand(

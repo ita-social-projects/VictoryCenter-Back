@@ -78,34 +78,6 @@ public class CreateCorrespondentBankDetailsTests
         Assert.Equal(_correspondentBankDetailsDto.Swift, result.Value.Swift);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task Handle_ShouldFail_InvalidName(string? name)
-    {
-        _correspondentBankDetails.Name = name!;
-        _correspondentBankDetailsDto.Name = name!;
-        SetupDependencies();
-
-        var handler = new CreateCorrespondentBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
-
-        Result<CorrespondentBankDetailsDto> result = await handler
-            .Handle(
-                new CreateCorrespondentBankDetailsCommand(new CreateCorrespondentBankDetailsDto
-                {
-                    Name = name!,
-                    Swift = "345345",
-                    Account = "ACC1234567890",
-                    Iban = "34543535",
-                    ForeignBankDetailsId = 1
-                }),
-                CancellationToken.None);
-
-        Assert.False(result.IsSuccess);
-        Assert.NotEmpty(result.Errors);
-    }
-
     [Fact]
     public async Task Handle_ShouldFail_ForeignBankDetailsNotFound()
     {

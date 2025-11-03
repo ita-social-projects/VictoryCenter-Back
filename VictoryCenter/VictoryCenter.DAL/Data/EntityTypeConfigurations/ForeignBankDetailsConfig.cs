@@ -23,11 +23,11 @@ public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDeta
 
         builder.Property(e => e.Iban)
             .IsRequired()
-            .HasMaxLength(34);
+            .HasMaxLength(200);
 
         builder.Property(e => e.Swift)
             .IsRequired()
-            .HasMaxLength(11);
+            .HasMaxLength(200);
 
         builder.Property(e => e.Address)
             .IsRequired()
