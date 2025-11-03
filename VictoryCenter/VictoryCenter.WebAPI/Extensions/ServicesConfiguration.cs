@@ -304,7 +304,7 @@ public static class ServicesConfiguration
             new()
             {
                 SectionType = SectionType.WhoWeSupport,
-                Title = "Кого підтримуюмо",
+                Title = "Кого підтримуємо",
                 CreatedAt = DateTime.UtcNow,
                 Contents = new List<WhoWeAreContent>()
                 {
@@ -377,7 +377,7 @@ public static class ServicesConfiguration
                         ContentType = ContentType.Card,
                         ImageId = null,
                         Description =
-                            "Волонтери/ки, які поруч, аби підтримати.",
+                            "Волонтери/ки, які поруч, аби підтримати",
                     },
                     new CardContent()
                     {
