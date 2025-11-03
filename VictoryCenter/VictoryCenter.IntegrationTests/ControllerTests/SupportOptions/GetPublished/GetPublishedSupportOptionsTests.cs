@@ -4,6 +4,7 @@ using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.SupportOptions.GetPublished;
+
 public class GetPublishedSupportOptionsTests : BaseTestClass
 {
     public GetPublishedSupportOptionsTests(IntegrationTestDbFixture fixture)
@@ -18,8 +19,8 @@ public class GetPublishedSupportOptionsTests : BaseTestClass
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
-        IEnumerable<SupportOptionsDto>? responseContent =
-            JsonConvert.DeserializeObject<IEnumerable<SupportOptionsDto>>(responseString);
+        IEnumerable<PublishedSupportOptionsDto>? responseContent =
+            JsonConvert.DeserializeObject<IEnumerable<PublishedSupportOptionsDto>>(responseString);
 
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);

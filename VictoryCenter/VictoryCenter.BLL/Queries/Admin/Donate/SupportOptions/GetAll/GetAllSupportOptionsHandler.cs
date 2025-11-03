@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Queries.Admin.Donate.SupportOptions.GetAll;
+
 public class GetAllSupportOptionsHandler : IRequestHandler<GetAllSupportOptionsQuery, Result<List<SupportOptionsDto>>>
 {
     private readonly IMapper _mapper;

@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.SupportOptions;
+
 public class UpdateSupportOptionsTests
 {
     private readonly Mock<IMapper> _mockMapper;

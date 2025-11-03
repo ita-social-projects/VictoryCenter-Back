@@ -1,5 +1,6 @@
 namespace VictoryCenter.BLL.DTOs.Public.Donate.UahBankDetails;
-public record UahBankDetailsDto
+
+public record PublishedUahBankDetailsDto
 {
     public long Id { get; set; }
     public string Name { get; set; } = null!;

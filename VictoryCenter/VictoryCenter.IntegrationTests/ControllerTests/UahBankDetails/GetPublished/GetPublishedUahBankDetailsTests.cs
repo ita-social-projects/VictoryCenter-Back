@@ -4,6 +4,7 @@ using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.UahBankDetails.GetPublished;
+
 public class GetPublishedUahBankDetailsTests : BaseTestClass
 {
     public GetPublishedUahBankDetailsTests(IntegrationTestDbFixture fixture)
@@ -18,8 +19,8 @@ public class GetPublishedUahBankDetailsTests : BaseTestClass
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
-        IEnumerable<UahBankDetailsDto>? responseContent =
-            JsonConvert.DeserializeObject<IEnumerable<UahBankDetailsDto>>(responseString);
+        IEnumerable<PublishedUahBankDetailsDto>? responseContent =
+            JsonConvert.DeserializeObject<IEnumerable<PublishedUahBankDetailsDto>>(responseString);
 
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);

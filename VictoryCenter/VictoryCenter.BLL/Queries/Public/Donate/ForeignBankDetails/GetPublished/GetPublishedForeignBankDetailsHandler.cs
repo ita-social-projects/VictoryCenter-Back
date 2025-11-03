@@ -8,7 +8,8 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Queries.Public.Donate.ForeignBankDetails.GetPublished;
-public class GetPublishedForeignBankDetailsHandler : IRequestHandler<GetPublishedForeignBankDetailsQuery, Result<List<ForeignBankDetailsDto>>>
+
+public class GetPublishedForeignBankDetailsHandler : IRequestHandler<GetPublishedForeignBankDetailsQuery, Result<List<PublishedForeignBankDetailsDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -19,7 +20,7 @@ public class GetPublishedForeignBankDetailsHandler : IRequestHandler<GetPublishe
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<List<ForeignBankDetailsDto>>> Handle(GetPublishedForeignBankDetailsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<List<PublishedForeignBankDetailsDto>>> Handle(GetPublishedForeignBankDetailsQuery request, CancellationToken cancellationToken)
     {
         IEnumerable<Entities.ForeignBankDetails> foreignBankDetails = await _repositoryWrapper.ForeignBankDetailsRepository.GetAllAsync(new QueryOptions<Entities.ForeignBankDetails>
         {
@@ -27,7 +28,7 @@ public class GetPublishedForeignBankDetailsHandler : IRequestHandler<GetPublishe
             Include = entity => entity
                 .Include(e => e.CorrespondentBanks)
         });
-        var mapped = _mapper.Map<List<ForeignBankDetailsDto>>(foreignBankDetails);
+        var mapped = _mapper.Map<List<PublishedForeignBankDetailsDto>>(foreignBankDetails);
 
         return Result.Ok(mapped);
     }

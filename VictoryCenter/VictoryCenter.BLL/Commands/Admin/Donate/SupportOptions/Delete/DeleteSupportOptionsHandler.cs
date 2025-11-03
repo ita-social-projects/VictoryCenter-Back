@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Delete;
+
 public class DeleteSupportOptionsHandler : IRequestHandler<DeleteSupportOptionsCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;

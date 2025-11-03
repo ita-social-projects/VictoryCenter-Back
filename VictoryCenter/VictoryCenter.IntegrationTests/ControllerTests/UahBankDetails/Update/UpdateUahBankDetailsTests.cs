@@ -6,6 +6,7 @@ using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.UahBankDetails.Update;
+
 public class UpdateUahBankDetailsTests : BaseTestClass
 {
     public UpdateUahBankDetailsTests(IntegrationTestDbFixture fixture)

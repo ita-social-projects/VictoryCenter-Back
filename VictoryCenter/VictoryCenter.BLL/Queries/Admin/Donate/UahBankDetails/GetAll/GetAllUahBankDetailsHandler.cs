@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Queries.Admin.Donate.UahBankDetails.GetAll;
+
 public class GetAllUahBankDetailsHandler : IRequestHandler<GetAllUahBankDetailsQuery, Result<List<UahBankDetailsDto>>>
 {
     private readonly IMapper _mapper;

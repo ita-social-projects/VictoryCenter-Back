@@ -1,4 +1,4 @@
-﻿using FluentResults;
+using FluentResults;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Delete;
 using VictoryCenter.BLL.Constants;
@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.UahBankDetails;
+
 public class DeleteUahBankDetailsTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;

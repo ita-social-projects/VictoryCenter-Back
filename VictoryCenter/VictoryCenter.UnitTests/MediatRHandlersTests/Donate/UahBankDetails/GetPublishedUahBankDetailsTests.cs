@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.UahBankDetails;
+
 public class GetPublishedUahBankDetailsTests
 {
     private readonly Mock<IMapper> _mockMapper;
@@ -35,7 +36,7 @@ public class GetPublishedUahBankDetailsTests
 
     ];
 
-    private readonly IEnumerable<UahBankDetailsDto> _testDtos =
+    private readonly IEnumerable<PublishedUahBankDetailsDto> _testDtos =
     [
         new()
         {
@@ -70,7 +71,7 @@ public class GetPublishedUahBankDetailsTests
         SetupDependencies();
         var handler = new GetPublishedUahBankDetailsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<UahBankDetailsDto>> result = await handler.Handle(new GetPublishedUahBankDetailsQuery(), CancellationToken.None);
+        Result<List<PublishedUahBankDetailsDto>> result = await handler.Handle(new GetPublishedUahBankDetailsQuery(), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
@@ -81,7 +82,7 @@ public class GetPublishedUahBankDetailsTests
 
     private void SetupDependencies()
     {
-        _mockMapper.Setup(m => m.Map<IEnumerable<UahBankDetailsDto>>(It.IsAny<IEnumerable<Entities.UahBankDetails>>()))
+        _mockMapper.Setup(m => m.Map<IEnumerable<PublishedUahBankDetailsDto>>(It.IsAny<IEnumerable<Entities.UahBankDetails>>()))
             .Returns(_testDtos.ToList());
 
         _mockRepositoryWrapper.Setup(r => r.UahBankDetailsRepository.GetAllAsync(null))

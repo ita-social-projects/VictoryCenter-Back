@@ -1,9 +1,10 @@
-﻿using System.Net;
+using System.Net;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.UahBankDetails.Delete;
+
 public class DeleteUahBankDetailsTests : BaseTestClass
 {
     public DeleteUahBankDetailsTests(IntegrationTestDbFixture fixture)

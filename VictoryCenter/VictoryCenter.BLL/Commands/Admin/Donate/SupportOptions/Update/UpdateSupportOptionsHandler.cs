@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Update;
+
 public class UpdateSupportOptionsHandler : IRequestHandler<UpdateSupportOptionsCommand, Result<SupportOptionsDto>>
 {
     private readonly IMapper _mapper;

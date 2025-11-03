@@ -1,4 +1,5 @@
 namespace VictoryCenter.BLL.Constants;
+
 public static class ForeignBankDetailsConstants
 {
     public static readonly string OnlyUsdOrEurMessage = "Currency must be USD or EUR";

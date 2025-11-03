@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.SupportOptions;
+
 public class GetPublishedSupportOptionsTests
 {
     private readonly Mock<IMapper> _mockMapper;
@@ -55,7 +56,7 @@ public class GetPublishedSupportOptionsTests
         SetupDependencies(BankCurrency.Usd, _usdSupportOptions);
         var handler = new GetPublishedSupportOptionsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<SupportOptionsDto>> result = await handler.Handle(
+        Result<List<PublishedSupportOptionsDto>> result = await handler.Handle(
             new GetPublishedSupportOptionsQuery(BankCurrency.Usd),
             CancellationToken.None);
 
@@ -72,7 +73,7 @@ public class GetPublishedSupportOptionsTests
         SetupDependencies(BankCurrency.Eur, _eurSupportOptions);
         var handler = new GetPublishedSupportOptionsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<SupportOptionsDto>> result = await handler.Handle(
+        Result<List<PublishedSupportOptionsDto>> result = await handler.Handle(
             new GetPublishedSupportOptionsQuery(BankCurrency.Eur),
             CancellationToken.None);
 
@@ -110,9 +111,9 @@ public class GetPublishedSupportOptionsTests
             .ReturnsAsync(supportOptions);
 
         _mockMapper
-            .Setup(m => m.Map<IEnumerable<SupportOptionsDto>>(It.IsAny<IEnumerable<Entities.SupportOptions>>()))
+            .Setup(m => m.Map<IEnumerable<PublishedSupportOptionsDto>>(It.IsAny<IEnumerable<Entities.SupportOptions>>()))
             .Returns<IEnumerable<Entities.SupportOptions>>(entities =>
-                entities.Select(e => new SupportOptionsDto
+                entities.Select(e => new PublishedSupportOptionsDto
                 {
                     Id = e.Id,
                     Name = e.Name,

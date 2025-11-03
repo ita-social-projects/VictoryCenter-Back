@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 
 namespace VictoryCenter.BLL.Validators.Donate.UahBankDetails;
+
 public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
     where T : CreateUahBankDetailsDto
 {

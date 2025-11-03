@@ -1,4 +1,5 @@
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
+
 public interface IForeignBankDetails
 {
     string Name { get; }

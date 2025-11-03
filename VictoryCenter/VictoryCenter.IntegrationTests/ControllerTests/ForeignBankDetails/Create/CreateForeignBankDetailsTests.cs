@@ -7,6 +7,7 @@ using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ForeignBankDetails.Create;
+
 public class CreateForeignBankDetailsTests : BaseTestClass
 {
     public CreateForeignBankDetailsTests(IntegrationTestDbFixture fixture)

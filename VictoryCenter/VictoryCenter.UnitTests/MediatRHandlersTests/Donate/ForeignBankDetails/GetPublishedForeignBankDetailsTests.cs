@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.ForeignBankDetails;
+
 public class GetPublishedForeignBankDetailsTests
 {
     private readonly Mock<IMapper> _mockMapper;
@@ -67,7 +68,7 @@ public class GetPublishedForeignBankDetailsTests
         SetupDependencies(BankCurrency.Usd, _usdBankDetails);
         var handler = new GetPublishedForeignBankDetailsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<ForeignBankDetailsDto>> result = await handler.Handle(
+        Result<List<PublishedForeignBankDetailsDto>> result = await handler.Handle(
             new GetPublishedForeignBankDetailsQuery(BankCurrency.Usd),
             CancellationToken.None);
 
@@ -84,7 +85,7 @@ public class GetPublishedForeignBankDetailsTests
         SetupDependencies(BankCurrency.Eur, _eurBankDetails);
         var handler = new GetPublishedForeignBankDetailsHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
-        Result<List<ForeignBankDetailsDto>> result = await handler.Handle(
+        Result<List<PublishedForeignBankDetailsDto>> result = await handler.Handle(
             new GetPublishedForeignBankDetailsQuery(BankCurrency.Eur),
             CancellationToken.None);
 
@@ -121,9 +122,9 @@ public class GetPublishedForeignBankDetailsTests
             .ReturnsAsync(bankDetails);
 
         _mockMapper
-            .Setup(m => m.Map<IEnumerable<ForeignBankDetailsDto>>(It.IsAny<IEnumerable<Entities.ForeignBankDetails>>()))
+            .Setup(m => m.Map<IEnumerable<PublishedForeignBankDetailsDto>>(It.IsAny<IEnumerable<Entities.ForeignBankDetails>>()))
             .Returns<IEnumerable<Entities.ForeignBankDetails>>(entities =>
-                entities.Select(e => new ForeignBankDetailsDto
+                entities.Select(e => new PublishedForeignBankDetailsDto
                 {
                     Id = e.Id,
                     Name = e.Name,

@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
 
 namespace VictoryCenter.BLL.Validators.Donate.ForeignBankDetails;
+
 public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
     where T : IForeignBankDetails
 {

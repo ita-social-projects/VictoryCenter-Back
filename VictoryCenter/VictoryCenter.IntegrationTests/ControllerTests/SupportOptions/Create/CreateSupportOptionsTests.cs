@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
@@ -6,6 +6,7 @@ using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.SupportOptions.Create;
+
 public class CreateSupportOptionsTests : BaseTestClass
 {
     public CreateSupportOptionsTests(IntegrationTestDbFixture fixture)

@@ -2,7 +2,8 @@ using VictoryCenter.BLL.DTOs.Public.Donate.CorrespondentBankDetails;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Public.Donate.ForeignBankDetails;
-public record ForeignBankDetailsDto
+
+public record PublishedForeignBankDetailsDto
 {
     public long Id { get; set; }
     public string Name { get; set; } = null!;
@@ -11,5 +12,5 @@ public record ForeignBankDetailsDto
     public string Swift { get; set; } = null!;
     public string Address { get; set; } = null!;
     public BankCurrency Currency { get; set; }
-    public List<CorrespondentBankDetailsDto> CorrespondentBanks { get; set; } = [];
+    public List<PublishedCorrespondentBankDetailsDto> CorrespondentBanks { get; set; } = [];
 }

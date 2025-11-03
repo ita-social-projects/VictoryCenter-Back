@@ -1,9 +1,10 @@
-﻿using System.Net;
+using System.Net;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.SupportOptions.Delete;
+
 public class DeleteSupportOptionsTests : BaseTestClass
 {
     public DeleteSupportOptionsTests(IntegrationTestDbFixture fixture)

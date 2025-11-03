@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 
 namespace VictoryCenter.BLL.Validators.Donate.SupportOptions;
+
 public class SupportOptionsDtoValidator<T> : AbstractValidator<T>
     where T : ISupportOptions
 {
