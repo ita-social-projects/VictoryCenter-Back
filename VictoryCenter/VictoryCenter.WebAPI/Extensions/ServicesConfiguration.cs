@@ -282,7 +282,7 @@ public static class ServicesConfiguration
                     {
                         ContentType = ContentType.Description,
                         Description =
-                            "Victory Center — це не про терміни чи цифри. Це про відчуття.Тут ти зупиняєшся в моменті, де зникає напруга, і починається\nзцілення. Через спільноту, природу й контакт із кіньми ти повертаєшся до себе справжнього/ої. Ми не змінюємо людей. Ми допомагаємо їм згадати, ким вони є.",
+                            "Victory Center — це не про терміни чи цифри. Це про відчуття. Тут ти зупиняєшся в моменті, де зникає напруга, і починається зцілення. Через спільноту, природу й контакт із кіньми ти повертаєшся до себе справжнього/ої. Ми не змінюємо людей. Ми допомагаємо їм згадати, ким вони є.",
                     }
                 },
             },
@@ -390,18 +390,28 @@ public static class ServicesConfiguration
         };
 
         var existingSections = await dbContext.WhoWeAreSections
-            .Select(c => c.SectionType)
-            .ToListAsync();
+            .ToDictionaryAsync(section => section.SectionType, section => section);
 
-        var sectionsToAdd = sections
-            .Where(section => !existingSections.Contains(section.SectionType))
-            .ToList();
+        var sectionsToAdd = new List<WhoWeAreSection>();
+
+        foreach (var section in sections)
+        {
+            if (existingSections.TryGetValue(section.SectionType, out var existingSection))
+            {
+                existingSection.Title = section.Title;
+            }
+            else
+            {
+                sectionsToAdd.Add(section);
+            }
+        }
 
         if (sectionsToAdd.Count > 0)
         {
             dbContext.AddRange(sectionsToAdd);
-            await dbContext.SaveChangesAsync();
         }
+
+        await dbContext.SaveChangesAsync();
     }
 
     private static void AddOpenApi(this IServiceCollection services)
