@@ -390,28 +390,18 @@ public static class ServicesConfiguration
         };
 
         var existingSections = await dbContext.WhoWeAreSections
-            .ToDictionaryAsync(section => section.SectionType, section => section);
+            .Select(c => c.SectionType)
+            .ToListAsync();
 
-        var sectionsToAdd = new List<WhoWeAreSection>();
-
-        foreach (var section in sections)
-        {
-            if (existingSections.TryGetValue(section.SectionType, out var existingSection))
-            {
-                existingSection.Title = section.Title;
-            }
-            else
-            {
-                sectionsToAdd.Add(section);
-            }
-        }
+        var sectionsToAdd = sections
+            .Where(section => !existingSections.Contains(section.SectionType))
+            .ToList();
 
         if (sectionsToAdd.Count > 0)
         {
             dbContext.AddRange(sectionsToAdd);
+            await dbContext.SaveChangesAsync();
         }
-
-        await dbContext.SaveChangesAsync();
     }
 
     private static void AddOpenApi(this IServiceCollection services)
