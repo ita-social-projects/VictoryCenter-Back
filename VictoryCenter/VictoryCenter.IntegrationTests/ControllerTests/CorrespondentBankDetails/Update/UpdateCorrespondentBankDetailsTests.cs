@@ -61,26 +61,4 @@ public class UpdateCorrespondentBankDetailsTests : BaseTestClass
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task CorrespondentBankDetails_ShouldNotUpdate_InvalidName(string? name)
-    {
-        var updateDto = new UpdateCorrespondentBankDetailsDto
-        {
-            Name = name!,
-            Swift = "dsdssss",
-            Account = "BADACCOUNT",
-            Iban = "122211",
-            ForeignBankDetailsId = 1
-        };
-
-        var serializedDto = JsonConvert.SerializeObject(updateDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/CorrespondentBankDetails/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
-
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
 }

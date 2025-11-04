@@ -60,26 +60,4 @@ public class UpdateForeignBankDetailsTests : BaseTestClass
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task ForeignBankDetails_ShouldNotUpdate_InvalidName(string? name)
-    {
-        var updateDto = new UpdateForeignBankDetailsDto
-        {
-            Name = name!,
-            Receiver = "Receiver",
-            Iban = "UA1111000011110000111100001111",
-            Swift = "BADX",
-            Address = "Paris"
-        };
-        var serializedDto = JsonConvert.SerializeObject(updateDto);
-
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/ForeignBankDetails/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
-
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
 }

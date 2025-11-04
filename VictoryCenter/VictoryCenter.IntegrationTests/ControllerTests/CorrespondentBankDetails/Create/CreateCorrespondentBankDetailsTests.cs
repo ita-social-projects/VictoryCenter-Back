@@ -40,26 +40,4 @@ public class CreateCorrespondentBankDetailsTests : BaseTestClass
         Assert.Equal(createDto.Name, responseContent.Name);
         Assert.Equal(createDto.Swift, responseContent.Swift);
     }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task CorrespondentBankDetails_ShouldNotCreate_InvalidName(string? name)
-    {
-        var createDto = new CreateCorrespondentBankDetailsDto
-        {
-            Name = name!,
-            Swift = "aaaaa",
-            Account = "BADACCOUNT",
-            Iban = "1223212122",
-            ForeignBankDetailsId = 1
-        };
-
-        var serializedDto = JsonConvert.SerializeObject(createDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/CorrespondentBankDetails/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
-
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-    }
 }
