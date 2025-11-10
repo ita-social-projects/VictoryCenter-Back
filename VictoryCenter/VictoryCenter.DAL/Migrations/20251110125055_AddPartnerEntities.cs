@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class AddedPartnersAndPartnerSectionsAndPartnersPageBanner : Migration
+    public partial class AddPartnerEntities : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,7 @@ namespace VictoryCenter.DAL.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    ImageId = table.Column<long>(type: "bigint", nullable: false)
+                    ImageId = table.Column<long>(type: "bigint", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,7 +31,7 @@ namespace VictoryCenter.DAL.Migrations
                         principalSchema: "media",
                         principalTable: "Images",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -96,7 +96,8 @@ namespace VictoryCenter.DAL.Migrations
                 name: "IX_PartnersPageBanners_ImageId",
                 table: "PartnersPageBanners",
                 column: "ImageId",
-                unique: true);
+                unique: true,
+                filter: "[ImageId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PartnersSections_Priority",

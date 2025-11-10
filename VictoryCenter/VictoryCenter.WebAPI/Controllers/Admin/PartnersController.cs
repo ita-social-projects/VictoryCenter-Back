@@ -14,7 +14,7 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class PartnersController : AuthorizedApiController
 {
-    [HttpGet]
+    [HttpGet("sections")]
     [ProducesResponseType(typeof(List<PartnersSectionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPartnersSections()
     {
@@ -36,7 +36,7 @@ public class PartnersController : AuthorizedApiController
         return HandleResult(await Mediator.Send(new UpdatePartnersPageBannerCommand(updatePartnersPageBannerDto)));
     }
 
-    [HttpPost]
+    [HttpPost("sections")]
     [ProducesResponseType(typeof(PartnersSectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -46,7 +46,7 @@ public class PartnersController : AuthorizedApiController
     }
 
     [HttpPut]
-    [Route("{id:long}")]
+    [Route("sections/{id:long}")]
     [ProducesResponseType(typeof(PartnersSectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -56,7 +56,7 @@ public class PartnersController : AuthorizedApiController
     }
 
     [HttpDelete]
-    [Route("{id:long}")]
+    [Route("sections/{id:long}")]
     [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
