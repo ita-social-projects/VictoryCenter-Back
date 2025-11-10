@@ -22,13 +22,15 @@ public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
             .WithMessage(UahBankDetailsConstants.OnlyDigitsMessage);
 
         RuleFor(dto => dto.Iban)
-            .NotEmpty()
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateUahBankDetailsDto.Iban)))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Iban)))
-            .MaximumLength(UahBankDetailsConstants.Iban.MaxLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MaxLength))
+            .Matches(@"^UA\d+$")
+            .WithMessage(ErrorMessagesConstants.OnlyDigitsAllowed())
             .MinimumLength(UahBankDetailsConstants.Iban.MinLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength));
+              .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength))
+            .MaximumLength(UahBankDetailsConstants.Iban.MaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MaxLength));
     }
 }

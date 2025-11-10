@@ -109,6 +109,11 @@ public static class ErrorMessagesConstants
         return $"{collection} cannot be empty";
     }
 
+    public static string OnlyDigitsAllowed()
+    {
+        return "Only digits allowed";
+    }
+
     public static string CollectionCannotContainMoreThan(string collection, long numberOfElements)
     {
         return $"{collection} cannot contain more than {numberOfElements} elements";
