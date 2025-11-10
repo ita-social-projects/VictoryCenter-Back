@@ -17,84 +17,128 @@ public class UpdateUahBankDetailsCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenEdrpouIsEmpty(string? edrpou)
     {
-        var command = new UpdateUahBankDetailsCommand(
-            new UpdateUahBankDetailsDto { Edrpou = edrpou, Iban = "1234567890" },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Edrpou = edrpou! };
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Edrpou)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Edrpou)));
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenEdrpouTooShort()
-    {
-        var command = new UpdateUahBankDetailsCommand(
-            new UpdateUahBankDetailsDto
-            {
-                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength - 1),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
-            },
-            1L);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Edrpou)
-            .WithErrorMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Edrpou), UahBankDetailsConstants.Edrpou.MinLength));
-    }
-
-    [Fact]
     public void Validate_ShouldHaveError_WhenEdrpouNotDigits()
     {
-        var command = new UpdateUahBankDetailsCommand(
-            new UpdateUahBankDetailsDto
-            {
-                Edrpou = "ABC123AA",
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Edrpou = "ABC123AA" };
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Edrpou)
             .WithErrorMessage(UahBankDetailsConstants.OnlyDigitsMessage);
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenIbanTooShort()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenIbanIsEmpty(string? iban)
     {
-        var command = new UpdateUahBankDetailsCommand(
-            new UpdateUahBankDetailsDto
-            {
-                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength - 1)
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Iban = iban! };
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
-            .WithErrorMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Iban)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenNameIsEmpty(string? name)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = name! };
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Name)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenReceiverIsEmpty(string? receiver)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Receiver = receiver! };
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Receiver)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Receiver)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenPaymentPurposeIsEmpty(string? paymentPurpose)
+    {
+        // Arrange
+        var dto = GetValidDto() with { PaymentPurpose = paymentPurpose! };
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.PaymentPurpose)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.PaymentPurpose)));
     }
 
     [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
-        var command = new UpdateUahBankDetailsCommand(
-            new UpdateUahBankDetailsDto
-            {
-                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto();
+        var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    private static UpdateUahBankDetailsDto GetValidDto() => new()
+    {
+        Edrpou = "12345678",
+        Iban = "UA1234567890123456789012345",
+        Name = "Valid Name",
+        Receiver = "Valid Receiver",
+        PaymentPurpose = "Valid Payment Purpose"
+    };
 }

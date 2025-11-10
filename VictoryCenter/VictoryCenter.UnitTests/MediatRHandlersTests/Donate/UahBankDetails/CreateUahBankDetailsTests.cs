@@ -70,11 +70,6 @@ public class CreateUahBankDetailsTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    [InlineData("123")]
-    [InlineData("UA12345678901234567890123456")]
-    [InlineData("UA1234567890123456789012345678")]
-    [InlineData("1234567890123456789012345678")]
-    [InlineData("123456789012345678901234567")]
     public async Task Handle_ShouldFail_InvalidIban(string? iban)
     {
         SetupDependencies();

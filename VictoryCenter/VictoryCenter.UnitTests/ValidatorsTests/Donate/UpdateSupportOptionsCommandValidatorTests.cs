@@ -17,14 +17,17 @@ public class UpdateSupportOptionsCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenNameIsEmpty(string? name)
     {
-        var command = new UpdateSupportOptionsCommand(
-            new UpdateSupportOptionsDto { Name = name, Value = "Some value" },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Name = name! };
+        var command = new UpdateSupportOptionsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateSupportOptionsDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SupportOptionsDto.Name)));
     }
@@ -32,14 +35,17 @@ public class UpdateSupportOptionsCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenValueIsEmpty(string? value)
     {
-        var command = new UpdateSupportOptionsCommand(
-            new UpdateSupportOptionsDto { Name = "Option", Value = value },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Value = value! };
+        var command = new UpdateSupportOptionsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateSupportOptionsDto.Value)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SupportOptionsDto.Value)));
     }
@@ -47,12 +53,20 @@ public class UpdateSupportOptionsCommandValidatorTests
     [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
-        var command = new UpdateSupportOptionsCommand(
-            new UpdateSupportOptionsDto { Name = "Option", Value = "Some value" },
-            1L);
+        // Arrange
+        var dto = GetValidDto();
+        var command = new UpdateSupportOptionsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    private static UpdateSupportOptionsDto GetValidDto() => new()
+    {
+        Name = "Valid Name",
+        Value = "Valid Value"
+    };
 }

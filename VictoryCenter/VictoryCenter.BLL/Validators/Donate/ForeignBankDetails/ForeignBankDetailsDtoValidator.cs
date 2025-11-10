@@ -16,5 +16,17 @@ public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
         RuleFor(dto => dto.Iban)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)));
+
+        RuleFor(dto => dto.Name)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Name)));
+
+        RuleFor(dto => dto.Receiver)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Receiver)));
+
+        RuleFor(dto => dto.Address)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Address)));
     }
 }

@@ -21,18 +21,14 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenSwiftIsEmpty(string? swift)
     {
-        var command = new UpdateCorrespondentBankDetailsCommand(
-            new UpdateCorrespondentBankDetailsDto
-            {
-                Swift = swift,
-                Name = "Test",
-                Account = "Test",
-                ForeignBankDetailsId = 1
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Swift = swift! };
+        var command = new UpdateCorrespondentBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Swift)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Swift)));
     }
@@ -40,59 +36,89 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Validate_ShouldNotHaveError_WhenIbanIsNullOrEmpty(string? iban)
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenNameIsEmpty(string? name)
     {
-        var command = new UpdateCorrespondentBankDetailsCommand(
-            new UpdateCorrespondentBankDetailsDto
-            {
-                Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MinLength),
-                Iban = iban,
-                Name = "Test",
-                Account = "Test",
-                ForeignBankDetailsId = 1
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Name = name! };
+        var command = new UpdateCorrespondentBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Name)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenAccountIsEmpty(string? account)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Account = account! };
+        var command = new UpdateCorrespondentBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Account)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Account)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Validate_ShouldNotHaveError_WhenIbanIsNullOrEmpty(string? iban)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Iban = iban };
+        var command = new UpdateCorrespondentBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
         result.ShouldNotHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Iban);
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_WhenDataIsValidWithIban()
+    public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
-        var command = new UpdateCorrespondentBankDetailsCommand(
-            new UpdateCorrespondentBankDetailsDto
-            {
-                Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MinLength),
-                Iban = new string('1', CorrespondentBankDetailsConstants.Iban.MinLength),
-                Name = "Test",
-                Account = "Test",
-                ForeignBankDetailsId = 1
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto();
+        var command = new UpdateCorrespondentBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValidWithoutIban()
     {
-        var command = new UpdateCorrespondentBankDetailsCommand(
-            new UpdateCorrespondentBankDetailsDto
-            {
-                Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MinLength),
-                Iban = null,
-                Name = "Test",
-                Account = "Test",
-                ForeignBankDetailsId = 1
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Iban = null };
+        var command = new UpdateCorrespondentBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    private static UpdateCorrespondentBankDetailsDto GetValidDto() => new()
+    {
+        Swift = "VALIDSWIFT",
+        Iban = "VALIDIBAN123",
+        Name = "Valid Name",
+        Account = "Valid Account",
+        ForeignBankDetailsId = 1
+    };
 }

@@ -17,35 +17,113 @@ public class UpdateForeignBankDetailsCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenSwiftIsEmpty(string? swift)
     {
-        var command = new UpdateForeignBankDetailsCommand(
-            new UpdateForeignBankDetailsDto
-            {
-                Swift = swift,
-                Iban = new string('1', ForeignBankDetailsConstants.Iban.MinLength)
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto() with { Swift = swift! };
+        var command = new UpdateForeignBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Swift)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Swift)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenIbanIsEmpty(string? iban)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Iban = iban! };
+        var command = new UpdateForeignBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenNameIsEmpty(string? name)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = name! };
+        var command = new UpdateForeignBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Name)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenReceiverIsEmpty(string? receiver)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Receiver = receiver! };
+        var command = new UpdateForeignBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Receiver)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Receiver)));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void Validate_ShouldHaveError_WhenAddressIsEmpty(string? address)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Address = address! };
+        var command = new UpdateForeignBankDetailsCommand(dto, 1L);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Address)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Address)));
     }
 
     [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
-        var command = new UpdateForeignBankDetailsCommand(
-            new UpdateForeignBankDetailsDto
-            {
-                Swift = new string('A', ForeignBankDetailsConstants.Swift.MinLength),
-                Iban = new string('1', ForeignBankDetailsConstants.Iban.MinLength),
-            },
-            1L);
+        // Arrange
+        var dto = GetValidDto();
+        var command = new UpdateForeignBankDetailsCommand(dto, 1L);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    private static UpdateForeignBankDetailsDto GetValidDto() => new()
+    {
+        Swift = "VALIDSWIFT",
+        Iban = "UA1234567890123456789",
+        Name = "Valid Name",
+        Receiver = "Valid Receiver",
+        Address = "Valid Address"
+    };
 }

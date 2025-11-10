@@ -12,5 +12,13 @@ public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
         RuleFor(dto => dto.Swift)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Swift)));
+
+        RuleFor(dto => dto.Name)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Name)));
+
+        RuleFor(dto => dto.Account)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Account)));
     }
 }

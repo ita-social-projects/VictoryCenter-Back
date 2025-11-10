@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.BLL.Validators.Donate.SupportOptions;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Donate;
 public class CreateSupportOptionsCommandValidatorTests
@@ -20,11 +21,14 @@ public class CreateSupportOptionsCommandValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenNameIsEmpty(string? name)
     {
-        var command = new CreateSupportOptionsCommand(
-            new CreateSupportOptionsDto { Name = name, Value = "SomeValue" });
+        // Arrange
+        var dto = GetValidDto() with { Name = name! };
+        var command = new CreateSupportOptionsCommand(dto);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.CreateSupportOptionsDto.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SupportOptionsDto.Name)));
     }
@@ -35,23 +39,54 @@ public class CreateSupportOptionsCommandValidatorTests
     [InlineData(" ")]
     public void Validate_ShouldHaveError_WhenValueIsEmpty(string? value)
     {
-        var command = new CreateSupportOptionsCommand(
-            new CreateSupportOptionsDto { Name = "SomeName", Value = value });
+        // Arrange
+        var dto = GetValidDto() with { Value = value! };
+        var command = new CreateSupportOptionsCommand(dto);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.CreateSupportOptionsDto.Value)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SupportOptionsDto.Value)));
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_WhenDataIsValid()
+    public void Validate_ShouldHaveError_WhenCurrencyIsInvalid()
     {
-        var command = new CreateSupportOptionsCommand(
-            new CreateSupportOptionsDto { Name = "SupportName", Value = "SupportValue" });
+        // Arrange
+        var dto = GetValidDto() with { Currency = (BankCurrency)99 };
+        var command = new CreateSupportOptionsCommand(dto);
 
+        // Act
         var result = _validator.TestValidate(command);
 
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateSupportOptionsDto.Currency)
+            .WithErrorMessage(SupportOptionsConstants.OnlyUsdOrEurOrUahMessage);
+    }
+
+    [Theory]
+    [InlineData(BankCurrency.Uah)]
+    [InlineData(BankCurrency.Usd)]
+    [InlineData(BankCurrency.Eur)]
+    public void Validate_ShouldNotHaveError_WhenDataIsValid(BankCurrency currency)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Currency = currency };
+        var command = new CreateSupportOptionsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    private static CreateSupportOptionsDto GetValidDto() => new()
+    {
+        Name = "Valid Name",
+        Value = "Valid Value",
+        Currency = BankCurrency.Uah
+    };
 }
