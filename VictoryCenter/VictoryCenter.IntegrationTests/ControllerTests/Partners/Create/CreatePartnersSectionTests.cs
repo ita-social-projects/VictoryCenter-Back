@@ -12,7 +12,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Partners.Create;
 
 public class CreatePartnersSectionTests : BaseTestClass
 {
-    private readonly Uri _endpointUri = new("/api/Partners", UriKind.Relative);
+    private readonly Uri _endpointUri = new("/api/Partners/sections", UriKind.Relative);
 
     public CreatePartnersSectionTests(IntegrationTestDbFixture fixture)
         : base(fixture)

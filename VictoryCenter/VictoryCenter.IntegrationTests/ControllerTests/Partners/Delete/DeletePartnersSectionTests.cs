@@ -7,7 +7,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Partners.Delete;
 
 public class DeletePartnersSectionTests : BaseTestClass
 {
-    private readonly Uri _endpointUri = new("/api/Partners/", UriKind.Relative);
+    private readonly Uri _endpointUri = new("/api/Partners/sections/", UriKind.Relative);
 
     public DeletePartnersSectionTests(IntegrationTestDbFixture fixture)
         : base(fixture)

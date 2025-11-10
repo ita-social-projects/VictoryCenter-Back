@@ -11,7 +11,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.Partners.UpdateSection;
 
 public class UpdatePartnersSectionTests : BaseTestClass
 {
-    private readonly string _endpointBasePath = "/api/Partners/";
+    private readonly string _endpointBasePath = "/api/Partners/sections/";
 
     public UpdatePartnersSectionTests(IntegrationTestDbFixture fixture)
         : base(fixture)
