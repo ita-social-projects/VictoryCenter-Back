@@ -50,7 +50,7 @@ public class CreateUahBankDetailsTests : BaseTestClass
             Name = bankName!,
             Receiver = "PrivatBank",
             Edrpou = "111111112",
-            Iban = "1234567890123456789012345672",
+            Iban = "UA123456789012345678901234567",
             PaymentPurpose = "Donation"
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);

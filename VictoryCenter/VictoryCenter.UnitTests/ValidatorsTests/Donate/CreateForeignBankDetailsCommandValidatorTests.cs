@@ -33,6 +33,42 @@ public class CreateForeignBankDetailsCommandValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Swift)));
     }
 
+    [Fact]
+    public void Validate_ShouldHaveError_WhenSwiftIsTooShort()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Swift = new string('A', ForeignBankDetailsConstants.Swift.MinLength - 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Swift)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsConstants.Swift),
+                    ForeignBankDetailsConstants.Swift.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenSwiftIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Swift = new string('A', ForeignBankDetailsConstants.Swift.MaxLength + 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Swift)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsConstants.Swift),
+                    ForeignBankDetailsConstants.Swift.MaxLength));
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
@@ -49,6 +85,57 @@ public class CreateForeignBankDetailsCommandValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Iban)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanIsTooShort()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Iban = new string('A', ForeignBankDetailsConstants.Iban.MinLength - 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsConstants.Iban),
+                    ForeignBankDetailsConstants.Iban.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Iban = new string('A', ForeignBankDetailsConstants.Iban.MaxLength + 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsConstants.Iban),
+                    ForeignBankDetailsConstants.Iban.MaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUa()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Iban = "XX123456789012345678901234567" };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Iban)
+            .WithErrorMessage(ForeignBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
     }
 
     [Theory]
@@ -141,7 +228,7 @@ public class CreateForeignBankDetailsCommandValidatorTests
     private static CreateForeignBankDetailsDto GetValidDto() => new()
     {
         Swift = "VALIDSWIFT",
-        Iban = "UA1234567890123456789",
+        Iban = "UA123456789012345678901234567",
         Name = "Valid Name",
         Receiver = "Valid Receiver",
         Address = "Valid Address",

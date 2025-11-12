@@ -33,6 +33,59 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Swift)));
     }
 
+    [Fact]
+    public void Validate_ShouldHaveError_WhenSwiftIsTooShort()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MinLength - 1) };
+        var command = new CreateCorrespondentBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Swift)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsConstants.Swift),
+                    CorrespondentBankDetailsConstants.Swift.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenSwiftIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Swift = new string('A', CorrespondentBankDetailsConstants.Swift.MaxLength + 1) };
+        var command = new CreateCorrespondentBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Swift)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsConstants.Swift),
+                    CorrespondentBankDetailsConstants.Swift.MaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Iban = new string('A', CorrespondentBankDetailsConstants.Iban.MaxLength + 1) };
+        var command = new CreateCorrespondentBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CorrespondentBankDetailsConstants.Iban),
+                CorrespondentBankDetailsConstants.Iban.MaxLength));
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

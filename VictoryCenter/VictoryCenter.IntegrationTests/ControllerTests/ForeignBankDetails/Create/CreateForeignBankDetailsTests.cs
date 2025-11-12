@@ -22,7 +22,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
         {
             Name = "NewForeignBank",
             Receiver = "Charity Org",
-            Iban = "123456789012345678901234567",
+            Iban = "UA123456789012345678901234567",
             Swift = "12345678901",
             Address = "New York, USA",
             Currency = BankCurrency.Usd,
@@ -52,7 +52,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
             Name = name!,
             Receiver = "Charity Org",
             Iban = "UA000000000000000000000000000",
-            Swift = "BADX",
+            Swift = "12345678901",
             Address = "Invalid",
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);

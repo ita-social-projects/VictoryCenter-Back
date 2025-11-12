@@ -11,7 +11,23 @@ public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
     {
         RuleFor(dto => dto.Swift)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Swift)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Swift)))
+            .MaximumLength(CorrespondentBankDetailsConstants.Swift.MaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsConstants.Swift),
+                    CorrespondentBankDetailsConstants.Swift.MaxLength))
+            .MinimumLength(CorrespondentBankDetailsConstants.Swift.MinLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsConstants.Swift),
+                    CorrespondentBankDetailsConstants.Swift.MinLength));
+
+        RuleFor(dto => dto.Iban)
+            .MaximumLength(CorrespondentBankDetailsConstants.Iban.MaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CorrespondentBankDetailsConstants.Iban),
+                CorrespondentBankDetailsConstants.Iban.MaxLength));
 
         RuleFor(dto => dto.Name)
             .NotEmpty()

@@ -22,7 +22,7 @@ public class UpdateForeignBankDetailsTests
     {
         Name = "Updated Foreign Bank",
         Receiver = "Updated Receiver",
-        Iban = "123456789012345678901234567",
+        Iban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Updated Address",
     };
@@ -32,7 +32,7 @@ public class UpdateForeignBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "123456789012345678901234567",
+        Iban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Old Address",
         CorrespondentBanks = []
@@ -43,7 +43,7 @@ public class UpdateForeignBankDetailsTests
         Id = 1,
         Name = "Updated Foreign Bank",
         Receiver = "Updated Receiver",
-        Iban = "123456789012345678901234567",
+        Iban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Updated Address",
         CorrespondentBanks = []
@@ -62,16 +62,19 @@ public class UpdateForeignBankDetailsTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
+        // Arrange
         _foreignBankDetailsEntity.Name = name!;
         _foreignBankDetailsDto.Name = name!;
         SetupDependencies();
 
         var handler = new UpdateForeignBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler.Handle(
             new UpdateForeignBankDetailsCommand(new UpdateForeignBankDetailsDto { Name = name! }, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -79,13 +82,16 @@ public class UpdateForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_EntityNotFound()
     {
+        // Arrange
         SetupDependencies(entityExists: false);
         var handler = new UpdateForeignBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler.Handle(
             new UpdateForeignBankDetailsCommand(_updateDto, 99),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(99, typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
     }
@@ -93,13 +99,16 @@ public class UpdateForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
+        // Arrange
         SetupDependencies(saveResult: -1);
         var handler = new UpdateForeignBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler.Handle(
             new UpdateForeignBankDetailsCommand(_updateDto, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
     }
@@ -107,13 +116,16 @@ public class UpdateForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldUpdateForeignBankDetails()
     {
+        // Arrange
         SetupDependencies();
         var handler = new UpdateForeignBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler.Handle(
             new UpdateForeignBankDetailsCommand(_updateDto, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_foreignBankDetailsDto.Name, result.Value.Name);
         Assert.Equal(_foreignBankDetailsDto.Iban, result.Value.Iban);
