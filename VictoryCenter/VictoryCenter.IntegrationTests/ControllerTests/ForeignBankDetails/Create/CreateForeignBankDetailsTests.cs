@@ -54,6 +54,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
             Iban = "UA000000000000000000000000000",
             Swift = "12345678901",
             Address = "Invalid",
+            Currency = BankCurrency.Usd,
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);
 

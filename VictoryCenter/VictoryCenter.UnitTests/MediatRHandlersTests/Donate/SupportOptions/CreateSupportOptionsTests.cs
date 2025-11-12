@@ -47,9 +47,25 @@ public class CreateSupportOptionsTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
         var dto = new CreateSupportOptionsDto { Name = name!, Value = "Test" };
+        var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(dto), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Errors);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Handle_ShouldFail_InvalidValue(string? value)
+    {
+        var dto = new CreateSupportOptionsDto { Name = "Test", Value = value! };
         var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
         Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(dto), CancellationToken.None);

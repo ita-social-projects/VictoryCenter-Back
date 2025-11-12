@@ -15,12 +15,12 @@ public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
             .MaximumLength(ForeignBankDetailsConstants.Swift.MaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Swift),
+                    nameof(ForeignBankDetailsDto.Swift),
                     ForeignBankDetailsConstants.Swift.MaxLength))
             .MinimumLength(ForeignBankDetailsConstants.Swift.MinLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Swift),
+                    nameof(ForeignBankDetailsDto.Swift),
                     ForeignBankDetailsConstants.Swift.MinLength));
 
         RuleFor(dto => dto.Iban)
@@ -29,12 +29,12 @@ public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
             .MaximumLength(ForeignBankDetailsConstants.Iban.MaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Iban),
+                    nameof(ForeignBankDetailsDto.Iban),
                     ForeignBankDetailsConstants.Iban.MaxLength))
             .MinimumLength(ForeignBankDetailsConstants.Iban.MinLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Iban),
+                    nameof(ForeignBankDetailsDto.Iban),
                     ForeignBankDetailsConstants.Iban.MinLength))
             .Matches(ForeignBankDetailsConstants.UahIbanExpression)
             .WithMessage(ForeignBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);

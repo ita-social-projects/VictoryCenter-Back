@@ -45,6 +45,36 @@ public class UpdateSupportOptionsTests
         _validator = new UpdateSupportOptionsCommandValidator();
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Handle_ShouldFail_InvalidName(string? name)
+    {
+        var dto = new UpdateSupportOptionsDto { Name = name!, Value = "Test" };
+        var handler = new UpdateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        Result<SupportOptionsDto> result = await handler.Handle(new UpdateSupportOptionsCommand(dto, 1), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Errors);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Handle_ShouldFail_InvalidValue(string? value)
+    {
+        var dto = new UpdateSupportOptionsDto { Name = "Test", Value = value! };
+        var handler = new UpdateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        Result<SupportOptionsDto> result = await handler.Handle(new UpdateSupportOptionsCommand(dto, 1), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Errors);
+    }
+
     [Fact]
     public async Task Handle_ShouldFail_EntityNotFound()
     {
