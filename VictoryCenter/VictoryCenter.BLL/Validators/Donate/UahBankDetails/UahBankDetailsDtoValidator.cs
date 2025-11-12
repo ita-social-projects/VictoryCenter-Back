@@ -12,6 +12,8 @@ public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
         RuleFor(dto => dto.Edrpou)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Edrpou)))
+            .Matches(UahBankDetailsConstants.OnlyDigits)
+            .WithMessage(UahBankDetailsConstants.OnlyDigitsMessage)
             .MaximumLength(UahBankDetailsConstants.Edrpou.MaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Edrpou), UahBankDetailsConstants.Edrpou.MaxLength))
