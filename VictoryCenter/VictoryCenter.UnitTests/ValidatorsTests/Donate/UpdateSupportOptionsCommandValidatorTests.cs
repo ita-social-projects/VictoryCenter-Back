@@ -36,7 +36,7 @@ public class UpdateSupportOptionsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenNameExceedsMaxLength()
     {
         // Arrange
-        var longName = new string('a', SupportOptionsConstants.Name.MaxLength + 1);
+        var longName = new string('a', SupportOptionsConstants.NameMaxLength + 1);
         var dto = GetValidDto() with { Name = longName };
         var command = new UpdateSupportOptionsCommand(dto, 1L);
 
@@ -48,7 +48,7 @@ public class UpdateSupportOptionsCommandValidatorTests
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
                     nameof(SupportOptionsDto.Name),
-                    SupportOptionsConstants.Name.MaxLength));
+                    SupportOptionsConstants.NameMaxLength));
     }
 
     [Theory]
@@ -73,7 +73,7 @@ public class UpdateSupportOptionsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenValueExceedsMaxLength()
     {
         // Arrange
-        var longValue = new string('a', SupportOptionsConstants.Value.MaxLength + 1);
+        var longValue = new string('a', SupportOptionsConstants.ValueMaxLength + 1);
         var dto = GetValidDto() with { Value = longValue };
         var command = new UpdateSupportOptionsCommand(dto, 1L);
 
@@ -85,7 +85,7 @@ public class UpdateSupportOptionsCommandValidatorTests
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
                     nameof(SupportOptionsDto.Value),
-                    SupportOptionsConstants.Value.MaxLength));
+                    SupportOptionsConstants.ValueMaxLength));
     }
 
     [Fact]

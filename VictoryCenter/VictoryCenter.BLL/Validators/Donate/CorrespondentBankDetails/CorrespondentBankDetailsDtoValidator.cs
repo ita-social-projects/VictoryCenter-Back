@@ -34,11 +34,21 @@ public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
         RuleFor(dto => dto.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants
-                .PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Name)));
+                .PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Name)))
+            .MaximumLength(CorrespondentBankDetailsConstants.NameMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsDto.Name),
+                    CorrespondentBankDetailsConstants.NameMaxLength));
 
         RuleFor(dto => dto.Account)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants
-                .PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Account)));
+                .PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Account)))
+            .MaximumLength(CorrespondentBankDetailsConstants.AccountMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsDto.Account),
+                    CorrespondentBankDetailsConstants.AccountMaxLength));
     }
 }

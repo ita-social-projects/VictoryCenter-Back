@@ -153,6 +153,42 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenNameIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = new string('A', CorrespondentBankDetailsConstants.NameMaxLength + 1) };
+        var command = new CreateCorrespondentBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Name)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsDto.Name),
+                    CorrespondentBankDetailsConstants.NameMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAccountIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Account = new string('A', CorrespondentBankDetailsConstants.AccountMaxLength + 1) };
+        var command = new CreateCorrespondentBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Account)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CorrespondentBankDetailsDto.Account),
+                    CorrespondentBankDetailsConstants.AccountMaxLength));
+    }
+
+    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValidWithoutIban()
     {
         // Arrange

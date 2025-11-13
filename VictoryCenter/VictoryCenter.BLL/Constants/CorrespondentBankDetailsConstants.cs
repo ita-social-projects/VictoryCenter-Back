@@ -2,6 +2,8 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class CorrespondentBankDetailsConstants
 {
+    public static readonly int NameMaxLength = 200;
+    public static readonly int AccountMaxLength = 20;
     public static class Swift
     {
         public static readonly int MaxLength = 11;

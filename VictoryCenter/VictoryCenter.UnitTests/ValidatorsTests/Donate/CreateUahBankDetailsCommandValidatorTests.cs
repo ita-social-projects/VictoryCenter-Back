@@ -200,6 +200,60 @@ public class CreateUahBankDetailsCommandValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenNameIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = new string('A', UahBankDetailsConstants.NameMaxLength + 1) };
+        var command = new CreateUahBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.Name)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(UahBankDetailsDto.Name),
+                    UahBankDetailsConstants.NameMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenReceiverIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Receiver = new string('A', UahBankDetailsConstants.ReceiverMaxLength + 1) };
+        var command = new CreateUahBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.Receiver)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(UahBankDetailsDto.Receiver),
+                    UahBankDetailsConstants.ReceiverMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPaymentPurposeIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { PaymentPurpose = new string('A', UahBankDetailsConstants.PaymentPurposeMaxLength + 1) };
+        var command = new CreateUahBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.PaymentPurpose)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(UahBankDetailsDto.PaymentPurpose),
+                    UahBankDetailsConstants.PaymentPurposeMaxLength));
+    }
+
+    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         // Arrange

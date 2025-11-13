@@ -225,6 +225,60 @@ public class CreateForeignBankDetailsCommandValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Fact]
+    public void Validate_ShouldHaveError_WhenNameIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = new string('A', ForeignBankDetailsConstants.NameMaxLength + 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Name)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsDto.Name),
+                    ForeignBankDetailsConstants.NameMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenReceiverIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Receiver = new string('A', ForeignBankDetailsConstants.ReceiverMaxLength + 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Receiver)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsDto.Receiver),
+                    ForeignBankDetailsConstants.ReceiverMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAddressIsTooLong()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Address = new string('A', ForeignBankDetailsConstants.AddressMaxLength + 1) };
+        var command = new CreateForeignBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.CreateForeignBankDetailsDto.Address)
+            .WithErrorMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsDto.Address),
+                    ForeignBankDetailsConstants.AddressMaxLength));
+    }
+
     private static CreateForeignBankDetailsDto GetValidDto() => new()
     {
         Swift = "VALIDSWIFT",

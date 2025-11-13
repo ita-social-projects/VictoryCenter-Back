@@ -6,6 +6,9 @@ public static class ForeignBankDetailsConstants
     public static readonly string IbanMustStartWithUaFollowedByDigits = "IBAN must start with UA followed by digits only";
     public static readonly string UahIbanExpression = @"^UA\d+$";
 
+    public static readonly int NameMaxLength = 200;
+    public static readonly int ReceiverMaxLength = 200;
+    public static readonly int AddressMaxLength = 200;
     public static class Swift
     {
         public static readonly int MaxLength = 11;

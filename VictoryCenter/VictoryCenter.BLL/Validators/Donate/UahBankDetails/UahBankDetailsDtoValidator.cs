@@ -36,14 +36,29 @@ public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
 
         RuleFor(dto => dto.Name)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Name)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Name)))
+            .MaximumLength(UahBankDetailsConstants.NameMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(UahBankDetailsDto.Name),
+                    UahBankDetailsConstants.NameMaxLength));
 
         RuleFor(dto => dto.Receiver)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Receiver)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Receiver)))
+            .MaximumLength(UahBankDetailsConstants.ReceiverMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(UahBankDetailsDto.Receiver),
+                    UahBankDetailsConstants.ReceiverMaxLength));
 
         RuleFor(dto => dto.PaymentPurpose)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.PaymentPurpose)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.PaymentPurpose)))
+            .MaximumLength(UahBankDetailsConstants.PaymentPurposeMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(UahBankDetailsDto.PaymentPurpose),
+                    UahBankDetailsConstants.PaymentPurposeMaxLength));
     }
 }

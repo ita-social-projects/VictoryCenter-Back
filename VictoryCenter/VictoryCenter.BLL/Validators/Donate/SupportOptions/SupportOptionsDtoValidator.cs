@@ -12,19 +12,19 @@ public class SupportOptionsDtoValidator<T> : AbstractValidator<T>
         RuleFor(dto => dto.Name)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SupportOptionsDto.Name)))
-            .MaximumLength(SupportOptionsConstants.Name.MaxLength)
+            .MaximumLength(SupportOptionsConstants.NameMaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
                     nameof(SupportOptionsDto.Name),
-                    SupportOptionsConstants.Name.MaxLength));
+                    SupportOptionsConstants.NameMaxLength));
 
         RuleFor(dto => dto.Value)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SupportOptionsDto.Value)))
-            .MaximumLength(SupportOptionsConstants.Value.MaxLength)
+            .MaximumLength(SupportOptionsConstants.ValueMaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
                     nameof(SupportOptionsDto.Value),
-                    SupportOptionsConstants.Value.MaxLength));
+                    SupportOptionsConstants.ValueMaxLength));
     }
 }

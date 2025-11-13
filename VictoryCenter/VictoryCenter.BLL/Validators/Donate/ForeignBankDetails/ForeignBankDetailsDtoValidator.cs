@@ -41,14 +41,29 @@ public class ForeignBankDetailsDtoValidator<T> : AbstractValidator<T>
 
         RuleFor(dto => dto.Name)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Name)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Name)))
+            .MaximumLength(ForeignBankDetailsConstants.NameMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsDto.Name),
+                    ForeignBankDetailsConstants.NameMaxLength));
 
         RuleFor(dto => dto.Receiver)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Receiver)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Receiver)))
+            .MaximumLength(ForeignBankDetailsConstants.ReceiverMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsDto.Receiver),
+                    ForeignBankDetailsConstants.ReceiverMaxLength));
 
         RuleFor(dto => dto.Address)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Address)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Address)))
+            .MaximumLength(ForeignBankDetailsConstants.AddressMaxLength)
+            .WithMessage(ErrorMessagesConstants
+                .PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(ForeignBankDetailsDto.Address),
+                    ForeignBankDetailsConstants.AddressMaxLength));
     }
 }
