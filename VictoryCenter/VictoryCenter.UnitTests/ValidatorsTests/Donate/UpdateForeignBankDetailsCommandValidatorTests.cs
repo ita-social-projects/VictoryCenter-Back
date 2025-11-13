@@ -46,7 +46,7 @@ public class UpdateForeignBankDetailsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Swift)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Swift),
+                    nameof(ForeignBankDetailsDto.Swift),
                     ForeignBankDetailsConstants.Swift.MinLength));
     }
 
@@ -64,7 +64,7 @@ public class UpdateForeignBankDetailsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Swift)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Swift),
+                    nameof(ForeignBankDetailsDto.Swift),
                     ForeignBankDetailsConstants.Swift.MaxLength));
     }
 
@@ -100,7 +100,7 @@ public class UpdateForeignBankDetailsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Iban),
+                    nameof(ForeignBankDetailsDto.Iban),
                     ForeignBankDetailsConstants.Iban.MinLength));
     }
 
@@ -118,7 +118,7 @@ public class UpdateForeignBankDetailsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsConstants.Iban),
+                    nameof(ForeignBankDetailsDto.Iban),
                     ForeignBankDetailsConstants.Iban.MaxLength));
     }
 

@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
-using VictoryCenter.BLL.DTOs.Public.Payment;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;

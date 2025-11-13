@@ -204,8 +204,8 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
 
     private static CreateCorrespondentBankDetailsDto GetValidDto() => new()
     {
-        Swift = "VALIDSWIFT",
-        Iban = "VALIDIBAN123",
+        Swift = "VALIDSWIFTT",
+        Iban = "UA123456789012345678901234567",
         Name = "Valid Name",
         Account = "Valid Account",
         ForeignBankDetailsId = 1
