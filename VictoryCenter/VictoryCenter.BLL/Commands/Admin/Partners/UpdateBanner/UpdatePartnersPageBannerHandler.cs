@@ -50,24 +50,19 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
             var bannerEntity = await _repositoryWrapper.PartnersPageBannersRepository
                 .GetFirstOrDefaultAsync();
 
-            using (var scope = _repositoryWrapper.BeginTransaction())
+            if (bannerEntity == null)
             {
-                if (bannerEntity == null)
-                {
-                    bannerEntity = _mapper.Map<PartnersPageBanner>(request.Dto);
-                    bannerEntity.CreatedAt = DateTimeOffset.UtcNow;
-                    await _repositoryWrapper.PartnersPageBannersRepository.CreateAsync(bannerEntity);
-                }
-                else
-                {
-                    _mapper.Map(request.Dto, bannerEntity);
-                    _repositoryWrapper.PartnersPageBannersRepository.Update(bannerEntity);
-                }
-
-                await _repositoryWrapper.SaveChangesAsync();
-
-                scope.Complete();
+                bannerEntity = _mapper.Map<PartnersPageBanner>(request.Dto);
+                bannerEntity.CreatedAt = DateTimeOffset.UtcNow;
+                await _repositoryWrapper.PartnersPageBannersRepository.CreateAsync(bannerEntity);
             }
+            else
+            {
+                _mapper.Map(request.Dto, bannerEntity);
+                _repositoryWrapper.PartnersPageBannersRepository.Update(bannerEntity);
+            }
+
+            await _repositoryWrapper.SaveChangesAsync();
 
             var result = await _repositoryWrapper.PartnersPageBannersRepository.GetFirstOrDefaultAsync(new()
             {

@@ -68,12 +68,8 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
                 partnerEntity.Priority = currentDisplayOrder++;
             }
 
-            using (var scope = _repositoryWrapper.BeginTransaction())
-            {
-                await _repositoryWrapper.PartnerSectionsRepository.CreateAsync(partnersSectionEntity);
-                await _repositoryWrapper.SaveChangesAsync();
-                scope.Complete();
-            }
+            await _repositoryWrapper.PartnerSectionsRepository.CreateAsync(partnersSectionEntity);
+            await _repositoryWrapper.SaveChangesAsync();
 
             var createdSection = await _repositoryWrapper.PartnerSectionsRepository.GetFirstOrDefaultAsync(new()
             {

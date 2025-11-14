@@ -53,7 +53,6 @@ public class ReorderPartnerSectionsValidatorTests
         var result = _validator.TestValidate(command);
 
         // Assert
-        // RuleForEach генерує помилку для всієї колекції
         result.ShouldHaveValidationErrorFor(x => x.ReorderDto.OrderedIds);
     }
 

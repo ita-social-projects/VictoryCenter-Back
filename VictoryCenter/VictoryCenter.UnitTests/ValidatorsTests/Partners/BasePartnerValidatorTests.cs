@@ -9,12 +9,15 @@ public class BasePartnerValidatorTests
 {
     private readonly TestBasePartnerValidator _validator;
     private readonly string _validDescription;
+    private readonly string _tooShortDescription;
     private readonly string _tooLongDescription;
 
+    // Internal class to allow testing the abstract validator
     private class TestBasePartnerValidator : BasePartnerValidator<TestPartnerDto>
     {
     }
 
+    // Internal DTO to satisfy the generic constraint
     private record TestPartnerDto : BasePartnerCreateUpdateDto
     {
     }
@@ -22,36 +25,48 @@ public class BasePartnerValidatorTests
     public BasePartnerValidatorTests()
     {
         _validator = new TestBasePartnerValidator();
-        _validDescription = "A valid description for a partner.";
+
+        // Initialize strings based on constants
+        _validDescription = new string('D', PartnerConstants.PartnerDescriptionMinLength);
+        _tooShortDescription = new string('D', PartnerConstants.PartnerDescriptionMinLength > 0 ? PartnerConstants.PartnerDescriptionMinLength - 1 : 0);
         _tooLongDescription = new string('D', PartnerConstants.PartnerDescriptionMaxLength + 1);
     }
 
-    [Fact]
-    public void Validate_DescriptionIsEmpty_ShouldHaveError()
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void Validate_DescriptionIsEmptyOrNull_ShouldHaveError(string description)
     {
         // Arrange
-        var model = new TestPartnerDto { Description = "" };
+        var model = new TestPartnerDto { Description = description };
 
         // Act
         var result = _validator.TestValidate(model);
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)));
     }
 
     [Fact]
-    public void Validate_DescriptionIsNull_ShouldHaveError()
+    public void Validate_DescriptionIsTooShort_ShouldHaveError()
     {
         // Arrange
-        var model = new TestPartnerDto { Description = null! };
+        // Skip test if MinLength is 0 or 1, as "" (NotEmpty) would catch it.
+        if (PartnerConstants.PartnerDescriptionMinLength <= 1)
+        {
+            return;
+        }
+
+        var model = new TestPartnerDto { Description = _tooShortDescription };
 
         // Act
         var result = _validator.TestValidate(model);
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMinLength));
     }
 
     [Fact]
@@ -65,8 +80,8 @@ public class BasePartnerValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMaxLength));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMaxLength));
     }
 
     [Fact]

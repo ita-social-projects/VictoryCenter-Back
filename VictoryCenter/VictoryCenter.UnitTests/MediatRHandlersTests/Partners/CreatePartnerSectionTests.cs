@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -26,7 +25,7 @@ public class CreatePartnersSectionTests
     private readonly CreatePartnersSectionDto _createDto = new()
     {
         Title = "New Partner Section",
-        Description = "A valid description.", // ✅ Додано валідний опис
+        Description = "A valid description.",
         Partners =
         [
             new() { Description = "Partner 1", ImageId = 1 },
@@ -65,7 +64,7 @@ public class CreatePartnersSectionTests
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockReorderService = new Mock<IReorderService>();
-        _validator = new CreatePartnersSectionCommandValidator(); // ✅ Створюємо екземпляр реального валідатора
+        _validator = new CreatePartnersSectionCommandValidator();
     }
 
     [Fact]
@@ -157,7 +156,6 @@ public class CreatePartnersSectionTests
 
     private void SetupDependencies(PartnerSection sectionEntity, PartnersSectionDto resultDto)
     {
-        // ❌ Метод SetupValidator більше не потрібен
         SetupMapper(sectionEntity, resultDto);
         SetupRepositoryWrapper(sectionEntity);
         SetupReorderService();
@@ -186,9 +184,6 @@ public class CreatePartnersSectionTests
             .ReturnsAsync(createdEntity);
 
         _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
-
-        _mockRepositoryWrapper.Setup(r => r.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _mockRepositoryWrapper.Setup(r => r.PartnerSectionsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PartnerSection>>()))
             .ReturnsAsync(createdEntity);

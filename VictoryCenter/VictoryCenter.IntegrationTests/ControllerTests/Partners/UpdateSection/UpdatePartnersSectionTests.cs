@@ -98,7 +98,7 @@ public class UpdatePartnersSectionTests : BaseTestClass
         var sectionToUpdate = await Fixture.DbContext.PartnersSections.FirstAsync();
         var updateDto = new UpdatePartnersSectionDto
         {
-            Title = new string('T', PartnerConstants.PartnersSectionTitleMaxLength + 1), // Невалідний заголовок
+            Title = new string('T', PartnerConstants.PartnersSectionTitleMaxLength + 1), // Invalid title
             Description = "Valid Description"
         };
         var requestUri = new Uri($"{_endpointBasePath}{sectionToUpdate.Id}", UriKind.Relative);
@@ -116,7 +116,7 @@ public class UpdatePartnersSectionTests : BaseTestClass
     public async Task UpdateSection_WithNonExistentSectionId_ShouldReturnNotFound()
     {
         // Arrange
-        var updateDto = new UpdatePartnersSectionDto { Title = "Title", Description = "Desc" };
+        var updateDto = new UpdatePartnersSectionDto { Title = "This new Title is long", Description = "This Desc is long" };
         var requestUri = new Uri($"{_endpointBasePath}{long.MaxValue}", UriKind.Relative);
         var serializedDto = JsonSerializer.Serialize(updateDto, JsonOptions);
         var content = new StringContent(serializedDto, Encoding.UTF8, "application/json");

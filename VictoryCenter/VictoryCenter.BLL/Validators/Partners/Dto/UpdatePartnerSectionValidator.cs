@@ -31,6 +31,6 @@ public class UpdatePartnerSectionValidator : BasePartnerSectionValidator<UpdateP
             .NotNull()
             .Must(partners => partners.Count <= PartnerConstants.PartnersSectionPartnersMaxCount)
             .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(UpdatePartnersSectionDto.PartnersToUpdate), PartnerConstants.PartnersSectionPartnersMaxCount));
+                nameof(UpdatePartnersSectionDto.PartnerIdsToDelete), PartnerConstants.PartnersSectionPartnersMaxCount));
     }
 }

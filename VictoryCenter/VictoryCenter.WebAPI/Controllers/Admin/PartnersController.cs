@@ -31,6 +31,7 @@ public class PartnersController : AuthorizedApiController
     [HttpPut("banner")]
     [ProducesResponseType(typeof(PartnersPageBannerDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdatePartnersPageBanner([FromBody] UpdatePartnersPageBannerDto updatePartnersPageBannerDto)
     {
         return HandleResult(await Mediator.Send(new UpdatePartnersPageBannerCommand(updatePartnersPageBannerDto)));

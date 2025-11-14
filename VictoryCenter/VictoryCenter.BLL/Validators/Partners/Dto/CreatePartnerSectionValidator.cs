@@ -9,6 +9,7 @@ public class CreatePartnerSectionValidator : BasePartnerSectionValidator<CreateP
     public CreatePartnerSectionValidator()
     {
         RuleFor(x => x.Partners)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(CreatePartnersSectionDto.Partners)))
             .Must(partners => partners.Count <= PartnerConstants.PartnersSectionPartnersMaxCount)

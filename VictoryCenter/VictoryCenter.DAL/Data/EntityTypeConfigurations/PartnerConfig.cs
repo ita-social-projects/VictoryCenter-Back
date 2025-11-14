@@ -28,9 +28,6 @@ public class PartnerConfig : IEntityTypeConfiguration<Partner>
             .IsRequired();
 
         entity
-            .Property(e => e.Description);
-
-        entity
             .Property(e => e.ImageId);
 
         entity

@@ -56,7 +56,7 @@ public class ReorderPartnersTests : BaseTestClass
     }
 
     [Fact]
-    public async Task ReorderPartners_WithNonExistentSectionId_ShouldReturnBadRequest()
+    public async Task ReorderPartners_WithNonExistentSectionId_ShouldReturnNotFound()
     {
         // Arrange
         var partnerIds = await Fixture.DbContext.Partners.Select(p => p.Id).Take(2).ToListAsync();

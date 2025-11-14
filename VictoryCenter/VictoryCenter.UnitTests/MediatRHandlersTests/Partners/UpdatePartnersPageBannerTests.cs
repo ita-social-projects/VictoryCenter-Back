@@ -1,4 +1,3 @@
-using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -22,15 +21,15 @@ public class UpdatePartnersPageBannerTests
 
     private readonly UpdatePartnersPageBannerDto _updateDto = new()
     {
-        Title = "New Title",
-        Description = "New Description",
+        Title = new string('T', PartnerConstants.PartnersPageBannerTitleMinLength + 1),
+        Description = new string('D', PartnerConstants.PartnersPageBannerDescriptionMinLength + 1),
         ImageId = 10
     };
 
     private readonly PartnersPageBannerDto _resultDto = new()
     {
-        Title = "New Title",
-        Description = "New Description",
+        Title = new string('T', PartnerConstants.PartnersPageBannerTitleMinLength + 1),
+        Description = new string('D', PartnerConstants.PartnersPageBannerDescriptionMinLength + 1),
         Image = new ImageDto { Id = 10, Url = "some-url" }
     };
 
@@ -39,8 +38,8 @@ public class UpdatePartnersPageBannerTests
     private readonly PartnersPageBanner _existingBannerEntity = new()
     {
         Id = 1,
-        Title = "Old Title",
-        Description = "Old Description",
+        Title = "Old long Title that long",
+        Description = "Old long Description that long",
         ImageId = 5
     };
 
@@ -166,8 +165,5 @@ public class UpdatePartnersPageBannerTests
             .ReturnsAsync(finalBannerToReturn);
 
         _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
-
-        _mockRepositoryWrapper.Setup(r => r.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 }

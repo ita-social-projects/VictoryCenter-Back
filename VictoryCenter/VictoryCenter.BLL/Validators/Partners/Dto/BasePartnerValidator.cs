@@ -13,6 +13,9 @@ public abstract class BasePartnerValidator<TPartnerDto> : AbstractValidator<TPar
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)))
+            .MinimumLength(PartnerConstants.PartnerDescriptionMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMinLength))
             .MaximumLength(PartnerConstants.PartnerDescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMaxLength));

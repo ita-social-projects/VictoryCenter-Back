@@ -16,11 +16,12 @@ internal class PartnersPageBannerConfig : IEntityTypeConfiguration<PartnersPageB
             .ValueGeneratedOnAdd();
 
         entity
-            .Property(e => e.Description)
+            .Property(e => e.Title)
             .IsRequired();
 
         entity
-            .Property(e => e.Description);
+            .Property(e => e.Description)
+            .IsRequired();
 
         entity
             .Property(e => e.ImageId);

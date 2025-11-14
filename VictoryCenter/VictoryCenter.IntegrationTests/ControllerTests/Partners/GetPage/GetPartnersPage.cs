@@ -32,11 +32,9 @@ public class GetPublicPartnersPageTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
 
-        // Перевіряємо банер
         Assert.NotNull(responseContent.Banner);
         Assert.Equal(expectedBannerTitle, responseContent.Banner.Title);
 
-        // Перевіряємо секції
         Assert.NotNull(responseContent.Sections);
         Assert.Equal(expectedSectionsCount, responseContent.Sections.Count());
     }

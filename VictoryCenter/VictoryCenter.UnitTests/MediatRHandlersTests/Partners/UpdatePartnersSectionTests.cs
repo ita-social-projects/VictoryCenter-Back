@@ -43,11 +43,11 @@ public class UpdatePartnersSectionHandlerTests
         var existingSection = GetExistingSection();
         var updateDto = new UpdatePartnersSectionDto
         {
-            Title = "New Title",
-            Description = "New Description",
+            Title = "New Valid Title",
+            Description = "New Valid Description",
             PartnerIdsToDelete = [10],
-            PartnersToUpdate = [new() { Id = 20, Description = "Updated Partner", ImageId = 200 }],
-            PartnersToCreate = [new() { Description = "New Partner", ImageId = 300 }]
+            PartnersToUpdate = [new() { Id = 20, Description = "Updated Partner Desc", ImageId = 200 }],
+            PartnersToCreate = [new() { Description = "New Partner Desc", ImageId = 300 }]
         };
 
         SetUpDependencies(existingSection);
@@ -63,7 +63,7 @@ public class UpdatePartnersSectionHandlerTests
         Assert.True(result.IsSuccess);
         _mockRepositoryWrapper.Verify(r => r.PartnerRepository.DeleteRange(It.Is<List<Partner>>(list => list.Any(p => p.Id == 10))), Times.Once);
         _mockMapper.Verify(m => m.Map(It.Is<UpdatePartnerDto>(dto => dto.Id == 20), It.Is<Partner>(p => p.Id == 20)), Times.Once);
-        _mockMapper.Verify(m => m.Map<Partner>(It.Is<CreatePartnerDto>(dto => dto.Description == "New Partner")), Times.Once);
+        _mockMapper.Verify(m => m.Map<Partner>(It.Is<CreatePartnerDto>(dto => dto.Description == "New Partner Desc")), Times.Once);
         _mockReorderService.Verify(s => s.RenumberPriorityAsync<Partner>(It.IsAny<Expression<Func<Partner, bool>>>()), Times.Once);
         _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
     }
@@ -75,8 +75,8 @@ public class UpdatePartnersSectionHandlerTests
         SetUpDependencies(null);
         var updateDto = new UpdatePartnersSectionDto
         {
-            Title = "New Title",
-            Description = "New Description",
+            Title = "New Valid Title",
+            Description = "New Valid Description",
         };
 
         var handler = new UpdatePartnersSectionHandler(
@@ -98,12 +98,12 @@ public class UpdatePartnersSectionHandlerTests
         var existingSection = GetExistingSection();
         var updateDto = new UpdatePartnersSectionDto
         {
-            Title = "New Title",
-            Description = "New Description",
+            Title = "New Valid Title",
+            Description = "New Valid Description",
             PartnersToCreate = [
                 new()
                 {
-                    Description = "Partner",
+                    Description = "Partner Description",
                     ImageId = 999
                 }
 
@@ -130,13 +130,13 @@ public class UpdatePartnersSectionHandlerTests
         var existingSection = GetExistingSection();
         var updateDto = new UpdatePartnersSectionDto
         {
-            Title = "New Title",
-            Description = "New Description",
+            Title = "New Valid Title",
+            Description = "New Valid Description",
             PartnersToUpdate = [
                 new()
                 {
                     Id = 999,
-                    Description = "Fake",
+                    Description = "Fake Partner Desc",
                     ImageId = 100
                 }
 
@@ -163,8 +163,8 @@ public class UpdatePartnersSectionHandlerTests
         var existingSection = GetExistingSection();
         var updateDto = new UpdatePartnersSectionDto
         {
-            Title = "New Title",
-            Description = "New Description"
+            Title = "New Valid Title",
+            Description = "New Valid Description"
         };
 
         SetUpDependencies(existingSection);
@@ -185,8 +185,8 @@ public class UpdatePartnersSectionHandlerTests
     private static PartnerSection GetExistingSection() => new()
     {
         Id = 1,
-        Title = "Old Title",
-        Description = "Old Description",
+        Title = "Old Valid Title",
+        Description = "Old Valid Description",
         Priority = 1,
         Partners =
     [
