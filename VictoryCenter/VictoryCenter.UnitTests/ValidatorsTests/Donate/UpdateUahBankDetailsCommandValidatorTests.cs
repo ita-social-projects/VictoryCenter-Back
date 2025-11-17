@@ -71,7 +71,7 @@ public class UpdateUahBankDetailsCommandValidatorTests
             new UpdateUahBankDetailsDto
             {
                 Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength - 1)
+                Iban = "UA" + new string('1', UahBankDetailsConstants.Iban.MinLength - 3)
             },
             1L);
 
@@ -89,12 +89,42 @@ public class UpdateUahBankDetailsCommandValidatorTests
             new UpdateUahBankDetailsDto
             {
                 Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
+                Iban = "UA" + new string('1', UahBankDetailsConstants.Iban.MinLength - 2)
             },
             1L);
 
         var result = _validator.TestValidate(command);
 
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUA()
+    {
+        var command = new UpdateUahBankDetailsCommand(
+            new UpdateUahBankDetailsDto
+            {
+                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
+                Iban = "US" + new string('1', UahBankDetailsConstants.Iban.MinLength - 2)
+            },
+            1L);
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants.OnlyDigitsAllowed());
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanContainsInvalidCharacters()
+    {
+        var command = new UpdateUahBankDetailsCommand(
+            new UpdateUahBankDetailsDto
+            {
+                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
+                Iban = "UA12345A7890"
+            },
+            1L);
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants.OnlyDigitsAllowed());
     }
 }
