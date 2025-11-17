@@ -19,9 +19,7 @@ public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
                 .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Edrpou), UahBankDetailsConstants.Edrpou.MaxLength))
             .MinimumLength(UahBankDetailsConstants.Edrpou.MinLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Edrpou), UahBankDetailsConstants.Edrpou.MinLength))
-            .Matches(UahBankDetailsConstants.OnlyDigits)
-            .WithMessage(UahBankDetailsConstants.OnlyDigitsMessage);
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Edrpou), UahBankDetailsConstants.Edrpou.MinLength));
 
         RuleFor(dto => dto.Iban)
             .NotEmpty()
