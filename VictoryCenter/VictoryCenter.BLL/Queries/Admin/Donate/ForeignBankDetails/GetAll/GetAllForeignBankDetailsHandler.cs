@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Queries.Admin.Donate.ForeignBankDetails.GetAll;
+
 public class GetAllForeignBankDetailsHandler : IRequestHandler<GetAllForeignBankDetailsQuery, Result<List<ForeignBankDetailsDto>>>
 {
     private readonly IMapper _mapper;

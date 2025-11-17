@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
+
 public class CorrespondentBankDetailsConfig : IEntityTypeConfiguration<CorrespondentBankDetails>
 {
     public void Configure(EntityTypeBuilder<CorrespondentBankDetails> builder)
@@ -18,14 +19,14 @@ public class CorrespondentBankDetailsConfig : IEntityTypeConfiguration<Correspon
 
         builder.Property(e => e.Swift)
             .IsRequired()
-            .HasMaxLength(11);
+            .HasMaxLength(200);
 
         builder.Property(e => e.Account)
             .IsRequired()
             .HasMaxLength(200);
 
         builder.Property(e => e.Iban)
-            .HasMaxLength(34);
+            .HasMaxLength(200);
 
         builder.HasOne(e => e.ForeignBankDetails)
             .WithMany(e => e.CorrespondentBanks)

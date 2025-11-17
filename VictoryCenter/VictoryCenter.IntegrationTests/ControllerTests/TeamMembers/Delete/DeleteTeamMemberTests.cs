@@ -16,7 +16,7 @@ public class DeleteTeamMemberTests : BaseTestClass
     public async Task DeleteTeamMember_ValidRequest_ShouldDeleteTeamMember()
     {
         var existingEntity = await Fixture.DbContext.TeamMembers.FirstOrDefaultAsync()
-            ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
+                             ?? throw new InvalidOperationException("No TeamMember entity exists in the database.");
 
         var response = await Fixture.HttpClient.DeleteAsync($"/api/TeamMembers/{existingEntity.Id}");
         Assert.True(response.IsSuccessStatusCode);

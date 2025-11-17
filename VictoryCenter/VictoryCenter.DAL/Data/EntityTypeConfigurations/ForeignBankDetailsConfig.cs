@@ -1,8 +1,9 @@
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
+
 public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDetails>
 {
     public void Configure(EntityTypeBuilder<ForeignBankDetails> builder)
@@ -22,11 +23,11 @@ public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDeta
 
         builder.Property(e => e.Iban)
             .IsRequired()
-            .HasMaxLength(34);
+            .HasMaxLength(200);
 
         builder.Property(e => e.Swift)
             .IsRequired()
-            .HasMaxLength(11);
+            .HasMaxLength(200);
 
         builder.Property(e => e.Address)
             .IsRequired()

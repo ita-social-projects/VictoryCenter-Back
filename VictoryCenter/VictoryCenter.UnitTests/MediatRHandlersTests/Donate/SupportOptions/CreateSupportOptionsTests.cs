@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.SupportOptions;
+
 public class CreateSupportOptionsTests
 {
     private readonly Mock<IMapper> _mockMapper;

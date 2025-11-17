@@ -1,4 +1,4 @@
-﻿using System.Buffers;
+using System.Buffers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;

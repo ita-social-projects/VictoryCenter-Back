@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
 using FluentResults;
@@ -34,7 +34,7 @@ public class UpdateFaqQuestionTests
                     new FaqPlacement { PageId = 1, QuestionId = 1, Priority = 1 },
                     new FaqPlacement { PageId = 2, QuestionId = 1, Priority = 2 },
                     ],
-        CreatedAt = DateTime.UtcNow.AddMinutes(-20)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-20)
     };
 
     private readonly FaqQuestion _updateFaqQuestion = new()
@@ -47,7 +47,7 @@ public class UpdateFaqQuestionTests
                     new FaqPlacement { PageId = 1, QuestionId = 1, Priority = 2 },
                     new FaqPlacement { PageId = 3, QuestionId = 1, Priority = 2 },
                     ],
-        CreatedAt = DateTime.UtcNow.AddMinutes(-20)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-20)
     };
 
     private readonly FaqQuestionDto _faqQuestionDto = new()
@@ -159,7 +159,7 @@ public class UpdateFaqQuestionTests
         SetupRepositoryWrapper(null, null);
         SetupReorderService();
 
-        // ЗМІНЕНО: Додано reorderService в конструктор
+        // ÇÌ²ÍÅÍÎ: Äîäàíî reorderService â êîíñòðóêòîð
         var handler = new UpdateFaqQuestionHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
 
         Result<FaqQuestionDto> result = await handler.Handle(
@@ -305,7 +305,7 @@ public class UpdateFaqQuestionTests
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
-        // ДОДАНО: Setup для DeleteRange та CreateRangeAsync
+        // ÄÎÄÀÍÎ: Setup äëÿ DeleteRange òà CreateRangeAsync
         _mockRepositoryWrapper.Setup(x =>
             x.FaqPlacementsRepository.DeleteRange(It.IsAny<IEnumerable<FaqPlacement>>()));
 

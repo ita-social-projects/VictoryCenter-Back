@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using Entities = VictoryCenter.DAL.Entities;
 

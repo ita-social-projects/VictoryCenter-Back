@@ -5,11 +5,12 @@ public enum SeederExecutionOrder
     Categories,
     FaqQuestions,
     TeamMembers,
-    ProgramCategories,
-    Programs,
+    HippotherapyProgramCategories,
+    HippotherapyPrograms,
     Images,
     UahBankDetails,
     SupportOptions,
     ForeignBankDetails,
-    CorrespondentBankDetails
+    CorrespondentBankDetails,
+    WhoWeAre
 }

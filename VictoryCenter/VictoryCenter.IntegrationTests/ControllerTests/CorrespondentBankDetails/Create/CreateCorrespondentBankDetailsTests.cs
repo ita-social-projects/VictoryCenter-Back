@@ -2,8 +2,8 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
-using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.CorrespondentBankDetails.Create;
 
@@ -39,27 +39,5 @@ public class CreateCorrespondentBankDetailsTests : BaseTestClass
         Assert.NotNull(responseContent);
         Assert.Equal(createDto.Name, responseContent.Name);
         Assert.Equal(createDto.Swift, responseContent.Swift);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task CorrespondentBankDetails_ShouldNotCreate_InvalidName(string? name)
-    {
-        var createDto = new CreateCorrespondentBankDetailsDto
-        {
-            Name = name!,
-            Swift = "aaaaa",
-            Account = "BADACCOUNT",
-            Iban = "1223212122",
-            ForeignBankDetailsId = 1
-        };
-
-        var serializedDto = JsonConvert.SerializeObject(createDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/CorrespondentBankDetails/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
-
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

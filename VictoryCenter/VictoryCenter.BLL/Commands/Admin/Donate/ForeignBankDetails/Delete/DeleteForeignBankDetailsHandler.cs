@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Delete;
+
 public class DeleteForeignBankDetailsHandler : IRequestHandler<DeleteForeignBankDetailsCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;

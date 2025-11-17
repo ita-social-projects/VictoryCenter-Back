@@ -1,4 +1,4 @@
-﻿namespace VictoryCenter.DAL.Entities.Interfaces;
+namespace VictoryCenter.DAL.Entities.Interfaces;
 
 public interface IOrderableEntity
 {

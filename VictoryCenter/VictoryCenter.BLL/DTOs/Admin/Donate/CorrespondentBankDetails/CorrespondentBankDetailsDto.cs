@@ -1,4 +1,5 @@
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
+
 public record CorrespondentBankDetailsDto
 {
     public long Id { get; set; }

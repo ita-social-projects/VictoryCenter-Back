@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
-using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.SupportOptions.GetAll;
 

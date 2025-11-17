@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;

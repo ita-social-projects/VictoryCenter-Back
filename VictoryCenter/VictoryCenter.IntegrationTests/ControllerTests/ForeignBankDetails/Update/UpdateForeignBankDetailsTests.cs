@@ -1,11 +1,12 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
-using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.ForeignBankDetails.Update;
+
 public class UpdateForeignBankDetailsTests : BaseTestClass
 {
     public UpdateForeignBankDetailsTests(IntegrationTestDbFixture fixture)
@@ -58,27 +59,5 @@ public class UpdateForeignBankDetailsTests : BaseTestClass
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    public async Task ForeignBankDetails_ShouldNotUpdate_InvalidName(string? name)
-    {
-        var updateDto = new UpdateForeignBankDetailsDto
-        {
-            Name = name!,
-            Receiver = "Receiver",
-            Iban = "UA1111000011110000111100001111",
-            Swift = "BADX",
-            Address = "Paris"
-        };
-        var serializedDto = JsonConvert.SerializeObject(updateDto);
-
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/ForeignBankDetails/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
-
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

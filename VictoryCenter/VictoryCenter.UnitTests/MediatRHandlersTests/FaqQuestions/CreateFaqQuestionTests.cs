@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
 using FluentResults;
@@ -38,8 +38,8 @@ public class CreateFaqQuestionTests
         QuestionText = "Some very smart question to ask.",
         AnswerText = "Some very smart answer to give, also I need to write more text so here it is.",
         Status = Status.Draft,
-        CreatedAt = DateTime.UtcNow.AddMinutes(-10),
-        Placements = new List<FaqPlacement>()
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+        Placements = []
     };
 
     private readonly FaqQuestionDto _faqQuestionDto = new()

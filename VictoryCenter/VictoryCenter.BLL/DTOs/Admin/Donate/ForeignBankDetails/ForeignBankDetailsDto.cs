@@ -2,6 +2,7 @@ using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
+
 public record ForeignBankDetailsDto
 {
     public long Id { get; set; }

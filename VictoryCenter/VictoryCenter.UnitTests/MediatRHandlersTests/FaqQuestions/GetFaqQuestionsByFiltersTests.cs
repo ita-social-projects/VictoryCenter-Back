@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
@@ -183,7 +183,7 @@ public class GetFaqQuestionsByFiltersTests
                     new FaqPlacement { PageId = 2, QuestionId = 4, Priority = 3 },
                     new FaqPlacement { PageId = 3, QuestionId = 4, Priority = 1 },
                     ],
-                CreatedAt = DateTime.UtcNow.AddMinutes(-40)
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-40)
             },
             new()
             {
@@ -195,7 +195,7 @@ public class GetFaqQuestionsByFiltersTests
                     new FaqPlacement { PageId = 1, QuestionId = 2, Priority = 2 },
                     new FaqPlacement { PageId = 2, QuestionId = 2, Priority = 1 },
                     ],
-                CreatedAt = DateTime.UtcNow.AddMinutes(-20)
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-20)
             },
             new()
             {
@@ -206,7 +206,7 @@ public class GetFaqQuestionsByFiltersTests
                 Placements = [
                     new FaqPlacement { PageId = 2, QuestionId = 3, Priority = 2 },
                     ],
-                CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30)
             },
             new()
             {
@@ -218,7 +218,7 @@ public class GetFaqQuestionsByFiltersTests
                     new FaqPlacement { PageId = 2, QuestionId = 5, Priority = 4 },
                     new FaqPlacement { PageId = 3, QuestionId = 5, Priority = 2 },
                     ],
-                CreatedAt = DateTime.UtcNow.AddMinutes(-50)
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-50)
             },
             new()
             {
@@ -229,7 +229,7 @@ public class GetFaqQuestionsByFiltersTests
                 Placements = [
                     new FaqPlacement { PageId = 1, QuestionId = 1, Priority = 1 },
                     ],
-                CreatedAt = DateTime.UtcNow.AddMinutes(-10)
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
             },
         };
 

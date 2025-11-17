@@ -1,11 +1,12 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
-using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.UahBankDetails.Create;
+
 public class CreateUahBankDetailsTests : BaseTestClass
 {
     public CreateUahBankDetailsTests(IntegrationTestDbFixture fixture)
@@ -21,7 +22,7 @@ public class CreateUahBankDetailsTests : BaseTestClass
             Name = "PrivatBank",
             Receiver = "PrivatBank",
             Edrpou = "11111111",
-            Iban = "123456789012345678901234567",
+            Iban = "UA123456789012345678901234567",
             PaymentPurpose = "Donation"
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);

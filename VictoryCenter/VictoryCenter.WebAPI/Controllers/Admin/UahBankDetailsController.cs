@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Create;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Delete;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;

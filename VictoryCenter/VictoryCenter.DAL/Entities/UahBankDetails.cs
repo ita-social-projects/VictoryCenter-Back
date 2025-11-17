@@ -1,4 +1,5 @@
 namespace VictoryCenter.DAL.Entities;
+
 public class UahBankDetails
 {
     public long Id { get; set; }

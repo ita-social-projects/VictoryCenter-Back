@@ -101,7 +101,7 @@ public class CreateUahBankDetailsCommandValidatorTests
             new CreateUahBankDetailsDto
             {
                 Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength - 1)
+                Iban = new string("UA") + new string('1', UahBankDetailsConstants.Iban.MinLength - 3)
             });
 
         var result = _validator.TestValidate(command);
@@ -118,7 +118,7 @@ public class CreateUahBankDetailsCommandValidatorTests
             new CreateUahBankDetailsDto
             {
                 Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MaxLength + 1)
+                Iban = new string("UA") + new string('1', UahBankDetailsConstants.Iban.MaxLength + 1)
             });
 
         var result = _validator.TestValidate(command);
@@ -135,11 +135,39 @@ public class CreateUahBankDetailsCommandValidatorTests
             new CreateUahBankDetailsDto
             {
                 Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
-                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
+                Iban = new string("UA") + new string('1', UahBankDetailsConstants.Iban.MinLength - 2)
             });
 
         var result = _validator.TestValidate(command);
 
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUA()
+    {
+        var command = new CreateUahBankDetailsCommand(
+            new CreateUahBankDetailsDto
+            {
+                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
+                Iban = new string('1', UahBankDetailsConstants.Iban.MinLength)
+            });
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants.OnlyDigitsAllowed());
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanContainsInvalidCharacters()
+    {
+        var command = new CreateUahBankDetailsCommand(
+            new CreateUahBankDetailsDto
+            {
+                Edrpou = new string('1', UahBankDetailsConstants.Edrpou.MinLength),
+                Iban = "UA12AB34567890123456789012345"
+            });
+        var result = _validator.TestValidate(command);
+        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.Iban)
+            .WithErrorMessage(ErrorMessagesConstants.OnlyDigitsAllowed());
     }
 }

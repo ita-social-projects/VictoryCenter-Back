@@ -1,4 +1,4 @@
-﻿using VictoryCenter.DAL.Enums;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 

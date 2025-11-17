@@ -22,7 +22,7 @@ public class GetPublishedFaqQuestionsBySlugTests
                 QuestionText = "Some very smart question to ask.",
                 AnswerText = "Some very smart answer to give, also I need to write more text so here it is.",
                 Status = Status.Published,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-10),
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
             },
             Priority = 1
         },
@@ -34,7 +34,7 @@ public class GetPublishedFaqQuestionsBySlugTests
                 QuestionText = "Another very smart question to ask.",
                 AnswerText = "Another very smart answer to give, also I need to write more text so here it is.",
                 Status = Status.Published,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-5),
+                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5),
             },
             Priority = 2
         }

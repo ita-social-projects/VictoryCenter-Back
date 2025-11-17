@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
@@ -67,9 +67,9 @@ public class GetPublishedTeamMembersTests : BaseTestClass
         }
     }
 
-    private async Task<List<Category>> GetCategoriesWithPublishedMembersAsync()
+    private async Task<List<TeamCategory>> GetCategoriesWithPublishedMembersAsync()
     {
-        return await Fixture.DbContext.Categories
+        return await Fixture.DbContext.TeamCategories
             .AsNoTracking()
             .Include(category => category.TeamMembers
                 .Where(teamMember => teamMember.Status == Status.Published)

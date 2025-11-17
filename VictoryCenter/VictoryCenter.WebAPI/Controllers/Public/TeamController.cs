@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.DTOs.Public.TeamPage;
 using VictoryCenter.BLL.Queries.Public.TeamPage.GetPublished;
 using VictoryCenter.WebAPI.Controllers.Common;

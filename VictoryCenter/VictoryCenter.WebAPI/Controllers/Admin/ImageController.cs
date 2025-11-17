@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Images.Create;
 using VictoryCenter.BLL.Commands.Admin.Images.Delete;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;

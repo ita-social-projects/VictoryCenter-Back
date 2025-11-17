@@ -1,6 +1,7 @@
-﻿using AutoMapper;
+using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
@@ -28,6 +29,7 @@ public class GetTeamMemberByIdHandler : IRequestHandler<GetTeamMemberByIdQuery, 
             var queryOptions = new QueryOptions<TeamMember>
             {
                 Filter = tm => tm.Id == request.Id,
+                Include = t => t.Include(t => t.Image)
             };
 
             TeamMember? teamMember = await _repository.TeamMembersRepository.GetFirstOrDefaultAsync(queryOptions);

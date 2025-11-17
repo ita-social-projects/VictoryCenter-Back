@@ -1,0 +1,13 @@
+using VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
+using VictoryCenter.DAL.Enums;
+
+namespace VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+
+public class WhoWeAreSectionDto
+{
+    public SectionType SectionType { get; set; }
+
+    public required string Title { get; set; }
+
+    public List<WhoWeAreContentDto> Contents { get; set; } = [];
+}

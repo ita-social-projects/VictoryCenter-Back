@@ -15,6 +15,7 @@ using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
@@ -22,9 +23,12 @@ using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.TokenService;
+using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Entities.WhoWeAreContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
@@ -52,11 +56,11 @@ public static class ServicesConfiguration
             .AddDefaultTokenProviders();
 
         services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
             .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
 
         services.Configure<CookiePolicyOptions>(options =>
@@ -97,6 +101,7 @@ public static class ServicesConfiguration
         ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
         ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
 
+        services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
         services.ConfigureBlob(configuration);
@@ -184,9 +189,9 @@ public static class ServicesConfiguration
     public static async Task CreateInitialDataAsync(this WebApplication app)
     {
         await app.CreateInitialAdminAsync();
-        await app.CreateInitialCategoriesAsync();
         await app.SeedVisitorPagesAsync();
         await app.CreateInitialLocalizationLanguages();
+        await app.CreateInitialWhoWeArePages();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -207,7 +212,7 @@ public static class ServicesConfiguration
             }
             else
             {
-                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTime.UtcNow });
+                toAdd.Add(new() { Slug = page.Slug, Title = page.Title, CreatedAt = DateTimeOffset.UtcNow });
             }
         }
 
@@ -282,39 +287,152 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialCategoriesAsync(this WebApplication app)
+    private static async Task CreateInitialWhoWeArePages(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var categories = new List<Category>
+        var sections = new List<WhoWeAreSection>
         {
             new()
             {
-                Name = "Основна команда",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTimeOffset.UtcNow
+                SectionType = SectionType.Main,
+                Title = "Основне",
+                CreatedAt = DateTime.UtcNow,
+                Contents = new List<WhoWeAreContent>()
+                {
+                    new ImageContent()
+                    {
+                        ContentType = ContentType.Image,
+                        ImageId = null,
+                    },
+                    new TitleContent()
+                    {
+                        ContentType = ContentType.Title,
+                        Title = "ПРОСТІР ДОВІРИ, ТУРБОТИ ТА ТВОЄЇ ВНУТРІШНЬОЇ СИЛИ",
+                    },
+                    new DescriptionContent()
+                    {
+                        ContentType = ContentType.Description,
+                        Description =
+                            "Victory Center — це не про терміни чи цифри. Це про відчуття. Тут ти зупиняєшся в моменті, де зникає напруга, і починається зцілення. Через спільноту, природу й контакт із кіньми ти повертаєшся до себе справжнього/ої. Ми не змінюємо людей. Ми допомагаємо їм згадати, ким вони є.",
+                    }
+                },
             },
             new()
             {
-                Name = "Наглядова рада",
-                Description = "Люди, які щодня координують роботу програм, супроводжують учасників, будують логістику, фасилітують сесії.",
-                CreatedAt = DateTimeOffset.UtcNow
+                SectionType = SectionType.WhatWeDo,
+                Title = "Що ми робимо",
+                CreatedAt = DateTime.UtcNow,
+                Contents = new List<WhoWeAreContent>()
+                {
+                    new DescriptionContent()
+                    {
+                        ContentType = ContentType.Description,
+                        Description =
+                            "Ми створюємо терапевтичні програми, які поєднують взаємодію з кіньми, тілесні практики, контакт із природою, психологічний супровід, спільноту підтримки. Кожна програма адаптується під індивідуальні запити учасників/ць групи.",
+                    },
+                }
             },
             new()
             {
-                Name = "Радники",
-                Description = "Фахівці, які консультують нас у ключових напрямах: психічне здоров’я, етика, безпека, комунікації, фандрейзинг.  Їхні поради — наш додатковий компас.",
-                CreatedAt = DateTimeOffset.UtcNow
-            }
+                SectionType = SectionType.WhoWeSupport,
+                Title = "Кого підтримуємо",
+                CreatedAt = DateTime.UtcNow,
+                Contents = new List<WhoWeAreContent>()
+                {
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description =
+                            "Ветеранів/ок, що повернулися із фронту/полону та прагнуть відновити контакт із собою, своїм тілом та близькими.",
+                    },
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description =
+                            "Волонтерів/ок та цивільних, які відчувають потребу в емоційному відновленні і прагнуть продовжувати підтримувати інших.",
+                    },
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description =
+                            "Дітей, що постраждали від війни та пройшли через втрату, страх, вимушений переїзд. Через ігрову терапію, взаємодію у групах та контакт із тваринами, ми допомагаємо сформувати довіру маленьких українців/ок до оточуючих та повернути відчуття безпеки.",
+                    },
+                }
+            },
+            new()
+            {
+                SectionType = SectionType.Team,
+                Title = "Команда",
+                CreatedAt = DateTime.UtcNow,
+                Contents = new List<WhoWeAreContent>()
+                {
+                    new ImageContent()
+                    {
+                        ContentType = ContentType.Image,
+                        ImageId = null
+                    },
+                    new DescriptionContent()
+                    {
+                        ContentType = ContentType.Description,
+                        Description =
+                            "Victory Center — це спільна робота психологів, фасилітаторів, координаторів, волонтерів, а також партнерських локацій (ранчо), об’єднаних прагненням створити безпечне середовище для відновлення. Наша команда працює з військовими/ветеранами, дітьми та їхніми родинами, проходить регулярне навчання, дотримується етичного кодексу, не знецінює, а цінує та підтримує",
+                    },
+                }
+            },
+            new()
+            {
+                SectionType = SectionType.People,
+                Title = "Люди",
+                CreatedAt = DateTime.UtcNow,
+                Contents = new List<WhoWeAreContent>()
+                {
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description =
+                            "Учасники/ці, які вірять і довіряють",
+                    },
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description =
+                            "Партнери, які поділяють наші мрії та цінності",
+                    },
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description =
+                            "Волонтери/ки, які поруч, аби підтримати",
+                    },
+                    new CardContent()
+                    {
+                        ContentType = ContentType.Card,
+                        ImageId = null,
+                        Description = "Благодійники/ці, які допомагають втілити ідеї в реальність",
+                    },
+                }
+            },
         };
 
-        foreach (var category in categories)
+        var existingSections = await dbContext.WhoWeAreSections
+            .Select(c => c.SectionType)
+            .ToListAsync();
+
+        var sectionsToAdd = sections
+            .Where(section => !existingSections.Contains(section.SectionType))
+            .ToList();
+
+        if (sectionsToAdd.Count > 0)
         {
-            if (!await dbContext.Categories.AnyAsync(c => c.Name == category.Name))
-            {
-                dbContext.Categories.Add(category);
-                await dbContext.SaveChangesAsync();
-            }
+            dbContext.AddRange(sectionsToAdd);
+            await dbContext.SaveChangesAsync();
         }
     }
 

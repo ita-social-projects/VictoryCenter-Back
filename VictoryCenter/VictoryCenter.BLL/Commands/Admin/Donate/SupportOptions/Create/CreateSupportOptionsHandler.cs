@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Create;
+
 public class CreateSupportOptionsHandler : IRequestHandler<CreateSupportOptionsCommand, Result<SupportOptionsDto>>
 {
     private readonly IMapper _mapper;

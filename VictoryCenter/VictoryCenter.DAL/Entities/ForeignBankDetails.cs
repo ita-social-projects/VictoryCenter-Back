@@ -1,6 +1,7 @@
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
+
 public class ForeignBankDetails
 {
     public long Id { get; set; }
