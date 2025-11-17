@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Update;
 using VictoryCenter.BLL.Constants;
@@ -60,16 +61,28 @@ public class UpdateUahBankDetailsTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
+        // Arrange
         _uahBankDetailsEntity.Name = name!;
         _uahBankDetailsDto.Name = name!;
         SetupDependencies();
 
         var handler = new UpdateUahBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        var dto = new UpdateUahBankDetailsDto
+        {
+            Name = name!,
+            Receiver = _updateDto.Receiver,
+            Edrpou = _updateDto.Edrpou,
+            Iban = _updateDto.Iban,
+            PaymentPurpose = _updateDto.PaymentPurpose
+        };
+
+        // Act
         Result<UahBankDetailsDto> result = await handler.Handle(
-            new UpdateUahBankDetailsCommand(new UpdateUahBankDetailsDto { Name = name! }, 1),
+            new UpdateUahBankDetailsCommand(dto, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -77,13 +90,16 @@ public class UpdateUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_EntityNotFound()
     {
+        // Arrange
         SetupDependencies(entityExists: false);
         var handler = new UpdateUahBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<UahBankDetailsDto> result = await handler.Handle(
             new UpdateUahBankDetailsCommand(_updateDto, 99),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(99, typeof(Entities.UahBankDetails)), result.Errors[0].Message);
     }
@@ -91,27 +107,53 @@ public class UpdateUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
+        // Arrange
         SetupDependencies(saveResult: -1);
         var handler = new UpdateUahBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<UahBankDetailsDto> result = await handler.Handle(
             new UpdateUahBankDetailsCommand(_updateDto, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Entities.UahBankDetails)), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdateUahBankDetails()
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
     {
+        // Arrange
         SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
         var handler = new UpdateUahBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<UahBankDetailsDto> result = await handler.Handle(
             new UpdateUahBankDetailsCommand(_updateDto, 1),
             CancellationToken.None);
 
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(Entities.UahBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateUahBankDetails()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new UpdateUahBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<UahBankDetailsDto> result = await handler.Handle(
+            new UpdateUahBankDetailsCommand(_updateDto, 1),
+            CancellationToken.None);
+
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_uahBankDetailsDto.Name, result.Value.Name);
         Assert.Equal(_uahBankDetailsDto.Iban, result.Value.Iban);

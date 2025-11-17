@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Update;
 using VictoryCenter.BLL.Constants;
@@ -69,9 +70,18 @@ public class UpdateForeignBankDetailsTests
 
         var handler = new UpdateForeignBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        var dtoWithInvalidName = new UpdateForeignBankDetailsDto
+        {
+            Name = name!,
+            Receiver = _updateDto.Receiver,
+            Iban = _updateDto.Iban,
+            Swift = _updateDto.Swift,
+            Address = _updateDto.Address,
+        };
+
         // Act
         Result<ForeignBankDetailsDto> result = await handler.Handle(
-            new UpdateForeignBankDetailsCommand(new UpdateForeignBankDetailsDto { Name = name! }, 1),
+            new UpdateForeignBankDetailsCommand(dtoWithInvalidName, 1),
             CancellationToken.None);
 
         // Assert
@@ -111,6 +121,26 @@ public class UpdateForeignBankDetailsTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new UpdateForeignBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<ForeignBankDetailsDto> result = await handler.Handle(
+            new UpdateForeignBankDetailsCommand(_updateDto, 1),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
     }
 
     [Fact]

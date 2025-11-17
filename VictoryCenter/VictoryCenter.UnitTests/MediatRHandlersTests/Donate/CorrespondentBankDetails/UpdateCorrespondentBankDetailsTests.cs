@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.CorrespondentBankDetails.Update;
 using VictoryCenter.BLL.Constants;
@@ -59,16 +60,27 @@ public class UpdateCorrespondentBankDetailsTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
+        // Arrange
         _correspondentBankDetailsEntity.Name = name!;
         _correspondentBankDetailsDto.Name = name!;
         SetupDependencies();
 
         var handler = new UpdateCorrespondentBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        var dto = new UpdateCorrespondentBankDetailsDto
+        {
+            Name = name!,
+            Swift = _updateDto.Swift,
+            Account = _updateDto.Account,
+            Iban = _updateDto.Iban
+        };
+
+        // Act
         Result<CorrespondentBankDetailsDto> result = await handler.Handle(
-            new UpdateCorrespondentBankDetailsCommand(new UpdateCorrespondentBankDetailsDto { Name = name! }, 1),
+            new UpdateCorrespondentBankDetailsCommand(dto, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -76,13 +88,16 @@ public class UpdateCorrespondentBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_EntityNotFound()
     {
+        // Arrange
         SetupDependencies(entityExists: false);
         var handler = new UpdateCorrespondentBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<CorrespondentBankDetailsDto> result = await handler.Handle(
             new UpdateCorrespondentBankDetailsCommand(_updateDto, 99),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(99, typeof(Entities.CorrespondentBankDetails)), result.Errors[0].Message);
     }
@@ -90,27 +105,53 @@ public class UpdateCorrespondentBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
+        // Arrange
         SetupDependencies(saveResult: -1);
         var handler = new UpdateCorrespondentBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<CorrespondentBankDetailsDto> result = await handler.Handle(
             new UpdateCorrespondentBankDetailsCommand(_updateDto, 1),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Entities.CorrespondentBankDetails)), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdateCorrespondentBankDetails()
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
     {
+        // Arrange
         SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
         var handler = new UpdateCorrespondentBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<CorrespondentBankDetailsDto> result = await handler.Handle(
             new UpdateCorrespondentBankDetailsCommand(_updateDto, 1),
             CancellationToken.None);
 
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(Entities.CorrespondentBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateCorrespondentBankDetails()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new UpdateCorrespondentBankDetailsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<CorrespondentBankDetailsDto> result = await handler.Handle(
+            new UpdateCorrespondentBankDetailsCommand(_updateDto, 1),
+            CancellationToken.None);
+
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_correspondentBankDetailsDto.Name, result.Value.Name);
         Assert.Equal(_correspondentBankDetailsDto.Swift, result.Value.Swift);

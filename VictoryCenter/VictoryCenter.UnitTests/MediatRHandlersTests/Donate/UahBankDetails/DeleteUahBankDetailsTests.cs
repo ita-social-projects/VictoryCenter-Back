@@ -1,4 +1,5 @@
 using FluentResults;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Delete;
 using VictoryCenter.BLL.Constants;
@@ -31,13 +32,16 @@ public class DeleteUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldDeleteUahBankDetails_WhenEntityExists()
     {
+        // Arrange
         SetupEntityRetrieval(_uahBankDetails);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
         var handler = new DeleteUahBankDetailsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(new DeleteUahBankDetailsCommand(_uahBankDetails.Id), CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_uahBankDetails.Id, result.Value);
     }
@@ -45,11 +49,14 @@ public class DeleteUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_WhenEntityNotFound()
     {
+        // Arrange
         SetupEntityRetrieval(null);
         var handler = new DeleteUahBankDetailsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(new DeleteUahBankDetailsCommand(99), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(99, typeof(Entities.UahBankDetails)), result.Errors[0].Message);
     }
@@ -57,15 +64,36 @@ public class DeleteUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
+        // Arrange
         SetupEntityRetrieval(_uahBankDetails);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(0);
 
         var handler = new DeleteUahBankDetailsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(new DeleteUahBankDetailsCommand(_uahBankDetails.Id), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.UahBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupEntityRetrieval(_uahBankDetails);
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new DeleteUahBankDetailsHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        Result<long> result = await handler.Handle(new DeleteUahBankDetailsCommand(_uahBankDetails.Id), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(Entities.UahBankDetails)), result.Errors[0].Message);
     }
 
     private void SetupEntityRetrieval(Entities.UahBankDetails? entity)

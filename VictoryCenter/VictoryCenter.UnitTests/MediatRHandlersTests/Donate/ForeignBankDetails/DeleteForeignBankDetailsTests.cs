@@ -1,4 +1,5 @@
 using FluentResults;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Delete;
 using VictoryCenter.BLL.Constants;
@@ -32,13 +33,16 @@ public class DeleteForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldDeleteForeignBankDetails_WhenEntityExists()
     {
+        // Arrange
         SetupEntityRetrieval(_foreignBankDetails);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
         var handler = new DeleteForeignBankDetailsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(new DeleteForeignBankDetailsCommand(_foreignBankDetails.Id), CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_foreignBankDetails.Id, result.Value);
     }
@@ -46,11 +50,14 @@ public class DeleteForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_WhenEntityNotFound()
     {
+        // Arrange
         SetupEntityRetrieval(null);
         var handler = new DeleteForeignBankDetailsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(new DeleteForeignBankDetailsCommand(99), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(99, typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
     }
@@ -58,15 +65,36 @@ public class DeleteForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
+        // Arrange
         SetupEntityRetrieval(_foreignBankDetails);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(0);
 
         var handler = new DeleteForeignBankDetailsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(new DeleteForeignBankDetailsCommand(_foreignBankDetails.Id), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupEntityRetrieval(_foreignBankDetails);
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new DeleteForeignBankDetailsHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        Result<long> result = await handler.Handle(new DeleteForeignBankDetailsCommand(_foreignBankDetails.Id), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
     }
 
     private void SetupEntityRetrieval(Entities.ForeignBankDetails? entity)

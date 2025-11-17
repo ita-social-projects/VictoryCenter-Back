@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Create;
 using VictoryCenter.BLL.Constants;
@@ -50,11 +51,14 @@ public class CreateSupportOptionsTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
+        // Arrange
         var dto = new CreateSupportOptionsDto { Name = name!, Value = "Test" };
         var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(dto), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -65,11 +69,14 @@ public class CreateSupportOptionsTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidValue(string? value)
     {
+        // Arrange
         var dto = new CreateSupportOptionsDto { Name = "Test", Value = value! };
         var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(dto), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -77,23 +84,47 @@ public class CreateSupportOptionsTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
+        // Arrange
         SetupDependencies(0);
         var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(_createDto), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.SupportOptions)), result.Errors[0].Message);
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(_createDto), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.SupportOptions)), result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task Handle_ShouldCreateSupportOption()
     {
+        // Arrange
         SetupDependencies();
         var handler = new CreateSupportOptionsHandler(_mockMapper.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<SupportOptionsDto> result = await handler.Handle(new CreateSupportOptionsCommand(_createDto), CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_supportOptionsDto.Name, result.Value.Name);
     }

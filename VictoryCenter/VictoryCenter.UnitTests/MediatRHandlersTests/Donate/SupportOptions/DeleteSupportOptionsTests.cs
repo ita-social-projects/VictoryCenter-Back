@@ -1,4 +1,5 @@
 using FluentResults;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Delete;
 using VictoryCenter.BLL.Constants;
@@ -28,15 +29,18 @@ public class DeleteSupportOptionsTests
     [Fact]
     public async Task Handle_ShouldDeleteSupportOptions_WhenEntityExists()
     {
+        // Arrange
         SetupEntityRetrieval(_supportOptionsEntity);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
         var handler = new DeleteSupportOptionsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(
             new DeleteSupportOptionsCommand(_supportOptionsEntity.Id),
             CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_supportOptionsEntity.Id, result.Value);
     }
@@ -44,13 +48,16 @@ public class DeleteSupportOptionsTests
     [Fact]
     public async Task Handle_ShouldFail_WhenEntityNotFound()
     {
+        // Arrange
         SetupEntityRetrieval(null);
         var handler = new DeleteSupportOptionsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(
             new DeleteSupportOptionsCommand(99),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(
             ErrorMessagesConstants.NotFound(99, typeof(Entities.SupportOptions)),
@@ -60,18 +67,43 @@ public class DeleteSupportOptionsTests
     [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
+        // Arrange
         SetupEntityRetrieval(_supportOptionsEntity);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(0);
 
         var handler = new DeleteSupportOptionsHandler(_repositoryWrapperMock.Object);
 
+        // Act
         Result<long> result = await handler.Handle(
             new DeleteSupportOptionsCommand(_supportOptionsEntity.Id),
             CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(
             ErrorMessagesConstants.FailedToDeleteEntity(typeof(Entities.SupportOptions)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupEntityRetrieval(_supportOptionsEntity);
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new DeleteSupportOptionsHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        Result<long> result = await handler.Handle(
+            new DeleteSupportOptionsCommand(_supportOptionsEntity.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(Entities.SupportOptions)),
             result.Errors[0].Message);
     }
 
