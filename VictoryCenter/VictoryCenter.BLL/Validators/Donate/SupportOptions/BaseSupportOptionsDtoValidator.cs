@@ -4,10 +4,9 @@ using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 
 namespace VictoryCenter.BLL.Validators.Donate.SupportOptions;
 
-public class SupportOptionsDtoValidator<T> : AbstractValidator<T>
-    where T : ISupportOptions
+public class BaseSupportOptionsDtoValidator : AbstractValidator<BaseSupportOptionsDto>
 {
-    public SupportOptionsDtoValidator()
+    public BaseSupportOptionsDtoValidator()
     {
         RuleFor(dto => dto.Name)
             .NotEmpty()

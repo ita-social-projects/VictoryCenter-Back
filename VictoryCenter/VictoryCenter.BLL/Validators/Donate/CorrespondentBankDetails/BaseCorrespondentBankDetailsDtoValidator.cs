@@ -4,10 +4,9 @@ using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 
 namespace VictoryCenter.BLL.Validators.Donate.CorrespondentBankDetails;
 
-public class CorrespondentBankDetailsDtoValidator<T> : AbstractValidator<T>
-    where T : CreateCorrespondentBankDetailsDto
+public class BaseCorrespondentBankDetailsDtoValidator : AbstractValidator<BaseCorrespondentBankDetailsDto>
 {
-    public CorrespondentBankDetailsDtoValidator()
+    public BaseCorrespondentBankDetailsDtoValidator()
     {
         RuleFor(dto => dto.Swift)
             .NotEmpty()

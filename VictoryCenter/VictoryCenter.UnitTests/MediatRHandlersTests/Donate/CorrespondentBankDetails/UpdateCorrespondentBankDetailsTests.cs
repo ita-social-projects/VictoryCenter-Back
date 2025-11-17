@@ -23,8 +23,7 @@ public class UpdateCorrespondentBankDetailsTests
         Name = "Updated Correspondent Bank",
         Swift = "12345678901",
         Account = "UPDACC123456",
-        Iban = "123456789012345678901234567",
-        ForeignBankDetailsId = 1
+        Iban = "123456789012345678901234567"
     };
 
     private readonly Entities.CorrespondentBankDetails _correspondentBankDetailsEntity = new()

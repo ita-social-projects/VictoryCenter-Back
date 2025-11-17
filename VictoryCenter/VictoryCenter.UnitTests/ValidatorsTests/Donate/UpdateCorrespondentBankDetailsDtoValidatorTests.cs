@@ -207,7 +207,6 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
         Swift = "VALIDSWIFTT",
         Iban = "UA123456789012345678901234567",
         Name = "Valid Name",
-        Account = "Valid Account",
-        ForeignBankDetailsId = 1
+        Account = "Valid Account"
     };
 }

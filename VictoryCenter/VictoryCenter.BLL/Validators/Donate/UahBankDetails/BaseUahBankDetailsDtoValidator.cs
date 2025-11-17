@@ -4,10 +4,9 @@ using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 
 namespace VictoryCenter.BLL.Validators.Donate.UahBankDetails;
 
-public class UahBankDetailsDtoValidator<T> : AbstractValidator<T>
-    where T : CreateUahBankDetailsDto
+public class BaseUahBankDetailsDtoValidator : AbstractValidator<BaseUahBankDetailsDto>
 {
-    public UahBankDetailsDtoValidator()
+    public BaseUahBankDetailsDtoValidator()
     {
         RuleFor(dto => dto.Edrpou)
             .NotEmpty()
