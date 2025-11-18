@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations.Localization;
 
@@ -14,6 +15,10 @@ public class TeamMemberLocalizationConfig : IEntityTypeConfiguration<TeamMemberL
             .WithMany(t => t.Localizations)
             .HasForeignKey(tl => tl.EntityId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        entity.Property(e => e.TranslationStatus)
+            .IsRequired()
+            .HasDefaultValue(TranslationStatus.Relevant);
 
         entity.Property(e => e.FullName)
             .IsRequired();

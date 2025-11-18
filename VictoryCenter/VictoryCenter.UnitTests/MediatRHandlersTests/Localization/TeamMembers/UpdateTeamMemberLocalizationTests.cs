@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.Validators.Localization.TeamMembers;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -23,7 +24,8 @@ public class UpdateTeamMemberLocalizationTests
         LanguageId = 1,
         FullName = "Old Name",
         Description = "Old description",
-        CreatedAt = DateTime.UtcNow.AddDays(-1)
+        CreatedAt = DateTime.UtcNow.AddDays(-1),
+        TranslationStatus = TranslationStatus.Relevant
     };
 
     private readonly TeamMemberLocalization _updatedEntity = new()
@@ -32,15 +34,17 @@ public class UpdateTeamMemberLocalizationTests
         LanguageId = 1,
         FullName = "New Name",
         Description = "New description",
-        CreatedAt = DateTime.UtcNow.AddDays(-1)
+        CreatedAt = DateTime.UtcNow.AddDays(-1),
+        TranslationStatus = TranslationStatus.Relevant
     };
 
-    private TeamMemberLocalizationDto _updatedDto = new()
+    private readonly TeamMemberLocalizationDto _updatedDto = new()
     {
         TeamMemberId = 1,
         LocalizationLanguageDto = new() { Id = 1, Code = "en" },
         FullName = "New name",
-        Description = "New description"
+        Description = "New description",
+        TranslationStatus = TranslationStatus.Relevant
     };
 
     public UpdateTeamMemberLocalizationTests()
@@ -69,6 +73,7 @@ public class UpdateTeamMemberLocalizationTests
         Assert.True(result.IsSuccess);
         Assert.Equal(_updatedDto.FullName, result.Value.FullName);
         Assert.Equal(_updatedDto.Description, result.Value.Description);
+        Assert.Equal(TranslationStatus.Relevant, result.Value.TranslationStatus);
     }
 
     [Fact]

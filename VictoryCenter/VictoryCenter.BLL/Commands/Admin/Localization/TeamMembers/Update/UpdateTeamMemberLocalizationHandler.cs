@@ -5,6 +5,7 @@ using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -45,6 +46,7 @@ public class UpdateTeamMemberLocalizationHandler : IRequestHandler<UpdateTeamMem
             }
 
             TeamMemberLocalization entityToUpdate = _mapper.Map(dto, entity);
+            entityToUpdate.TranslationStatus = TranslationStatus.Relevant;
             entityToUpdate.CreatedAt = entity.CreatedAt;
 
             _repositoryWrapper.TeamMemberLocalizationsRepository.Update(entityToUpdate);
