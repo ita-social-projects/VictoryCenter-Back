@@ -145,7 +145,7 @@ public class UpdateLocalizationLanguageTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         // Arrange
         SetupDependencies(_testExistingLanguage, 0);

@@ -36,14 +36,14 @@ public class UpdateTeamMemberLocalizationHandler : IRequestHandler<UpdateTeamMem
             TeamMemberLocalization? entity = await _repositoryWrapper.TeamMemberLocalizationsRepository
                 .GetFirstOrDefaultAsync(new QueryOptions<TeamMemberLocalization>
                 {
-                    Filter = localization => localization.EntityId == dto.TeamMemberId &&
-                                           localization.LanguageId == dto.LanguageId
+                    Filter = localization => localization.EntityId == request.EntityId &&
+                                           localization.LanguageId == request.LanguageId
                 });
 
             if (entity is null)
             {
                 return Result.Fail<TeamMemberLocalizationDto>(ErrorMessagesConstants
-                    .NotFound(new { dto.TeamMemberId, dto.LanguageId }, typeof(TeamMemberLocalization)));
+                    .NotFound(new { request.EntityId, request.LanguageId }, typeof(TeamMemberLocalization)));
             }
 
             TeamMemberLocalization entityToUpdate = _mapper.Map(dto, entity);

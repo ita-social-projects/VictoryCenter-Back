@@ -62,14 +62,14 @@ public class GetTeamMemberLocalizationsByTeamMemberIdTests
         {
             new()
             {
-                TeamMemberId = 10,
+                EntityId = 10,
                 LocalizationLanguageDto = new LocalizationLanguageDto { Id = 1, Code = "en" },
                 FullName = "John Doe",
                 Description = "Team leader"
             },
             new()
             {
-                TeamMemberId = 10,
+                EntityId = 10,
                 LocalizationLanguageDto = new LocalizationLanguageDto { Id = 2, Code = "de" },
                 FullName = "Johann Doe",
                 Description = "Teamleiter"

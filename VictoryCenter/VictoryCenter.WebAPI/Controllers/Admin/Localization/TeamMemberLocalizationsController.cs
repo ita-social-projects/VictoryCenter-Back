@@ -28,31 +28,32 @@ public class TeamMemberLocalizationsController : AuthorizedApiController
     [HttpPost]
     [ProducesResponseType(typeof(TeamMemberLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateTeamMemberLocalization([FromBody] CreateTeamMemberLocalizationDto createTeamMemberLocalizationDto)
     {
         return HandleResult(await Mediator.Send(new CreateTeamMemberLocalizationCommand(createTeamMemberLocalizationDto)));
     }
 
-    [HttpPut("{memberId:long}/{langId:long}")]
+    [HttpPut("{entityId:long}/{languageId:long}")]
     [ProducesResponseType(typeof(TeamMemberLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTeamMemberLocalization(
         [FromBody] UpdateTeamMemberLocalizationDto updateTeamMemberLocalizationDto,
-        [FromRoute(Name = "memberId")] long TeamMemberId,
-        [FromRoute(Name = "langId")] long LanguageId)
+        [FromRoute(Name = "entityId")] long EntityId,
+        [FromRoute(Name = "languageId")] long LanguageId)
     {
-        return HandleResult(await Mediator.Send(new UpdateTeamMemberLocalizationCommand(updateTeamMemberLocalizationDto, TeamMemberId, LanguageId)));
+        return HandleResult(await Mediator.Send(new UpdateTeamMemberLocalizationCommand(updateTeamMemberLocalizationDto, EntityId, LanguageId)));
     }
 
-    [HttpDelete("{memberId:long}/{langId:long}")]
+    [HttpDelete("{entityId:long}/{langId:long}")]
     [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTeamMemberLocalization(
-        [FromRoute(Name = "memberId")] long TeamMemberId,
-        [FromRoute(Name = "langId")] long LanguageId)
+        [FromRoute(Name = "entityId")] long EntityId,
+        [FromRoute(Name = "languageId")] long LanguageId)
     {
-        return HandleResult(await Mediator.Send(new DeleteTeamMemberLocalizationCommand(TeamMemberId, LanguageId)));
+        return HandleResult(await Mediator.Send(new DeleteTeamMemberLocalizationCommand(EntityId, LanguageId)));
     }
 }

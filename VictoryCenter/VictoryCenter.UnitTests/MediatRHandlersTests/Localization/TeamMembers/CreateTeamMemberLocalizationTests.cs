@@ -6,9 +6,11 @@ using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.Validators.Localization.TeamMembers;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Localization.TeamMembers;
 
@@ -20,7 +22,7 @@ public class CreateTeamMemberLocalizationTests
 
     private readonly CreateTeamMemberLocalizationDto _testCreateDto = new()
     {
-        TeamMemberId = 1,
+        EntityId = 1,
         LanguageId = 1,
         FullName = "John Doe",
         Description = "Experienced developer in localization."
@@ -47,7 +49,7 @@ public class CreateTeamMemberLocalizationTests
 
     private readonly TeamMemberLocalizationDto _testDto = new()
     {
-        TeamMemberId = 1,
+        EntityId = 1,
         LocalizationLanguageDto = new() { Id = 1, Code = "en" },
         FullName = "John Doe",
         Description = "Experienced developer in localization."
@@ -65,6 +67,7 @@ public class CreateTeamMemberLocalizationTests
     {
         // Arrange
         SetupDependencies(saveResult: 1);
+        SetupAdditionalRepositories();
         var handler = new CreateTeamMemberLocalizationHandler(
             _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -84,10 +87,11 @@ public class CreateTeamMemberLocalizationTests
     public async Task Handle_ShouldFail_WhenValidationFails()
     {
         // Arrange
+        SetupAdditionalRepositories();
         var invalidDto = new CreateTeamMemberLocalizationDto
         {
-            TeamMemberId = 1,
-            LanguageId = 0, // invalid
+            EntityId = 1,
+            LanguageId = 1,
             FullName = "", // invalid
             Description = "Too short"
         };
@@ -102,7 +106,7 @@ public class CreateTeamMemberLocalizationTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyMustBePositive(nameof(TeamMemberLocalization.LanguageId)), result.Errors[0].Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(TeamMemberLocalization.FullName)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -110,6 +114,7 @@ public class CreateTeamMemberLocalizationTests
     {
         // Arrange
         SetupDependencies(saveResult: -1);
+        SetupAdditionalRepositories();
         var handler = new CreateTeamMemberLocalizationHandler(
             _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
@@ -128,6 +133,7 @@ public class CreateTeamMemberLocalizationTests
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         // Arrange
+        SetupAdditionalRepositories();
         _mockMapper.Setup(x => x.Map<TeamMemberLocalization>(It.IsAny<CreateTeamMemberLocalizationDto>()))
             .Returns(_testEntity);
 
@@ -161,5 +167,14 @@ public class CreateTeamMemberLocalizationTests
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);
+    }
+
+    private void SetupAdditionalRepositories()
+    {
+        _mockRepositoryWrapper.Setup(x => x.TeamMembersRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(new TeamMember());
+
+        _mockRepositoryWrapper.Setup(x => x.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+           .ReturnsAsync(new LocalizationLanguage());
     }
 }

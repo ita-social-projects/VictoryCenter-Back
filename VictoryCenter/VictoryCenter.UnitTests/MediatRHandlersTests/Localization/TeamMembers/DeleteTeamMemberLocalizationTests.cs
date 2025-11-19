@@ -43,15 +43,15 @@ public class DeleteTeamMemberLocalizationTests
     [Theory]
     [InlineData(99, 99)]
     [InlineData(0, 0)]
-    public async Task Handle_ShouldFail_WhenEntityNotFound(long teamMemberId, long languageId)
+    public async Task Handle_ShouldFail_WhenEntityNotFound(long entityId, long languageId)
     {
         SetupRepositoryWrapper(null);
         var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
 
-        var result = await handler.Handle(new DeleteTeamMemberLocalizationCommand(teamMemberId, languageId), CancellationToken.None);
+        var result = await handler.Handle(new DeleteTeamMemberLocalizationCommand(entityId, languageId), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound((teamMemberId, languageId), typeof(TeamMemberLocalization)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound((entityId, languageId), typeof(TeamMemberLocalization)), result.Errors[0].Message);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class DeleteTeamMemberLocalizationTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         _mockRepositoryWrapper.Setup(r =>
                r.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMemberLocalization>>()))

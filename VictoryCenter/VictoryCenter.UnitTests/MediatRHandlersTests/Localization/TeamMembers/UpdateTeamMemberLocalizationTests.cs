@@ -41,7 +41,7 @@ public class UpdateTeamMemberLocalizationTests
 
     private readonly TeamMemberLocalizationDto _updatedDto = new()
     {
-        TeamMemberId = 1,
+        EntityId = 1,
         LocalizationLanguageDto = new() { Id = 1, Code = "en" },
         FullName = "New name",
         Description = "New description",
@@ -64,8 +64,6 @@ public class UpdateTeamMemberLocalizationTests
         var command = new UpdateTeamMemberLocalizationCommand(
             new UpdateTeamMemberLocalizationDto
         {
-            TeamMemberId = 1,
-            LanguageId = 1,
             FullName = "New Name",
             Description = "New description"
         },
@@ -86,17 +84,15 @@ public class UpdateTeamMemberLocalizationTests
         SetupDependencies(null);
         var handler = new UpdateTeamMemberLocalizationHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var dtoIds = new { TeamMemberId = 99, LanguageId = 99 };
+        var dtoIds = new { EntityId = 99, LanguageId = 99 };
 
         var command = new UpdateTeamMemberLocalizationCommand(
             new UpdateTeamMemberLocalizationDto
         {
-            TeamMemberId = dtoIds.TeamMemberId,
-            LanguageId = dtoIds.LanguageId,
             FullName = "New Name",
             Description = "New description"
         },
-            dtoIds.TeamMemberId,
+            dtoIds.EntityId,
             dtoIds.LanguageId);
 
         var result = await handler.Handle(command, CancellationToken.None);
@@ -114,8 +110,6 @@ public class UpdateTeamMemberLocalizationTests
         var command = new UpdateTeamMemberLocalizationCommand(
             new UpdateTeamMemberLocalizationDto
         {
-            TeamMemberId = 1,
-            LanguageId = 1,
             FullName = "New Name",
             Description = "New description"
         },
@@ -129,7 +123,7 @@ public class UpdateTeamMemberLocalizationTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         _mockRepositoryWrapper.Setup(x => x.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(
             It.IsAny<QueryOptions<TeamMemberLocalization>>()))
@@ -141,8 +135,6 @@ public class UpdateTeamMemberLocalizationTests
         var command = new UpdateTeamMemberLocalizationCommand(
             new UpdateTeamMemberLocalizationDto
         {
-            TeamMemberId = 1,
-            LanguageId = 1,
             FullName = "New Name",
             Description = "New description"
         },

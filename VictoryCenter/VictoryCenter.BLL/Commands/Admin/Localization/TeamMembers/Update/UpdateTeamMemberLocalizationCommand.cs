@@ -6,6 +6,6 @@ namespace VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Update;
 
 public record UpdateTeamMemberLocalizationCommand(
     UpdateTeamMemberLocalizationDto UpdateTeamMemberLocalizationDto,
-    long TeamMemberId,
+    long EntityId,
     long LanguageId)
     : IRequest<Result<TeamMemberLocalizationDto>>;

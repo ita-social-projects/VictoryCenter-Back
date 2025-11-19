@@ -23,7 +23,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
             {
-                TeamMemberId = 1,
+                EntityId = 1,
                 LanguageId = invalidLanguageId,
                 FullName = "Valid Name",
                 Description = "Valid description here"
@@ -38,12 +38,12 @@ public class CreateTeamMemberLocalizationValidatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Validate_ShouldHaveError_When_TeamMemberIdIsNotPositive(long invalidTeamMemberId)
+    public void Validate_ShouldHaveError_When_TeamMemberIdIsNotPositive(long invalidEntityId)
     {
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
             {
-                TeamMemberId = invalidTeamMemberId,
+                EntityId = invalidEntityId,
                 LanguageId = 1,
                 FullName = "Valid Name",
                 Description = "Valid description here"
@@ -51,8 +51,8 @@ public class CreateTeamMemberLocalizationValidatorTests
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.TeamMemberId)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberLocalizationDto.TeamMemberId)));
+        result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.EntityId)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberLocalizationDto.EntityId)));
     }
 
     [Theory]
@@ -64,7 +64,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
-                    TeamMemberId = 1,
+                    EntityId = 1,
                     LanguageId = 1,
                     FullName = invalidFullName!,
                     Description = "Valid description here"
@@ -83,7 +83,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
-                    TeamMemberId = 1,
+                    EntityId = 1,
                     LanguageId = 1,
                     FullName = invalidFullName,
                     Description = "Valid description here"
@@ -105,7 +105,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
-                    TeamMemberId = 1,
+                    EntityId = 1,
                     LanguageId = 1,
                     FullName = longName,
                     Description = "Valid description here"
@@ -127,7 +127,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
-                    TeamMemberId = 1,
+                    EntityId = 1,
                     LanguageId = 1,
                     FullName = "Valid Name",
                     Description = shortDescription
@@ -149,7 +149,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
-                    TeamMemberId = 1,
+                    EntityId = 1,
                     LanguageId = 1,
                     FullName = "Valid Name",
                     Description = longDescription
@@ -169,7 +169,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
-                    TeamMemberId = 1,
+                    EntityId = 1,
                     LanguageId = 1,
                     FullName = "Valid FullName",
                     Description = "This is a sufficiently long and valid description."

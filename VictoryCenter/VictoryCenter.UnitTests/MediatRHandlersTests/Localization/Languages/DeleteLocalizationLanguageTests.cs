@@ -75,7 +75,7 @@ public class DeleteLocalizationLanguageTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         // Arrange
         _mockRepositoryWrapper.Setup(r =>

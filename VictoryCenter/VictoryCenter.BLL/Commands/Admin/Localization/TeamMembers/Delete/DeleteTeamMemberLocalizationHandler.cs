@@ -8,7 +8,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Delete;
 
-public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMemberLocalizationCommand, Result<(long TeamMemberId, long LanguageId)>>
+public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMemberLocalizationCommand, Result<(long EntityId, long LanguageId)>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -17,35 +17,35 @@ public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMem
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<(long TeamMemberId, long LanguageId)>> Handle(DeleteTeamMemberLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<(long EntityId, long LanguageId)>> Handle(DeleteTeamMemberLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
             TeamMemberLocalization? entityToDelete = await _repositoryWrapper.TeamMemberLocalizationsRepository
             .GetFirstOrDefaultAsync(new QueryOptions<TeamMemberLocalization>
             {
-                Filter = localization => localization.EntityId == request.TeamMemberId &&
+                Filter = localization => localization.EntityId == request.EntityId &&
                                            localization.LanguageId == request.LanguageId
             });
 
             if (entityToDelete is null)
             {
-                return Result.Fail<(long TeamMemberId, long LanguageId)>(ErrorMessagesConstants
-                    .NotFound((request.TeamMemberId, request.LanguageId), typeof(TeamMemberLocalization)));
+                return Result.Fail<(long EntityId, long LanguageId)>(ErrorMessagesConstants
+                    .NotFound((request.EntityId, request.LanguageId), typeof(TeamMemberLocalization)));
             }
 
             _repositoryWrapper.TeamMemberLocalizationsRepository.Delete(entityToDelete);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                return Result.Ok((request.TeamMemberId, request.LanguageId));
+                return Result.Ok((request.EntityId, request.LanguageId));
             }
 
             return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMemberLocalization)));
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<(long TeamMemberId, long LanguageId)>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMemberLocalization)));
+            return Result.Fail<(long EntityId, long LanguageId)>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMemberLocalization)));
         }
     }
 }

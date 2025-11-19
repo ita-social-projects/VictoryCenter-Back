@@ -5,7 +5,7 @@ namespace VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 
 public record TeamMemberLocalizationDto
 {
-    public long TeamMemberId { get; init; }
+    public long EntityId { get; init; }
 
     public LocalizationLanguageDto LocalizationLanguageDto { get; init; } = null!;
 

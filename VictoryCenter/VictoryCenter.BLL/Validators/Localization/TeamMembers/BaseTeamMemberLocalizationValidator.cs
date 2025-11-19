@@ -4,23 +4,17 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 
 namespace VictoryCenter.BLL.Validators.Localization.TeamMembers;
 
-public class BaseTeamMemberLocalizationValidator : AbstractValidator<CreateTeamMemberLocalizationDto>
+public class BaseTeamMemberLocalizationValidator : AbstractValidator<UpdateTeamMemberLocalizationDto>
 {
     public BaseTeamMemberLocalizationValidator()
     {
-        RuleFor(x => x.LanguageId)
-            .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberLocalizationDto.LanguageId)))
-            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberLocalizationDto.LanguageId)));
-        RuleFor(x => x.TeamMemberId)
-            .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberLocalizationDto.TeamMemberId)))
-            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberLocalizationDto.TeamMemberId)));
         RuleFor(x => x.FullName)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberLocalizationDto.FullName)))
-            .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberLocalizationDto.FullName), FullNameMinLength))
-            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberLocalizationDto.FullName), FullNameMaxLength));
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamMemberLocalizationDto.FullName)))
+            .MinimumLength(FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateTeamMemberLocalizationDto.FullName), FullNameMinLength))
+            .MaximumLength(FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateTeamMemberLocalizationDto.FullName), FullNameMaxLength));
         RuleFor(x => x.Description)
-            .MinimumLength(DescriptionNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberLocalizationDto.Description), DescriptionNameMinLength))
-            .MaximumLength(DescriptionNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamMemberLocalizationDto.Description), DescriptionNameMaxLength));
+            .MinimumLength(DescriptionNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateTeamMemberLocalizationDto.Description), DescriptionNameMinLength))
+            .MaximumLength(DescriptionNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateTeamMemberLocalizationDto.Description), DescriptionNameMaxLength));
     }
 
     public static int FullNameMinLength { get; } = 2;
