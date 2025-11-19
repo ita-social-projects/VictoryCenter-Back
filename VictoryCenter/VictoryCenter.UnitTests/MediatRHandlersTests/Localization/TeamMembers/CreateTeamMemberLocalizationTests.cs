@@ -102,7 +102,7 @@ public class CreateTeamMemberLocalizationTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyMustBePositive(nameof(TeamMemberLocalization.Entity.CategoryId)), result.Errors.First().Message);
+        Assert.Contains(ErrorMessagesConstants.PropertyMustBePositive(nameof(TeamMemberLocalization.LanguageId)), result.Errors[0].Message);
     }
 
     [Fact]

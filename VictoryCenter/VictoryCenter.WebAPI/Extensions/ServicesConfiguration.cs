@@ -270,10 +270,6 @@ public static class ServicesConfiguration
             new()
             {
                 Code = "en",
-            },
-            new()
-            {
-                Code = "es",
             }
         };
 

@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -18,25 +19,32 @@ public class DeleteLocalizationLanguageHandler : IRequestHandler<DeleteLocalizat
 
     public async Task<Result<long>> Handle(DeleteLocalizationLanguageCommand request, CancellationToken cancellationToken)
     {
-        LocalizationLanguage? entityToDelete = await _repositoryWrapper.LocalizationLanguagesRepository
+        try
+        {
+            LocalizationLanguage? entityToDelete = await _repositoryWrapper.LocalizationLanguagesRepository
             .GetFirstOrDefaultAsync(new QueryOptions<LocalizationLanguage>
             {
                 Filter = localizationLanguage => localizationLanguage.Id == request.Id,
             });
 
-        if (entityToDelete is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(LocalizationLanguage)));
+            if (entityToDelete is null)
+            {
+                return Result.Fail<long>(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(LocalizationLanguage)));
+            }
+
+            _repositoryWrapper.LocalizationLanguagesRepository.Delete(entityToDelete);
+
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+
+            return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(LocalizationLanguage)));
         }
-
-        _repositoryWrapper.LocalizationLanguagesRepository.Delete(entityToDelete);
-
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        catch (DbUpdateException)
         {
-            return Result.Ok(entityToDelete.Id);
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(LocalizationLanguage)));
         }
-
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(LocalizationLanguage)));
     }
 }

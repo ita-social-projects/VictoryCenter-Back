@@ -30,7 +30,7 @@ public class CreateTeamMemberLocalizationHandler : IRequestHandler<CreateTeamMem
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             TeamMemberLocalization entity = _mapper.Map<TeamMemberLocalization>(request.CreateTeamMemberLocalizationDto);
-            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedAt = DateTimeOffset.UtcNow;
             await _repositoryWrapper.TeamMemberLocalizationsRepository.CreateAsync(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)

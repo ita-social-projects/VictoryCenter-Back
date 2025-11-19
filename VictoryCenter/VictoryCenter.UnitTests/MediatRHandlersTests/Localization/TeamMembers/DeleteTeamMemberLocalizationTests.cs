@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Delete;
 using VictoryCenter.BLL.Constants;
@@ -60,11 +61,28 @@ public class DeleteTeamMemberLocalizationTests
         var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(
-            new DeleteTeamMemberLocalizationCommand(_existingEntity.EntityId, _existingEntity.LanguageId),
+            new (_existingEntity.EntityId, _existingEntity.LanguageId),
             CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMemberLocalization)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    {
+        _mockRepositoryWrapper.Setup(r =>
+               r.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMemberLocalization>>()))
+           .ReturnsAsync(_existingEntity);
+        _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
+        var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
+
+        var result = await handler.Handle(
+            new(_existingEntity.EntityId, _existingEntity.LanguageId),
+            CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMemberLocalization)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(TeamMemberLocalization? entityToReturn = null, int saveResult = 1)

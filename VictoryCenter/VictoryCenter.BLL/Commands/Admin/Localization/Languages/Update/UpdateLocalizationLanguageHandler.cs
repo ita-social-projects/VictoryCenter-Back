@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.Languages;
 using VictoryCenter.BLL.DTOs.Common;
@@ -61,6 +62,10 @@ public class UpdateLocalizationLanguageHandler : IRequestHandler<UpdateLocalizat
         catch (ValidationException ex)
         {
             return Result.Fail<LocalizationLanguageDto>(ex.Message);
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<LocalizationLanguageDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(LocalizationLanguage)));
         }
     }
 }

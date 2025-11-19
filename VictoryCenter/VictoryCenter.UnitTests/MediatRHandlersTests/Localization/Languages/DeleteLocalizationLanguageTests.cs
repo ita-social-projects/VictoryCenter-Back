@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Delete;
 using VictoryCenter.BLL.Constants;
@@ -71,6 +72,24 @@ public class DeleteLocalizationLanguageTests
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(LocalizationLanguage)), result.Errors[0].Message);
         _mockRepositoryWrapper.Verify(r => r.LocalizationLanguagesRepository.Delete(_testExistingLanguage), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    {
+        // Arrange
+        _mockRepositoryWrapper.Setup(r =>
+               r.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+           .ReturnsAsync(_testExistingLanguage);
+        _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
+        var handler = new DeleteLocalizationLanguageHandler(_mockRepositoryWrapper.Object);
+
+        // Act
+        var result = await handler.Handle(new DeleteLocalizationLanguageCommand(_testExistingLanguage.Id), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(LocalizationLanguage)), result.Errors[0].Message);
     }
 
     private void SetupRepositoryWrapper(LocalizationLanguage? entityToDelete = null, int saveResult = 1)

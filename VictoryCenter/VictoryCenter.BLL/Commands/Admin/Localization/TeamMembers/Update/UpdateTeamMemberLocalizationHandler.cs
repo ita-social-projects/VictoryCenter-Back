@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.DAL.Entities.Localization;
@@ -62,6 +63,10 @@ public class UpdateTeamMemberLocalizationHandler : IRequestHandler<UpdateTeamMem
         catch (ValidationException ex)
         {
             return Result.Fail<TeamMemberLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<TeamMemberLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(TeamMemberLocalization)));
         }
     }
 }

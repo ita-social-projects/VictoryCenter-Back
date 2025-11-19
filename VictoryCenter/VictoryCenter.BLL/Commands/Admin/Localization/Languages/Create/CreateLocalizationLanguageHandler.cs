@@ -30,7 +30,7 @@ public class CreateLocalizationLanguageHandler : IRequestHandler<CreateLocalizat
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var entity = _mapper.Map<LocalizationLanguage>(request.CreateLocalizationLanguageDto);
-            entity.CreatedAt = DateTime.UtcNow;
+            entity.CreatedAt = DateTimeOffset.UtcNow;
 
             await _repositoryWrapper.LocalizationLanguagesRepository.CreateAsync(entity);
 

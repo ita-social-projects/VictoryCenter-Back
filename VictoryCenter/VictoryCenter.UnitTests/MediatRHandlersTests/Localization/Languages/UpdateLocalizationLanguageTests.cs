@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Update;
 using VictoryCenter.BLL.Constants;
@@ -28,13 +29,13 @@ public class UpdateLocalizationLanguageTests
     private readonly LocalizationLanguage _testUpdatedLanguage = new()
     {
         Id = 1,
-        Code = "es",
+        Code = "uk",
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
     };
 
-    private LocalizationLanguageDto _testUpdatedLanguageDto = new()
+    private readonly LocalizationLanguageDto _testUpdatedLanguageDto = new()
     {
-        Code = "es"
+        Code = "uk"
     };
 
     public UpdateLocalizationLanguageTests()
@@ -44,16 +45,12 @@ public class UpdateLocalizationLanguageTests
         _validator = new UpdateLocalizationLanguageValidator(new BaseLocalizationLanguageValidator());
     }
 
-    [Theory]
-    [InlineData("es")]
-    [InlineData("uk")]
-    public async Task Handle_ShouldUpdateLocalizationLanguage(string newCode)
+    [Fact]
+    public async Task Handle_ShouldUpdateLocalizationLanguage()
     {
         // Arrange
-        _testUpdatedLanguage.Code = newCode;
-        _testUpdatedLanguageDto = _testUpdatedLanguageDto with { Code = newCode };
-
         SetupDependencies(_testExistingLanguage);
+        string newCode = "uk";
 
         var handler = new UpdateLocalizationLanguageHandler(
             _mockMapper.Object,
@@ -145,6 +142,32 @@ public class UpdateLocalizationLanguageTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(LocalizationLanguage)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    {
+        // Arrange
+        SetupDependencies(_testExistingLanguage, 0);
+        _mockRepositoryWrapper.Setup(r =>
+               r.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+           .ReturnsAsync(_testExistingLanguage);
+        _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
+        var handler = new UpdateLocalizationLanguageHandler(
+           _mockMapper.Object,
+           _mockRepositoryWrapper.Object,
+           _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateLocalizationLanguageCommand(
+                new UpdateLocalizationLanguageDto { Code = "fr" },
+                _testExistingLanguage.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(LocalizationLanguage)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(LocalizationLanguage? languageToReturn = null, int saveResult = 1)

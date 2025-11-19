@@ -1,38 +1,48 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Create;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Delete;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Update;
 using VictoryCenter.BLL.DTOs.Admin.Localization.Languages;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Common.Localization.Languages.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 
-public class LocalizationController : AuthorizedApiController
+public class LocalizationLanguageController : AuthorizedApiController
 {
+    [HttpGet]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<LocalizationLanguageDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetLocalizationLanguages()
+    {
+        return HandleResult(await Mediator.Send(new GetAllLocalizationLanguagesQuery()));
+    }
+
     [HttpPost]
+    [ProducesResponseType(typeof(LocalizationLanguageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateLocalizationLanguage([FromBody] CreateLocalizationLanguageDto localizationLanguageDto)
     {
         return HandleResult(await Mediator.Send(new CreateLocalizationLanguageCommand(localizationLanguageDto)));
     }
 
-    [HttpDelete]
-    [Route("{id:long}")]
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteLocalizationLanguage(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteLocalizationLanguageCommand(id)));
     }
 
-    [HttpPut]
-    [Route("{id:long}")]
+    [HttpPut("{id:long}")]
+    [ProducesResponseType(typeof(LocalizationLanguageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateLocalizationLanguage([FromBody] UpdateLocalizationLanguageDto updateLocalizationLanguageDto, long id)
     {
         return HandleResult(await Mediator.Send(new UpdateLocalizationLanguageCommand(updateLocalizationLanguageDto, id)));
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> GetLocalizationLanguages()
-    {
-        return HandleResult(await Mediator.Send(new GetAllLocalizationLanguagesQuery()));
     }
 }

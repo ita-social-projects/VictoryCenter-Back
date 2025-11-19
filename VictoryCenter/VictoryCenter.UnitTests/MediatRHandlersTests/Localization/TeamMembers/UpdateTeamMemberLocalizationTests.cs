@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Update;
 using VictoryCenter.BLL.Constants;
@@ -60,13 +61,16 @@ public class UpdateTeamMemberLocalizationTests
         SetupDependencies(_existingEntity);
         var handler = new UpdateTeamMemberLocalizationHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var command = new UpdateTeamMemberLocalizationCommand(new UpdateTeamMemberLocalizationDto
+        var command = new UpdateTeamMemberLocalizationCommand(
+            new UpdateTeamMemberLocalizationDto
         {
             TeamMemberId = 1,
             LanguageId = 1,
             FullName = "New Name",
             Description = "New description"
-        });
+        },
+            _existingEntity.EntityId,
+            _existingEntity.LanguageId);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -84,13 +88,16 @@ public class UpdateTeamMemberLocalizationTests
 
         var dtoIds = new { TeamMemberId = 99, LanguageId = 99 };
 
-        var command = new UpdateTeamMemberLocalizationCommand(new UpdateTeamMemberLocalizationDto
+        var command = new UpdateTeamMemberLocalizationCommand(
+            new UpdateTeamMemberLocalizationDto
         {
             TeamMemberId = dtoIds.TeamMemberId,
             LanguageId = dtoIds.LanguageId,
             FullName = "New Name",
             Description = "New description"
-        });
+        },
+            dtoIds.TeamMemberId,
+            dtoIds.LanguageId);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -104,13 +111,16 @@ public class UpdateTeamMemberLocalizationTests
         SetupDependencies(_existingEntity, -1);
         var handler = new UpdateTeamMemberLocalizationHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
 
-        var command = new UpdateTeamMemberLocalizationCommand(new UpdateTeamMemberLocalizationDto
+        var command = new UpdateTeamMemberLocalizationCommand(
+            new UpdateTeamMemberLocalizationDto
         {
             TeamMemberId = 1,
             LanguageId = 1,
             FullName = "New Name",
             Description = "New description"
-        });
+        },
+            _existingEntity.EntityId,
+            _existingEntity.LanguageId);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -118,7 +128,40 @@ public class UpdateTeamMemberLocalizationTests
         Assert.Contains(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMemberLocalization)), result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ShouldFail_WhenExceptionThrown()
+    {
+        _mockRepositoryWrapper.Setup(x => x.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(
+            It.IsAny<QueryOptions<TeamMemberLocalization>>()))
+            .ReturnsAsync(_existingEntity);
+        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+        SetupMapper();
+        var handler = new UpdateTeamMemberLocalizationHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+        var command = new UpdateTeamMemberLocalizationCommand(
+            new UpdateTeamMemberLocalizationDto
+        {
+            TeamMemberId = 1,
+            LanguageId = 1,
+            FullName = "New Name",
+            Description = "New description"
+        },
+            _existingEntity.EntityId,
+            _existingEntity.LanguageId);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(TeamMemberLocalization)), result.Errors[0].Message);
+    }
+
     private void SetupDependencies(TeamMemberLocalization? entityToReturn, int saveResult = 1)
+    {
+        SetupMapper();
+        SetupRepositoryWrapper(entityToReturn, saveResult);
+    }
+
+    private void SetupRepositoryWrapper(TeamMemberLocalization? entityToReturn, int saveResult = 1)
     {
         _mockRepositoryWrapper.Setup(x => x.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(
             It.IsAny<QueryOptions<TeamMemberLocalization>>()))
@@ -126,7 +169,10 @@ public class UpdateTeamMemberLocalizationTests
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);
+    }
 
+    private void SetupMapper()
+    {
         _mockMapper.Setup(m => m.Map(It.IsAny<UpdateTeamMemberLocalizationDto>(), It.IsAny<TeamMemberLocalization>()))
             .Returns(_updatedEntity);
 

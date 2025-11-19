@@ -2,7 +2,6 @@ using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
-using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.Localization.TeamMembers;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Localization.TeamMembers;
@@ -23,16 +22,37 @@ public class CreateTeamMemberLocalizationValidatorTests
     {
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
-                {
-                    LanguageId = invalidLanguageId,
-                    FullName = "Valid Name",
-                    Description = "Valid description here"
-                });
+            {
+                TeamMemberId = 1,
+                LanguageId = invalidLanguageId,
+                FullName = "Valid Name",
+                Description = "Valid description here"
+            });
 
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.LanguageId)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberDto.CategoryId)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberLocalizationDto.LanguageId)));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_ShouldHaveError_When_TeamMemberIdIsNotPositive(long invalidTeamMemberId)
+    {
+        var command = new CreateTeamMemberLocalizationCommand(
+            new CreateTeamMemberLocalizationDto
+            {
+                TeamMemberId = invalidTeamMemberId,
+                LanguageId = 1,
+                FullName = "Valid Name",
+                Description = "Valid description here"
+            });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.TeamMemberId)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateTeamMemberLocalizationDto.TeamMemberId)));
     }
 
     [Theory]
@@ -44,6 +64,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
+                    TeamMemberId = 1,
                     LanguageId = 1,
                     FullName = invalidFullName!,
                     Description = "Valid description here"
@@ -52,7 +73,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.FullName)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.FullName)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberLocalizationDto.FullName)));
     }
 
     [Theory]
@@ -62,6 +83,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
+                    TeamMemberId = 1,
                     LanguageId = 1,
                     FullName = invalidFullName,
                     Description = "Valid description here"
@@ -71,7 +93,7 @@ public class CreateTeamMemberLocalizationValidatorTests
 
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.FullName)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateTeamMemberDto.FullName),
+                nameof(CreateTeamMemberLocalizationDto.FullName),
                 BaseTeamMemberLocalizationValidator.FullNameMinLength));
     }
 
@@ -83,6 +105,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
+                    TeamMemberId = 1,
                     LanguageId = 1,
                     FullName = longName,
                     Description = "Valid description here"
@@ -92,7 +115,7 @@ public class CreateTeamMemberLocalizationValidatorTests
 
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.FullName)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateTeamMemberDto.FullName),
+                nameof(CreateTeamMemberLocalizationDto.FullName),
                 BaseTeamMemberLocalizationValidator.FullNameMaxLength));
     }
 
@@ -104,6 +127,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
+                    TeamMemberId = 1,
                     LanguageId = 1,
                     FullName = "Valid Name",
                     Description = shortDescription
@@ -113,7 +137,7 @@ public class CreateTeamMemberLocalizationValidatorTests
 
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateTeamMemberDto.Description),
+                nameof(CreateTeamMemberLocalizationDto.Description),
                 BaseTeamMemberLocalizationValidator.DescriptionNameMinLength));
     }
 
@@ -125,6 +149,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
+                    TeamMemberId = 1,
                     LanguageId = 1,
                     FullName = "Valid Name",
                     Description = longDescription
@@ -134,7 +159,7 @@ public class CreateTeamMemberLocalizationValidatorTests
 
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateTeamMemberDto.Description),
+                nameof(CreateTeamMemberLocalizationDto.Description),
                 BaseTeamMemberLocalizationValidator.DescriptionNameMaxLength));
     }
 
@@ -144,6 +169,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
                 {
+                    TeamMemberId = 1,
                     LanguageId = 1,
                     FullName = "Valid FullName",
                     Description = "This is a sufficiently long and valid description."

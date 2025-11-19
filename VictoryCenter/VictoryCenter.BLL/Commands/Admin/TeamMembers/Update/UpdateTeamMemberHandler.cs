@@ -77,10 +77,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
                 _mapper.Map(request.UpdateTeamMemberDto, entityToUpdate);
 
-                foreach (var loc in entityToUpdate.Localizations)
-                {
-                    loc.TranslationStatus = TranslationStatus.Outdated;
-                }
+                SetTranslationsToOutdated(request, entityToUpdate);
 
                 if (categoryChanged)
                 {
@@ -136,6 +133,18 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         catch (DbUpdateException)
         {
             return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
+        }
+    }
+
+    private static void SetTranslationsToOutdated(UpdateTeamMemberCommand request, TeamMember entityToUpdate)
+    {
+        if (!string.Equals(request.UpdateTeamMemberDto.FullName, entityToUpdate.FullName) ||
+            !string.Equals(request.UpdateTeamMemberDto.Description, entityToUpdate.Description))
+        {
+            foreach (var loc in entityToUpdate.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
     }
 }

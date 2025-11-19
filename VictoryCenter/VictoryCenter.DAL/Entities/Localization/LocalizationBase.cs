@@ -14,4 +14,6 @@ public abstract class LocalizationBase<T>
     public TranslationStatus TranslationStatus { get; set; } = TranslationStatus.Relevant;
 
     public LocalizationLanguage Language { get; set; } = null!;
+
+    public DateTimeOffset CreatedAt { get; set; }
 }

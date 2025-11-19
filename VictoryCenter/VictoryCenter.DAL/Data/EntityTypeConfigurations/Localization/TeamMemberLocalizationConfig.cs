@@ -16,6 +16,11 @@ public class TeamMemberLocalizationConfig : IEntityTypeConfiguration<TeamMemberL
             .HasForeignKey(tl => tl.EntityId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        entity.HasOne(tl => tl.Language)
+            .WithMany()
+            .HasForeignKey(tl => tl.LanguageId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         entity.Property(e => e.TranslationStatus)
             .IsRequired()
             .HasDefaultValue(TranslationStatus.Relevant);
@@ -24,5 +29,9 @@ public class TeamMemberLocalizationConfig : IEntityTypeConfiguration<TeamMemberL
             .IsRequired();
 
         entity.Property(e => e.Description);
+
+        entity
+            .Property(e => e.CreatedAt)
+            .IsRequired();
     }
 }

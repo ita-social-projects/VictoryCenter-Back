@@ -12,30 +12,43 @@ namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 public class TeamMemberLocalizationsController : AuthorizedApiController
 {
     [HttpGet("member/{id:long}")]
+    [ProducesResponseType(typeof(IEnumerable<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByTeamMemberId(long id)
     {
         return HandleResult(await Mediator.Send(new GetByTeamMemberIdQuery(id)));
     }
 
     [HttpGet("lang/{id:long}")]
+    [ProducesResponseType(typeof(IEnumerable<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByLanguageId(long id)
     {
         return HandleResult(await Mediator.Send(new GetByLanguageIdQuery(id)));
     }
 
     [HttpPost]
+    [ProducesResponseType(typeof(TeamMemberLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateTeamMemberLocalization([FromBody] CreateTeamMemberLocalizationDto createTeamMemberLocalizationDto)
     {
         return HandleResult(await Mediator.Send(new CreateTeamMemberLocalizationCommand(createTeamMemberLocalizationDto)));
     }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateTeamMemberLocalization([FromBody] UpdateTeamMemberLocalizationDto updateTeamMemberLocalizationDto)
+    [HttpPut("{memberId:long}/{langId:long}")]
+    [ProducesResponseType(typeof(TeamMemberLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateTeamMemberLocalization(
+        [FromBody] UpdateTeamMemberLocalizationDto updateTeamMemberLocalizationDto,
+        [FromRoute(Name = "memberId")] long TeamMemberId,
+        [FromRoute(Name = "langId")] long LanguageId)
     {
-        return HandleResult(await Mediator.Send(new UpdateTeamMemberLocalizationCommand(updateTeamMemberLocalizationDto)));
+        return HandleResult(await Mediator.Send(new UpdateTeamMemberLocalizationCommand(updateTeamMemberLocalizationDto, TeamMemberId, LanguageId)));
     }
 
     [HttpDelete("{memberId:long}/{langId:long}")]
+    [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTeamMemberLocalization(
         [FromRoute(Name = "memberId")] long TeamMemberId,
         [FromRoute(Name = "langId")] long LanguageId)

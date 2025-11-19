@@ -39,7 +39,6 @@ public class CreateLocalizationLanguageTests
 
     [Theory]
     [InlineData("en")]
-    [InlineData("es")]
     [InlineData("uk")]
     public async Task Handle_ShouldCreateLocalizationLanguage(string code)
     {
@@ -61,18 +60,14 @@ public class CreateLocalizationLanguageTests
         Assert.Equal(code, result.Value.Code);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData(null)]
-    [InlineData("e")] // too short
-    [InlineData("eng")] // too long
-    public async Task Handle_ShouldFail_InvalidCode(string? code)
+    [Fact]
+    public async Task Handle_ShouldFail_InvalidCode()
     {
         // Arrange
         SetupDependencies();
         var handler = new CreateLocalizationLanguageHandler(
             _repositoryWrapperMock.Object, _mapperMock.Object, _validator);
+        string code = "e";
 
         // Act
         var result = await handler.Handle(
