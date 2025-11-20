@@ -199,7 +199,11 @@ public class SearchHippotherapyProgramsTests
     private void SetupRepositoryWrapper(List<HippotherapyProgram> programsToReturn)
     {
         _repositoryWrapperMock.Setup(x => x.HippotherapyProgramsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(programsToReturn);
+
+        _repositoryWrapperMock.Setup(x => x.HippotherapyProgramsRepository.CountAsync(
+            It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .ReturnsAsync(programsToReturn.Count);
     }
 }
