@@ -46,7 +46,7 @@ public class TeamMemberLocalizationsController : AuthorizedApiController
         return HandleResult(await Mediator.Send(new UpdateTeamMemberLocalizationCommand(updateTeamMemberLocalizationDto, EntityId, LanguageId)));
     }
 
-    [HttpDelete("{entityId:long}/{langId:long}")]
+    [HttpDelete("{entityId:long}/{languageId:long}")]
     [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
