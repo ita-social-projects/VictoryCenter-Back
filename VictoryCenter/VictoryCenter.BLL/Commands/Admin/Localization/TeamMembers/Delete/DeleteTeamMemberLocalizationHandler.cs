@@ -2,13 +2,14 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Delete;
 
-public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMemberLocalizationCommand, Result<(long EntityId, long LanguageId)>>
+public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMemberLocalizationCommand, Result<DeleteTeamMemberLocalizationDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -17,7 +18,7 @@ public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMem
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<(long EntityId, long LanguageId)>> Handle(DeleteTeamMemberLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<DeleteTeamMemberLocalizationDto>> Handle(DeleteTeamMemberLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -30,22 +31,22 @@ public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMem
 
             if (entityToDelete is null)
             {
-                return Result.Fail<(long EntityId, long LanguageId)>(ErrorMessagesConstants
-                    .NotFound((request.EntityId, request.LanguageId), typeof(TeamMemberLocalization)));
+                return Result.Fail<DeleteTeamMemberLocalizationDto>(ErrorMessagesConstants
+                    .NotFound(new DeleteTeamMemberLocalizationDto { EntityId = request.EntityId, LanguageId = request.LanguageId }, typeof(TeamMemberLocalization)));
             }
 
             _repositoryWrapper.TeamMemberLocalizationsRepository.Delete(entityToDelete);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                return Result.Ok((request.EntityId, request.LanguageId));
+                return Result.Ok(new DeleteTeamMemberLocalizationDto { EntityId = request.EntityId, LanguageId = request.LanguageId });
             }
 
             return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMemberLocalization)));
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<(long EntityId, long LanguageId)>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMemberLocalization)));
+            return Result.Fail<DeleteTeamMemberLocalizationDto>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMemberLocalization)));
         }
     }
 }

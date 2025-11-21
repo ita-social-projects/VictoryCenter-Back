@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Delete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -35,9 +36,14 @@ public class DeleteTeamMemberLocalizationTests
         var result = await handler.Handle(
             new DeleteTeamMemberLocalizationCommand(_existingEntity.EntityId, _existingEntity.LanguageId),
             CancellationToken.None);
+        var response = new DeleteTeamMemberLocalizationDto
+        {
+            EntityId = _existingEntity.EntityId,
+            LanguageId = _existingEntity.LanguageId
+        };
 
         Assert.True(result.IsSuccess);
-        Assert.Equal((_existingEntity.EntityId, _existingEntity.LanguageId), result.Value);
+        Assert.Equal(response, result.Value);
     }
 
     [Theory]
@@ -49,9 +55,14 @@ public class DeleteTeamMemberLocalizationTests
         var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteTeamMemberLocalizationCommand(entityId, languageId), CancellationToken.None);
+        var response = new DeleteTeamMemberLocalizationDto
+        {
+            EntityId = entityId,
+            LanguageId = languageId
+        };
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound((entityId, languageId), typeof(TeamMemberLocalization)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.NotFound(response, typeof(TeamMemberLocalization)), result.Errors[0].Message);
     }
 
     [Fact]

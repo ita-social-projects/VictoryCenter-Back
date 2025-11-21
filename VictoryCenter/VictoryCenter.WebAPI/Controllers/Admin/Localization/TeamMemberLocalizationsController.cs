@@ -47,7 +47,7 @@ public class TeamMemberLocalizationsController : AuthorizedApiController
     }
 
     [HttpDelete("{entityId:long}/{languageId:long}")]
-    [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(DeleteTeamMemberLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTeamMemberLocalization(

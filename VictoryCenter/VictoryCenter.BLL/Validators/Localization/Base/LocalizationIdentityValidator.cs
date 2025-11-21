@@ -9,10 +9,8 @@ public class LocalizationIdentityValidator<T> : AbstractValidator<T>
     public LocalizationIdentityValidator()
     {
         RuleFor(x => x.EntityId)
-            .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ILocalizationIdentity.EntityId)))
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ILocalizationIdentity.EntityId)));
         RuleFor(x => x.LanguageId)
-          .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ILocalizationIdentity.LanguageId)))
-          .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ILocalizationIdentity.LanguageId)));
+            .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ILocalizationIdentity.LanguageId)));
     }
 }
