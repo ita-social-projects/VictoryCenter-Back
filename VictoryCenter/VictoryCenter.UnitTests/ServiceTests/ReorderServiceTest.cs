@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using System.Transactions;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
@@ -28,6 +29,8 @@ public class ReorderServiceTests
         _repositoryMock = new Mock<IRepositoryBase<TestOrderableEntity>>();
         _repositoryWrapperMock.Setup(x => x.GetRepository<TestOrderableEntity>())
             .Returns(_repositoryMock.Object);
+        _repositoryWrapperMock.Setup(x => x.BeginTransaction())
+            .Returns(() => new TransactionScope());
         _reorderService = new ReorderService(_repositoryWrapperMock.Object);
     }
 
@@ -44,6 +47,7 @@ public class ReorderServiceTests
         // Assert
         _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<TestOrderableEntity>>()), Times.Never);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+        _repositoryWrapperMock.Verify(x => x.BeginTransaction(), Times.Never);
     }
 
     [Fact]
@@ -51,6 +55,21 @@ public class ReorderServiceTests
     {
         // Arrange
         var idsOrder = new List<long>();
+        Expression<Func<TestOrderableEntity, long>> idSelector = x => x.Id;
+
+        // Act
+        await _reorderService.SwapElementsAsync(idsOrder, idSelector);
+
+        // Assert
+        _repositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<TestOrderableEntity>>()), Times.Never);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task SwapElements_SingleElementIdsOrder_DoesNothing()
+    {
+        // Arrange
+        var idsOrder = new List<long> { 1 };
         Expression<Func<TestOrderableEntity, long>> idSelector = x => x.Id;
 
         // Act

@@ -26,7 +26,6 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     public void Validate_TitleIsNullOrEmpty_ShouldHaveError(string title)
     {
         // Arrange
-        // Use 'with' expression to create a new DTO with the invalid title
         var dto = GetValidDto() with { Title = title };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -35,21 +34,15 @@ public class UpdatePartnersPageBannerCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Title)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.Title)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                  nameof(UpdatePartnersPageBannerDto.Title)));
     }
 
     [Fact]
     public void Validate_TitleIsTooShort_ShouldHaveError()
     {
         // Arrange
-        if (PartnerConstants.PartnersPageBannerTitleMinLength <= 1)
-        {
-            return;
-        }
-
         var tooShortTitle = new string('A', PartnerConstants.PartnersPageBannerTitleMinLength - 1);
-
-        // Use 'with' expression
         var dto = GetValidDto() with { Title = tooShortTitle };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -59,7 +52,8 @@ public class UpdatePartnersPageBannerCommandValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Title)
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMinLength));
+                    nameof(UpdatePartnersPageBannerDto.Title),
+                    PartnerConstants.PartnersPageBannerTitleMinLength));
     }
 
     [Fact]
@@ -67,8 +61,6 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     {
         // Arrange
         var tooLongTitle = new string('A', PartnerConstants.PartnersPageBannerTitleMaxLength + 1);
-
-        // Use 'with' expression
         var dto = GetValidDto() with { Title = tooLongTitle };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -78,7 +70,8 @@ public class UpdatePartnersPageBannerCommandValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Title)
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMaxLength));
+                    nameof(UpdatePartnersPageBannerDto.Title),
+                    PartnerConstants.PartnersPageBannerTitleMaxLength));
     }
 
     [Theory]
@@ -87,7 +80,6 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     public void Validate_DescriptionIsNullOrEmpty_ShouldHaveError(string description)
     {
         // Arrange
-        // Use 'with' expression
         var dto = GetValidDto() with { Description = description };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -96,21 +88,15 @@ public class UpdatePartnersPageBannerCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Description)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.Description)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                  nameof(UpdatePartnersPageBannerDto.Description)));
     }
 
     [Fact]
     public void Validate_DescriptionIsTooShort_ShouldHaveError()
     {
         // Arrange
-        if (PartnerConstants.PartnersPageBannerDescriptionMinLength <= 1)
-        {
-            return;
-        }
-
         var tooShortDescription = new string('A', PartnerConstants.PartnersPageBannerDescriptionMinLength - 1);
-
-        // Use 'with' expression
         var dto = GetValidDto() with { Description = tooShortDescription };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -120,7 +106,8 @@ public class UpdatePartnersPageBannerCommandValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Description)
              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                   nameof(UpdatePartnersPageBannerDto.Description), PartnerConstants.PartnersPageBannerDescriptionMinLength));
+                   nameof(UpdatePartnersPageBannerDto.Description),
+                   PartnerConstants.PartnersPageBannerDescriptionMinLength));
     }
 
     [Fact]
@@ -128,8 +115,6 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     {
         // Arrange
         var tooLongDescription = new string('A', PartnerConstants.PartnersPageBannerDescriptionMaxLength + 1);
-
-        // Use 'with' expression
         var dto = GetValidDto() with { Description = tooLongDescription };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -139,7 +124,8 @@ public class UpdatePartnersPageBannerCommandValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Description)
              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                   nameof(UpdatePartnersPageBannerDto.Description), PartnerConstants.PartnersPageBannerDescriptionMaxLength));
+                   nameof(UpdatePartnersPageBannerDto.Description),
+                   PartnerConstants.PartnersPageBannerDescriptionMaxLength));
     }
 
     [Theory]
@@ -148,7 +134,6 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     public void Validate_ImageIdIsNotPositive_ShouldHaveError(long imageId)
     {
         // Arrange
-        // Use 'with' expression
         var dto = GetValidDto() with { ImageId = imageId };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
@@ -157,7 +142,8 @@ public class UpdatePartnersPageBannerCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.ImageId)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdatePartnersPageBannerDto.ImageId)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
+                  nameof(UpdatePartnersPageBannerDto.ImageId)));
     }
 
     [Fact]
@@ -174,7 +160,6 @@ public class UpdatePartnersPageBannerCommandValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    // Helper to create a valid DTO
     private UpdatePartnersPageBannerDto GetValidDto()
     {
         return new UpdatePartnersPageBannerDto

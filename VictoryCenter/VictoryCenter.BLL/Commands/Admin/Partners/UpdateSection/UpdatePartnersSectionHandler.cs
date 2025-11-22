@@ -116,7 +116,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         }
     }
 
-    private Result<PartnersSectionDto> ValidateNoDeleteAndUpdateIdsOverlap(UpdatePartnersSectionDto dto)
+    private static Result<PartnersSectionDto> ValidateNoDeleteAndUpdateIdsOverlap(UpdatePartnersSectionDto dto)
     {
         var idsToUpdate = dto.PartnersToUpdate.Select(p => p.Id).ToHashSet();
         var idsToDelete = dto.PartnerIdsToDelete.ToHashSet();
@@ -132,7 +132,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         return Result.Ok();
     }
 
-    private Result<PartnersSectionDto> ValidateSubEntitiesExist(UpdatePartnersSectionDto dto, PartnerSection section)
+    private static Result<PartnersSectionDto> ValidateSubEntitiesExist(UpdatePartnersSectionDto dto, PartnerSection section)
     {
         var existingPartnerIds = section.Partners.Select(p => p.Id).ToHashSet();
         var idsToUpdate = dto.PartnersToUpdate.Select(p => p.Id);

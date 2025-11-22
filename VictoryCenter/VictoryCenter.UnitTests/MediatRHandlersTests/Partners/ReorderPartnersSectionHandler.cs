@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -158,8 +157,5 @@ public class ReorderPartnersSectionsTests
             repositoryWrapper => repositoryWrapper.PartnerSectionsRepository.CountAsync(
                 It.IsAny<QueryOptions<PartnerSection>>()))
             .ReturnsAsync(countResult);
-
-        _mockRepoWrapper.Setup(x => x.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 }

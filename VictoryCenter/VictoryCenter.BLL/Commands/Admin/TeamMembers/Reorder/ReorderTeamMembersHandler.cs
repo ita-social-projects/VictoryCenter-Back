@@ -32,22 +32,15 @@ public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersComma
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            using (var scope = _repositoryWrapper.BeginTransaction())
-            {
-                var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
-                var categoryId = request.ReorderTeamMembersDto.CategoryId;
+            var orderedIds = request.ReorderTeamMembersDto.OrderedIds;
+            var categoryId = request.ReorderTeamMembersDto.CategoryId;
 
-                await _reorderService.SwapElementsAsync<TeamMember>(
-                    orderedIds,
-                    tm => tm.Id,
-                    tm => tm.CategoryId == categoryId);
+            await _reorderService.SwapElementsAsync<TeamMember>(
+                orderedIds,
+                tm => tm.Id,
+                tm => tm.CategoryId == categoryId);
 
-                await _repositoryWrapper.SaveChangesAsync();
-
-                scope.Complete();
-
-                return Result.Ok(Unit.Value);
-            }
+            return Result.Ok(Unit.Value);
         }
         catch (ValidationException ex)
         {

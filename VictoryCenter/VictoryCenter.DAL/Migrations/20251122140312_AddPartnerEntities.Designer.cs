@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20251110125055_AddPartnerEntities")]
+    [Migration("20251122140312_AddPartnerEntities")]
     partial class AddPartnerEntities
     {
         /// <inheritdoc />
@@ -932,7 +932,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
                         .WithOne()
                         .HasForeignKey("VictoryCenter.DAL.Entities.Partner", "ImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("VictoryCenter.DAL.Entities.PartnerSection", "PartnerSection")

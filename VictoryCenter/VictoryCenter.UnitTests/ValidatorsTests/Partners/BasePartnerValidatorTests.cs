@@ -45,20 +45,18 @@ public class BasePartnerValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerCreateUpdateDto.Description)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                  nameof(BasePartnerCreateUpdateDto.Description)));
     }
 
     [Fact]
     public void Validate_DescriptionIsTooShort_ShouldHaveError()
     {
         // Arrange
-        // Skip test if MinLength is 0 or 1, as "" (NotEmpty) would catch it.
-        if (PartnerConstants.PartnerDescriptionMinLength <= 1)
+        var model = new TestPartnerDto
         {
-            return;
-        }
-
-        var model = new TestPartnerDto { Description = _tooShortDescription };
+            Description = _tooShortDescription
+        };
 
         // Act
         var result = _validator.TestValidate(model);
@@ -66,14 +64,18 @@ public class BasePartnerValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMinLength));
+                    nameof(BasePartnerCreateUpdateDto.Description),
+                    PartnerConstants.PartnerDescriptionMinLength));
     }
 
     [Fact]
     public void Validate_DescriptionIsTooLong_ShouldHaveError()
     {
         // Arrange
-        var model = new TestPartnerDto { Description = _tooLongDescription };
+        var model = new TestPartnerDto
+        {
+            Description = _tooLongDescription
+        };
 
         // Act
         var result = _validator.TestValidate(model);
@@ -81,7 +83,8 @@ public class BasePartnerValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(BasePartnerCreateUpdateDto.Description), PartnerConstants.PartnerDescriptionMaxLength));
+                    nameof(BasePartnerCreateUpdateDto.Description),
+                    PartnerConstants.PartnerDescriptionMaxLength));
     }
 
     [Fact]

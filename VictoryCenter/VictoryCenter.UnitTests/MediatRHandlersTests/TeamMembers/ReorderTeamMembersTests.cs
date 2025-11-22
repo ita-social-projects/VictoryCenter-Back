@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using FluentValidation;
 using MediatR;
 using Moq;
@@ -193,9 +192,6 @@ public class ReorderTeamMembersTests
 
     private void SetupRepositoryWrapper(int saveResult = 1)
     {
-        _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
-
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);
     }

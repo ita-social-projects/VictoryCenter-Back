@@ -53,20 +53,19 @@ public class BasePartnerSectionValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Title)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto.Title)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                  nameof(BasePartnerSectionCreateUpdateDto.Title)));
     }
 
     [Fact]
     public void Validate_TitleIsTooShort_ShouldHaveError()
     {
         // Arrange
-        // Skip test if MinLength is 0 or 1, as "" (NotEmpty) would catch it.
-        if (PartnerConstants.PartnersSectionTitleMinLength <= 1)
+        var model = new TestPartnerSectionDto
         {
-            return;
-        }
-
-        var model = new TestPartnerSectionDto { Title = _tooShortTitle, Description = _validDescription };
+            Title = _tooShortTitle,
+            Description = _validDescription
+        };
 
         // Act
         var result = _validator.TestValidate(model);
@@ -74,7 +73,8 @@ public class BasePartnerSectionValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Title)
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(BasePartnerSectionCreateUpdateDto.Title), PartnerConstants.PartnersSectionTitleMinLength));
+                    nameof(BasePartnerSectionCreateUpdateDto.Title),
+                    PartnerConstants.PartnersSectionTitleMinLength));
     }
 
     [Fact]
@@ -103,19 +103,14 @@ public class BasePartnerSectionValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BasePartnerSectionCreateUpdateDto.Description)));
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                  nameof(BasePartnerSectionCreateUpdateDto.Description)));
     }
 
     [Fact]
     public void Validate_DescriptionIsTooShort_ShouldHaveError()
     {
         // Arrange
-        // Skip test if MinLength is 0 or 1, as "" (NotEmpty) would catch it.
-        if (PartnerConstants.PartnersSectionDescriptionMinLength <= 1)
-        {
-            return;
-        }
-
         var model = new TestPartnerSectionDto { Title = _validTitle, Description = _tooShortDescription };
 
         // Act
@@ -124,7 +119,8 @@ public class BasePartnerSectionValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Description)
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(BasePartnerSectionCreateUpdateDto.Description), PartnerConstants.PartnersSectionDescriptionMinLength));
+                    nameof(BasePartnerSectionCreateUpdateDto.Description),
+                    PartnerConstants.PartnersSectionDescriptionMinLength));
     }
 
     [Fact]

@@ -74,7 +74,9 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
             var createdSection = await _repositoryWrapper.PartnerSectionsRepository.GetFirstOrDefaultAsync(new()
             {
                 Filter = s => s.Id == partnersSectionEntity.Id,
-                Include = q => q.Include(s => s.Partners).ThenInclude(p => p.Image!)
+                Include = q => q
+                .Include(s => s.Partners.OrderBy(p => p.Priority))
+                .ThenInclude(p => p.Image!)
             });
 
             var resultDto = _mapper.Map<PartnersSectionDto>(createdSection);

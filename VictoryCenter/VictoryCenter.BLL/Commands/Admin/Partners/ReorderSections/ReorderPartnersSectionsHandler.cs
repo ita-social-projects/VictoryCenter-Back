@@ -46,13 +46,10 @@ public class ReorderPartnersSectionsHandler : IRequestHandler<ReorderPartnersSec
                 return Result.Fail<Unit>(PartnerConstants.HaveNotFoundAnyPartnersSectionsForReorder);
             }
 
-            using var transactionScope = _repositoryWrapper.BeginTransaction();
-
             await _reorderService.SwapElementsAsync<PartnerSection>(
                 idsOrder: orderedIds,
                 idSelector: e => e.Id);
 
-            transactionScope.Complete();
             return Result.Ok();
         }
         catch (ValidationException ex)

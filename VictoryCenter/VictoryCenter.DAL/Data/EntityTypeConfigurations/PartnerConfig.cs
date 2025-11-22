@@ -33,7 +33,8 @@ public class PartnerConfig : IEntityTypeConfiguration<Partner>
         entity
             .HasOne(e => e.Image)
             .WithOne()
-            .HasForeignKey<Partner>(e => e.ImageId);
+            .HasForeignKey<Partner>(e => e.ImageId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         entity
             .Property(e => e.CreatedAt)

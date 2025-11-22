@@ -62,6 +62,8 @@ public class ReorderService : IReorderService
         var repository = _repositoryWrapper.GetRepository<TEntity>();
         var idSelectorCompiled = idSelector.Compile();
 
+        using var transactionScope = _repositoryWrapper.BeginTransaction();
+
         var entities = (await repository.GetAllAsync(new QueryOptions<TEntity>
         {
             Filter = groupSelector,
@@ -106,6 +108,7 @@ public class ReorderService : IReorderService
         }
 
         await _repositoryWrapper.SaveChangesAsync();
+        transactionScope.Complete();
     }
 
     /// <summary>

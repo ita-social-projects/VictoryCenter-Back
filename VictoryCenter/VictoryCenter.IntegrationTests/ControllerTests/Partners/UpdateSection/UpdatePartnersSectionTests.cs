@@ -33,13 +33,13 @@ public class UpdatePartnersSectionTests : BaseTestClass
 
         var usedImageIds = sectionToUpdate.Partners.Select(p => p.ImageId).ToList();
 
-        var unsusedImageIds = await Fixture.DbContext.Images
+        var unusedImageIds = await Fixture.DbContext.Images
             .AsNoTracking()
             .Where(i => !usedImageIds.Contains(i.Id))
             .Select(i => i.Id)
             .ToListAsync();
 
-        if (unsusedImageIds.Count < 2)
+        if (unusedImageIds.Count < 2)
         {
             throw new InvalidOperationException("Seeder must provide at least 2 different images for partners in the section.");
         }
@@ -55,7 +55,7 @@ public class UpdatePartnersSectionTests : BaseTestClass
                 {
                     Id = partnerToUpdate.Id,
                     Description = "Updated Partner Description",
-                    ImageId = unsusedImageIds[0]
+                    ImageId = unusedImageIds[0]
                 }
 
             ],
@@ -64,7 +64,7 @@ public class UpdatePartnersSectionTests : BaseTestClass
                 new()
                 {
                     Description = "A Brand New Partner",
-                    ImageId = unsusedImageIds[1]
+                    ImageId = unusedImageIds[1]
                 }
 
             ]
@@ -89,6 +89,7 @@ public class UpdatePartnersSectionTests : BaseTestClass
         Assert.Equal(sectionToUpdate.Partners.Count, updatedSectionInDb.Partners.Count); // -1 deleted, +1 created
         Assert.Null(updatedSectionInDb.Partners.FirstOrDefault(p => p.Id == partnerToDelete.Id));
         Assert.Equal("Updated Partner Description", updatedSectionInDb.Partners.First(p => p.Id == partnerToUpdate.Id).Description);
+        Assert.NotNull(updatedSectionInDb.Partners.FirstOrDefault(p => p.Description == "A Brand New Partner"));
     }
 
     [Fact]
