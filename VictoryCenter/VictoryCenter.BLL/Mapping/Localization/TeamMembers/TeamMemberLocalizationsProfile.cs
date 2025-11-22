@@ -16,6 +16,6 @@ public class TeamMemberLocalizationsProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<TeamMemberLocalization, TeamMemberLocalizationDto>()
-            .ForMember(dest => dest.LocalizationLanguageDto, opt => opt.MapFrom(src => src.Language));
+            .ForMember(dest => dest.LocalizatioInfoDto, opt => opt.MapFrom(src => src.Language));
     }
 }

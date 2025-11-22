@@ -1,8 +1,6 @@
 namespace VictoryCenter.BLL.DTOs.Common;
 
-public record LocalizationLanguageDto
+public record LocalizationLanguageDto : LocalizationInfoDto
 {
-    public long Id { get; set; }
-
-    public string Code { get; set; } = null!;
+    public string Name { get; set; } = null!;
 }

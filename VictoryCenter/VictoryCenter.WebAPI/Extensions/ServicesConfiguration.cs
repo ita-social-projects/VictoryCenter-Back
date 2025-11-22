@@ -266,10 +266,12 @@ public static class ServicesConfiguration
             new()
             {
                 Code = "uk",
+                Name = "Українська",
             },
             new()
             {
                 Code = "en",
+                Name = "Англійська",
             }
         };
 

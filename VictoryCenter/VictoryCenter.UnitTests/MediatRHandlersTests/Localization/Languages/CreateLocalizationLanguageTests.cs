@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Create;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.Languages;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Validators.Localization.Languages;
@@ -22,12 +23,14 @@ public class CreateLocalizationLanguageTests
     {
         Id = 1,
         Code = "en",
+        Name = "Англійська",
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc)
     };
 
     private LocalizationLanguageDto _testDto = new()
     {
-        Code = "en"
+        Code = "en",
+        Name = "Англійська"
     };
 
     public CreateLocalizationLanguageTests()
@@ -52,7 +55,7 @@ public class CreateLocalizationLanguageTests
 
         // Act
         var result = await handler.Handle(
-            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code }),
+            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code, Name = "Test" }),
             CancellationToken.None);
 
         // Assert
@@ -71,12 +74,36 @@ public class CreateLocalizationLanguageTests
 
         // Act
         var result = await handler.Handle(
-            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code ?? string.Empty }),
+            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code ?? string.Empty, Name = "Test" }),
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Code", result.Errors[0].Message);
+        Assert.Equal(
+            ErrorMessagesConstants.PropertyMustHaveALengthOfNCharacters(nameof(CreateLocalizationLanguageDto.Code), LocalizationLanguageConstants.CodeLength),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_NameMaxedOut()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new CreateLocalizationLanguageHandler(
+            _repositoryWrapperMock.Object, _mapperMock.Object, _validator);
+        string code = "en";
+        var name = new string('a', LocalizationLanguageConstants.NameMaxLength + 1);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code ?? string.Empty, Name = name }),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateLocalizationLanguageDto.Name), LocalizationLanguageConstants.NameMaxLength),
+            result.Errors[0].Message);
     }
 
     [Fact]
@@ -89,7 +116,7 @@ public class CreateLocalizationLanguageTests
 
         // Act
         var result = await handler.Handle(
-            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = "en" }),
+            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = "en", Name = "Англійська" }),
             CancellationToken.None);
 
         // Assert
@@ -114,7 +141,7 @@ public class CreateLocalizationLanguageTests
 
         // Act
         var result = await handler.Handle(
-            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = "en" }),
+            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = "en", Name = "Англійська" }),
             CancellationToken.None);
 
         // Assert

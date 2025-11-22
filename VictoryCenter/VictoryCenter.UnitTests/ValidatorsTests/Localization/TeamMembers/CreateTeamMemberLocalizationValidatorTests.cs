@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.Validators.Localization.TeamMembers;
 
@@ -94,13 +95,13 @@ public class CreateTeamMemberLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.FullName)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateTeamMemberLocalizationDto.FullName),
-                BaseTeamMemberLocalizationValidator.FullNameMinLength));
+                TeamMemberLocalizationConstants.FullNameMinLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_When_FullNameTooLong()
     {
-        var longName = new string('A', BaseTeamMemberLocalizationValidator.FullNameMaxLength + 1);
+        var longName = new string('A', TeamMemberLocalizationConstants.FullNameMaxLength + 1);
 
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
@@ -116,13 +117,13 @@ public class CreateTeamMemberLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.FullName)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateTeamMemberLocalizationDto.FullName),
-                BaseTeamMemberLocalizationValidator.FullNameMaxLength));
+                TeamMemberLocalizationConstants.FullNameMaxLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_When_DescriptionTooShort()
     {
-        var shortDescription = new string('A', BaseTeamMemberLocalizationValidator.DescriptionNameMinLength - 1);
+        var shortDescription = new string('A', TeamMemberLocalizationConstants.DescriptionNameMinLength - 1);
 
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
@@ -138,13 +139,13 @@ public class CreateTeamMemberLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateTeamMemberLocalizationDto.Description),
-                BaseTeamMemberLocalizationValidator.DescriptionNameMinLength));
+                TeamMemberLocalizationConstants.DescriptionNameMinLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_When_DescriptionTooLong()
     {
-        var longDescription = new string('A', BaseTeamMemberLocalizationValidator.DescriptionNameMaxLength + 1);
+        var longDescription = new string('A', TeamMemberLocalizationConstants.DescriptionNameMaxLength + 1);
 
         var command = new CreateTeamMemberLocalizationCommand(
             new CreateTeamMemberLocalizationDto
@@ -160,7 +161,7 @@ public class CreateTeamMemberLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CreateTeamMemberLocalizationDto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateTeamMemberLocalizationDto.Description),
-                BaseTeamMemberLocalizationValidator.DescriptionNameMaxLength));
+                TeamMemberLocalizationConstants.DescriptionNameMaxLength));
     }
 
     [Fact]

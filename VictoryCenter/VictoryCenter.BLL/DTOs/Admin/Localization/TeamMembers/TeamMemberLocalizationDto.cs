@@ -7,7 +7,7 @@ public record TeamMemberLocalizationDto
 {
     public long EntityId { get; init; }
 
-    public LocalizationLanguageDto LocalizationLanguageDto { get; init; } = null!;
+    public LocalizationInfoDto LocalizatioInfoDto { get; init; } = null!;
 
     public string FullName { get; init; } = null!;
 

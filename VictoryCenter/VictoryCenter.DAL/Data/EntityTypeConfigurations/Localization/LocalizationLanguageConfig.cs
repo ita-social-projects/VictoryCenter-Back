@@ -20,5 +20,9 @@ public class LocalizationLanguageConfig : IEntityTypeConfiguration<LocalizationL
 
         entity.HasIndex(e => e.Code)
             .IsUnique();
+
+        entity.Property(e => e.Name)
+            .IsRequired()
+            .HasMaxLength(50);
     }
 }

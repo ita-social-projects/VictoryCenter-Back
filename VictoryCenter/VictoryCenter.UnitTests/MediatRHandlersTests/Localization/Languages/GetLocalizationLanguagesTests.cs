@@ -18,12 +18,14 @@ public class GetLocalizationLanguagesTests
         new()
         {
             Id = 1,
-            Code = "en"
+            Code = "en",
+            Name = "Англійська"
         },
         new()
         {
             Id = 2,
-            Code = "es"
+            Code = "es",
+            Name = "Іспанська"
         },
     };
 
@@ -32,12 +34,14 @@ public class GetLocalizationLanguagesTests
         new()
         {
             Id = 1,
-            Code = "en"
+            Code = "en",
+            Name = "Англійська"
         },
         new()
         {
             Id = 2,
-            Code = "es"
+            Code = "es",
+            Name = "Іспанська"
         },
     };
 

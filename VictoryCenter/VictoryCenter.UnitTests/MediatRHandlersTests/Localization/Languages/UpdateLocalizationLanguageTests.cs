@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.Languages;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Validators.Localization.Languages;
@@ -23,6 +24,7 @@ public class UpdateLocalizationLanguageTests
     {
         Id = 1,
         Code = "en",
+        Name = "Англійська",
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
     };
 
@@ -30,12 +32,14 @@ public class UpdateLocalizationLanguageTests
     {
         Id = 1,
         Code = "uk",
+        Name = "Українська",
         CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
     };
 
     private readonly LocalizationLanguageDto _testUpdatedLanguageDto = new()
     {
-        Code = "uk"
+        Code = "uk",
+        Name = "Українська",
     };
 
     public UpdateLocalizationLanguageTests()
@@ -51,6 +55,7 @@ public class UpdateLocalizationLanguageTests
         // Arrange
         SetupDependencies(_testExistingLanguage);
         string newCode = "uk";
+        string newName = "Українська";
 
         var handler = new UpdateLocalizationLanguageHandler(
             _mockMapper.Object,
@@ -60,7 +65,7 @@ public class UpdateLocalizationLanguageTests
         // Act
         var result = await handler.Handle(
             new UpdateLocalizationLanguageCommand(
-                new UpdateLocalizationLanguageDto { Code = newCode },
+                new UpdateLocalizationLanguageDto { Code = newCode, Name = newName },
                 _testExistingLanguage.Id),
             CancellationToken.None);
 
@@ -80,7 +85,6 @@ public class UpdateLocalizationLanguageTests
     {
         // Arrange
         SetupDependencies(_testExistingLanguage);
-
         var handler = new UpdateLocalizationLanguageHandler(
             _mockMapper.Object,
             _mockRepositoryWrapper.Object,
@@ -89,13 +93,37 @@ public class UpdateLocalizationLanguageTests
         // Act
         var result = await handler.Handle(
             new UpdateLocalizationLanguageCommand(
-                new UpdateLocalizationLanguageDto { Code = invalidCode ?? string.Empty },
+                new UpdateLocalizationLanguageDto { Code = invalidCode ?? string.Empty, Name = "Test" },
                 _testExistingLanguage.Id),
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("Code", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotUpdate_NameMaxedOut()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new UpdateLocalizationLanguageHandler(
+            _mockMapper.Object,
+            _mockRepositoryWrapper.Object,
+            _validator);
+        string code = "en";
+        var name = new string('a', LocalizationLanguageConstants.NameMaxLength + 1);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateLocalizationLanguageCommand(
+                new UpdateLocalizationLanguageDto { Code = code ?? string.Empty, Name = name },
+                _testExistingLanguage.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Name", result.Errors[0].Message);
     }
 
     [Theory]
@@ -113,7 +141,7 @@ public class UpdateLocalizationLanguageTests
         // Act
         var result = await handler.Handle(
             new UpdateLocalizationLanguageCommand(
-                new UpdateLocalizationLanguageDto { Code = "fr" },
+                new UpdateLocalizationLanguageDto { Code = "fr", Name = "Test" },
                 testId),
             CancellationToken.None);
 
@@ -135,7 +163,7 @@ public class UpdateLocalizationLanguageTests
         // Act
         var result = await handler.Handle(
             new UpdateLocalizationLanguageCommand(
-                new UpdateLocalizationLanguageDto { Code = "fr" },
+                new UpdateLocalizationLanguageDto { Code = "fr", Name = "Test" },
                 _testExistingLanguage.Id),
             CancellationToken.None);
 
@@ -161,7 +189,7 @@ public class UpdateLocalizationLanguageTests
         // Act
         var result = await handler.Handle(
             new UpdateLocalizationLanguageCommand(
-                new UpdateLocalizationLanguageDto { Code = "fr" },
+                new UpdateLocalizationLanguageDto { Code = "fr", Name = "Test" },
                 _testExistingLanguage.Id),
             CancellationToken.None);
 
