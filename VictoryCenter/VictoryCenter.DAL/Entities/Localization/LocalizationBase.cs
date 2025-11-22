@@ -13,7 +13,7 @@ public abstract class LocalizationBase<T>
 
     public TranslationStatus TranslationStatus { get; set; } = TranslationStatus.Relevant;
 
-    public LocalizationInfo Language { get; set; } = null!;
+    public LocalizationLanguage Language { get; set; } = null!;
 
     public DateTimeOffset CreatedAt { get; set; }
 }
