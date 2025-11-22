@@ -1,0 +1,9 @@
+using VictoryCenter.DAL.Data.BaseEntity;
+
+namespace VictoryCenter.DAL.Entities.Localization;
+
+public class LocalizationInfo : BaseEntity
+{
+    // ISO 639-1 is used for distinguishing languages
+    public string Code { get; set; } = null!;
+}

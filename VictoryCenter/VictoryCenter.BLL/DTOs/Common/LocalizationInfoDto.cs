@@ -1,4 +1,5 @@
 namespace VictoryCenter.BLL.DTOs.Common;
+
 public record LocalizationInfoDto
 {
     public long Id { get; set; }

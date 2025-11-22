@@ -50,7 +50,7 @@ public class CreateTeamMemberLocalizationTests
     private readonly TeamMemberLocalizationDto _testDto = new()
     {
         EntityId = 1,
-        LocalizationLanguageDto = new() { Id = 1, Code = "en" },
+        LocalizationInfoDto = new() { Id = 1, Code = "en" },
         FullName = "John Doe",
         Description = "Experienced developer in localization."
     };
@@ -80,7 +80,7 @@ public class CreateTeamMemberLocalizationTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(_testDto.FullName, result.Value.FullName);
-        Assert.Equal(_testDto.LocalizationLanguageDto.Id, result.Value.LocalizationLanguageDto.Id);
+        Assert.Equal(_testDto.LocalizationInfoDto.Id, result.Value.LocalizationInfoDto.Id);
     }
 
     [Fact]

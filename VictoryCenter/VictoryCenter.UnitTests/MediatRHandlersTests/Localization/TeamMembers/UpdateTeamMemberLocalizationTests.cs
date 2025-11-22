@@ -42,7 +42,7 @@ public class UpdateTeamMemberLocalizationTests
     private readonly TeamMemberLocalizationDto _updatedDto = new()
     {
         EntityId = 1,
-        LocalizationLanguageDto = new() { Id = 1, Code = "en" },
+        LocalizationInfoDto = new() { Id = 1, Code = "en" },
         FullName = "New name",
         Description = "New description",
         TranslationStatus = TranslationStatus.Relevant
