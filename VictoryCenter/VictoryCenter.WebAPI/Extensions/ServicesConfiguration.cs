@@ -267,11 +267,13 @@ public static class ServicesConfiguration
             {
                 Code = "uk",
                 Name = "Українська",
+                CreatedAt = DateTimeOffset.UtcNow,
             },
             new()
             {
                 Code = "en",
                 Name = "Англійська",
+                CreatedAt = DateTimeOffset.UtcNow,
             }
         };
 
