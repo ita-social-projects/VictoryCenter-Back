@@ -1,25 +1,15 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Create;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Delete;
 using VictoryCenter.BLL.Commands.Admin.Localization.Languages.Update;
 using VictoryCenter.BLL.DTOs.Admin.Localization.Languages;
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Queries.Common.Localization.Languages.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 
 public class LocalizationLanguageController : AuthorizedApiController
 {
-    [HttpGet]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(IEnumerable<LocalizationLanguageDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetLocalizationLanguages()
-    {
-        return HandleResult(await Mediator.Send(new GetAllLocalizationLanguagesQuery()));
-    }
-
     [HttpPost]
     [ProducesResponseType(typeof(LocalizationLanguageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

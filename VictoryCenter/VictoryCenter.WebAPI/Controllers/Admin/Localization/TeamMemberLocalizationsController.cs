@@ -11,20 +11,6 @@ namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 
 public class TeamMemberLocalizationsController : AuthorizedApiController
 {
-    [HttpGet("member/{id:long}")]
-    [ProducesResponseType(typeof(IEnumerable<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByTeamMemberId(long id)
-    {
-        return HandleResult(await Mediator.Send(new GetByTeamMemberIdQuery(id)));
-    }
-
-    [HttpGet("lang/{id:long}")]
-    [ProducesResponseType(typeof(IEnumerable<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByLanguageId(long id)
-    {
-        return HandleResult(await Mediator.Send(new GetByLanguageIdQuery(id)));
-    }
-
     [HttpPost]
     [ProducesResponseType(typeof(TeamMemberLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
