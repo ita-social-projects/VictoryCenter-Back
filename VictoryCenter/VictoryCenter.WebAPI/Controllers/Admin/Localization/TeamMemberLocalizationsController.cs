@@ -3,8 +3,6 @@ using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Delete;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Update;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
-using VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByLanguageId;
-using VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByTeamMemberId;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
