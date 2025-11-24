@@ -26,9 +26,12 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
     {
         var status = request.TeamMembersFilterDto.Status;
         var categoryId = request.TeamMembersFilterDto.CategoryId;
+        var translationStatus = request.TeamMembersFilterDto.TranslationStatus;
 
-        Expression<Func<TeamMember, bool>> filter =
-            t => (status == null || t.Status == status) && (categoryId == null || t.TeamCategory.Id == categoryId);
+        Expression<Func<TeamMember, bool>> filter = t =>
+            (status == null || t.Status == status) &&
+            (categoryId == null || t.TeamCategory.Id == categoryId) &&
+            (translationStatus == null || t.Localizations.Any(l => l.TranslationStatus == translationStatus));
 
         var queryOptions = new QueryOptions<TeamMember>
         {

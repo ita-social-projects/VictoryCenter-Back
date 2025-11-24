@@ -1,8 +1,10 @@
 using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -171,6 +173,41 @@ public class GetTeamMembersTests
             () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
+    [Fact]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatus()
+    {
+        // Arrange
+        var translationStatus = TranslationStatus.Relevant;
+        var teamMemberList = GetTeamMemberList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .Where(t => t.Localizations.Any(l => l.TranslationStatus == translationStatus))
+            .OrderBy(t => t.Priority)
+            .ToList();
+
+        SetupRepository(teamMemberList);
+        SetupMapper(teamMemberDtoList);
+
+        var filtersDto = new TeamMembersFilterDto
+        {
+            Offset = 0,
+            Limit = 0,
+            TranslationStatus = translationStatus,
+        };
+
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+
+        // Act
+        var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
+
+        // Assert
+        Assert.Multiple(
+            () => Assert.NotNull(result),
+            () => Assert.NotNull(result.Value),
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
+    }
+
     private static List<TeamMember> GetTeamMemberList()
     {
         var teamMemberList = new List<TeamMember>
@@ -181,7 +218,16 @@ public class GetTeamMembersTests
                 Priority = 3,
                 Status = Status.Draft,
                 CategoryId = 1,
-                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" }
+                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" },
+                Localizations = new List<TeamMemberLocalization>
+                {
+                    new()
+                    {
+                        EntityId = 4,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    }
+                }
             },
             new()
             {
@@ -189,7 +235,16 @@ public class GetTeamMembersTests
                 Priority = 2,
                 Status = Status.Draft,
                 CategoryId = 2,
-                TeamCategory = new TeamCategory { Id = 2, Name = "Category 2" }
+                TeamCategory = new TeamCategory { Id = 2, Name = "Category 2" },
+                Localizations = new List<TeamMemberLocalization>
+                {
+                    new()
+                    {
+                        EntityId = 2,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    }
+                }
             },
             new()
             {
@@ -197,7 +252,16 @@ public class GetTeamMembersTests
                 Priority = 1,
                 Status = Status.Published,
                 CategoryId = 1,
-                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" }
+                TeamCategory = new TeamCategory { Id = 1, Name = "Category 1" },
+                Localizations = new List<TeamMemberLocalization>
+                {
+                    new()
+                    {
+                        EntityId = 3,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Outdated,
+                    }
+                }
             },
             new()
             {
@@ -236,14 +300,30 @@ public class GetTeamMembersTests
                 Id = 3,
                 Priority = 1,
                 Status = Status.Published,
-                CategoryId = 1
+                CategoryId = 1,
+                Localizations = new List<TeamMemberLocalizationDto>
+                {
+                    new()
+                    {
+                        EntityId = 3,
+                        TranslationStatus = TranslationStatus.Outdated,
+                    }
+                }
             },
             new()
             {
                 Id = 2,
                 Priority = 2,
                 Status = Status.Draft,
-                CategoryId = 12
+                CategoryId = 12,
+                Localizations = new List<TeamMemberLocalizationDto>
+                {
+                    new()
+                    {
+                        EntityId = 2,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    }
+                }
             },
             new()
             {
@@ -258,6 +338,14 @@ public class GetTeamMembersTests
                 Priority = 3,
                 Status = Status.Draft,
                 CategoryId = 1,
+                Localizations = new List<TeamMemberLocalizationDto>
+                {
+                    new()
+                    {
+                        EntityId = 4,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    }
+                },
             },
         };
 
