@@ -32,18 +32,18 @@ public class BaseTeamMembersValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.FullName)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateTeamMemberDto.FullName),
-                BaseTeamMembersValidator.FullNameMinLength));
+                TeamMemberConstants.FullNameMinLength));
     }
 
     [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameIsTooLong()
     {
-        var model = new CreateTeamMemberDto { FullName = new string('A', BaseTeamMembersValidator.FullNameMaxLength + 1), CategoryId = 1 };
+        var model = new CreateTeamMemberDto { FullName = new string('A', TeamMemberConstants.FullNameMaxLength + 1), CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateTeamMemberDto.FullName),
-                BaseTeamMembersValidator.FullNameMaxLength));
+                TeamMemberConstants.FullNameMaxLength));
     }
 
     [Fact]
@@ -90,14 +90,14 @@ public class BaseTeamMembersValidatorTests
         {
             FullName = "John Doe",
             CategoryId = 1,
-            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMaxLength + 1),
+            Description = new string('A', TeamMemberConstants.DescriptionNameMaxLength + 1),
             Status = Status.Published
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateTeamMemberDto.Description),
-                BaseTeamMembersValidator.DescriptionNameMaxLength));
+                TeamMemberConstants.DescriptionNameMaxLength));
     }
 
     [Fact]
@@ -112,7 +112,8 @@ public class BaseTeamMembersValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.Description)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateTeamMemberDto.Description)));
     }
 
     [Fact]
@@ -123,7 +124,7 @@ public class BaseTeamMembersValidatorTests
             FullName = "Anna",
             CategoryId = 1,
             Status = Status.Draft,
-            Description = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5),
+            Description = new string('A', TeamMemberConstants.DescriptionNameMinLength + 1),
         };
 
         var result = _validator.TestValidate(model);
@@ -144,7 +145,8 @@ public class BaseTeamMembersValidatorTests
 
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamMemberDto.Description), BaseTeamMembersValidator.DescriptionNameMinLength));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateTeamMemberDto.Description), TeamMemberConstants.DescriptionNameMinLength));
     }
 
     [Fact]
@@ -160,7 +162,8 @@ public class BaseTeamMembersValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.ImageId)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamMemberDto.ImageId)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateTeamMemberDto.ImageId)));
     }
 
     [Fact]

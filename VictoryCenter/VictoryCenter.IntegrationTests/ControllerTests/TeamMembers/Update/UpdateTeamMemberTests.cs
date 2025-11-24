@@ -2,8 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
-using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -21,7 +21,7 @@ public class UpdateTeamMemberTests : BaseTestClass
     [Fact]
     public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember()
     {
-        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
+        var validDescription = new string('A', TeamMemberConstants.DescriptionNameMinLength + 5);
 
         TeamMember existingEntity = await Fixture.DbContext.TeamMembers
                                         .Include(tm => tm.TeamCategory)

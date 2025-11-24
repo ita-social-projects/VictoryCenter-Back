@@ -95,7 +95,7 @@ public class UpdateTeamMemberTests
     [Fact]
     public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity()
     {
-        var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
+        var validDescription = new string('A', TeamMemberConstants.DescriptionNameMinLength + 5);
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {

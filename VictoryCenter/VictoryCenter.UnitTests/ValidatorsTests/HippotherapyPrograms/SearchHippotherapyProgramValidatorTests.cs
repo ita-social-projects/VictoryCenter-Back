@@ -54,13 +54,13 @@ public class SearchHippotherapyProgramValidatorTests
 
         result.ShouldHaveValidationErrorFor(x => x.SearchHippotherapyProgramDto.SearchQuery)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(SearchHippotherapyProgramDto.SearchQuery), SearchHippotherapyProgramValidator.SearchQueryMinLength));
+                nameof(SearchHippotherapyProgramDto.SearchQuery), GlobalSearchConstants.DefaultSearchQueryMinLength));
     }
 
     [Fact]
     public void Validate_InvalidQuery_SearchQueryTooLongShouldHaveError()
     {
-        string searchQuery = new('A', SearchHippotherapyProgramValidator.SearchQueryMaxLength + 1);
+        string searchQuery = new('A', GlobalSearchConstants.DefaultSearchQueryMaxLength + 1);
         var dto = new SearchHippotherapyProgramDto
         {
             SearchQuery = searchQuery,
@@ -71,6 +71,6 @@ public class SearchHippotherapyProgramValidatorTests
 
         result.ShouldHaveValidationErrorFor(x => x.SearchHippotherapyProgramDto.SearchQuery)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(SearchHippotherapyProgramDto.SearchQuery), SearchHippotherapyProgramValidator.SearchQueryMaxLength));
+                nameof(SearchHippotherapyProgramDto.SearchQuery), GlobalSearchConstants.DefaultSearchQueryMaxLength));
     }
 }
