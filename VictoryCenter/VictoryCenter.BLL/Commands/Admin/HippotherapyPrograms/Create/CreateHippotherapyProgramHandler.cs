@@ -17,14 +17,19 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateHippotherapyProgramCommand> _validator;
 
-    public CreateHippotherapyProgramHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, IValidator<CreateHippotherapyProgramCommand> validator)
+    public CreateHippotherapyProgramHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper,
+        IValidator<CreateHippotherapyProgramCommand> validator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
     }
 
-    public async Task<Result<HippotherapyProgramDto>> Handle(CreateHippotherapyProgramCommand request, CancellationToken cancellationToken)
+    public async Task<Result<HippotherapyProgramDto>> Handle(
+        CreateHippotherapyProgramCommand request,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -37,17 +42,50 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
                     AsNoTracking = false
                 });
 
+            if (categories.Count() != request.CreateProgramDto.CategoryIds.Count)
+            {
+                var existingIds = categories.Select(c => c.Id).ToList();
+                var missingIds = request.CreateProgramDto.CategoryIds.Except(existingIds).ToList();
+                return Result.Fail<HippotherapyProgramDto>(
+                    ErrorMessagesConstants.NotFound(string.Join(", ", missingIds), typeof(HippotherapyProgramCategory)));
+            }
+
             HippotherapyProgram entity = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
-            if (entity.ImageId != null)
+            if (entity.BackgroundImageId.HasValue)
             {
-                Image? newImage = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
-                {
-                    Filter = image => image.Id == request.CreateProgramDto.ImageId,
-                    AsNoTracking = false
-                });
+                Image? backgroundImage = await _repositoryWrapper.ImageRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<Image>
+                    {
+                        Filter = image => image.Id == entity.BackgroundImageId.Value,
+                        AsNoTracking = false
+                    });
 
-                entity.Image = newImage;
+                if (backgroundImage == null)
+                {
+                    return Result.Fail<HippotherapyProgramDto>(
+                        ErrorMessagesConstants.NotFound(entity.BackgroundImageId.Value, typeof(Image)));
+                }
+
+                entity.BackgroundImage = backgroundImage;
+            }
+
+            if (entity.PreviewImageId.HasValue)
+            {
+                Image? previewImage = await _repositoryWrapper.ImageRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<Image>
+                    {
+                        Filter = image => image.Id == entity.PreviewImageId.Value,
+                        AsNoTracking = false
+                    });
+
+                if (previewImage == null)
+                {
+                    return Result.Fail<HippotherapyProgramDto>(
+                        ErrorMessagesConstants.NotFound(entity.PreviewImageId.Value, typeof(Image)));
+                }
+
+                entity.PreviewImage = previewImage;
             }
 
             entity.Categories = [.. categories];
@@ -60,7 +98,8 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
                 return Result.Ok(_mapper.Map<HippotherapyProgramDto>(entity));
             }
 
-            return Result.Fail<HippotherapyProgramDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)));
+            return Result.Fail<HippotherapyProgramDto>(
+                ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)));
         }
         catch (ValidationException ex)
         {
@@ -68,7 +107,8 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
         }
         catch (BlobStorageException)
         {
-            return Result.Fail<HippotherapyProgramDto>(HippotherapyProgramConstants.FailedRetrievingProgramPhoto);
+            return Result.Fail<HippotherapyProgramDto>(
+                HippotherapyProgramConstants.FailedRetrievingProgramPhoto);
         }
     }
 }
