@@ -10,11 +10,11 @@ public class BaseTeamMembersValidator : AbstractValidator<CreateTeamMemberDto>
     public BaseTeamMembersValidator()
     {
         RuleFor(x => x.FullName)
-            .Matches(@"^[\p{L}'\u2019\- ]+$")
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
-                nameof(CreateTeamMemberDto.FullName)))
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateTeamMemberDto.FullName)))
+            .Matches(TeamMemberConstants.FullNameRegexPattern)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
                 nameof(CreateTeamMemberDto.FullName)))
             .MinimumLength(TeamMemberConstants.FullNameMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(

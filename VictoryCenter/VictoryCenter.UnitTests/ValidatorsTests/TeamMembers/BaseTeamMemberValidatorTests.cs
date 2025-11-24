@@ -18,10 +18,11 @@ public class BaseTeamMembersValidatorTests
     [Fact]
     public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameIsEmpty()
     {
-        var model = new CreateTeamMemberDto { FullName = "", CategoryId = 1 };
+        var model = new CreateTeamMemberDto { FullName = "ha-ha here is unex#p32324ected string -(X_X)-", CategoryId = 1 };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.FullName)
-            .WithErrorMessage("FullName must be in a valid format");
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
+                nameof(CreateTeamMemberDto.FullName)));
     }
 
     [Fact]
