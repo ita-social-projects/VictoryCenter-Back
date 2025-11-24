@@ -65,7 +65,13 @@ public class UpdatePartnersSectionHandlerTests
         _mockMapper.Verify(m => m.Map(It.Is<UpdatePartnerDto>(dto => dto.Id == 20), It.Is<Partner>(p => p.Id == 20)), Times.Once);
         _mockMapper.Verify(m => m.Map<Partner>(It.Is<CreatePartnerDto>(dto => dto.Description == "New Partner Desc")), Times.Once);
         _mockReorderService.Verify(s => s.RenumberPriorityAsync<Partner>(It.IsAny<Expression<Func<Partner, bool>>>()), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
+        _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(1));
+
+        var createdPartner = existingSection.Partners
+            .FirstOrDefault(p => p.Description == "New Partner Desc");
+
+        Assert.NotNull(createdPartner);
+        Assert.Equal(3, createdPartner.Priority);
     }
 
     [Fact]
@@ -187,12 +193,11 @@ public class UpdatePartnersSectionHandlerTests
         Id = 1,
         Title = "Old Valid Title",
         Description = "Old Valid Description",
-        Priority = 1,
         Partners =
-    [
-        new Partner { Id = 10, Description = "Partner To Delete", ImageId = 100, PartnersSectionId = 1 },
-            new Partner { Id = 20, Description = "Partner To Update", ImageId = 200, PartnersSectionId = 1 }
-    ]
+        [
+            new Partner { Id = 10, Description = "Partner To Delete", ImageId = 100, PartnersSectionId = 1, Priority = 1 },
+            new Partner { Id = 20, Description = "Partner To Update", ImageId = 200, PartnersSectionId = 1, Priority = 2 }
+        ]
     };
 
     private void SetUpDependencies(PartnerSection? sectionToReturn)

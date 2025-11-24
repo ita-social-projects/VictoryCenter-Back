@@ -9,13 +9,11 @@ using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.TeamMembers;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamMembers;
 
 public class ReorderTeamMembersTests
 {
-    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<ReorderTeamMembersCommand> _validator;
 
@@ -27,7 +25,6 @@ public class ReorderTeamMembersTests
 
     public ReorderTeamMembersTests()
     {
-        _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockReorderService = new Mock<IReorderService>();
         _validator = new ReorderTeamMembersValidator();
     }
@@ -38,7 +35,7 @@ public class ReorderTeamMembersTests
         // Arrange
         SetupDependencies();
 
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var handler = new ReorderTeamMembersHandler(_validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(_testValidReorderDto);
 
         // Act
@@ -67,7 +64,7 @@ public class ReorderTeamMembersTests
         };
 
         SetupDependencies();
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var handler = new ReorderTeamMembersHandler(_validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -89,7 +86,7 @@ public class ReorderTeamMembersTests
         };
 
         SetupDependencies();
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var handler = new ReorderTeamMembersHandler(_validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -113,7 +110,7 @@ public class ReorderTeamMembersTests
         };
 
         SetupDependencies();
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var handler = new ReorderTeamMembersHandler(_validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -137,7 +134,7 @@ public class ReorderTeamMembersTests
         };
 
         SetupDependencies();
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var handler = new ReorderTeamMembersHandler(_validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(invalidReorderDto);
 
         // Act
@@ -163,8 +160,7 @@ public class ReorderTeamMembersTests
                 It.IsAny<Expression<Func<TeamMember, bool>>>()))
             .ThrowsAsync(new ReorderException(reorderExceptionMessage));
 
-        SetupRepositoryWrapper();
-        var handler = new ReorderTeamMembersHandler(_mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+        var handler = new ReorderTeamMembersHandler(_validator, _mockReorderService.Object);
         var command = new ReorderTeamMembersCommand(_testValidReorderDto);
 
         // Act
@@ -177,7 +173,6 @@ public class ReorderTeamMembersTests
 
     private void SetupDependencies(int saveResult = 1)
     {
-        SetupRepositoryWrapper(saveResult);
         SetupReorderService();
     }
 
@@ -188,11 +183,5 @@ public class ReorderTeamMembersTests
                 It.IsAny<Expression<Func<TeamMember, long>>>(),
                 It.IsAny<Expression<Func<TeamMember, bool>>>()))
             .Returns(Task.CompletedTask);
-    }
-
-    private void SetupRepositoryWrapper(int saveResult = 1)
-    {
-        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
-            .ReturnsAsync(saveResult);
     }
 }

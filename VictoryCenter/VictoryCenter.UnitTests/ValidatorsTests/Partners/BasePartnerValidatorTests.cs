@@ -35,10 +35,10 @@ public class BasePartnerValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Validate_DescriptionIsEmptyOrNull_ShouldHaveError(string description)
+    public void Validate_DescriptionIsEmptyOrNull_ShouldHaveError(string? description)
     {
         // Arrange
-        var model = new TestPartnerDto { Description = description };
+        var model = new TestPartnerDto { Description = description! };
 
         // Act
         var result = _validator.TestValidate(model);

@@ -43,10 +43,10 @@ public class BasePartnerSectionValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Validate_TitleIsEmptyOrNull_ShouldHaveError(string title)
+    public void Validate_TitleIsEmptyOrNull_ShouldHaveError(string? title)
     {
         // Arrange
-        var model = new TestPartnerSectionDto { Title = title, Description = _validDescription };
+        var model = new TestPartnerSectionDto { Title = title!, Description = _validDescription };
 
         // Act
         var result = _validator.TestValidate(model);
@@ -81,22 +81,29 @@ public class BasePartnerSectionValidatorTests
     public void Validate_TitleIsTooLong_ShouldHaveError()
     {
         // Arrange
-        var model = new TestPartnerSectionDto { Title = _tooLongTitle };
+        var model = new TestPartnerSectionDto
+        {
+            Title = _tooLongTitle,
+            Description = _validDescription
+        };
 
         // Act
         var result = _validator.TestValidate(model);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.Title);
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(BasePartnerSectionCreateUpdateDto.Title),
+                PartnerConstants.PartnersSectionTitleMaxLength));
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Validate_DescriptionIsEmptyOrNull_ShouldHaveError(string description)
+    public void Validate_DescriptionIsEmptyOrNull_ShouldHaveError(string? description)
     {
         // Arrange
-        var model = new TestPartnerSectionDto { Title = _validTitle, Description = description };
+        var model = new TestPartnerSectionDto { Title = _validTitle, Description = description! };
 
         // Act
         var result = _validator.TestValidate(model);

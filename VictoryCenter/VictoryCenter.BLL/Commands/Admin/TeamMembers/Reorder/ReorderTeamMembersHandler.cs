@@ -6,23 +6,19 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
 
 public class ReorderTeamMembersHandler : IRequestHandler<ReorderTeamMembersCommand, Result<Unit>>
 {
     private readonly IValidator<ReorderTeamMembersCommand> _validator;
-    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IReorderService _reorderService;
 
     public ReorderTeamMembersHandler(
-        IRepositoryWrapper repositoryWrapper,
         IValidator<ReorderTeamMembersCommand> validator,
         IReorderService reorderService)
     {
         _validator = validator;
-        _repositoryWrapper = repositoryWrapper;
         _reorderService = reorderService;
     }
 

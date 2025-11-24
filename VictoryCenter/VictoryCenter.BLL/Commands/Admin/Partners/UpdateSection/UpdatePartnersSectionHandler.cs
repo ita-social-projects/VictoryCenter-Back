@@ -88,8 +88,6 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
                 await _reorderService.RenumberPriorityAsync<Partner>(
                     groupSelector: p => p.PartnersSectionId == section.Id);
 
-                await _repositoryWrapper.SaveChangesAsync();
-
                 scope.Complete();
             }
 
@@ -123,7 +121,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         var overlappingIds = idsToUpdate.Intersect(idsToDelete).ToList();
 
-        if (overlappingIds.Any())
+        if (overlappingIds.Count > 0)
         {
             return Result.Fail<PartnersSectionDto>(
                 ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(overlappingIds, typeof(Partner)));
@@ -140,7 +138,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         var allRequestedIds = idsToUpdate.Concat(idsToDelete).Distinct();
         var nonExistingIds = allRequestedIds.Where(id => !existingPartnerIds.Contains(id)).ToList();
 
-        if (nonExistingIds.Any())
+        if (nonExistingIds.Count > 0)
         {
             return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(nonExistingIds, typeof(Partner)));
         }
@@ -155,7 +153,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
             .Distinct()
             .ToList();
 
-        if (!imageIds.Any())
+        if (imageIds.Count == 0)
         {
             return Result.Ok();
         }
@@ -167,7 +165,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         var nonExistingImageIds = imageIds.Where(id => !existingImageIds.Contains(id)).ToList();
 
-        if (nonExistingImageIds.Any())
+        if (nonExistingImageIds.Count > 0)
         {
             return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image)));
         }
@@ -175,9 +173,9 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         return Result.Ok();
     }
 
-    private void HandleDeletions(UpdatePartnersSectionDto dto, Dictionary<long, Partner> partnersDict)
+    private void HandleDeletions(UpdatePartnersSectionDto dto, IDictionary<long, Partner> partnersDict)
     {
-        if (!dto.PartnerIdsToDelete.Any())
+        if (dto.PartnerIdsToDelete.Count == 0)
         {
             return;
         }
@@ -189,7 +187,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         _repositoryWrapper.PartnerRepository.DeleteRange(partnersToDelete);
     }
 
-    private void HandleUpdates(UpdatePartnersSectionDto dto, Dictionary<long, Partner> partnersDict)
+    private void HandleUpdates(UpdatePartnersSectionDto dto, IDictionary<long, Partner> partnersDict)
     {
         foreach (var partnerDto in dto.PartnersToUpdate)
         {
@@ -202,10 +200,15 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
     private void HandleCreations(UpdatePartnersSectionDto dto, PartnerSection section)
     {
+        long nextPriority = section.Partners.Any()
+            ? section.Partners.Max(p => p.Priority) + 1
+            : 1;
+
         foreach (var partnerDto in dto.PartnersToCreate)
         {
             var newPartner = _mapper.Map<Partner>(partnerDto);
             newPartner.CreatedAt = DateTimeOffset.UtcNow;
+            newPartner.Priority = nextPriority++;
             section.Partners.Add(newPartner);
         }
     }

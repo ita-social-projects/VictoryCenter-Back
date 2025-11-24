@@ -23,10 +23,10 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Validate_TitleIsNullOrEmpty_ShouldHaveError(string title)
+    public void Validate_TitleIsNullOrEmpty_ShouldHaveError(string? title)
     {
         // Arrange
-        var dto = GetValidDto() with { Title = title };
+        var dto = GetValidDto() with { Title = title! };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
         // Act
@@ -77,10 +77,10 @@ public class UpdatePartnersPageBannerCommandValidatorTests
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Validate_DescriptionIsNullOrEmpty_ShouldHaveError(string description)
+    public void Validate_DescriptionIsNullOrEmpty_ShouldHaveError(string? description)
     {
         // Arrange
-        var dto = GetValidDto() with { Description = description };
+        var dto = GetValidDto() with { Description = description! };
         var command = new UpdatePartnersPageBannerCommand(dto);
 
         // Act
