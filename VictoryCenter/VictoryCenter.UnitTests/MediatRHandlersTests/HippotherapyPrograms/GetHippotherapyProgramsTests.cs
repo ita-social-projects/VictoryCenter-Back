@@ -2,6 +2,7 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetByFilters;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -13,7 +14,7 @@ public class GetHippotherapyProgramsTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
 
-    private readonly List<DAL.Entities.HippotherapyProgram> _programs =
+    private readonly List<HippotherapyProgram> _programs =
     [
         new()
         {
@@ -164,7 +165,7 @@ public class GetHippotherapyProgramsTests
         Assert.Equal(programResponseDtos, result.Value.Items);
     }
 
-    private void SetUpDependencies(IEnumerable<HippotherapyProgramDto> responseDto, IEnumerable<DAL.Entities.HippotherapyProgram> programs)
+    private void SetUpDependencies(IEnumerable<HippotherapyProgramDto> responseDto, IEnumerable<HippotherapyProgram> programs)
     {
         SetUpMapper(responseDto);
         SetUpRepositoryWrapper(programs);
@@ -172,14 +173,14 @@ public class GetHippotherapyProgramsTests
 
     private void SetUpMapper(IEnumerable<HippotherapyProgramDto> responseDto)
     {
-        _mockMapper.Setup(m => m.Map<IEnumerable<HippotherapyProgramDto>>(It.IsAny<IEnumerable<DAL.Entities.HippotherapyProgram>>()))
+        _mockMapper.Setup(m => m.Map<IEnumerable<HippotherapyProgramDto>>(It.IsAny<IEnumerable<HippotherapyProgram>>()))
             .Returns(responseDto);
     }
 
-    private void SetUpRepositoryWrapper(IEnumerable<DAL.Entities.HippotherapyProgram> programs)
+    private void SetUpRepositoryWrapper(IEnumerable<HippotherapyProgram> programs)
     {
         _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository
-                .GetAllAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>()))
+                .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(programs);
     }
 }

@@ -31,7 +31,7 @@ public class CreateHippotherapyProgramTests
         CategoryIds = [1, 2]
     };
 
-    private readonly DAL.Entities.HippotherapyProgram _programEntity = new()
+    private readonly HippotherapyProgram _programEntity = new()
     {
         Name = "TestName",
         Description = "TestDescription",
