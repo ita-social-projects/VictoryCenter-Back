@@ -12,7 +12,7 @@ namespace VictoryCenter.DAL.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "FaqLocalization",
+                name: "FaqLocalizations",
                 columns: table => new
                 {
                     EntityId = table.Column<long>(type: "bigint", nullable: false),
@@ -24,15 +24,15 @@ namespace VictoryCenter.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FaqLocalization", x => new { x.EntityId, x.LanguageId });
+                    table.PrimaryKey("PK_FaqLocalizations", x => new { x.EntityId, x.LanguageId });
                     table.ForeignKey(
-                        name: "FK_FaqLocalization_FaqQuestions_EntityId",
+                        name: "FK_FaqLocalizations_FaqQuestions_EntityId",
                         column: x => x.EntityId,
                         principalTable: "FaqQuestions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_FaqLocalization_LocalizationLanguages_LanguageId",
+                        name: "FK_FaqLocalizations_LocalizationLanguages_LanguageId",
                         column: x => x.LanguageId,
                         principalTable: "LocalizationLanguages",
                         principalColumn: "Id",
@@ -40,8 +40,8 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_FaqLocalization_LanguageId",
-                table: "FaqLocalization",
+                name: "IX_FaqLocalizations_LanguageId",
+                table: "FaqLocalizations",
                 column: "LanguageId");
         }
 
@@ -49,7 +49,7 @@ namespace VictoryCenter.DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "FaqLocalization");
+                name: "FaqLocalizations");
         }
     }
 }

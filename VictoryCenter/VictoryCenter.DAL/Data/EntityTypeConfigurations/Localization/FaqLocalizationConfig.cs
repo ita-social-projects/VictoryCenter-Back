@@ -4,9 +4,9 @@ using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations.Localization;
 
-public class FaqLocalizationConfig : EntityLocalizationConfig<FaqLocalization, FaqQuestion>
+public class FaqLocalizationConfig : EntityLocalizationConfig<FaqQuestionLocalization, FaqQuestion>
 {
-    public override void Configure(EntityTypeBuilder<FaqLocalization> entity)
+    public override void Configure(EntityTypeBuilder<FaqQuestionLocalization> entity)
     {
         base.Configure(entity);
 

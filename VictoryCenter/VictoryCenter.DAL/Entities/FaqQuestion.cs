@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class FaqQuestion : BaseEntity, ITranslatedEntity<FaqLocalization>
+public class FaqQuestion : BaseEntity, ITranslatedEntity<FaqQuestionLocalization>
 {
     public string QuestionText { get; set; } = null!;
 
@@ -15,5 +15,5 @@ public class FaqQuestion : BaseEntity, ITranslatedEntity<FaqLocalization>
 
     public ICollection<FaqPlacement> Placements { get; set; } = [];
 
-    public ICollection<FaqLocalization> Localizations { get; set; } = [];
+    public ICollection<FaqQuestionLocalization> Localizations { get; set; } = [];
 }

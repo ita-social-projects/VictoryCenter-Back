@@ -1,6 +1,6 @@
 namespace VictoryCenter.DAL.Entities.Localization;
 
-public class FaqLocalization : LocalizationBase<FaqQuestion>
+public class FaqQuestionLocalization : LocalizationBase<FaqQuestion>
 {
     public string QuestionText { get; set; } = null!;
 

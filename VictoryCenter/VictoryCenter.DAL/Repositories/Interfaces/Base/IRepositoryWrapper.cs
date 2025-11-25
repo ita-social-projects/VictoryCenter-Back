@@ -12,6 +12,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -33,6 +34,7 @@ public interface IRepositoryWrapper
     ISupportOptionsRepository SupportOptionsRepository { get; }
     IWhoWeAreContentsRepository WhoWeAreContentsRepository { get; }
     IWhoWeAreSectionsRepository WhoWeAreSectionsRepository { get; }
+    IFaqLocalizationsRepository FaqLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

@@ -452,7 +452,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("Images", "media");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.FaqLocalization", b =>
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.FaqQuestionLocalization", b =>
                 {
                     b.Property<long>("EntityId")
                         .HasColumnType("bigint");
@@ -480,7 +480,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("FaqLocalization");
+                    b.ToTable("FaqLocalizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", b =>
@@ -919,7 +919,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.FaqLocalization", b =>
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.FaqQuestionLocalization", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.FaqQuestion", "Entity")
                         .WithMany("Localizations")
