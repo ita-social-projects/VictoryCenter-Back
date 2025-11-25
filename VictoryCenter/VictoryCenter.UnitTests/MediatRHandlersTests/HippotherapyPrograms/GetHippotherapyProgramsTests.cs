@@ -21,8 +21,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName1",
             Description = "TestDescription1",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 1,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -30,8 +29,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName2",
             Description = "TestDescription2",
             Status = Status.Draft,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 2,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -39,8 +37,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName3",
             Description = "TestDescription3",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 3,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -48,8 +45,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName4",
             Description = "TestDescription4",
             Status = Status.Draft,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 4,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -57,8 +53,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName5",
             Description = "TestDescription5",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 5,
+            CreatedAt = DateTimeOffset.UtcNow
         }
 
     ];

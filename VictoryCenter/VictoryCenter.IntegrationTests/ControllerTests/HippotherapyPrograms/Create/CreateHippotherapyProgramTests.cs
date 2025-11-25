@@ -21,21 +21,25 @@ public class CreateHippotherapyProgramTests : BaseTestClass
         var createProgramDto = new CreateHippotherapyProgramDto
         {
             Name = "TestName",
-            Description = "TestDescription",
+            Description = "Test description for program",
             Status = Status.Published,
-            ImageId = 1,
+            BackgroundImageId = 1,
+            PreviewImageId = 2,
             CategoryIds = [1, 2]
         };
 
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyPrograms/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync(
+            "/api/HippotherapyPrograms/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
-        HippotherapyProgramDto? responseContent = JsonConvert.DeserializeObject<HippotherapyProgramDto>(responseString);
+        HippotherapyProgramDto? responseContent =
+            JsonConvert.DeserializeObject<HippotherapyProgramDto>(responseString);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
@@ -53,8 +57,9 @@ public class CreateHippotherapyProgramTests : BaseTestClass
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyPrograms/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync(
+            "/api/HippotherapyPrograms/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
@@ -99,13 +104,14 @@ public class CreateHippotherapyProgramTests : BaseTestClass
             Name = "TestName",
             Description = description,
             Status = Status.Published,
-            ImageId = 1,
+            BackgroundImageId = 1,
+            PreviewImageId = 2,
             CategoryIds = [3, 4]
         };
         var serializedDto = JsonConvert.SerializeObject(createProgramDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PostAsync("/api/HippotherapyPrograms/", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync(
+            "/api/HippotherapyPrograms/", new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

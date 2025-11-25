@@ -26,7 +26,8 @@ public class CreateHippotherapyProgramTests
         Name = "TestName",
         Description = "TestDescription",
         Status = Status.Draft,
-        ImageId = 1,
+        BackgroundImageId = 1,
+        PreviewImageId = 2,
         CategoryIds = [1, 2]
     };
 
@@ -35,15 +36,30 @@ public class CreateHippotherapyProgramTests
         Name = "TestName",
         Description = "TestDescription",
         Status = Status.Draft,
-        ImageId = 1
+        BackgroundImageId = 1,
+        PreviewImageId = 2
     };
 
     private readonly HippotherapyProgramDto _programDto = new()
     {
+        Id = 1,
         Name = "TestName",
         Description = "TestDescription",
         Status = Status.Draft,
-        Image = new ImageDto()
+        Location = null,
+        ParticipantsCount = null,
+        MeetingsCount = null,
+        BackgroundImage = new ImageDto
+        {
+            BlobName = "BlobName",
+            MimeType = "image/png"
+        },
+        PreviewImage = new ImageDto
+        {
+            BlobName = "BlobName",
+            MimeType = "image/png"
+        },
+        Categories = []
     };
 
     private readonly IEnumerable<HippotherapyProgramCategory> _programCategories = new List<HippotherapyProgramCategory>
@@ -110,6 +126,113 @@ public class CreateHippotherapyProgramTests
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ShouldFail_WhenSomeCategoriesDoNotExist()
+    {
+        // Arrange
+        _createProgramDto.CategoryIds = [1, 2];
+
+        var onlyOneCategory = new List<HippotherapyProgramCategory>
+        {
+            new() { Id = 1, Name = "OnlyExistingCategory" }
+        };
+
+        _mapperMock.Reset();
+        _repositoryWrapperMock.Reset();
+
+        SetUpAutomapper();
+
+        _repositoryWrapperMock.Setup(r => r.HippotherapyProgramCategoriesRepository
+                .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .ReturnsAsync(onlyOneCategory);
+
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
+        var handler = new CreateHippotherapyProgramHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateHippotherapyProgramCommand(_createProgramDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("HippotherapyProgramCategory", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenBackgroundImageNotFound()
+    {
+        // Arrange
+        _createProgramDto.BackgroundImageId = 10;
+        _createProgramDto.PreviewImageId = null;
+
+        _programEntity.BackgroundImageId = 10;
+        _programEntity.PreviewImageId = null;
+
+        SetUpAutomapper();
+
+        _repositoryWrapperMock.Setup(r => r.HippotherapyProgramCategoriesRepository
+                .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .ReturnsAsync(_programCategories);
+
+        _repositoryWrapperMock.Setup(r => r.ImageRepository
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync((Image?)null);
+
+        var handler = new CreateHippotherapyProgramHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateHippotherapyProgramCommand(_createProgramDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Image", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenPreviewImageNotFound()
+    {
+        // Arrange
+        _createProgramDto.BackgroundImageId = null;
+        _createProgramDto.PreviewImageId = 20;
+
+        _programEntity.BackgroundImageId = null;
+        _programEntity.PreviewImageId = 20;
+
+        SetUpAutomapper();
+
+        _repositoryWrapperMock.Setup(r => r.HippotherapyProgramCategoriesRepository
+                .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .ReturnsAsync(_programCategories);
+
+        _repositoryWrapperMock.Setup(r => r.ImageRepository
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync((Image?)null);
+
+        var handler = new CreateHippotherapyProgramHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateHippotherapyProgramCommand(_createProgramDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Image", result.Errors[0].Message);
+    }
+
     private void SetUpDependencies(int saveResult = 1)
     {
         SetUpAutomapper();
@@ -119,9 +242,9 @@ public class CreateHippotherapyProgramTests
 
     private void SetUpAutomapper()
     {
-        _mapperMock.Setup(m => m.Map<DAL.Entities.HippotherapyProgram>(It.IsAny<CreateHippotherapyProgramDto>()))
+        _mapperMock.Setup(m => m.Map<HippotherapyProgram>(It.IsAny<CreateHippotherapyProgramDto>()))
             .Returns(_programEntity);
-        _mapperMock.Setup(m => m.Map<HippotherapyProgramDto>(It.IsAny<DAL.Entities.HippotherapyProgram>())).Returns(_programDto);
+        _mapperMock.Setup(m => m.Map<HippotherapyProgramDto>(It.IsAny<HippotherapyProgram>())).Returns(_programDto);
     }
 
     private void SetUpBlobService()
@@ -138,7 +261,7 @@ public class CreateHippotherapyProgramTests
         _repositoryWrapperMock.Setup(r => r.ImageRepository
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(_image);
         _repositoryWrapperMock.Setup(r => r.HippotherapyProgramsRepository
-            .CreateAsync(It.IsAny<DAL.Entities.HippotherapyProgram>()));
+            .CreateAsync(It.IsAny<HippotherapyProgram>()));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }

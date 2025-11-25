@@ -21,21 +21,25 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
         var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "UpdatedName",
-            Description = "UpdatedDescription",
-            ImageId = 1,
+            Description = "Updated description for program",
+            Status = Status.Published,
+            BackgroundImageId = 1,
+            PreviewImageId = 2,
             CategoryIds = [1, 4]
         };
 
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
 
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyPrograms/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            "/api/HippotherapyPrograms/1",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();
 
-        HippotherapyProgramDto? responseContent = JsonConvert.DeserializeObject<HippotherapyProgramDto>(responseString);
+        HippotherapyProgramDto? responseContent =
+            JsonConvert.DeserializeObject<HippotherapyProgramDto>(responseString);
 
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Name, responseContent.Name);
@@ -51,14 +55,19 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
         var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = invalidName!,
-            Description = "UpdatedDescription",
+            Description = "Updated description for program",
             Status = Status.Published,
-            ImageId = 2,
+            BackgroundImageId = 2,
+            PreviewImageId = 3,
             CategoryIds = [1, 4]
         };
+
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyPrograms/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            "/api/HippotherapyPrograms/1",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -67,41 +76,52 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public async Task UpdateProgram_ShouldReturnBadRequest_InvalidDescription(
-        string? invalidDescription)
+    public async Task UpdatePublishedProgram_ShouldReturnBadRequest_InvalidDescription(string? invalidDescription)
     {
         var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "TestName",
             Description = invalidDescription,
             Status = Status.Published,
-            ImageId = 2,
+            BackgroundImageId = 2,
+            PreviewImageId = 3,
             CategoryIds = [1, 4]
         };
+
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyPrograms/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            "/api/HippotherapyPrograms/1",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
     [InlineData(null)]
-    public async Task UpdateProgram_ShouldUpdateToDraft(string? description)
+    [InlineData("")]
+    public async Task UpdateProgram_ShouldUpdateToDraft_WithOptionalDescription(string? description)
     {
         var updateProgramDto = new UpdateHippotherapyProgramDto
         {
             Name = "TestName",
             Description = description,
             Status = Status.Draft,
-            ImageId = 2,
             CategoryIds = [1, 4]
         };
+
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync("/api/HippotherapyPrograms/1", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            "/api/HippotherapyPrograms/1",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
         var responseString = await response.Content.ReadAsStringAsync();
-        HippotherapyProgramDto? responseContent = JsonConvert.DeserializeObject<HippotherapyProgramDto>(responseString);
+
+        HippotherapyProgramDto? responseContent =
+            JsonConvert.DeserializeObject<HippotherapyProgramDto>(responseString);
+
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(updateProgramDto.Description, responseContent.Description);
@@ -117,12 +137,15 @@ public class UpdateHippotherapyProgramTests : BaseTestClass
             Name = "TestName",
             Description = "TestDescription",
             Status = Status.Draft,
-            ImageId = 2,
             CategoryIds = [1, 4]
         };
+
         var serializedDto = JsonConvert.SerializeObject(updateProgramDto);
-        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/HippotherapyPrograms/{id}", new StringContent(
-            serializedDto, Encoding.UTF8, "application/json"));
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"/api/HippotherapyPrograms/{id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }

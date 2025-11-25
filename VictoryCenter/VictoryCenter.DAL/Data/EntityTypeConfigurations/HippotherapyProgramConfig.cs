@@ -34,15 +34,15 @@ public class HippotherapyProgramConfig : IEntityTypeConfiguration<HippotherapyPr
         builder.Property(e => e.CreatedAt)
             .IsRequired();
 
-        builder.HasOne(e => e.BackgroundImage)
+        builder
+            .HasOne(e => e.BackgroundImage)
             .WithOne()
-            .HasForeignKey<HippotherapyProgram>(e => e.BackgroundImageId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasForeignKey<HippotherapyProgram>(e => e.BackgroundImageId);
 
-        builder.HasOne(e => e.PreviewImage)
+        builder
+            .HasOne(e => e.PreviewImage)
             .WithOne()
-            .HasForeignKey<HippotherapyProgram>(e => e.PreviewImageId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .HasForeignKey<HippotherapyProgram>(e => e.PreviewImageId);
 
         builder.HasMany(e => e.Categories)
             .WithMany(e => e.Programs)

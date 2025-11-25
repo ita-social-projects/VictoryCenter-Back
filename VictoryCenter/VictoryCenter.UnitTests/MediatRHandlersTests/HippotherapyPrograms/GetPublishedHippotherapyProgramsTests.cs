@@ -24,17 +24,16 @@ public class GetPublishedHippotherapyProgramsTests
             Id = 1,
             Name = "TestName1",
             Description = "TestDescription1",
-            Status = Status.Published,
-            ImageId = 1
+            Status = Status.Published
         },
         new()
         {
             Id = 2,
             Name = "TestName2",
             Description = "TestDescription2",
-            Status = Status.Published,
-            ImageId = 2,
-        },
+            Status = Status.Published
+        }
+
     ];
 
     private readonly IEnumerable<PublishedHippotherapyProgramDto> _programDto =

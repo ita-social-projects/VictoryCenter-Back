@@ -28,7 +28,8 @@ public class GetHippotherapyProgramByIdHandler : IRequestHandler<GetHippotherapy
             Filter = program => program.Id == request.Id,
             Include = program => program
                 .Include(p => p.Categories)
-                .Include(p => p.Image)!
+                .Include(p => p.PreviewImage)!
+                .Include(p => p.BackgroundImage)!
         };
 
         HippotherapyProgram? program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(queryOptions);
