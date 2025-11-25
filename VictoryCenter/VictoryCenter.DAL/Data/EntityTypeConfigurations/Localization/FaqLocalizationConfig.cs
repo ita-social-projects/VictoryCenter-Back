@@ -4,15 +4,16 @@ using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations.Localization;
 
-public class TeamMemberLocalizationConfig : EntityLocalizationConfig<TeamMemberLocalization, TeamMember>
+public class FaqLocalizationConfig : EntityLocalizationConfig<FaqLocalization, FaqQuestion>
 {
-    public override void Configure(EntityTypeBuilder<TeamMemberLocalization> entity)
+    public override void Configure(EntityTypeBuilder<FaqLocalization> entity)
     {
         base.Configure(entity);
 
-        entity.Property(e => e.FullName)
+        entity.Property(e => e.QuestionText)
             .IsRequired();
 
-        entity.Property(e => e.Description);
+        entity.Property(e => e.AnswerText)
+            .IsRequired();
     }
 }
