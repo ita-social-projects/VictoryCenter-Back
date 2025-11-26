@@ -13,6 +13,8 @@ public class LocalizationsLanguageProfile : Profile
 
         CreateMap<LocalizationLanguage, LocalizationLanguageDto>();
 
+        CreateMap<LocalizationLanguage, LocalizationInfoDto>();
+
         CreateMap<UpdateLocalizationLanguageDto, LocalizationLanguage>();
     }
 }
