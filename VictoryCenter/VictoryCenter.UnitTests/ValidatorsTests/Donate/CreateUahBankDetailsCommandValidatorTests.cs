@@ -102,7 +102,7 @@ public class CreateUahBankDetailsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenIbanIsTooShort()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = new string('1', UahBankDetailsConstants.Iban.MinLength - 1) };
+        var dto = GetValidDto() with { Iban = "UA" + new string('1', UahBankDetailsConstants.Iban.MinLength - 3) };
         var command = new CreateUahBankDetailsCommand(dto);
 
         // Act
@@ -118,7 +118,7 @@ public class CreateUahBankDetailsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenIbanIsTooLong()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = new string('1', UahBankDetailsConstants.Iban.MaxLength + 1) };
+        var dto = GetValidDto() with { Iban = "UA" + new string('1', UahBankDetailsConstants.Iban.MaxLength + 1) };
         var command = new CreateUahBankDetailsCommand(dto);
 
         // Act
@@ -251,6 +251,21 @@ public class CreateUahBankDetailsCommandValidatorTests
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
                     nameof(UahBankDetailsDto.PaymentPurpose),
                     UahBankDetailsConstants.PaymentPurposeMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIbanContainsInvalidCharacters()
+    {
+        // Assert
+        var dto = GetValidDto() with { Iban = "UA12345678901234567890123456j" };
+        var command = new CreateUahBankDetailsCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Arrange
+        result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.Iban)
+            .WithErrorMessage(UahBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
     }
 
     [Fact]
