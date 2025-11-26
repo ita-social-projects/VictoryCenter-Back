@@ -2,14 +2,14 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByTeamMemberId;
+using VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByEntityId;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Localization.TeamMembers;
 
-public class GetTeamMemberLocalizationsByTeamMemberIdTests
+public class GetTeamMemberLocalizationsByEntityIdTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
@@ -17,7 +17,7 @@ public class GetTeamMemberLocalizationsByTeamMemberIdTests
     private readonly IEnumerable<TeamMemberLocalization> _localizationsEntities;
     private readonly IEnumerable<TeamMemberLocalizationDto> _localizationsDtos;
 
-    public GetTeamMemberLocalizationsByTeamMemberIdTests()
+    public GetTeamMemberLocalizationsByEntityIdTests()
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
@@ -83,10 +83,10 @@ public class GetTeamMemberLocalizationsByTeamMemberIdTests
         // Arrange
         SetupRepositoryWrapper(_localizationsEntities);
         SetupMapper(_localizationsDtos);
-        var handler = new GetByTeamMemberIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+        var handler = new GetTeamMemberLocalizationByEntityIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
         // Act
-        var result = await handler.Handle(new GetByTeamMemberIdQuery(10), CancellationToken.None);
+        var result = await handler.Handle(new GetTeamMemberLocalizationByEntityIdQuery(10), CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -104,10 +104,10 @@ public class GetTeamMemberLocalizationsByTeamMemberIdTests
         // Arrange
         SetupRepositoryWrapper(new List<TeamMemberLocalization>());
         SetupMapper(new List<TeamMemberLocalizationDto>());
-        var handler = new GetByTeamMemberIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+        var handler = new GetTeamMemberLocalizationByEntityIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
         // Act
-        var result = await handler.Handle(new GetByTeamMemberIdQuery(999), CancellationToken.None);
+        var result = await handler.Handle(new GetTeamMemberLocalizationByEntityIdQuery(999), CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);

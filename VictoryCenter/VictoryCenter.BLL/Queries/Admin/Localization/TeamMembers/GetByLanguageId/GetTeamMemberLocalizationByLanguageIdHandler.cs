@@ -7,25 +7,26 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByTeamMemberId;
+namespace VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByLanguageId;
 
-public class GetByTeamMemberIdHandler : IRequestHandler<GetByTeamMemberIdQuery, Result<IEnumerable<TeamMemberLocalizationDto>>>
+public class GetTeamMemberLocalizationByLanguageIdHandler : IRequestHandler<GetTeamMemberLocalizationByLanguageIdQuery, Result<IEnumerable<TeamMemberLocalizationDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repository;
 
-    public GetByTeamMemberIdHandler(IMapper mapper, IRepositoryWrapper repository)
+    public GetTeamMemberLocalizationByLanguageIdHandler(IMapper mapper, IRepositoryWrapper repository)
     {
         _mapper = mapper;
         _repository = repository;
     }
 
-    public async Task<Result<IEnumerable<TeamMemberLocalizationDto>>> Handle(GetByTeamMemberIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<TeamMemberLocalizationDto>>> Handle(GetTeamMemberLocalizationByLanguageIdQuery request, CancellationToken cancellationToken)
     {
         var queryOptions = new QueryOptions<TeamMemberLocalization>
         {
-            Filter = l => l.EntityId == request.Id,
+            Filter = l => l.LanguageId == request.Id,
             Include = l => l.Include(loc => loc.Language),
+            AsNoTracking = true,
         };
         IEnumerable<TeamMemberLocalization> localizations = await _repository.TeamMemberLocalizationsRepository.GetAllAsync(queryOptions);
         List<TeamMemberLocalizationDto>? localizationsDto = _mapper.Map<List<TeamMemberLocalizationDto>>(localizations);
