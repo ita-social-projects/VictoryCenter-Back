@@ -31,6 +31,9 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
         var translationStatusFilter = request.TeamMembersFilterDto.TranslationStatusFilter;
         var languageCount = await _repository.LocalizationLanguagesRepository.CountAsync();
 
+        // There always will be one less localization than languages due to the default locale
+        languageCount -= 1;
+
         Expression<Func<TeamMember, bool>> filter = t =>
             (status == null || t.Status == status) &&
             (categoryId == null || t.TeamCategory.Id == categoryId) &&
