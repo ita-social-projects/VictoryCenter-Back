@@ -1,8 +1,8 @@
-using VictoryCenter.DAL.Enums;
+using VictoryCenter.BLL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.Base;
 
 public interface ITranslationStatusFilterDto
 {
-    TranslationStatus? TranslationStatus { get; set; }
+    TranslationStatusFilter? TranslationStatusFilter { get; set; }
 }

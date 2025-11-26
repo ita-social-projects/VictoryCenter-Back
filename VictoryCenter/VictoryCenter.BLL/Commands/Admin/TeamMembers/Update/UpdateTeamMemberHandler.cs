@@ -75,9 +75,9 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             {
                 var rowsAffected = 0;
 
-                _mapper.Map(request.UpdateTeamMemberDto, entityToUpdate);
-
                 SetTranslationsToOutdated(request, entityToUpdate);
+
+                _mapper.Map(request.UpdateTeamMemberDto, entityToUpdate);
 
                 if (categoryChanged)
                 {

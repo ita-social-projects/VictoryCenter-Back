@@ -2,6 +2,7 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.TeamMembers.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -173,14 +174,14 @@ public class GetTeamMembersTests
             () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
     }
 
-    [Fact]
-    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatus()
+    [Theory]
+    [InlineData(TranslationStatusFilter.All)]
+    [InlineData(null)]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatusFilterAllOrNull(TranslationStatusFilter? translationStatusFilter)
     {
         // Arrange
-        var translationStatus = TranslationStatus.Relevant;
         var teamMemberList = GetTeamMemberList();
         var teamMemberDtoList = GetTeamMemberDtoList()
-            .Where(t => t.Localizations.Any(l => l.TranslationStatus == translationStatus))
             .OrderBy(t => t.Priority)
             .ToList();
 
@@ -191,7 +192,76 @@ public class GetTeamMembersTests
         {
             Offset = 0,
             Limit = 0,
-            TranslationStatus = translationStatus,
+            TranslationStatusFilter = translationStatusFilter,
+        };
+
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+
+        // Act
+        var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
+
+        // Assert
+        Assert.Multiple(
+            () => Assert.NotNull(result),
+            () => Assert.NotNull(result.Value),
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatusFilterMissing()
+    {
+        // Arrange
+        int languagesCount = 2;
+        var teamMemberList = GetTeamMemberList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .Where(t => t.Localizations.Count() < languagesCount)
+            .OrderBy(t => t.Priority)
+            .ToList();
+
+        SetupRepository(teamMemberList);
+        SetupMapper(teamMemberDtoList);
+
+        var filtersDto = new TeamMembersFilterDto
+        {
+            Offset = 0,
+            Limit = 0,
+            TranslationStatusFilter = TranslationStatusFilter.Missing,
+        };
+
+        var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+
+        // Act
+        var result = await handler.Handle(new GetTeamMembersByFiltersQuery(filtersDto), CancellationToken.None);
+
+        // Assert
+        Assert.Multiple(
+            () => Assert.NotNull(result),
+            () => Assert.NotNull(result.Value),
+            () => Assert.NotEmpty(result.Value.Items),
+            () => Assert.Equal(teamMemberDtoList, result.Value.Items),
+            () => Assert.Equal(teamMemberList.Count, result.Value.TotalItemsCount));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatusFilterOutdated()
+    {
+        // Arrange
+        var teamMemberList = GetTeamMemberList();
+        var teamMemberDtoList = GetTeamMemberDtoList()
+            .Where(t => t.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated))
+            .OrderBy(t => t.Priority)
+            .ToList();
+
+        SetupRepository(teamMemberList);
+        SetupMapper(teamMemberDtoList);
+
+        var filtersDto = new TeamMembersFilterDto
+        {
+            Offset = 0,
+            Limit = 0,
+            TranslationStatusFilter = TranslationStatusFilter.Outdated,
         };
 
         var handler = new GetTeamMembersByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
@@ -225,6 +295,12 @@ public class GetTeamMembersTests
                     {
                         EntityId = 4,
                         LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    },
+                    new()
+                    {
+                        EntityId = 4,
+                        LanguageId = 1,
                         TranslationStatus = TranslationStatus.Relevant,
                     }
                 }
@@ -344,6 +420,11 @@ public class GetTeamMembersTests
                     {
                         EntityId = 4,
                         TranslationStatus = TranslationStatus.Relevant,
+                    },
+                    new()
+                    {
+                        EntityId = 4,
+                        TranslationStatus = TranslationStatus.Relevant,
                     }
                 },
             },
@@ -359,6 +440,9 @@ public class GetTeamMembersTests
             .ReturnsAsync(teamMembers);
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.TeamMembersRepository.CountAsync(It.IsAny<QueryOptions<TeamMember>>()))
             .ReturnsAsync(teamMembers.Count);
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.LocalizationLanguagesRepository.CountAsync(
+             It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
     }
 
     private void SetupMapper(List<TeamMemberDto> teamMemberDTOList)
