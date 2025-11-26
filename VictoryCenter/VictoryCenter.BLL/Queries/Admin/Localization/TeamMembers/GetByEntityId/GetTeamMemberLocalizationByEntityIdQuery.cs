@@ -5,4 +5,4 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 namespace VictoryCenter.BLL.Queries.Admin.Localization.TeamMembers.GetByEntityId;
 
 public record GetTeamMemberLocalizationByEntityIdQuery(long Id)
-    : IRequest<Result<IEnumerable<TeamMemberLocalizationDto>>>;
+    : IRequest<Result<List<TeamMemberLocalizationDto>>>;

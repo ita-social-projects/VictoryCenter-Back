@@ -9,14 +9,14 @@ namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 public class TeamMemberLocalizationsController : BaseApiController
 {
     [HttpGet("entityId/{id:long}")]
-    [ProducesResponseType(typeof(IEnumerable<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByEntityId(long id)
     {
         return HandleResult(await Mediator.Send(new GetTeamMemberLocalizationByEntityIdQuery(id)));
     }
 
     [HttpGet("languageId/{id:long}")]
-    [ProducesResponseType(typeof(IEnumerable<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<TeamMemberLocalizationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByLanguageId(long id)
     {
         return HandleResult(await Mediator.Send(new GetTeamMemberLocalizationByLanguageIdQuery(id)));
