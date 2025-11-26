@@ -29,8 +29,8 @@ public class GetTeamMemberLocalizationByLanguageIdHandler : IRequestHandler<GetT
             AsNoTracking = true,
         };
         IEnumerable<TeamMemberLocalization> localizations = await _repository.TeamMemberLocalizationsRepository.GetAllAsync(queryOptions);
-        List<TeamMemberLocalizationDto>? localizationsDto = _mapper.Map<List<TeamMemberLocalizationDto>>(localizations);
+        IEnumerable<TeamMemberLocalizationDto>? localizationsDto = _mapper.Map<IEnumerable<TeamMemberLocalizationDto>>(localizations);
 
-        return Result.Ok(localizationsDto.AsEnumerable());
+        return Result.Ok(localizationsDto);
     }
 }

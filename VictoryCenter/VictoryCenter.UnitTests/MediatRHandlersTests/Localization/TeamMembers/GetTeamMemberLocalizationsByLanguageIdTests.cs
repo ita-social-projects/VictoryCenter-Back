@@ -26,7 +26,7 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
         {
             Id = 1,
             Code = "en",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         _localizationsEntities = new List<TeamMemberLocalization>
@@ -38,7 +38,7 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
                 Language = language,
                 FullName = "John Doe",
                 Description = "Team lead",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
@@ -47,7 +47,7 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
                 Language = language,
                 FullName = "Jane Smith",
                 Description = "Developer",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             }
         };
 

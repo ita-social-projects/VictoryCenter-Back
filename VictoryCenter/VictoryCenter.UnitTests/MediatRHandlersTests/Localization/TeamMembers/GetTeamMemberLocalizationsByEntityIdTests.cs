@@ -26,14 +26,14 @@ public class GetTeamMemberLocalizationsByEntityIdTests
         {
             Id = 1,
             Code = "en",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         var languageDe = new LocalizationLanguage
         {
             Id = 2,
             Code = "de",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         _localizationsEntities = new List<TeamMemberLocalization>
@@ -45,7 +45,7 @@ public class GetTeamMemberLocalizationsByEntityIdTests
                 Language = languageEn,
                 FullName = "John Doe",
                 Description = "Team leader",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
@@ -54,7 +54,7 @@ public class GetTeamMemberLocalizationsByEntityIdTests
                 Language = languageDe,
                 FullName = "Johann Doe",
                 Description = "Teamleiter",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             }
         };
 

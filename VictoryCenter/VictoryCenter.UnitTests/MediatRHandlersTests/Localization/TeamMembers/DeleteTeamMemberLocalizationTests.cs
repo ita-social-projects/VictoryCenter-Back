@@ -19,7 +19,7 @@ public class DeleteTeamMemberLocalizationTests
         LanguageId = 1,
         FullName = "Test Name",
         Description = "Test Description",
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTimeOffset.UtcNow
     };
 
     public DeleteTeamMemberLocalizationTests()

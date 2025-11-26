@@ -24,7 +24,7 @@ public class CreateLocalizationLanguageTests
         Id = 1,
         Code = "en",
         Name = "Англійська",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc)
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset)
     };
 
     private LocalizationLanguageDto _testDto = new()
@@ -96,7 +96,7 @@ public class CreateLocalizationLanguageTests
 
         // Act
         var result = await handler.Handle(
-            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code ?? string.Empty, Name = name }),
+            new CreateLocalizationLanguageCommand(new CreateLocalizationLanguageDto { Code = code, Name = name }),
             CancellationToken.None);
 
         // Assert
