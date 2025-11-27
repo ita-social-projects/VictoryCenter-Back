@@ -47,7 +47,7 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Swift)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(CorrespondentBankDetailsConstants.Swift),
+                    nameof(CorrespondentBankDetailsDto.Swift),
                     CorrespondentBankDetailsConstants.Swift.MinLength));
     }
 
@@ -65,7 +65,7 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Swift)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(CorrespondentBankDetailsConstants.Swift),
+                    nameof(CorrespondentBankDetailsDto.Swift),
                     CorrespondentBankDetailsConstants.Swift.MaxLength));
     }
 
@@ -82,7 +82,7 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.ForeignIban)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CorrespondentBankDetailsConstants.ForeignIban),
+                nameof(CorrespondentBankDetailsDto.ForeignIban),
                 CorrespondentBankDetailsConstants.ForeignIban.MaxLength));
     }
 
