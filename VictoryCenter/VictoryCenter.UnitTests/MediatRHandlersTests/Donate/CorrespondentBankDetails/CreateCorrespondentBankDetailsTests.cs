@@ -53,7 +53,7 @@ public class CreateCorrespondentBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        UkrainianIban = "123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123"
     };

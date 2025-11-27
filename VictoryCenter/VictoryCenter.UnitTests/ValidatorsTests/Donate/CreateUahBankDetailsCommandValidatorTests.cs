@@ -256,14 +256,14 @@ public class CreateUahBankDetailsCommandValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanContainsInvalidCharacters()
     {
-        // Assert
+        // Arrange
         var dto = GetValidDto() with { UkrainianIban = "UA1234567890123456789012345pj" };
         var command = new CreateUahBankDetailsCommand(dto);
 
         // Act
         var result = _validator.TestValidate(command);
 
-        // Arrange
+        // Assert
         result.ShouldHaveValidationErrorFor(c => c.CreateUahBankDetailsDto.UkrainianIban)
             .WithErrorMessage(UahBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
     }

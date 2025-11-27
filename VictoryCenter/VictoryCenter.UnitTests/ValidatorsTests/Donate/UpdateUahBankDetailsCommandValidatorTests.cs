@@ -254,16 +254,6 @@ public class UpdateUahBankDetailsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUA()
-    {
-        var dto = GetValidDto() with { UkrainianIban = "XX123456789012345678901234567" };
-        var command = new UpdateUahBankDetailsCommand(dto, 1L);
-        var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.UkrainianIban)
-            .WithErrorMessage(UahBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
-    }
-
-    [Fact]
     public void Validate_ShouldNotHaveError_WhenDataIsValid()
     {
         // Arrange

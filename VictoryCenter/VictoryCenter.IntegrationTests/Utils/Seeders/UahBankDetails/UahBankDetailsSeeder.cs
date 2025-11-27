@@ -23,7 +23,7 @@ public class UahBankDetailsSeeder : BaseSeeder<Entities.UahBankDetails>
                 Name = "PrivatBank",
                 Receiver = "PrivatBank",
                 Edrpou = "11111111",
-                UkrainianIban = "123456789012345678901234567",
+                UkrainianIban = "UA123456789012345678901234567",
                 PaymentPurpose = "Donation"
             },
             new()
@@ -32,7 +32,7 @@ public class UahBankDetailsSeeder : BaseSeeder<Entities.UahBankDetails>
                 Name = "OschadBank",
                 Receiver = "OschadBank",
                 Edrpou = "11111111",
-                UkrainianIban = "123456789012345678901234567",
+                UkrainianIban = "UA123456789012345678901234567",
                 PaymentPurpose = "Donation"
             }
         };
