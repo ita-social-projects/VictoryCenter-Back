@@ -1,5 +1,6 @@
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
@@ -22,4 +23,6 @@ public class TeamMember : BaseEntity, IOrderableEntity
     public TeamCategory TeamCategory { get; set; } = null!;
 
     public Image? Image { get; set; }
+
+    public ICollection<TeamMemberLocalization> Localizations { get; set; } = [];
 }

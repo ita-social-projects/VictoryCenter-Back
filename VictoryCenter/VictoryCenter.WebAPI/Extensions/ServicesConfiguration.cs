@@ -26,6 +26,7 @@ using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -189,6 +190,7 @@ public static class ServicesConfiguration
     {
         await app.CreateInitialAdminAsync();
         await app.SeedVisitorPagesAsync();
+        await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
     }
 
@@ -251,6 +253,36 @@ public static class ServicesConfiguration
             {
                 var errors = string.Join(", ", identityResult.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to create initial admin: {errors}");
+            }
+        }
+    }
+
+    private static async Task CreateInitialLocalizationLanguages(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var languages = new List<LocalizationLanguage>
+        {
+            new()
+            {
+                Code = "uk",
+                Name = "Українська",
+                CreatedAt = DateTimeOffset.UtcNow,
+            },
+            new()
+            {
+                Code = "en",
+                Name = "Англійська",
+                CreatedAt = DateTimeOffset.UtcNow,
+            }
+        };
+
+        foreach (var language in languages)
+        {
+            if (!await dbContext.LocalizationLanguages.AnyAsync(l => l.Code == language.Code))
+            {
+                dbContext.LocalizationLanguages.Add(language);
+                await dbContext.SaveChangesAsync();
             }
         }
     }

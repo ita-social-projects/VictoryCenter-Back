@@ -16,14 +16,18 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
-using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
+using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -39,6 +43,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IImageRepository? _imageRepository;
     private IHippotherapyProgramCategoriesRepository? _programCategoriesRepository;
     private IHippotherapyProgramsRepository? _hippotherapyProgramsRepository;
+    private ILocalizationLanguagesRepository? _localizationLanguagesRepository;
+    private ITeamMemberLocalizationsRepository? _teamMemberLocalizationsRepository;
     private IUahBankDetailsRepository? _uahBankDetailsRepository;
     private IForeignBankDetailsRepository? _foreignBankDetailsRepository;
     private ICorrespondentBankDetailsRepository? _correspondentBankDetailsRepository;
@@ -60,7 +66,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository => _programCategoriesRepository
         ??= new HippotherapyProgramCategoriesRepository(_victoryCenterDbContext);
     public IHippotherapyProgramsRepository HippotherapyProgramsRepository => _hippotherapyProgramsRepository ??= new HippotherapyProgramsRepository(_victoryCenterDbContext);
-
+    public ILocalizationLanguagesRepository LocalizationLanguagesRepository => _localizationLanguagesRepository
+        ??= new LocalizationLanguagesRepository(_victoryCenterDbContext);
+    public ITeamMemberLocalizationsRepository TeamMemberLocalizationsRepository => _teamMemberLocalizationsRepository
+        ??= new TeamMemberLocalizationsRepository(_victoryCenterDbContext);
     public IUahBankDetailsRepository UahBankDetailsRepository => _uahBankDetailsRepository
         ??= new UahBankDetailsRepository(_victoryCenterDbContext);
     public IForeignBankDetailsRepository ForeignBankDetailsRepository => _foreignBankDetailsRepository

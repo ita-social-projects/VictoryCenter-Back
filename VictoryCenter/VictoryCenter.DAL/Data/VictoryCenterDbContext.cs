@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 
 namespace VictoryCenter.DAL.Data;
@@ -32,6 +33,10 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<WhoWeAreSection> WhoWeAreSections { get; set; }
 
     public DbSet<WhoWeAreContent> WhoWeAreContents { get; set; }
+
+    public DbSet<LocalizationLanguage> LocalizationLanguages { get; set; }
+
+    public DbSet<TeamMemberLocalization> TeamMemberLocalizations { get; set; }
 
     public DbSet<UahBankDetails> UahBankDetails { get; set; }
 

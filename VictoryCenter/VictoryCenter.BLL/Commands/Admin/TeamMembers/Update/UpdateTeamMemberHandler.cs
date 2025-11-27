@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -42,7 +43,8 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             var entityToUpdate = await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
             {
-                Filter = entity => entity.Id == request.Id,
+                Filter = e => e.Id == request.Id,
+                Include = e => e.Include(q => q.Localizations),
                 AsNoTracking = false
             });
 
@@ -74,6 +76,8 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
                 var rowsAffected = 0;
 
                 _mapper.Map(request.UpdateTeamMemberDto, entityToUpdate);
+
+                SetTranslationsToOutdated(request, entityToUpdate);
 
                 if (categoryChanged)
                 {
@@ -129,6 +133,18 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         catch (DbUpdateException)
         {
             return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(TeamMember)));
+        }
+    }
+
+    private static void SetTranslationsToOutdated(UpdateTeamMemberCommand request, TeamMember entityToUpdate)
+    {
+        if (!string.Equals(request.UpdateTeamMemberDto.FullName, entityToUpdate.FullName) ||
+            !string.Equals(request.UpdateTeamMemberDto.Description, entityToUpdate.Description))
+        {
+            foreach (var loc in entityToUpdate.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
     }
 }
