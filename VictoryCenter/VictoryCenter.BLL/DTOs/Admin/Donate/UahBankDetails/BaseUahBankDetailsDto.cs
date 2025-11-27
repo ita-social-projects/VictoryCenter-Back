@@ -1,8 +1,7 @@
-namespace VictoryCenter.BLL.DTOs.Public.Donate.UahBankDetails;
+﻿namespace VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 
-public record PublishedUahBankDetailsDto
+public abstract record BaseUahBankDetailsDto
 {
-    public long Id { get; set; }
     public string Name { get; set; } = null!;
     public string Receiver { get; set; } = null!;
     public string Edrpou { get; set; } = null!;
