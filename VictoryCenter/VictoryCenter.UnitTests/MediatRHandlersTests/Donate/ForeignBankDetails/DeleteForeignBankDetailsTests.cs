@@ -23,7 +23,7 @@ public class DeleteForeignBankDetailsTests
             Id = 1,
             Name = "Test Foreign Bank",
             Receiver = "Test Receiver",
-            Iban = "123456789012345678901234567",
+            UkrainianIban = "123456789012345678901234567",
             Swift = "12345678901",
             Address = "Test Address",
             CorrespondentBanks = []

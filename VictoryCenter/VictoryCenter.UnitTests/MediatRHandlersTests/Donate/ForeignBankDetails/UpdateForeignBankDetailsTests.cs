@@ -23,7 +23,7 @@ public class UpdateForeignBankDetailsTests
     {
         Name = "Updated Foreign Bank",
         Receiver = "Updated Receiver",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Updated Address",
     };
@@ -33,7 +33,7 @@ public class UpdateForeignBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Old Address",
         CorrespondentBanks = []
@@ -44,7 +44,7 @@ public class UpdateForeignBankDetailsTests
         Id = 1,
         Name = "Updated Foreign Bank",
         Receiver = "Updated Receiver",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Updated Address",
         CorrespondentBanks = []
@@ -74,7 +74,7 @@ public class UpdateForeignBankDetailsTests
         {
             Name = name!,
             Receiver = _updateDto.Receiver,
-            Iban = _updateDto.Iban,
+            UkrainianIban = _updateDto.UkrainianIban,
             Swift = _updateDto.Swift,
             Address = _updateDto.Address,
         };
@@ -158,7 +158,7 @@ public class UpdateForeignBankDetailsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_foreignBankDetailsDto.Name, result.Value.Name);
-        Assert.Equal(_foreignBankDetailsDto.Iban, result.Value.Iban);
+        Assert.Equal(_foreignBankDetailsDto.UkrainianIban, result.Value.UkrainianIban);
     }
 
     private void SetupDependencies(int saveResult = 1, bool entityExists = true)

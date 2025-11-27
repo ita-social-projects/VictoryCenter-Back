@@ -22,7 +22,7 @@ public class ForeignBankDetailsSeeder : BaseSeeder<Entities.ForeignBankDetails>
                 Id = 1,
                 Name = "TestBank1",
                 Receiver = "Charity Org UA",
-                Iban = "123456789012345678901234567",
+                UkrainianIban = "123456789012345678901234567",
                 Swift = "12345678901",
                 Address = "Kyiv, Ukraine",
             },
@@ -31,7 +31,7 @@ public class ForeignBankDetailsSeeder : BaseSeeder<Entities.ForeignBankDetails>
                 Id = 2,
                 Name = "TestBank2",
                 Receiver = "Support Foundation",
-                Iban = "123456789012345678901234567",
+                UkrainianIban = "123456789012345678901234567",
                 Swift = "12345678901",
                 Address = "Lviv, Ukraine",
             }

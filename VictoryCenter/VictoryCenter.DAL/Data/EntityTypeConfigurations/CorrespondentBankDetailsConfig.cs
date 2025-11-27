@@ -25,7 +25,7 @@ public class CorrespondentBankDetailsConfig : IEntityTypeConfiguration<Correspon
             .IsRequired()
             .HasMaxLength(20);
 
-        builder.Property(e => e.Iban)
+        builder.Property(e => e.ForeignIban)
             .HasMaxLength(34);
 
         builder.HasOne(e => e.ForeignBankDetails)

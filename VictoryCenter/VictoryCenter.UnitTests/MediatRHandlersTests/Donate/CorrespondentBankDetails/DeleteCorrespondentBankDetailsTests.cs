@@ -23,7 +23,7 @@ public class DeleteCorrespondentBankDetailsTests
             Name = "Test Correspondent Bank",
             Swift = "12345678901",
             Account = "TESTACC12345",
-            Iban = "123456789012345678901234567",
+            ForeignIban = "123456789012345678901234567",
             ForeignBankDetailsId = 1
         };
     }

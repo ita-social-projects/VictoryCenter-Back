@@ -75,66 +75,66 @@ public class UpdateForeignBankDetailsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenIbanIsEmpty(string? iban)
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = iban! };
+        var dto = GetValidDto() with { UkrainianIban = iban! };
         var command = new UpdateForeignBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)));
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.UkrainianIban)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.UkrainianIban)));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanIsTooShort()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = new string('A', ForeignBankDetailsConstants.Iban.MinLength - 1) };
+        var dto = GetValidDto() with { UkrainianIban = "UA" + new string('1', ForeignBankDetailsConstants.UkrainianIban.MinLength - 3) };
         var command = new UpdateForeignBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.UkrainianIban)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsDto.Iban),
-                    ForeignBankDetailsConstants.Iban.MinLength));
+                    nameof(ForeignBankDetailsDto.UkrainianIban),
+                    ForeignBankDetailsConstants.UkrainianIban.MinLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanIsTooLong()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = new string('A', ForeignBankDetailsConstants.Iban.MaxLength + 1) };
+        var dto = GetValidDto() with { UkrainianIban = "UA" + new string('1', ForeignBankDetailsConstants.UkrainianIban.MaxLength + 1) };
         var command = new UpdateForeignBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.UkrainianIban)
             .WithErrorMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsDto.Iban),
-                    ForeignBankDetailsConstants.Iban.MaxLength));
+                    nameof(ForeignBankDetailsDto.UkrainianIban),
+                    ForeignBankDetailsConstants.UkrainianIban.MaxLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUa()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = "XX123456789012345678901234567" };
+        var dto = GetValidDto() with { UkrainianIban = "XX123456789012345678901234567" };
         var command = new UpdateForeignBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.Iban)
-            .WithErrorMessage(ForeignBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
+        result.ShouldHaveValidationErrorFor(c => c.UpdateForeignBankDetailsDto.UkrainianIban)
+            .WithErrorMessage(ForeignBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
     }
 
     [Theory]
@@ -262,7 +262,7 @@ public class UpdateForeignBankDetailsCommandValidatorTests
     private static UpdateForeignBankDetailsDto GetValidDto() => new()
     {
         Swift = "VALIDSWIFT",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Name = "Valid Name",
         Receiver = "Valid Receiver",
         Address = "Valid Address"

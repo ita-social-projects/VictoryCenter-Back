@@ -10,7 +10,7 @@ public static class CorrespondentBankDetailsConstants
         public static readonly int MinLength = 8;
     }
 
-    public static class Iban
+    public static class ForeignIban
     {
         public static readonly int MaxLength = 34;
     }

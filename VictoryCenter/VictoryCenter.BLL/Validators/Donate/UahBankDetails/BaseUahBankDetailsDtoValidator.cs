@@ -21,17 +21,17 @@ public class BaseUahBankDetailsDtoValidator : AbstractValidator<BaseUahBankDetai
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustContainOnlyDigits(nameof(UahBankDetailsDto.Edrpou)));
 
-        RuleFor(dto => dto.Iban)
+        RuleFor(dto => dto.UkrainianIban)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Iban)))
-            .MaximumLength(UahBankDetailsConstants.Iban.MaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.UkrainianIban)))
+            .MaximumLength(UahBankDetailsConstants.UkrainianIban.MaxLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MaxLength))
-            .MinimumLength(UahBankDetailsConstants.Iban.MinLength)
+                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.UkrainianIban), UahBankDetailsConstants.UkrainianIban.MaxLength))
+            .MinimumLength(UahBankDetailsConstants.UkrainianIban.MinLength)
             .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength))
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.UkrainianIban), UahBankDetailsConstants.UkrainianIban.MinLength))
             .Matches(UahBankDetailsConstants.UahIbanExpression)
-            .WithMessage(UahBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
+            .WithMessage(UahBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
 
         RuleFor(dto => dto.Name)
             .NotEmpty()

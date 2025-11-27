@@ -22,21 +22,21 @@ public class BaseForeignBankDetailsDtoValidator : AbstractValidator<BaseForeignB
                     nameof(ForeignBankDetailsDto.Swift),
                     ForeignBankDetailsConstants.Swift.MinLength));
 
-        RuleFor(dto => dto.Iban)
+        RuleFor(dto => dto.UkrainianIban)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.Iban)))
-            .MaximumLength(ForeignBankDetailsConstants.Iban.MaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ForeignBankDetailsDto.UkrainianIban)))
+            .MaximumLength(ForeignBankDetailsConstants.UkrainianIban.MaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsDto.Iban),
-                    ForeignBankDetailsConstants.Iban.MaxLength))
-            .MinimumLength(ForeignBankDetailsConstants.Iban.MinLength)
+                    nameof(ForeignBankDetailsDto.UkrainianIban),
+                    ForeignBankDetailsConstants.UkrainianIban.MaxLength))
+            .MinimumLength(ForeignBankDetailsConstants.UkrainianIban.MinLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
-                    nameof(ForeignBankDetailsDto.Iban),
-                    ForeignBankDetailsConstants.Iban.MinLength))
+                    nameof(ForeignBankDetailsDto.UkrainianIban),
+                    ForeignBankDetailsConstants.UkrainianIban.MinLength))
             .Matches(ForeignBankDetailsConstants.UahIbanExpression)
-            .WithMessage(ForeignBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
+            .WithMessage(ForeignBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
 
         RuleFor(dto => dto.Name)
             .NotEmpty()

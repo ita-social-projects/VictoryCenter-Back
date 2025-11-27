@@ -23,12 +23,12 @@ public class BaseCorrespondentBankDetailsDtoValidator : AbstractValidator<BaseCo
                     nameof(CorrespondentBankDetailsDto.Swift),
                     CorrespondentBankDetailsConstants.Swift.MinLength));
 
-        RuleFor(dto => dto.Iban)
-            .MaximumLength(CorrespondentBankDetailsConstants.Iban.MaxLength)
+        RuleFor(dto => dto.ForeignIban)
+            .MaximumLength(CorrespondentBankDetailsConstants.ForeignIban.MaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(CorrespondentBankDetailsDto.Iban),
-                    CorrespondentBankDetailsConstants.Iban.MaxLength));
+                    nameof(CorrespondentBankDetailsDto.ForeignIban),
+                    CorrespondentBankDetailsConstants.ForeignIban.MaxLength));
 
         RuleFor(dto => dto.Name)
             .NotEmpty()

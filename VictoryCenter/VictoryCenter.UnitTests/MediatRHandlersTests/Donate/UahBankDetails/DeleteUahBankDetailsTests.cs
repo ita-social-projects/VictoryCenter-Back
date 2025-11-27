@@ -24,7 +24,7 @@ public class DeleteUahBankDetailsTests
             Name = "Test Bank",
             Receiver = "Test Receiver",
             Edrpou = "12345678",
-            Iban = "123456789012345678901234567",
+            UkrainianIban = "123456789012345678901234567",
             PaymentPurpose = "Test purpose"
         };
     }

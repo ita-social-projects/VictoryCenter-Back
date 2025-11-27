@@ -24,7 +24,7 @@ public class CreateForeignBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123"
     };
@@ -34,7 +34,7 @@ public class CreateForeignBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123"
     };
@@ -43,7 +43,7 @@ public class CreateForeignBankDetailsTests
     {
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123",
         Currency = BankCurrency.Usd,
@@ -95,7 +95,7 @@ public class CreateForeignBankDetailsTests
                 {
                     Name = name!,
                     Receiver = "Receiver Name",
-                    Iban = "UA123456789012345678901234567",
+                    UkrainianIban = "UA123456789012345678901234567",
                     Swift = "12345678901",
                     Address = "Bank Street 123"
                 }),

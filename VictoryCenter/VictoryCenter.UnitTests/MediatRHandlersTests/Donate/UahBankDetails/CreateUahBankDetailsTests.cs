@@ -24,7 +24,7 @@ public class CreateUahBankDetailsTests
         Name = "Bank Name",
         Receiver = "Receiver Name",
         Edrpou = "12345678",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         PaymentPurpose = "Payment for services"
     };
 
@@ -34,7 +34,7 @@ public class CreateUahBankDetailsTests
         Name = "Bank Name",
         Receiver = "Receiver Name",
         Edrpou = "12345678",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         PaymentPurpose = "Payment for services"
     };
 
@@ -43,7 +43,7 @@ public class CreateUahBankDetailsTests
         Name = "Bank Name",
         Receiver = "Receiver Name",
         Edrpou = "12345678",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         PaymentPurpose = "Payment for services"
     };
 
@@ -69,7 +69,7 @@ public class CreateUahBankDetailsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_uahBankDetailsDto.Name, result.Value.Name);
-        Assert.Equal(_uahBankDetailsDto.Iban, result.Value.Iban);
+        Assert.Equal(_uahBankDetailsDto.UkrainianIban, result.Value.UkrainianIban);
     }
 
     [Theory]
@@ -91,7 +91,7 @@ public class CreateUahBankDetailsTests
                 Name = "Bank Name",
                 Receiver = "Receiver",
                 Edrpou = "12345678",
-                Iban = iban!,
+                UkrainianIban = iban!,
                 PaymentPurpose = "Purpose"
             }), CancellationToken.None);
 

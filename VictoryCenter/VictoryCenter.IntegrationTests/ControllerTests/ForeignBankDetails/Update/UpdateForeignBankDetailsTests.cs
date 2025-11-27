@@ -21,7 +21,7 @@ public class UpdateForeignBankDetailsTests : BaseTestClass
         {
             Name = "UpdatedBank",
             Receiver = "Updated Receiver",
-            Iban = "UA123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             Swift = "12345678901",
             Address = "London, UK"
         };
@@ -48,7 +48,7 @@ public class UpdateForeignBankDetailsTests : BaseTestClass
         {
             Name = "SomeBank",
             Receiver = "Some Receiver",
-            Iban = "UA123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             Swift = "12345678901",
             Address = "Berlin"
         };

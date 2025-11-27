@@ -87,62 +87,62 @@ public class UpdateUahBankDetailsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenIbanIsEmpty(string? iban)
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = iban! };
+        var dto = GetValidDto() with { UkrainianIban = iban! };
         var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.Iban)));
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.UkrainianIban)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UahBankDetailsDto.UkrainianIban)));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanIsTooShort()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = "UA" + new string('1', UahBankDetailsConstants.Iban.MinLength - 3) };
+        var dto = GetValidDto() with { UkrainianIban = "UA" + new string('1', UahBankDetailsConstants.UkrainianIban.MinLength - 3) };
         var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.UkrainianIban)
             .WithErrorMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MinLength));
+                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UahBankDetailsDto.UkrainianIban), UahBankDetailsConstants.UkrainianIban.MinLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanIsTooLong()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = "UA" + new string('1', UahBankDetailsConstants.Iban.MaxLength + 1) };
+        var dto = GetValidDto() with { UkrainianIban = "UA" + new string('1', UahBankDetailsConstants.UkrainianIban.MaxLength + 1) };
         var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.UkrainianIban)
             .WithErrorMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.Iban), UahBankDetailsConstants.Iban.MaxLength));
+                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UahBankDetailsDto.UkrainianIban), UahBankDetailsConstants.UkrainianIban.MaxLength));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUa()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = "XX123456789012345678901234567" };
+        var dto = GetValidDto() with { UkrainianIban = "XX123456789012345678901234567" };
         var command = new UpdateUahBankDetailsCommand(dto, 1L);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
-            .WithErrorMessage(UahBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.UkrainianIban)
+            .WithErrorMessage(UahBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
     }
 
     [Theory]
@@ -256,11 +256,11 @@ public class UpdateUahBankDetailsCommandValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenIbanDoesNotStartWithUA()
     {
-        var dto = GetValidDto() with { Iban = "XX123456789012345678901234567" };
+        var dto = GetValidDto() with { UkrainianIban = "XX123456789012345678901234567" };
         var command = new UpdateUahBankDetailsCommand(dto, 1L);
         var result = _validator.TestValidate(command);
-        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.Iban)
-            .WithErrorMessage(UahBankDetailsConstants.IbanMustStartWithUaFollowedByDigits);
+        result.ShouldHaveValidationErrorFor(c => c.UpdateUahBankDetailsDto.UkrainianIban)
+            .WithErrorMessage(UahBankDetailsConstants.UkrainianIbanMustStartWithUaFollowedByDigits);
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public class UpdateUahBankDetailsCommandValidatorTests
     private static UpdateUahBankDetailsDto GetValidDto() => new()
     {
         Edrpou = "12345678",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Name = "Valid Name",
         Receiver = "Valid Receiver",
         PaymentPurpose = "Valid Payment Purpose"

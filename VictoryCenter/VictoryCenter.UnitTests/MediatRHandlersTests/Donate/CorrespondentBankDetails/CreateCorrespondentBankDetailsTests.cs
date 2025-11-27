@@ -25,7 +25,7 @@ public class CreateCorrespondentBankDetailsTests
         Name = "Correspondent Bank",
         Swift = "CORRSWIFT01",
         Account = "ACC1234567890",
-        Iban = "UA123456789012345678901234567",
+        ForeignIban = "UA123456789012345678901234567",
         ForeignBankDetailsId = 1
     };
 
@@ -35,7 +35,7 @@ public class CreateCorrespondentBankDetailsTests
         Name = "Correspondent Bank",
         Swift = "CORRSWIFT01",
         Account = "ACC1234567890",
-        Iban = "UA123456789012345678901234567",
+        ForeignIban = "UA123456789012345678901234567",
         ForeignBankDetailsId = 1
     };
 
@@ -44,7 +44,7 @@ public class CreateCorrespondentBankDetailsTests
         Name = "Correspondent Bank",
         Swift = "12345678901",
         Account = "ACC1234567890",
-        Iban = "123456789012345678901234567",
+        ForeignIban = "123456789012345678901234567",
         ForeignBankDetailsId = 1
     };
 
@@ -53,7 +53,7 @@ public class CreateCorrespondentBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "123456789012345678901234567",
+        UkrainianIban = "123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123"
     };
@@ -99,7 +99,7 @@ public class CreateCorrespondentBankDetailsTests
                     Name = "Correspondent Bank",
                     Swift = "12345678901",
                     Account = "ACC1234567890",
-                    Iban = "123456789012345678901234567",
+                    ForeignIban = "123456789012345678901234567",
                     ForeignBankDetailsId = 999
                 }),
                 CancellationToken.None);

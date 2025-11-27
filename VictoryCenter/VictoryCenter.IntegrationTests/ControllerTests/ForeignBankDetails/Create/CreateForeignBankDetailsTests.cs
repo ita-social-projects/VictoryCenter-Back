@@ -22,7 +22,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
         {
             Name = "NewForeignBank",
             Receiver = "Charity Org",
-            Iban = "UA123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             Swift = "12345678901",
             Address = "New York, USA",
             Currency = BankCurrency.Usd,
@@ -39,7 +39,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(responseContent);
         Assert.Equal(createDto.Name, responseContent.Name);
-        Assert.Equal(createDto.Iban, responseContent.Iban);
+        Assert.Equal(createDto.UkrainianIban, responseContent.UkrainianIban);
     }
 
     [Theory]
@@ -51,7 +51,7 @@ public class CreateForeignBankDetailsTests : BaseTestClass
         {
             Name = name!,
             Receiver = "Charity Org",
-            Iban = "UA000000000000000000000000000",
+            UkrainianIban = "UA000000000000000000000000000",
             Swift = "12345678901",
             Address = "Invalid",
             Currency = BankCurrency.Usd,

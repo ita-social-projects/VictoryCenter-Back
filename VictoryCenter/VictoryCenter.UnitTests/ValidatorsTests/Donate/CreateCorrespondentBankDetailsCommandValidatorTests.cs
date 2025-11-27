@@ -73,17 +73,17 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
     public void Validate_ShouldHaveError_WhenIbanIsTooLong()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = new string('A', CorrespondentBankDetailsConstants.Iban.MaxLength + 1) };
+        var dto = GetValidDto() with { ForeignIban = new string('A', CorrespondentBankDetailsConstants.ForeignIban.MaxLength + 1) };
         var command = new CreateCorrespondentBankDetailsCommand(dto);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Iban)
+        result.ShouldHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.ForeignIban)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CorrespondentBankDetailsConstants.Iban),
-                CorrespondentBankDetailsConstants.Iban.MaxLength));
+                nameof(CorrespondentBankDetailsConstants.ForeignIban),
+                CorrespondentBankDetailsConstants.ForeignIban.MaxLength));
     }
 
     [Theory]
@@ -128,14 +128,14 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
     public void Validate_ShouldNotHaveError_WhenIbanIsNullOrEmpty(string? iban)
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = iban };
+        var dto = GetValidDto() with { ForeignIban = iban };
         var command = new CreateCorrespondentBankDetailsCommand(dto);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldNotHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.Iban);
+        result.ShouldNotHaveValidationErrorFor(c => c.CreateCorrespondentBankDetailsDto.ForeignIban);
     }
 
     [Fact]
@@ -192,7 +192,7 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
     public void Validate_ShouldNotHaveError_WhenDataIsValidWithoutIban()
     {
         // Arrange
-        var dto = GetValidDto() with { Iban = null };
+        var dto = GetValidDto() with { ForeignIban = null };
         var command = new CreateCorrespondentBankDetailsCommand(dto);
 
         // Act
@@ -205,7 +205,7 @@ public class CreateCorrespondentBankDetailsCommandValidatorTests
     private static CreateCorrespondentBankDetailsDto GetValidDto() => new()
     {
         Swift = "VALIDSWIFTT",
-        Iban = "UA123456789012345678901234567",
+        ForeignIban = "UA123456789012345678901234567",
         Name = "Valid Name",
         Account = "Valid Account",
         ForeignBankDetailsId = 1

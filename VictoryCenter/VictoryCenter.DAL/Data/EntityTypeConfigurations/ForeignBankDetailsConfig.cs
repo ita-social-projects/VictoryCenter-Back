@@ -21,7 +21,7 @@ public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDeta
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(e => e.Iban)
+        builder.Property(e => e.UkrainianIban)
             .IsRequired()
             .HasMaxLength(29);
 

@@ -22,7 +22,7 @@ public class UpdateCorrespondentBankDetailsTests : BaseTestClass
             Name = "UpdatedCorrespondentBank",
             Swift = "aaaaaaaaaaa",
             Account = "UPDACC123456",
-            Iban = "123456789012345678901234567"
+            ForeignIban = "123456789012345678901234567"
         };
 
         var serializedDto = JsonConvert.SerializeObject(updateDto);
@@ -49,7 +49,7 @@ public class UpdateCorrespondentBankDetailsTests : BaseTestClass
             Name = "SomeBank",
             Swift = "aaaaaaaaaaa",
             Account = "SOMEACC12345",
-            Iban = "123456789012345678901234567"
+            ForeignIban = "123456789012345678901234567"
         };
 
         var serializedDto = JsonConvert.SerializeObject(updateDto);

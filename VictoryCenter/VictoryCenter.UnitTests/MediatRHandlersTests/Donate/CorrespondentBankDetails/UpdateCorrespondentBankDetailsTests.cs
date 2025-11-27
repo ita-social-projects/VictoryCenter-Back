@@ -24,7 +24,7 @@ public class UpdateCorrespondentBankDetailsTests
         Name = "Updated Correspondent Bank",
         Swift = "12345678901",
         Account = "UPDACC123456",
-        Iban = "123456789012345678901234567"
+        ForeignIban = "123456789012345678901234567"
     };
 
     private readonly Entities.CorrespondentBankDetails _correspondentBankDetailsEntity = new()
@@ -33,7 +33,7 @@ public class UpdateCorrespondentBankDetailsTests
         Name = "Correspondent Bank",
         Swift = "CORRSWIFT01",
         Account = "ACC1234567890",
-        Iban = "UA123456789012345678901234567",
+        ForeignIban = "UA123456789012345678901234567",
         ForeignBankDetailsId = 1
     };
 
@@ -43,7 +43,7 @@ public class UpdateCorrespondentBankDetailsTests
         Name = "Updated Correspondent Bank",
         Swift = "UPDSWIFT123",
         Account = "UPDACC123456",
-        Iban = "UA987654321098765432109876543",
+        ForeignIban = "UA987654321098765432109876543",
         ForeignBankDetailsId = 1
     };
 
@@ -72,7 +72,7 @@ public class UpdateCorrespondentBankDetailsTests
             Name = name!,
             Swift = _updateDto.Swift,
             Account = _updateDto.Account,
-            Iban = _updateDto.Iban
+            ForeignIban = _updateDto.ForeignIban
         };
 
         // Act
