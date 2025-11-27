@@ -16,7 +16,7 @@ public class BaseTeamMembersValidatorTests
     }
 
     [Fact]
-    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameIsEmpty()
+    public void BaseTeamMembersValidator_ShouldHaveError_WhenFullNameHasInvalidFormat()
     {
         var model = new CreateTeamMemberDto { FullName = "ha-ha here is unex#p32324ected string -(X_X)-", CategoryId = 1 };
         var result = _validator.TestValidate(model);
