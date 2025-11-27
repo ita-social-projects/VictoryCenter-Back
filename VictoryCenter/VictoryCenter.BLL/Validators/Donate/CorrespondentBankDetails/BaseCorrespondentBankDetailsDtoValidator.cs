@@ -41,9 +41,6 @@ public class BaseCorrespondentBankDetailsDtoValidator : AbstractValidator<BaseCo
                     CorrespondentBankDetailsConstants.NameMaxLength));
 
         RuleFor(dto => dto.Account)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants
-                .PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Account)))
             .MaximumLength(CorrespondentBankDetailsConstants.AccountMaxLength)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMaximumLengthOfNCharacters(

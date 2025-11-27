@@ -108,7 +108,7 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Validate_ShouldHaveError_WhenAccountIsEmpty(string? account)
+    public void Validate_ShouldNotHaveError_WhenAccountIsNullOrEmpty(string? account)
     {
         // Arrange
         var dto = GetValidDto() with { Account = account! };
@@ -118,13 +118,13 @@ public class UpdateCorrespondentBankDetailsCommandValidatorTests
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Account)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CorrespondentBankDetailsDto.Account)));
+        result.ShouldNotHaveValidationErrorFor(c => c.UpdateCorrespondentBankDetailsDto.Account);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
+    [InlineData(" ")]
     public void Validate_ShouldNotHaveError_WhenIbanIsNullOrEmpty(string? iban)
     {
         // Arrange

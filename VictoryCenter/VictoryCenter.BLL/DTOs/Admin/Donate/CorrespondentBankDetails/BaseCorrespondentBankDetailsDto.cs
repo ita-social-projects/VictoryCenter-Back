@@ -4,6 +4,6 @@ public abstract record BaseCorrespondentBankDetailsDto
 {
     public string Name { get; set; } = null!;
     public string Swift { get; set; } = null!;
-    public string Account { get; set; } = null!;
+    public string? Account { get; set; }
     public string? ForeignIban { get; set; }
 }
