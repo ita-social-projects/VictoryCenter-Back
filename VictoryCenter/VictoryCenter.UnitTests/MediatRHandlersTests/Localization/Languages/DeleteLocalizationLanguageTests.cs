@@ -17,7 +17,7 @@ public class DeleteLocalizationLanguageTests
         Id = 1,
         Code = "en",
         Name = "Англійська",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset)
     };
 
     public DeleteLocalizationLanguageTests()

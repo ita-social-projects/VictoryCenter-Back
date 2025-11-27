@@ -25,7 +25,7 @@ public class UpdateLocalizationLanguageTests
         Id = 1,
         Code = "en",
         Name = "Англійська",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset)
     };
 
     private readonly LocalizationLanguage _testUpdatedLanguage = new()
@@ -33,7 +33,7 @@ public class UpdateLocalizationLanguageTests
         Id = 1,
         Code = "uk",
         Name = "Українська",
-        CreatedAt = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset)
     };
 
     private readonly LocalizationLanguageDto _testUpdatedLanguageDto = new()
@@ -117,7 +117,7 @@ public class UpdateLocalizationLanguageTests
         // Act
         var result = await handler.Handle(
             new UpdateLocalizationLanguageCommand(
-                new UpdateLocalizationLanguageDto { Code = code ?? string.Empty, Name = name },
+                new UpdateLocalizationLanguageDto { Code = code, Name = name },
                 _testExistingLanguage.Id),
             CancellationToken.None);
 

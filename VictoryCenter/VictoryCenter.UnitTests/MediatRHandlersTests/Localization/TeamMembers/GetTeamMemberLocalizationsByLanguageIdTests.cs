@@ -26,7 +26,7 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
         {
             Id = 1,
             Code = "en",
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
         _localizationsEntities = new List<TeamMemberLocalization>
@@ -38,7 +38,7 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
                 Language = language,
                 FullName = "John Doe",
                 Description = "Team lead",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
@@ -47,7 +47,7 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
                 Language = language,
                 FullName = "Jane Smith",
                 Description = "Developer",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTimeOffset.UtcNow
             }
         };
 
@@ -76,10 +76,10 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
         // Arrange
         SetupRepositoryWrapper(_localizationsEntities);
         SetupMapper(_localizationsDtos);
-        var handler = new GetByLanguageIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+        var handler = new GetTeamMemberLocalizationByLanguageIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
         // Act
-        var result = await handler.Handle(new GetByLanguageIdQuery(1), CancellationToken.None);
+        var result = await handler.Handle(new GetTeamMemberLocalizationByLanguageIdQuery(1), CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
@@ -97,10 +97,10 @@ public class GetTeamMemberLocalizationsByLanguageIdTests
         // Arrange
         SetupRepositoryWrapper(new List<TeamMemberLocalization>());
         SetupMapper(new List<TeamMemberLocalizationDto>());
-        var handler = new GetByLanguageIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
+        var handler = new GetTeamMemberLocalizationByLanguageIdHandler(_mockMapper.Object, _mockRepositoryWrapper.Object);
 
         // Act
-        var result = await handler.Handle(new GetByLanguageIdQuery(99), CancellationToken.None);
+        var result = await handler.Handle(new GetTeamMemberLocalizationByLanguageIdQuery(99), CancellationToken.None);
 
         // Assert
         Assert.NotNull(result);
