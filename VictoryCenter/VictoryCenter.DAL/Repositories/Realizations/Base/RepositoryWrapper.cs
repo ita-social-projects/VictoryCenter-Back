@@ -53,7 +53,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ISupportOptionsRepository? _supportOptionsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
-    private IFaqLocalizationsRepository? _faqLocalizationsRepository;
+    private IFaqQuestionLocalizationsRepository? _faqQuestionLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -83,8 +83,8 @@ public class RepositoryWrapper : IRepositoryWrapper
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
-    public IFaqLocalizationsRepository FaqLocalizationsRepository => _faqLocalizationsRepository
-        ??= new FaqLocalizationsRepository(_victoryCenterDbContext);
+    public IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository => _faqQuestionLocalizationsRepository
+        ??= new FaqQuestionLocalizationsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

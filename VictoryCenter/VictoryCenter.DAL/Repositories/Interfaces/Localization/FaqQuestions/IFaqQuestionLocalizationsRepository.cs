@@ -3,6 +3,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 
-public interface IFaqLocalizationsRepository : IRepositoryBase<FaqQuestionLocalization>
+public interface IFaqQuestionLocalizationsRepository : IRepositoryBase<FaqQuestionLocalization>
 {
 }

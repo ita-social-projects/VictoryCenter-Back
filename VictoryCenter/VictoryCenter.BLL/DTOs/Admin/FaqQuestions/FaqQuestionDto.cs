@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.FaqQuestions;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
@@ -13,4 +14,6 @@ public record FaqQuestionDto
     public Status Status { get; init; }
 
     public List<long> PageIds { get; init; } = [];
+
+    public IEnumerable<FaqQuestionLocalizationDto> Localizations { get; init; } = [];
 }

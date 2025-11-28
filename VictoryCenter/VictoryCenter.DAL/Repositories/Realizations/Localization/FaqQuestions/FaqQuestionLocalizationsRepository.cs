@@ -5,9 +5,9 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 
-public class FaqLocalizationsRepository : RepositoryBase<FaqQuestionLocalization>, IFaqLocalizationsRepository
+public class FaqQuestionLocalizationsRepository : RepositoryBase<FaqQuestionLocalization>, IFaqQuestionLocalizationsRepository
 {
-    public FaqLocalizationsRepository(VictoryCenterDbContext context)
+    public FaqQuestionLocalizationsRepository(VictoryCenterDbContext context)
         : base(context)
     {
     }

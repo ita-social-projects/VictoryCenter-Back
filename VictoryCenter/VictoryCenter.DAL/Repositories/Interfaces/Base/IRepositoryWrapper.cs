@@ -34,7 +34,7 @@ public interface IRepositoryWrapper
     ISupportOptionsRepository SupportOptionsRepository { get; }
     IWhoWeAreContentsRepository WhoWeAreContentsRepository { get; }
     IWhoWeAreSectionsRepository WhoWeAreSectionsRepository { get; }
-    IFaqLocalizationsRepository FaqLocalizationsRepository { get; }
+    IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
