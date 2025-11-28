@@ -3,106 +3,112 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
+using VictoryCenter.BLL.Interfaces.Localization;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Localization.TeamMembers;
 
 public class DeleteTeamMemberLocalizationTests
 {
-    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<ILocalizationService<TeamMember, TeamMemberLocalization>> _mockLocalizationService;
 
-    private readonly TeamMemberLocalization _existingEntity = new()
+    private readonly TeamMemberLocalization _testEntity = new()
     {
         EntityId = 1,
         LanguageId = 1,
         FullName = "Test Name",
         Description = "Test Description",
-        CreatedAt = DateTime.UtcNow
+        CreatedAt = DateTimeOffset.UtcNow
     };
 
     public DeleteTeamMemberLocalizationTests()
     {
-        _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockLocalizationService = new Mock<ILocalizationService<TeamMember, TeamMemberLocalization>>();
     }
 
     [Fact]
     public async Task Handle_ShouldDeleteEntity()
     {
-        SetupRepositoryWrapper(_existingEntity);
-        var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
+        SetupDependencies();
+        var handler = new DeleteTeamMemberLocalizationHandler(_mockLocalizationService.Object);
 
         var result = await handler.Handle(
-            new DeleteTeamMemberLocalizationCommand(_existingEntity.EntityId, _existingEntity.LanguageId),
+            new DeleteTeamMemberLocalizationCommand(_testEntity.EntityId, _testEntity.LanguageId),
             CancellationToken.None);
         var response = new DeleteTeamMemberLocalizationDto
         {
-            EntityId = _existingEntity.EntityId,
-            LanguageId = _existingEntity.LanguageId
+            EntityId = _testEntity.EntityId,
+            LanguageId = _testEntity.LanguageId
         };
 
         Assert.True(result.IsSuccess);
         Assert.Equal(response, result.Value);
     }
 
-    [Theory]
-    [InlineData(99, 99)]
-    [InlineData(0, 0)]
-    public async Task Handle_ShouldFail_WhenEntityNotFound(long entityId, long languageId)
-    {
-        SetupRepositoryWrapper(null);
-        var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
-
-        var result = await handler.Handle(new DeleteTeamMemberLocalizationCommand(entityId, languageId), CancellationToken.None);
-        var response = new DeleteTeamMemberLocalizationDto
-        {
-            EntityId = entityId,
-            LanguageId = languageId
-        };
-
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound(response, typeof(TeamMemberLocalization)), result.Errors[0].Message);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldFail_WhenSaveChangesFails()
-    {
-        SetupRepositoryWrapper(_existingEntity, -1);
-        var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
-
-        var result = await handler.Handle(
-            new (_existingEntity.EntityId, _existingEntity.LanguageId),
-            CancellationToken.None);
-
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMemberLocalization)), result.Errors[0].Message);
-    }
-
     [Fact]
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
-        _mockRepositoryWrapper.Setup(r =>
-               r.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMemberLocalization>>()))
-           .ReturnsAsync(_existingEntity);
-        _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
-        var handler = new DeleteTeamMemberLocalizationHandler(_mockRepositoryWrapper.Object);
+        // Arrange
+        _mockLocalizationService.Setup(x => x.DeleteEntityLocalizationAsync(It.IsAny<long>(), It.IsAny<long>()))
+            .ThrowsAsync(new DbUpdateException());
 
-        var result = await handler.Handle(
-            new(_existingEntity.EntityId, _existingEntity.LanguageId),
-            CancellationToken.None);
+        var handler = new DeleteTeamMemberLocalizationHandler(_mockLocalizationService.Object);
 
+        var command = new DeleteTeamMemberLocalizationCommand(1, 1);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(TeamMemberLocalization)), result.Errors[0].Message);
     }
 
-    private void SetupRepositoryWrapper(TeamMemberLocalization? entityToReturn = null, int saveResult = 1)
+    [Fact]
+    public async Task Handle_ShouldFail_WhenKeyNotFoundExceptionThrown()
     {
-        _mockRepositoryWrapper.Setup(x => x.TeamMemberLocalizationsRepository.GetFirstOrDefaultAsync(
-            It.IsAny<QueryOptions<TeamMemberLocalization>>()))
-            .ReturnsAsync(entityToReturn);
+        // Arrange
+        var notFoundMessage = "Not found";
 
-        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
-            .ReturnsAsync(saveResult);
+        _mockLocalizationService.Setup(x => x.DeleteEntityLocalizationAsync(It.IsAny<long>(), It.IsAny<long>()))
+            .ThrowsAsync(new KeyNotFoundException(notFoundMessage));
+
+        var handler = new DeleteTeamMemberLocalizationHandler(_mockLocalizationService.Object);
+
+        var command = new DeleteTeamMemberLocalizationCommand(1, 1);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Single(result.Errors);
+        Assert.Equal(notFoundMessage, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenInvalidOperationExceptionThrown()
+    {
+        // Arrange
+        _mockLocalizationService.Setup(x => x.DeleteEntityLocalizationAsync(It.IsAny<long>(), It.IsAny<long>()))
+            .ThrowsAsync(new InvalidOperationException());
+
+        var handler = new DeleteTeamMemberLocalizationHandler(_mockLocalizationService.Object);
+
+        var command = new DeleteTeamMemberLocalizationCommand(1, 1);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamMemberLocalization)), result.Errors[0].Message);
+    }
+
+    private void SetupDependencies()
+    {
+        _mockLocalizationService.Setup(x => x.DeleteEntityLocalizationAsync(It.IsAny<long>(), It.IsAny<long>()))
+            .ReturnsAsync((_testEntity.EntityId, _testEntity.LanguageId));
     }
 }

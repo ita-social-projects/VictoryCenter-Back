@@ -3,6 +3,7 @@ namespace VictoryCenter.BLL.Constants;
 public static class ErrorMessagesConstants
 {
     public static readonly string UnknownStatusValue = "Unknown status value";
+    public static readonly string OnlyDigitsExpression = "^[0-9]+$";
 
     public static string NotFound()
     {
@@ -109,11 +110,6 @@ public static class ErrorMessagesConstants
         return $"{collection} cannot be empty";
     }
 
-    public static string OnlyDigitsAllowed()
-    {
-        return "Only digits allowed";
-    }
-
     public static string CollectionCannotContainMoreThan(string collection, long numberOfElements)
     {
         return $"{collection} cannot contain more than {numberOfElements} elements";
@@ -142,5 +138,10 @@ public static class ErrorMessagesConstants
     public static string BlobStorageError(string message)
     {
         return $"Blob error: {message}";
+    }
+
+    public static string PropertyMustContainOnlyDigits(string property)
+    {
+        return $"{property} must contain only digits";
     }
 }

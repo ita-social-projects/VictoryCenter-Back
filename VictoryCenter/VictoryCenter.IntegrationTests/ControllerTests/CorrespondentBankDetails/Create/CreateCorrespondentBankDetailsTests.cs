@@ -22,7 +22,7 @@ public class CreateCorrespondentBankDetailsTests : BaseTestClass
             Name = "NewCorrespondentBank",
             Swift = "aaaaaaaaaaa",
             Account = "ACC9999999999",
-            Iban = "123456789012345678901234567",
+            ForeignIban = "123456789012345678901234567",
             ForeignBankDetailsId = 1
         };
 

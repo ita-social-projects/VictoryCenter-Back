@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Create;
 using VictoryCenter.BLL.Constants;
@@ -23,7 +24,7 @@ public class CreateUahBankDetailsTests
         Name = "Bank Name",
         Receiver = "Receiver Name",
         Edrpou = "12345678",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         PaymentPurpose = "Payment for services"
     };
 
@@ -33,7 +34,16 @@ public class CreateUahBankDetailsTests
         Name = "Bank Name",
         Receiver = "Receiver Name",
         Edrpou = "12345678",
-        Iban = "UA123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
+        PaymentPurpose = "Payment for services"
+    };
+
+    private readonly CreateUahBankDetailsDto _createDto = new()
+    {
+        Name = "Bank Name",
+        Receiver = "Receiver Name",
+        Edrpou = "12345678",
+        UkrainianIban = "UA123456789012345678901234567",
         PaymentPurpose = "Payment for services"
     };
 
@@ -47,40 +57,33 @@ public class CreateUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldCreateUahBankDetails()
     {
+        // Arrange
         SetupDependencies();
         var handler = new CreateUahBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
 
+        // Act
         Result<UahBankDetailsDto> result = await handler
             .Handle(
-            new CreateUahBankDetailsCommand(new CreateUahBankDetailsDto
-            {
-                Name = "Bank Name",
-                Receiver = "Receiver Name",
-                Edrpou = "12345678",
-                Iban = "UA123456789012345678901234567",
-                PaymentPurpose = "Payment for services"
-            }), CancellationToken.None);
+            new CreateUahBankDetailsCommand(_createDto), CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_uahBankDetailsDto.Name, result.Value.Name);
-        Assert.Equal(_uahBankDetailsDto.Iban, result.Value.Iban);
+        Assert.Equal(_uahBankDetailsDto.UkrainianIban, result.Value.UkrainianIban);
     }
 
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    [InlineData("123")]
-    [InlineData("UA12345678901234567890123456")]
-    [InlineData("UA1234567890123456789012345678")]
-    [InlineData("1234567890123456789012345678")]
-    [InlineData("123456789012345678901234567")]
     public async Task Handle_ShouldFail_InvalidIban(string? iban)
     {
+        // Arrange
         SetupDependencies();
 
         var handler = new CreateUahBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
 
+        // Act
         Result<UahBankDetailsDto> result = await handler
             .Handle(
             new CreateUahBankDetailsCommand(new CreateUahBankDetailsDto
@@ -88,10 +91,11 @@ public class CreateUahBankDetailsTests
                 Name = "Bank Name",
                 Receiver = "Receiver",
                 Edrpou = "12345678",
-                Iban = iban!,
+                UkrainianIban = iban!,
                 PaymentPurpose = "Purpose"
             }), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -99,22 +103,36 @@ public class CreateUahBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
+        // Arrange
         SetupDependencies(-1);
         var handler = new CreateUahBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
 
+        // Act
         Result<UahBankDetailsDto> result = await handler
             .Handle(
-            new CreateUahBankDetailsCommand(new CreateUahBankDetailsDto
-            {
-                Name = "Bank Name",
-                Receiver = "Receiver",
-                Edrpou = "12345678",
-                Iban = "UA123456789012345678901234567",
-                PaymentPurpose = "Purpose"
-            }), CancellationToken.None);
+            new CreateUahBankDetailsCommand(_createDto), CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.UahBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new CreateUahBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock);
+
+        // Act
+        Result<UahBankDetailsDto> result = await handler.Handle(new CreateUahBankDetailsCommand(_createDto), CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.UahBankDetails)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)

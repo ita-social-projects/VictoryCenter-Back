@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Donate.ForeignBankDetails.Create;
 using VictoryCenter.BLL.Constants;
@@ -23,7 +24,7 @@ public class CreateForeignBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123"
     };
@@ -33,9 +34,19 @@ public class CreateForeignBankDetailsTests
         Id = 1,
         Name = "Foreign Bank",
         Receiver = "Receiver Name",
-        Iban = "123456789012345678901234567",
+        UkrainianIban = "UA123456789012345678901234567",
         Swift = "12345678901",
         Address = "Bank Street 123"
+    };
+
+    private readonly CreateForeignBankDetailsDto _createDto = new()
+    {
+        Name = "Foreign Bank",
+        Receiver = "Receiver Name",
+        UkrainianIban = "UA123456789012345678901234567",
+        Swift = "12345678901",
+        Address = "Bank Street 123",
+        Currency = BankCurrency.Usd,
     };
 
     public CreateForeignBankDetailsTests()
@@ -48,22 +59,17 @@ public class CreateForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldCreateForeignBankDetails()
     {
+        // Arrange
         SetupDependencies();
         var handler = new CreateForeignBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler
             .Handle(
-                new CreateForeignBankDetailsCommand(new CreateForeignBankDetailsDto
-                {
-                    Name = "Foreign Bank",
-                    Receiver = "Receiver Name",
-                    Iban = "123456789012345678901234567",
-                    Swift = "12345678901",
-                    Address = "Bank Street 123",
-                    Currency = BankCurrency.Usd,
-                }),
+                new CreateForeignBankDetailsCommand(_createDto),
                 CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_foreignBankDetailsDto.Name, result.Value.Name);
         Assert.Equal(_foreignBankDetailsDto.Swift, result.Value.Swift);
@@ -75,24 +81,27 @@ public class CreateForeignBankDetailsTests
     [InlineData(" ")]
     public async Task Handle_ShouldFail_InvalidName(string? name)
     {
+        // Arrange
         _foreignBankDetails.Name = name!;
         _foreignBankDetailsDto.Name = name!;
         SetupDependencies();
 
         var handler = new CreateForeignBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler
             .Handle(
                 new CreateForeignBankDetailsCommand(new CreateForeignBankDetailsDto
                 {
                     Name = name!,
                     Receiver = "Receiver Name",
-                    Iban = "1234567890123456789012345679",
-                    Swift = "123456789019",
+                    UkrainianIban = "UA123456789012345678901234567",
+                    Swift = "12345678901",
                     Address = "Bank Street 123"
                 }),
                 CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
     }
@@ -100,24 +109,40 @@ public class CreateForeignBankDetailsTests
     [Fact]
     public async Task Handle_ShouldFail_SaveChangesFails()
     {
+        // Arrange
         SetupDependencies(-1);
         var handler = new CreateForeignBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
 
+        // Act
         Result<ForeignBankDetailsDto> result = await handler
             .Handle(
-                new CreateForeignBankDetailsCommand(new CreateForeignBankDetailsDto
-                {
-                    Name = "Foreign Bank",
-                    Receiver = "Receiver Name",
-                    Iban = "123456789012345678901234567",
-                    Swift = "12345678901",
-                    Address = "Bank Street 123",
-                    Currency = BankCurrency.Usd,
-                }),
+                new CreateForeignBankDetailsCommand(_createDto),
                 CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new CreateForeignBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<ForeignBankDetailsDto> result = await handler
+            .Handle(
+                new CreateForeignBankDetailsCommand(_createDto),
+                CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
     }
 
     private void SetupDependencies(int saveResult = 1)
