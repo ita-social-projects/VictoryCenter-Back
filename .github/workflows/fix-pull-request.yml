@@ -95,7 +95,13 @@ jobs:
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
       run: |
         docker compose up -d
-
+    - name: Discord notification
+      if: failure()
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      uses: Ilshidur/action-discord@master
+      with:
+        args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has been deployed.'
       
   manual_approval_rollback:
     needs: stage_deploy
