@@ -16,6 +16,29 @@ env:
   RUN_NUM: ${{ github.run_number }}
 
 jobs:
+  stage_deploy_1:
+   runs-on: self-hosted
+   steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Set up enviroments and Deploy
+      env:
+        INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
+        INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
+        JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
+        JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+        DOCKER_TAG_FRONTEND: "backend:release-1.0.0.89"
+        DOCKER_TAG_BACKEND: "client:release-1.0.0.133"
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
+        WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
+        WAY4PAY_MERCHANT_DOMAIN_NAME: ${{ secrets.WAY4PAY_MERCHANT_DOMAIN_NAME }}
+        WAY4PAY_API_URL: ${{ secrets.WAY4PAY_API_URL }}
+        BLOB_LOCAL_STORE_KEY: ${{ secrets.BLOB_LOCAL_STORE_KEY }}
+      run: |
+        docker compose up -d
   docker:
     name: Build and push docker image
     runs-on: ubuntu-latest
@@ -81,6 +104,9 @@ jobs:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend
+   #   run: echo "Skipping container stop temporarily"
+    - name: Output tags
+      run: echo ${{ steps.frontend_tag.outputs.frontend_tag }} ${{ env.DOCKER_TAG_BACKEND }}
    #   run: echo "Skipping container stop temporarily"
     - name: Delete additon info
       run: docker system prune -f
