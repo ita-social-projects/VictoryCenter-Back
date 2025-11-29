@@ -6,24 +6,19 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Partners.ReorderSections;
 
 public class ReorderPartnersSectionsHandler : IRequestHandler<ReorderPartnersSectionsCommand, Result<Unit>>
 {
     private readonly IValidator<ReorderPartnersSectionsCommand> _validator;
-    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IReorderService _reorderService;
 
     public ReorderPartnersSectionsHandler(
         IValidator<ReorderPartnersSectionsCommand> validator,
-        IRepositoryWrapper repositoryWrapper,
         IReorderService reorderService)
     {
         _validator = validator;
-        _repositoryWrapper = repositoryWrapper;
         _reorderService = reorderService;
     }
 
@@ -34,17 +29,6 @@ public class ReorderPartnersSectionsHandler : IRequestHandler<ReorderPartnersSec
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var orderedIds = request.ReorderDto.OrderedIds;
-
-            var sectionsToReorderCount = await _repositoryWrapper.PartnerSectionsRepository.CountAsync(
-                new QueryOptions<PartnerSection>
-                {
-                    Filter = e => orderedIds.Contains(e.Id),
-                });
-
-            if (sectionsToReorderCount == 0)
-            {
-                return Result.Fail<Unit>(PartnerConstants.HaveNotFoundAnyPartnersSectionsForReorder);
-            }
 
             await _reorderService.SwapElementsAsync<PartnerSection>(
                 idsOrder: orderedIds,

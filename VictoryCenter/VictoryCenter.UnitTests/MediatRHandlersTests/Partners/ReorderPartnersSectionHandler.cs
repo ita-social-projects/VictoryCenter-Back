@@ -9,20 +9,16 @@ using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.Partners.Commands;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Partners;
 
 public class ReorderPartnersSectionsTests
 {
-    private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
     private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<ReorderPartnersSectionsCommand> _validator;
 
     public ReorderPartnersSectionsTests()
     {
-        _mockRepoWrapper = new Mock<IRepositoryWrapper>();
         _mockReorderService = new Mock<IReorderService>();
         _validator = new ReorderPartnersSectionsCommandValidator();
     }
@@ -35,10 +31,9 @@ public class ReorderPartnersSectionsTests
         // Arrange
         var reorderDto = new ReorderPartnersSectionsDto { OrderedIds = [.. orderedIds] };
         var command = new ReorderPartnersSectionsCommand(reorderDto);
-        SetupRepositoryWrapper(orderedIds.Length);
         SetupReorderService();
 
-        var handler = new ReorderPartnersSectionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPartnersSectionsHandler(_validator, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -61,27 +56,8 @@ public class ReorderPartnersSectionsTests
         // This command will fail the real validator because OrderedIds is empty.
         var reorderDto = new ReorderPartnersSectionsDto { OrderedIds = [] };
         var command = new ReorderPartnersSectionsCommand(reorderDto);
-        SetupRepositoryWrapper(0);
 
-        var handler = new ReorderPartnersSectionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.True(result.IsFailed);
-    }
-
-    [Fact]
-    public async Task Handle_NoSectionsFoundToReorder_ShouldReturnFailure()
-    {
-        // Arrange
-        var reorderDto = new ReorderPartnersSectionsDto { OrderedIds = [998, 999] };
-        var command = new ReorderPartnersSectionsCommand(reorderDto);
-        SetupRepositoryWrapper(0); // Simulate no sections found in DB.
-
-        var handler = new ReorderPartnersSectionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPartnersSectionsHandler(_validator, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -89,7 +65,6 @@ public class ReorderPartnersSectionsTests
         // Assert
         Assert.NotNull(result);
         Assert.True(result.IsFailed);
-        Assert.Equal(PartnerConstants.HaveNotFoundAnyPartnersSectionsForReorder, result.Errors[0].Message);
     }
 
     [Fact]
@@ -98,14 +73,14 @@ public class ReorderPartnersSectionsTests
         // Arrange
         var reorderDto = new ReorderPartnersSectionsDto { OrderedIds = [2, 1] };
         var command = new ReorderPartnersSectionsCommand(reorderDto);
-        SetupRepositoryWrapper(2);
+
         _mockReorderService.Setup(service => service.SwapElementsAsync<PartnerSection>(
             It.IsAny<List<long>>(),
             It.IsAny<Expression<Func<PartnerSection, long>>>(),
             It.IsAny<Expression<Func<PartnerSection, bool>>>()))
             .ThrowsAsync(new DbUpdateException());
 
-        var handler = new ReorderPartnersSectionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPartnersSectionsHandler(_validator, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -123,14 +98,14 @@ public class ReorderPartnersSectionsTests
         var reorderDto = new ReorderPartnersSectionsDto { OrderedIds = [2, 1] };
         var command = new ReorderPartnersSectionsCommand(reorderDto);
         var reorderErrorMessage = "Test reorder error";
-        SetupRepositoryWrapper(2);
+
         _mockReorderService.Setup(service => service.SwapElementsAsync<PartnerSection>(
             It.IsAny<List<long>>(),
             It.IsAny<Expression<Func<PartnerSection, long>>>(),
             It.IsAny<Expression<Func<PartnerSection, bool>>>()))
             .ThrowsAsync(new ReorderException(reorderErrorMessage));
 
-        var handler = new ReorderPartnersSectionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPartnersSectionsHandler(_validator, _mockReorderService.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -149,13 +124,5 @@ public class ReorderPartnersSectionsTests
                 It.IsAny<Expression<Func<PartnerSection, long>>>(),
                 It.IsAny<Expression<Func<PartnerSection, bool>>>()))
             .Returns(Task.CompletedTask);
-    }
-
-    private void SetupRepositoryWrapper(int countResult)
-    {
-        _mockRepoWrapper.Setup(
-            repositoryWrapper => repositoryWrapper.PartnerSectionsRepository.CountAsync(
-                It.IsAny<QueryOptions<PartnerSection>>()))
-            .ReturnsAsync(countResult);
     }
 }

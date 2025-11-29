@@ -138,7 +138,7 @@ public class UpdatePartnersPageBannerTests
 
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(PartnersPageBanner)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(PartnersPageBanner)), result.Errors[0].Message);
     }
 
     private void SetupMapper(PartnersPageBanner? entityToCreate, PartnersPageBannerDto dtoToReturn)

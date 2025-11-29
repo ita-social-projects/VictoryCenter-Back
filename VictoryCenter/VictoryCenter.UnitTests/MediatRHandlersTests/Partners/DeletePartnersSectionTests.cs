@@ -73,7 +73,7 @@ public class DeletePartnersSectionTests
 
         // Verify that the correct methods were called
         _mockRepoWrapper.Verify(r => r.PartnerSectionsRepository.Delete(_existingSectionEntity), Times.Once);
-        _mockRepoWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
+        _mockRepoWrapper.Verify(r => r.SaveChangesAsync(), Times.Exactly(1));
         _mockReorderService.Verify(s => s.RenumberPriorityAsync<PartnerSection>(It.IsAny<Expression<Func<PartnerSection, bool>>>()), Times.Once);
     }
 

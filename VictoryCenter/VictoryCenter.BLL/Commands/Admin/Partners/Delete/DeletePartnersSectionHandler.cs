@@ -38,16 +38,17 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
                 return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
             }
 
-            using (var scope = _repositoryWrapper.BeginTransaction())
+            using var scope = _repositoryWrapper.BeginTransaction();
+
+            _repositoryWrapper.PartnerSectionsRepository.Delete(sectionToDelete);
+
+            if (await _repositoryWrapper.SaveChangesAsync() == 0)
             {
-                _repositoryWrapper.PartnerSectionsRepository.Delete(sectionToDelete);
-                await _repositoryWrapper.SaveChangesAsync();
-
-                await _reorderService.RenumberPriorityAsync<PartnerSection>();
-                await _repositoryWrapper.SaveChangesAsync();
-
-                scope.Complete();
+                return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(PartnerSection)));
             }
+
+            await _reorderService.RenumberPriorityAsync<PartnerSection>();
+            scope.Complete();
 
             return Result.Ok(request.Id);
         }

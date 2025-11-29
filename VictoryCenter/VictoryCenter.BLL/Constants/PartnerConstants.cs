@@ -15,7 +15,4 @@ public static class PartnerConstants
     public static readonly int PartnersPageBannerTitleMinLength = 10;
     public static readonly int PartnersPageBannerDescriptionMaxLength = 100;
     public static readonly int PartnersPageBannerDescriptionMinLength = 10;
-
-    public static readonly string HaveNotFoundAnyPartnersForReorder = "Have not found any partners for reorder";
-    public static readonly string HaveNotFoundAnyPartnersSectionsForReorder = "Have not found any partners sections for reorder";
 }

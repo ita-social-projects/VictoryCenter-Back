@@ -62,16 +62,18 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
                 _repositoryWrapper.PartnersPageBannersRepository.Update(bannerEntity);
             }
 
-            await _repositoryWrapper.SaveChangesAsync();
-
-            var result = await _repositoryWrapper.PartnersPageBannersRepository.GetFirstOrDefaultAsync(new()
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                Filter = b => b.Id == bannerEntity.Id,
-                Include = q => q.Include(b => b.Image!)
-            });
+                var result = await _repositoryWrapper.PartnersPageBannersRepository.GetFirstOrDefaultAsync(new()
+                {
+                    Filter = b => b.Id == bannerEntity.Id,
+                    Include = q => q.Include(b => b.Image!)
+                });
 
-            var resultDto = _mapper.Map<PartnersPageBannerDto>(result);
-            return Result.Ok(resultDto);
+                return Result.Ok(_mapper.Map<PartnersPageBannerDto>(result));
+            }
+
+            return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(PartnersPageBanner)));
         }
         catch (ValidationException vex)
         {
@@ -79,7 +81,7 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(PartnersPageBanner)));
+            return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(PartnersPageBanner)));
         }
     }
 }
