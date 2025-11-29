@@ -106,7 +106,9 @@ jobs:
       run: docker stop nginx certbot frontend backend
    #   run: echo "Skipping container stop temporarily"
     - name: Output tags
-      run: echo ${{ steps.frontend_tag.outputs.frontend_tag }} ${{ env.DOCKER_TAG_BACKEND }}
+      run: echo ${{ steps.frontend_tag.outputs.frontend_tag }}
+    - name: Output tags bask
+      run: echo ${{ env.DOCKER_TAG_BACKEND }}
    #   run: echo "Skipping container stop temporarily"
     - name: Delete additon info
       run: docker system prune -f
