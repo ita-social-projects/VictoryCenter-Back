@@ -71,17 +71,17 @@ jobs:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: "Set backend tag"
       id: backend_tag
-      run: echo "backend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
+      run: echo "backend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "/" -f2" >> $GITHUB_OUTPUT   
     - name: "Set frontend tag"
       id: frontend_tag
-      run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
+      run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "/" -f2" >> $GITHUB_OUTPUT   
     - name: Checkout
       uses: actions/checkout@v2
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
-      # run: docker stop nginx certbot frontend backend
-      run: echo "Skipping container stop temporarily"
+      run: docker stop nginx certbot frontend backend
+   #   run: echo "Skipping container stop temporarily"
     - name: Delete additon info
       run: docker system prune -f
     - name: Set up enviroments and Deploy
@@ -91,8 +91,13 @@ jobs:
         JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
         JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
         DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
-        DOCKER_TAG_BACKEND: ${GITHUB_REF##*/}.${RUN_NUM}
+        DOCKER_TAG_BACKEND: ${{ env.DOCKER_TAG_BACKEND }}
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
+        WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
+        WAY4PAY_MERCHANT_DOMAIN_NAME: ${{ secrets.WAY4PAY_MERCHANT_DOMAIN_NAME }}
+        WAY4PAY_API_URL: ${{ secrets.WAY4PAY_API_URL }}
+        BLOB_LOCAL_STORE_KEY: ${{ secrets.BLOB_LOCAL_STORE_KEY }}
       run: |
         docker compose up -d
     - name: Discord notification
@@ -142,8 +147,13 @@ jobs:
         INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
         JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
         JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
-        DOCKER_TAG_FRONTEND: ${{ needs.stage_deploy.outputs.frontend_tag }}
-        DOCKER_TAG_BACKEND: ${{ needs.stage_deploy.outputs.backend_tag }}
+        DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
+        DOCKER_TAG_BACKEND: ${{ env.DOCKER_TAG_BACKEND }}
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
+        WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
+        WAY4PAY_MERCHANT_DOMAIN_NAME: ${{ secrets.WAY4PAY_MERCHANT_DOMAIN_NAME }}
+        WAY4PAY_API_URL: ${{ secrets.WAY4PAY_API_URL }}
+        BLOB_LOCAL_STORE_KEY: ${{ secrets.BLOB_LOCAL_STORE_KEY }}
       run: |
         docker compose up -d
