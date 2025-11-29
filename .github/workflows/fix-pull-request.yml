@@ -94,7 +94,7 @@ jobs:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: "Set backend tag"
       id: backend_tag
-      run: echo "backend_tag=${GITHUB_REF##*/}.${RUN_NUM}" >> $GITHUB_OUTPUT   
+      run: echo "backend_tag=backend:${GITHUB_REF##*/}.${RUN_NUM}" >> $GITHUB_OUTPUT   
     - name: "Set frontend tag"
       id: frontend_tag
       run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "/" -f2)" >> $GITHUB_OUTPUT   
