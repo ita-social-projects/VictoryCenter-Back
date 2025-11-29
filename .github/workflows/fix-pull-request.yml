@@ -1,13 +1,17 @@
 name: Run on PR from fix/* into release
 
-on:
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: 'Pull Request Number'
-        required: true
-        type: string
+#on:
+#  workflow_dispatch:
+#    inputs:
+#      pr_number:
+#        description: 'Pull Request Number'
+#        required: true
+#        type: string
 
+on:
+  push:
+    branches:
+      - 'fix/**'
 env:
   RUN_NUM: ${{ github.run_number }}
 
