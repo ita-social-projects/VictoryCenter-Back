@@ -116,6 +116,7 @@ jobs:
           An issue occurred during the deployment process.
           Commit: ${{ github.sha }}
           Author: ${{ github.actor }}
+          🔗 [View workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
       
   manual_approval_rollback:
     needs: stage_deploy
