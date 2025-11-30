@@ -42,7 +42,7 @@ public static class ImageValidationHelper
     private static Result<Image?> BuildImageNotFoundError(long imageId)
     {
         var errorMessage = ErrorMessagesConstants.NotFound(
-            imageId.ToString(),
+            imageId,
             typeof(Image));
 
         return Result.Fail<Image?>(errorMessage);
