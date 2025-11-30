@@ -1,4 +1,4 @@
-name: Main pipline Backend
+name: Main pipeline Backend
 
 on:
   push:
@@ -68,7 +68,7 @@ jobs:
       id: frontend_tag
       run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "/" -f2)" >> $GITHUB_OUTPUT   
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
@@ -133,7 +133,7 @@ jobs:
     - name: Rollback tags
       run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
