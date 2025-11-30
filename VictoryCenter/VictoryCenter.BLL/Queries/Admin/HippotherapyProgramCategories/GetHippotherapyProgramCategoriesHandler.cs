@@ -1,9 +1,11 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Admin.HippotherapyProgramCategories;
 
@@ -20,7 +22,11 @@ public class GetHippotherapyProgramCategoriesHandler : IRequestHandler<GetHippot
 
     public async Task<Result<List<HippotherapyProgramCategoryDto>>> Handle(GetHippotherapyProgramCategoriesQuery request, CancellationToken cancellationToken)
     {
-        IEnumerable<HippotherapyProgramCategory> programCategories = await _repositoryWrapper.HippotherapyProgramCategoriesRepository.GetAllAsync();
+        IEnumerable<HippotherapyProgramCategory> programCategories = await _repositoryWrapper.HippotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HippotherapyProgramCategory>
+        {
+            Include = programCategory => programCategory
+                .Include(p => p.Programs)
+        });
         var mapped = _mapper.Map<IEnumerable<HippotherapyProgramCategoryDto>>(programCategories).ToList();
 
         return Result.Ok(mapped);
