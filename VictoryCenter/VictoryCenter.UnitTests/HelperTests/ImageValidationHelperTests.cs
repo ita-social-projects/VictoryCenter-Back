@@ -76,7 +76,7 @@ public class ImageValidationHelperTests
             .ReturnsAsync((Image?)null);
 
         var expectedMessage = ErrorMessagesConstants.NotFound(
-            imageId.ToString(),
+            imageId,
             typeof(Image));
 
         // Act
