@@ -1,0 +1,11 @@
+namespace VictoryCenter.DAL.Entities;
+
+public class UahBankDetails
+{
+    public long Id { get; set; }
+    public string Name { get; set; } = null!;
+    public string Receiver { get; set; } = null!;
+    public string Edrpou { get; set; } = null!;
+    public string UkrainianIban { get; set; } = null!;
+    public string PaymentPurpose { get; set; } = null!;
+}
