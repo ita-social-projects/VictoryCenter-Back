@@ -36,7 +36,8 @@ public class SearchTeamMemberValidatorTests
 
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.SearchTeamMemberDto.FullName)
-        .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchTeamMemberDto.FullName)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(SearchTeamMemberDto.FullName)));
     }
 
     [Fact]
@@ -50,13 +51,15 @@ public class SearchTeamMemberValidatorTests
 
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.SearchTeamMemberDto.FullName)
-        .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(SearchTeamMemberDto.FullName), 2));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(SearchTeamMemberDto.FullName),
+                GlobalSearchConstants.DefaultSearchQueryMinLength));
     }
 
     [Fact]
     public void Validate_InvalidQuery_FullNameTooLongShouldHaveError()
     {
-        string fullName = new('A', 101);
+        var fullName = new string('A', GlobalSearchConstants.DefaultSearchQueryMaxLength + 1);
         var dto = new SearchTeamMemberDto
         {
             FullName = fullName!,
@@ -65,6 +68,8 @@ public class SearchTeamMemberValidatorTests
 
         var result = _validator.TestValidate(command);
         result.ShouldHaveValidationErrorFor(x => x.SearchTeamMemberDto.FullName)
-        .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(SearchTeamMemberDto.FullName), 100));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(SearchTeamMemberDto.FullName),
+                GlobalSearchConstants.DefaultSearchQueryMaxLength));
     }
 }

@@ -2,6 +2,18 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ImageConstants
 {
+    public static readonly int MaxImageSizeInMb = 3;
+    public static readonly int BytesPerMb = 1024 * 1024;
+    public static readonly int MaxImageSizeInBytes = MaxImageSizeInMb * BytesPerMb;
+
+    public static readonly string[] AllowedMimeTypes =
+    [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp"
+    ];
+
     public static readonly string Base64ValidationError = "Base64 content is invalid";
     public static readonly string FailToSaveImageInStorage = "An error occurred while saving the image in storage";
     public static readonly string FailToSaveImageInDatabase = "An error occurred while saving the image in database";

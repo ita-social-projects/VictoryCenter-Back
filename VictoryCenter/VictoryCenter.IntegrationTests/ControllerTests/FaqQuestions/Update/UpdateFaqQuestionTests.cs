@@ -2,8 +2,8 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
-using VictoryCenter.BLL.Validators.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -26,8 +26,8 @@ public class UpdateFaqQuestionTests : BaseTestClass
 
         var updateFaqQuestionDto = new UpdateFaqQuestionDto
         {
-            QuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1),
-            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
+            QuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1),
+            AnswerText = new('A', FaqConstants.AnswerTextMinLength + 1),
             PageIds = [3],
             Status = Status.Published,
         };
@@ -51,7 +51,7 @@ public class UpdateFaqQuestionTests : BaseTestClass
         var updateFaqQuestionDto = new UpdateFaqQuestionDto
         {
             QuestionText = "",
-            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
+            AnswerText = new('A', FaqConstants.AnswerTextMinLength + 1),
             PageIds = [3],
             Status = Status.Published,
         };
@@ -69,8 +69,8 @@ public class UpdateFaqQuestionTests : BaseTestClass
     {
         var updateFaqQuestionDto = new UpdateFaqQuestionDto
         {
-            QuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1),
-            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
+            QuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1),
+            AnswerText = new('A', FaqConstants.AnswerTextMinLength + 1),
             PageIds = [3],
             Status = Status.Published,
         };

@@ -11,25 +11,28 @@ public class ReorderTeamMembersValidator : AbstractValidator<ReorderTeamMembersC
     {
         RuleFor(x => x.ReorderTeamMembersDto.CategoryId)
             .GreaterThan(0)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReorderTeamMembersDto.CategoryId)));
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
+                nameof(ReorderTeamMembersDto.CategoryId)));
 
         RuleFor(x => x.ReorderTeamMembersDto.OrderedIds)
             .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(ReorderTeamMembersDto.OrderedIds)))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(ReorderTeamMembersDto.OrderedIds)))
             .Must(ids => ids.Count > 0)
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(ReorderTeamMembersDto.OrderedIds)))
-            .Must(ids => ids.Count <= MaxTeamMemberIds)
+            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
+                nameof(ReorderTeamMembersDto.OrderedIds)))
+            .Must(ids => ids.Count <= ReorderConstants.MaxElementsSwapCount)
             .WithMessage(ErrorMessagesConstants
-                .CollectionCannotContainMoreThan(nameof(ReorderTeamMembersDto.OrderedIds), MaxTeamMemberIds))
+                .CollectionCannotContainMoreThan(
+                nameof(ReorderTeamMembersDto.OrderedIds),
+                ReorderConstants.MaxElementsSwapCount))
             .Must(ids => ids.Distinct().Count() == ids.Count)
-            .WithMessage(ErrorMessagesConstants
-                .CollectionMustContainUniqueValues(nameof(ReorderTeamMembersDto.OrderedIds)));
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
+                nameof(ReorderTeamMembersDto.OrderedIds)));
 
         RuleForEach(x => x.ReorderTeamMembersDto.OrderedIds)
             .GreaterThan(0)
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustBePositive($"Each {nameof(ReorderTeamMembersDto.OrderedIds)} element"));
     }
-
-    public static int MaxTeamMemberIds { get; } = 500;
 }

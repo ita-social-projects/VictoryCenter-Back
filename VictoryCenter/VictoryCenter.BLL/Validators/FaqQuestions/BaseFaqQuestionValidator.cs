@@ -6,32 +6,27 @@ namespace VictoryCenter.BLL.Validators.FaqQuestions;
 
 public class BaseFaqQuestionValidator : AbstractValidator<CreateFaqQuestionDto>
 {
-    public static readonly short QuestionTextMinLength = 10;
-    public static readonly short QuestionTextMaxLength = 150;
-    public static readonly short AnswerTextMinLength = 50;
-    public static readonly short AnswerTextMaxLength = 1000;
-
     public BaseFaqQuestionValidator()
     {
         RuleFor(x => x.QuestionText)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.QuestionText)))
-            .MinimumLength(QuestionTextMinLength)
+            .MinimumLength(FaqConstants.QuestionTextMinLength)
             .WithMessage(ErrorMessagesConstants
-                            .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), QuestionTextMinLength))
-            .MaximumLength(QuestionTextMaxLength)
+                            .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), FaqConstants.QuestionTextMinLength))
+            .MaximumLength(FaqConstants.QuestionTextMaxLength)
             .WithMessage(ErrorMessagesConstants
-                            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), QuestionTextMaxLength));
+                            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), FaqConstants.QuestionTextMaxLength));
 
         RuleFor(x => x.AnswerText)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)))
-            .MinimumLength(AnswerTextMinLength)
+            .MinimumLength(FaqConstants.AnswerTextMinLength)
             .WithMessage(ErrorMessagesConstants
-                            .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), AnswerTextMinLength))
-            .MaximumLength(AnswerTextMaxLength)
+                            .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMinLength))
+            .MaximumLength(FaqConstants.AnswerTextMaxLength)
             .WithMessage(ErrorMessagesConstants
-                            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), AnswerTextMaxLength));
+                            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMaxLength));
 
         RuleFor(x => x.PageIds)
             .NotEmpty()

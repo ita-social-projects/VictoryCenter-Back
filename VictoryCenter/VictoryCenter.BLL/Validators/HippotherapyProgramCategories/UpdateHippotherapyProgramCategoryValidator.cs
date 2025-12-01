@@ -11,12 +11,15 @@ public class UpdateHippotherapyProgramCategoryValidator : AbstractValidator<Upda
     {
         RuleFor(command => command.UpdateProgramCategoryDto.Name)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyProgramCategoryDto.Name)))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(UpdateHippotherapyProgramCategoryDto.Name)))
             .MaximumLength(HippotherapyProgramCategoryConstants.MaxNameLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateHippotherapyProgramCategoryDto.Name), HippotherapyProgramCategoryConstants.MaxNameLength))
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(UpdateHippotherapyProgramCategoryDto.Name),
+                HippotherapyProgramCategoryConstants.MaxNameLength))
             .MinimumLength(HippotherapyProgramCategoryConstants.MinNameLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateHippotherapyProgramCategoryDto.Name), HippotherapyProgramCategoryConstants.MinNameLength));
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateHippotherapyProgramCategoryDto.Name),
+                HippotherapyProgramCategoryConstants.MinNameLength));
     }
 }

@@ -7,27 +7,28 @@ namespace VictoryCenter.BLL.Validators.FaqQuestions;
 
 public class ReorderFaqQuestionsValidator : AbstractValidator<ReorderFaqQuestionsCommand>
 {
-    public static readonly int MaxFaqQuestionIds = 500;
-
     public ReorderFaqQuestionsValidator()
     {
         RuleFor(x => x.ReorderFaqQuestionsDto.PageId)
             .GreaterThan(0)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReorderFaqQuestionsDto.PageId)));
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
+                nameof(ReorderFaqQuestionsDto.PageId)));
 
         RuleFor(x => x.ReorderFaqQuestionsDto.OrderedIds)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(ReorderFaqQuestionsDto.OrderedIds)))
-            .Must(ids => ids.Count <= MaxFaqQuestionIds)
-            .WithMessage(ErrorMessagesConstants
-                .CollectionCannotContainMoreThan(nameof(ReorderFaqQuestionsDto.OrderedIds), MaxFaqQuestionIds))
+            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
+                nameof(ReorderFaqQuestionsDto.OrderedIds)))
+            .Must(ids => ids.Count <= ReorderConstants.MaxElementsSwapCount)
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                nameof(ReorderFaqQuestionsDto.OrderedIds),
+                ReorderConstants.MaxElementsSwapCount))
             .Must(ids => ids.Distinct().Count() == ids.Count)
-            .WithMessage(ErrorMessagesConstants
-                .CollectionMustContainUniqueValues(nameof(ReorderFaqQuestionsDto.OrderedIds)));
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
+                nameof(ReorderFaqQuestionsDto.OrderedIds)));
 
         RuleForEach(x => x.ReorderFaqQuestionsDto.OrderedIds)
             .GreaterThan(0)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustBePositive($"Each {nameof(ReorderFaqQuestionsDto.OrderedIds)} element"));
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
+                $"Each {nameof(ReorderFaqQuestionsDto.OrderedIds)} element"));
     }
 }
