@@ -1,0 +1,30 @@
+using AutoMapper;
+using FluentResults;
+using MediatR;
+using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+using Entities = VictoryCenter.DAL.Entities;
+
+namespace VictoryCenter.BLL.Queries.Admin.Donate.UahBankDetails.GetAll;
+
+public class GetAllUahBankDetailsHandler : IRequestHandler<GetAllUahBankDetailsQuery, Result<List<UahBankDetailsDto>>>
+{
+    private readonly IMapper _mapper;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+
+    public GetAllUahBankDetailsHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    {
+        _mapper = mapper;
+        _repositoryWrapper = repositoryWrapper;
+    }
+
+    public async Task<Result<List<UahBankDetailsDto>>> Handle(GetAllUahBankDetailsQuery request, CancellationToken cancellationToken)
+    {
+        IEnumerable<Entities.UahBankDetails> uahBankDetails = await _repositoryWrapper.UahBankDetailsRepository.GetAllAsync(
+            new QueryOptions<Entities.UahBankDetails>());
+        var mapped = _mapper.Map<List<UahBankDetailsDto>>(uahBankDetails);
+
+        return Result.Ok(mapped);
+    }
+}

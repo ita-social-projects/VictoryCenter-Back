@@ -1,0 +1,179 @@
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
+using VictoryCenter.IntegrationTests.Utils;
+using VictoryCenter.IntegrationTests.Utils.DbFixture;
+
+namespace VictoryCenter.IntegrationTests.ControllerTests.TeamMembers.Update;
+
+public class UpdateTeamMemberTests : BaseTestClass
+{
+    public UpdateTeamMemberTests(IntegrationTestDbFixture fixture)
+        : base(fixture)
+    {
+    }
+
+    [Fact]
+    public async Task UpdateTeamMember_ValidRequest_ShouldUpdateTeamMember()
+    {
+        var validDescription = new string('A', TeamMemberConstants.DescriptionNameMinLength + 5);
+
+        TeamMember existingEntity = await Fixture.DbContext.TeamMembers
+                                        .Include(tm => tm.TeamCategory)
+                                        .LastOrDefaultAsync(tm => tm.Status == Status.Draft)
+                                    ?? throw new InvalidOperationException(
+                                        "No TeamMember entity exists in the database.");
+
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = "Test Name",
+            CategoryId = existingEntity.TeamCategory.Id,
+            Status = existingEntity.Status,
+            Description = validDescription,
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+                serializedDto, Encoding.UTF8, "application/json"));
+        var responseString = await response.Content.ReadAsStringAsync();
+        TeamMemberDto? responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, JsonOptions);
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateTeamMemberDto.FullName, responseContent.FullName);
+        Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
+        Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
+        Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
+    }
+
+    [Fact]
+    public async Task UpdateTeamMember_SameInput_ShouldUpdateTeamMember()
+    {
+        TeamMember existingEntity = await Fixture.DbContext.TeamMembers
+                                        .Include(tm => tm.TeamCategory)
+                                        .Where(tm => tm.Status == Status.Draft)
+                                        .LastOrDefaultAsync()
+                                    ?? throw new InvalidOperationException(
+                                        "No TeamMember entity exists in the database.");
+
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = existingEntity.FullName,
+            CategoryId = existingEntity.TeamCategory.Id,
+            Status = existingEntity.Status,
+            Description = existingEntity.Description,
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+                serializedDto, Encoding.UTF8, "application/json"));
+        var responseString = await response.Content.ReadAsStringAsync();
+        TeamMemberDto? responseContent = JsonSerializer.Deserialize<TeamMemberDto>(responseString, JsonOptions);
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(responseContent);
+        Assert.Equal(existingEntity.Id, responseContent.Id);
+        Assert.Equal(updateTeamMemberDto.FullName, responseContent.FullName);
+        Assert.Equal(updateTeamMemberDto.CategoryId, existingEntity.CategoryId);
+        Assert.Equal(updateTeamMemberDto.Status, responseContent.Status);
+        Assert.Equal(updateTeamMemberDto.Description, responseContent.Description);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task UpdateTeamMember_InvalidFullName_ShouldNotUpdateTeamMember(string? testName)
+    {
+        TeamMember existingEntity = await Fixture.DbContext.TeamMembers
+                                        .Include(tm => tm.TeamCategory)
+                                        .FirstOrDefaultAsync()
+                                    ?? throw new InvalidOperationException(
+                                        "No TeamMember entity exists in the database.");
+
+        var originalFullName = existingEntity.FullName;
+        var originalCategoryId = existingEntity.CategoryId;
+        Status originalStatus = existingEntity.Status;
+        var originalDescription = existingEntity.Description;
+        var originalEmail = existingEntity.Email;
+        var originalPriority = existingEntity.Priority;
+
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = testName!,
+            CategoryId = existingEntity.TeamCategory.Id,
+            Status = existingEntity.Status,
+            Description = "Test Description",
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/TeamMembers/{existingEntity.Id}", new StringContent(
+                serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        TeamMember? reloadedEntity = await Fixture.DbContext.TeamMembers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(tm => tm.Id == existingEntity.Id);
+        Assert.NotNull(reloadedEntity);
+        Assert.Equal(originalFullName, reloadedEntity.FullName);
+        Assert.Equal(originalCategoryId, reloadedEntity.CategoryId);
+        Assert.Equal(originalStatus, reloadedEntity.Status);
+        Assert.Equal(originalDescription, reloadedEntity.Description);
+        Assert.Equal(originalEmail, reloadedEntity.Email);
+        Assert.Equal(originalPriority, reloadedEntity.Priority);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(0)]
+    public async Task UpdateTeamMember_NotFound_ShouldNotUpdateTeamMember(long testId)
+    {
+        TeamCategory category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ??
+                            throw new InvalidOperationException("Couldn't setup existing entity");
+
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = "Test Name",
+            CategoryId = category.Id,
+            Status = Status.Published,
+            Description = "Test Description",
+            ImageId = 123
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/TeamMembers/{testId}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateTeamMember_InvalidCategoryId_ShouldNotUpdateTeamMember()
+    {
+        var wrongId = int.MaxValue;
+        var updateTeamMemberDto = new UpdateTeamMemberDto
+        {
+            FullName = "Test Name",
+            CategoryId = wrongId,
+            Status = Status.Published,
+            Description = "Test Description",
+            ImageId = 123
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamMemberDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync($"/api/TeamMembers/{wrongId}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+}

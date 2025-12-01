@@ -15,7 +15,7 @@
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=alert_status)](https://sonarcloud.io/project/overview?id=ita-social-projects_VictoryCenter-Back) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=coverage)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=bugs)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=code_smells)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=ita-social-projects_VictoryCenter-Back&metric=security_rating)](https://sonarcloud.io/dashboard?id=ita-social-projects_VictoryCenter-Back)
 
-- For more on these wonderful  badges, refer to <a href="https://shields.io/" target="_blank">shields.io</a>.
+- For more on these wonderful badges, refer to <a href="https://shields.io/" target="_blank">shields.io</a>.
 
 ---
 
@@ -34,7 +34,7 @@
   - [How to work with swagger UI](#How-to-work-with-swagger-UI)
   - [How to run tests](#How-to-run-tests)
   - [How to Checkstyle](#How-to-Checkstyle)
-- [Documentation](#Documentation))
+- [Documentation](#Documentation)
 - [Contributing](#contributing)
   - [git flow](#git-flow)
   - [issue flow](#git-flow)
@@ -44,59 +44,518 @@
 
 ---
 
+## Folder structure
+
+```
+VictoryCenter-Back/
+├── .github/
+│   ├── ISSUE_TEMPLATE/
+│   ├── PULL_REQUEST_TEMPLATE/
+│   └── workflows/
+├── docs
+├── VictoryCenter
+│   ├── VictoryCenter.BLL
+│   │   ├── Commands
+│   │   │   ├── Admin
+│   │   │   │   ├── Auth
+│   │   │   │   │   ├── Login
+│   │   │   │   │   ├── Logout
+│   │   │   │   │   └── RefreshToken
+│   │   │   │   ├── Donate
+│   │   │   │   │   ├── CorrespondentBankDetails
+│   │   │   │   │   │   ├── Create
+│   │   │   │   │   │   ├── Delete
+│   │   │   │   │   │   └── Update
+│   │   │   │   │   ├── ForeignBankDetails
+│   │   │   │   │   │   ├── Create
+│   │   │   │   │   │   ├── Delete
+│   │   │   │   │   │   └── Update
+│   │   │   │   │   ├── SupportOptions
+│   │   │   │   │   │   ├── Create
+│   │   │   │   │   │   ├── Delete
+│   │   │   │   │   │   └── Update
+│   │   │   │   │   └── UahBankDetails
+│   │   │   │   │       ├── Create
+│   │   │   │   │       ├── Delete
+│   │   │   │   │       └── Update
+│   │   │   │   ├── FaqQuestions
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   ├── Reorder
+│   │   │   │   │   └── Update
+│   │   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── HippotherapyPrograms
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── Images
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   ├── TeamCategories
+│   │   │   │   │   ├── Create
+│   │   │   │   │   ├── Delete
+│   │   │   │   │   └── Update
+│   │   │   │   └── TeamMembers
+│   │   │   │       ├── Create
+│   │   │   │       ├── Delete
+│   │   │   │       ├── Reorder
+│   │   │   │       └── Update
+│   │   │   └── Public
+│   │   │       └── Payment
+│   │   │           ├── Common
+│   │   │           └── WayForPay
+│   │   ├── Constants
+│   │   ├── DTOs
+│   │   │   ├── Admin
+│   │   │   │   ├── Auth
+│   │   │   │   ├── Common
+│   │   │   │   ├── Donate
+│   │   │   │   │   ├── CorrespondentBankDetails
+│   │   │   │   │   ├── ForeignBankDetails
+│   │   │   │   │   ├── SupportOptions
+│   │   │   │   │   └── UahBankDetails
+│   │   │   │   ├── FaqQuestions
+│   │   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   ├── HippotherapyPrograms
+│   │   │   │   ├── Images
+│   │   │   │   ├── TeamCategories
+│   │   │   │   ├── TeamMembers
+│   │   │   │   └── VisitorPages
+│   │   │   ├── Common
+│   │   │   └── Public
+│   │   │       ├── FaqQuestions
+│   │   │       ├── HippotherapyPrograms
+│   │   │       ├── Payment
+│   │   │       │   ├── Common
+│   │   │       │   └── WayForPay
+│   │   │       └── TeamPage
+│   │   ├── Exceptions
+│   │   │   ├── BlobStorageExceptions
+│   │   │   └── ReorderExceptions
+│   │   ├── Helpers
+│   │   ├── Interfaces
+│   │   │   ├── BlobStorage
+│   │   │   ├── PaymentService
+│   │   │   ├── ReorderService
+│   │   │   ├── Search
+│   │   │   └── TokenService
+│   │   ├── Mapping
+│   │   │   ├── Donate
+│   │   │   ├── FaqQuestions
+│   │   │   ├── HippotherapyProgramCategories
+│   │   │   ├── HippotherapyPrograms
+│   │   │   ├── Images
+│   │   │   ├── TeamCategories
+│   │   │   ├── TeamMembers
+│   │   │   └── VisitorPages
+│   │   ├── Options
+│   │   │   └── Payment
+│   │   ├── Queries
+│   │   │   ├── Admin
+│   │   │   │   ├── Donate
+│   │   │   │   │   ├── ForeignBankDetails
+│   │   │   │   │   │   └── GetAll
+│   │   │   │   │   ├── SupportOptions
+│   │   │   │   │   │   └── GetAll
+│   │   │   │   │   └── UahBankDetails
+│   │   │   │   │       └── GetAll
+│   │   │   │   ├── FaqQuestions
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
+│   │   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   ├── HippotherapyPrograms
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   └── GetById
+│   │   │   │   ├── Images
+│   │   │   │   │   ├── GetById
+│   │   │   │   │   └── GetByName
+│   │   │   │   ├── TeamCategories
+│   │   │   │   │   └── GetAll
+│   │   │   │   ├── TeamMembers
+│   │   │   │   │   ├── GetByFilters
+│   │   │   │   │   ├── GetById
+│   │   │   │   │   └── Search
+│   │   │   │   └── VisitorPages
+│   │   │   │       └── GetAll
+│   │   │   └── Public
+│   │   │       ├── FaqQuestions
+│   │   │       │   └── GetPublished
+│   │   │       ├── HippotherapyPrograms
+│   │   │       │   └── GetPublished
+│   │   │       └── TeamPage
+│   │   │           └── GetPublished
+│   │   ├── Services
+│   │   │   ├── BlobStorage
+│   │   │   ├── PaymentService
+│   │   │   ├── ReorderService
+│   │   │   ├── Search
+│   │   │   │   └── Helpers
+│   │   │   └── TokenService
+│   │   └── Validators
+│   │       ├── Auth
+│   │       ├── Donate
+│   │       │   ├── CorrespondentBankDetails
+│   │       │   ├── ForeignBankDetails
+│   │       │   ├── SupportOptions
+│   │       │   └── UahBankDetails
+│   │       ├── FaqQuestions
+│   │       ├── HippotherapyProgramCategories
+│   │       ├── HippotherapyPrograms
+│   │       ├── Images
+│   │       ├── Payment
+│   │       ├── TeamCategories
+│   │       └── TeamMembers
+│   ├── VictoryCenter.DAL
+│   │   ├── Data
+│   │   │   ├── BaseEntity
+│   │   │   └── EntityTypeConfigurations
+│   │   ├── Entities
+│   │   │   └── Interfaces
+│   │   ├── Enums
+│   │   ├── Migrations
+│   │   └── Repositories
+│   │       ├── Interfaces
+│   │       │   ├── Base
+│   │       │   ├── Donate
+│   │       │   ├── FaqPlacements
+│   │       │   ├── FaqQuestions
+│   │       │   ├── HippotherapyProgramCategories
+│   │       │   ├── HippotherapyPrograms
+│   │       │   ├── Media
+│   │       │   ├── TeamCategories
+│   │       │   ├── TeamMembers
+│   │       │   └── VisitorPages
+│   │       ├── Options
+│   │       └── Realizations
+│   │           ├── Base
+│   │           ├── Donate
+│   │           ├── FaqPlacements
+│   │           ├── FaqQuestions
+│   │           ├── HippotherapyProgramCategories
+│   │           ├── HippotherapyPrograms
+│   │           ├── Media
+│   │           ├── TeamCategories
+│   │           ├── TeamMembers
+│   │           └── VisitorPages
+│   ├── VictoryCenter.DbUpdate
+│   │   └── Helpers
+│   ├── VictoryCenter.IntegrationTests
+│   │   ├── ControllerTests
+│   │   │   ├── Auth
+│   │   │   ├── CorrespondentBankDetails
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   └── Update
+│   │   │   ├── FaqQuestions
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   ├── Reorder
+│   │   │   │   └── Update
+│   │   │   ├── ForeignBankDetails
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── HippotherapyProgramCategories
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── HippotherapyPrograms
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   └── Update
+│   │   │   ├── Images
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetByName
+│   │   │   │   └── Update
+│   │   │   ├── Payments
+│   │   │   ├── SupportOptions
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── TeamCategories
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   ├── TeamMembers
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetById
+│   │   │   │   ├── GetFiltered
+│   │   │   │   ├── GetPublished
+│   │   │   │   ├── Reorder
+│   │   │   │   ├── Search
+│   │   │   │   └── Update
+│   │   │   ├── UahBankDetails
+│   │   │   │   ├── Create
+│   │   │   │   ├── Delete
+│   │   │   │   ├── GetAll
+│   │   │   │   └── Update
+│   │   │   └── VisitorPages
+│   │   │       └── GetAll
+│   │   ├── MiddlewareTests
+│   │   └── Utils
+│   │       ├── DbFixture
+│   │       └── Seeders
+│   │           ├── CorrespondentBankDetails
+│   │           ├── FaqQuestions
+│   │           ├── ForeignBankDetails
+│   │           ├── HippotherapyProgramCategoriesSeeder
+│   │           ├── HippotherapyProgramSeeder
+│   │           ├── Images
+│   │           ├── SupportOptions
+│   │           ├── TeamCategories
+│   │           ├── TeamMembers
+│   │           └── UahBankDetails
+│   ├── VictoryCenter.UnitTests
+│   │   ├── MediatRHandlersTests
+│   │   │   ├── Auth
+│   │   │   ├── Donate
+│   │   │   │   ├── CorrespondentBankDetails
+│   │   │   │   ├── ForeignBankDetails
+│   │   │   │   ├── SupportOptions
+│   │   │   │   └── UahBankDetails
+│   │   │   ├── FaqQuestions
+│   │   │   ├── HippotherapyProgramCategories
+│   │   │   ├── HippotherapyPrograms
+│   │   │   ├── Images
+│   │   │   ├── Payment
+│   │   │   ├── TeamCategories
+│   │   │   ├── TeamMembers
+│   │   │   └── VisitorPages
+│   │   ├── MiddlewareTests
+│   │   ├── ServiceTests
+│   │   │   └── Payment
+│   │   └── ValidatorsTests
+│   │       ├── Auth
+│   │       ├── Donate
+│   │       ├── FaqQuestions
+│   │       ├── HippotherapyProgramCategories
+│   │       ├── HippotherapyPrograms
+│   │       ├── Payment
+│   │       ├── TeamCategories
+│   │       └── TeamMembers
+│   └── VictoryCenter.WebAPI
+│       ├── Controllers
+│       │   ├── Admin
+│       │   ├── Common
+│       │   └── Public
+│       ├── Extensions
+│       ├── Factories
+│       ├── Middleware
+│       ├── Properties
+│       ├── Utils
+│       │   └── Settings
+│       └── wwwroot
+│           └── Images
+├── .gitignore
+├── docker-compose.yml
+└── README.md
+```
+
 ## Installation
 
 - All the `code` required to get started
 - Images of what it should look like
 
 ### Required to install
+
 - MS Visual Studio (2022 or later)
   https://visualstudio.microsoft.com/ru/downloads
-- .NET SDK (v 6.0.101)
-  https://dotnet.microsoft.com/en-us/download/dotnet/6.0
-- NodeJS (v 16.13.2) 
-  https://nodejs.org
+- .NET SDK (v 9.0)
+  https://dotnet.microsoft.com/en-us/download/dotnet/9.0
 
 ### Environment
-environmental variables
-```properties
 
+environmental variables
+
+```shell
+DB_CONNECTION_STRING="<DB_CONNECTION_STRING>"
+INITIAL_ADMIN_EMAIL="<INITIAL_ADMIN_EMAIL>"
+INITIAL_ADMIN_PASSWORD="<INITIAL_ADMIN_PASSWORD>"
+JWTOPTIONS_SECRETKEY="<JWT_ACCESS_SECRET>"
+JWTOPTIONS_REFRESH_TOKEN_SECRETKEY="<JWT_REFRESH_SECRET>"
+BLOB_LOCAL_STORE_KEY="<BLOB_LOCAL_STORE_KEY>"
+WAY4PAY_MERCHANT_LOGIN="<WAY4PAY_MERCHANT_LOGIN>"
+WAY4PAY_MERCHANT_SECRET_KEY="<WAY4PAY_MERCHANT_SECRET_KEY>"
+WAY4PAY_MERCHANT_DOMAIN_NAME="<WAY4PAY_MERCHANT_DOMAIN_NAME>"
+WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ```
 
 ### Clone
 
-- Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO`
+- Clone this repo to your local machine using `https://github.com/ita-social-projects/VictoryCenter-Back.git`
 
 ### Setup
 
-- If you want more syntax highlighting, format your code like this:
-
-> update and install this package first
-
-```shell
-$ brew update
-$ brew install SOMEREPOproductions
-```
-
-> now install npm and bower packages
-
-```shell
-$ npm install
-$ bower install
-```
-
-- For all the possible languages that support syntax highlithing on GitHub (which is basically all of them), refer <a href="https://github.com/github/linguist/blob/master/lib/linguist/languages.yml" target="_blank">here</a>.
-
 ### How to run local
 
+- Create `.env` in the WebAPI layer and insert all fields that are in `.env.example`.
+
+### How to connect to db locally
+
+1. launch SQL Server management Studio
+2. In the pop-up window:
+   - enter **"localhost"** as the server name;
+   - select **"windows authentication"** as authentication mechanism;
+3. After the connection has been established, right-click on the server (the first line with the icon), on the left-hand side of the UI
+4. In the the appeared window find and click on **"properties"**
+5. In the properties section, select **"security"** page
+6. Make sure that **"Server authentication"** radio-button is set to **"SQL Server and Windows Authentication mode"**
+7. Click "Ok"
+8. Then again, on the left-hand side of the UI find folder entitled **"Security"**, and expand it
+9. In unrolled list of options find folder "Logins", and expand it
+10. At this point, you should have **"sa"** as the last option.
+    If for some reason you do not see it, please refer to https://stackoverflow.com/questions/35753254/why-login-without-rights-can-see-sa-login
+11. Right-click on the "sa" item, select "properties"
+12. Change password to the default system one - **"Admin@1234"**. Don't forget to confirm it afterwards
+13. On the left-hand side select **"Status"** page, and set **"Login"** radio-button to **"Enabled"**
+14. Click "Ok"
+15. Right click on **"localhost"** server on the left-hand side of the UI and click **"Restart"**
+
+Now you can connect to your localhost instance with login (sa) and password (Admin@1234)!
+
+### Apply database migrations
+
+Run the following command to apply migrations and create the database schema:
+```bash
+dotnet run --project VictoryCenter.DbUpdate
+```
+
+If migrations are missing or need to be created, here is an example:
+```bash
+dotnet ef migrations add InitialCreate --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
+dotnet run --project VictoryCenter.DbUpdate
+```
+
+### Run the application
+
+Start the **ASP.NET Core** application:
+```bash
+dotnet run --project VictoryCenter.WebAPI
+```
+
+Alternatively, if using **Visual Studio**:
+1. Open the **VictoryCenter.sln** solution.
+2. Set **VictoryCenter.WebAPI** as the startup project.
+3. Press **F5** to run in debug mode.
+
+Once started, the app will be accessible at:
+- **http://localhost:5000** (For HTTP)
+- **https://localhost:5001** (For HTTPS)
+- **https://localhost:5001/swagger/index.html** (For Swagger)
+
+#### If any dependencies are missing, install them with:
+```bash
+dotnet restore
+```
+
 ### How to run Docker
+
+### how to connect to db via docker
+
+1. Install and set up Docker if you haven't already
+2. Open Docker Desktop
+3. Open a terminal (either inside or outside your IDE)
+4. Navigate to the project directory: .../VictoryCenter-Back/VictoryCenter
+5. Start the Docker containers:
+
+```text
+docker compose up
+```
+
+6. Wait for Docker to pull and set up the necessary images and containers.
+7. then open the appsettings.Development.json file and change Server to:
+
+```text
+  Server=localhost,1434;
+```
+
+The Docker-based database should now be running and ready for use!
+
+### Additioanal information
+
+1.The database container must be running whenever you're working on the backend. To start it:
+
+```text
+  docker compose up
+```
+
+2.To stop the database:
+
+```text
+  docker compose down
+```
+
+Alternatively, you can use Docker Desktop:
+
+1. Open Docker Desktop.
+2. Go to the Containers tab
+3. Find victorycenter-back
+4. Start or stop it as needed
+
+### Troubleshooting
+
+If you encounter issues or want to reset the database:
+
+```text
+  docker compose down -v
+```
+
+Then recreate it using:
+
+```text
+  docker compose up
+```
 
 ---
 
 ## Usage
+
 ### How to work with swagger UI
+
 ### How to run tests
-### How to Checkstyle
+
+---
+
+## Static Code Analysis
+
+To keep the codebase clean and maintainable, we use:
+
+- `.editorconfig` for unified code formatting
+- StyleCop analyzers across all projects
+- SonarCloud for static code analysis
+- SonarLint for IDE integration
+
+Supported editors: Visual Studio 2022 / VS Code / Rider
+
+### Quick Setup
+
+1. **.editorconfig**  
+   Already included — most IDEs pick it up automatically.
+
+2. **SonarLint**  
+   Set up SonarLint and bind it to the `VictoryCenter-Back` project of the `ita-social-projects` org using your personal SonarCloud token.
+
+3. **Fix issues locally**  
+   Your IDE will highlight style/code issues in real time. Please, fix them before committing anything to avoid CI fails.
+
+**Detailed setup guide:** [docs/104-Static-Code-Analysis.md](docs/104-Static-Code-Analysis.md)
 
 ---
 
@@ -105,20 +564,24 @@ $ bower install
 ---
 
 ## Contributing
+
 1. All Pull Requests should start from prefix #xxx-yyy where xxx - task number and and yyy - short description e.g. #020-CreateAdminPanel
 2. Pull request should not contain any files that is not required by task.
 
 In case of any violations, pull request will be rejected.
 
 ### Git flow
+
 > To get started...
+
 #### Step 1
 
 - **Option 1**
-    - 🍴 Fork this repo!
+
+  - 🍴 Fork this repo!
 
 - **Option 2**
-    - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
+  - 👯 Clone this repo to your local machine using `https://github.com/ita-social-projects/SOMEREPO.git`
 
 #### Step 2
 
@@ -136,20 +599,17 @@ In case of any violations, pull request will be rejected.
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
 [![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?s=100&v=4)](https://github.com/mehalyna)
-[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym) 
-[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7) 
- 
+[![@LanchevychMaxym](https://avatars.githubusercontent.com/u/47561209?s=100&v=4)](https://github.com/LanchevychMaxym)
+[![@Roman Serhiichuk](https://avatars.githubusercontent.com/u/60231618?s=100&v=4)](https://github.com/Rominos7)
 
 ---
-
-</div>
 
 ---
 
 ## FAQ
 
-- **Сan't  install .NET Core 6.0.0+ in Visual Studio?**
-    - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
+- **Сan't install .NET Core 6.0.0+ in Visual Studio?**
+  - Try to install <a href="https://visualstudio.microsoft.com/ru/free-developer-offers/" target="_blank">Visual Studio 2022</a>
 
 ---
 
@@ -162,5 +622,6 @@ Reach out to us at one of the following places!
 ---
 
 ## License
+
 - **[MIT license](http://opensource.org/licenses/mit-license.php)**
 - Copyright 2025 © <a href="https://softserve.academy/" target="_blank"> SoftServe Academy</a>.

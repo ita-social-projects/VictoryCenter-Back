@@ -1,0 +1,176 @@
+using AutoMapper;
+using FluentResults;
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.Donate.CorrespondentBankDetails.Create;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
+using VictoryCenter.BLL.Validators.Donate.CorrespondentBankDetails;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+using Entities = VictoryCenter.DAL.Entities;
+
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.Donate.CorrespondentBankDetails;
+
+public class CreateCorrespondentBankDetailsTests
+{
+    private readonly Mock<IMapper> _mapperMock;
+    private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
+    private readonly IValidator<CreateCorrespondentBankDetailsCommand> _validator;
+
+    private readonly Entities.CorrespondentBankDetails _correspondentBankDetails = new()
+    {
+        Id = 1,
+        Name = "Correspondent Bank",
+        Swift = "CORRSWIFT01",
+        Account = "ACC1234567890",
+        ForeignIban = "UA123456789012345678901234567",
+        ForeignBankDetailsId = 1
+    };
+
+    private readonly CorrespondentBankDetailsDto _correspondentBankDetailsDto = new()
+    {
+        Id = 1,
+        Name = "Correspondent Bank",
+        Swift = "CORRSWIFT01",
+        Account = "ACC1234567890",
+        ForeignIban = "UA123456789012345678901234567",
+        ForeignBankDetailsId = 1
+    };
+
+    private readonly CreateCorrespondentBankDetailsDto _createDto = new()
+    {
+        Name = "Correspondent Bank",
+        Swift = "12345678901",
+        Account = "ACC1234567890",
+        ForeignIban = "123456789012345678901234567",
+        ForeignBankDetailsId = 1
+    };
+
+    private readonly Entities.ForeignBankDetails _foreignBankDetails = new()
+    {
+        Id = 1,
+        Name = "Foreign Bank",
+        Receiver = "Receiver Name",
+        UkrainianIban = "UA123456789012345678901234567",
+        Swift = "12345678901",
+        Address = "Bank Street 123"
+    };
+
+    public CreateCorrespondentBankDetailsTests()
+    {
+        _mapperMock = new Mock<IMapper>();
+        _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
+        _validator = new CreateCorrespondentBankDetailsCommandValidator();
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateCorrespondentBankDetails()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new CreateCorrespondentBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<CorrespondentBankDetailsDto> result = await handler
+            .Handle(
+                new CreateCorrespondentBankDetailsCommand(_createDto),
+                CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(_correspondentBankDetailsDto.Name, result.Value.Name);
+        Assert.Equal(_correspondentBankDetailsDto.Swift, result.Value.Swift);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_ForeignBankDetailsNotFound()
+    {
+        // Arrange
+        SetupDependencies(foreignBankDetailsExists: false);
+        var handler = new CreateCorrespondentBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<CorrespondentBankDetailsDto> result = await handler
+            .Handle(
+                new CreateCorrespondentBankDetailsCommand(new CreateCorrespondentBankDetailsDto
+                {
+                    Name = "Correspondent Bank",
+                    Swift = "12345678901",
+                    Account = "ACC1234567890",
+                    ForeignIban = "123456789012345678901234567",
+                    ForeignBankDetailsId = 999
+                }),
+                CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.NotFound(999, typeof(Entities.ForeignBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_SaveChangesFails()
+    {
+        // Arrange
+        SetupDependencies(-1);
+        var handler = new CreateCorrespondentBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<CorrespondentBankDetailsDto> result = await handler
+            .Handle(
+                new CreateCorrespondentBankDetailsCommand(_createDto),
+                CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(Entities.CorrespondentBankDetails)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies();
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+
+        var handler = new CreateCorrespondentBankDetailsHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        // Act
+        Result<CorrespondentBankDetailsDto> result = await handler
+            .Handle(
+                new CreateCorrespondentBankDetailsCommand(_createDto),
+                CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(Entities.CorrespondentBankDetails)), result.Errors[0].Message);
+    }
+
+    private void SetupDependencies(int saveResult = 1, bool foreignBankDetailsExists = true)
+    {
+        SetUpAutomapper(_correspondentBankDetails, _correspondentBankDetailsDto);
+        SetupRepositoryWrapper(saveResult, foreignBankDetailsExists);
+    }
+
+    private void SetUpAutomapper(Entities.CorrespondentBankDetails outputEntity, CorrespondentBankDetailsDto outputDto)
+    {
+        _mapperMock.Setup(m => m.Map<Entities.CorrespondentBankDetails>(It.IsAny<CreateCorrespondentBankDetailsDto>()))
+            .Returns(outputEntity);
+        _mapperMock.Setup(m => m.Map<CorrespondentBankDetailsDto>(It.IsAny<Entities.CorrespondentBankDetails>()))
+            .Returns(outputDto);
+    }
+
+    private void SetupRepositoryWrapper(int saveResult, bool foreignBankDetailsExists)
+    {
+        _repositoryWrapperMock.Setup(repo => repo.ForeignBankDetailsRepository
+            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Entities.ForeignBankDetails>>()))
+            .ReturnsAsync(foreignBankDetailsExists ? _foreignBankDetails : null);
+
+        _repositoryWrapperMock.Setup(repo => repo.CorrespondentBankDetailsRepository
+            .CreateAsync(It.IsAny<Entities.CorrespondentBankDetails>()));
+
+        _repositoryWrapperMock.Setup(repo => repo.SaveChangesAsync()).ReturnsAsync(saveResult);
+    }
+}
