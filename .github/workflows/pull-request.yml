@@ -99,7 +99,7 @@ jobs:
       if: failure()
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      uses: Ilshidur/action-discord@master
+      uses: appleboy/discord-action@v1.2.0
       with:
         args: |
           ❗ Deployment error on Main Backend pipeline!
