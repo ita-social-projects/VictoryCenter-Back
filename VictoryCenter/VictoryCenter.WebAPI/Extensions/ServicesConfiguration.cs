@@ -192,6 +192,7 @@ public static class ServicesConfiguration
         await app.SeedVisitorPagesAsync();
         await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
+        await app.CreateInitialPartnersPageBanner();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -432,6 +433,26 @@ public static class ServicesConfiguration
         if (sectionsToAdd.Count > 0)
         {
             dbContext.AddRange(sectionsToAdd);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static async Task CreateInitialPartnersPageBanner(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        var banner = new PartnersPageBanner
+        {
+            Title = "Ми не одні. І це наша сила",
+            Description = "Дякуємо тим, хто разом із нами!",
+            CreatedAt = DateTimeOffset.UtcNow,
+            ImageId = null
+        };
+
+        if (!await dbContext.PartnersPageBanners.AnyAsync())
+        {
+            dbContext.PartnersPageBanners.Add(banner);
             await dbContext.SaveChangesAsync();
         }
     }

@@ -48,14 +48,11 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
                 return Result.Fail<Unit>(FaqConstants.PageNotFoundOrContainsNoFaqQuestions);
             }
 
-            using var transactionScope = _repositoryWrapper.BeginTransaction();
-
             await _reorderService.SwapElementsAsync<FaqPlacement>(
                 idsOrder: orderedIds,
                 idSelector: e => e.QuestionId,
                 groupSelector: e => e.PageId == pageId);
 
-            transactionScope.Complete();
             return Result.Ok();
         }
         catch (ValidationException ex)

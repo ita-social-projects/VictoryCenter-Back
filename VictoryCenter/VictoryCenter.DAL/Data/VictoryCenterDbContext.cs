@@ -46,6 +46,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<SupportOptions> SupportOptions { get; set; }
 
+    public DbSet<PartnerSection> PartnersSections { get; set; }
+
+    public DbSet<Partner> Partners { get; set; }
+
+    public DbSet<PartnersPageBanner> PartnersPageBanners { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
