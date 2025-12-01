@@ -140,6 +140,11 @@ public static class ErrorMessagesConstants
         return $"Blob error: {message}";
     }
 
+    public static string FailedToRetrieveImage()
+    {
+        return "Failed to retrieve image from storage";
+    }
+
     public static string PropertyMustContainOnlyDigits(string property)
     {
         return $"{property} must contain only digits";

@@ -5,7 +5,6 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyProgramCategories.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
-using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Validators.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -22,37 +21,14 @@ public class CreateHippotherapyProgramCategoryTests
     {
         Id = 1,
         Name = "TestCategory",
-        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
-        Programs =
-        [
-            new()
-            {
-                Image = new Image
-                {
-                    BlobName = "someBlob.jpg",
-                    MimeType = "image/jpeg"
-                }
-            },
-        ]
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
     };
 
     private readonly HippotherapyProgramCategoryDto _programCategoryDto = new()
     {
         Id = 1,
         Name = "TestCategory",
-        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
-        Programs =
-        [
-            new()
-            {
-                Image = new ImageDto
-                {
-                    BlobName = "someBlob.jpg",
-                    MimeType = "image/jpeg"
-                }
-            }
-
-        ]
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
     };
 
     public CreateHippotherapyProgramCategoryTests()

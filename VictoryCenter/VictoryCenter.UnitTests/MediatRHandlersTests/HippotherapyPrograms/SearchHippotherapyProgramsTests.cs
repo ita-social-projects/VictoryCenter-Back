@@ -115,7 +115,7 @@ public class SearchHippotherapyProgramsTests
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.NotNull(Assert.Single(result.Value!.Items).Image);
+        Assert.NotNull(Assert.Single(result.Value!.Items).PreviewImage);
     }
 
     [Fact]
@@ -136,10 +136,10 @@ public class SearchHippotherapyProgramsTests
         var result = await handler.Handle(query, CancellationToken.None);
 
         // Assert
-        Assert.Null(Assert.Single(result.Value!.Items).Image);
+        Assert.Null(Assert.Single(result.Value!.Items).PreviewImage);
     }
 
-    private static HippotherapyProgram CreateHippotherapyProgram(int id, string name, Status status, Image? image = null)
+    private static HippotherapyProgram CreateHippotherapyProgram(int id, string name, Status status, Image? previewImage = null)
     {
         return new HippotherapyProgram
         {
@@ -147,14 +147,14 @@ public class SearchHippotherapyProgramsTests
             Name = name,
             Status = status,
             Description = "desc",
-            ImageId = image?.Id,
-            Image = image,
+            PreviewImageId = previewImage?.Id,
+            PreviewImage = previewImage,
             Categories = [],
             CreatedAt = DateTimeOffset.UtcNow
         };
     }
 
-    private static HippotherapyProgramDto CreateHippotherapyProgramDto(int id, string name, Status status, ImageDto? image = null)
+    private static HippotherapyProgramDto CreateHippotherapyProgramDto(int id, string name, Status status, ImageDto? previewImage = null)
     {
         return new HippotherapyProgramDto
         {
@@ -162,7 +162,7 @@ public class SearchHippotherapyProgramsTests
             Name = name,
             Status = status,
             Description = "desc",
-            Image = image,
+            PreviewImage = previewImage,
             Categories = []
         };
     }

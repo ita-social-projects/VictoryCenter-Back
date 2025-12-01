@@ -26,7 +26,6 @@ public class GetHippotherapyProgramCategoriesHandler : IRequestHandler<GetHippot
         {
             Include = programCategory => programCategory
                 .Include(p => p.Programs)
-                .ThenInclude(p => p.Image)!
         });
         var mapped = _mapper.Map<IEnumerable<HippotherapyProgramCategoryDto>>(programCategories).ToList();
 

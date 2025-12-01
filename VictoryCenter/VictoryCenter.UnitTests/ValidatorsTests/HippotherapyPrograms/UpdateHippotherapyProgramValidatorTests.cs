@@ -101,7 +101,7 @@ public class UpdateHippotherapyProgramValidatorTests
             {
                 Name = "ValidName",
                 Description = description,
-                Status = Status.Draft,
+                Status = Status.Published,
                 CategoryIds = [1, 2]
             }, 1);
         TestValidationResult<UpdateHippotherapyProgramCommand> result = _validator.TestValidate(command);
