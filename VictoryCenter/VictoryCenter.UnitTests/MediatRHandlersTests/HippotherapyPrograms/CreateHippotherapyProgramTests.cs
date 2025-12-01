@@ -144,6 +144,10 @@ public class CreateHippotherapyProgramTests
                 .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync(onlyOneCategory);
 
+        _repositoryWrapperMock.Setup(r => r.ImageRepository
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(_image);
+
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
         var handler = new CreateHippotherapyProgramHandler(
