@@ -10,8 +10,6 @@ env:
 jobs:
   docker:
     name: Build and push docker image
-    outputs:
-      docker_tag: victorycenterua/backend:${{ github.ref_name }}.${{ github.run_number }}
     runs-on: ubuntu-latest
     steps:
      - name: Check out the repo
@@ -35,11 +33,8 @@ jobs:
        with:
           context: .
           push: true
-          tags: victorycenterua/backend:${{ github.ref_name }}.${{ github.run_number }}
-          labels: ${{ steps.meta.outputs.labels }}
-     - name: Set docker tag output
-       run: echo "docker_tag=victorycenterua/backend:${GITHUB_REF##*/}.${RUN_NUM}" >> $GITHUB_OUTPUT
-
+          tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
+   
   manual_approval_deploy:
     needs: docker 
     environment: stage 
