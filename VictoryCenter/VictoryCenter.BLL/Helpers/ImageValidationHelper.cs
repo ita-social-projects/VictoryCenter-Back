@@ -1,5 +1,6 @@
 using FluentResults;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -12,19 +13,26 @@ public static class ImageValidationHelper
         IRepositoryWrapper repositoryWrapper,
         long? imageId)
     {
-        if (!imageId.HasValue)
+        try
         {
-            return Result.Ok<Image?>(null);
+            if (!imageId.HasValue)
+            {
+                return Result.Ok<Image?>(null);
+            }
+
+            var retrievedImage = await FetchImageFromRepositoryAsync(repositoryWrapper, imageId.Value);
+
+            if (retrievedImage is null)
+            {
+                return BuildImageNotFoundError(imageId.Value);
+            }
+
+            return Result.Ok<Image?>(retrievedImage);
         }
-
-        var retrievedImage = await FetchImageFromRepositoryAsync(repositoryWrapper, imageId.Value);
-
-        if (retrievedImage is null)
+        catch (BlobStorageException)
         {
-            return BuildImageNotFoundError(imageId.Value);
+            return Result.Fail<Image?>(ErrorMessagesConstants.FailedToRetrieveImage());
         }
-
-        return Result.Ok<Image?>(retrievedImage);
     }
 
     private static async Task<Image?> FetchImageFromRepositoryAsync(

@@ -88,10 +88,5 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
         {
             return Result.Fail<HippotherapyProgramDto>(ex.Message);
         }
-        catch (BlobStorageException)
-        {
-            return Result.Fail<HippotherapyProgramDto>(
-                HippotherapyProgramConstants.FailedRetrievingProgramPhoto);
-        }
     }
 }
