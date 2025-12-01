@@ -27,7 +27,7 @@ public class CorrespondentBankDetailsSeeder : BaseSeeder<Entities.CorrespondentB
                 Name = "Correspondent Bank 1",
                 Swift = "CORRSWIFT01",
                 Account = "ACC1234567890",
-                Iban = "UA123456789012345678901234567",
+                ForeignIban = "UA123456789012345678901234567",
                 ForeignBankDetailsId = 1
             },
             new()
@@ -36,7 +36,7 @@ public class CorrespondentBankDetailsSeeder : BaseSeeder<Entities.CorrespondentB
                 Name = "Correspondent Bank 2",
                 Swift = "CORRSWIFT02",
                 Account = "ACC9876543210",
-                Iban = "UA987654321098765432109876543",
+                ForeignIban = "UA987654321098765432109876543",
                 ForeignBankDetailsId = 1
             },
             new()
@@ -45,7 +45,7 @@ public class CorrespondentBankDetailsSeeder : BaseSeeder<Entities.CorrespondentB
                 Name = "Correspondent Bank 3",
                 Swift = "CORRSWIFT03",
                 Account = "ACC1122334455",
-                Iban = null,
+                ForeignIban = null,
                 ForeignBankDetailsId = 2
             }
         };

@@ -21,17 +21,17 @@ public class ForeignBankDetailsConfig : IEntityTypeConfiguration<ForeignBankDeta
             .IsRequired()
             .HasMaxLength(200);
 
-        builder.Property(e => e.Iban)
+        builder.Property(e => e.UkrainianIban)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(29);
 
         builder.Property(e => e.Swift)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(11);
 
         builder.Property(e => e.Address)
             .IsRequired()
-            .HasMaxLength(500);
+            .HasMaxLength(200);
 
         builder.HasMany(e => e.CorrespondentBanks)
             .WithOne(e => e.ForeignBankDetails)

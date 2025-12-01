@@ -25,9 +25,9 @@ public class UahBankDetailsConfig : IEntityTypeConfiguration<UahBankDetails>
             .IsRequired()
             .HasMaxLength(8);
 
-        builder.Property(e => e.Iban)
+        builder.Property(e => e.UkrainianIban)
             .IsRequired()
-            .HasMaxLength(34);
+            .HasMaxLength(29);
 
         builder.Property(e => e.PaymentPurpose)
             .IsRequired()

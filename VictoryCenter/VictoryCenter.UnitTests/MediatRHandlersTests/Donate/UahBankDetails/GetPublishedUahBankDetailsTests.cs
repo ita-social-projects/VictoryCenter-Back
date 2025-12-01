@@ -21,7 +21,7 @@ public class GetPublishedUahBankDetailsTests
             Name = "Bank 1",
             Receiver = "Receiver 1",
             Edrpou = "11111111",
-            Iban = "123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             PaymentPurpose = "Purpose 1"
         },
         new()
@@ -30,7 +30,7 @@ public class GetPublishedUahBankDetailsTests
             Name = "Bank 2",
             Receiver = "Receiver 2",
             Edrpou = "22222222",
-            Iban = "123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             PaymentPurpose = "Purpose 2"
         }
 
@@ -44,7 +44,7 @@ public class GetPublishedUahBankDetailsTests
             Name = "Bank 1",
             Receiver = "Receiver 1",
             Edrpou = "11111111",
-            Iban = "123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             PaymentPurpose = "Purpose 1"
         },
         new()
@@ -53,7 +53,7 @@ public class GetPublishedUahBankDetailsTests
             Name = "Bank 2",
             Receiver = "Receiver 2",
             Edrpou = "22222222",
-            Iban = "123456789012345678901234567",
+            UkrainianIban = "UA123456789012345678901234567",
             PaymentPurpose = "Purpose 2"
         }
 

@@ -15,11 +15,11 @@ public class SupportOptionsConfig : IEntityTypeConfiguration<SupportOptions>
 
         builder.Property(e => e.Name)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(50);
 
         builder.Property(e => e.Value)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(100);
 
         builder.ToTable("SupportOptions");
     }

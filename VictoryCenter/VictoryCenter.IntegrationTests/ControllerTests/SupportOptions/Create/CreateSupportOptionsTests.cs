@@ -2,6 +2,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -20,7 +21,8 @@ public class CreateSupportOptionsTests : BaseTestClass
         var createDto = new CreateSupportOptionsDto
         {
             Name = "Telegram",
-            Value = "@victory_support"
+            Value = "@victory_support",
+            Currency = BankCurrency.Uah,
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);
 
@@ -47,7 +49,8 @@ public class CreateSupportOptionsTests : BaseTestClass
         var createDto = new CreateSupportOptionsDto
         {
             Name = name!,
-            Value = value!
+            Value = value!,
+            Currency = BankCurrency.Uah,
         };
         var serializedDto = JsonConvert.SerializeObject(createDto);
 

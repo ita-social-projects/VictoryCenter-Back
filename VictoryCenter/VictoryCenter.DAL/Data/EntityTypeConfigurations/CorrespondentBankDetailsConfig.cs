@@ -19,14 +19,13 @@ public class CorrespondentBankDetailsConfig : IEntityTypeConfiguration<Correspon
 
         builder.Property(e => e.Swift)
             .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(11);
 
         builder.Property(e => e.Account)
-            .IsRequired()
-            .HasMaxLength(200);
+            .HasMaxLength(20);
 
-        builder.Property(e => e.Iban)
-            .HasMaxLength(200);
+        builder.Property(e => e.ForeignIban)
+            .HasMaxLength(34);
 
         builder.HasOne(e => e.ForeignBankDetails)
             .WithMany(e => e.CorrespondentBanks)

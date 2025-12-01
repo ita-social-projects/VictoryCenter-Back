@@ -47,7 +47,11 @@ public class UpdateTeamMemberTests
             Description = "Test category description",
         },
         Email = "test@gmail.com",
-        ImageId = null
+        ImageId = null,
+        Localizations = [
+            new() { TranslationStatus = TranslationStatus.Relevant },
+            new() { TranslationStatus = TranslationStatus.Relevant }
+        ]
     };
 
     private readonly TeamMember _testUpdatedTeamMember = new()
@@ -66,7 +70,11 @@ public class UpdateTeamMemberTests
             Description = "Test category description",
         },
         Email = "test@gmail.com",
-        ImageId = null
+        ImageId = null,
+        Localizations = [
+            new() { TranslationStatus = TranslationStatus.Outdated },
+            new() { TranslationStatus = TranslationStatus.Outdated }
+        ]
     };
 
     private readonly TeamMemberDto _testUpdatedTeamMemberDto = new()
@@ -88,23 +96,6 @@ public class UpdateTeamMemberTests
     public async Task Handle_ValidRequestWithDifferentDescriptions_ShouldUpdateEntity()
     {
         var validDescription = new string('A', BaseTeamMembersValidator.DescriptionNameMinLength + 5);
-        var testUpdatedTeamMember = new TeamMember
-        {
-            Id = 1,
-            FullName = "Updated Name",
-            CategoryId = 1,
-            Priority = 1,
-            Status = Status.Published,
-            Description = validDescription,
-            CreatedAt = new DateTimeOffset(2025, 1, 1, 12, 0, 0, TimeZoneInfo.Utc.BaseUtcOffset),
-            TeamCategory = new TeamCategory
-            {
-                Id = 1,
-                Name = "Test Category",
-                Description = "Test category description",
-            },
-            Email = "test@gmail.com",
-        };
 
         var testUpdatedTeamMemberDto = new TeamMemberDto
         {
@@ -143,6 +134,47 @@ public class UpdateTeamMemberTests
         Assert.Equal(testUpdatedTeamMemberDto.Status, result.Value.Status);
         Assert.Equal(testUpdatedTeamMemberDto.FullName, result.Value.FullName);
         Assert.Equal(testUpdatedTeamMemberDto.Description, result.Value.Description);
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_ShouldChangeTranslationStatusesToOutdated()
+    {
+        var testUpdatedTeamMemberDto = new TeamMemberDto
+        {
+            Id = 1,
+            FullName = "Original Name",
+            CategoryId = 1,
+            Priority = 1,
+            Status = Status.Published,
+            Description = "Original Description",
+            Localizations = [
+                new() { TranslationStatus = TranslationStatus.Outdated },
+                new() { TranslationStatus = TranslationStatus.Outdated }
+            ]
+        };
+
+        _mockMapper.Setup(x => x.Map(It.IsAny<UpdateTeamMemberDto>(), It.IsAny<TeamMember>()));
+
+        _mockMapper.Setup(x => x.Map<TeamMember, TeamMemberDto>(It.IsAny<TeamMember>()))
+            .Returns(testUpdatedTeamMemberDto);
+
+        SetupRepositoryWrapper(_testExistingTeamMember);
+
+        var handler = new UpdateTeamMemberHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator, _mockReorderService.Object);
+
+        Result<TeamMemberDto> result = await handler.Handle(
+            new UpdateTeamMemberCommand(
+                new UpdateTeamMemberDto
+                {
+                    FullName = "Updated Name",
+                    CategoryId = _testExistingTeamMember.CategoryId,
+                    Description = "Updated Description"
+                },
+                _testExistingTeamMember.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.All(result.Value.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
     }
 
     [Theory]
