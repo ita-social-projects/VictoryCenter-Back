@@ -10,6 +10,8 @@ env:
 jobs:
   docker:
     name: Build and push docker image
+    outputs:
+      docker_tag: victorycenterua/backend:${{ github.ref_name }}.${{ github.run_number }}
     runs-on: ubuntu-latest
     steps:
      - name: Check out the repo
@@ -33,8 +35,11 @@ jobs:
        with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
+          tags: victorycenterua/backend:${{ github.ref_name }}.${{ github.run_number }}
           labels: ${{ steps.meta.outputs.labels }}
+     - name: Set docker tag output
+       run: echo "docker_tag=victorycenterua/backend:${GITHUB_REF##*/}.${RUN_NUM}" >> $GITHUB_OUTPUT
+
   manual_approval_deploy:
     needs: docker 
     environment: stage 
@@ -53,12 +58,13 @@ jobs:
               | jq '.[] | {user: .user.login, comment: .comment, environments: [.environments[].name]}' \
                | jq -r '.comment')" >> $GITHUB_OUTPUT
   stage_deploy:
-   needs: manual_approval_deploy
+   needs: [manual_approval_deploy, docker]
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
    runs-on: self-hosted
    outputs:
       backend_tag: ${{ steps.backend_tag.outputs.backend_tag }}
       frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
+      backend_tag_rollback: ${{ steps.backend_tag_rollback.outputs.backend_tag_rollback }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: "Set backend tag for rollback"
@@ -76,7 +82,7 @@ jobs:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend
-    - name: Delete additon info
+    - name: Delete additional info
       run: docker system prune -f
     - name: Set up enviroments and Deploy
       env:
@@ -85,7 +91,7 @@ jobs:
         JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
         JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
         DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
-        DOCKER_TAG_BACKEND: ${{ steps.backend_tag.outputs.backend_tag }}
+        DOCKER_TAG_BACKEND: ${{ needs.docker.outputs.docker_tag }}
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
         WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
@@ -101,7 +107,7 @@ jobs:
       uses: Ilshidur/action-discord@master
       with:
         args: |
-          ❗ Deployment error on Main Backend pipline!
+          ❗ Deployment error on Main Backend pipeline!
           An issue occurred during the deployment process.
           Commit: ${{ github.sha }}
           Author: ${{ github.actor }}
