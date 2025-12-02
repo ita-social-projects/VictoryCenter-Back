@@ -5,7 +5,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -26,9 +28,21 @@ public class GetTeamMembersByFiltersHandler : IRequestHandler<GetTeamMembersByFi
     {
         var status = request.TeamMembersFilterDto.Status;
         var categoryId = request.TeamMembersFilterDto.CategoryId;
+        var translationStatusFilter = request.TeamMembersFilterDto.TranslationStatusFilter;
+        var languageCount = await _repository.LocalizationLanguagesRepository.CountAsync();
 
-        Expression<Func<TeamMember, bool>> filter =
-            t => (status == null || t.Status == status) && (categoryId == null || t.TeamCategory.Id == categoryId);
+        // There always will be one less localization than languages due to the default locale
+        languageCount -= 1;
+
+        Expression<Func<TeamMember, bool>> filter = t =>
+            (status == null || t.Status == status) &&
+            (categoryId == null || t.TeamCategory.Id == categoryId) &&
+            (translationStatusFilter == null ||
+            translationStatusFilter == TranslationStatusFilter.All ||
+            (translationStatusFilter == TranslationStatusFilter.Outdated &&
+            t.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
+            (translationStatusFilter == TranslationStatusFilter.Missing &&
+            t.Localizations.Count < languageCount));
 
         var queryOptions = new QueryOptions<TeamMember>
         {
