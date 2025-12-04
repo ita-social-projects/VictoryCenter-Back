@@ -89,7 +89,13 @@ public static class ServicesConfiguration
 
     public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddControllers();
+        services.AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow;
+                options.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip;
+                options.JsonSerializerOptions.AllowTrailingCommas = false;
+            });
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
 
