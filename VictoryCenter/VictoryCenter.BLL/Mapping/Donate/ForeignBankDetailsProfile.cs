@@ -15,5 +15,6 @@ public class ForeignBankDetailsProfile : Profile
         CreateMap<UpdateForeignBankDetailsDto, ForeignBankDetails>()
             .ForMember(dest => dest.CorrespondentBanks, opt => opt.Ignore())
             .ForMember(dest => dest.Id, opt => opt.Ignore());
+        CreateMap<CreateForeignCorrespondentBankDetailsDto, CorrespondentBankDetails>();
     }
 }
