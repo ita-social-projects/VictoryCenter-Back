@@ -32,6 +32,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
+using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -89,13 +90,7 @@ public static class ServicesConfiguration
 
     public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow;
-                options.JsonSerializerOptions.ReadCommentHandling = System.Text.Json.JsonCommentHandling.Skip;
-                options.JsonSerializerOptions.AllowTrailingCommas = false;
-            });
+        services.AddControllers();
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
 
@@ -104,12 +99,10 @@ public static class ServicesConfiguration
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
-        ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
-        ValidatorOptions.Global.DefaultClassLevelCascadeMode = CascadeMode.Continue;
-
         services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
 
         services.AddOptions<JwtOptions>()
