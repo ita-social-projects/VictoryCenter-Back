@@ -9,8 +9,7 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
 {
     public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
-        if (context.HttpContext.Request.ContentType?.Contains("application/json") == true &&
-            context.HttpContext.Request.ContentLength > 0)
+        if (context.HttpContext.Request.ContentType?.Contains("application/json") == true)
         {
             context.HttpContext.Request.EnableBuffering();
 
