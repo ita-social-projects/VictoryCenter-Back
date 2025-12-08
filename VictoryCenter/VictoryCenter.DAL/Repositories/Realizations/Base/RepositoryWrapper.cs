@@ -7,7 +7,10 @@ using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
+using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
@@ -16,9 +19,12 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
+using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
+using VictoryCenter.DAL.Repositories.Realizations.Partners;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
@@ -54,6 +60,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
     private IFaqQuestionLocalizationsRepository? _faqQuestionLocalizationsRepository;
+    private IPartnerRepository? _partnerRepository;
+    private IPartnerSectionsRepository? _partnerSectionRepository;
+    private IPartnersPageBannersRepository? _partnersPageBannersRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -85,6 +94,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
     public IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository => _faqQuestionLocalizationsRepository
         ??= new FaqQuestionLocalizationsRepository(_victoryCenterDbContext);
+    public IPartnerRepository PartnerRepository => _partnerRepository ??= new PartnerRepository(_victoryCenterDbContext);
+    public IPartnerSectionsRepository PartnerSectionsRepository => _partnerSectionRepository ??= new PartnerSectionsRepository(_victoryCenterDbContext);
+    public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

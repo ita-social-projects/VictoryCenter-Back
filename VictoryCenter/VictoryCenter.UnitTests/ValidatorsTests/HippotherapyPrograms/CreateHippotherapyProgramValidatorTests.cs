@@ -111,11 +111,23 @@ public class CreateHippotherapyProgramValidatorTests
     public void Validate_ShouldHaveError_WhenDescriptionIsTooShort(int descriptionLength)
     {
         var description = new string('a', descriptionLength);
-        var command = new CreateHippotherapyProgramCommand(new CreateHippotherapyProgramDto { Description = description });
+
+        var command = new CreateHippotherapyProgramCommand(
+            new CreateHippotherapyProgramDto
+            {
+                Name = "ValidName",
+                Description = description,
+                Status = Status.Published,
+                CategoryIds = [1, 2]
+            });
+
         TestValidationResult<CreateHippotherapyProgramCommand> result = _validator.TestValidate(command);
+
         result.ShouldHaveValidationErrorFor(p => p.CreateProgramDto.Description)
             .WithErrorMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(HippotherapyProgramDto.Description), HippotherapyProgramConstants.MinDescriptionLength));
+                .PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(HippotherapyProgramDto.Description),
+                    HippotherapyProgramConstants.MinDescriptionLength));
     }
 
     [Fact]

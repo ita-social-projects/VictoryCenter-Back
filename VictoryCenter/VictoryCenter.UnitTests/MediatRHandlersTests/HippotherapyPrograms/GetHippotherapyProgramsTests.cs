@@ -2,6 +2,7 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetByFilters;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -13,7 +14,7 @@ public class GetHippotherapyProgramsTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
 
-    private readonly List<DAL.Entities.HippotherapyProgram> _programs =
+    private readonly List<HippotherapyProgram> _programs =
     [
         new()
         {
@@ -21,8 +22,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName1",
             Description = "TestDescription1",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 1,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -30,8 +30,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName2",
             Description = "TestDescription2",
             Status = Status.Draft,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 2,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -39,8 +38,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName3",
             Description = "TestDescription3",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 3,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -48,8 +46,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName4",
             Description = "TestDescription4",
             Status = Status.Draft,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 4,
+            CreatedAt = DateTimeOffset.UtcNow
         },
         new()
         {
@@ -57,8 +54,7 @@ public class GetHippotherapyProgramsTests
             Name = "TestName5",
             Description = "TestDescription5",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = 5,
+            CreatedAt = DateTimeOffset.UtcNow
         }
 
     ];
@@ -169,7 +165,7 @@ public class GetHippotherapyProgramsTests
         Assert.Equal(programResponseDtos, result.Value.Items);
     }
 
-    private void SetUpDependencies(IEnumerable<HippotherapyProgramDto> responseDto, IEnumerable<DAL.Entities.HippotherapyProgram> programs)
+    private void SetUpDependencies(IEnumerable<HippotherapyProgramDto> responseDto, IEnumerable<HippotherapyProgram> programs)
     {
         SetUpMapper(responseDto);
         SetUpRepositoryWrapper(programs);
@@ -177,14 +173,14 @@ public class GetHippotherapyProgramsTests
 
     private void SetUpMapper(IEnumerable<HippotherapyProgramDto> responseDto)
     {
-        _mockMapper.Setup(m => m.Map<IEnumerable<HippotherapyProgramDto>>(It.IsAny<IEnumerable<DAL.Entities.HippotherapyProgram>>()))
+        _mockMapper.Setup(m => m.Map<IEnumerable<HippotherapyProgramDto>>(It.IsAny<IEnumerable<HippotherapyProgram>>()))
             .Returns(responseDto);
     }
 
-    private void SetUpRepositoryWrapper(IEnumerable<DAL.Entities.HippotherapyProgram> programs)
+    private void SetUpRepositoryWrapper(IEnumerable<HippotherapyProgram> programs)
     {
         _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository
-                .GetAllAsync(It.IsAny<QueryOptions<DAL.Entities.HippotherapyProgram>>()))
+                .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(programs);
     }
 }

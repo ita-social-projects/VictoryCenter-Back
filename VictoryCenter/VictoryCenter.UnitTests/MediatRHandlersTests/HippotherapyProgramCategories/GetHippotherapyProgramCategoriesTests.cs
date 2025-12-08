@@ -58,6 +58,25 @@ public class GetHippotherapyProgramCategoriesTests
         Assert.NotNull(result);
     }
 
+    [Fact]
+    public async Task Handle_ShouldCallRepositoryWithInclude()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new GetHippotherapyProgramCategoriesHandler(
+            _mockMapper.Object, _mockRepositoryWrapper.Object);
+
+        // Act
+        await handler.Handle(new GetHippotherapyProgramCategoriesQuery(), CancellationToken.None);
+
+        // Assert
+        _mockRepositoryWrapper.Verify(
+            repo => repo.HippotherapyProgramCategoriesRepository.GetAllAsync(
+                It.Is<QueryOptions<HippotherapyProgramCategory>>(opts =>
+                    opts.Include != null)),
+            Times.Once);
+    }
+
     private void SetupDependencies()
     {
         SetupMapper();

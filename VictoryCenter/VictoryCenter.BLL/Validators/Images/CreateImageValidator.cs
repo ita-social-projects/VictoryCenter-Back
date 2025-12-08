@@ -17,7 +17,7 @@ public class CreateImageValidator : BaseImageValidator<CreateImageCommand>
 
         RuleFor(x => x.CreateImageDto.MimeType)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.MimeType)))
-            .Must(mimeType => AllowedMimeTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase))
-            .WithMessage(ImageConstants.MimeTypeValidationError(AllowedMimeTypes));
+            .Must(mimeType => ImageConstants.AllowedMimeTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase))
+            .WithMessage(ImageConstants.MimeTypeValidationError(ImageConstants.AllowedMimeTypes));
     }
 }

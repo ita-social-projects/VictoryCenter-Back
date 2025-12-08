@@ -12,5 +12,7 @@ public enum SeederExecutionOrder
     SupportOptions,
     ForeignBankDetails,
     CorrespondentBankDetails,
-    WhoWeAre
+    WhoWeAre,
+    PartnersSections,
+    PartnersPageBanner,
 }

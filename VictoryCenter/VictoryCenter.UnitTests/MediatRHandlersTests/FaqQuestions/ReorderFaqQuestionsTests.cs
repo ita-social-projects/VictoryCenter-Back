@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -110,9 +109,6 @@ public class ReorderFaqQuestionsTests
             It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
             .ThrowsAsync(new DbUpdateException());
 
-        _mockRepoWrapper.Setup(x => x.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
-
         var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
 
         // Act
@@ -138,9 +134,6 @@ public class ReorderFaqQuestionsTests
             It.IsAny<Expression<Func<FaqPlacement, long>>>(),
             It.IsAny<Expression<Func<FaqPlacement, bool>>>()))
             .ThrowsAsync(new ReorderException(reorderErrorMessage));
-
-        _mockRepoWrapper.Setup(x => x.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         var handler = new ReorderFaqQuestionsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
 
@@ -168,8 +161,5 @@ public class ReorderFaqQuestionsTests
         _mockRepoWrapper.Setup(
             repositoryWrapper => repositoryWrapper.FaqPlacementsRepository.CountAsync(
                 It.IsAny<QueryOptions<FaqPlacement>>())).ReturnsAsync(countResult);
-
-        _mockRepoWrapper.Setup(x => x.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 }

@@ -7,14 +7,14 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.FaqQuestions;
 
 public class BaseFaqQuestionValidatorTests
 {
-    private readonly string _validQuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1);
-    private readonly string _validAnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1);
+    private readonly string _validQuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1);
+    private readonly string _validAnswerText = new('A', FaqConstants.AnswerTextMinLength + 1);
 
-    private readonly string _tooShortQuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength - 1);
-    private readonly string _tooLongQuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMaxLength + 1);
+    private readonly string _tooShortQuestionText = new('Q', FaqConstants.QuestionTextMinLength - 1);
+    private readonly string _tooLongQuestionText = new('Q', FaqConstants.QuestionTextMaxLength + 1);
 
-    private readonly string _tooShortAnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength - 1);
-    private readonly string _tooLongAnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMaxLength + 1);
+    private readonly string _tooShortAnswerText = new('A', FaqConstants.AnswerTextMinLength - 1);
+    private readonly string _tooLongAnswerText = new('A', FaqConstants.AnswerTextMaxLength + 1);
     private readonly BaseFaqQuestionValidator _validator;
 
     public BaseFaqQuestionValidatorTests()
@@ -37,7 +37,7 @@ public class BaseFaqQuestionValidatorTests
         var model = new CreateFaqQuestionDto { QuestionText = _tooShortQuestionText, AnswerText = _validAnswerText, };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.QuestionText)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), BaseFaqQuestionValidator.QuestionTextMinLength));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), FaqConstants.QuestionTextMinLength));
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public class BaseFaqQuestionValidatorTests
         var model = new CreateFaqQuestionDto { QuestionText = _tooLongQuestionText, AnswerText = _validAnswerText, };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.QuestionText)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), BaseFaqQuestionValidator.QuestionTextMaxLength));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.QuestionText), FaqConstants.QuestionTextMaxLength));
     }
 
     [Fact]
@@ -64,7 +64,7 @@ public class BaseFaqQuestionValidatorTests
         var model = new CreateFaqQuestionDto { QuestionText = _validQuestionText, AnswerText = _tooShortAnswerText, };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.AnswerText)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), BaseFaqQuestionValidator.AnswerTextMinLength));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMinLength));
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class BaseFaqQuestionValidatorTests
         var model = new CreateFaqQuestionDto { QuestionText = _validQuestionText, AnswerText = _tooLongAnswerText, };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.AnswerText)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), BaseFaqQuestionValidator.AnswerTextMaxLength));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMaxLength));
     }
 
     [Fact]

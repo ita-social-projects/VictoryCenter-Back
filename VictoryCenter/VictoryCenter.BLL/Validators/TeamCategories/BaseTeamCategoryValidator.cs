@@ -10,22 +10,28 @@ public class BaseTeamCategoryValidator : AbstractValidator<CreateTeamCategoryDto
     {
         RuleFor(dto => dto.Name)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamCategoryDto.Name)))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateTeamCategoryDto.Name)))
             .MinimumLength(TeamCategoryConstants.MinNameLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamCategoryDto.Name), TeamCategoryConstants.MinNameLength))
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateTeamCategoryDto.Name),
+                TeamCategoryConstants.MinNameLength))
             .MaximumLength(TeamCategoryConstants.MaxNameLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamCategoryDto.Name), TeamCategoryConstants.MaxNameLength));
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateTeamCategoryDto.Name),
+                TeamCategoryConstants.MaxNameLength));
 
         RuleFor(dto => dto.Description)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamCategoryDto.Description)))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateTeamCategoryDto.Description)))
             .MinimumLength(TeamCategoryConstants.MinDescriptionLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateTeamCategoryDto.Description), TeamCategoryConstants.MinDescriptionLength))
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateTeamCategoryDto.Description),
+                TeamCategoryConstants.MinDescriptionLength))
             .MaximumLength(TeamCategoryConstants.MaxDescriptionLength)
-            .WithMessage(ErrorMessagesConstants
-                .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateTeamCategoryDto.Description), TeamCategoryConstants.MaxDescriptionLength));
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateTeamCategoryDto.Description),
+                TeamCategoryConstants.MaxDescriptionLength));
     }
 }

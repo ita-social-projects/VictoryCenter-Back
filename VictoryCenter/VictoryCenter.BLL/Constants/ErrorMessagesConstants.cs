@@ -10,6 +10,13 @@ public static class ErrorMessagesConstants
         return "Not Found";
     }
 
+    public static string NotFound(IEnumerable<long> ids, Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Entities {entityType.Name} with id(s) '{string.Join(", ", ids)}' was not found";
+    }
+
     public static string NotFound(object? id, Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
@@ -22,6 +29,11 @@ public static class ErrorMessagesConstants
         ArgumentNullException.ThrowIfNull(entityType);
 
         return $"Entity {entityType.Name} with identifier '{identifier}' was not found";
+    }
+
+    public static string CannotUpdateAndDeleteSameEntity(IEnumerable<long> ids, Type entityType)
+    {
+        return $"Cannot update and delete the same entity {entityType.Name}. Conflicting IDs: {string.Join(", ", ids)}";
     }
 
     public static string FailedToCreateEntity(Type entityType)
@@ -138,6 +150,11 @@ public static class ErrorMessagesConstants
     public static string BlobStorageError(string message)
     {
         return $"Blob error: {message}";
+    }
+
+    public static string FailedToRetrieveImage()
+    {
+        return "Failed to retrieve image from storage";
     }
 
     public static string PropertyMustContainOnlyDigits(string property)

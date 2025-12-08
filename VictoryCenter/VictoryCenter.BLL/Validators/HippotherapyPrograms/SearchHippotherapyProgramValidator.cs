@@ -10,13 +10,16 @@ public class SearchHippotherapyProgramValidator : AbstractValidator<SearchHippot
     public SearchHippotherapyProgramValidator()
     {
         RuleFor(x => x.SearchHippotherapyProgramDto.SearchQuery)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchHippotherapyProgramDto.SearchQuery)))
-            .MinimumLength(SearchQueryMinLength).WithMessage(ErrorMessagesConstants
-            .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(SearchHippotherapyProgramDto.SearchQuery), SearchQueryMinLength))
-            .MaximumLength(SearchQueryMaxLength).WithMessage(ErrorMessagesConstants
-            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(SearchHippotherapyProgramDto.SearchQuery), SearchQueryMaxLength));
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(SearchHippotherapyProgramDto.SearchQuery)))
+            .MinimumLength(GlobalSearchConstants.DefaultSearchQueryMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(SearchHippotherapyProgramDto.SearchQuery),
+                GlobalSearchConstants.DefaultSearchQueryMinLength))
+            .MaximumLength(GlobalSearchConstants.DefaultSearchQueryMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(SearchHippotherapyProgramDto.SearchQuery),
+                GlobalSearchConstants.DefaultSearchQueryMaxLength));
     }
-
-    public static int SearchQueryMinLength { get; } = 2;
-    public static int SearchQueryMaxLength { get; } = 100;
 }

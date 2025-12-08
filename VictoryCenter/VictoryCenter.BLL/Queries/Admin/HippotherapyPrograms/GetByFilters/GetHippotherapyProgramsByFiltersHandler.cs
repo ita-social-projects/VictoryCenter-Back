@@ -38,7 +38,7 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
             Limit = request.RequestDto?.Limit is > 0 ? (int)request.RequestDto.Limit : 0,
             Filter = filter,
             Include = program => program
-                .Include(p => p.Image)
+                .Include(p => p.PreviewImage)
                 .Include(p => p.Categories)
         };
 

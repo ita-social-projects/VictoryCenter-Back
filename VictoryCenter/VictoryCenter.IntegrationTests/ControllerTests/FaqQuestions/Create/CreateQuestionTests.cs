@@ -3,8 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
-using VictoryCenter.BLL.Validators.FaqQuestions;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -43,8 +43,8 @@ public class CreateQuestionTests : BaseTestClass
         var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
         var createFaqQuestionDto = new CreateFaqQuestionDto
         {
-            QuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1),
-            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength - 1),
+            QuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1),
+            AnswerText = new('A', FaqConstants.AnswerTextMinLength - 1),
             Status = Status.Published,
             PageIds = [page.Id],
         };
@@ -60,8 +60,8 @@ public class CreateQuestionTests : BaseTestClass
     {
         var createFaqQuestionDto = new CreateFaqQuestionDto
         {
-            QuestionText = new('Q', BaseFaqQuestionValidator.QuestionTextMinLength + 1),
-            AnswerText = new('A', BaseFaqQuestionValidator.AnswerTextMinLength + 1),
+            QuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1),
+            AnswerText = new('A', FaqConstants.AnswerTextMinLength + 1),
             Status = Status.Published,
             PageIds = [long.MaxValue],
         };

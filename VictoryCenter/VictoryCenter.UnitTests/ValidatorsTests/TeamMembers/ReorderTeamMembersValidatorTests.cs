@@ -1,5 +1,6 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.TeamMembers.Reorder;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.Validators.TeamMembers;
 
@@ -100,7 +101,7 @@ public class ReorderTeamMembersValidatorTests
     [Fact]
     public void Validate_OrderedIdsExceedsMaxLimit_ShouldHaveError()
     {
-        var idsCount = 501;
+        var idsCount = ReorderConstants.MaxElementsSwapCount + 1;
         var dto = new ReorderTeamMembersDto
         {
             CategoryId = 1,

@@ -1,21 +1,10 @@
 using FluentValidation;
+using VictoryCenter.BLL.Constants;
 
 namespace VictoryCenter.BLL.Validators.Images;
 
 public abstract class BaseImageValidator<TImageCommand> : AbstractValidator<TImageCommand>
 {
-    protected const int MaxImageSizeInMb = 3;
-    protected const int BytesPerMb = 1024 * 1024;
-    protected const int MaxImageSizeInBytes = MaxImageSizeInMb * BytesPerMb;
-
-    protected static readonly string[] AllowedMimeTypes =
-    [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp"
-    ];
-
     private const char Base64PaddingChar = '=';
     private const int DoublePaddingLength = 2;
     private const int SinglePaddingLength = 1;
@@ -50,7 +39,7 @@ public abstract class BaseImageValidator<TImageCommand> : AbstractValidator<TIma
 
         double originalSize = (base64!.Length * Base64BytesPer3Chars / Base64CharsPer3Bytes) - padding;
 
-        return originalSize <= MaxImageSizeInBytes;
+        return originalSize <= ImageConstants.MaxImageSizeInBytes;
     }
 
     protected static bool IsValidBase64(string? base64)
