@@ -1,7 +1,11 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace VictoryCenter.WebAPI.Filters;
 
@@ -9,56 +13,81 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
 {
     public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
-        if (context.HttpContext.Request.ContentType?.Contains("application/json") == true)
+        var contentType = context.HttpContext.Request.ContentType;
+
+        if (contentType is null || !contentType.Contains("application/json"))
         {
-            context.HttpContext.Request.EnableBuffering();
+            await next();
+            return;
+        }
 
-            using var reader = new StreamReader(
-                context.HttpContext.Request.Body,
-                Encoding.UTF8,
-                leaveOpen: true);
+        context.HttpContext.Request.EnableBuffering();
 
-            var json = await reader.ReadToEndAsync();
-            context.HttpContext.Request.Body.Position = 0;
+        using var reader = new StreamReader(
+            context.HttpContext.Request.Body,
+            Encoding.UTF8,
+            leaveOpen: true);
 
-            if (!string.IsNullOrWhiteSpace(json))
+        var json = await reader.ReadToEndAsync();
+        context.HttpContext.Request.Body.Position = 0;
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            await next();
+            return;
+        }
+
+        var actionDescriptor = context.HttpContext.GetEndpoint()?.Metadata.GetMetadata<ControllerActionDescriptor>();
+
+        if (actionDescriptor is null)
+        {
+            await next();
+            return;
+        }
+
+        foreach (var parameter in actionDescriptor.Parameters)
+        {
+            if (!ShouldValidateParameter(parameter))
+                continue;
+
+            var validationError = ValidateJson(json, parameter.ParameterType);
+            if (validationError is not null)
             {
-                var endpoint = context.HttpContext.GetEndpoint();
-                var actionDescriptor = endpoint?.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>();
-
-                if (actionDescriptor != null)
-                {
-                    foreach (var parameter in actionDescriptor.Parameters)
-                    {
-                        if (parameter.ParameterType.IsClass &&
-                            parameter.ParameterType != typeof(string) &&
-                            !parameter.ParameterType.IsAbstract)
-                        {
-                            var options = new JsonSerializerOptions
-                            {
-                                UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow,
-                                ReadCommentHandling = JsonCommentHandling.Disallow,
-                                AllowTrailingCommas = false,
-                                PropertyNameCaseInsensitive = true
-                            };
-
-                            try
-                            {
-                                JsonSerializer.Deserialize(json, parameter.ParameterType, options);
-                            }
-                            catch (JsonException ex)
-                            {
-                                var modelState = new Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary();
-                                modelState.AddModelError(string.Empty, $"Invalid JSON: {ex.Message}");
-                                context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState));
-                                return;
-                            }
-                        }
-                    }
-                }
+                var modelState = new ModelStateDictionary();
+                modelState.AddModelError(string.Empty, $"Invalid JSON: {validationError}");
+                context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState));
+                return;
             }
         }
 
         await next();
+    }
+
+    private static bool ShouldValidateParameter(ParameterDescriptor parameter)
+    {
+        return parameter.ParameterType.IsClass &&
+               parameter.ParameterType != typeof(string) &&
+               !parameter.ParameterType.IsAbstract;
+    }
+
+    private static string? ValidateJson(string json, Type targetType)
+    {
+        var options = new JsonSerializerOptions
+        {
+            UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+            ReadCommentHandling = JsonCommentHandling.Disallow,
+            AllowTrailingCommas = false,
+            PropertyNameCaseInsensitive = true
+        };
+
+        try
+        {
+            JsonSerializer.Deserialize(json, targetType, options);
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            return ex.Message;
+        }
     }
 }
