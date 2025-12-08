@@ -26,7 +26,10 @@ public class GetFaqQuestionByIdHandler : IRequestHandler<GetFaqQuestionByIdQuery
         var queryOptions = new QueryOptions<FaqQuestion>
         {
             Filter = q => q.Id == request.Id,
-            Include = q => q.Include(p => p.Placements)
+            Include = q => q
+            .Include(p => p.Placements)
+            .Include(question => question.Localizations)
+            .ThenInclude(loc => loc.Language),
         };
 
         var faqQuestion = await _repository.FaqQuestionsRepository.GetFirstOrDefaultAsync(queryOptions);

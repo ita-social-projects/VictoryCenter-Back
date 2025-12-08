@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251125143150_AddedFaqLocalization")]
+    partial class AddedFaqLocalization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,15 +259,16 @@ namespace VictoryCenter.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Account")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<long>("ForeignBankDetailsId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("ForeignIban")
-                        .HasMaxLength(34)
-                        .HasColumnType("nvarchar(34)");
+                    b.Property<string>("Iban")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -273,8 +277,8 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<string>("Swift")
                         .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -341,11 +345,16 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Currency")
                         .HasColumnType("int");
+
+                    b.Property<string>("Iban")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -359,13 +368,8 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<string>("Swift")
                         .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
-
-                    b.Property<string>("UkrainianIban")
-                        .IsRequired()
-                        .HasMaxLength(29)
-                        .HasColumnType("nvarchar(29)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -380,43 +384,27 @@ namespace VictoryCenter.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("BackgroundImageId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MeetingsCount")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<long?>("ImageId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ParticipantsCount")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("PreviewImageId")
-                        .HasColumnType("bigint");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BackgroundImageId")
+                    b.HasIndex("ImageId")
                         .IsUnique()
-                        .HasFilter("[BackgroundImageId] IS NOT NULL");
-
-                    b.HasIndex("PreviewImageId")
-                        .IsUnique()
-                        .HasFilter("[PreviewImageId] IS NOT NULL");
+                        .HasFilter("[ImageId] IS NOT NULL");
 
                     b.ToTable("HippotherapyPrograms");
                 });
@@ -558,102 +546,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("TeamMemberLocalizations");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Partner", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("PartnersSectionId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Priority")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ImageId")
-                        .IsUnique();
-
-                    b.HasIndex("PartnersSectionId", "Priority")
-                        .IsUnique();
-
-                    b.ToTable("Partners");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnerSection", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("Priority")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Priority")
-                        .IsUnique();
-
-                    b.ToTable("PartnersSections");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnersPageBanner", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ImageId")
-                        .IsUnique()
-                        .HasFilter("[ImageId] IS NOT NULL");
-
-                    b.ToTable("PartnersPageBanners");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.SupportOptions", b =>
                 {
                     b.Property<long>("Id")
@@ -667,13 +559,13 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Value")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -764,6 +656,11 @@ namespace VictoryCenter.DAL.Migrations
                         .HasMaxLength(8)
                         .HasColumnType("nvarchar(8)");
 
+                    b.Property<string>("Iban")
+                        .IsRequired()
+                        .HasMaxLength(34)
+                        .HasColumnType("nvarchar(34)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -778,11 +675,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("UkrainianIban")
-                        .IsRequired()
-                        .HasMaxLength(29)
-                        .HasColumnType("nvarchar(29)");
 
                     b.HasKey("Id");
 
@@ -1022,17 +914,12 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgram", b =>
                 {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "BackgroundImage")
+                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
                         .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.HippotherapyProgram", "BackgroundImageId");
+                        .HasForeignKey("VictoryCenter.DAL.Entities.HippotherapyProgram", "ImageId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "PreviewImage")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.HippotherapyProgram", "PreviewImageId");
-
-                    b.Navigation("BackgroundImage");
-
-                    b.Navigation("PreviewImage");
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.FaqQuestionLocalization", b =>
@@ -1071,35 +958,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Entity");
 
                     b.Navigation("Language");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Partner", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.Partner", "ImageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.PartnerSection", "PartnerSection")
-                        .WithMany("Partners")
-                        .HasForeignKey("PartnersSectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Image");
-
-                    b.Navigation("PartnerSection");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnersPageBanner", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.PartnersPageBanner", "ImageId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
@@ -1158,11 +1016,6 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ForeignBankDetails", b =>
                 {
                     b.Navigation("CorrespondentBanks");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnerSection", b =>
-                {
-                    b.Navigation("Partners");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamCategory", b =>
