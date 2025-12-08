@@ -30,10 +30,6 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
-using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
-using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 
