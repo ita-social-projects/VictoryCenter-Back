@@ -5,24 +5,26 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
+using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 
 public class CreateTeamMemberLocalizationHandler : IRequestHandler<CreateTeamMemberLocalizationCommand, Result<TeamMemberLocalizationDto>>
 {
     private readonly IMapper _mapper;
-    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateTeamMemberLocalizationCommand> _validator;
+    private readonly ILocalizationService<TeamMember, TeamMemberLocalization> _localizationService;
 
-    public CreateTeamMemberLocalizationHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<CreateTeamMemberLocalizationCommand> validator)
+    public CreateTeamMemberLocalizationHandler(
+        IMapper mapper,
+        IValidator<CreateTeamMemberLocalizationCommand> validator,
+        ILocalizationService<TeamMember, TeamMemberLocalization> localizationService)
     {
-        _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _localizationService = localizationService;
     }
 
     public async Task<Result<TeamMemberLocalizationDto>> Handle(CreateTeamMemberLocalizationCommand request, CancellationToken cancellationToken)
@@ -30,47 +32,17 @@ public class CreateTeamMemberLocalizationHandler : IRequestHandler<CreateTeamMem
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            var teamMember = await _repositoryWrapper.TeamMembersRepository
-            .GetFirstOrDefaultAsync(
-                new QueryOptions<TeamMember>
-                {
-                    Filter = entity => entity.Id == request.CreateTeamMemberLocalizationDto.EntityId,
-                });
-
-            if (teamMember is null)
-            {
-                return Result.Fail<TeamMemberLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(
-                        request.CreateTeamMemberLocalizationDto.EntityId,
-                        typeof(TeamMember)));
-            }
-
-            var localizationLanguage = await _repositoryWrapper.LocalizationLanguagesRepository
-                .GetFirstOrDefaultAsync(
-                new QueryOptions<LocalizationLanguage>
-                {
-                    Filter = entity => entity.Id == request.CreateTeamMemberLocalizationDto.LanguageId,
-                });
-
-            if (localizationLanguage is null)
-            {
-                return Result.Fail<TeamMemberLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(
-                        request.CreateTeamMemberLocalizationDto.LanguageId,
-                        typeof(LocalizationLanguage)));
-            }
-
             TeamMemberLocalization entity = _mapper.Map<TeamMemberLocalization>(request.CreateTeamMemberLocalizationDto);
-            entity.CreatedAt = DateTimeOffset.UtcNow;
-            await _repositoryWrapper.TeamMemberLocalizationsRepository.CreateAsync(entity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
-            {
-                TeamMemberLocalizationDto responseDto = _mapper.Map<TeamMemberLocalizationDto>(entity);
-                return Result.Ok(responseDto);
-            }
-
+            var result = await _localizationService.CreateEntityLocalizationAsync(entity);
+            TeamMemberLocalizationDto responseDto = _mapper.Map<TeamMemberLocalizationDto>(result);
+            return Result.Ok(responseDto);
+        }
+        catch (KeyNotFoundException knfex)
+        {
+            return Result.Fail<TeamMemberLocalizationDto>(knfex.Message);
+        }
+        catch (InvalidOperationException)
+        {
             return Result.Fail<TeamMemberLocalizationDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(TeamMemberLocalization)));
         }
         catch (ValidationException vex)
