@@ -11,11 +11,19 @@ namespace VictoryCenter.WebAPI.Filters;
 
 public class StrictJsonValidationFilter : IAsyncResourceFilter
 {
+    private static readonly JsonSerializerOptions StrictOptions = new()
+    {
+        UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        ReadCommentHandling = JsonCommentHandling.Disallow,
+        AllowTrailingCommas = false,
+        PropertyNameCaseInsensitive = true
+    };
+
     public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
         var contentType = context.HttpContext.Request.ContentType;
 
-        if (contentType is null || !contentType.Contains("application/json"))
+        if (contentType is null || !contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
         {
             await next();
             return;
@@ -84,7 +92,7 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
 
         try
         {
-            JsonSerializer.Deserialize(json, targetType, options);
+            JsonSerializer.Deserialize(json, targetType, StrictOptions);
             return null;
         }
         catch (JsonException ex)
