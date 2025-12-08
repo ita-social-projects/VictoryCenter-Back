@@ -48,7 +48,9 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
         foreach (var parameter in actionDescriptor.Parameters)
         {
             if (!ShouldValidateParameter(parameter))
+            {
                 continue;
+            }
 
             var validationError = ValidateJson(json, parameter.ParameterType);
             if (validationError is not null)
