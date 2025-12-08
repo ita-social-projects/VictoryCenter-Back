@@ -16,4 +16,5 @@ public class HippotherapyProgram : BaseEntity
     public long? PreviewImageId { get; set; }
     public Image? PreviewImage { get; set; }
     public ICollection<HippotherapyProgramCategory> Categories { get; set; } = [];
+    public ICollection<HippotherapyProgramSection> Sections { get; set; } = [];
 }

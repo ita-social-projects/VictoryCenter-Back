@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 
@@ -29,6 +30,10 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
 
     public DbSet<HippotherapyProgram> HippotherapyPrograms { get; set; }
+
+    public DbSet<HippotherapyProgramSection> HippotherapyProgramSections { get; set; }
+
+    public DbSet<ProgramSectionContent> ProgramSectionContents { get; set; }
 
     public DbSet<WhoWeAreSection> WhoWeAreSections { get; set; }
 
