@@ -1,98 +1,99 @@
 using VictoryCenter.DAL.Enums;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 
 namespace VictoryCenter.BLL.Constants;
 
 public static class ProgramSectionConstants
 {
-    public static readonly string SectionOrdersMustBeUnique = "Section orders must be unique";
-    public static readonly string SectionOrdersMustBeSequential = "Section orders must be sequential starting from 0";
-
-    public static readonly Dictionary<ProgramSectionTemplate, (
+    public sealed record TemplateRequirementsConfig(
         (int Min, int Max) TitleCount,
         (int Min, int Max) TitleLength,
         (int Min, int Max) DescriptionCount,
         (int Min, int Max) DescriptionLength,
         (int Min, int Max) ImageCount
-    )> TemplateRequirements = new()
-    {
-        [ProgramSectionTemplate.QuadImagesBottom] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (4, 4)
-        ),
-        [ProgramSectionTemplate.DualImagesBottom] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (2, 2)
-        ),
-        [ProgramSectionTemplate.TextOnly] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (0, 0)
-        ),
-        [ProgramSectionTemplate.TripleImagesBottom] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (3, 3)
-        ),
-        [ProgramSectionTemplate.SingleImageBottom] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (1, 1)
-        ),
-        [ProgramSectionTemplate.SingleImageTop] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (1, 1)
-        ),
-        [ProgramSectionTemplate.SingleImageRight] = (
-            TitleCount: (1, 1),
-            TitleLength: (5, 60),
-            DescriptionCount: (1, 1),
-            DescriptionLength: (10, 600),
-            ImageCount: (1, 1)
-        )
-    };
+    );
 
-    public static string NoValidationRulesDefinedForTemplate(ProgramSectionTemplate template)
+    public static readonly Dictionary<ProgramSectionTemplate, TemplateRequirementsConfig>
+        TemplateRequirements = new()
+        {
+            [ProgramSectionTemplate.QuadImagesBottom] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (4, 4)
+            ),
+            [ProgramSectionTemplate.DualImagesBottom] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (2, 2)
+            ),
+            [ProgramSectionTemplate.TextOnly] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (0, 0)
+            ),
+            [ProgramSectionTemplate.TripleImagesBottom] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (3, 3)
+            ),
+            [ProgramSectionTemplate.SingleImageBottom] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (1, 1)
+            ),
+            [ProgramSectionTemplate.SingleImageTop] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (1, 1)
+            ),
+            [ProgramSectionTemplate.SingleImageRight] = new(
+                TitleCount: (1, 1),
+                TitleLength: (5, 60),
+                DescriptionCount: (1, 1),
+                DescriptionLength: (10, 600),
+                ImageCount: (1, 1)
+            )
+        };
+
+    public static string GetTitlesCountErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        return $"No validation rules defined for template: {template}";
+        var req = TemplateRequirements[section.Template];
+        return $"Template {section.Template} requires exactly {req.TitleCount.Min} title(s), but received {section.Titles?.Count ?? 0}";
     }
 
-    public static string TemplateRequiresExactlyNTitles(ProgramSectionTemplate template, int required, int actual)
+    public static string GetDescriptionsCountErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        return $"Template {template} requires exactly {required} title(s), but received {actual}";
+        var req = TemplateRequirements[section.Template];
+        return $"Template {section.Template} requires exactly {req.DescriptionCount.Min} description(s), but received {section.Descriptions?.Count ?? 0}";
     }
 
-    public static string TemplateRequiresExactlyNDescriptions(ProgramSectionTemplate template, int required, int actual)
+    public static string GetImagesCountErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        return $"Template {template} requires exactly {required} description(s), but received {actual}";
+        var req = TemplateRequirements[section.Template];
+        return $"Template {section.Template} requires exactly {req.ImageCount.Min} image(s), but received {section.ImageIds?.Count ?? 0}";
     }
 
-    public static string TemplateRequiresExactlyNImages(ProgramSectionTemplate template, int required, int actual)
+    public static string GetTitleLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        return $"Template {template} requires exactly {required} image(s), but received {actual}";
+        var req = TemplateRequirements[section.Template];
+        return $"Each title must be between {req.TitleLength.Min} and {req.TitleLength.Max} characters";
     }
 
-    public static string TitleMustBeBetweenNAndMCharacters(int min, int max)
+    public static string GetDescriptionLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        return $"Each title must be between {min} and {max} characters";
-    }
-
-    public static string DescriptionMustBeBetweenNAndMCharacters(int min, int max)
-    {
-        return $"Each description must be between {min} and {max} characters";
+        var req = TemplateRequirements[section.Template];
+        return $"Each description must be between {req.DescriptionLength.Min} and {req.DescriptionLength.Max} characters";
     }
 }

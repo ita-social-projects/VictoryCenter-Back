@@ -19,73 +19,74 @@ public class BaseHippotherapyProgramSectionValidator
             .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThan(
                 nameof(CreateHippotherapyProgramSectionDto.Order), -1));
 
-        When(x => ProgramSectionConstants.TemplateRequirements.ContainsKey(x.Template), () =>
-        {
-            RuleFor(x => x.Titles)
-                .Must((dto, titles) => IsValidCount(titles, GetRequirements(dto).TitleCount))
-                .WithMessage(x => ProgramSectionConstants.TemplateRequiresExactlyNTitles(
-                    x.Template,
-                    GetRequirements(x).TitleCount.Min,
-                    x.Titles?.Count ?? 0));
+        RuleFor(x => x.Titles)
+            .Must(HasValidTitlesCount)
+            .WithMessage(ProgramSectionConstants.GetTitlesCountErrorMessage)
+            .DependentRules(() =>
+            {
+                RuleForEach(x => x.Titles)
+                    .NotEmpty()
+                    .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Title"))
+                    .Must(HasValidTitleLength)
+                    .WithMessage(ProgramSectionConstants.GetTitleLengthErrorMessage);
+            });
 
-            RuleFor(x => x.Descriptions)
-                .Must((dto, descriptions) => IsValidCount(descriptions, GetRequirements(dto).DescriptionCount))
-                .WithMessage(x => ProgramSectionConstants.TemplateRequiresExactlyNDescriptions(
-                    x.Template,
-                    GetRequirements(x).DescriptionCount.Min,
-                    x.Descriptions?.Count ?? 0));
+        RuleFor(x => x.Descriptions)
+            .Must(HasValidDescriptionsCount)
+            .WithMessage(ProgramSectionConstants.GetDescriptionsCountErrorMessage)
+            .DependentRules(() =>
+            {
+                RuleForEach(x => x.Descriptions)
+                    .NotEmpty()
+                    .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Description"))
+                    .Must(HasValidDescriptionLength)
+                    .WithMessage(ProgramSectionConstants.GetDescriptionLengthErrorMessage);
+            });
 
-            RuleFor(x => x.ImageIds)
-                .Must((dto, imageIds) => IsValidCount(imageIds, GetRequirements(dto).ImageCount))
-                .WithMessage(x => ProgramSectionConstants.TemplateRequiresExactlyNImages(
-                    x.Template,
-                    GetRequirements(x).ImageCount.Min,
-                    x.ImageIds?.Count ?? 0))
-                .Must(list => list is null || list.Distinct().Count() == list.Count)
-                .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
-                    nameof(CreateHippotherapyProgramSectionDto.ImageIds)));
-
-            RuleForEach(x => x.Titles)
-                .NotEmpty()
-                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Title"))
-                .Must((dto, title) => IsValidLength(title, GetRequirements(dto).TitleLength))
-                .WithMessage(x => ProgramSectionConstants.TitleMustBeBetweenNAndMCharacters(
-                    GetRequirements(x).TitleLength.Min,
-                    GetRequirements(x).TitleLength.Max));
-
-            RuleForEach(x => x.Descriptions)
-                .NotEmpty()
-                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Description"))
-                .Must((dto, description) => IsValidLength(description, GetRequirements(dto).DescriptionLength))
-                .WithMessage(x => ProgramSectionConstants.DescriptionMustBeBetweenNAndMCharacters(
-                    GetRequirements(x).DescriptionLength.Min,
-                    GetRequirements(x).DescriptionLength.Max));
-
-            RuleForEach(x => x.ImageIds)
-                .GreaterThan(0)
-                .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("ImageId"));
-        });
+        RuleFor(x => x.ImageIds)
+            .Must(HasValidImagesCount)
+            .WithMessage(ProgramSectionConstants.GetImagesCountErrorMessage)
+            .Must(imageIds => imageIds is null || imageIds.Distinct().Count() == imageIds.Count)
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
+                nameof(CreateHippotherapyProgramSectionDto.ImageIds)))
+            .DependentRules(() =>
+            {
+                RuleForEach(x => x.ImageIds)
+                    .GreaterThan(0)
+                    .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("ImageId"));
+            });
     }
 
-    private static (
-        (int Min, int Max) TitleCount,
-        (int Min, int Max) TitleLength,
-        (int Min, int Max) DescriptionCount,
-        (int Min, int Max) DescriptionLength,
-        (int Min, int Max) ImageCount
-    ) GetRequirements(CreateHippotherapyProgramSectionDto dto) =>
-        ProgramSectionConstants.TemplateRequirements[dto.Template];
+    private static ProgramSectionConstants.TemplateRequirementsConfig GetReq(CreateHippotherapyProgramSectionDto section) =>
+        ProgramSectionConstants.TemplateRequirements[section.Template];
 
-    private static bool IsValidCount<T>(List<T>? items, (int Min, int Max) requirements)
+    private static bool HasValidTitlesCount(CreateHippotherapyProgramSectionDto section, List<string>? titles) =>
+        HasValidCount(titles, GetReq(section).TitleCount);
+
+    private static bool HasValidDescriptionsCount(CreateHippotherapyProgramSectionDto section, List<string>? descriptions) =>
+        HasValidCount(descriptions, GetReq(section).DescriptionCount);
+
+    private static bool HasValidImagesCount(CreateHippotherapyProgramSectionDto section, List<long>? imageIds) =>
+        HasValidCount(imageIds, GetReq(section).ImageCount);
+
+    private static bool HasValidTitleLength(CreateHippotherapyProgramSectionDto section, string? title) =>
+        HasValidLength(title, GetReq(section).TitleLength);
+
+    private static bool HasValidDescriptionLength(CreateHippotherapyProgramSectionDto section, string? description) =>
+        HasValidLength(description, GetReq(section).DescriptionLength);
+
+    private static bool HasValidCount<T>(List<T>? collection, (int Min, int Max) countRequirements)
     {
-        var actualCount = items?.Count ?? 0;
-        var requiredCount = requirements.Min;
+        var actualCount = collection?.Count ?? 0;
+        var requiredCount = countRequirements.Min;
 
-        return requiredCount == 0 ? actualCount == 0 : items is not null && actualCount == requiredCount;
+        return requiredCount == 0
+            ? actualCount == 0
+            : collection is not null && actualCount == requiredCount;
     }
 
-    private static bool IsValidLength(string? text, (int Min, int Max) requirements) =>
+    private static bool HasValidLength(string? text, (int Min, int Max) lengthRequirements) =>
         !string.IsNullOrWhiteSpace(text) &&
-        text.Length >= requirements.Min &&
-        text.Length <= requirements.Max;
+        text.Length >= lengthRequirements.Min &&
+        text.Length <= lengthRequirements.Max;
 }
