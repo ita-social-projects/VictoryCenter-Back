@@ -77,7 +77,8 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
     {
         return parameter.ParameterType.IsClass &&
                parameter.ParameterType != typeof(string) &&
-               !parameter.ParameterType.IsAbstract;
+               !parameter.ParameterType.IsAbstract &&
+               parameter.BindingInfo?.BindingSource == BindingSource.Body;
     }
 
     private static string? ValidateJson(string json, Type targetType)
