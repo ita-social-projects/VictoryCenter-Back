@@ -82,14 +82,6 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
 
     private static string? ValidateJson(string json, Type targetType)
     {
-        var options = new JsonSerializerOptions
-        {
-            UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
-            ReadCommentHandling = JsonCommentHandling.Disallow,
-            AllowTrailingCommas = false,
-            PropertyNameCaseInsensitive = true
-        };
-
         try
         {
             JsonSerializer.Deserialize(json, targetType, StrictOptions);
