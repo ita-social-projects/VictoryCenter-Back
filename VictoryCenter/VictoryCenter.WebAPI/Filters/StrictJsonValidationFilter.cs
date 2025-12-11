@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.WebAPI.Filters;
 
@@ -53,6 +54,8 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
             return;
         }
 
+        var validationErrors = new List<string>();
+
         foreach (var parameter in actionDescriptor.Parameters)
         {
             if (!ShouldValidateParameter(parameter))
@@ -60,14 +63,30 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
                 continue;
             }
 
-            var validationError = ValidateJson(json, parameter.ParameterType);
-            if (validationError is not null)
+            var errors = JsonValidationHelper.ValidateJsonAgainstType(json, parameter.ParameterType, StrictOptions);
+            if (errors.Count > 0)
             {
-                var modelState = new ModelStateDictionary();
-                modelState.AddModelError(string.Empty, $"Invalid JSON: {validationError}");
-                context.Result = new BadRequestObjectResult(new ValidationProblemDetails(modelState));
-                return;
+                validationErrors.AddRange(errors);
             }
+        }
+
+        if (validationErrors.Count > 0)
+        {
+            var problemDetails = new ProblemDetails
+            {
+                Title = "Invalid JSON format",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = validationErrors.Count == 1
+                    ? validationErrors[0]
+                    : "The request contains multiple JSON validation errors. See the 'errors' property for details.",
+                Extensions =
+                {
+                    ["errors"] = validationErrors
+                }
+            };
+
+            context.Result = new BadRequestObjectResult(problemDetails);
+            return;
         }
 
         await next();
@@ -79,18 +98,5 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
                parameter.ParameterType != typeof(string) &&
                !parameter.ParameterType.IsAbstract &&
                parameter.BindingInfo?.BindingSource == BindingSource.Body;
-    }
-
-    private static string? ValidateJson(string json, Type targetType)
-    {
-        try
-        {
-            JsonSerializer.Deserialize(json, targetType, StrictOptions);
-            return null;
-        }
-        catch (JsonException ex)
-        {
-            return ex.Message;
-        }
     }
 }
