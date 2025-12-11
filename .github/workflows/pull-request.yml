@@ -1,4 +1,4 @@
-name: Main pipline Backend
+name: Main pipeline Backend
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
-          labels: ${{ steps.meta.outputs.labels }}
+   
   manual_approval_deploy:
     needs: docker 
     environment: stage 
@@ -53,32 +53,32 @@ jobs:
               | jq '.[] | {user: .user.login, comment: .comment, environments: [.environments[].name]}' \
                | jq -r '.comment')" >> $GITHUB_OUTPUT
   stage_deploy:
-   needs: manual_approval_deploy
+   needs: [manual_approval_deploy, docker]
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
    runs-on: self-hosted
    outputs:
       backend_tag: ${{ steps.backend_tag.outputs.backend_tag }}
       frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
+      backend_tag_rollback: ${{ steps.backend_tag_rollback.outputs.backend_tag_rollback }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
-    - name: "Set backend tag"
-      id: backend_tag
-      run: echo "backend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
+    - name: "Set backend tag for rollback"
+      id: backend_tag_rollback
+      run: echo "backend_tag_rollback=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "/" -f2)" >> $GITHUB_OUTPUT   
     - name: "Set frontend tag"
       id: frontend_tag
-      run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "-" -f2 | head -c -1)" >> $GITHUB_OUTPUT   
+      run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "/" -f2)" >> $GITHUB_OUTPUT   
+    - name: "Set backend tag"
+      id: backend_tag
+      run: echo "backend_tag=backend:release-${GITHUB_REF##*/}.${RUN_NUM}" >> $GITHUB_OUTPUT
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend
-    - name: Delete additon info
+    - name: Delete additional info
       run: docker system prune -f
-    - name: Set docker tag
-      run: echo "DOCKER_TAG_BACKEND=${GITHUB_REF##*/}.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-    - name: Check value
-      run: echo "$DOCKER_TAG_BACKEND"
     - name: Set up enviroments and Deploy
       env:
         INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
@@ -86,7 +86,7 @@ jobs:
         JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
         JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
         DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
-        DOCKER_TAG_BACKEND: ${{ env.DOCKER_TAG_BACKEND }}
+        DOCKER_TAG_BACKEND: ${{ steps.backend_tag.outputs.backend_tag }}
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
         WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
@@ -94,7 +94,19 @@ jobs:
         WAY4PAY_API_URL: ${{ secrets.WAY4PAY_API_URL }}
         BLOB_LOCAL_STORE_KEY: ${{ secrets.BLOB_LOCAL_STORE_KEY }}
       run: |
-        docker compose up -d   
+        docker compose up -d
+    - name: Discord notification
+      if: failure()
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      uses: appleboy/discord-action@v1.2.0
+      with:
+        args: |
+          ❗ Deployment error on Main Backend pipeline!
+          An issue occurred during the deployment process.
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          🔗 [View workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
   manual_approval_rollback:
     needs: stage_deploy
     environment: stage 
@@ -116,12 +128,8 @@ jobs:
    if: contains(needs.manual_approval_rollback.outputs.comment, 'approve')
    runs-on: self-hosted
    steps:
-    - name: Rollback tag
-      run: echo "test_val_2=${GITHUB_REF##*/}.$((RUN_NUM - 1))"
-    - name: Rollback tags
-      run: echo ${{ needs.stage_deploy.outputs.backend_tag }}
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
@@ -135,7 +143,7 @@ jobs:
         JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
         JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
         DOCKER_TAG_FRONTEND: ${{ needs.stage_deploy.outputs.frontend_tag }}
-        DOCKER_TAG_BACKEND: ${{ needs.stage_deploy.outputs.backend_tag }}
+        DOCKER_TAG_BACKEND: ${{ needs.stage_deploy.outputs.backend_tag_rollback }}
         DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
         WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
         WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
