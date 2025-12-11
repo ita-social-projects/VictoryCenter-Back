@@ -34,6 +34,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
+using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -106,6 +107,7 @@ public static class ServicesConfiguration
         services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
 
         services.AddOptions<JwtOptions>()
