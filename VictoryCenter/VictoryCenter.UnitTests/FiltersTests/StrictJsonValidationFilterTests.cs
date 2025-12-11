@@ -75,8 +75,39 @@ public class StrictJsonValidationFilterTests
 
         Assert.False(nextCalled);
         var badRequest = Assert.IsType<BadRequestObjectResult>(context.Result);
-        var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
-        Assert.Contains("Invalid JSON:", problemDetails.Errors[string.Empty][0]);
+        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
+        Assert.Equal("Invalid JSON format", problemDetails.Title);
+        Assert.Equal(400, problemDetails.Status);
+        Assert.NotNull(problemDetails.Detail);
+    }
+
+    [Fact]
+    public async Task OnResourceExecutionAsync_WithUnmappedProperty_ShouldReturnFormattedError()
+    {
+        var json = "{\"name\":\"John\",\"age\":30,\"extraProperty\":\"value\"}";
+        var (context, nextCalled) = await ExecuteFilter("application/json", json, typeof(TestDto));
+
+        Assert.False(nextCalled);
+        var badRequest = Assert.IsType<BadRequestObjectResult>(context.Result);
+        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
+        Assert.Contains("Unknown property", problemDetails.Detail);
+        Assert.Contains("extraProperty", problemDetails.Detail);
+    }
+
+    [Fact]
+    public async Task OnResourceExecutionAsync_WithMultipleUnmappedProperties_ShouldReturnAllErrors()
+    {
+        var json = "{\"name\":\"John\",\"age\":30,\"extra1\":\"value1\",\"extra2\":\"value2\"}";
+        var (context, nextCalled) = await ExecuteFilter("application/json", json, typeof(TestDto));
+
+        Assert.False(nextCalled);
+        var badRequest = Assert.IsType<BadRequestObjectResult>(context.Result);
+        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
+
+        Assert.True(problemDetails.Extensions.ContainsKey("errors"));
+        var errors = problemDetails.Extensions["errors"] as List<string>;
+        Assert.NotNull(errors);
+        Assert.True(errors.Count > 0);
     }
 
     [Theory]
@@ -96,6 +127,44 @@ public class StrictJsonValidationFilterTests
     public async Task OnResourceExecutionAsync_WithNonValidatableParameters_ShouldSkipValidation(Type parameterType)
     {
         var (context, nextCalled) = await ExecuteFilter("application/json", "{\"invalid json}", parameterType);
+
+        Assert.True(nextCalled);
+        Assert.Null(context.Result);
+    }
+
+    [Fact]
+    public async Task OnResourceExecutionAsync_WithNonBodyParameter_ShouldSkipValidation()
+    {
+        var json = "{\"name\":\"John\",\"age\":30}";
+        var context = CreateContext("application/json", json, typeof(TestDto));
+        var httpContext = context.HttpContext;
+
+        var parameterDescriptor = new ParameterDescriptor
+        {
+            Name = "testDto",
+            ParameterType = typeof(TestDto),
+            BindingInfo = new BindingInfo
+            {
+                BindingSource = Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Query
+            }
+        };
+
+        var actionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor
+        {
+            Parameters = new List<ParameterDescriptor> { parameterDescriptor }
+        };
+
+        httpContext.SetEndpoint(new Endpoint(
+            null,
+            new EndpointMetadataCollection(actionDescriptor),
+            null));
+
+        var nextCalled = false;
+        await _filter.OnResourceExecutionAsync(context, () =>
+        {
+            nextCalled = true;
+            return Task.FromResult(CreateExecutedContext(context));
+        });
 
         Assert.True(nextCalled);
         Assert.Null(context.Result);
@@ -155,7 +224,11 @@ public class StrictJsonValidationFilterTests
         var parameters = parameterTypes.Select(type => new ParameterDescriptor
         {
             Name = type.Name.ToLower(),
-            ParameterType = type
+            ParameterType = type,
+            BindingInfo = new BindingInfo
+            {
+                BindingSource = Microsoft.AspNetCore.Mvc.ModelBinding.BindingSource.Body
+            }
         }).ToList();
 
         httpContext.SetEndpoint(new Endpoint(
