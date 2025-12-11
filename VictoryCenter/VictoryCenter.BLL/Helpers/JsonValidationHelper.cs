@@ -62,12 +62,12 @@ public static class JsonValidationHelper
     {
         if (rawError.Contains("could not be mapped to any .NET member"))
         {
-            var startIndex = rawError.IndexOf("'") + 1;
-            var endIndex = rawError.IndexOf("'", startIndex);
+            var startIndex = rawError.IndexOf('\'') + 1;
+            var endIndex = rawError.IndexOf('\'', startIndex);
 
             if (startIndex > 0 && endIndex > startIndex)
             {
-                var propertyName = rawError.Substring(startIndex, endIndex - startIndex);
+                var propertyName = rawError[startIndex..endIndex];
                 return $"Unknown property '{propertyName}' is not allowed";
             }
         }
