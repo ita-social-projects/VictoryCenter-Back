@@ -2,15 +2,20 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 
-public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippotherapyProgramCommand, Result<HippotherapyProgramDto>>
+public class CreateHippotherapyProgramHandler
+    : IRequestHandler<CreateHippotherapyProgramCommand, Result<HippotherapyProgramDto>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -43,6 +48,20 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
                 return Result.Fail<HippotherapyProgramDto>(categoriesResult.Errors);
             }
 
+            var sectionImageIds = (request.CreateProgramDto.Sections ?? [])
+                .SelectMany(s => s.ImageIds ?? []);
+
+            var imagesByIdsResult = await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
+                _repositoryWrapper,
+                sectionImageIds);
+
+            if (imagesByIdsResult.IsFailed)
+            {
+                return Result.Fail<HippotherapyProgramDto>(imagesByIdsResult.Errors);
+            }
+
+            var imagesById = imagesByIdsResult.Value;
+
             var program = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
             var backgroundImageResult = await ImageValidationHelper.ValidateAndGetImageAsync(
@@ -71,7 +90,10 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
                 program.Categories.Add(category);
             }
 
-            program.CreatedAt = DateTimeOffset.UtcNow;
+            var now = DateTimeOffset.UtcNow;
+            program.CreatedAt = now;
+
+            AddSections(program, request.CreateProgramDto.Sections, now, imagesById);
 
             await _repositoryWrapper.HippotherapyProgramsRepository.CreateAsync(program);
 
@@ -83,9 +105,83 @@ public class CreateHippotherapyProgramHandler : IRequestHandler<CreateHippothera
             return Result.Fail<HippotherapyProgramDto>(
                 ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)));
         }
-        catch (ValidationException ex)
+        catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyProgramDto>(ex.Message);
+            return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<HippotherapyProgramDto>(
+                ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgram)));
+        }
+    }
+
+    private static void AddSections(
+        HippotherapyProgram program,
+        List<CreateHippotherapyProgramSectionDto>? sections,
+        DateTimeOffset now,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        foreach (var sectionDto in sections ?? [])
+        {
+            program.Sections.Add(new HippotherapyProgramSection
+            {
+                Template = sectionDto.Template,
+                Order = sectionDto.Order,
+                CreatedAt = now,
+                Contents = BuildContents(sectionDto, imagesById)
+            });
+        }
+    }
+
+    private static List<ProgramSectionContent> BuildContents(
+        CreateHippotherapyProgramSectionDto sectionDto,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        var capacity =
+            (sectionDto.Titles?.Count ?? 0) +
+            (sectionDto.Descriptions?.Count ?? 0) +
+            (sectionDto.ImageIds?.Count ?? 0);
+
+        var contents = new List<ProgramSectionContent>(capacity);
+        var order = 0;
+
+        foreach (var title in sectionDto.Titles ?? [])
+        {
+            contents.Add(new TitleProgramContent
+            {
+                ContentType = ContentType.Title,
+                Order = order++,
+                Title = title.Trim()
+            });
+        }
+
+        foreach (var description in sectionDto.Descriptions ?? [])
+        {
+            contents.Add(new DescriptionProgramContent
+            {
+                ContentType = ContentType.Description,
+                Order = order++,
+                Description = description.Trim()
+            });
+        }
+
+        foreach (var imageId in sectionDto.ImageIds ?? [])
+        {
+            if (!imagesById.TryGetValue(imageId, out var image))
+            {
+                continue;
+            }
+
+            contents.Add(new ImageProgramContent
+            {
+                ContentType = ContentType.Image,
+                Order = order++,
+                ImageId = imageId,
+                Image = image
+            });
+        }
+
+        return contents;
     }
 }

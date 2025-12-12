@@ -5,9 +5,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -29,22 +31,22 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         _validator = validator;
     }
 
-    public async Task<Result<HippotherapyProgramDto>> Handle(
-        UpdateHippotherapyProgramCommand request,
-        CancellationToken cancellationToken)
+    public async Task<Result<HippotherapyProgramDto>> Handle(UpdateHippotherapyProgramCommand request, CancellationToken cancellationToken)
     {
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var program = await _repositoryWrapper
-                .HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
-                    new QueryOptions<HippotherapyProgram>
-                    {
-                        Filter = p => p.Id == request.Id,
-                        Include = p => p.Include(x => x.Categories),
-                        AsNoTracking = false
-                    });
+            var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<HippotherapyProgram>
+                {
+                    Filter = p => p.Id == request.Id,
+                    AsNoTracking = false,
+                    Include = p => p
+                        .Include(x => x.Categories)
+                        .Include(x => x.Sections)
+                            .ThenInclude(s => s.Contents)
+                });
 
             if (program is null)
             {
@@ -60,6 +62,20 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             {
                 return Result.Fail<HippotherapyProgramDto>(newCategoriesResult.Errors);
             }
+
+            var sectionImageIds = (request.UpdateProgramDto.Sections ?? [])
+                .SelectMany(s => s.ImageIds ?? []);
+
+            var imagesByIdsResult = await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
+                _repositoryWrapper,
+                sectionImageIds);
+
+            if (imagesByIdsResult.IsFailed)
+            {
+                return Result.Fail<HippotherapyProgramDto>(imagesByIdsResult.Errors);
+            }
+
+            var imagesById = imagesByIdsResult.Value;
 
             _mapper.Map(request.UpdateProgramDto, program);
 
@@ -90,6 +106,9 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 program.Categories.Add(category);
             }
 
+            program.Sections.Clear();
+            AddSections(program, request.UpdateProgramDto.Sections, DateTimeOffset.UtcNow, imagesById);
+
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
@@ -100,14 +119,72 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             return Result.Fail<HippotherapyProgramDto>(
                 ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
         }
-        catch (ValidationException ex)
+        catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyProgramDto>(ex.Message);
+            return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
-        catch (BlobStorageException)
+    }
+
+    private static void AddSections(
+        HippotherapyProgram program,
+        List<CreateHippotherapyProgramSectionDto>? sections,
+        DateTimeOffset now,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        foreach (var sectionDto in sections ?? [])
         {
-            return Result.Fail<HippotherapyProgramDto>(
-                HippotherapyProgramConstants.FailedRetrievingProgramPhoto);
+            program.Sections.Add(new HippotherapyProgramSection
+            {
+                Template = sectionDto.Template,
+                Order = sectionDto.Order,
+                CreatedAt = now,
+                Contents = BuildContents(sectionDto, imagesById)
+            });
         }
+    }
+
+    private static List<ProgramSectionContent> BuildContents(
+        CreateHippotherapyProgramSectionDto sectionDto,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        var contents = new List<ProgramSectionContent>(
+            (sectionDto.Titles?.Count ?? 0) +
+            (sectionDto.Descriptions?.Count ?? 0) +
+            (sectionDto.ImageIds?.Count ?? 0));
+
+        var order = 0;
+
+        foreach (var title in sectionDto.Titles ?? [])
+        {
+            contents.Add(new TitleProgramContent
+            {
+                ContentType = ContentType.Title,
+                Order = order++,
+                Title = title.Trim()
+            });
+        }
+
+        foreach (var description in sectionDto.Descriptions ?? [])
+        {
+            contents.Add(new DescriptionProgramContent
+            {
+                ContentType = ContentType.Description,
+                Order = order++,
+                Description = description.Trim()
+            });
+        }
+
+        foreach (var imageId in sectionDto.ImageIds ?? [])
+        {
+            contents.Add(new ImageProgramContent
+            {
+                ContentType = ContentType.Image,
+                Order = order++,
+                ImageId = imageId,
+                Image = imagesById[imageId]
+            });
+        }
+
+        return contents;
     }
 }

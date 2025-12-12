@@ -35,6 +35,41 @@ public static class ImageValidationHelper
         }
     }
 
+    public static async Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetImagesByIdsAsync(
+        IRepositoryWrapper repositoryWrapper,
+        IEnumerable<long> imageIds)
+    {
+        try
+        {
+            var ids = imageIds
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (ids.Count == 0)
+            {
+                return Result.Ok<IReadOnlyDictionary<long, Image>>(new Dictionary<long, Image>());
+            }
+
+            var images = await repositoryWrapper.ImageRepository.GetAllAsync(new QueryOptions<Image>
+            {
+                Filter = i => ids.Contains(i.Id),
+                AsNoTracking = false
+            });
+
+            var imagesById = images.ToDictionary(i => i.Id);
+            var missingIds = ids.Where(id => !imagesById.ContainsKey(id)).ToList();
+
+            return missingIds.Any()
+                ? Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.NotFound(missingIds, typeof(Image)))
+                : Result.Ok<IReadOnlyDictionary<long, Image>>(imagesById);
+        }
+        catch (BlobStorageException)
+        {
+            return Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.FailedToRetrieveImage());
+        }
+    }
+
     private static async Task<Image?> FetchImageFromRepositoryAsync(
         IRepositoryWrapper repositoryWrapper,
         long imageId)

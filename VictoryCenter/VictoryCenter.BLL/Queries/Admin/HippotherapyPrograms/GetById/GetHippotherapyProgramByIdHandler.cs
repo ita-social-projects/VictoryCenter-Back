@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -30,6 +31,11 @@ public class GetHippotherapyProgramByIdHandler : IRequestHandler<GetHippotherapy
                 .Include(p => p.Categories)
                 .Include(p => p.PreviewImage)!
                 .Include(p => p.BackgroundImage)!
+                .Include(p => p.Sections)
+                    .ThenInclude(s => s.Contents)
+                .Include(p => p.Sections)
+                    .ThenInclude(s => s.Contents.OfType<ImageProgramContent>())
+                        .ThenInclude(c => c.Image!)
         };
 
         HippotherapyProgram? program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(queryOptions);

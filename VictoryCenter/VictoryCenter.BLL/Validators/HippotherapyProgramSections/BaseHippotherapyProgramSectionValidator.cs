@@ -26,7 +26,7 @@ public class BaseHippotherapyProgramSectionValidator
             {
                 RuleForEach(x => x.Titles)
                     .NotEmpty()
-                    .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Title"))
+                    .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateHippotherapyProgramSectionDto.Titles)))
                     .Must(HasValidTitleLength)
                     .WithMessage(ProgramSectionConstants.GetTitleLengthErrorMessage);
             });
@@ -38,7 +38,7 @@ public class BaseHippotherapyProgramSectionValidator
             {
                 RuleForEach(x => x.Descriptions)
                     .NotEmpty()
-                    .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Description"))
+                    .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateHippotherapyProgramSectionDto.Descriptions)))
                     .Must(HasValidDescriptionLength)
                     .WithMessage(ProgramSectionConstants.GetDescriptionLengthErrorMessage);
             });
@@ -53,7 +53,7 @@ public class BaseHippotherapyProgramSectionValidator
             {
                 RuleForEach(x => x.ImageIds)
                     .GreaterThan(0)
-                    .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("ImageId"));
+                    .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateHippotherapyProgramSectionDto.ImageIds)));
             });
     }
 
@@ -75,18 +75,25 @@ public class BaseHippotherapyProgramSectionValidator
     private static bool HasValidDescriptionLength(CreateHippotherapyProgramSectionDto section, string? description) =>
         HasValidLength(description, GetReq(section).DescriptionLength);
 
-    private static bool HasValidCount<T>(List<T>? collection, (int Min, int Max) countRequirements)
+    private static bool HasValidCount<T>(List<T>? collection, (int Min, int Max) req)
     {
-        var actualCount = collection?.Count ?? 0;
-        var requiredCount = countRequirements.Min;
+        var count = collection?.Count ?? 0;
+        if (req.Min == 0 && req.Max == 0)
+        {
+            return count == 0;
+        }
 
-        return requiredCount == 0
-            ? actualCount == 0
-            : collection is not null && actualCount == requiredCount;
+        return collection is not null
+               && count >= req.Min
+               && count <= req.Max;
     }
 
-    private static bool HasValidLength(string? text, (int Min, int Max) lengthRequirements) =>
-        !string.IsNullOrWhiteSpace(text) &&
-        text.Length >= lengthRequirements.Min &&
-        text.Length <= lengthRequirements.Max;
+    private static bool HasValidLength(string? text, (int Min, int Max) lengthRequirements)
+    {
+        var trimmed = text?.Trim();
+
+        return !string.IsNullOrEmpty(trimmed)
+               && trimmed.Length >= lengthRequirements.Min
+               && trimmed.Length <= lengthRequirements.Max;
+    }
 }
