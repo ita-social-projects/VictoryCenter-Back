@@ -595,7 +595,7 @@ In case of any violations, pull request will be rejected.
 
 ---
 
-## Our Team
+### Our Team
 
 [![@IrynaZavushchak](https://avatars.githubusercontent.com/u/45690640?s=100&v=4)](https://github.com/IrynaZavushchak)
 [![@Halyna Melnyk](https://avatars.githubusercontent.com/u/39273210?s=100&v=4)](https://github.com/mehalyna)
