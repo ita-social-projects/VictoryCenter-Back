@@ -125,6 +125,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
     }
 
+    // TODO: Move to a separate file
+
     private static void AddSections(
         HippotherapyProgram program,
         List<CreateHippotherapyProgramSectionDto>? sections,

@@ -22,6 +22,7 @@ public class BaseHippotherapyProgramSectionValidator
         RuleFor(x => x.Titles)
             .Must(HasValidTitlesCount)
             .WithMessage(ProgramSectionConstants.GetTitlesCountErrorMessage)
+            .When(HasKnownTemplate)
             .DependentRules(() =>
             {
                 RuleForEach(x => x.Titles)
@@ -34,6 +35,7 @@ public class BaseHippotherapyProgramSectionValidator
         RuleFor(x => x.Descriptions)
             .Must(HasValidDescriptionsCount)
             .WithMessage(ProgramSectionConstants.GetDescriptionsCountErrorMessage)
+            .When(HasKnownTemplate)
             .DependentRules(() =>
             {
                 RuleForEach(x => x.Descriptions)
@@ -46,6 +48,7 @@ public class BaseHippotherapyProgramSectionValidator
         RuleFor(x => x.ImageIds)
             .Must(HasValidImagesCount)
             .WithMessage(ProgramSectionConstants.GetImagesCountErrorMessage)
+            .When(HasKnownTemplate)
             .Must(imageIds => imageIds is null || imageIds.Distinct().Count() == imageIds.Count)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
                 nameof(CreateHippotherapyProgramSectionDto.ImageIds)))
@@ -56,6 +59,9 @@ public class BaseHippotherapyProgramSectionValidator
                     .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateHippotherapyProgramSectionDto.ImageIds)));
             });
     }
+
+    private static bool HasKnownTemplate(CreateHippotherapyProgramSectionDto section) =>
+        ProgramSectionConstants.TemplateRequirements.ContainsKey(section.Template);
 
     private static ProgramSectionConstants.TemplateRequirementsConfig GetReq(CreateHippotherapyProgramSectionDto section) =>
         ProgramSectionConstants.TemplateRequirements[section.Template];

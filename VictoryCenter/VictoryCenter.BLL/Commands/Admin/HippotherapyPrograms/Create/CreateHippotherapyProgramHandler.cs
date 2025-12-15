@@ -116,6 +116,8 @@ public class CreateHippotherapyProgramHandler
         }
     }
 
+    // TODO: Move to a separate file
+
     private static void AddSections(
         HippotherapyProgram program,
         List<CreateHippotherapyProgramSectionDto>? sections,

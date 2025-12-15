@@ -60,7 +60,7 @@ public static class ImageValidationHelper
             var imagesById = images.ToDictionary(i => i.Id);
             var missingIds = ids.Where(id => !imagesById.ContainsKey(id)).ToList();
 
-            return missingIds.Any()
+            return missingIds.Count != 0
                 ? Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.NotFound(missingIds, typeof(Image)))
                 : Result.Ok<IReadOnlyDictionary<long, Image>>(imagesById);
         }
