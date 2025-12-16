@@ -43,7 +43,7 @@ public class SearchTeamMemberHandler : IRequestHandler<SearchTeamMemberQuery, Re
             {
                 TermSelector = tm => tm.FullName.ToLower(),
                 TermValue = dto.FullName.ToLower(),
-                SearchLogic = SearchLogic.Prefix,
+                SearchLogic = SearchLogic.Contains,
             };
 
             var searchExpression = _searchService.CreateSearchExpression(searchTerm);

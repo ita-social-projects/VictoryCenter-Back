@@ -16,4 +16,9 @@ public enum SearchLogic
     /// Matches values that start with the specific value
     /// </summary>
     Prefix,
+
+    /// <summary>
+    /// Matches values that contain the search term anywhere in the string
+    /// </summary>
+    Contains,
 }
