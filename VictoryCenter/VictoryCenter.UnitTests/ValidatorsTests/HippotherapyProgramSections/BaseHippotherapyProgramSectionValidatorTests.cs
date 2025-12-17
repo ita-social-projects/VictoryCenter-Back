@@ -155,7 +155,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
     {
         var model = GetValidModel(ProgramSectionTemplate.DualImagesBottom) with
         {
-            ImageIds = [0, 2] // count ок, unique ок => зайдемо в DependentRules і впадемо на GreaterThan(0)
+            ImageIds = [0, 2]
         };
 
         var result = _validator.TestValidate(model);

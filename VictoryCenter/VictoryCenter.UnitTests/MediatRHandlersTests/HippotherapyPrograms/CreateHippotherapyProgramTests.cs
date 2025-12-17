@@ -181,7 +181,7 @@ public class CreateHippotherapyProgramTests
 
         _repositoryWrapperMock
             .Setup(r => r.ImageRepository.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
-            .ReturnsAsync(new List<Image> { _images[0] });
+            .ReturnsAsync([_images[0]]);
 
         var result = await ExecuteAsync();
 
@@ -254,7 +254,7 @@ public class CreateHippotherapyProgramTests
                 var predicate = options.Filter?.Compile();
                 return predicate is null
                     ? _programCategories
-                    : _programCategories.Where(predicate).ToList();
+                    : [.. _programCategories.Where(predicate)];
             });
 
         _repositoryWrapperMock
@@ -274,7 +274,7 @@ public class CreateHippotherapyProgramTests
                 var predicate = options.Filter?.Compile();
                 return predicate is null
                     ? _images
-                    : _images.Where(predicate).ToList();
+                    : [.. _images.Where(predicate)];
             });
 
         _repositoryWrapperMock
