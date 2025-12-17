@@ -56,7 +56,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Titles)
-            .WithErrorMessage(ProgramSectionConstants.GetTitlesCountErrorMessage(model));
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetTitlesCountErrorMessage(model));
     }
 
     [Fact]
@@ -75,12 +75,12 @@ public class BaseHippotherapyProgramSectionValidatorTests
     public void Validate_TitleItemIsTooShort_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly);
-        model.Titles[0] = new string('T', ProgramSectionConstants.TemplateRequirements[model.Template].TitleLength.Min - 1);
+        model.Titles[0] = new string('T', HippotherapyProgramSectionConstants.GetRequirements(model.Template).TitleLength.Min - 1);
 
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor("Titles[0]")
-            .WithErrorMessage(ProgramSectionConstants.GetTitleLengthErrorMessage(model));
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetTitleLengthErrorMessage(model));
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Descriptions)
-            .WithErrorMessage(ProgramSectionConstants.GetDescriptionsCountErrorMessage(model));
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetDescriptionsCountErrorMessage(model));
     }
 
     [Fact]
@@ -113,12 +113,12 @@ public class BaseHippotherapyProgramSectionValidatorTests
     public void Validate_DescriptionItemIsTooShort_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly);
-        model.Descriptions[0] = new string('D', ProgramSectionConstants.TemplateRequirements[model.Template].DescriptionLength.Min - 1);
+        model.Descriptions[0] = new string('D', HippotherapyProgramSectionConstants.GetRequirements(model.Template).DescriptionLength.Min - 1);
 
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor("Descriptions[0]")
-            .WithErrorMessage(ProgramSectionConstants.GetDescriptionLengthErrorMessage(model));
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetDescriptionLengthErrorMessage(model));
     }
 
     [Fact]
@@ -132,7 +132,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.ImageIds)
-            .WithErrorMessage(ProgramSectionConstants.GetImagesCountErrorMessage(model));
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetImagesCountErrorMessage(model));
     }
 
     [Fact]
@@ -177,21 +177,17 @@ public class BaseHippotherapyProgramSectionValidatorTests
 
     private static CreateHippotherapyProgramSectionDto GetValidModel(ProgramSectionTemplate template)
     {
-        var req = ProgramSectionConstants.TemplateRequirements[template];
+        var req = HippotherapyProgramSectionConstants.GetRequirements(template);
 
         return new CreateHippotherapyProgramSectionDto
         {
             Template = template,
             Order = 0,
-            Titles = Enumerable.Range(1, req.TitleCount.Min)
-                .Select(_ => new string('T', req.TitleLength.Min))
-                .ToList(),
-            Descriptions = Enumerable.Range(1, req.DescriptionCount.Min)
-                .Select(_ => new string('D', req.DescriptionLength.Min))
-                .ToList(),
+            Titles = [.. Enumerable.Range(1, req.TitleCount.Min).Select(_ => new string('T', req.TitleLength.Min))],
+            Descriptions = [.. Enumerable.Range(1, req.DescriptionCount.Min).Select(_ => new string('D', req.DescriptionLength.Min))],
             ImageIds = req.ImageCount.Min == 0
                 ? []
-                : Enumerable.Range(1, req.ImageCount.Min).Select(i => (long)i).ToList()
+                : [.. Enumerable.Range(1, req.ImageCount.Min).Select(i => (long)i)]
         };
     }
 }

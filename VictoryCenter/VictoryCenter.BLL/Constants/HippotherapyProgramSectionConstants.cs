@@ -1,9 +1,9 @@
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Constants;
 
-public static class ProgramSectionConstants
+public static class HippotherapyProgramSectionConstants
 {
     public sealed record TemplateRequirementsConfig(
         (int Min, int Max) TitleCount,
@@ -13,7 +13,7 @@ public static class ProgramSectionConstants
         (int Min, int Max) ImageCount
     );
 
-    public static readonly Dictionary<ProgramSectionTemplate, TemplateRequirementsConfig>
+    private static readonly Dictionary<ProgramSectionTemplate, TemplateRequirementsConfig>
         TemplateRequirements = new()
         {
             [ProgramSectionTemplate.QuadImagesBottom] = new(
@@ -67,33 +67,36 @@ public static class ProgramSectionConstants
             )
         };
 
+    public static TemplateRequirementsConfig GetRequirements(ProgramSectionTemplate template)
+        => TemplateRequirements[template];
+
     public static string GetTitlesCountErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        var req = TemplateRequirements[section.Template];
+        var req = GetRequirements(section.Template);
         return $"Template {section.Template} requires exactly {req.TitleCount.Min} title(s), but received {section.Titles?.Count ?? 0}";
     }
 
     public static string GetDescriptionsCountErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        var req = TemplateRequirements[section.Template];
+        var req = GetRequirements(section.Template);
         return $"Template {section.Template} requires exactly {req.DescriptionCount.Min} description(s), but received {section.Descriptions?.Count ?? 0}";
     }
 
     public static string GetImagesCountErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        var req = TemplateRequirements[section.Template];
+        var req = GetRequirements(section.Template);
         return $"Template {section.Template} requires exactly {req.ImageCount.Min} image(s), but received {section.ImageIds?.Count ?? 0}";
     }
 
     public static string GetTitleLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        var req = TemplateRequirements[section.Template];
+        var req = GetRequirements(section.Template);
         return $"Each title must be between {req.TitleLength.Min} and {req.TitleLength.Max} characters";
     }
 
     public static string GetDescriptionLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
     {
-        var req = TemplateRequirements[section.Template];
+        var req = GetRequirements(section.Template);
         return $"Each description must be between {req.DescriptionLength.Min} and {req.DescriptionLength.Max} characters";
     }
 }

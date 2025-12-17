@@ -22,7 +22,7 @@ public class BaseHippotherapyProgramSectionValidator
 
                 RuleFor(x => x.Titles)
                     .Must(HasValidTitlesCount)
-                    .WithMessage(ProgramSectionConstants.GetTitlesCountErrorMessage)
+                    .WithMessage(HippotherapyProgramSectionConstants.GetTitlesCountErrorMessage)
                     .DependentRules(() =>
                     {
                         RuleForEach(x => x.Titles)
@@ -30,12 +30,12 @@ public class BaseHippotherapyProgramSectionValidator
                             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                                 nameof(CreateHippotherapyProgramSectionDto.Titles)))
                             .Must(HasValidTitleLength)
-                            .WithMessage(ProgramSectionConstants.GetTitleLengthErrorMessage);
+                            .WithMessage(HippotherapyProgramSectionConstants.GetTitleLengthErrorMessage);
                     });
 
                 RuleFor(x => x.Descriptions)
                     .Must(HasValidDescriptionsCount)
-                    .WithMessage(ProgramSectionConstants.GetDescriptionsCountErrorMessage)
+                    .WithMessage(HippotherapyProgramSectionConstants.GetDescriptionsCountErrorMessage)
                     .DependentRules(() =>
                     {
                         RuleForEach(x => x.Descriptions)
@@ -43,12 +43,12 @@ public class BaseHippotherapyProgramSectionValidator
                             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                                 nameof(CreateHippotherapyProgramSectionDto.Descriptions)))
                             .Must(HasValidDescriptionLength)
-                            .WithMessage(ProgramSectionConstants.GetDescriptionLengthErrorMessage);
+                            .WithMessage(HippotherapyProgramSectionConstants.GetDescriptionLengthErrorMessage);
                     });
 
                 RuleFor(x => x.ImageIds)
                     .Must(HasValidImagesCount)
-                    .WithMessage(ProgramSectionConstants.GetImagesCountErrorMessage)
+                    .WithMessage(HippotherapyProgramSectionConstants.GetImagesCountErrorMessage)
                     .Must(imageIds => imageIds is null || imageIds.Distinct().Count() == imageIds.Count)
                     .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
                         nameof(CreateHippotherapyProgramSectionDto.ImageIds)))
@@ -62,8 +62,8 @@ public class BaseHippotherapyProgramSectionValidator
             });
     }
 
-    private static ProgramSectionConstants.TemplateRequirementsConfig GetReq(CreateHippotherapyProgramSectionDto section) =>
-        ProgramSectionConstants.TemplateRequirements[section.Template];
+    private static HippotherapyProgramSectionConstants.TemplateRequirementsConfig GetReq(CreateHippotherapyProgramSectionDto section) =>
+        HippotherapyProgramSectionConstants.GetRequirements(section.Template);
 
     private static bool HasValidTitlesCount(CreateHippotherapyProgramSectionDto section, List<string>? titles) =>
         HasValidCount(titles, GetReq(section).TitleCount);

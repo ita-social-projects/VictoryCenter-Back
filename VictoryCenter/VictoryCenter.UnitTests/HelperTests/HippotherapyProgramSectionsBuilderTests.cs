@@ -233,9 +233,9 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 1,
-            Titles = null,
-            Descriptions = null,
-            ImageIds = null
+            Titles = null!,
+            Descriptions = null!,
+            ImageIds = null!
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, new Dictionary<long, Image>());
