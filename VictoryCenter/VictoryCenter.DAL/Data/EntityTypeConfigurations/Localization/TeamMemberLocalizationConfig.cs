@@ -1,37 +1,18 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations.Localization;
 
-public class TeamMemberLocalizationConfig : IEntityTypeConfiguration<TeamMemberLocalization>
+public class TeamMemberLocalizationConfig : EntityLocalizationConfig<TeamMemberLocalization, TeamMember>
 {
-    public void Configure(EntityTypeBuilder<TeamMemberLocalization> entity)
+    public override void Configure(EntityTypeBuilder<TeamMemberLocalization> entity)
     {
-        entity.HasKey(tl => new { tl.EntityId, tl.LanguageId });
-
-        entity.HasOne(tl => tl.Entity)
-            .WithMany(t => t.Localizations)
-            .HasForeignKey(tl => tl.EntityId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        entity.HasOne(tl => tl.Language)
-            .WithMany()
-            .HasForeignKey(tl => tl.LanguageId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        entity.Property(e => e.TranslationStatus)
-            .IsRequired()
-            .HasDefaultValue(TranslationStatus.Relevant);
+        base.Configure(entity);
 
         entity.Property(e => e.FullName)
             .IsRequired();
 
         entity.Property(e => e.Description);
-
-        entity
-            .Property(e => e.CreatedAt)
-            .IsRequired();
     }
 }

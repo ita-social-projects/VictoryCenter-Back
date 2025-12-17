@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Update;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.BLL.Queries.Admin.Donate.SupportOptions.GetAll;
 using VictoryCenter.DAL.Enums;
+using VictoryCenter.WebAPI.Attributes;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -12,6 +13,7 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class SupportOptionsController : AuthorizedApiController
 {
     [HttpPost]
+    [StrictJson]
     public async Task<IActionResult> CreateSupportOptions([FromBody] CreateSupportOptionsDto createSupportOptionsDto)
     {
         return HandleResult(await Mediator.Send(new CreateSupportOptionsCommand(createSupportOptionsDto)));
@@ -25,6 +27,7 @@ public class SupportOptionsController : AuthorizedApiController
 
     [HttpPut]
     [Route("{id:long}")]
+    [StrictJson]
     public async Task<IActionResult> UpdateSupportOptions([FromBody] UpdateSupportOptionsDto updateSupportOptionsDto, long id)
     {
         return HandleResult(await Mediator.Send(new UpdateSupportOptionsCommand(updateSupportOptionsDto, id)));

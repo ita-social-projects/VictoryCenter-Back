@@ -36,6 +36,10 @@ public class SearchService<T> : ISearchService<T>
                                         member,
                                         typeof(string).GetMethod(nameof(string.StartsWith), [typeof(string)])!,
                                         constant),
+                SearchLogic.Contains => Expression.Call(
+                                        member,
+                                        typeof(string).GetMethod(nameof(string.Contains), [typeof(string)])!,
+                                        constant),
                 _ => throw new NotSupportedException($"Unsupported search logic: {term.SearchLogic}"),
             };
 

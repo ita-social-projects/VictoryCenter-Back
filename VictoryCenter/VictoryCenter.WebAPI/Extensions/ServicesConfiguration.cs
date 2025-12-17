@@ -11,6 +11,7 @@ using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
@@ -19,6 +20,7 @@ using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
@@ -32,6 +34,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
+using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -104,6 +107,7 @@ public static class ServicesConfiguration
         services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
+        services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
 
         services.AddOptions<JwtOptions>()
@@ -129,6 +133,8 @@ public static class ServicesConfiguration
         services.AddScoped<IReorderService, ReorderService>();
 
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
+
+        services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
