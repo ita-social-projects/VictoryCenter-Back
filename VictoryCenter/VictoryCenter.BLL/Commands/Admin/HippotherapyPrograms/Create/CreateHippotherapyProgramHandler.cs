@@ -5,11 +5,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
-using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
@@ -93,7 +90,13 @@ public class CreateHippotherapyProgramHandler
             var now = DateTimeOffset.UtcNow;
             program.CreatedAt = now;
 
-            AddSections(program, request.CreateProgramDto.Sections, now, imagesById);
+            var builtSections = HippotherapyProgramSectionsBuilder.Build(
+                request.CreateProgramDto.Sections, now, imagesById);
+
+            foreach (var section in builtSections)
+            {
+                program.Sections.Add(section);
+            }
 
             await _repositoryWrapper.HippotherapyProgramsRepository.CreateAsync(program);
 
@@ -114,76 +117,5 @@ public class CreateHippotherapyProgramHandler
             return Result.Fail<HippotherapyProgramDto>(
                 ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgram)));
         }
-    }
-
-    // TODO: Move to a separate file
-
-    private static void AddSections(
-        HippotherapyProgram program,
-        List<CreateHippotherapyProgramSectionDto>? sections,
-        DateTimeOffset now,
-        IReadOnlyDictionary<long, Image> imagesById)
-    {
-        foreach (var sectionDto in sections ?? [])
-        {
-            program.Sections.Add(new HippotherapyProgramSection
-            {
-                Template = sectionDto.Template,
-                Order = sectionDto.Order,
-                CreatedAt = now,
-                Contents = BuildContents(sectionDto, imagesById)
-            });
-        }
-    }
-
-    private static List<ProgramSectionContent> BuildContents(
-        CreateHippotherapyProgramSectionDto sectionDto,
-        IReadOnlyDictionary<long, Image> imagesById)
-    {
-        var capacity =
-            (sectionDto.Titles?.Count ?? 0) +
-            (sectionDto.Descriptions?.Count ?? 0) +
-            (sectionDto.ImageIds?.Count ?? 0);
-
-        var contents = new List<ProgramSectionContent>(capacity);
-        var order = 0;
-
-        foreach (var title in sectionDto.Titles ?? [])
-        {
-            contents.Add(new TitleProgramContent
-            {
-                ContentType = ContentType.Title,
-                Order = order++,
-                Title = title.Trim()
-            });
-        }
-
-        foreach (var description in sectionDto.Descriptions ?? [])
-        {
-            contents.Add(new DescriptionProgramContent
-            {
-                ContentType = ContentType.Description,
-                Order = order++,
-                Description = description.Trim()
-            });
-        }
-
-        foreach (var imageId in sectionDto.ImageIds ?? [])
-        {
-            if (!imagesById.TryGetValue(imageId, out var image))
-            {
-                continue;
-            }
-
-            contents.Add(new ImageProgramContent
-            {
-                ContentType = ContentType.Image,
-                Order = order++,
-                ImageId = imageId,
-                Image = image
-            });
-        }
-
-        return contents;
     }
 }
