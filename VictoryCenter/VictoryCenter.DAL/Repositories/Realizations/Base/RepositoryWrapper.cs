@@ -30,6 +30,8 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -53,6 +55,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ISupportOptionsRepository? _supportOptionsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
+    private IFaqQuestionLocalizationsRepository? _faqQuestionLocalizationsRepository;
     private IPartnerRepository? _partnerRepository;
     private IPartnerSectionsRepository? _partnerSectionRepository;
     private IPartnersPageBannersRepository? _partnersPageBannersRepository;
@@ -85,6 +88,8 @@ public class RepositoryWrapper : IRepositoryWrapper
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
+    public IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository => _faqQuestionLocalizationsRepository
+        ??= new FaqQuestionLocalizationsRepository(_victoryCenterDbContext);
     public IPartnerRepository PartnerRepository => _partnerRepository ??= new PartnerRepository(_victoryCenterDbContext);
     public IPartnerSectionsRepository PartnerSectionsRepository => _partnerSectionRepository ??= new PartnerSectionsRepository(_victoryCenterDbContext);
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);

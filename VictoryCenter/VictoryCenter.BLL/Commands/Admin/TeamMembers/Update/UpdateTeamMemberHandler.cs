@@ -44,7 +44,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
             var entityToUpdate = await _repositoryWrapper.TeamMembersRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamMember>
             {
                 Filter = e => e.Id == request.Id,
-                Include = e => e.Include(q => q.Localizations),
+                Include = e => e.Include(q => q.Localizations).ThenInclude(l => l.Language),
                 AsNoTracking = false
             });
 
