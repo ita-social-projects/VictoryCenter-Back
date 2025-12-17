@@ -37,15 +37,35 @@ public static class HippotherapyProgramSectionsBuilder
         CreateHippotherapyProgramSectionDto sectionDto,
         IReadOnlyDictionary<long, Image> imagesById)
     {
-        var capacity =
+        var contents = new List<ProgramSectionContent>(GetCapacity(sectionDto));
+        var order = 0;
+
+        AddTitles(contents, sectionDto.Titles, ref order);
+        AddDescriptions(contents, sectionDto.Descriptions, ref order);
+        AddImages(contents, sectionDto.ImageIds, imagesById, ref order);
+
+        return contents;
+    }
+
+    private static int GetCapacity(CreateHippotherapyProgramSectionDto sectionDto)
+    {
+        return
             (sectionDto.Titles?.Count ?? 0) +
             (sectionDto.Descriptions?.Count ?? 0) +
             (sectionDto.ImageIds?.Count ?? 0);
+    }
 
-        var contents = new List<ProgramSectionContent>(capacity);
-        var order = 0;
+    private static void AddTitles(
+        List<ProgramSectionContent> contents,
+        List<string>? titles,
+        ref int order)
+    {
+        if (titles is null || titles.Count == 0)
+        {
+            return;
+        }
 
-        foreach (var title in sectionDto.Titles ?? [])
+        foreach (var title in titles)
         {
             contents.Add(new TitleProgramContent
             {
@@ -54,8 +74,19 @@ public static class HippotherapyProgramSectionsBuilder
                 Title = title.Trim()
             });
         }
+    }
 
-        foreach (var description in sectionDto.Descriptions ?? [])
+    private static void AddDescriptions(
+        List<ProgramSectionContent> contents,
+        List<string>? descriptions,
+        ref int order)
+    {
+        if (descriptions is null || descriptions.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var description in descriptions)
         {
             contents.Add(new DescriptionProgramContent
             {
@@ -64,8 +95,20 @@ public static class HippotherapyProgramSectionsBuilder
                 Description = description.Trim()
             });
         }
+    }
 
-        foreach (var imageId in sectionDto.ImageIds ?? [])
+    private static void AddImages(
+        List<ProgramSectionContent> contents,
+        List<long>? imageIds,
+        IReadOnlyDictionary<long, Image> imagesById,
+        ref int order)
+    {
+        if (imageIds is null || imageIds.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var imageId in imageIds)
         {
             if (!imagesById.TryGetValue(imageId, out var image))
             {
@@ -80,7 +123,5 @@ public static class HippotherapyProgramSectionsBuilder
                 Image = image
             });
         }
-
-        return contents;
     }
 }
