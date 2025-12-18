@@ -55,11 +55,16 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
             var resultWithLanguage = await _repositoryWrapper.GetRepository<TEntityLocalization>()
             .GetFirstOrDefaultAsync(new QueryOptions<TEntityLocalization>
             {
-                Filter = l => l.EntityId == createdEntity.EntityId,
+                Filter = l => l.EntityId == createdEntity.EntityId && l.LanguageId == createdEntity.LanguageId,
                 Include = l => l.Include(x => x.Language)
             });
 
-            return resultWithLanguage!;
+            if (resultWithLanguage is null)
+            {
+                throw new InvalidOperationException("Failed to retrieve created localization with language.");
+            }
+
+            return resultWithLanguage;
         }
 
         throw new InvalidOperationException();
