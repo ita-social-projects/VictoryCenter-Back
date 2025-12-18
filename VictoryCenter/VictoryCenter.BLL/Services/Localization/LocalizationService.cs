@@ -48,11 +48,23 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         }
 
         entityLocalization.CreatedAt = DateTimeOffset.UtcNow;
-        var result = await _repositoryWrapper.GetRepository<TEntityLocalization>().CreateAsync(entityLocalization);
+        var createdEntity = await _repositoryWrapper.GetRepository<TEntityLocalization>().CreateAsync(entityLocalization);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
-            return result;
+            var resultWithLanguage = await _repositoryWrapper.GetRepository<TEntityLocalization>()
+            .GetFirstOrDefaultAsync(new QueryOptions<TEntityLocalization>
+            {
+                Filter = l => l.EntityId == createdEntity.EntityId && l.LanguageId == createdEntity.LanguageId,
+                Include = l => l.Include(x => x.Language)
+            });
+
+            if (resultWithLanguage is null)
+            {
+                throw new InvalidOperationException("Failed to retrieve created localization with language.");
+            }
+
+            return resultWithLanguage;
         }
 
         throw new InvalidOperationException();

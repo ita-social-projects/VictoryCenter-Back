@@ -46,7 +46,17 @@ public class LocalizationServiceTests
 
         var language = new LocalizationLanguage { Id = 1, Code = "en", Name = "English" };
 
-        SetupRepositoryWrapper(teamMember: _teamMember, localizationLanguage: language);
+        var createdLocalizationWithLanguage = new TeamMemberLocalization
+        {
+            EntityId = entityLocalization.EntityId,
+            LanguageId = entityLocalization.LanguageId,
+            FullName = entityLocalization.FullName,
+            Description = entityLocalization.Description,
+            Language = language,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        SetupRepositoryWrapper(teamMember: _teamMember, localizationLanguage: language, teamMemberLocalization: createdLocalizationWithLanguage);
 
         _repositoryWrapper.Setup(x => x.GetRepository<TeamMemberLocalization>()
                 .CreateAsync(It.IsAny<TeamMemberLocalization>()))
@@ -63,7 +73,10 @@ public class LocalizationServiceTests
         Assert.Equal(entityLocalization.LanguageId, result.LanguageId);
         Assert.Equal(entityLocalization.FullName, result.FullName);
         Assert.NotEqual(default, result.CreatedAt);
-        _repositoryWrapper.Verify(x => x.GetRepository<TeamMemberLocalization>().CreateAsync(It.Is<TeamMemberLocalization>(l => l == result)), Times.Once);
+        Assert.NotNull(result.Language);
+        Assert.Equal(language.Id, result.Language.Id);
+        Assert.Equal(language.Code, result.Language.Code);
+        _repositoryWrapper.Verify(x => x.GetRepository<TeamMemberLocalization>().CreateAsync(It.IsAny<TeamMemberLocalization>()), Times.Once);
     }
 
     [Fact]
