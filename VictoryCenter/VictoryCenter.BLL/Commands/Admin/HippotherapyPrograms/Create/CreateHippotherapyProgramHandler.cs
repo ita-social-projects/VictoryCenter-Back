@@ -46,7 +46,8 @@ public class CreateHippotherapyProgramHandler
                 return Result.Fail<HippotherapyProgramDto>(categoriesResult.Errors);
             }
 
-            var imagesByIdResult = await GetSectionImagesAsync(request);
+            var imagesByIdResult = await ImageValidationHelper.ValidateAndGetSectionImagesAsync(
+                _repositoryWrapper, request.CreateProgramDto.Sections);
 
             if (imagesByIdResult.IsFailed)
             {
@@ -55,7 +56,8 @@ public class CreateHippotherapyProgramHandler
 
             var program = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
-            var assignImagesResult = await AssignProgramImagesAsync(program);
+            var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
+                _repositoryWrapper, program);
 
             if (assignImagesResult.IsFailed)
             {
@@ -88,43 +90,6 @@ public class CreateHippotherapyProgramHandler
             return Result.Fail<HippotherapyProgramDto>(
                 ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgram)));
         }
-    }
-
-    private async Task<Result<IReadOnlyDictionary<long, Image>>> GetSectionImagesAsync(
-        CreateHippotherapyProgramCommand request)
-    {
-        var sectionImageIds = (request.CreateProgramDto.Sections ?? [])
-            .SelectMany(s => s.ImageIds ?? []);
-
-        return await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
-            _repositoryWrapper,
-            sectionImageIds);
-    }
-
-    private async Task<Result> AssignProgramImagesAsync(HippotherapyProgram program)
-    {
-        var backgroundImageResult = await ImageValidationHelper.ValidateAndGetImageAsync(
-            _repositoryWrapper,
-            program.BackgroundImageId);
-
-        if (backgroundImageResult.IsFailed)
-        {
-            return Result.Fail(backgroundImageResult.Errors);
-        }
-
-        var previewImageResult = await ImageValidationHelper.ValidateAndGetImageAsync(
-            _repositoryWrapper,
-            program.PreviewImageId);
-
-        if (previewImageResult.IsFailed)
-        {
-            return Result.Fail(previewImageResult.Errors);
-        }
-
-        program.BackgroundImage = backgroundImageResult.Value;
-        program.PreviewImage = previewImageResult.Value;
-
-        return Result.Ok();
     }
 
     private static void AddCategories(HippotherapyProgram program, ICollection<HippotherapyProgramCategory> categories)

@@ -1,5 +1,6 @@
 using FluentResults;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -68,6 +69,40 @@ public static class ImageValidationHelper
         {
             return Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.FailedToRetrieveImage());
         }
+    }
+
+    public static async Task<Result> ValidateAndAssignProgramImagesAsync(
+        IRepositoryWrapper repositoryWrapper, HippotherapyProgram program)
+    {
+        var backgroundImageResult = await ValidateAndGetImageAsync(
+            repositoryWrapper, program.BackgroundImageId);
+
+        if (backgroundImageResult.IsFailed)
+        {
+            return Result.Fail(backgroundImageResult.Errors);
+        }
+
+        var previewImageResult = await ValidateAndGetImageAsync(
+            repositoryWrapper, program.PreviewImageId);
+
+        if (previewImageResult.IsFailed)
+        {
+            return Result.Fail(previewImageResult.Errors);
+        }
+
+        program.BackgroundImage = backgroundImageResult.Value;
+        program.PreviewImage = previewImageResult.Value;
+
+        return Result.Ok();
+    }
+
+    public static Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetSectionImagesAsync(
+        IRepositoryWrapper repositoryWrapper, List<CreateHippotherapyProgramSectionDto>? sections)
+    {
+        var sectionImageIds = (sections ?? [])
+            .SelectMany(s => s.ImageIds ?? []);
+
+        return ValidateAndGetImagesByIdsAsync(repositoryWrapper, sectionImageIds);
     }
 
     private static async Task<Image?> FetchImageFromRepositoryAsync(

@@ -45,7 +45,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                     Include = p => p
                         .Include(x => x.Categories)
                         .Include(x => x.Sections)
-                            .ThenInclude(s => s.Contents)
+                        .ThenInclude(s => s.Contents)
                 });
 
             if (program is null)
@@ -63,7 +63,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(newCategoriesResult.Errors);
             }
 
-            var imagesByIdResult = await GetSectionImagesAsync(request);
+            var imagesByIdResult = await ImageValidationHelper.ValidateAndGetSectionImagesAsync(
+                _repositoryWrapper, request.UpdateProgramDto.Sections);
 
             if (imagesByIdResult.IsFailed)
             {
@@ -72,7 +73,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             _mapper.Map(request.UpdateProgramDto, program);
 
-            var assignImagesResult = await AssignProgramImagesAsync(program);
+            var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
+                _repositoryWrapper, program);
 
             if (assignImagesResult.IsFailed)
             {
@@ -99,42 +101,6 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         {
             return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
-    }
-
-    private async Task<Result<IReadOnlyDictionary<long, Image>>> GetSectionImagesAsync(UpdateHippotherapyProgramCommand request)
-    {
-        var sectionImageIds = (request.UpdateProgramDto.Sections ?? [])
-            .SelectMany(s => s.ImageIds ?? []);
-
-        return await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
-            _repositoryWrapper,
-            sectionImageIds);
-    }
-
-    private async Task<Result> AssignProgramImagesAsync(HippotherapyProgram program)
-    {
-        var backgroundImageResult = await ImageValidationHelper.ValidateAndGetImageAsync(
-            _repositoryWrapper,
-            program.BackgroundImageId);
-
-        if (backgroundImageResult.IsFailed)
-        {
-            return Result.Fail(backgroundImageResult.Errors);
-        }
-
-        var previewImageResult = await ImageValidationHelper.ValidateAndGetImageAsync(
-            _repositoryWrapper,
-            program.PreviewImageId);
-
-        if (previewImageResult.IsFailed)
-        {
-            return Result.Fail(previewImageResult.Errors);
-        }
-
-        program.BackgroundImage = backgroundImageResult.Value;
-        program.PreviewImage = previewImageResult.Value;
-
-        return Result.Ok();
     }
 
     private static void ReplaceCategories(HippotherapyProgram program, ICollection<HippotherapyProgramCategory> categories)
