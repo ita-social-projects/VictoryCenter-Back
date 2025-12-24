@@ -43,13 +43,13 @@ public class GetPublishedHippotherapyProgramsTests
         {
             Name = "TestName1",
             Description = "TestDescription1",
-            Image = new ImageDto()
+            PreviewImage = new ImageDto()
         },
         new()
         {
             Name = "TestName2",
             Description = "TestDescription2",
-            Image = new ImageDto()
+            PreviewImage = new ImageDto()
         },
     ];
 

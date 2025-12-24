@@ -8,6 +8,6 @@ public record PublishedHippotherapyProgramDto
     public string Name { get; init; } = null!;
     public string Description { get; init; } = null!;
     public DateTimeOffset CreatedAt { get; init; }
-    public ImageDto? Image { get; init; }
+    public ImageDto? PreviewImage { get; init; }
     public List<ProgramCategoryShortDto> Categories { get; init; } = [];
 }
