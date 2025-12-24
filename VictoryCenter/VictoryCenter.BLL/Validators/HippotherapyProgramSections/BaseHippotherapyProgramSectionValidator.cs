@@ -80,7 +80,7 @@ public class BaseHippotherapyProgramSectionValidator
     private static bool HasValidDescriptionLength(CreateHippotherapyProgramSectionDto section, string? description) =>
         HasValidLength(description, GetReq(section).DescriptionLength);
 
-    private static bool HasValidCount<T>(List<T>? collection, (int Min, int Max) req)
+    private static bool HasValidCount<T>(ICollection<T>? collection, (int Min, int Max) req)
     {
         var count = collection?.Count ?? 0;
         if (req.Min == 0 && req.Max == 0)

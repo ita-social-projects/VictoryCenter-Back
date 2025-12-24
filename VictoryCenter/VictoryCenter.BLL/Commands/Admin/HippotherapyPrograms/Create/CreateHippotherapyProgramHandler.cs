@@ -102,7 +102,7 @@ public class CreateHippotherapyProgramHandler
 
     private static void AddSections(
         HippotherapyProgram program,
-        List<CreateHippotherapyProgramSectionDto>? sections,
+        ICollection<CreateHippotherapyProgramSectionDto>? sections,
         DateTimeOffset createdAt,
         IReadOnlyDictionary<long, Image> imagesById)
     {

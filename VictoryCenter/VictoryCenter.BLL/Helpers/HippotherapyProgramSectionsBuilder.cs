@@ -56,8 +56,8 @@ public static class HippotherapyProgramSectionsBuilder
     }
 
     private static void AddTitles(
-        List<ProgramSectionContent> contents,
-        ICollection<string>? titles,
+        ICollection<ProgramSectionContent> contents,
+        List<string>? titles,
         ref int order)
     {
         if (titles is null || titles.Count == 0)
@@ -77,8 +77,8 @@ public static class HippotherapyProgramSectionsBuilder
     }
 
     private static void AddDescriptions(
-        List<ProgramSectionContent> contents,
-        ICollection<string>? descriptions,
+        ICollection<ProgramSectionContent> contents,
+        List<string>? descriptions,
         ref int order)
     {
         if (descriptions is null || descriptions.Count == 0)
@@ -98,8 +98,8 @@ public static class HippotherapyProgramSectionsBuilder
     }
 
     private static void AddImages(
-        List<ProgramSectionContent> contents,
-        ICollection<long>? imageIds,
+        ICollection<ProgramSectionContent> contents,
+        List<long>? imageIds,
         IReadOnlyDictionary<long, Image> imagesById,
         ref int order)
     {

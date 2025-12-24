@@ -114,7 +114,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
     private static void ReplaceSections(
         HippotherapyProgram program,
-        List<CreateHippotherapyProgramSectionDto>? sections,
+        ICollection<CreateHippotherapyProgramSectionDto>? sections,
         DateTimeOffset createdAt,
         IReadOnlyDictionary<long, Image> imagesById)
     {
