@@ -65,13 +65,13 @@ public class BaseHippotherapyProgramSectionValidator
     private static HippotherapyProgramSectionConstants.TemplateRequirementsConfig GetReq(CreateHippotherapyProgramSectionDto section) =>
         HippotherapyProgramSectionConstants.GetRequirements(section.Template);
 
-    private static bool HasValidTitlesCount(CreateHippotherapyProgramSectionDto section, List<string>? titles) =>
+    private static bool HasValidTitlesCount(CreateHippotherapyProgramSectionDto section, ICollection<string>? titles) =>
         HasValidCount(titles, GetReq(section).TitleCount);
 
-    private static bool HasValidDescriptionsCount(CreateHippotherapyProgramSectionDto section, List<string>? descriptions) =>
+    private static bool HasValidDescriptionsCount(CreateHippotherapyProgramSectionDto section, ICollection<string>? descriptions) =>
         HasValidCount(descriptions, GetReq(section).DescriptionCount);
 
-    private static bool HasValidImagesCount(CreateHippotherapyProgramSectionDto section, List<long>? imageIds) =>
+    private static bool HasValidImagesCount(CreateHippotherapyProgramSectionDto section, ICollection<long>? imageIds) =>
         HasValidCount(imageIds, GetReq(section).ImageCount);
 
     private static bool HasValidTitleLength(CreateHippotherapyProgramSectionDto section, string? title) =>

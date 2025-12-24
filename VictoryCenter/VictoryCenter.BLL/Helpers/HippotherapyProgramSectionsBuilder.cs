@@ -56,7 +56,7 @@ public static class HippotherapyProgramSectionsBuilder
     }
 
     private static void AddTitles(
-        ICollection<ProgramSectionContent> contents,
+        List<ProgramSectionContent> contents,
         List<string>? titles,
         ref int order)
     {
@@ -77,7 +77,7 @@ public static class HippotherapyProgramSectionsBuilder
     }
 
     private static void AddDescriptions(
-        ICollection<ProgramSectionContent> contents,
+        List<ProgramSectionContent> contents,
         List<string>? descriptions,
         ref int order)
     {
@@ -98,7 +98,7 @@ public static class HippotherapyProgramSectionsBuilder
     }
 
     private static void AddImages(
-        ICollection<ProgramSectionContent> contents,
+        List<ProgramSectionContent> contents,
         List<long>? imageIds,
         IReadOnlyDictionary<long, Image> imagesById,
         ref int order)
