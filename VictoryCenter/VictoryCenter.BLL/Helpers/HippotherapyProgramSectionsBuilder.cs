@@ -8,7 +8,7 @@ namespace VictoryCenter.BLL.Helpers;
 public static class HippotherapyProgramSectionsBuilder
 {
     public static List<HippotherapyProgramSection> Build(
-        List<CreateHippotherapyProgramSectionDto>? sections,
+        ICollection<CreateHippotherapyProgramSectionDto>? sections,
         DateTimeOffset createdAt,
         IReadOnlyDictionary<long, Image> imagesById)
     {
@@ -57,7 +57,7 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static void AddTitles(
         List<ProgramSectionContent> contents,
-        List<string>? titles,
+        ICollection<string>? titles,
         ref int order)
     {
         if (titles is null || titles.Count == 0)
@@ -78,7 +78,7 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static void AddDescriptions(
         List<ProgramSectionContent> contents,
-        List<string>? descriptions,
+        ICollection<string>? descriptions,
         ref int order)
     {
         if (descriptions is null || descriptions.Count == 0)
@@ -99,7 +99,7 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static void AddImages(
         List<ProgramSectionContent> contents,
-        List<long>? imageIds,
+        ICollection<long>? imageIds,
         IReadOnlyDictionary<long, Image> imagesById,
         ref int order)
     {
