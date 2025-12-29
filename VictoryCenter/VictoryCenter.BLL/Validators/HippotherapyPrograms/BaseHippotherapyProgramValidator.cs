@@ -1,13 +1,14 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.Validators.HippotherapyProgramSections;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.HippotherapyPrograms;
 
 public class BaseHippotherapyProgramValidator : AbstractValidator<CreateHippotherapyProgramDto>
 {
-    public BaseHippotherapyProgramValidator()
+    public BaseHippotherapyProgramValidator(BaseHippotherapyProgramSectionValidator sectionValidator)
     {
         RuleFor(x => x.Name)
             .NotEmpty()
@@ -77,5 +78,8 @@ public class BaseHippotherapyProgramValidator : AbstractValidator<CreateHippothe
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(HippotherapyProgramDto.MeetingsCount), HippotherapyProgramConstants.MinMeetingsCountLength))
             .When(x => !string.IsNullOrWhiteSpace(x.MeetingsCount));
+
+        RuleForEach(x => x.Sections)
+            .SetValidator(sectionValidator);
     }
 }

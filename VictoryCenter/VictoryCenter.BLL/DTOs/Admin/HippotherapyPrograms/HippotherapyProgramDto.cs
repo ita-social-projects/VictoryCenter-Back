@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 
@@ -15,4 +16,5 @@ public record HippotherapyProgramDto
     public ImageDto? BackgroundImage { get; init; }
     public ImageDto? PreviewImage { get; init; }
     public List<ProgramCategoryShortDto> Categories { get; init; } = [];
+    public List<HippotherapyProgramSectionDto> Sections { get; init; } = [];
 }

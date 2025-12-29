@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
@@ -13,4 +14,5 @@ public record CreateHippotherapyProgramDto
     public long? BackgroundImageId { get; set; }
     public long? PreviewImageId { get; set; }
     public List<long> CategoryIds { get; set; } = [];
+    public List<CreateHippotherapyProgramSectionDto> Sections { get; set; } = [];
 }

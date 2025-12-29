@@ -1,5 +1,6 @@
 using FluentResults;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -33,6 +34,75 @@ public static class ImageValidationHelper
         {
             return Result.Fail<Image?>(ErrorMessagesConstants.FailedToRetrieveImage());
         }
+    }
+
+    public static async Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetImagesByIdsAsync(
+        IRepositoryWrapper repositoryWrapper,
+        IEnumerable<long> imageIds)
+    {
+        try
+        {
+            var ids = imageIds
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (ids.Count == 0)
+            {
+                return Result.Ok<IReadOnlyDictionary<long, Image>>(new Dictionary<long, Image>());
+            }
+
+            var images = await repositoryWrapper.ImageRepository.GetAllAsync(new QueryOptions<Image>
+            {
+                Filter = i => ids.Contains(i.Id),
+                AsNoTracking = false
+            });
+
+            var imagesById = images.ToDictionary(i => i.Id);
+            var missingIds = ids.Where(id => !imagesById.ContainsKey(id)).ToList();
+
+            return missingIds.Count != 0
+                ? Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.NotFound(missingIds, typeof(Image)))
+                : Result.Ok<IReadOnlyDictionary<long, Image>>(imagesById);
+        }
+        catch (BlobStorageException)
+        {
+            return Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.FailedToRetrieveImage());
+        }
+    }
+
+    public static async Task<Result> ValidateAndAssignProgramImagesAsync(
+        IRepositoryWrapper repositoryWrapper, HippotherapyProgram program)
+    {
+        var backgroundImageResult = await ValidateAndGetImageAsync(
+            repositoryWrapper, program.BackgroundImageId);
+
+        if (backgroundImageResult.IsFailed)
+        {
+            return Result.Fail(backgroundImageResult.Errors);
+        }
+
+        var previewImageResult = await ValidateAndGetImageAsync(
+            repositoryWrapper, program.PreviewImageId);
+
+        if (previewImageResult.IsFailed)
+        {
+            return Result.Fail(previewImageResult.Errors);
+        }
+
+        program.BackgroundImage = backgroundImageResult.Value;
+        program.PreviewImage = previewImageResult.Value;
+
+        return Result.Ok();
+    }
+
+    public static Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetSectionImagesAsync(
+        IRepositoryWrapper repositoryWrapper, List<CreateHippotherapyProgramSectionDto>? sections)
+    {
+        var sectionImageIds = (sections ?? [])
+            .SelectMany(s => s.ImageIds ?? []);
+
+        return ValidateAndGetImagesByIdsAsync(repositoryWrapper, sectionImageIds);
     }
 
     private static async Task<Image?> FetchImageFromRepositoryAsync(
