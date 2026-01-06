@@ -125,7 +125,7 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
 
             if (resultWithLanguage is null)
             {
-                throw new InvalidOperationException("Failed to retrieve created localization with language.");
+                throw new InvalidOperationException("Failed to retrieve updated localization with language.");
             }
 
             return resultWithLanguage;
