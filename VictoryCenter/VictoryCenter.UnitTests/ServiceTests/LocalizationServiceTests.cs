@@ -159,6 +159,16 @@ public class LocalizationServiceTests
             CreatedAt = DateTimeOffset.UtcNow.AddDays(-1)
         };
 
+        var updatedLocalizationFromDb = new TeamMemberLocalization
+        {
+            EntityId = 1,
+            LanguageId = 1,
+            FullName = "New Localized Name",
+            Description = "New Localized Description",
+            TranslationStatus = TranslationStatus.Relevant,
+            Language = new LocalizationLanguage { Id = 1, Code = "en", Name = "English" }
+        };
+
         var newLocalization = new TeamMemberLocalization
         {
             EntityId = 1,
@@ -167,9 +177,12 @@ public class LocalizationServiceTests
             Description = "New Localized Description"
         };
 
-        SetupRepositoryWrapper(teamMemberLocalization: existingLocalization);
+        _repositoryWrapper
+            .SetupSequence(x => x.GetRepository<TeamMemberLocalization>()
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<TeamMemberLocalization>>()))
+            .ReturnsAsync(existingLocalization)
+            .ReturnsAsync(updatedLocalizationFromDb);
 
-        // Update is a synchronous call on repository interface - ensure Save returns success
         _repositoryWrapper.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
 
         // Act
@@ -179,7 +192,13 @@ public class LocalizationServiceTests
         Assert.NotNull(result);
         Assert.Equal(TranslationStatus.Relevant, result.TranslationStatus);
         Assert.Equal(newLocalization.FullName, result.FullName);
-        _repositoryWrapper.Verify(x => x.GetRepository<TeamMemberLocalization>().Update(It.Is<TeamMemberLocalization>(l => l == newLocalization)), Times.Once);
+        Assert.NotNull(result.Language);
+        Assert.Equal("en", result.Language.Code);
+
+        _repositoryWrapper.Verify(
+            x => x.GetRepository<TeamMemberLocalization>()
+                .Update(It.Is<TeamMemberLocalization>(l => l == newLocalization)),
+            Times.Once);
     }
 
     [Fact]

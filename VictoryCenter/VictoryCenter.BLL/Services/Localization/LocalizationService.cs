@@ -112,11 +112,23 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
 
         entityLocalization.TranslationStatus = TranslationStatus.Relevant;
 
-        _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
+        var updatedEntity = _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
-            return entityLocalization;
+            var resultWithLanguage = await _repositoryWrapper.GetRepository<TEntityLocalization>()
+                .GetFirstOrDefaultAsync(new QueryOptions<TEntityLocalization>
+                {
+                    Filter = l => l.EntityId == updatedEntity.Entity.EntityId && l.LanguageId == updatedEntity.Entity.LanguageId,
+                    Include = l => l.Include(x => x.Language)
+                });
+
+            if (resultWithLanguage is null)
+            {
+                throw new InvalidOperationException("Failed to retrieve updated localization with language.");
+            }
+
+            return resultWithLanguage;
         }
 
         throw new InvalidOperationException();
