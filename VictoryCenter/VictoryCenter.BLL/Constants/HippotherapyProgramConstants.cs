@@ -5,6 +5,8 @@ public class HippotherapyProgramConstants
     public static readonly int MaxNameLength = 90;
     public static readonly int MinNameLength = 5;
 
+    public static readonly int MaxSlugLength = 120;
+
     public static readonly int MaxDescriptionLength = 400;
     public static readonly int MinDescriptionLength = 10;
 
