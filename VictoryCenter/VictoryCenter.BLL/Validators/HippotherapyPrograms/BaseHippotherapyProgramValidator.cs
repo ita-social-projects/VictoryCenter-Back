@@ -20,12 +20,6 @@ public class BaseHippotherapyProgramValidator : AbstractValidator<CreateHippothe
             .WithMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(HippotherapyProgramDto.Name), HippotherapyProgramConstants.MinNameLength));
 
-        RuleFor(x => x.Slug)
-            .MaximumLength(HippotherapyProgramConstants.MaxSlugLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(HippotherapyProgramDto.Slug), HippotherapyProgramConstants.MaxSlugLength))
-            .When(x => !string.IsNullOrWhiteSpace(x.Slug));
-
         RuleFor(x => x.Description)
             .MaximumLength(HippotherapyProgramConstants.MaxDescriptionLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(

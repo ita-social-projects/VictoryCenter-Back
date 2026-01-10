@@ -3,9 +3,10 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Slugify;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -18,15 +19,18 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateHippotherapyProgramCommand> _validator;
+    private readonly ISlugHelper _slugHelper;
 
     public UpdateHippotherapyProgramHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateHippotherapyProgramCommand> validator)
+        IValidator<UpdateHippotherapyProgramCommand> validator,
+        ISlugHelper slugHelper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _slugHelper = slugHelper;
     }
 
     public async Task<Result<HippotherapyProgramDto>> Handle(
@@ -71,10 +75,13 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(imagesByIdResult.Errors);
             }
 
-            _mapper.Map(request.UpdateProgramDto, program);
+            var oldSlug = program.Slug;
+            var nameChanged = request.UpdateProgramDto.Name != program.Name;
+
+            program.Slug = nameChanged ? _slugHelper.GenerateSlug(program.Name) : oldSlug;
 
             var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
-                _repositoryWrapper, program);
+                    _repositoryWrapper, program);
 
             if (assignImagesResult.IsFailed)
             {

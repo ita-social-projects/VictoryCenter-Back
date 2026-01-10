@@ -3,6 +3,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Slugify;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
@@ -18,15 +19,18 @@ public class CreateHippotherapyProgramHandler
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateHippotherapyProgramCommand> _validator;
+    private readonly ISlugHelper _slugHelper;
 
     public CreateHippotherapyProgramHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<CreateHippotherapyProgramCommand> validator)
+        IValidator<CreateHippotherapyProgramCommand> validator,
+        ISlugHelper slugHelper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _slugHelper = slugHelper;
     }
 
     public async Task<Result<HippotherapyProgramDto>> Handle(
@@ -55,6 +59,9 @@ public class CreateHippotherapyProgramHandler
             }
 
             var program = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
+
+            var slugFromTitle = _slugHelper.GenerateSlug(request.CreateProgramDto.Name);
+            program.Slug = slugFromTitle;
 
             var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
                 _repositoryWrapper, program);

@@ -36,6 +36,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
+using Slugify;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -127,6 +128,7 @@ public static class ServicesConfiguration
             });
 
         services.AddSingleton<ITokenService, TokenService>();
+        services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages());
 
         services.AddScoped<IPaymentService, PaymentService>();
 
