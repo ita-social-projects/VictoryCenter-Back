@@ -213,30 +213,29 @@ public class UpdateHippotherapyProgramTests
 
         _repositoryWrapperMock
             .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
-                It.Is<QueryOptions<HippotherapyProgram>>(opt =>
-                    opt.Filter != null &&
-                    opt.AsNoTracking == true)))
-            .ReturnsAsync((QueryOptions<HippotherapyProgram> options) =>
-            {
-                var predicate = options.Filter?.Compile();
-                if (predicate is null)
-                {
-                    return null;
-                }
+                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == false)))
+            .ReturnsAsync(_programEntity);
 
-                return predicate(existingProgramWithSlug) ? existingProgramWithSlug : null;
-            });
+        _repositoryWrapperMock
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == true)))
+            .ReturnsAsync(existingProgramWithSlug);
 
         var result = await ExecuteAsync(id: 1);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.PropertyMustBeUnique(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
     }
 
     [Fact]
     public async Task Handle_ShouldUpdateProgram_WhenSlugDoesNotExist()
     {
         _updateProgramDto.Name = "Unique New Program Name";
+
+        _repositoryWrapperMock
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == true)))
+            .ReturnsAsync((HippotherapyProgram?)null);
 
         var result = await ExecuteAsync(id: 1);
 
@@ -297,8 +296,14 @@ public class UpdateHippotherapyProgramTests
     private void SetUpRepositoryWrapper(HippotherapyProgram? program, int saveResult)
     {
         _repositoryWrapperMock
-            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == false)))
             .ReturnsAsync(program);
+
+        _repositoryWrapperMock
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == true)))
+            .ReturnsAsync((HippotherapyProgram?)null);
 
         _repositoryWrapperMock
             .Setup(r => r.HippotherapyProgramCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
