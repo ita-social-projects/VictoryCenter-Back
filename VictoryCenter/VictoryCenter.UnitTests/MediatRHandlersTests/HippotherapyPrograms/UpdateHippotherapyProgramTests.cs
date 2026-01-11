@@ -3,6 +3,7 @@ using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
+using Slugify;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
@@ -20,6 +21,7 @@ public class UpdateHippotherapyProgramTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<UpdateHippotherapyProgramCommand>> _validatorMock;
+    private readonly Mock<ISlugHelper> _slugHelperMock;
 
     private readonly UpdateHippotherapyProgramDto _updateProgramDto = new()
     {
@@ -72,10 +74,12 @@ public class UpdateHippotherapyProgramTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _validatorMock = new Mock<IValidator<UpdateHippotherapyProgramCommand>>();
+        _slugHelperMock = new Mock<ISlugHelper>();
 
         SetUpValidatorAlwaysSuccess();
         SetUpAutomapper();
         SetUpRepositoryWrapper(program: _programEntity, saveResult: 1);
+        SetUpSlugHelper();
     }
 
     [Fact]
@@ -208,7 +212,8 @@ public class UpdateHippotherapyProgramTests
         => new(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validatorMock.Object);
+            _validatorMock.Object,
+            _slugHelperMock.Object);
 
     private void SetUpAutomapper()
     {
@@ -286,5 +291,12 @@ public class UpdateHippotherapyProgramTests
         _repositoryWrapperMock
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(saveResult);
+    }
+
+    private void SetUpSlugHelper()
+    {
+        _slugHelperMock
+            .Setup(s => s.GenerateSlug(It.IsAny<string>()))
+            .Returns((string input) => input.ToLowerInvariant().Replace(" ", "-"));
     }
 }
