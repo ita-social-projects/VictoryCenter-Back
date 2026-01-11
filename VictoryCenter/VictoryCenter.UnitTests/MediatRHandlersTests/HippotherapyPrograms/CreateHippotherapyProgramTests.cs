@@ -227,7 +227,7 @@ public class CreateHippotherapyProgramTests
         var result = await ExecuteAsync();
 
         Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
+        Assert.Equal(ErrorMessagesConstants.PropertyMustBeUnique(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
     }
 
     private Task<Result<HippotherapyProgramDto>> ExecuteAsync()
