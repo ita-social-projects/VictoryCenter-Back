@@ -35,7 +35,8 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.HippotherapyProgram>
                 Description = "TestDescription" + (i + 1),
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
                 CreatedAt = DateTimeOffset.UtcNow,
-                Categories = selectedCategories
+                Categories = selectedCategories,
+                Slug = "testname-" + (i + 1)
             });
         }
 
