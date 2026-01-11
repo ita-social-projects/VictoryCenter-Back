@@ -78,7 +78,31 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             var oldSlug = program.Slug;
             var nameChanged = request.UpdateProgramDto.Name != program.Name;
 
-            program.Slug = nameChanged ? _slugHelper.GenerateSlug(program.Name) : oldSlug;
+            _mapper.Map(request.UpdateProgramDto, program);
+
+            if (nameChanged)
+            {
+                var newSlug = _slugHelper.GenerateSlug(program.Name);
+
+                var slugExists = await _repositoryWrapper.HippotherapyProgramsRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
+                    {
+                        Filter = p => p.Slug == newSlug && p.Id != program.Id,
+                        AsNoTracking = true
+                    });
+
+                if (slugExists is not null)
+                {
+                    return Result.Fail<HippotherapyProgramDto>(
+                        ErrorMessagesConstants.PropertyMustBeUnique(nameof(program.Slug)));
+                }
+
+                program.Slug = newSlug;
+            }
+            else
+            {
+                program.Slug = oldSlug;
+            }
 
             var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
                     _repositoryWrapper, program);

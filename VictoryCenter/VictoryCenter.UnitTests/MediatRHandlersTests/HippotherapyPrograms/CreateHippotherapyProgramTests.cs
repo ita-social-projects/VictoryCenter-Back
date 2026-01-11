@@ -208,6 +208,38 @@ public class CreateHippotherapyProgramTests
             result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ShouldFail_WhenSlugAlreadyExists()
+    {
+        var existingProgramWithSlug = new HippotherapyProgram
+        {
+            Id = 999,
+            Name = "Existing Program",
+            Slug = "testname"
+        };
+
+        _repositoryWrapperMock
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt =>
+                    opt.Filter != null &&
+                    opt.AsNoTracking == true)))
+            .ReturnsAsync((QueryOptions<HippotherapyProgram> options) =>
+            {
+                var predicate = options.Filter?.Compile();
+                if (predicate is null)
+                {
+                    return null;
+                }
+
+                return predicate(existingProgramWithSlug) ? existingProgramWithSlug : null;
+            });
+
+        var result = await ExecuteAsync();
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
+    }
+
     private Task<Result<HippotherapyProgramDto>> ExecuteAsync()
     {
         var handler = CreateHandler();

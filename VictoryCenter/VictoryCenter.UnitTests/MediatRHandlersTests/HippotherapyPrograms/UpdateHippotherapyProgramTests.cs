@@ -199,6 +199,51 @@ public class UpdateHippotherapyProgramTests
         Assert.Contains("Image", result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ShouldFailUpdate_WhenSlugAlreadyExists()
+    {
+        _updateProgramDto.Name = "New Program Name";
+
+        var existingProgramWithSlug = new HippotherapyProgram
+        {
+            Id = 999,
+            Name = "Existing Program",
+            Slug = "new-program-name"
+        };
+
+        _repositoryWrapperMock
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt =>
+                    opt.Filter != null &&
+                    opt.AsNoTracking == true)))
+            .ReturnsAsync((QueryOptions<HippotherapyProgram> options) =>
+            {
+                var predicate = options.Filter?.Compile();
+                if (predicate is null)
+                {
+                    return null;
+                }
+
+                return predicate(existingProgramWithSlug) ? existingProgramWithSlug : null;
+            });
+
+        var result = await ExecuteAsync(id: 1);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateProgram_WhenSlugDoesNotExist()
+    {
+        _updateProgramDto.Name = "Unique New Program Name";
+
+        var result = await ExecuteAsync(id: 1);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(_programDto.Name, result.Value.Name);
+    }
+
     private Task<Result<HippotherapyProgramDto>> ExecuteAsync(long id)
     {
         var handler = CreateHandler();

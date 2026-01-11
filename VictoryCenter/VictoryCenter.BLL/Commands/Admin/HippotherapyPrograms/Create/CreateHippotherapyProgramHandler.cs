@@ -10,6 +10,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 
@@ -61,6 +62,20 @@ public class CreateHippotherapyProgramHandler
             var program = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
             var slugFromTitle = _slugHelper.GenerateSlug(request.CreateProgramDto.Name);
+
+            var slugExists = await _repositoryWrapper.HippotherapyProgramsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
+                {
+                    Filter = p => p.Slug == slugFromTitle,
+                    AsNoTracking = true
+                });
+
+            if (slugExists is not null)
+            {
+                return Result.Fail<HippotherapyProgramDto>(
+                    ErrorMessagesConstants.PropertyMustBeUnique(nameof(program.Slug)));
+            }
+
             program.Slug = slugFromTitle;
 
             var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
