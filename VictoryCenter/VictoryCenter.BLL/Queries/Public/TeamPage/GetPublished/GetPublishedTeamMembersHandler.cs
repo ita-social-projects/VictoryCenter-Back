@@ -27,10 +27,16 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
         var queryOptions = new QueryOptions<TeamCategory>
         {
             Filter = category => category.TeamMembers.Any(member => member.Status == Status.Published),
-            Include = categories => categories.Include(category => category.TeamMembers
+            Include = categories => categories
+                .Include(category => category.TeamMembers
                     .Where(member => member.Status == Status.Published)
                     .OrderBy(members => members.Priority))
-                .ThenInclude(member => member.Image!)
+                    .ThenInclude(member => member.Image!)
+                .Include(category => category.TeamMembers
+                    .Where(member => member.Status == Status.Published)
+                    .OrderBy(members => members.Priority))
+                    .ThenInclude(member => member.Localizations)
+                .ThenInclude(l => l.Language)
         };
 
         IEnumerable<TeamCategory> categoriesWithPublishedMembers =
