@@ -11,7 +11,7 @@ public static class PartnerConstants
     public static readonly int PartnerDescriptionMaxLength = 50;
     public static readonly int PartnerDescriptionMinLength = 5;
 
-    public static readonly int PartnersPageBannerTitleMaxLength = 50;
+    public static readonly int PartnersPageBannerTitleMaxLength = 150;
     public static readonly int PartnersPageBannerTitleMinLength = 10;
     public static readonly int PartnersPageBannerDescriptionMaxLength = 100;
     public static readonly int PartnersPageBannerDescriptionMinLength = 10;
