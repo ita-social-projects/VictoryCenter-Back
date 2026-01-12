@@ -3,11 +3,11 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Slugify;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -19,18 +19,18 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateHippotherapyProgramCommand> _validator;
-    private readonly ISlugHelper _slugHelper;
+    private readonly ISlugService _slugService;
 
     public UpdateHippotherapyProgramHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateHippotherapyProgramCommand> validator,
-        ISlugHelper slugHelper)
+        ISlugService slugService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
-        _slugHelper = slugHelper;
+        _slugService = slugService;
     }
 
     public async Task<Result<HippotherapyProgramDto>> Handle(
@@ -82,7 +82,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             if (nameChanged)
             {
-                var newSlug = _slugHelper.GenerateSlug(program.Name);
+                var newSlug = _slugService.GenerateSlug(program.Name);
 
                 var slugExists = await _repositoryWrapper.HippotherapyProgramsRepository
                     .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>

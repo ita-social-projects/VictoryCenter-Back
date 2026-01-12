@@ -15,6 +15,7 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
@@ -24,6 +25,7 @@ using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
+using VictoryCenter.BLL.Services.SlugService;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Data;
@@ -128,7 +130,11 @@ public static class ServicesConfiguration
             });
 
         services.AddSingleton<ITokenService, TokenService>();
-        services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages());
+        services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages(new SlugHelperConfiguration
+        {
+            MaximumLength = 200,
+        }));
+        services.AddScoped<ISlugService, SlugService>();
 
         services.AddScoped<IPaymentService, PaymentService>();
 
