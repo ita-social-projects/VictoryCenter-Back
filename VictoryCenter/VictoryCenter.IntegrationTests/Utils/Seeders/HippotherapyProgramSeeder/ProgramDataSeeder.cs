@@ -11,7 +11,7 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.HippotherapyProgram>
 {
     private const int ProgramCount = 8;
 
-    private readonly ISlugHelper _slugHelper = new SlugHelper();
+    private readonly SlugHelper _slugHelper = new();
 
     public ProgramSeeder(VictoryCenterDbContext dbContext, ILogger<ProgramSeeder> logger, IBlobService blobService)
         : base(dbContext, logger)

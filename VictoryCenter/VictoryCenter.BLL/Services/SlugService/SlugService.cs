@@ -30,19 +30,20 @@ public class SlugService : ISlugService
             new QueryOptions<HippotherapyProgram>
             {
                 AsNoTracking = true,
-                Filter = p => p.Slug != null && p.Slug.StartsWith(baseSlug) && p.Id != id,
+                Filter = p => p.Slug != null && p.Id != id,
             });
-
-        if (!programs.Any())
-        {
-            return baseSlug;
-        }
 
         var existingSlugs = programs
             .Select(p => p.Slug)
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Select(s => s!)
+            .Where(s => s.StartsWith(baseSlug, StringComparison.OrdinalIgnoreCase))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (existingSlugs.Count == 0)
+        {
+            return baseSlug;
+        }
 
         while (existingSlugs.Contains(currentSlug))
         {
