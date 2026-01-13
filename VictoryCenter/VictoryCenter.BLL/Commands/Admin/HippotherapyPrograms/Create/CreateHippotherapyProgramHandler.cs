@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
@@ -10,7 +9,6 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 
@@ -61,20 +59,7 @@ public class CreateHippotherapyProgramHandler
 
             var program = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
 
-            var slugFromTitle = _slugService.GenerateSlug(request.CreateProgramDto.Name);
-
-            var slugExists = await _repositoryWrapper.HippotherapyProgramsRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
-                {
-                    Filter = p => p.Slug == slugFromTitle,
-                    AsNoTracking = true
-                });
-
-            if (slugExists is not null)
-            {
-                return Result.Fail<HippotherapyProgramDto>(
-                    ErrorMessagesConstants.PropertyMustBeUnique(nameof(program.Slug)));
-            }
+            var slugFromTitle = await _slugService.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, request.CreateProgramDto.Name, cancellationToken);
 
             program.Slug = slugFromTitle;
 
@@ -106,11 +91,6 @@ public class CreateHippotherapyProgramHandler
         catch (ValidationException vex)
         {
             return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
-        }
-        catch (DbUpdateException)
-        {
-            return Result.Fail<HippotherapyProgramDto>(
-                ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgram)));
         }
     }
 
