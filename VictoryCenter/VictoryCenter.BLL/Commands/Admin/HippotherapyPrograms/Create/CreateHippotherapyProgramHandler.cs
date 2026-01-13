@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
@@ -91,6 +92,11 @@ public class CreateHippotherapyProgramHandler
         catch (ValidationException vex)
         {
             return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<HippotherapyProgramDto>(
+                ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgram)));
         }
     }
 

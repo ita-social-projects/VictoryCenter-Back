@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Slugify;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Enums;
@@ -9,6 +10,8 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeders.HippotherapyProgramSeeder
 public class ProgramSeeder : BaseSeeder<DAL.Entities.HippotherapyProgram>
 {
     private const int ProgramCount = 8;
+
+    private readonly ISlugHelper _slugHelper = new SlugHelper();
 
     public ProgramSeeder(VictoryCenterDbContext dbContext, ILogger<ProgramSeeder> logger, IBlobService blobService)
         : base(dbContext, logger)
@@ -28,15 +31,18 @@ public class ProgramSeeder : BaseSeeder<DAL.Entities.HippotherapyProgram>
                 .OrderBy(_ => Guid.NewGuid())
                 .Take(2)
                 .ToList();
+
+            var name = "TestName" + (i + 1);
+
             programs.Add(new()
             {
                 Id = i + 1,
-                Name = "TestName" + (i + 1),
+                Name = name,
+                Slug = _slugHelper.GenerateSlug(name),
                 Description = "TestDescription" + (i + 1),
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
                 CreatedAt = DateTimeOffset.UtcNow,
-                Categories = selectedCategories,
-                Slug = "testname-" + (i + 1)
+                Categories = selectedCategories
             });
         }
 

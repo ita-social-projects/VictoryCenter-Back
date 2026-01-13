@@ -4,11 +4,11 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using Slugify;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -21,7 +21,7 @@ public class CreateHippotherapyProgramTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<CreateHippotherapyProgramCommand>> _validatorMock;
-    private readonly Mock<ISlugHelper> _slugHelperMock;
+    private readonly Mock<ISlugService> _slugServiceMock;
 
     private readonly CreateHippotherapyProgramDto _createProgramDto = new()
     {
@@ -76,12 +76,12 @@ public class CreateHippotherapyProgramTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _validatorMock = new Mock<IValidator<CreateHippotherapyProgramCommand>>();
-        _slugHelperMock = new Mock<ISlugHelper>();
+        _slugServiceMock = new Mock<ISlugService>();
 
         SetUpValidatorAlwaysSuccess();
         SetUpAutomapper();
         SetUpRepositoryWrapper(saveResult: 1);
-        SetUpSlugHelper();
+        SetUpSlugService();
     }
 
     [Fact]
@@ -91,6 +91,7 @@ public class CreateHippotherapyProgramTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(_programEntity.Name, result.Value.Name);
+        _slugServiceMock.Verify(s => s.GenerateUniqueHippotherapyProgramSlugAsync(It.IsAny<long>(), _createProgramDto.Name, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -209,25 +210,16 @@ public class CreateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenSlugAlreadyExists()
+    public async Task Handle_ShouldCreateProgram_WhenNameIsDuplicate_GeneratesUniqueSlug()
     {
-        var existingProgramWithSlug = new HippotherapyProgram
-        {
-            Id = 999,
-            Name = "Existing Program",
-            Slug = "testname"
-        };
-
-        _repositoryWrapperMock
-            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
-                It.Is<QueryOptions<HippotherapyProgram>>(opt =>
-                    opt.AsNoTracking == true)))
-            .ReturnsAsync(existingProgramWithSlug);
+        _slugServiceMock
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(It.IsAny<long>(), _createProgramDto.Name, It.IsAny<CancellationToken>()))
+            .ReturnsAsync("testname-1");
 
         var result = await ExecuteAsync();
 
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.PropertyMustBeUnique(nameof(HippotherapyProgram.Slug)), result.Errors[0].Message);
+        Assert.True(result.IsSuccess);
+        Assert.Equal("testname-1", _programEntity.Slug);
     }
 
     private Task<Result<HippotherapyProgramDto>> ExecuteAsync()
@@ -244,7 +236,7 @@ public class CreateHippotherapyProgramTests
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
             _validatorMock.Object,
-            _slugHelperMock.Object);
+            _slugServiceMock.Object);
 
     private void SetUpAutomapper()
     {
@@ -274,11 +266,6 @@ public class CreateHippotherapyProgramTests
 
     private void SetUpRepositoryWrapper(int saveResult)
     {
-        _repositoryWrapperMock
-            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
-                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == true)))
-            .ReturnsAsync((HippotherapyProgram?)null);
-
         _repositoryWrapperMock
             .Setup(r => r.HippotherapyProgramCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync((QueryOptions<HippotherapyProgramCategory> options) =>
@@ -317,9 +304,13 @@ public class CreateHippotherapyProgramTests
             .ReturnsAsync(saveResult);
     }
 
-    private void SetUpSlugHelper()
+    private void SetUpSlugService()
     {
-        _slugHelperMock
+        _slugServiceMock
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((long id, string name, CancellationToken _) => name.ToLowerInvariant().Replace(" ", "-"));
+
+        _slugServiceMock
             .Setup(s => s.GenerateSlug(It.IsAny<string>()))
             .Returns((string input) => input.ToLowerInvariant().Replace(" ", "-"));
     }
