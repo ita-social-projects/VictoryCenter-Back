@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,16 +14,17 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Slug",
                 table: "HippotherapyPrograms",
-                type: "nvarchar(120)",
-                maxLength: 120,
-                nullable: false,
-                defaultValue: "");
+                type: "nvarchar(450)",
+                maxLength: 450,
+                nullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_HippotherapyPrograms_Slug",
                 table: "HippotherapyPrograms",
                 column: "Slug",
-                unique: true);
+                unique: true,
+                filter: "[Slug] IS NOT NULL");
+
         }
 
         /// <inheritdoc />

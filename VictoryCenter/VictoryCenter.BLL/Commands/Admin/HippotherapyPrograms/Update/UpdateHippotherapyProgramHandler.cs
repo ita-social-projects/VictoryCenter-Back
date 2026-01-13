@@ -80,7 +80,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             _mapper.Map(request.UpdateProgramDto, program);
 
-            if (nameChanged)
+            if (nameChanged || program.Slug is null)
             {
                 var newSlug = await _slugService.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, program.Name, cancellationToken);
                 program.Slug = newSlug;

@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260111003134_AddedSlugToHippotherapyPrograms")]
+    [Migration("20260113010551_AddedSlugToHippotherapyPrograms")]
     partial class AddedSlugToHippotherapyPrograms
     {
         /// <inheritdoc />
@@ -409,9 +409,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Slug")
-                        .IsRequired()
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -427,7 +426,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasFilter("[PreviewImageId] IS NOT NULL");
 
                     b.HasIndex("Slug")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[Slug] IS NOT NULL");
 
                     b.ToTable("HippotherapyPrograms");
                 });
