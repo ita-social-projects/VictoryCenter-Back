@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Queries.Public.HippotherapyPrograms.GetBySlug;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Options;
@@ -32,6 +33,24 @@ public class GetHippotherapyProgramBySlugTests
     }
 
     [Fact]
+    public async Task Handle_WhenProgramIsNotPublished_ShouldReturnFail()
+    {
+        var mapperMock = new Mock<IMapper>();
+        var repoWrapperMock = new Mock<IRepositoryWrapper>();
+        var slugServiceMock = new Mock<ISlugService>();
+
+        slugServiceMock
+            .Setup(s => s.GetHippotherapyProgramBySlugAsync("draft", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HippotherapyProgram { Slug = "draft", Status = Status.Draft, Sections = new List<HippotherapyProgramSection>() });
+
+        var handler = new GetHippotherapyProgramBySlugHandler(mapperMock.Object, repoWrapperMock.Object, slugServiceMock.Object);
+
+        var result = await handler.Handle(new GetHippotherapyProgramBySlugQuery("draft"), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+    }
+
+    [Fact]
     public async Task Handle_WhenImageValidationFails_ShouldReturnFail()
     {
         var mapperMock = new Mock<IMapper>();
@@ -44,6 +63,7 @@ public class GetHippotherapyProgramBySlugTests
         var program = new HippotherapyProgram
         {
             Slug = "test",
+            Status = Status.Published,
             Sections = new List<HippotherapyProgramSection>
             {
                 new()
@@ -85,6 +105,7 @@ public class GetHippotherapyProgramBySlugTests
         {
             Id = 10,
             Slug = "test",
+            Status = Status.Published,
             Sections = new List<HippotherapyProgramSection>
             {
                 new()
