@@ -46,18 +46,17 @@ public class BaseHippotherapyProgramSectionValidatorTests
     }
 
     [Fact]
-    public void Validate_ContentsIsNull_ShouldHaveError()
+    public void Validate_ContentsIsEmpty_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly) with
         {
-            Contents = null!
+            Contents = []
         };
 
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
-                nameof(CreateHippotherapyProgramSectionDto.Contents)));
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetTitlesCountErrorMessage(model));
     }
 
     [Fact]
