@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Slugify;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
@@ -52,5 +53,21 @@ public class SlugService : ISlugService
         }
 
         return currentSlug;
+    }
+
+    public Task<HippotherapyProgram?> GetHippotherapyProgramBySlugAsync(string slug, CancellationToken cancellationToken = default)
+    {
+        var queryOptions = new QueryOptions<HippotherapyProgram>
+        {
+            Filter = program => program.Slug == slug,
+            Include = program => program
+                .Include(p => p.Categories)
+                .Include(p => p.PreviewImage)!
+                .Include(p => p.BackgroundImage)!
+                .Include(p => p.Sections)
+                    .ThenInclude(s => s.Contents),
+        };
+
+        return _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(queryOptions);
     }
 }

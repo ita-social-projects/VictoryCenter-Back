@@ -1,14 +1,13 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Public.HippotherapyPrograms.GetBySlug;
 
@@ -17,31 +16,20 @@ public class GetHippotherapyProgramBySlugHandler
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly ISlugService _slugService;
 
-    public GetHippotherapyProgramBySlugHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetHippotherapyProgramBySlugHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, ISlugService slugService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
+        _slugService = slugService;
     }
 
     public async Task<Result<HippotherapyProgramDto>> Handle(
         GetHippotherapyProgramBySlugQuery request,
         CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<HippotherapyProgram>
-        {
-            Filter = program => program.Slug == request.Slug,
-            Include = program => program
-                .Include(p => p.Categories)
-                .Include(p => p.PreviewImage)!
-                .Include(p => p.BackgroundImage)!
-                .Include(p => p.Sections)
-                    .ThenInclude(s => s.Contents)
-        };
-
-        var program = await _repositoryWrapper
-            .HippotherapyProgramsRepository
-            .GetFirstOrDefaultAsync(queryOptions);
+        var program = await _slugService.GetHippotherapyProgramBySlugAsync(request.Slug, cancellationToken);
 
         if (program is null)
         {
