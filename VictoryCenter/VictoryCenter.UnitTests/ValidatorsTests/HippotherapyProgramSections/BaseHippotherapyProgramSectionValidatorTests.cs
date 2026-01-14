@@ -46,16 +46,31 @@ public class BaseHippotherapyProgramSectionValidatorTests
     }
 
     [Fact]
-    public void Validate_TitlesCountIsInvalid_ShouldHaveError()
+    public void Validate_ContentsIsNull_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly) with
         {
-            Titles = []
+            Contents = null!
         };
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor(x => x.Titles)
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateHippotherapyProgramSectionDto.Contents)));
+    }
+
+    [Fact]
+    public void Validate_TitlesCountIsInvalid_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.TextOnly) with
+        {
+            Contents = []
+        };
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
             .WithErrorMessage(HippotherapyProgramSectionConstants.GetTitlesCountErrorMessage(model));
     }
 
@@ -63,37 +78,49 @@ public class BaseHippotherapyProgramSectionValidatorTests
     public void Validate_TitleItemIsEmpty_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly);
-        model.Titles[0] = "";
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Title);
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = ""
+        });
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor("Titles[0]")
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateHippotherapyProgramSectionDto.Titles)));
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Title)));
     }
 
     [Fact]
     public void Validate_TitleItemIsTooShort_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly);
-        model.Titles[0] = new string('T', HippotherapyProgramSectionConstants.GetRequirements(model.Template).TitleLength.Min - 1);
+        var min = HippotherapyProgramSectionConstants.GetRequirements(model.Template).TitleLength.Min;
+
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Title);
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = new string('T', min - 1)
+        });
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor("Titles[0]")
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
             .WithErrorMessage(HippotherapyProgramSectionConstants.GetTitleLengthErrorMessage(model));
     }
 
     [Fact]
     public void Validate_DescriptionsCountIsInvalid_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.TextOnly) with
-        {
-            Descriptions = []
-        };
+        var model = GetValidModel(ProgramSectionTemplate.TextOnly);
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Description);
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor(x => x.Descriptions)
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
             .WithErrorMessage(HippotherapyProgramSectionConstants.GetDescriptionsCountErrorMessage(model));
     }
 
@@ -101,68 +128,123 @@ public class BaseHippotherapyProgramSectionValidatorTests
     public void Validate_DescriptionItemIsEmpty_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly);
-        model.Descriptions[0] = " ";
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Description);
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Description,
+            Order = 1,
+            Description = " "
+        });
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor("Descriptions[0]")
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateHippotherapyProgramSectionDto.Descriptions)));
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Description)));
     }
 
     [Fact]
     public void Validate_DescriptionItemIsTooShort_ShouldHaveError()
     {
         var model = GetValidModel(ProgramSectionTemplate.TextOnly);
-        model.Descriptions[0] = new string('D', HippotherapyProgramSectionConstants.GetRequirements(model.Template).DescriptionLength.Min - 1);
+        var min = HippotherapyProgramSectionConstants.GetRequirements(model.Template).DescriptionLength.Min;
+
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Description);
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Description,
+            Order = 1,
+            Description = new string('D', min - 1)
+        });
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor("Descriptions[0]")
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
             .WithErrorMessage(HippotherapyProgramSectionConstants.GetDescriptionLengthErrorMessage(model));
     }
 
     [Fact]
-    public void Validate_ImageIdsCountIsInvalid_ShouldHaveError()
+    public void Validate_ImagesCountIsInvalid_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.TextOnly) with
+        var model = GetValidModel(ProgramSectionTemplate.TextOnly);
+        model.Contents.Add(new CreateProgramSectionContentDto
         {
-            ImageIds = [1]
-        };
+            ContentType = ContentType.Image,
+            Order = 2,
+            ImageId = 1
+        });
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor(x => x.ImageIds)
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
             .WithErrorMessage(HippotherapyProgramSectionConstants.GetImagesCountErrorMessage(model));
     }
 
     [Fact]
     public void Validate_ImageIdsContainDuplicates_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.DualImagesBottom) with
+        var model = GetValidModel(ProgramSectionTemplate.DualImagesBottom);
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Image);
+
+        model.Contents.Add(new CreateProgramSectionContentDto
         {
-            ImageIds = [1, 1]
-        };
+            ContentType = ContentType.Image,
+            Order = 2,
+            ImageId = 1
+        });
+
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Image,
+            Order = 3,
+            ImageId = 1
+        });
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor(x => x.ImageIds)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
-                nameof(CreateHippotherapyProgramSectionDto.ImageIds)));
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateProgramSectionContentDto.ImageId)));
     }
 
     [Fact]
     public void Validate_ImageIdIsNotPositive_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.DualImagesBottom) with
+        var model = GetValidModel(ProgramSectionTemplate.DualImagesBottom);
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.Image);
+
+        model.Contents.Add(new CreateProgramSectionContentDto
         {
-            ImageIds = [0, 2]
+            ContentType = ContentType.Image,
+            Order = 2,
+            ImageId = 0
+        });
+
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Image,
+            Order = 3,
+            ImageId = 2
+        });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateProgramSectionContentDto.ImageId)));
+    }
+
+    [Fact]
+    public void Validate_DualTitleDescriptionPairs_GroupIndexIsMissing_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs);
+
+        model = model with
+        {
+            Contents = [.. model.Contents.Select(c => c with { GroupIndex = null })]
         };
 
         var result = _validator.TestValidate(model);
 
-        result.ShouldHaveValidationErrorFor("ImageIds[0]")
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
-                nameof(CreateHippotherapyProgramSectionDto.ImageIds)));
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetGroupIndexRequiredErrorMessage(model));
     }
 
     [Fact]
@@ -178,16 +260,69 @@ public class BaseHippotherapyProgramSectionValidatorTests
     private static CreateHippotherapyProgramSectionDto GetValidModel(ProgramSectionTemplate template)
     {
         var req = HippotherapyProgramSectionConstants.GetRequirements(template);
+        var contents = new List<CreateProgramSectionContentDto>();
+        var order = 0;
+
+        for (var i = 0; i < req.TitleCount.Min; i++)
+        {
+            contents.Add(new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Title,
+                Order = order++,
+                Title = new string('T', req.TitleLength.Min)
+            });
+        }
+
+        for (var i = 0; i < req.DescriptionCount.Min; i++)
+        {
+            contents.Add(new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Description,
+                Order = order++,
+                Description = new string('D', req.DescriptionLength.Min)
+            });
+        }
+
+        for (var i = 0; i < req.ImageCount.Min; i++)
+        {
+            contents.Add(new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Image,
+                Order = order++,
+                ImageId = i + 1
+            });
+        }
+
+        if (req.Grouping is not null)
+        {
+            contents.Clear();
+            order = 0;
+
+            for (var g = 0; g < req.Grouping.GroupCount.Min; g++)
+            {
+                contents.Add(new CreateProgramSectionContentDto
+                {
+                    ContentType = ContentType.Title,
+                    Order = order++,
+                    GroupIndex = g,
+                    Title = new string('T', req.TitleLength.Min)
+                });
+
+                contents.Add(new CreateProgramSectionContentDto
+                {
+                    ContentType = ContentType.Description,
+                    Order = order++,
+                    GroupIndex = g,
+                    Description = new string('D', req.DescriptionLength.Min)
+                });
+            }
+        }
 
         return new CreateHippotherapyProgramSectionDto
         {
             Template = template,
             Order = 0,
-            Titles = [.. Enumerable.Range(1, req.TitleCount.Min).Select(_ => new string('T', req.TitleLength.Min))],
-            Descriptions = [.. Enumerable.Range(1, req.DescriptionCount.Min).Select(_ => new string('D', req.DescriptionLength.Min))],
-            ImageIds = req.ImageCount.Min == 0
-                ? []
-                : [.. Enumerable.Range(1, req.ImageCount.Min).Select(i => (long)i)]
+            Contents = contents
         };
     }
 }

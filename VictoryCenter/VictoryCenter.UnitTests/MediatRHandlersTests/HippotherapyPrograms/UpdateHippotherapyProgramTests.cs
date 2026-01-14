@@ -180,7 +180,22 @@ public class UpdateHippotherapyProgramTests
             {
                 Template = default,
                 Order = 0,
-                ImageIds = [1, 2]
+                Contents =
+                [
+                    new CreateProgramSectionContentDto
+                    {
+                        ContentType = ContentType.Image,
+                        Order = 0,
+                        ImageId = 1
+                    },
+                    new CreateProgramSectionContentDto
+                    {
+                        ContentType = ContentType.Image,
+                        Order = 1,
+                        ImageId = 2
+                    }
+
+                ]
             }
 
         ];

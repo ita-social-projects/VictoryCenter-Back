@@ -23,6 +23,8 @@ public class ProgramSectionContentConfig : IEntityTypeConfiguration<ProgramSecti
         builder.Property(c => c.Order)
             .IsRequired();
 
+        builder.Property(c => c.GroupIndex);
+
         builder.HasOne(c => c.Section)
             .WithMany(s => s.Contents)
             .HasForeignKey(c => c.SectionId)

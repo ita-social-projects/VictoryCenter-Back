@@ -191,9 +191,13 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 1,
-            Titles = ["T"],
-            Descriptions = ["D"],
-            ImageIds = [10, 999]
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "T" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "D" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 2, ImageId = 10 },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 3, ImageId = 999 }
+            ]
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, imagesById);
@@ -213,9 +217,13 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 1,
-            Titles = ["T"],
-            Descriptions = ["D"],
-            ImageIds = [10, 999]
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "T" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "D" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 2, ImageId = 10 },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 3, ImageId = 999 }
+            ]
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, imagesById);
@@ -233,9 +241,7 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 1,
-            Titles = null!,
-            Descriptions = null!,
-            ImageIds = null!
+            Contents = null!
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, new Dictionary<long, Image>());
@@ -255,18 +261,21 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 2,
-            Titles = ["A"],
-            Descriptions = [],
-            ImageIds = []
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "A" }
+            ]
         };
 
         var dto2 = new CreateHippotherapyProgramSectionDto
         {
             Template = default,
             Order = 1,
-            Titles = [],
-            Descriptions = ["B"],
-            ImageIds = [10]
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Description, Order = 0, Description = "B" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 1, ImageId = 10 }
+            ]
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto1, dto2], createdAt, imagesById);
@@ -286,24 +295,52 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 2,
-            Titles = ["A"],
-            Descriptions = [],
-            ImageIds = []
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "A" }
+            ]
         };
 
         var dto2 = new CreateHippotherapyProgramSectionDto
         {
             Template = default,
             Order = 1,
-            Titles = [],
-            Descriptions = ["B"],
-            ImageIds = [10]
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Description, Order = 0, Description = "B" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 1, ImageId = 10 }
+            ]
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto1, dto2], createdAt, imagesById);
         var contents = result[1].Contents.ToList();
 
         Assert.Equal(1, contents[1].Order);
+    }
+
+    [Fact]
+    public void Build_DtoContentsNotSortedByOrder_ResultContentsSortedByOrder()
+    {
+        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
+
+        var dto = new CreateHippotherapyProgramSectionDto
+        {
+            Template = default,
+            Order = 1,
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 2, Title = "T2" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "T0" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 1, Title = "T1" }
+            ]
+        };
+
+        var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, new Dictionary<long, Image>());
+        var contents = result[0].Contents.ToList();
+
+        Assert.Equal(0, contents[0].Order);
+        Assert.Equal(1, contents[1].Order);
+        Assert.Equal(2, contents[2].Order);
     }
 
     private static (List<HippotherapyProgramSection> result, Image image1, Image image2) BuildFullDto()
@@ -323,9 +360,15 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = 1,
-            Titles = ["  Title A  ", "Title B"],
-            Descriptions = ["  Desc 1 ", "Desc 2  "],
-            ImageIds = [10, 20]
+            Contents =
+            [
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "  Title A  " },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Title, Order = 1, Title = "Title B" },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Description, Order = 2, Description = "  Desc 1 " },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Description, Order = 3, Description = "Desc 2  " },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 4, ImageId = 10 },
+                new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 5, ImageId = 20 }
+            ]
         };
 
         var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, imagesById);
@@ -338,9 +381,7 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             Template = default,
             Order = order,
-            Titles = [],
-            Descriptions = [],
-            ImageIds = []
+            Contents = []
         };
     }
 

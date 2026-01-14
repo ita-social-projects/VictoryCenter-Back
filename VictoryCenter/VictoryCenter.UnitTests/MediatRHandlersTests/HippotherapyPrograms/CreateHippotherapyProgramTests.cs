@@ -174,7 +174,22 @@ public class CreateHippotherapyProgramTests
             {
                 Template = default,
                 Order = 0,
-                ImageIds = [1, 2]
+                Contents =
+                [
+                    new()
+                    {
+                        ContentType = ContentType.Image,
+                        Order = 0,
+                        ImageId = 1
+                    },
+                    new()
+                    {
+                        ContentType = ContentType.Image,
+                        Order = 1,
+                        ImageId = 2
+                    }
+
+                ]
             }
 
         ];
