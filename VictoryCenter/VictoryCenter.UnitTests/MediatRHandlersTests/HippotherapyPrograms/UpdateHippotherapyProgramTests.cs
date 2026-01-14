@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -20,6 +21,7 @@ public class UpdateHippotherapyProgramTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<UpdateHippotherapyProgramCommand>> _validatorMock;
+    private readonly Mock<ISlugService> _slugServiceMock;
 
     private readonly UpdateHippotherapyProgramDto _updateProgramDto = new()
     {
@@ -40,6 +42,7 @@ public class UpdateHippotherapyProgramTests
         Status = Status.Published,
         BackgroundImageId = 1,
         PreviewImageId = 2,
+        Slug = "oldprogramname",
         Categories = [],
         Sections = []
     };
@@ -72,10 +75,12 @@ public class UpdateHippotherapyProgramTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _validatorMock = new Mock<IValidator<UpdateHippotherapyProgramCommand>>();
+        _slugServiceMock = new Mock<ISlugService>();
 
         SetUpValidatorAlwaysSuccess();
         SetUpAutomapper();
         SetUpRepositoryWrapper(program: _programEntity, saveResult: 1);
+        SetUpSlugService();
     }
 
     [Fact]
@@ -89,6 +94,8 @@ public class UpdateHippotherapyProgramTests
         Assert.Equal(2, _programEntity.Categories.Count);
         _repositoryWrapperMock.Verify(r => r.HippotherapyProgramsRepository.Update(It.IsAny<HippotherapyProgram>()), Times.Once);
         _repositoryWrapperMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+
+        _slugServiceMock.Verify(s => s.GenerateUniqueHippotherapyProgramSlugAsync(_programEntity.Id, _updateProgramDto.Name, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -195,6 +202,32 @@ public class UpdateHippotherapyProgramTests
         Assert.Contains("Image", result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ShouldUpdateProgram_WhenNameIsDuplicate_GeneratesUniqueSlug()
+    {
+        _updateProgramDto.Name = "New Program Name";
+
+        _slugServiceMock
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(_programEntity.Id, _updateProgramDto.Name, It.IsAny<CancellationToken>()))
+            .ReturnsAsync("new-program-name-1");
+
+        var result = await ExecuteAsync(id: 1);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("new-program-name-1", _programEntity.Slug);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRegenerateSlug_WhenSlugIsNull()
+    {
+        _programEntity.Slug = null;
+
+        var result = await ExecuteAsync(id: 1);
+
+        Assert.True(result.IsSuccess);
+        _slugServiceMock.Verify(s => s.GenerateUniqueHippotherapyProgramSlugAsync(_programEntity.Id, _updateProgramDto.Name, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
     private Task<Result<HippotherapyProgramDto>> ExecuteAsync(long id)
     {
         var handler = CreateHandler();
@@ -208,7 +241,8 @@ public class UpdateHippotherapyProgramTests
         => new(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validatorMock.Object);
+            _validatorMock.Object,
+            _slugServiceMock.Object);
 
     private void SetUpAutomapper()
     {
@@ -247,7 +281,8 @@ public class UpdateHippotherapyProgramTests
     private void SetUpRepositoryWrapper(HippotherapyProgram? program, int saveResult)
     {
         _repositoryWrapperMock
-            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
+                It.Is<QueryOptions<HippotherapyProgram>>(opt => opt.AsNoTracking == false)))
             .ReturnsAsync(program);
 
         _repositoryWrapperMock
@@ -286,5 +321,16 @@ public class UpdateHippotherapyProgramTests
         _repositoryWrapperMock
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(saveResult);
+    }
+
+    private void SetUpSlugService()
+    {
+        _slugServiceMock
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((long id, string name, CancellationToken _) => name.ToLowerInvariant().Replace(" ", "-"));
+
+        _slugServiceMock
+            .Setup(s => s.GenerateSlug(It.IsAny<string>()))
+            .Returns((string input) => input.ToLowerInvariant().Replace(" ", "-"));
     }
 }

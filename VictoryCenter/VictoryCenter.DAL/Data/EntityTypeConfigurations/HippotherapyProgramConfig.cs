@@ -16,6 +16,13 @@ public class HippotherapyProgramConfig : IEntityTypeConfiguration<HippotherapyPr
         builder.Property(e => e.Name)
             .IsRequired();
 
+        builder.Property(e => e.Slug)
+            .HasMaxLength(450);
+
+        builder.HasIndex(e => e.Slug)
+            .IsUnique()
+            .HasFilter("[Slug] IS NOT NULL");
+
         builder.Property(e => e.Description);
 
         builder.Property(e => e.Status)
