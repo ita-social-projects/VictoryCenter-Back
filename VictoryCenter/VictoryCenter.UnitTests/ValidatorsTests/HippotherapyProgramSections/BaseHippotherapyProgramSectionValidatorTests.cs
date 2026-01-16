@@ -227,10 +227,8 @@ public class BaseHippotherapyProgramSectionValidatorTests
     [Fact]
     public void Validate_DualTitleDescriptionPairs_GroupIndexIsMissing_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs) with
-        {
-            Contents = [.. GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs).Contents.Select(c => c with { GroupIndex = null })]
-        };
+        var model = GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs);
+        model.Contents = [.. model.Contents.Select(c => c with { GroupIndex = null })];
 
         var result = _validator.TestValidate(model);
 
@@ -301,11 +299,8 @@ public class BaseHippotherapyProgramSectionValidatorTests
     [Fact]
     public void Validate_Template12_GroupIndexIsMissing_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs) with
-        {
-            Contents = [.. GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs).Contents.Select(c =>
-                c.ContentType == ContentType.Title ? c : c with { GroupIndex = null })]
-        };
+        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs);
+        model.Contents = [.. model.Contents.Select(c => c.ContentType == ContentType.Title ? c : c with { GroupIndex = null })];
 
         var result = _validator.TestValidate(model);
 
@@ -352,7 +347,6 @@ public class BaseHippotherapyProgramSectionValidatorTests
         if (req.Grouping is null)
         {
             AddUngroupedContents(req, contents, ref order);
-
             return BuildSectionDto(template, contents);
         }
 

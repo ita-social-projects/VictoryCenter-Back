@@ -8,5 +8,5 @@ public record CreateHippotherapyProgramSectionDto
 
     public int Order { get; set; }
 
-    public List<CreateProgramSectionContentDto> Contents { get; set; } = [];
+    public List<CreateProgramSectionContentDto>? Contents { get; set; } = [];
 }

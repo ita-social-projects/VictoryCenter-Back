@@ -28,6 +28,11 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         CreateHippotherapyProgramSectionDto section,
         ValidationContext<CreateHippotherapyProgramSectionDto> ctx)
     {
+        if (section.Contents is null)
+        {
+            return;
+        }
+
         if (!Enum.IsDefined(section.Template))
         {
             return;
@@ -36,7 +41,7 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         var contents = section.Contents;
 
         var req = HippotherapyProgramSectionConstants.GetRequirements(section.Template);
-        var prop = nameof(CreateHippotherapyProgramSectionDto.Contents);
+        const string? prop = nameof(CreateHippotherapyProgramSectionDto.Contents);
 
         ValidateCounts(section, ctx, contents, req, prop);
         ValidateUniqueness(ctx, contents, prop);
@@ -180,11 +185,6 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
 
         var authors = contents.Where(c => c.ContentType == ContentType.Author).ToList();
 
-        if (authors.Count == 0)
-        {
-            return;
-        }
-
         if (authors.Any(c => string.IsNullOrWhiteSpace(c.Author)))
         {
             ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Author)));
@@ -225,7 +225,7 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
             return;
         }
 
-        if (!GroupsMatchComposition(groups, grouping))
+        if (!GroupsMatchComposition(grouped, grouping))
         {
             ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetGroupCompositionErrorMessage(section));
         }
@@ -250,11 +250,13 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
     }
 
     private static bool GroupsMatchComposition(
-        List<IGrouping<int, CreateProgramSectionContentDto>> groups,
+        IEnumerable<CreateProgramSectionContentDto> contents,
         HippotherapyProgramSectionConstants.GroupingConfig grouping)
     {
-        return !groups.Any(g =>
-            grouping.PerGroupCounts.Any(rule =>
+        return !contents
+            .Where(c => grouping.PerGroupCounts.ContainsKey(c.ContentType))
+            .GroupBy(c => c.GroupIndex!.Value)
+            .Any(g => grouping.PerGroupCounts.Any(rule =>
                 !InRange(g.Count(x => x.ContentType == rule.Key), rule.Value)));
     }
 
