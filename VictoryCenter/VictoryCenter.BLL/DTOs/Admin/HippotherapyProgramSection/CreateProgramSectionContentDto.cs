@@ -15,4 +15,6 @@ public record CreateProgramSectionContentDto
     public string? Description { get; init; }
 
     public long? ImageId { get; init; }
+
+    public string? Author { get; init; }
 }

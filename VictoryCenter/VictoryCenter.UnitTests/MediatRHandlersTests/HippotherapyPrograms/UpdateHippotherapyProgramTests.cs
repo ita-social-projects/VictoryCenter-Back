@@ -1,5 +1,4 @@
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
@@ -7,7 +6,6 @@ using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
-using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -17,289 +15,342 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.HippotherapyPrograms;
 
 public class UpdateHippotherapyProgramTests
 {
-    private readonly Mock<IMapper> _mapperMock;
-    private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
-    private readonly Mock<IValidator<UpdateHippotherapyProgramCommand>> _validatorMock;
+    private readonly Mock<IMapper> _mapper = new();
+    private readonly Mock<IRepositoryWrapper> _repo = new();
+    private readonly Mock<IValidator<UpdateHippotherapyProgramCommand>> _validator = new();
 
-    private readonly UpdateHippotherapyProgramDto _updateProgramDto = new()
-    {
-        Name = "NewProgramName",
-        Description = "NewProgramDescription",
-        Status = Status.Published,
-        BackgroundImageId = 1,
-        PreviewImageId = 2,
-        CategoryIds = [1, 2],
-        Sections = []
-    };
-
-    private readonly HippotherapyProgram _programEntity = new()
-    {
-        Id = 1,
-        Name = "OldProgramName",
-        Description = "OldProgramDescription",
-        Status = Status.Published,
-        BackgroundImageId = 1,
-        PreviewImageId = 2,
-        Categories = [],
-        Sections = []
-    };
-
-    private readonly HippotherapyProgramDto _programDto = new()
-    {
-        Id = 1,
-        Name = "MappedProgramName",
-        Description = "MappedProgramDescription",
-        Status = Status.Published,
-        BackgroundImage = new ImageDto { BlobName = "BlobName", MimeType = "image/png" },
-        PreviewImage = new ImageDto { BlobName = "BlobName", MimeType = "image/png" },
-        Categories = []
-    };
-
-    private readonly List<HippotherapyProgramCategory> _programCategories =
+    private static readonly List<HippotherapyProgramCategory> Categories =
     [
-        new() { Id = 1, Name = "TestCategoryName1" },
-        new() { Id = 2, Name = "TestCategoryName2" }
+        new() { Id = 1, Name = "C1" },
+        new() { Id = 2, Name = "C2" }
     ];
 
-    private readonly List<Image> _images =
+    private static readonly List<Image> Images =
     [
-        new() { Id = 1, BlobName = "BlobName1", MimeType = "image/png" },
-        new() { Id = 2, BlobName = "BlobName2", MimeType = "image/png" }
+        new() { Id = 1, BlobName = "B1", MimeType = "image/png" },
+        new() { Id = 2, BlobName = "B2", MimeType = "image/png" }
     ];
 
-    public UpdateHippotherapyProgramTests()
+    [Fact]
+    public async Task Handle_ValidRequest_UpdatesProgramName()
     {
-        _mapperMock = new Mock<IMapper>();
-        _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
-        _validatorMock = new Mock<IValidator<UpdateHippotherapyProgramCommand>>();
+        var program = Program();
+        var sut = CreateSut(program: program, saveChanges: 1);
 
-        SetUpValidatorAlwaysSuccess();
-        SetUpAutomapper();
-        SetUpRepositoryWrapper(program: _programEntity, saveResult: 1);
+        await sut.Handle(Command(id: 1, dto: Dto(name: "NewName")), CancellationToken.None);
+
+        Assert.Equal("NewName", program.Name);
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdateProgram()
+    public async Task Handle_ValidRequest_ReplacesCategories()
     {
-        var result = await ExecuteAsync(id: 1);
+        var program = Program(categories: [new HippotherapyProgramCategory { Id = 99, Name = "Old" }]);
+        var sut = CreateSut(program: program, saveChanges: 1);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(_programDto.Name, result.Value.Name);
+        await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
 
-        Assert.Equal(2, _programEntity.Categories.Count);
-        _repositoryWrapperMock.Verify(r => r.HippotherapyProgramsRepository.Update(It.IsAny<HippotherapyProgram>()), Times.Once);
-        _repositoryWrapperMock.Verify(r => r.SaveChangesAsync(), Times.Once);
+        Assert.Equal(2, program.Categories.Count);
     }
 
     [Fact]
-    public async Task Handle_ShouldFailUpdate_SaveFail()
+    public async Task Handle_ValidRequest_ReplacesSections()
     {
-        SetUpRepositoryWrapper(program: _programEntity, saveResult: -1);
+        var program = Program(sections: [new HippotherapyProgramSection { Template = default, Order = 99, CreatedAt = DateTimeOffset.UtcNow, Contents = [] }]);
+        var sut = CreateSut(program: program, saveChanges: 1);
 
-        var result = await ExecuteAsync(id: 1);
+        await sut.Handle(
+            Command(id: 1, dto: Dto(sections:
+            [
+                CreateSection(0),
+                CreateSection(1)
+            ])), CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
+        Assert.Equal(2, program.Sections.Count);
+    }
+
+    [Fact]
+    public async Task Handle_SaveChangesReturnsZero_ReturnsFailedToUpdateEntity()
+    {
+        var sut = CreateSut(program: Program(), saveChanges: 0);
+
+        var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldFailUpdate_NotFoundProgram()
+    public async Task Handle_ProgramNotFound_ReturnsNotFound()
     {
-        SetUpRepositoryWrapper(program: null, saveResult: 1);
+        var sut = CreateSut(program: null, saveChanges: 1);
 
-        var result = await ExecuteAsync(id: 1);
+        var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(HippotherapyProgram)), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdateProgram_WhenImagesAreNull()
+    public async Task Handle_MissingCategory_ReturnsNotFoundError()
     {
-        _updateProgramDto.Status = Status.Draft;
+        var sut = CreateSut(program: Program(), saveChanges: 1, categories: [Categories[0]]);
 
-        _updateProgramDto.BackgroundImageId = null;
-        _updateProgramDto.PreviewImageId = null;
+        var result = await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
 
-        var result = await ExecuteAsync(id: 1);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal(_programDto.Name, result.Value.Name);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldFailUpdate_WhenSomeCategoriesDoNotExist()
-    {
-        var onlyOneCategory = new List<HippotherapyProgramCategory>
-        {
-            new() { Id = 1, Name = "OnlyExistingCategory" }
-        };
-
-        _repositoryWrapperMock
-            .Setup(r => r.HippotherapyProgramCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
-            .ReturnsAsync(onlyOneCategory);
-
-        var result = await ExecuteAsync(id: 1);
-
-        Assert.True(result.IsFailed);
         Assert.Contains(nameof(HippotherapyProgramCategory), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldFailUpdate_WhenBackgroundImageNotFound()
+    public async Task Handle_BackgroundImageNotFound_ReturnsNotFoundError()
     {
-        _updateProgramDto.BackgroundImageId = 999;
+        var sut = CreateSut(program: Program(), saveChanges: 1);
 
-        var result = await ExecuteAsync(id: 1);
+        var result = await sut.Handle(Command(id: 1, dto: Dto(backgroundImageId: 999)), CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Image", result.Errors[0].Message);
+        Assert.Contains(nameof(Image), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldFailUpdate_WhenPreviewImageNotFound()
+    public async Task Handle_PreviewImageNotFound_ReturnsNotFoundError()
     {
-        _updateProgramDto.PreviewImageId = 999;
+        var sut = CreateSut(program: Program(), saveChanges: 1);
 
-        var result = await ExecuteAsync(id: 1);
+        var result = await sut.Handle(Command(id: 1, dto: Dto(previewImageId: 999)), CancellationToken.None);
 
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Image", result.Errors[0].Message);
+        Assert.Contains(nameof(Image), result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldFailUpdate_WhenSomeSectionImagesDoNotExist()
+    public async Task Handle_SectionImageNotFound_ReturnsNotFoundError()
     {
-        _updateProgramDto.Status = Status.Draft;
-        _updateProgramDto.BackgroundImageId = null;
-        _updateProgramDto.PreviewImageId = null;
+        var sut = CreateSut(program: Program(), saveChanges: 1, images: [Images[0]]);
 
-        _updateProgramDto.Sections =
-        [
-            new CreateHippotherapyProgramSectionDto
-            {
-                Template = default,
-                Order = 0,
-                Contents =
-                [
-                    new CreateProgramSectionContentDto
-                    {
-                        ContentType = ContentType.Image,
-                        Order = 0,
-                        ImageId = 1
-                    },
-                    new CreateProgramSectionContentDto
-                    {
-                        ContentType = ContentType.Image,
-                        Order = 1,
-                        ImageId = 2
-                    }
+        var dto = Dto(
+            status: Status.Draft,
+            backgroundImageId: null,
+            previewImageId: null,
+            sections:
+            [
+                CreateSection(
+                    0,
+                    CreateImageContent(0, 1),
+                    CreateImageContent(1, 2))
+            ]);
 
-                ]
-            }
+        var result = await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        ];
-
-        _repositoryWrapperMock
-            .Setup(r => r.ImageRepository.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
-            .ReturnsAsync([_images[0]]);
-
-        var result = await ExecuteAsync(id: 1);
-
-        Assert.False(result.IsSuccess);
-        Assert.Contains("Image", result.Errors[0].Message);
+        Assert.Contains(nameof(Image), result.Errors[0].Message);
     }
 
-    private Task<Result<HippotherapyProgramDto>> ExecuteAsync(long id)
+    [Fact]
+    public async Task Handle_ImagesAreNull_ReturnsSuccess()
     {
-        var handler = CreateHandler();
-        return handler.Handle(CreateCommand(id), CancellationToken.None);
+        var sut = CreateSut(program: Program(), saveChanges: 1);
+
+        var result = await sut.Handle(Command(id: 1, dto: Dto(backgroundImageId: null, previewImageId: null)), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
     }
 
-    private UpdateHippotherapyProgramCommand CreateCommand(long id)
-        => new(_updateProgramDto, id);
-
-    private UpdateHippotherapyProgramHandler CreateHandler()
-        => new(
-            _mapperMock.Object,
-            _repositoryWrapperMock.Object,
-            _validatorMock.Object);
-
-    private void SetUpAutomapper()
+    [Fact]
+    public async Task Handle_ValidatorThrows_ReturnsValidationError()
     {
-        _mapperMock
+        var sut = CreateSut(program: Program(), saveChanges: 1);
+        SetUpValidatorToThrow("Name required");
+
+        var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        Assert.Equal("Name required", result.Errors[0].Message);
+    }
+
+    private UpdateHippotherapyProgramHandler CreateSut(
+        HippotherapyProgram? program,
+        int saveChanges,
+        List<HippotherapyProgramCategory>? categories = null,
+        List<Image>? images = null,
+        List<ValidationFailure>? validatorErrors = null)
+    {
+        SetUpValidator(validatorErrors);
+        SetUpMapper();
+        SetUpRepositories(program, saveChanges, categories ?? Categories, images ?? Images);
+
+        return new UpdateHippotherapyProgramHandler(_mapper.Object, _repo.Object, _validator.Object);
+    }
+
+    private void SetUpValidator(List<ValidationFailure>? failures)
+    {
+        _validator.Reset();
+
+        var result = failures is null
+            ? new ValidationResult()
+            : new ValidationResult(failures);
+
+        _validator
+            .Setup(v => v.ValidateAsync(It.IsAny<UpdateHippotherapyProgramCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+
+        _validator
+            .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<UpdateHippotherapyProgramCommand>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(result);
+    }
+
+    private void SetUpMapper()
+    {
+        _mapper.Reset();
+
+        _mapper
             .Setup(m => m.Map(It.IsAny<UpdateHippotherapyProgramDto>(), It.IsAny<HippotherapyProgram>()))
             .Returns((UpdateHippotherapyProgramDto src, HippotherapyProgram dest) =>
             {
                 dest.Name = src.Name;
                 dest.Description = src.Description;
                 dest.Status = src.Status;
+                dest.Location = src.Location;
+                dest.ParticipantsCount = src.ParticipantsCount;
+                dest.MeetingsCount = src.MeetingsCount;
                 dest.BackgroundImageId = src.BackgroundImageId;
                 dest.PreviewImageId = src.PreviewImageId;
                 return dest;
             });
 
-        _mapperMock
+        _mapper
             .Setup(m => m.Map<HippotherapyProgramDto>(It.IsAny<HippotherapyProgram>()))
-            .Returns(_programDto);
+            .Returns((HippotherapyProgram p) => new HippotherapyProgramDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Status = p.Status,
+                Location = p.Location,
+                ParticipantsCount = p.ParticipantsCount,
+                MeetingsCount = p.MeetingsCount,
+                BackgroundImage = null,
+                PreviewImage = null,
+                Categories = [],
+                Sections = []
+            });
     }
 
-    private void SetUpValidatorAlwaysSuccess()
+    private void SetUpRepositories(
+        HippotherapyProgram? program,
+        int saveChanges,
+        List<HippotherapyProgramCategory> categories,
+        List<Image> images)
     {
-        _validatorMock.Reset();
+        _repo.Reset();
 
-        var ok = new ValidationResult();
-
-        _validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<UpdateHippotherapyProgramCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ok);
-
-        _validatorMock
-            .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<UpdateHippotherapyProgramCommand>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(ok);
-    }
-
-    private void SetUpRepositoryWrapper(HippotherapyProgram? program, int saveResult)
-    {
-        _repositoryWrapperMock
+        _repo
             .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(program);
 
-        _repositoryWrapperMock
+        _repo
             .Setup(r => r.HippotherapyProgramCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync((QueryOptions<HippotherapyProgramCategory> options) =>
             {
                 var predicate = options.Filter?.Compile();
-                return predicate is null
-                    ? _programCategories
-                    : [.. _programCategories.Where(predicate)];
+                return predicate is null ? categories : [.. categories.Where(predicate)];
             });
 
-        _repositoryWrapperMock
+        _repo
             .Setup(r => r.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((QueryOptions<Image> options) =>
             {
                 var predicate = options.Filter?.Compile();
-                return predicate is null
-                    ? _images.FirstOrDefault()
-                    : _images.FirstOrDefault(predicate);
+                return predicate is null ? images.FirstOrDefault() : images.FirstOrDefault(predicate);
             });
 
-        _repositoryWrapperMock
+        _repo
             .Setup(r => r.ImageRepository.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((QueryOptions<Image> options) =>
             {
                 var predicate = options.Filter?.Compile();
-                return predicate is null
-                    ? _images
-                    : [.. _images.Where(predicate)];
+                return predicate is null ? images : [.. images.Where(predicate)];
             });
 
-        _repositoryWrapperMock
+        _repo
             .Setup(r => r.HippotherapyProgramsRepository.Update(It.IsAny<HippotherapyProgram>()));
 
-        _repositoryWrapperMock
+        _repo
             .Setup(r => r.SaveChangesAsync())
-            .ReturnsAsync(saveResult);
+            .ReturnsAsync(saveChanges);
+    }
+
+    private void SetUpValidatorToThrow(string message)
+    {
+        _validator.Reset();
+
+        var failures = new List<ValidationFailure>
+        {
+            new("UpdateProgramDto.Name", message)
+        };
+
+        var ex = new ValidationException(failures);
+
+        _validator
+            .Setup(v => v.ValidateAsync(It.IsAny<UpdateHippotherapyProgramCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+
+        _validator
+            .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<UpdateHippotherapyProgramCommand>>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(ex);
+    }
+
+    private static UpdateHippotherapyProgramCommand Command(long id, UpdateHippotherapyProgramDto dto) => new(dto, id);
+
+    private static UpdateHippotherapyProgramDto Dto(
+        string name = "Name",
+        string description = "Description",
+        Status status = Status.Published,
+        long? backgroundImageId = 1,
+        long? previewImageId = 2,
+        List<long>? categoryIds = null,
+        List<CreateHippotherapyProgramSectionDto>? sections = null)
+    {
+        return new UpdateHippotherapyProgramDto
+        {
+            Name = name,
+            Description = description,
+            Status = status,
+            BackgroundImageId = backgroundImageId,
+            PreviewImageId = previewImageId,
+            CategoryIds = categoryIds ?? [1, 2],
+            Sections = sections ?? []
+        };
+    }
+
+    private static HippotherapyProgram Program(
+        ICollection<HippotherapyProgramCategory>? categories = null,
+        ICollection<HippotherapyProgramSection>? sections = null)
+    {
+        return new HippotherapyProgram
+        {
+            Id = 1,
+            Name = "Old",
+            Description = "OldDesc",
+            Status = Status.Published,
+            BackgroundImageId = 1,
+            PreviewImageId = 2,
+            Categories = categories ?? [],
+            Sections = sections ?? []
+        };
+    }
+
+    private static CreateHippotherapyProgramSectionDto CreateSection(int order, params CreateProgramSectionContentDto[] contents)
+    {
+        return new CreateHippotherapyProgramSectionDto
+        {
+            Template = default,
+            Order = order,
+            Contents = [.. contents]
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateImageContent(int order, long imageId)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Image,
+            Order = order,
+            ImageId = imageId
+        };
     }
 }

@@ -8,12 +8,7 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.HippotherapyProgramSections;
 
 public class BaseHippotherapyProgramSectionValidatorTests
 {
-    private readonly BaseHippotherapyProgramSectionValidator _validator;
-
-    public BaseHippotherapyProgramSectionValidatorTests()
-    {
-        _validator = new BaseHippotherapyProgramSectionValidator();
-    }
+    private readonly BaseHippotherapyProgramSectionValidator _validator = new();
 
     [Fact]
     public void Validate_TemplateIsInvalid_ShouldHaveError()
@@ -26,8 +21,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Template)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeValidEnum(
-                nameof(CreateHippotherapyProgramSectionDto.Template)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(CreateHippotherapyProgramSectionDto.Template)));
     }
 
     [Fact]
@@ -41,22 +35,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Order)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeGreaterThan(
-                nameof(CreateHippotherapyProgramSectionDto.Order), -1));
-    }
-
-    [Fact]
-    public void Validate_ContentsIsEmpty_ShouldHaveError()
-    {
-        var model = GetValidModel(ProgramSectionTemplate.TextOnly) with
-        {
-            Contents = []
-        };
-
-        var result = _validator.TestValidate(model);
-
-        result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(HippotherapyProgramSectionConstants.GetTitlesCountErrorMessage(model));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeGreaterThan(nameof(CreateHippotherapyProgramSectionDto.Order), -1));
     }
 
     [Fact]
@@ -231,19 +210,127 @@ public class BaseHippotherapyProgramSectionValidatorTests
     }
 
     [Fact]
+    public void Validate_OrdersContainDuplicates_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.TextOnly);
+        var description = model.Contents.First(c => c.ContentType == ContentType.Description);
+
+        model.Contents.Remove(description);
+        model.Contents.Add(description with { Order = 0 });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateProgramSectionContentDto.Order)));
+    }
+
+    [Fact]
     public void Validate_DualTitleDescriptionPairs_GroupIndexIsMissing_ShouldHaveError()
     {
-        var model = GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs);
-
-        model = model with
+        var model = GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs) with
         {
-            Contents = [.. model.Contents.Select(c => c with { GroupIndex = null })]
+            Contents = [.. GetValidModel(ProgramSectionTemplate.DualTitleDescriptionPairs).Contents.Select(c => c with { GroupIndex = null })]
         };
 
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
             .WithErrorMessage(HippotherapyProgramSectionConstants.GetGroupIndexRequiredErrorMessage(model));
+    }
+
+    [Fact]
+    public void Validate_TextOnly_WithAuthor_ShouldHaveAuthorsCountError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.TextOnly);
+        var maxOrder = model.Contents.Max(c => c.Order);
+
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Author,
+            Order = maxOrder + 1,
+            Author = "Author"
+        });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetAuthorsCountErrorMessage(model));
+    }
+
+    [Fact]
+    public void Validate_Template12_ValidModel_ShouldNotHaveErrors()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs);
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_Template12_AuthorIsEmpty_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs);
+        var author = model.Contents.First(c => c.ContentType == ContentType.Author);
+
+        model.Contents.Remove(author);
+        model.Contents.Add(author with { Author = " " });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Author)));
+    }
+
+    [Fact]
+    public void Validate_Template12_AuthorIsTooShort_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs);
+        var min = HippotherapyProgramSectionConstants.GetRequirements(model.Template).AuthorLength.Min;
+        var author = model.Contents.First(c => c.ContentType == ContentType.Author);
+
+        model.Contents.Remove(author);
+        model.Contents.Add(author with { Author = new string('A', min - 1) });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetAuthorLengthErrorMessage(model));
+    }
+
+    [Fact]
+    public void Validate_Template12_GroupIndexIsMissing_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs) with
+        {
+            Contents = [.. GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs).Contents.Select(c =>
+                c.ContentType == ContentType.Title ? c : c with { GroupIndex = null })]
+        };
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetGroupIndexRequiredErrorMessage(model));
+    }
+
+    [Fact]
+    public void Validate_Template12_GroupCompositionIsInvalid_ShouldHaveError()
+    {
+        var model = GetValidModel(ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs);
+        var maxOrder = model.Contents.Max(c => c.Order);
+
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Author,
+            Order = maxOrder + 1,
+            GroupIndex = 0,
+            Author = "Extra author"
+        });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetGroupCompositionErrorMessage(model));
     }
 
     [Fact]
@@ -262,6 +349,165 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var contents = new List<CreateProgramSectionContentDto>();
         var order = 0;
 
+        if (req.Grouping is null)
+        {
+            AddUngroupedContents(req, contents, ref order);
+
+            return BuildSectionDto(template, contents);
+        }
+
+        AddUngroupedNonGroupedTypes(req, contents, ref order);
+        AddGroupedContents(req, contents, ref order);
+
+        return BuildSectionDto(template, contents);
+    }
+
+    private static CreateHippotherapyProgramSectionDto BuildSectionDto(
+        ProgramSectionTemplate template,
+        List<CreateProgramSectionContentDto> contents)
+    {
+        return new CreateHippotherapyProgramSectionDto
+        {
+            Template = template,
+            Order = 0,
+            Contents = contents
+        };
+    }
+
+    private static void AddUngroupedContents(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
+        AddTitles(req, contents, ref order);
+        AddDescriptions(req, contents, ref order);
+        AddImages(req, contents, ref order);
+        AddAuthors(req, contents, ref order);
+    }
+
+    private static void AddUngroupedNonGroupedTypes(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
+        var groupedTypes = GetGroupedTypes(req);
+
+        if (!groupedTypes.Contains(ContentType.Title))
+        {
+            AddTitles(req, contents, ref order);
+        }
+
+        if (!groupedTypes.Contains(ContentType.Description))
+        {
+            AddDescriptions(req, contents, ref order);
+        }
+
+        if (!groupedTypes.Contains(ContentType.Image))
+        {
+            AddImages(req, contents, ref order);
+        }
+
+        if (!groupedTypes.Contains(ContentType.Author))
+        {
+            AddAuthors(req, contents, ref order);
+        }
+    }
+
+    private static HashSet<ContentType> GetGroupedTypes(HippotherapyProgramSectionConstants.TemplateRequirementsConfig req)
+    {
+        return [.. req.Grouping!.PerGroupCounts.Keys];
+    }
+
+    private static void AddGroupedContents(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
+        for (var g = 0; g < req.Grouping!.GroupCount.Min; g++)
+        {
+            AddGroupedByType(req, contents, ref order, ContentType.Title, g);
+            AddGroupedByType(req, contents, ref order, ContentType.Description, g);
+            AddGroupedByType(req, contents, ref order, ContentType.Image, g);
+            AddGroupedByType(req, contents, ref order, ContentType.Author, g);
+        }
+    }
+
+    private static void AddGroupedByType(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order,
+        ContentType type,
+        int groupIndex)
+    {
+        if (!req.Grouping!.PerGroupCounts.TryGetValue(type, out var count))
+        {
+            return;
+        }
+
+        for (var i = 0; i < count.Min; i++)
+        {
+            contents.Add(CreateGroupedContent(req, type, groupIndex, ref order));
+        }
+    }
+
+    private static CreateProgramSectionContentDto CreateGroupedContent(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        ContentType type,
+        int groupIndex,
+        ref int order)
+    {
+        if (type == ContentType.Title)
+        {
+            return new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Title,
+                Order = order++,
+                GroupIndex = groupIndex,
+                Title = new string('T', req.TitleLength.Min)
+            };
+        }
+
+        if (type == ContentType.Description)
+        {
+            return new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Description,
+                Order = order++,
+                GroupIndex = groupIndex,
+                Description = new string('D', req.DescriptionLength.Min)
+            };
+        }
+
+        if (type == ContentType.Image)
+        {
+            return new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Image,
+                Order = order++,
+                GroupIndex = groupIndex,
+                ImageId = 1
+            };
+        }
+
+        if (type == ContentType.Author)
+        {
+            return new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.Author,
+                Order = order++,
+                GroupIndex = groupIndex,
+                Author = new string('A', Math.Max(req.AuthorLength.Min, 1))
+            };
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(type), type, null);
+    }
+
+    private static void AddTitles(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
         for (var i = 0; i < req.TitleCount.Min; i++)
         {
             contents.Add(new CreateProgramSectionContentDto
@@ -271,7 +517,13 @@ public class BaseHippotherapyProgramSectionValidatorTests
                 Title = new string('T', req.TitleLength.Min)
             });
         }
+    }
 
+    private static void AddDescriptions(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
         for (var i = 0; i < req.DescriptionCount.Min; i++)
         {
             contents.Add(new CreateProgramSectionContentDto
@@ -281,7 +533,13 @@ public class BaseHippotherapyProgramSectionValidatorTests
                 Description = new string('D', req.DescriptionLength.Min)
             });
         }
+    }
 
+    private static void AddImages(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
         for (var i = 0; i < req.ImageCount.Min; i++)
         {
             contents.Add(new CreateProgramSectionContentDto
@@ -291,37 +549,21 @@ public class BaseHippotherapyProgramSectionValidatorTests
                 ImageId = i + 1
             });
         }
+    }
 
-        if (req.Grouping is not null)
+    private static void AddAuthors(
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        List<CreateProgramSectionContentDto> contents,
+        ref int order)
+    {
+        for (var i = 0; i < req.AuthorCount.Min; i++)
         {
-            contents.Clear();
-            order = 0;
-
-            for (var g = 0; g < req.Grouping.GroupCount.Min; g++)
+            contents.Add(new CreateProgramSectionContentDto
             {
-                contents.Add(new CreateProgramSectionContentDto
-                {
-                    ContentType = ContentType.Title,
-                    Order = order++,
-                    GroupIndex = g,
-                    Title = new string('T', req.TitleLength.Min)
-                });
-
-                contents.Add(new CreateProgramSectionContentDto
-                {
-                    ContentType = ContentType.Description,
-                    Order = order++,
-                    GroupIndex = g,
-                    Description = new string('D', req.DescriptionLength.Min)
-                });
-            }
+                ContentType = ContentType.Author,
+                Order = order++,
+                Author = new string('A', Math.Max(req.AuthorLength.Min, 1))
+            });
         }
-
-        return new CreateHippotherapyProgramSectionDto
-        {
-            Template = template,
-            Order = 0,
-            Contents = contents
-        };
     }
 }

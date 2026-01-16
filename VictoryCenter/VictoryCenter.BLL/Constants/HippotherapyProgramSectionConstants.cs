@@ -16,6 +16,8 @@ public static class HippotherapyProgramSectionConstants
         (int Min, int Max) DescriptionCount,
         (int Min, int Max) DescriptionLength,
         (int Min, int Max) ImageCount,
+        (int Min, int Max) AuthorCount = default,
+        (int Min, int Max) AuthorLength = default,
         GroupingConfig? Grouping = null
     );
 
@@ -119,6 +121,22 @@ public static class HippotherapyProgramSectionConstants
             DescriptionLength: (10, 300),
             ImageCount: (0, 0)
         ),
+        [ProgramSectionTemplate.SingleTitleDescriptionAuthorPairs] = new(
+            TitleCount: (1, 1),
+            TitleLength: (5, 50),
+            DescriptionCount: (1, 5),
+            DescriptionLength: (10, 100),
+            ImageCount: (0, 0),
+            AuthorCount: (1, 5),
+            AuthorLength: (2, 50),
+            Grouping: new GroupingConfig(
+                GroupCount: (1, 5),
+                PerGroupCounts: new Dictionary<ContentType, (int Min, int Max)>
+                {
+                    [ContentType.Description] = (1, 1),
+                    [ContentType.Author] = (1, 1)
+                })
+        ),
     };
     public static TemplateRequirementsConfig GetRequirements(ProgramSectionTemplate template)
         => TemplateRequirements[template];
@@ -140,6 +158,12 @@ public static class HippotherapyProgramSectionConstants
 
     public static string GetDescriptionLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
         => GetLengthErrorMessage(GetRequirements(section.Template).DescriptionLength, "description");
+
+    public static string GetAuthorsCountErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetCountErrorMessage(section, ContentType.Author, GetRequirements(section.Template).AuthorCount, "author(s)");
+
+    public static string GetAuthorLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetLengthErrorMessage(GetRequirements(section.Template).AuthorLength, "author");
 
     public static string GetGroupIndexRequiredErrorMessage(CreateHippotherapyProgramSectionDto section)
         => $"Template {section.Template} requires GroupIndex for grouped content";

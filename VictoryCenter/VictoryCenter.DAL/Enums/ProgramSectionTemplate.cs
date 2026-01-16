@@ -23,4 +23,6 @@ public enum ProgramSectionTemplate
     QuadTitleDescriptionPairs = 10,        // Frame 633437
 
     SingleTitleQuintupleDescription = 11,  // Frame 633435
+
+    SingleTitleDescriptionAuthorPairs = 12, // Frame 633433
 }

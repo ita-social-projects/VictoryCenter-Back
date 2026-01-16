@@ -44,6 +44,7 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         ValidateTitles(section, ctx, contents, req, prop);
         ValidateDescriptions(section, ctx, contents, req, prop);
         ValidateImages(ctx, contents, prop);
+        ValidateAuthors(section, ctx, contents, req, prop);
         ValidateGrouping(section, ctx, contents, req, prop);
     }
 
@@ -67,6 +68,11 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         if (!InRange(CountByType(contents, ContentType.Image), req.ImageCount))
         {
             ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetImagesCountErrorMessage(section));
+        }
+
+        if (!InRange(CountByType(contents, ContentType.Author), req.AuthorCount))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetAuthorsCountErrorMessage(section));
         }
     }
 
@@ -157,6 +163,36 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         if (images.Any(c => c.ImageId is null or <= 0))
         {
             ctx.AddFailure(prop, ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateProgramSectionContentDto.ImageId)));
+        }
+    }
+
+    private static void ValidateAuthors(
+        CreateHippotherapyProgramSectionDto section,
+        ValidationContext<CreateHippotherapyProgramSectionDto> ctx,
+        List<CreateProgramSectionContentDto> contents,
+        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
+        string prop)
+    {
+        if (req.AuthorCount.Min == 0 && req.AuthorCount.Max == 0)
+        {
+            return;
+        }
+
+        var authors = contents.Where(c => c.ContentType == ContentType.Author).ToList();
+
+        if (authors.Count == 0)
+        {
+            return;
+        }
+
+        if (authors.Any(c => string.IsNullOrWhiteSpace(c.Author)))
+        {
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Author)));
+        }
+
+        if (authors.Any(c => !HasValidLength(c.Author, req.AuthorLength)))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetAuthorLengthErrorMessage(section));
         }
     }
 

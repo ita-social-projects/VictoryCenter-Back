@@ -107,6 +107,17 @@ public static class HippotherapyProgramSectionsBuilder
             };
         }
 
+        if (dto.ContentType == ContentType.Author)
+        {
+            return new AuthorProgramContent
+            {
+                ContentType = ContentType.Author,
+                Order = dto.Order,
+                GroupIndex = dto.GroupIndex,
+                Name = dto.Author!.Trim()
+            };
+        }
+
         return null;
     }
 }
