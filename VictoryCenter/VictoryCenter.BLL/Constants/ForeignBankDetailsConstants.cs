@@ -5,6 +5,8 @@ public static class ForeignBankDetailsConstants
     public static readonly string OnlyUsdOrEurMessage = "Currency must be USD or EUR";
     public static readonly string UkrainianIbanMustStartWithUaFollowedByDigits = "IBAN must start with UA followed by digits only";
     public static readonly string UahIbanExpression = @"^UA\d+$";
+    public static readonly string SwiftExpression = @"^[a-zA-Z0-9]+$";
+    public static readonly string SwiftMustContainOnlyLettersAndDigits = "Swift code must contain only letters and digits";
 
     public static readonly int NameMaxLength = 200;
     public static readonly int ReceiverMaxLength = 200;

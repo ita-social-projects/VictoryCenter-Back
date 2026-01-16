@@ -4,6 +4,8 @@ public static class CorrespondentBankDetailsConstants
 {
     public static readonly int NameMaxLength = 200;
     public static readonly int AccountMaxLength = 20;
+    public static readonly string SwiftExpression = @"^[a-zA-Z0-9]+$";
+    public static readonly string SwiftMustContainOnlyLettersAndDigits = "Swift code must contain only letters and digits";
     public static class Swift
     {
         public static readonly int MaxLength = 11;
