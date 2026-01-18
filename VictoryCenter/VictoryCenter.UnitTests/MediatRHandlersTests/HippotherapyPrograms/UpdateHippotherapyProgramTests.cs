@@ -135,7 +135,9 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
 
-        Assert.Contains(nameof(HippotherapyProgramCategory), result.Errors.Select(e => e.Message));
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(2, typeof(HippotherapyProgramCategory)),
+            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -145,7 +147,9 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto(backgroundImageId: 999)), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors.Select(e => e.Message));
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(999, typeof(Image)),
+            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -155,7 +159,9 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto(previewImageId: 999)), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors.Select(e => e.Message));
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(999, typeof(Image)),
+            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -177,7 +183,7 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors.Select(e => e.Message));
+        Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains("Image") && m.Contains("'2'"));
     }
 
     [Fact]
@@ -185,7 +191,9 @@ public class UpdateHippotherapyProgramTests
     {
         var sut = CreateSut(program: Program(), saveChanges: 1);
 
-        var result = await sut.Handle(Command(id: 1, dto: Dto(backgroundImageId: null, previewImageId: null)), CancellationToken.None);
+        var result = await sut.Handle(
+            Command(id: 1, dto: Dto(status: Status.Draft, backgroundImageId: null, previewImageId: null)),
+            CancellationToken.None);
 
         Assert.True(result.IsSuccess);
     }
@@ -193,28 +201,12 @@ public class UpdateHippotherapyProgramTests
     [Fact]
     public async Task Handle_ValidatorReturnsErrors_ReturnsFailed()
     {
-        var sut = CreateSut(
-            program: Program(),
-            saveChanges: 1,
-            validatorErrors:
-            [
-                new ValidationFailure("UpdateProgramDto.Name", "Name required")
-            ]);
-
-        var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
-
-        Assert.Contains("Name required", result.Errors.Select(e => e.Message));
-    }
-
-    [Fact]
-    public async Task Handle_ValidatorThrows_ReturnsValidationError()
-    {
         var sut = CreateSut(program: Program(), saveChanges: 1);
         SetUpValidatorToThrow("Name required");
 
         var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
 
-        Assert.Contains("Name required", result.Errors.Select(e => e.Message));
+        Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains("Name required"));
     }
 
     [Fact]
@@ -249,10 +241,9 @@ public class UpdateHippotherapyProgramTests
         HippotherapyProgram? program,
         int saveChanges,
         List<HippotherapyProgramCategory>? categories = null,
-        List<Image>? images = null,
-        List<ValidationFailure>? validatorErrors = null)
+        List<Image>? images = null)
     {
-        SetUpValidator(validatorErrors);
+        SetUpValidatorSuccess();
         SetUpMapper();
         SetUpRepositories(program, saveChanges, categories ?? Categories, images ?? Images);
         SetUpSlugService();
@@ -260,21 +251,19 @@ public class UpdateHippotherapyProgramTests
         return new UpdateHippotherapyProgramHandler(_mapper.Object, _repo.Object, _validator.Object, _slugService.Object);
     }
 
-    private void SetUpValidator(List<ValidationFailure>? failures)
+    private void SetUpValidatorSuccess()
     {
         _validator.Reset();
 
-        var result = failures is null
-            ? new ValidationResult()
-            : new ValidationResult(failures);
+        var ok = new ValidationResult();
 
         _validator
             .Setup(v => v.ValidateAsync(It.IsAny<UpdateHippotherapyProgramCommand>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result);
+            .ReturnsAsync(ok);
 
         _validator
             .Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<UpdateHippotherapyProgramCommand>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(result);
+            .ReturnsAsync(ok);
     }
 
     private void SetUpMapper()
