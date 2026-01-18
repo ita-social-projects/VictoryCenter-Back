@@ -12,5 +12,7 @@ public abstract class ProgramSectionContent
 
     public int Order { get; set; }
 
+    public int? GroupIndex { get; set; }
+
     public HippotherapyProgramSection Section { get; set; } = null!;
 }

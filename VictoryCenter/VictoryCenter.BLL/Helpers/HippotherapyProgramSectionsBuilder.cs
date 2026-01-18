@@ -37,91 +37,87 @@ public static class HippotherapyProgramSectionsBuilder
         CreateHippotherapyProgramSectionDto sectionDto,
         IReadOnlyDictionary<long, Image> imagesById)
     {
-        var contents = new List<ProgramSectionContent>(GetCapacity(sectionDto));
-        var order = 0;
-
-        AddTitles(contents, sectionDto.Titles, ref order);
-        AddDescriptions(contents, sectionDto.Descriptions, ref order);
-        AddImages(contents, sectionDto.ImageIds, imagesById, ref order);
-
-        return contents;
-    }
-
-    private static int GetCapacity(CreateHippotherapyProgramSectionDto sectionDto)
-    {
-        return
-            (sectionDto.Titles?.Count ?? 0) +
-            (sectionDto.Descriptions?.Count ?? 0) +
-            (sectionDto.ImageIds?.Count ?? 0);
-    }
-
-    private static void AddTitles(
-        List<ProgramSectionContent> contents,
-        List<string>? titles,
-        ref int order)
-    {
-        if (titles is null || titles.Count == 0)
+        var dtoContents = sectionDto.Contents ?? [];
+        if (dtoContents.Count == 0)
         {
-            return;
+            return [];
         }
 
-        foreach (var title in titles)
-        {
-            contents.Add(new TitleProgramContent
-            {
-                ContentType = ContentType.Title,
-                Order = order++,
-                Title = title.Trim()
-            });
-        }
-    }
+        var contents = new List<ProgramSectionContent>(dtoContents.Count);
 
-    private static void AddDescriptions(
-        List<ProgramSectionContent> contents,
-        List<string>? descriptions,
-        ref int order)
-    {
-        if (descriptions is null || descriptions.Count == 0)
+        foreach (var dto in dtoContents.OrderBy(x => x.Order))
         {
-            return;
-        }
-
-        foreach (var description in descriptions)
-        {
-            contents.Add(new DescriptionProgramContent
-            {
-                ContentType = ContentType.Description,
-                Order = order++,
-                Description = description.Trim()
-            });
-        }
-    }
-
-    private static void AddImages(
-        List<ProgramSectionContent> contents,
-        List<long>? imageIds,
-        IReadOnlyDictionary<long, Image> imagesById,
-        ref int order)
-    {
-        if (imageIds is null || imageIds.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var imageId in imageIds)
-        {
-            if (!imagesById.TryGetValue(imageId, out var image))
+            var entity = CreateContent(dto, imagesById);
+            if (entity is null)
             {
                 continue;
             }
 
-            contents.Add(new ImageProgramContent
+            contents.Add(entity);
+        }
+
+        return contents;
+    }
+
+    private static ProgramSectionContent? CreateContent(
+        CreateProgramSectionContentDto dto,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        if (dto.ContentType == ContentType.Title)
+        {
+            return new TitleProgramContent
+            {
+                ContentType = ContentType.Title,
+                Order = dto.Order,
+                GroupIndex = dto.GroupIndex,
+                Title = dto.Title!.Trim()
+            };
+        }
+
+        if (dto.ContentType == ContentType.Description)
+        {
+            return new DescriptionProgramContent
+            {
+                ContentType = ContentType.Description,
+                Order = dto.Order,
+                GroupIndex = dto.GroupIndex,
+                Description = dto.Description!.Trim()
+            };
+        }
+
+        if (dto.ContentType == ContentType.Image)
+        {
+            if (dto.ImageId is null or <= 0)
+            {
+                return null;
+            }
+
+            if (!imagesById.TryGetValue(dto.ImageId.Value, out var image))
+            {
+                return null;
+            }
+
+            return new ImageProgramContent
             {
                 ContentType = ContentType.Image,
-                Order = order++,
-                ImageId = imageId,
+                Order = dto.Order,
+                GroupIndex = dto.GroupIndex,
+                ImageId = dto.ImageId.Value,
                 Image = image
-            });
+            };
         }
+
+        if (dto.ContentType == ContentType.Author)
+        {
+            return new AuthorProgramContent
+            {
+                ContentType = ContentType.Author,
+                Order = dto.Order,
+                GroupIndex = dto.GroupIndex,
+                Name = dto.Author!.Trim()
+            };
+        }
+
+        return null;
     }
 }

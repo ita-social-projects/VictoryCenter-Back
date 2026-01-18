@@ -8,13 +8,12 @@ namespace VictoryCenter.UnitTests.HelperTests;
 
 public class HippotherapyProgramSectionsBuilderTests
 {
+    private static readonly DateTimeOffset CreatedAt = new(2025, 12, 17, 1, 2, 3, TimeSpan.Zero);
+
     [Fact]
     public void Build_SectionsNull_ReturnsEmpty()
     {
-        var result = HippotherapyProgramSectionsBuilder.Build(
-            null,
-            new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero),
-            new Dictionary<long, Image>());
+        var result = HippotherapyProgramSectionsBuilder.Build(null, CreatedAt, new Dictionary<long, Image>());
 
         Assert.Empty(result);
     }
@@ -22,22 +21,15 @@ public class HippotherapyProgramSectionsBuilderTests
     [Fact]
     public void Build_SectionsEmpty_ReturnsEmpty()
     {
-        var result = HippotherapyProgramSectionsBuilder.Build(
-            [],
-            new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero),
-            new Dictionary<long, Image>());
+        var result = HippotherapyProgramSectionsBuilder.Build([], CreatedAt, new Dictionary<long, Image>());
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public void Build_TwoSections_ReturnsCountTwo()
+    public void Build_TwoSections_ReturnsTwo()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
-        var result = HippotherapyProgramSectionsBuilder.Build(
-            [MakeSectionDto(order: 1), MakeSectionDto(order: 2)],
-            createdAt,
-            new Dictionary<long, Image>());
+        var result = Build([Section(order: 1), Section(order: 2)]);
 
         Assert.Equal(2, result.Count);
     }
@@ -45,302 +37,248 @@ public class HippotherapyProgramSectionsBuilderTests
     [Fact]
     public void Build_SetsCreatedAt()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 1, 2, 3, TimeSpan.Zero);
-        var result = HippotherapyProgramSectionsBuilder.Build(
-            [MakeSectionDto(order: 7)],
-            createdAt,
-            new Dictionary<long, Image>());
+        var result = Build([Section(order: 7)]);
 
-        Assert.Equal(createdAt, result[0].CreatedAt);
+        Assert.Equal(CreatedAt, result[0].CreatedAt);
     }
 
     [Fact]
-    public void Build_MapsOrder()
+    public void Build_MapsSectionOrder()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 1, 2, 3, TimeSpan.Zero);
-        var result = HippotherapyProgramSectionsBuilder.Build(
-            [MakeSectionDto(order: 7)],
-            createdAt,
-            new Dictionary<long, Image>());
+        var result = Build([Section(order: 7)]);
 
         Assert.Equal(7, result[0].Order);
     }
 
     [Fact]
-    public void Build_MapsTemplate()
+    public void Build_MapsSectionTemplate()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 1, 2, 3, TimeSpan.Zero);
+        var dto = Section(order: 1) with { Template = ProgramSectionTemplate.SingleImageBottom };
 
-        var dto = MakeSectionDto(order: 1);
-        dto.Template = default;
+        var result = Build([dto]);
 
-        var result = HippotherapyProgramSectionsBuilder.Build(
-            [dto],
-            createdAt,
-            new Dictionary<long, Image>());
-
-        Assert.Equal(dto.Template, result[0].Template);
+        Assert.Equal(ProgramSectionTemplate.SingleImageBottom, result[0].Template);
     }
 
     [Fact]
-    public void Build_FullDto_ContentsCountIsSix()
+    public void Build_NullContents_ReturnsEmptyContents()
     {
-        var (result, _, _) = BuildFullDto();
-
-        Assert.Equal(6, result[0].Contents.ToList().Count);
-    }
-
-    [Fact]
-    public void Build_FullDto_Content0_IsTitleProgramContent()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.IsType<TitleProgramContent>(contents[0]);
-    }
-
-    [Fact]
-    public void Build_FullDto_Content2_IsDescriptionProgramContent()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.IsType<DescriptionProgramContent>(contents[2]);
-    }
-
-    [Fact]
-    public void Build_FullDto_Content4_IsImageProgramContent()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.IsType<ImageProgramContent>(contents[4]);
-    }
-
-    [Fact]
-    public void Build_FullDto_Content0_ContentTypeIsTitle()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal(ContentType.Title, contents[0].ContentType);
-    }
-
-    [Fact]
-    public void Build_FullDto_Content2_ContentTypeIsDescription()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal(ContentType.Description, contents[2].ContentType);
-    }
-
-    [Fact]
-    public void Build_FullDto_Content4_ContentTypeIsImage()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal(ContentType.Image, contents[4].ContentType);
-    }
-
-    [Fact]
-    public void Build_FullDto_LastContentOrderIsFive()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal(5, contents[5].Order);
-    }
-
-    [Fact]
-    public void Build_FullDto_TitleTrimApplied()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal("Title A", ((TitleProgramContent)contents[0]).Title);
-    }
-
-    [Fact]
-    public void Build_FullDto_DescriptionTrimApplied()
-    {
-        var (result, _, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal("Desc 1", ((DescriptionProgramContent)contents[2]).Description);
-    }
-
-    [Fact]
-    public void Build_FullDto_ImageReferenceSet()
-    {
-        var (result, image1, _) = BuildFullDto();
-        var contents = result[0].Contents.ToList();
-
-        Assert.Same(image1, ((ImageProgramContent)contents[4]).Image);
-    }
-
-    [Fact]
-    public void Build_SkipsMissingImages_ContentsCountIsThree()
-    {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
-        var image1 = MakeImage(10);
-        var imagesById = new Dictionary<long, Image> { [10] = image1 };
-
         var dto = new CreateHippotherapyProgramSectionDto
         {
             Template = default,
             Order = 1,
-            Titles = ["T"],
-            Descriptions = ["D"],
-            ImageIds = [10, 999]
+            Contents = null!
         };
 
-        var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, imagesById);
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal(3, contents.Count);
-    }
-
-    [Fact]
-    public void Build_SkipsMissingImages_LastImageIdIsTen()
-    {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
-        var image1 = MakeImage(10);
-        var imagesById = new Dictionary<long, Image> { [10] = image1 };
-
-        var dto = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 1,
-            Titles = ["T"],
-            Descriptions = ["D"],
-            ImageIds = [10, 999]
-        };
-
-        var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, imagesById);
-        var contents = result[0].Contents.ToList();
-
-        Assert.Equal(10, ((ImageProgramContent)contents[2]).ImageId);
-    }
-
-    [Fact]
-    public void Build_DtoWithNullLists_ContentsEmpty()
-    {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
-
-        var dto = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 1,
-            Titles = null!,
-            Descriptions = null!,
-            ImageIds = null!
-        };
-
-        var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, new Dictionary<long, Image>());
+        var result = Build([dto]);
         var contents = result[0].Contents.ToList();
 
         Assert.Empty(contents);
     }
 
     [Fact]
-    public void Build_MultipleSections_SecondSection_FirstContentOrderIsZero()
+    public void Build_SortsContentsByOrder()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
-        var image = MakeImage(10);
-        var imagesById = new Dictionary<long, Image> { [10] = image };
+        var dto = Section(
+            order: 1,
+            Title(order: 2, "T2"),
+            Title(order: 0, "T0"),
+            Title(order: 1, "T1"));
 
-        var dto1 = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 2,
-            Titles = ["A"],
-            Descriptions = [],
-            ImageIds = []
-        };
+        var result = Build([dto]);
+        var orders = result[0].Contents.Select(x => x.Order).ToList();
 
-        var dto2 = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 1,
-            Titles = [],
-            Descriptions = ["B"],
-            ImageIds = [10]
-        };
-
-        var result = HippotherapyProgramSectionsBuilder.Build([dto1, dto2], createdAt, imagesById);
-        var contents = result[1].Contents.ToList();
-
-        Assert.Equal(0, contents[0].Order);
+        Assert.True(orders.Count == 3 && orders[0] == 0 && orders[1] == 1 && orders[2] == 2);
     }
 
     [Fact]
-    public void Build_MultipleSections_SecondSection_SecondContentOrderIsOne()
+    public void Build_TrimsTitle()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 0, 0, 0, TimeSpan.Zero);
+        var dto = Section(order: 1, Title(order: 0, "  Title A  "), Description(order: 1, "Desc 1"));
+
+        var result = Build([dto]);
+        var title = (TitleProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Title);
+
+        Assert.Equal("Title A", title.Title);
+    }
+
+    [Fact]
+    public void Build_TrimsDescription()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Description(order: 1, "  Desc 1 "));
+
+        var result = Build([dto]);
+        var description = (DescriptionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Description);
+
+        Assert.Equal("Desc 1", description.Description);
+    }
+
+    [Fact]
+    public void Build_CreatesImageProgramContent()
+    {
         var image = MakeImage(10);
-        var imagesById = new Dictionary<long, Image> { [10] = image };
+        var dto = Section(order: 1, Title(order: 0, "Title"), Description(order: 1, "Desc 1"), Image(order: 2, 10));
+        var result = Build([dto], new Dictionary<long, Image> { [10] = image });
 
-        var dto1 = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 2,
-            Titles = ["A"],
-            Descriptions = [],
-            ImageIds = []
-        };
+        var content = result[0].Contents.First(x => x.ContentType == ContentType.Image);
 
-        var dto2 = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 1,
-            Titles = [],
-            Descriptions = ["B"],
-            ImageIds = [10]
-        };
-
-        var result = HippotherapyProgramSectionsBuilder.Build([dto1, dto2], createdAt, imagesById);
-        var contents = result[1].Contents.ToList();
-
-        Assert.Equal(1, contents[1].Order);
+        Assert.IsType<ImageProgramContent>(content);
     }
 
-    private static (List<HippotherapyProgramSection> result, Image image1, Image image2) BuildFullDto()
+    [Fact]
+    public void Build_SetsImageReference()
     {
-        var createdAt = new DateTimeOffset(2025, 12, 17, 1, 2, 3, TimeSpan.Zero);
+        var image = MakeImage(10);
+        var dto = Section(order: 1, Title(order: 0, "Title"), Description(order: 1, "Desc 1"), Image(order: 2, 10));
+        var result = Build([dto], new Dictionary<long, Image> { [10] = image });
 
-        var image1 = MakeImage(10);
-        var image2 = MakeImage(20);
+        var content = (ImageProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Image);
 
-        var imagesById = new Dictionary<long, Image>
-        {
-            [10] = image1,
-            [20] = image2
-        };
-
-        var dto = new CreateHippotherapyProgramSectionDto
-        {
-            Template = default,
-            Order = 1,
-            Titles = ["  Title A  ", "Title B"],
-            Descriptions = ["  Desc 1 ", "Desc 2  "],
-            ImageIds = [10, 20]
-        };
-
-        var result = HippotherapyProgramSectionsBuilder.Build([dto], createdAt, imagesById);
-        return (result, image1, image2);
+        Assert.Same(image, content.Image);
     }
 
-    private static CreateHippotherapyProgramSectionDto MakeSectionDto(int order)
+    [Fact]
+    public void Build_SkipsMissingImages()
+    {
+        var image = MakeImage(10);
+
+        var dto = Section(
+            order: 1,
+            Title(order: 0, "Title"),
+            Description(order: 1, "Desc 1"),
+            Image(order: 2, 10),
+            Image(order: 3, 999));
+
+        var result = Build([dto], new Dictionary<long, Image> { [10] = image });
+
+        Assert.Equal(3, result[0].Contents.Count);
+    }
+
+    [Fact]
+    public void Build_SkipsImageWithInvalidId()
+    {
+        var dto = Section(
+            order: 1,
+            Title(order: 0, "Title"),
+            Description(order: 1, "Desc 1"),
+            new CreateProgramSectionContentDto { ContentType = ContentType.Image, Order = 2, ImageId = 0 });
+
+        var result = Build([dto]);
+
+        Assert.Equal(2, result[0].Contents.Count);
+    }
+
+    [Fact]
+    public void Build_SkipsUnknownContentType()
+    {
+        var dto = Section(
+            order: 1,
+            Title(order: 0, "Title"),
+            new CreateProgramSectionContentDto { ContentType = ContentType.Card, Order = 1 });
+
+        var result = Build([dto]);
+
+        Assert.Single(result[0].Contents);
+    }
+
+    [Fact]
+    public void Build_CreatesAuthorProgramContent()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Author(order: 1, "Author Name"));
+
+        var result = Build([dto]);
+
+        var content = result[0].Contents.First(x => x.ContentType == ContentType.Author);
+
+        Assert.IsType<AuthorProgramContent>(content);
+    }
+
+    [Fact]
+    public void Build_TrimsAuthor()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Author(order: 1, "  Member 1  "));
+
+        var result = Build([dto]);
+
+        var author = (AuthorProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Author);
+
+        Assert.Equal("Member 1", author.Name);
+    }
+
+    [Fact]
+    public void Build_MapsGroupIndex_ForAuthor()
+    {
+        var dto = Section(
+            order: 1,
+            Title(order: 0, "Title"),
+            new CreateProgramSectionContentDto { ContentType = ContentType.Author, Order = 1, GroupIndex = 2, Author = "Member" });
+
+        var result = Build([dto]);
+
+        var author = (AuthorProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Author);
+
+        Assert.Equal(2, author.GroupIndex);
+    }
+
+    private static List<HippotherapyProgramSection> Build(
+        List<CreateHippotherapyProgramSectionDto> sections,
+        IReadOnlyDictionary<long, Image>? imagesById = null)
+    {
+        return HippotherapyProgramSectionsBuilder.Build(
+            sections,
+            CreatedAt,
+            imagesById ?? new Dictionary<long, Image>());
+    }
+
+    private static CreateHippotherapyProgramSectionDto Section(
+        int order,
+        params CreateProgramSectionContentDto[] contents)
     {
         return new CreateHippotherapyProgramSectionDto
         {
             Template = default,
             Order = order,
-            Titles = [],
-            Descriptions = [],
-            ImageIds = []
+            Contents = [.. contents]
+        };
+    }
+
+    private static CreateProgramSectionContentDto Title(int order, string title)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Title,
+            Order = order,
+            Title = title
+        };
+    }
+
+    private static CreateProgramSectionContentDto Description(int order, string description)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Description,
+            Order = order,
+            Description = description
+        };
+    }
+
+    private static CreateProgramSectionContentDto Image(int order, long imageId)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Image,
+            Order = order,
+            ImageId = imageId
+        };
+    }
+
+    private static CreateProgramSectionContentDto Author(int order, string author)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Author,
+            Order = order,
+            Author = author
         };
     }
 

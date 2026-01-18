@@ -23,6 +23,8 @@ public class ProgramSectionContentConfig : IEntityTypeConfiguration<ProgramSecti
         builder.Property(c => c.Order)
             .IsRequired();
 
+        builder.Property(c => c.GroupIndex);
+
         builder.HasOne(c => c.Section)
             .WithMany(s => s.Contents)
             .HasForeignKey(c => c.SectionId)
@@ -32,7 +34,8 @@ public class ProgramSectionContentConfig : IEntityTypeConfiguration<ProgramSecti
         builder.HasDiscriminator(c => c.ContentType)
             .HasValue<TitleProgramContent>(ContentType.Title)
             .HasValue<DescriptionProgramContent>(ContentType.Description)
-            .HasValue<ImageProgramContent>(ContentType.Image);
+            .HasValue<ImageProgramContent>(ContentType.Image)
+            .HasValue<AuthorProgramContent>(ContentType.Author);
     }
 }
 
@@ -64,5 +67,14 @@ public class ImageProgramContentConfig : IEntityTypeConfiguration<ImageProgramCo
         builder.HasOne(c => c.Image)
             .WithMany()
             .HasForeignKey(c => c.ImageId);
+    }
+}
+
+public class AuthorProgramContentConfig : IEntityTypeConfiguration<AuthorProgramContent>
+{
+    public void Configure(EntityTypeBuilder<AuthorProgramContent> builder)
+    {
+        builder.Property(c => c.Name)
+            .IsRequired();
     }
 }

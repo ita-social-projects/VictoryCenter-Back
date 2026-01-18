@@ -5,5 +5,6 @@ public enum ContentType
     Title,
     Description,
     Image,
-    Card
+    Card,
+    Author
 }
