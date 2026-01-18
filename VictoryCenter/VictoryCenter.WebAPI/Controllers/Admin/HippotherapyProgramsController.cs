@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Delete;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Update;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetById;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.Search;
@@ -13,6 +14,13 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class HippotherapyProgramsController : AuthorizedApiController
 {
+    private readonly ISlugService _slugService;
+
+    public HippotherapyProgramsController(ISlugService slugService)
+    {
+        _slugService = slugService;
+    }
+
     [HttpGet]
     public async Task<IActionResult> GetFilteredPrograms([FromQuery] HippotherapyProgramsFilterDto requestDto)
     {
@@ -51,5 +59,12 @@ public class HippotherapyProgramsController : AuthorizedApiController
     public async Task<IActionResult> GetProgram([FromRoute] long id)
     {
         return HandleResult(await Mediator.Send(new GetHippotherapyProgramByIdQuery(id)));
+    }
+
+    [HttpGet("test/slug")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+    public IActionResult GenerateSlug([FromQuery] string name)
+    {
+        return Ok(_slugService.GenerateSlug(name));
     }
 }

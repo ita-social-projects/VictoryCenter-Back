@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -18,15 +19,18 @@ public class CreateHippotherapyProgramHandler
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateHippotherapyProgramCommand> _validator;
+    private readonly ISlugService _slugService;
 
     public CreateHippotherapyProgramHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<CreateHippotherapyProgramCommand> validator)
+        IValidator<CreateHippotherapyProgramCommand> validator,
+        ISlugService slugService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _slugService = slugService;
     }
 
     public async Task<Result<HippotherapyProgramDto>> Handle(
@@ -55,6 +59,10 @@ public class CreateHippotherapyProgramHandler
             }
 
             var program = _mapper.Map<HippotherapyProgram>(request.CreateProgramDto);
+
+            var slugFromTitle = await _slugService.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, request.CreateProgramDto.Name, cancellationToken);
+
+            program.Slug = slugFromTitle;
 
             var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
                 _repositoryWrapper, program);

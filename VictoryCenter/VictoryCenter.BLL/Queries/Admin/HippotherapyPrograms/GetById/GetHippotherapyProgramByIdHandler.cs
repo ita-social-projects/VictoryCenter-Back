@@ -6,7 +6,6 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -49,24 +48,12 @@ public class GetHippotherapyProgramByIdHandler
                 ErrorMessagesConstants.NotFound(request.Id, typeof(HippotherapyProgram)));
         }
 
-        var imageIds = program.Sections
-            .SelectMany(s => s.Contents)
-            .OfType<ImageProgramContent>()
-            .Select(c => c.ImageId);
+        var assignImagesResult = await ImageValidationHelper
+            .ValidateAndAssignSectionContentImagesAsync(_repositoryWrapper, program.Sections);
 
-        var imagesByIdResult = await ImageValidationHelper
-            .ValidateAndGetImagesByIdsAsync(_repositoryWrapper, imageIds);
-
-        if (imagesByIdResult.IsFailed)
+        if (assignImagesResult.IsFailed)
         {
-            return Result.Fail<HippotherapyProgramDto>(imagesByIdResult.Errors);
-        }
-
-        var imagesById = imagesByIdResult.Value;
-
-        foreach (var content in program.Sections.SelectMany(s => s.Contents).OfType<ImageProgramContent>())
-        {
-            content.Image = imagesById[content.ImageId];
+            return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
         }
 
         return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));

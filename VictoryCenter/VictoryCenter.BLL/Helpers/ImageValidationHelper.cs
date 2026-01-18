@@ -4,6 +4,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -106,6 +107,32 @@ public static class ImageValidationHelper
             .Select(c => c.ImageId!.Value);
 
         return ValidateAndGetImagesByIdsAsync(repositoryWrapper, sectionImageIds);
+    }
+
+    public static async Task<Result> ValidateAndAssignSectionContentImagesAsync(
+        IRepositoryWrapper repositoryWrapper,
+        IEnumerable<HippotherapyProgramSection> sections)
+    {
+        var imageIds = (sections ?? [])
+            .SelectMany(s => s.Contents)
+            .OfType<ImageProgramContent>()
+            .Select(c => c.ImageId);
+
+        var imagesByIdResult = await ValidateAndGetImagesByIdsAsync(repositoryWrapper, imageIds);
+
+        if (imagesByIdResult.IsFailed)
+        {
+            return Result.Fail(imagesByIdResult.Errors);
+        }
+
+        var imagesById = imagesByIdResult.Value;
+
+        foreach (var content in (sections ?? []).SelectMany(s => s.Contents).OfType<ImageProgramContent>())
+        {
+            content.Image = imagesById[content.ImageId];
+        }
+
+        return Result.Ok();
     }
 
     private static async Task<Image?> FetchImageFromRepositoryAsync(

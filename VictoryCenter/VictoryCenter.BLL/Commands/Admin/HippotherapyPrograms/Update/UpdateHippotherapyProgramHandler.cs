@@ -4,9 +4,10 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -18,15 +19,18 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateHippotherapyProgramCommand> _validator;
+    private readonly ISlugService _slugService;
 
     public UpdateHippotherapyProgramHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateHippotherapyProgramCommand> validator)
+        IValidator<UpdateHippotherapyProgramCommand> validator,
+        ISlugService slugService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _slugService = slugService;
     }
 
     public async Task<Result<HippotherapyProgramDto>> Handle(
@@ -71,10 +75,23 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(imagesByIdResult.Errors);
             }
 
+            var oldSlug = program.Slug;
+            var nameChanged = request.UpdateProgramDto.Name != program.Name;
+
             _mapper.Map(request.UpdateProgramDto, program);
 
+            if (nameChanged || program.Slug is null)
+            {
+                var newSlug = await _slugService.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, program.Name, cancellationToken);
+                program.Slug = newSlug;
+            }
+            else
+            {
+                program.Slug = oldSlug;
+            }
+
             var assignImagesResult = await ImageValidationHelper.ValidateAndAssignProgramImagesAsync(
-                _repositoryWrapper, program);
+                    _repositoryWrapper, program);
 
             if (assignImagesResult.IsFailed)
             {

@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -18,6 +19,7 @@ public class UpdateHippotherapyProgramTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repo = new();
     private readonly Mock<IValidator<UpdateHippotherapyProgramCommand>> _validator = new();
+    private readonly Mock<ISlugService> _slugService = new();
 
     private static readonly List<HippotherapyProgramCategory> Categories =
     [
@@ -64,9 +66,42 @@ public class UpdateHippotherapyProgramTests
             [
                 CreateSection(0),
                 CreateSection(1)
-            ])), CancellationToken.None);
+            ])),
+            CancellationToken.None);
 
         Assert.Equal(2, program.Sections.Count);
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_CallsUpdate()
+    {
+        var sut = CreateSut(program: Program(), saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        _repo.Verify(r => r.HippotherapyProgramsRepository.Update(It.IsAny<HippotherapyProgram>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_CallsSaveChanges()
+    {
+        var sut = CreateSut(program: Program(), saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        _repo.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_CallsSlugService()
+    {
+        var sut = CreateSut(program: Program(), saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(name: "My Name")), CancellationToken.None);
+
+        _slugService.Verify(
+            s => s.GenerateUniqueHippotherapyProgramSlugAsync(1, "My Name", It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -76,7 +111,9 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
 
-        Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
+        Assert.Contains(
+            ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)),
+            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -86,7 +123,9 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
 
-        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(HippotherapyProgram)), result.Errors[0].Message);
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(1, typeof(HippotherapyProgram)),
+            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -96,7 +135,7 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
 
-        Assert.Contains(nameof(HippotherapyProgramCategory), result.Errors[0].Message);
+        Assert.Contains(nameof(HippotherapyProgramCategory), result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -106,7 +145,7 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto(backgroundImageId: 999)), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors[0].Message);
+        Assert.Contains(nameof(Image), result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -116,7 +155,7 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto(previewImageId: 999)), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors[0].Message);
+        Assert.Contains(nameof(Image), result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -138,7 +177,7 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors[0].Message);
+        Assert.Contains(nameof(Image), result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -152,6 +191,22 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
+    public async Task Handle_ValidatorReturnsErrors_ReturnsFailed()
+    {
+        var sut = CreateSut(
+            program: Program(),
+            saveChanges: 1,
+            validatorErrors:
+            [
+                new ValidationFailure("UpdateProgramDto.Name", "Name required")
+            ]);
+
+        var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        Assert.Contains("Name required", result.Errors.Select(e => e.Message));
+    }
+
+    [Fact]
     public async Task Handle_ValidatorThrows_ReturnsValidationError()
     {
         var sut = CreateSut(program: Program(), saveChanges: 1);
@@ -159,7 +214,35 @@ public class UpdateHippotherapyProgramTests
 
         var result = await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
 
-        Assert.Equal("Name required", result.Errors[0].Message);
+        Assert.Contains("Name required", result.Errors.Select(e => e.Message));
+    }
+
+    [Fact]
+    public async Task Handle_NameDuplicate_SetsUniqueSlug()
+    {
+        var program = Program(slug: "old");
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        _slugService
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, "New Program Name", It.IsAny<CancellationToken>()))
+            .ReturnsAsync("new-program-name-1");
+
+        await sut.Handle(Command(id: 1, dto: Dto(name: "New Program Name")), CancellationToken.None);
+
+        Assert.Equal("new-program-name-1", program.Slug);
+    }
+
+    [Fact]
+    public async Task Handle_SlugIsNull_RegeneratesSlug()
+    {
+        var program = Program(slug: null);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(name: "New Name")), CancellationToken.None);
+
+        _slugService.Verify(
+            s => s.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, "New Name", It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private UpdateHippotherapyProgramHandler CreateSut(
@@ -172,8 +255,9 @@ public class UpdateHippotherapyProgramTests
         SetUpValidator(validatorErrors);
         SetUpMapper();
         SetUpRepositories(program, saveChanges, categories ?? Categories, images ?? Images);
+        SetUpSlugService();
 
-        return new UpdateHippotherapyProgramHandler(_mapper.Object, _repo.Object, _validator.Object);
+        return new UpdateHippotherapyProgramHandler(_mapper.Object, _repo.Object, _validator.Object, _slugService.Object);
     }
 
     private void SetUpValidator(List<ValidationFailure>? failures)
@@ -294,6 +378,17 @@ public class UpdateHippotherapyProgramTests
             .ThrowsAsync(ex);
     }
 
+    private void SetUpSlugService()
+    {
+        _slugService
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((long _, string name, CancellationToken _) => name.ToLowerInvariant().Replace(" ", "-"));
+
+        _slugService
+            .Setup(s => s.GenerateSlug(It.IsAny<string>()))
+            .Returns((string input) => input.ToLowerInvariant().Replace(" ", "-"));
+    }
+
     private static UpdateHippotherapyProgramCommand Command(long id, UpdateHippotherapyProgramDto dto) => new(dto, id);
 
     private static UpdateHippotherapyProgramDto Dto(
@@ -318,6 +413,7 @@ public class UpdateHippotherapyProgramTests
     }
 
     private static HippotherapyProgram Program(
+        string? slug = "old",
         ICollection<HippotherapyProgramCategory>? categories = null,
         ICollection<HippotherapyProgramSection>? sections = null)
     {
@@ -329,6 +425,7 @@ public class UpdateHippotherapyProgramTests
             Status = Status.Published,
             BackgroundImageId = 1,
             PreviewImageId = 2,
+            Slug = slug,
             Categories = categories ?? [],
             Sections = sections ?? []
         };

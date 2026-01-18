@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
+using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -19,6 +20,7 @@ public class CreateHippotherapyProgramTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repo = new();
     private readonly Mock<IValidator<CreateHippotherapyProgramCommand>> _validator = new();
+    private readonly Mock<ISlugService> _slugService = new();
 
     private static readonly List<HippotherapyProgramCategory> Categories =
     [
@@ -35,7 +37,7 @@ public class CreateHippotherapyProgramTests
     [Fact]
     public async Task Handle_ValidRequest_ReturnsSuccess()
     {
-        var sut = CreateSut(saveChanges: 1);
+        var (sut, _) = CreateSut(saveChanges: 1);
 
         var result = await sut.Handle(Command(Dto()), CancellationToken.None);
 
@@ -43,70 +45,95 @@ public class CreateHippotherapyProgramTests
     }
 
     [Fact]
+    public async Task Handle_ValidRequest_CallsSlugService()
+    {
+        var (sut, _) = CreateSut(saveChanges: 1);
+
+        await sut.Handle(Command(Dto(name: "Test Name")), CancellationToken.None);
+
+        _slugService.Verify(
+            s => s.GenerateUniqueHippotherapyProgramSlugAsync(
+                It.IsAny<long>(),
+                It.IsAny<string>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_SaveChangesReturnsZero_ReturnsFailedToCreateEntity()
     {
-        var sut = CreateSut(saveChanges: 0);
+        var (sut, _) = CreateSut(saveChanges: 0);
 
         var result = await sut.Handle(Command(Dto()), CancellationToken.None);
 
-        Assert.Equal(ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)), result.Errors[0].Message);
+        Assert.Contains(
+            ErrorMessagesConstants.FailedToCreateEntity(typeof(HippotherapyProgram)),
+            string.Join(" | ", result.Errors.Select(e => e.Message)));
     }
 
     [Fact]
     public async Task Handle_MissingCategory_ReturnsNotFoundError()
     {
-        var sut = CreateSut(saveChanges: 1, categories: [Categories[0]]);
+        var (sut, _) = CreateSut(saveChanges: 1, categories: [Categories[0]]);
 
         var result = await sut.Handle(Command(Dto(categoryIds: [1, 2])), CancellationToken.None);
 
-        Assert.Contains(nameof(HippotherapyProgramCategory), result.Errors[0].Message);
+        Assert.Contains(
+            nameof(HippotherapyProgramCategory),
+            string.Join(" | ", result.Errors.Select(e => e.Message)));
     }
 
     [Fact]
     public async Task Handle_BackgroundImageNotFound_ReturnsNotFoundError()
     {
-        var sut = CreateSut(saveChanges: 1);
+        var (sut, _) = CreateSut(saveChanges: 1);
 
         var result = await sut.Handle(Command(Dto(backgroundImageId: 999)), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors[0].Message);
+        Assert.Contains(
+            nameof(Image),
+            string.Join(" | ", result.Errors.Select(e => e.Message)));
     }
 
     [Fact]
     public async Task Handle_PreviewImageNotFound_ReturnsNotFoundError()
     {
-        var sut = CreateSut(saveChanges: 1);
+        var (sut, _) = CreateSut(saveChanges: 1);
 
         var result = await sut.Handle(Command(Dto(previewImageId: 999)), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors[0].Message);
+        Assert.Contains(
+            nameof(Image),
+            string.Join(" | ", result.Errors.Select(e => e.Message)));
     }
 
     [Fact]
     public async Task Handle_SectionImageNotFound_ReturnsNotFoundError()
     {
-        var sut = CreateSut(saveChanges: 1, images: [Images[0]]);
+        var (sut, _) = CreateSut(saveChanges: 1, images: [Images[0]]);
 
         var dto = Dto(
             backgroundImageId: null,
             previewImageId: null,
             sections:
             [
-                CreateSection(
+                Section(
                     0,
-                    CreateImageContent(0, 1),
-                    CreateImageContent(1, 2))
+                    ImageContent(0, 1),
+                    ImageContent(1, 2))
             ]);
 
         var result = await sut.Handle(Command(dto), CancellationToken.None);
 
-        Assert.Contains(nameof(Image), result.Errors[0].Message);
+        Assert.Contains(
+            nameof(Image),
+            string.Join(" | ", result.Errors.Select(e => e.Message)));
     }
 
     [Fact]
     public async Task Handle_ImagesAreNull_ReturnsSuccess()
     {
-        var sut = CreateSut(saveChanges: 1);
+        var (sut, _) = CreateSut(saveChanges: 1);
 
         var result = await sut.Handle(Command(Dto(backgroundImageId: null, previewImageId: null)), CancellationToken.None);
 
@@ -116,26 +143,45 @@ public class CreateHippotherapyProgramTests
     [Fact]
     public async Task Handle_SaveChangesThrowsDbUpdateException_ReturnsDatabaseError()
     {
-        var sut = CreateSut(saveChanges: 1, throwOnSave: true);
+        var (sut, _) = CreateSut(saveChanges: 1, throwOnSave: true);
 
         var result = await sut.Handle(Command(Dto()), CancellationToken.None);
 
-        Assert.Equal(
+        Assert.Contains(
             ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgram)),
-            result.Errors[0].Message);
+            string.Join(" | ", result.Errors.Select(e => e.Message)));
     }
 
-    private CreateHippotherapyProgramHandler CreateSut(
+    [Fact]
+    public async Task Handle_NameIsDuplicate_SetsUniqueSlug()
+    {
+        var (sut, program) = CreateSut(saveChanges: 1, slug: "testname-1");
+
+        await sut.Handle(Command(Dto(name: "TestName")), CancellationToken.None);
+
+        Assert.Equal("testname-1", program.Slug);
+    }
+
+    private (CreateHippotherapyProgramHandler sut, HippotherapyProgram program) CreateSut(
         int saveChanges,
         List<HippotherapyProgramCategory>? categories = null,
         List<Image>? images = null,
-        bool throwOnSave = false)
+        bool throwOnSave = false,
+        string? slug = null)
     {
-        SetUpValidatorSuccess();
-        SetUpMapper();
-        SetUpRepositories(saveChanges, categories ?? Categories, images ?? Images, throwOnSave);
+        var program = new HippotherapyProgram
+        {
+            Id = 1,
+            Categories = [],
+            Sections = []
+        };
 
-        return new CreateHippotherapyProgramHandler(_mapper.Object, _repo.Object, _validator.Object);
+        SetUpValidatorSuccess();
+        SetUpMapper(program);
+        SetUpRepositories(saveChanges, categories ?? Categories, images ?? Images, throwOnSave);
+        SetUpSlugService(slug);
+
+        return (new CreateHippotherapyProgramHandler(_mapper.Object, _repo.Object, _validator.Object, _slugService.Object), program);
     }
 
     private void SetUpValidatorSuccess()
@@ -153,24 +199,25 @@ public class CreateHippotherapyProgramTests
             .ReturnsAsync(ok);
     }
 
-    private void SetUpMapper()
+    private void SetUpMapper(HippotherapyProgram program)
     {
         _mapper.Reset();
 
         _mapper
             .Setup(m => m.Map<HippotherapyProgram>(It.IsAny<CreateHippotherapyProgramDto>()))
-            .Returns((CreateHippotherapyProgramDto dto) => new HippotherapyProgram
+            .Returns((CreateHippotherapyProgramDto dto) =>
             {
-                Name = dto.Name,
-                Description = dto.Description,
-                Status = dto.Status,
-                Location = dto.Location,
-                ParticipantsCount = dto.ParticipantsCount,
-                MeetingsCount = dto.MeetingsCount,
-                BackgroundImageId = dto.BackgroundImageId,
-                PreviewImageId = dto.PreviewImageId,
-                Categories = [],
-                Sections = []
+                program.Name = dto.Name;
+                program.Description = dto.Description;
+                program.Status = dto.Status;
+                program.Location = dto.Location;
+                program.ParticipantsCount = dto.ParticipantsCount;
+                program.MeetingsCount = dto.MeetingsCount;
+                program.BackgroundImageId = dto.BackgroundImageId;
+                program.PreviewImageId = dto.PreviewImageId;
+                program.Categories = [];
+                program.Sections = [];
+                return program;
             });
 
         _mapper
@@ -235,6 +282,20 @@ public class CreateHippotherapyProgramTests
         _repo.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveChanges);
     }
 
+    private void SetUpSlugService(string? uniqueSlug)
+    {
+        _slugService.Reset();
+
+        _slugService
+            .Setup(s => s.GenerateUniqueHippotherapyProgramSlugAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((long _, string name, CancellationToken __) =>
+                uniqueSlug ?? name.ToLowerInvariant().Replace(" ", "-"));
+
+        _slugService
+            .Setup(s => s.GenerateSlug(It.IsAny<string>()))
+            .Returns((string input) => input.ToLowerInvariant().Replace(" ", "-"));
+    }
+
     private static CreateHippotherapyProgramCommand Command(CreateHippotherapyProgramDto dto) => new(dto);
 
     private static CreateHippotherapyProgramDto Dto(
@@ -258,7 +319,7 @@ public class CreateHippotherapyProgramTests
         };
     }
 
-    private static CreateHippotherapyProgramSectionDto CreateSection(int order, params CreateProgramSectionContentDto[] contents)
+    private static CreateHippotherapyProgramSectionDto Section(int order, params CreateProgramSectionContentDto[] contents)
     {
         return new CreateHippotherapyProgramSectionDto
         {
@@ -268,7 +329,7 @@ public class CreateHippotherapyProgramTests
         };
     }
 
-    private static CreateProgramSectionContentDto CreateImageContent(int order, long imageId)
+    private static CreateProgramSectionContentDto ImageContent(int order, long imageId)
     {
         return new CreateProgramSectionContentDto
         {

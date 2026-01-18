@@ -6,6 +6,7 @@ namespace VictoryCenter.DAL.Entities;
 public class HippotherapyProgram : BaseEntity
 {
     public string Name { get; set; } = null!;
+    public string? Slug { get; set; }
     public string? Description { get; set; }
     public Status Status { get; set; }
     public string? Location { get; set; }

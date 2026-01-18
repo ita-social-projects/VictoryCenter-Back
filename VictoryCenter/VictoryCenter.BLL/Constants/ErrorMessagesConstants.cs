@@ -117,6 +117,11 @@ public static class ErrorMessagesConstants
             : $"{property} must be in a valid format of {format}";
     }
 
+    public static string PropertyMustBeUnique(string property)
+    {
+        return $"{property} must be unique";
+    }
+
     public static string CollectionCannotBeEmpty(string collection)
     {
         return $"{collection} cannot be empty";

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260113010551_AddedSlugToHippotherapyPrograms")]
+    partial class AddedSlugToHippotherapyPrograms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -458,9 +461,6 @@ namespace VictoryCenter.DAL.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<int>("ContentType")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("GroupIndex")
                         .HasColumnType("int");
 
                     b.Property<int>("Order")
@@ -932,17 +932,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("WhoWeAreSections");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.AuthorProgramContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(4);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.DescriptionProgramContent", b =>
