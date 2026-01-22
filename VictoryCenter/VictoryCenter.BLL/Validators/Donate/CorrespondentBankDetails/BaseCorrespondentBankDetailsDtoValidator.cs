@@ -21,7 +21,9 @@ public class BaseCorrespondentBankDetailsDtoValidator : AbstractValidator<BaseCo
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
                     nameof(CorrespondentBankDetailsDto.Swift),
-                    CorrespondentBankDetailsConstants.Swift.MinLength));
+                    CorrespondentBankDetailsConstants.Swift.MinLength))
+            .Matches(CorrespondentBankDetailsConstants.SwiftExpression)
+            .WithMessage(CorrespondentBankDetailsConstants.SwiftMustContainOnlyLettersAndDigits);
 
         RuleFor(dto => dto.ForeignIban)
             .MaximumLength(CorrespondentBankDetailsConstants.ForeignIban.MaxLength)

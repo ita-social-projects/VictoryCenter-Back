@@ -20,7 +20,9 @@ public class BaseForeignBankDetailsDtoValidator : AbstractValidator<BaseForeignB
             .WithMessage(ErrorMessagesConstants
                 .PropertyMustHaveAMinimumLengthOfNCharacters(
                     nameof(ForeignBankDetailsDto.Swift),
-                    ForeignBankDetailsConstants.Swift.MinLength));
+                    ForeignBankDetailsConstants.Swift.MinLength))
+            .Matches(ForeignBankDetailsConstants.SwiftExpression)
+            .WithMessage(ForeignBankDetailsConstants.SwiftMustContainOnlyLettersAndDigits);
 
         RuleFor(dto => dto.UkrainianIban)
             .NotEmpty()
