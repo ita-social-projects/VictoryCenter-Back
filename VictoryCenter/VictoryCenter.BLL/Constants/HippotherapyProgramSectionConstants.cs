@@ -11,13 +11,17 @@ public static class HippotherapyProgramSectionConstants
     );
 
     public sealed record TemplateRequirementsConfig(
-        (int Min, int Max) TitleCount,
-        (int Min, int Max) TitleLength,
-        (int Min, int Max) DescriptionCount,
-        (int Min, int Max) DescriptionLength,
-        (int Min, int Max) ImageCount,
+        (int Min, int Max) TitleCount = default,
+        (int Min, int Max) TitleLength = default,
+        (int Min, int Max) DescriptionCount = default,
+        (int Min, int Max) DescriptionLength = default,
+        (int Min, int Max) ImageCount = default,
         (int Min, int Max) AuthorCount = default,
         (int Min, int Max) AuthorLength = default,
+        (int Min, int Max) QuestionCount = default,
+        (int Min, int Max) QuestionLength = default,
+        (int Min, int Max) AnswerCount = default,
+        (int Min, int Max) AnswerLength = default,
         GroupingConfig? Grouping = null
     );
 
@@ -137,6 +141,19 @@ public static class HippotherapyProgramSectionConstants
                     [ContentType.Author] = (1, 1)
                 })
         ),
+        [ProgramSectionTemplate.QuestionAnswerPair] = new(
+            TitleCount: (1, 1),
+            TitleLength: (5, 60),
+            QuestionLength: (10, 150),
+            AnswerLength: (50, 1000),
+            Grouping: new GroupingConfig(
+                GroupCount: (1, 10),
+                PerGroupCounts: new Dictionary<ContentType, (int Min, int Max)>
+                {
+                    [ContentType.Question] = (1, 1),
+                    [ContentType.Answer] = (1, 1)
+                })
+        ),
     };
     public static TemplateRequirementsConfig GetRequirements(ProgramSectionTemplate template)
         => TemplateRequirements[template];
@@ -164,6 +181,18 @@ public static class HippotherapyProgramSectionConstants
 
     public static string GetAuthorLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
         => GetLengthErrorMessage(GetRequirements(section.Template).AuthorLength, "author");
+
+    public static string GetQuestionsCountErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetCountErrorMessage(section, ContentType.Question, GetRequirements(section.Template).QuestionCount, "question(s)");
+
+    public static string GetQuestionLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetLengthErrorMessage(GetRequirements(section.Template).QuestionLength, "question");
+
+    public static string GetAnswersCountErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetCountErrorMessage(section, ContentType.Answer, GetRequirements(section.Template).AnswerCount, "answer(s)");
+
+    public static string GetAnswerLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetLengthErrorMessage(GetRequirements(section.Template).AnswerLength, "answer");
 
     public static string GetGroupIndexRequiredErrorMessage(CreateHippotherapyProgramSectionDto section)
         => $"Template {section.Template} requires GroupIndex for grouped content";
