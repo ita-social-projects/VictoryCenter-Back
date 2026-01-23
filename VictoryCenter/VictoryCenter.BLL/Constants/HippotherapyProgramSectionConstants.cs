@@ -141,11 +141,13 @@ public static class HippotherapyProgramSectionConstants
                     [ContentType.Author] = (1, 1)
                 })
         ),
-        [ProgramSectionTemplate.QuestionAnswerPair] = new(
+        [ProgramSectionTemplate.SingleTitleQuestionAnswerPairs] = new(
             TitleCount: (1, 1),
             TitleLength: (5, 60),
             QuestionLength: (10, 150),
+            QuestionCount: (1, 10),
             AnswerLength: (50, 1000),
+            AnswerCount: (1, 10),
             Grouping: new GroupingConfig(
                 GroupCount: (1, 10),
                 PerGroupCounts: new Dictionary<ContentType, (int Min, int Max)>
