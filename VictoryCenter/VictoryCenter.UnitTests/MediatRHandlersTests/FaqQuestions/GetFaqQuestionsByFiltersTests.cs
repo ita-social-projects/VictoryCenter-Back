@@ -1,8 +1,11 @@
 using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.DTOs.Admin.Localization.FaqQuestions;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -65,7 +68,7 @@ public class GetFaqQuestionsByFiltersTests
     public async Task Handle_FilterByStatus_ShouldReturnSuccessfully()
     {
         // Arrange
-        var status = Status.Draft;
+        var status = DAL.Enums.Status.Draft;
         var faqQuestionList = GetFaqQuestionList();
         var faqQuestionDtoList = GetFaqQuestionDtoList()
             .Where(q => q.Status == status)
@@ -135,7 +138,7 @@ public class GetFaqQuestionsByFiltersTests
     public async Task Handle_FilterByStatusAndPageId_ShouldReturnSuccessfully()
     {
         // Arrange
-        var status = Status.Draft;
+        var status = DAL.Enums.Status.Draft;
         var page = new VisitorPage { Id = 1, Title = "Page 1" };
         var faqQuestionList = GetFaqQuestionList();
         var faqPlacementList = GetPlacementList();
@@ -168,6 +171,84 @@ public class GetFaqQuestionsByFiltersTests
         Assert.Equal(faqQuestionDtoList, result.Value.Items);
     }
 
+    [Fact]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatusFilterMising()
+    {
+        int localizationLanguageCount = 1;
+        var faqQuestionList = GetFaqQuestionList();
+        var faqQuestionDtoList = GetFaqQuestionDtoList()
+            .Where(t => t.Localizations.Count() < localizationLanguageCount)
+            .ToArray();
+
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
+        SetupMapper(faqQuestionDtoList);
+
+        var filtersDto = new FaqQuestionsFilterDto
+        {
+            Offset = 0,
+            Limit = 0,
+            TranslationStatusFilter = TranslationStatusFilter.Missing
+        };
+        var handler = new GetFaqQuestionsByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+
+        var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatusFilterOutdated()
+    {
+        var faqQuestionList = GetFaqQuestionList();
+        var faqQuestionDtoList = GetFaqQuestionDtoList()
+            .Where(t => t.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated))
+            .ToArray();
+
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
+        SetupMapper(faqQuestionDtoList);
+
+        var filtersDto = new FaqQuestionsFilterDto
+        {
+            Offset = 0,
+            Limit = 0,
+            TranslationStatusFilter = TranslationStatusFilter.Outdated
+        };
+        var handler = new GetFaqQuestionsByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+
+        var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnSuccessfully_FilterTranslationStatusFilterAll()
+    {
+        var faqQuestionList = GetFaqQuestionList();
+        var faqQuestionDtoList = GetFaqQuestionDtoList()
+            .ToArray();
+
+        SetupRepository(faqQuestionList, faqQuestionList.Count);
+        SetupMapper(faqQuestionDtoList);
+
+        var filtersDto = new FaqQuestionsFilterDto
+        {
+            Offset = 0,
+            Limit = 0,
+            TranslationStatusFilter = TranslationStatusFilter.All
+        };
+        var handler = new GetFaqQuestionsByFiltersHandler(_mockMapper.Object, _mockRepository.Object);
+
+        var result = await handler.Handle(new GetFaqQuestionsByFiltersQuery(filtersDto), CancellationToken.None);
+
+        Assert.NotNull(result);
+        Assert.NotNull(result.Value);
+        Assert.Equal(faqQuestionDtoList, result.Value.Items);
+    }
+
     private static List<FaqQuestion> GetFaqQuestionList()
     {
         var faqQuestionList = new List<FaqQuestion>
@@ -177,59 +258,86 @@ public class GetFaqQuestionsByFiltersTests
                 Id = 4,
                 QuestionText = new('4', 15),
                 AnswerText = new('4', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 Placements = [
                     new FaqPlacement { PageId = 1, QuestionId = 4, Priority = 3 },
                     new FaqPlacement { PageId = 2, QuestionId = 4, Priority = 3 },
                     new FaqPlacement { PageId = 3, QuestionId = 4, Priority = 1 },
                     ],
-                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-40)
             },
             new()
             {
                 Id = 2,
                 QuestionText = new('2', 15),
                 AnswerText = new('2', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 Placements = [
                     new FaqPlacement { PageId = 1, QuestionId = 2, Priority = 2 },
                     new FaqPlacement { PageId = 2, QuestionId = 2, Priority = 1 },
                     ],
-                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-20)
+                Localizations = [
+                    new FaqQuestionLocalization
+                    {
+                        EntityId = 2,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Outdated,
+                    },
+                ],
             },
             new()
             {
                 Id = 3,
                 QuestionText = new('3', 15),
                 AnswerText = new('3', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 Placements = [
                     new FaqPlacement { PageId = 2, QuestionId = 3, Priority = 2 },
                     ],
-                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30)
+                Localizations = [
+                    new FaqQuestionLocalization
+                    {
+                        EntityId = 3,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Outdated,
+                    },
+                ],
             },
             new()
             {
                 Id = 5,
                 QuestionText = new('5', 15),
                 AnswerText = new('5', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 Placements = [
                     new FaqPlacement { PageId = 2, QuestionId = 5, Priority = 4 },
                     new FaqPlacement { PageId = 3, QuestionId = 5, Priority = 2 },
                     ],
-                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-50)
+                Localizations = [
+                    new FaqQuestionLocalization
+                    {
+                        EntityId = 5,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    },
+                ],
             },
             new()
             {
                 Id = 1,
                 QuestionText = new('1', 15),
                 AnswerText = new('1', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 Placements = [
                     new FaqPlacement { PageId = 1, QuestionId = 1, Priority = 1 },
                     ],
-                CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+                Localizations = [
+                    new FaqQuestionLocalization
+                    {
+                        EntityId = 1,
+                        LanguageId = 2,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    },
+                ],
             },
         };
 
@@ -245,39 +353,67 @@ public class GetFaqQuestionsByFiltersTests
                 Id = 1,
                 QuestionText = new('1', 15),
                 AnswerText = new('1', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 PageIds = [1],
+                Localizations = [
+                    new FaqQuestionLocalizationDto
+                    {
+                        EntityId = 1,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    },
+                ],
             },
             new()
             {
                 Id = 3,
                 QuestionText = new('3', 15),
                 AnswerText = new('3', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 PageIds = [2],
+                Localizations = [
+                    new FaqQuestionLocalizationDto
+                    {
+                        EntityId = 3,
+                        TranslationStatus = TranslationStatus.Outdated,
+                    },
+                ],
             },
             new()
             {
                 Id = 2,
                 QuestionText = new('2', 15),
                 AnswerText = new('2', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 PageIds = [1, 2],
+                Localizations = [
+                    new FaqQuestionLocalizationDto
+                    {
+                        EntityId = 2,
+                        TranslationStatus = TranslationStatus.Outdated,
+                    },
+                ],
             },
             new()
             {
                 Id = 5,
                 QuestionText = new('5', 15),
                 AnswerText = new('5', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 PageIds = [2, 3],
+                Localizations = [
+                    new FaqQuestionLocalizationDto
+                    {
+                        EntityId = 5,
+                        TranslationStatus = TranslationStatus.Relevant,
+                    },
+                ],
             },
             new()
             {
                 Id = 4,
                 QuestionText = new('4', 15),
                 AnswerText = new('4', 60),
-                Status = Status.Draft,
+                Status = DAL.Enums.Status.Draft,
                 PageIds = [1, 2, 3],
             },
         };
@@ -309,6 +445,9 @@ public class GetFaqQuestionsByFiltersTests
 
     private void SetupRepository(List<FaqQuestion> faqQuestions, int count)
     {
+        _mockRepository.Setup(repositoryWrapper => repositoryWrapper.LocalizationLanguagesRepository.CountAsync(
+            It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
         _mockRepository.Setup(repositoryWrapper => repositoryWrapper.FaqQuestionsRepository.GetAllAsync(
              It.IsAny<QueryOptions<FaqQuestion>>()))
             .ReturnsAsync(faqQuestions);
