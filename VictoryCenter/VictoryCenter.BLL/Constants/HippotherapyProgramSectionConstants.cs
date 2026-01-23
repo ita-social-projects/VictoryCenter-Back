@@ -145,11 +145,11 @@ public static class HippotherapyProgramSectionConstants
             TitleCount: (1, 1),
             TitleLength: (5, 60),
             QuestionLength: (10, 150),
-            QuestionCount: (1, 10),
+            QuestionCount: (1, 100),
             AnswerLength: (50, 1000),
-            AnswerCount: (1, 10),
+            AnswerCount: (1, 100),
             Grouping: new GroupingConfig(
-                GroupCount: (1, 10),
+                GroupCount: (1, 100),
                 PerGroupCounts: new Dictionary<ContentType, (int Min, int Max)>
                 {
                     [ContentType.Question] = (1, 1),
