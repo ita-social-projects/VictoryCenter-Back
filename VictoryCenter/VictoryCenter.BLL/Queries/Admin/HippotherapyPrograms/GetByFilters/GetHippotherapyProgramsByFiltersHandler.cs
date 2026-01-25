@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -41,10 +42,24 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
                 .Include(p => p.BackgroundImage)
                 .Include(p => p.PreviewImage)
                 .Include(p => p.Categories)
+                .Include(p => p.Sections)
+                    .ThenInclude(s => s.Contents)
         };
 
         IEnumerable<HippotherapyProgram> programs = await _repositoryWrapper.HippotherapyProgramsRepository.GetAllAsync(queryOptions);
         var totalCount = await _repositoryWrapper.HippotherapyProgramsRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
+
+        foreach (var program in programs)
+        {
+            var assignImagesResult = await ImageValidationHelper
+                .ValidateAndAssignSectionContentImagesAsync(_repositoryWrapper, program.Sections);
+
+            if (assignImagesResult.IsFailed)
+            {
+                return Result.Fail<PaginationResult<HippotherapyProgramDto>>(assignImagesResult.Errors);
+            }
+        }
+
         var programDto = _mapper.Map<IEnumerable<HippotherapyProgramDto>>(programs).ToList();
 
         return Result.Ok(new PaginationResult<HippotherapyProgramDto>([.. programDto], totalCount));

@@ -28,6 +28,7 @@ public class HippotherapyProgramSectionsProfile : Profile
             .ForMember(d => d.Author, opt => opt.Ignore());
 
         CreateMap<ImageProgramContent, HippotherapyProgramSectionContentDto>()
+            .ForMember(d => d.Image, opt => opt.MapFrom(s => s.Image))
             .ForMember(d => d.Title, opt => opt.Ignore())
             .ForMember(d => d.Description, opt => opt.Ignore())
             .ForMember(d => d.Author, opt => opt.Ignore());
