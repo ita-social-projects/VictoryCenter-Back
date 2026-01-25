@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -49,14 +50,28 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
         IEnumerable<HippotherapyProgram> programs = await _repositoryWrapper.HippotherapyProgramsRepository.GetAllAsync(queryOptions);
         var totalCount = await _repositoryWrapper.HippotherapyProgramsRepository.CountAsync(queryOptions with { Offset = 0, Limit = 0 });
 
+        var allImageIds = programs
+            .SelectMany(p => p.Sections)
+            .SelectMany(s => s.Contents)
+            .OfType<ImageProgramContent>()
+            .Select(c => c.ImageId)
+            .Distinct();
+
+        var imagesByIdResult = await ImageValidationHelper
+            .ValidateAndGetImagesByIdsAsync(_repositoryWrapper, allImageIds);
+
+        if (imagesByIdResult.IsFailed)
+        {
+            return Result.Fail<PaginationResult<HippotherapyProgramDto>>(imagesByIdResult.Errors);
+        }
+
+        var imagesById = imagesByIdResult.Value;
+
         foreach (var program in programs)
         {
-            var assignImagesResult = await ImageValidationHelper
-                .ValidateAndAssignSectionContentImagesAsync(_repositoryWrapper, program.Sections);
-
-            if (assignImagesResult.IsFailed)
+            foreach (var content in program.Sections.SelectMany(s => s.Contents).OfType<ImageProgramContent>())
             {
-                return Result.Fail<PaginationResult<HippotherapyProgramDto>>(assignImagesResult.Errors);
+                content.Image = imagesById[content.ImageId];
             }
         }
 
