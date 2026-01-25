@@ -69,7 +69,8 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
 
         foreach (var program in programs)
         {
-            foreach (var content in program.Sections.SelectMany(s => s.Contents).OfType<ImageProgramContent>())
+            foreach (var content in program.Sections.SelectMany(s => s.Contents).OfType<ImageProgramContent>()
+                         .Where(c => c.ImageId > 0))
             {
                 content.Image = imagesById[content.ImageId];
             }
