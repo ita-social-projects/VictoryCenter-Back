@@ -5,7 +5,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -26,8 +28,17 @@ public class GetFaqQuestionsByFiltersHandler : IRequestHandler<GetFaqQuestionsBy
     {
         var status = request.FaqQuestionsFilterDto.Status;
         var pageId = request.FaqQuestionsFilterDto.PageId;
+        var translationStatusFilter = request.FaqQuestionsFilterDto.TranslationStatusFilter;
+        var languageCount = await _repository.LocalizationLanguagesRepository.CountAsync();
+        languageCount -= 1;
         Expression<Func<FaqQuestion, bool>> filter =
-            (fq) => (status == null || fq.Status == status) && (pageId == null || fq.Placements.Any(p => p.PageId == pageId));
+            (fq) => (status == null || fq.Status == status) && (pageId == null || fq.Placements.Any(p => p.PageId == pageId)) &&
+            (translationStatusFilter == null ||
+            translationStatusFilter == TranslationStatusFilter.All ||
+            (translationStatusFilter == TranslationStatusFilter.Outdated &&
+            fq.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
+            (translationStatusFilter == TranslationStatusFilter.Missing &&
+            fq.Localizations.Count < languageCount));
 
         var queryOptions = new QueryOptions<FaqQuestion>
         {
