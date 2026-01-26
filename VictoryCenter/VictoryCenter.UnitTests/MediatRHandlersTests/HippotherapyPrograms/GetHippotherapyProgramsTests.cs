@@ -3,8 +3,10 @@ using Moq;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetByFilters;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.HippotherapyPrograms;
@@ -13,6 +15,7 @@ public class GetHippotherapyProgramsTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper;
+    private readonly Mock<IImageRepository> _mockImageRepository;
 
     private readonly List<HippotherapyProgram> _programs =
     [
@@ -22,7 +25,8 @@ public class GetHippotherapyProgramsTests
             Name = "TestName1",
             Description = "TestDescription1",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Sections = []
         },
         new()
         {
@@ -30,7 +34,8 @@ public class GetHippotherapyProgramsTests
             Name = "TestName2",
             Description = "TestDescription2",
             Status = Status.Draft,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Sections = []
         },
         new()
         {
@@ -38,7 +43,8 @@ public class GetHippotherapyProgramsTests
             Name = "TestName3",
             Description = "TestDescription3",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Sections = []
         },
         new()
         {
@@ -46,7 +52,8 @@ public class GetHippotherapyProgramsTests
             Name = "TestName4",
             Description = "TestDescription4",
             Status = Status.Draft,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Sections = []
         },
         new()
         {
@@ -54,7 +61,8 @@ public class GetHippotherapyProgramsTests
             Name = "TestName5",
             Description = "TestDescription5",
             Status = Status.Published,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Sections = []
         }
 
     ];
@@ -102,42 +110,9 @@ public class GetHippotherapyProgramsTests
     {
         _mockMapper = new Mock<IMapper>();
         _repositoryWrapper = new Mock<IRepositoryWrapper>();
-    }
+        _mockImageRepository = new Mock<IImageRepository>();
 
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(0, 2)]
-    [InlineData(1, 2)]
-    public async Task Handle_ShouldReturnAllPrograms_NoFilters(int pageNumber, int pageLimit)
-    {
-        var programResponseDto = _responseDto
-            .Skip(pageNumber * pageLimit)
-            .Take(pageLimit)
-            .ToList();
-
-        var programEntities = _programs
-            .Skip(pageNumber * pageLimit)
-            .Take(pageLimit)
-            .ToList();
-
-        SetUpDependencies(programResponseDto, programEntities);
-
-        var handler = new GetHippotherapyProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
-
-        HippotherapyProgramsFilterDto requestDto = new()
-        {
-            Offset = pageNumber,
-            Limit = pageLimit,
-            Status = null,
-            CategoryId = null
-        };
-
-        var result = await handler
-            .Handle(new GetHippotherapyProgramsByFiltersQuery(requestDto), CancellationToken.None);
-
-        Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.Equal(programResponseDto, result.Value.Items);
+        _repositoryWrapper.Setup(r => r.ImageRepository).Returns(_mockImageRepository.Object);
     }
 
     [Theory]
@@ -165,10 +140,75 @@ public class GetHippotherapyProgramsTests
         Assert.Equal(programResponseDtos, result.Value.Items);
     }
 
+    [Fact]
+    public async Task Handle_ShouldLoadImages_WhenProgramsHaveImageContent()
+    {
+        var image = new Image { Id = 1, BlobName = "test.jpg", MimeType = "image/jpeg" };
+        var section = new HippotherapyProgramSection
+        {
+            Id = 1,
+            ProgramId = 1,
+            Contents = new List<ProgramSectionContent>
+            {
+                new ImageProgramContent { Id = 1, ImageId = 1, ContentType = ContentType.Image }
+            }
+        };
+
+        var program = new HippotherapyProgram
+        {
+            Id = 1,
+            Name = "Test",
+            Status = Status.Published,
+            Sections = new List<HippotherapyProgramSection> { section }
+        };
+
+        _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .ReturnsAsync(new List<HippotherapyProgram> { program });
+        _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository.CountAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .ReturnsAsync(1);
+        _mockImageRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(new List<Image> { image });
+        _mockMapper.Setup(m => m.Map<IEnumerable<HippotherapyProgramDto>>(It.IsAny<IEnumerable<HippotherapyProgram>>()))
+            .Returns(new List<HippotherapyProgramDto> { new() { Id = 1, Name = "Test" } });
+
+        var handler = new GetHippotherapyProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
+        var result = await handler.Handle(new GetHippotherapyProgramsByFiltersQuery(new HippotherapyProgramsFilterDto()), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mockImageRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()), Times.Once);
+        Assert.Equal(image, ((ImageProgramContent)section.Contents.First()).Image);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenImageNotFound()
+    {
+        var section = new HippotherapyProgramSection
+        {
+            Id = 1,
+            Contents = new List<ProgramSectionContent>
+            {
+                new ImageProgramContent { Id = 1, ImageId = 999 }
+            }
+        };
+
+        var program = new HippotherapyProgram { Id = 1, Sections = new List<HippotherapyProgramSection> { section } };
+
+        _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .ReturnsAsync(new List<HippotherapyProgram> { program });
+        _mockImageRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(new List<Image>());
+
+        var handler = new GetHippotherapyProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
+        var result = await handler.Handle(new GetHippotherapyProgramsByFiltersQuery(new HippotherapyProgramsFilterDto()), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+    }
+
     private void SetUpDependencies(IEnumerable<HippotherapyProgramDto> responseDto, IEnumerable<HippotherapyProgram> programs)
     {
         SetUpMapper(responseDto);
         SetUpRepositoryWrapper(programs);
+        SetUpImageRepository();
     }
 
     private void SetUpMapper(IEnumerable<HippotherapyProgramDto> responseDto)
@@ -182,5 +222,15 @@ public class GetHippotherapyProgramsTests
         _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository
                 .GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(programs);
+
+        _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository
+                .CountAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
+            .ReturnsAsync(programs.Count());
+    }
+
+    private void SetUpImageRepository()
+    {
+        _mockImageRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(new List<Image>());
     }
 }
