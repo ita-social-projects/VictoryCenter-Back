@@ -14,6 +14,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -39,6 +40,8 @@ public interface IRepositoryWrapper
     IPartnerRepository PartnerRepository { get; }
     IPartnerSectionsRepository PartnerSectionsRepository { get; }
     IPartnersPageBannersRepository PartnersPageBannersRepository { get; }
+
+    ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
