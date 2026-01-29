@@ -19,7 +19,7 @@ public class TeamCategoryLocalizationsController : AuthorizedApiController
     }
 
     [HttpPut("{entityId:long}/{languageId:long}")]
-    [ProducesResponseType(typeof(UpdateTeamCategoryLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TeamCategoryLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateTeamCategoryLocalization(

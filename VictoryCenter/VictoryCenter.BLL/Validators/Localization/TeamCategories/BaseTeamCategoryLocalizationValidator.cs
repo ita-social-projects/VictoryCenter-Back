@@ -10,10 +10,11 @@ public class BaseTeamCategoryLocalizationValidator : AbstractValidator<UpdateTea
     {
         RuleFor(x => x.FullName)
             .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamCategoryLocalizationDto.FullName)))
-            .MinimumLength(TeamCategoryLocalizationConstants.FullNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.FullName), TeamCategoryLocalizationConstants.FullNameMinLength))
-            .MaximumLength(TeamCategoryLocalizationConstants.FullNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.FullName), TeamCategoryLocalizationConstants.FullNameMaxLength));
+            .MinimumLength(TeamCategoryLocalizationConstants.NameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.FullName), TeamCategoryLocalizationConstants.NameMinLength))
+            .MaximumLength(TeamCategoryLocalizationConstants.NameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.FullName), TeamCategoryLocalizationConstants.NameMaxLength));
         RuleFor(x => x.Description)
-            .MinimumLength(TeamCategoryLocalizationConstants.DescriptionNameMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.Description), TeamCategoryLocalizationConstants.DescriptionNameMinLength))
-            .MaximumLength(TeamCategoryLocalizationConstants.DescriptionNameMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.Description), TeamCategoryLocalizationConstants.DescriptionNameMaxLength));
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateTeamCategoryLocalizationDto.Description)))
+            .MinimumLength(TeamCategoryLocalizationConstants.DescriptionMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.Description), TeamCategoryLocalizationConstants.DescriptionMinLength))
+            .MaximumLength(TeamCategoryLocalizationConstants.DescriptionMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateTeamCategoryLocalizationDto.Description), TeamCategoryLocalizationConstants.DescriptionMaxLength));
     }
 }
