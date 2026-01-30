@@ -6,9 +6,9 @@ public class TeamCategoryLocalizationDto
 {
     public long EntityId { get; init; }
     public LocalizationInfoDto LocalizationInfoDto { get; init; } = null!;
-    public string FullName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
     public TranslationStatus TranslationStatus { get; init; }
 }

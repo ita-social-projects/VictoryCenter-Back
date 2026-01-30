@@ -1,7 +1,7 @@
 namespace VictoryCenter.DAL.Entities.Localization;
 public class TeamCategoryLocalization : LocalizationBase<TeamCategory>
 {
-    public string FullName { get; set; } = null!;
+    public string Name { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 }

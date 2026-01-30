@@ -9,7 +9,7 @@ public class TeamCategoryLocalizationConfig : EntityLocalizationConfig<TeamCateg
     {
         base.Configure(entity);
 
-        entity.Property(e => e.FullName)
+        entity.Property(e => e.Name)
             .IsRequired();
 
         entity.Property(e => e.Description)

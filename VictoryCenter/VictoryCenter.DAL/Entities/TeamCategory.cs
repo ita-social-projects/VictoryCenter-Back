@@ -8,7 +8,7 @@ public class TeamCategory : BaseEntity, ITranslatedEntity<TeamCategoryLocalizati
 {
     public string Name { get; set; } = null!;
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = null!;
 
     public ICollection<TeamMember> TeamMembers { get; set; } = [];
     public ICollection<TeamCategoryLocalization> Localizations { get; set; } = [];
