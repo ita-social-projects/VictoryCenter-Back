@@ -17,4 +17,8 @@ public record CreateProgramSectionContentDto
     public long? ImageId { get; init; }
 
     public string? Author { get; init; }
+
+    public string? Question { get; init; }
+
+    public string? Answer { get; init; }
 }

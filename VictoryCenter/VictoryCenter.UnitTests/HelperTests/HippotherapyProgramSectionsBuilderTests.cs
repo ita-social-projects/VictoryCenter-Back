@@ -220,6 +220,84 @@ public class HippotherapyProgramSectionsBuilderTests
         Assert.Equal(2, author.GroupIndex);
     }
 
+    [Fact]
+    public void Build_CreatesQuestionProgramContent()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Question(order: 1, "Question?"));
+
+        var result = Build([dto]);
+
+        var content = result[0].Contents.First(x => x.ContentType == ContentType.Question);
+
+        Assert.IsType<QuestionProgramContent>(content);
+    }
+
+    [Fact]
+    public void Build_TrimsQuestion()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Question(order: 1, "  Question?  "));
+
+        var result = Build([dto]);
+
+        var question = (QuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Question);
+
+        Assert.Equal("Question?", question.Question);
+    }
+
+    [Fact]
+    public void Build_MapsGroupIndex_ForQuestion()
+    {
+        var dto = Section(
+            order: 1,
+            Title(order: 0, "Title"),
+            new CreateProgramSectionContentDto { ContentType = ContentType.Question, Order = 1, GroupIndex = 2, Question = "Question?" });
+
+        var result = Build([dto]);
+
+        var question = (QuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Question);
+
+        Assert.Equal(2, question.GroupIndex);
+    }
+
+    [Fact]
+    public void Build_CreatesAnswerProgramContent()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Answer(order: 1, "Answer."));
+
+        var result = Build([dto]);
+
+        var content = result[0].Contents.First(x => x.ContentType == ContentType.Answer);
+
+        Assert.IsType<AnswerProgramContent>(content);
+    }
+
+    [Fact]
+    public void Build_TrimsAnswer()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), Answer(order: 1, "  Answer.  "));
+
+        var result = Build([dto]);
+
+        var answer = (AnswerProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Answer);
+
+        Assert.Equal("Answer.", answer.Answer);
+    }
+
+    [Fact]
+    public void Build_MapsGroupIndex_ForAnswer()
+    {
+        var dto = Section(
+            order: 1,
+            Title(order: 0, "Title"),
+            new CreateProgramSectionContentDto { ContentType = ContentType.Answer, Order = 1, GroupIndex = 2, Answer = "Answer." });
+
+        var result = Build([dto]);
+
+        var answer = (AnswerProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Answer);
+
+        Assert.Equal(2, answer.GroupIndex);
+    }
+
     private static List<HippotherapyProgramSection> Build(
         List<CreateHippotherapyProgramSectionDto> sections,
         IReadOnlyDictionary<long, Image>? imagesById = null)
@@ -279,6 +357,26 @@ public class HippotherapyProgramSectionsBuilderTests
             ContentType = ContentType.Author,
             Order = order,
             Author = author
+        };
+    }
+
+    private static CreateProgramSectionContentDto Question(int order, string question)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Question,
+            Order = order,
+            Question = question
+        };
+    }
+
+    private static CreateProgramSectionContentDto Answer(int order, string answer)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Answer,
+            Order = order,
+            Answer = answer
         };
     }
 

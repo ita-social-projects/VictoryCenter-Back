@@ -35,7 +35,9 @@ public class ProgramSectionContentConfig : IEntityTypeConfiguration<ProgramSecti
             .HasValue<TitleProgramContent>(ContentType.Title)
             .HasValue<DescriptionProgramContent>(ContentType.Description)
             .HasValue<ImageProgramContent>(ContentType.Image)
-            .HasValue<AuthorProgramContent>(ContentType.Author);
+            .HasValue<AuthorProgramContent>(ContentType.Author)
+            .HasValue<QuestionProgramContent>(ContentType.Question)
+            .HasValue<AnswerProgramContent>(ContentType.Answer);
     }
 }
 
@@ -75,6 +77,24 @@ public class AuthorProgramContentConfig : IEntityTypeConfiguration<AuthorProgram
     public void Configure(EntityTypeBuilder<AuthorProgramContent> builder)
     {
         builder.Property(c => c.Name)
+            .IsRequired();
+    }
+}
+
+public class QuestionProgramContentConfig : IEntityTypeConfiguration<QuestionProgramContent>
+{
+    public void Configure(EntityTypeBuilder<QuestionProgramContent> builder)
+    {
+        builder.Property(c => c.Question)
+            .IsRequired();
+    }
+}
+
+public class AnswerProgramContentConfig : IEntityTypeConfiguration<AnswerProgramContent>
+{
+    public void Configure(EntityTypeBuilder<AnswerProgramContent> builder)
+    {
+        builder.Property(c => c.Answer)
             .IsRequired();
     }
 }
