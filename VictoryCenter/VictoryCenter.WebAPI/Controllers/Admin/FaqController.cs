@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.VisitorPages;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.FaqQuestions.GetById;
+using VictoryCenter.BLL.Queries.Admin.FaqQuestions.Search;
 using VictoryCenter.BLL.Queries.Admin.VisitorPages.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
@@ -64,6 +65,13 @@ public class FaqController : AuthorizedApiController
         [FromRoute] long id)
     {
         return HandleResult(await Mediator.Send(new UpdateFaqQuestionCommand(updateFaqQuestionDto, id)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PaginationResult<FaqQuestionDto>))]
+    public async Task<IActionResult> SearchQuestion([FromQuery] SearchFaqQuestionDto searchHFaqQuestionDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchFaqQuestionQuery(searchHFaqQuestionDto)));
     }
 
     [HttpPut("reorder")]
