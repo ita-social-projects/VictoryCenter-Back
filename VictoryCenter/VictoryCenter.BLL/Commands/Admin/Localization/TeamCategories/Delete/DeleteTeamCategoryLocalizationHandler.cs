@@ -30,7 +30,7 @@ public class DeleteTeamCategoryLocalizationHandler : IRequestHandler<DeleteTeamC
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamCategoryLocalization)));
+            return Result.Fail<DeleteTeamCategoryLocalizationDto>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(TeamCategoryLocalization)));
         }
         catch (DbUpdateException)
         {

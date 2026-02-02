@@ -7,7 +7,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Localization.TeamCategories;
-public class DeleteTeamCategoriesLozalizaionTests
+public class DeleteTeamCategoriesLocalizationTests
 {
     private readonly Mock<ILocalizationService<TeamCategory, TeamCategoryLocalization>> _mockLocalizationService;
     private readonly DeleteTeamCategoryLocalizationHandler _handler;
@@ -18,7 +18,7 @@ public class DeleteTeamCategoriesLozalizaionTests
         Name = "Upd Localized Name",
         Description = "Upd Localized Description",
     };
-    public DeleteTeamCategoriesLozalizaionTests()
+    public DeleteTeamCategoriesLocalizationTests()
     {
         _mockLocalizationService = new Mock<ILocalizationService<TeamCategory, TeamCategoryLocalization>>();
         _handler = new DeleteTeamCategoryLocalizationHandler(_mockLocalizationService.Object);

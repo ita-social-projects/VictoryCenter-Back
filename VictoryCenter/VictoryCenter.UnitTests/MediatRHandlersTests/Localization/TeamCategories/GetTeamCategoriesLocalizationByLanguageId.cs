@@ -91,7 +91,7 @@ public class GetTeamCategoriesLocalizationByLanguageId
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnEmplyList_WhenLanguageIdNotExist()
+    public async Task Handle_ShouldReturnEmptyList_WhenLanguageIdNotExist()
     {
         SetupRepositoryWrapper(new List<TeamCategoryLocalization>());
         SetupMapper(new List<TeamCategoryLocalizationDto>());

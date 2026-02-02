@@ -23,7 +23,7 @@ public class BaseTeamCategoryLocalizationValidatorTests
         {
             EntityId = 1,
             LanguageId = 2,
-            Name = name ?? string.Empty,
+            Name = name!,
             Description = "Valid Description"
         };
         var result = _validator.TestValidate(model);
@@ -43,7 +43,7 @@ public class BaseTeamCategoryLocalizationValidatorTests
             EntityId = 1,
             LanguageId = 2,
             Name = "Valid Name",
-            Description = description ?? string.Empty
+            Description = description!
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(c => c.Description);
