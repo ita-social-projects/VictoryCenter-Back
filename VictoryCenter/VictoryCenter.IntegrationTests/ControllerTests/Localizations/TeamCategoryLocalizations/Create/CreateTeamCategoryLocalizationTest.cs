@@ -34,4 +34,48 @@ public class CreateTeamCategoryLocalizationTest : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(response.IsSuccessStatusCode);
     }
+
+    [Fact]
+    public async Task CreateTeamCategoryLocalization_Unauthorized_ShouldReturnNotFound()
+    {
+        var category = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var language = await Fixture.DbContext.LocalizationLanguages.FirstOrDefaultAsync(l => l.Id == 2) ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var createTeamCategoryLocalizationDto = new CreateTeamCategoryLocalizationDto
+        {
+            EntityId = 123,
+            LanguageId = language.Id,
+            Name = "Category Name",
+            Description = "Category Description"
+        };
+        var serializedDto = JsonConvert.SerializeObject(createTeamCategoryLocalizationDto);
+
+        var response = await Fixture.HttpClient.PostAsync("/api/TeamCategoryLocalizations/", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateTeamCategoryLocalization_InvalidData_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var language = await Fixture.DbContext.LocalizationLanguages.FirstOrDefaultAsync(l => l.Id == 2)
+                       ?? throw new InvalidOperationException("Couldn't setup existing entity");
+
+        var createTeamCategoryLocalizationDto = new CreateTeamCategoryLocalizationDto
+        {
+            EntityId = 4,
+            LanguageId = language.Id,
+            Name = "", // Передаємо пусту назву, що зазвичай викликає помилку валідації
+            Description = "Category Description"
+        };
+
+        var serializedDto = JsonConvert.SerializeObject(createTeamCategoryLocalizationDto);
+
+        // Act
+        var response = await Fixture.HttpClient.PostAsync("/api/TeamCategoryLocalizations/", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

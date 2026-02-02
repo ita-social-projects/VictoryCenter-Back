@@ -32,12 +32,6 @@ public class CreateTeamCategoriesLocalizationTests
         Name = "Назва категорії",
         Description = "Опис категорії",
         Language = new LocalizationLanguage { Id = 2, Name = "English", Code = "en" },
-        Entity = new()
-        {
-            Id = 1,
-            Name = "Original Name",
-            Description = "Original Description",
-        }
     };
 
     private readonly TeamCategoryLocalizationDto _teamCategoryLocalizationDto = new()
@@ -148,7 +142,7 @@ public class CreateTeamCategoriesLocalizationTests
         _mockMapper.Setup(m => m.Map<TeamCategoryLocalizationDto>(_teamCategoryLocalization))
             .Returns(_teamCategoryLocalizationDto);
 
-        _mockLocalizationService.Setup(s => s.UpdateEntityLocalizationAsync(_teamCategoryLocalization))
+        _mockLocalizationService.Setup(s => s.CreateEntityLocalizationAsync(_teamCategoryLocalization))
             .ReturnsAsync(_teamCategoryLocalization);
     }
 }

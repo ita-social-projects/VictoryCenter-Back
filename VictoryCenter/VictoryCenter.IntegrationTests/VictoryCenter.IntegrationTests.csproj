@@ -33,14 +33,4 @@
       <ProjectReference Include="..\VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="ControllerTests\Localizations\LocalizationLanguages\" />
-      <Folder Include="ControllerTests\Localizations\FaqQuestionLocalizations\" />
-      <Folder Include="ControllerTests\Localizations\TeamCategoryLocalizations\GetByEntityId\" />
-      <Folder Include="ControllerTests\Localizations\TeamCategoryLocalizations\GetByLanguageId\" />
-      <Folder Include="ControllerTests\Localizations\TeamCategoryLocalizations\Delete\" />
-      <Folder Include="ControllerTests\Localizations\TeamCategoryLocalizations\Update\" />
-      <Folder Include="ControllerTests\Localizations\TeamMemberLocalizations\" />
-    </ItemGroup>
-
 </Project>
