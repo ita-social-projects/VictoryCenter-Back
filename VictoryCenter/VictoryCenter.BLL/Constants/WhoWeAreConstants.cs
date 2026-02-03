@@ -7,11 +7,11 @@ public static class WhoWeAreConstants
     public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(10, 50);
     public static Dictionary<SectionType, (int MinLen, int MaxLen)> ValidationDescriptionRules = new()
     {
-        { SectionType.Main, (10, 300) },
-        { SectionType.WhatWeDo, (10, 300) },
-        { SectionType.WhoWeSupport, (10, 300) },
-        { SectionType.Team, (10, 400) },
-        { SectionType.People, (10, 60) }
+        { SectionType.Main, (10, 600) },
+        { SectionType.WhatWeDo, (10, 600) },
+        { SectionType.WhoWeSupport, (10, 600) },
+        { SectionType.Team, (10, 800) },
+        { SectionType.People, (10, 200) }
     };
 
     public static string DtoHasWrongContentType(long dtoId, ContentType expected, ContentType received)
