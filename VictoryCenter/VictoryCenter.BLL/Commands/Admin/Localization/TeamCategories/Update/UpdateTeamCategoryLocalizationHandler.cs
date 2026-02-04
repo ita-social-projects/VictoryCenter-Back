@@ -16,7 +16,11 @@ public class UpdateTeamCategoryLocalizationHandler : IRequestHandler<UpdateTeamC
     private readonly ILocalizationService<TeamCategory, TeamCategoryLocalization> _localizationService;
     private readonly IValidator<UpdateTeamCategoryLocalizationCommand> _validator;
 
-    public UpdateTeamCategoryLocalizationHandler(IMapper mapper, ILocalizationService<TeamCategory, TeamCategoryLocalization> localizationService, IValidator<UpdateTeamCategoryLocalizationCommand> validator)
+    public UpdateTeamCategoryLocalizationHandler(
+        IMapper mapper,
+        ILocalizationService<TeamCategory,
+        TeamCategoryLocalization> localizationService,
+        IValidator<UpdateTeamCategoryLocalizationCommand> validator)
     {
         _mapper = mapper;
         _localizationService = localizationService;

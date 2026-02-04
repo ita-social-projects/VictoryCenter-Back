@@ -3,6 +3,7 @@ using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Localizations.TeamCategoryLocalizations.GetByEntityId;
+
 public class GetTeamCategoryLocalizationsByEntityId : BaseTestClass
 {
     public GetTeamCategoryLocalizationsByEntityId(IntegrationTestDbFixture fixture)

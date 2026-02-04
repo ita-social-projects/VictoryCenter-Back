@@ -21,7 +21,7 @@ public class GetTeamCategoryLocalizationByLanguageIdHandler : IRequestHandler<Ge
 
     public async Task<Result<List<TeamCategoryLocalizationDto>>> Handle(GetTeamCategoryLocalizationByLanguageIdQuery request, CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<TeamCategoryLocalization>()
+        var queryOptions = new QueryOptions<TeamCategoryLocalization>
         {
             Filter = l => l.LanguageId == request.Id,
             Include = l => l.Include(loc => loc.Language),
