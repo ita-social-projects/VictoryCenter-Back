@@ -15,4 +15,5 @@ public enum SeederExecutionOrder
     WhoWeAre,
     PartnersSections,
     PartnersPageBanner,
+    TeamCategoryLocalizations,
 }

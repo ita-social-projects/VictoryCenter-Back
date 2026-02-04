@@ -43,6 +43,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<TeamMemberLocalization> TeamMemberLocalizations { get; set; }
 
+    public DbSet<TeamCategoryLocalization> TeamCategoryLocalizations { get; set; }
+
     public DbSet<FaqQuestionLocalization> FaqLocalizations { get; set; }
 
     public DbSet<UahBankDetails> UahBankDetails { get; set; }

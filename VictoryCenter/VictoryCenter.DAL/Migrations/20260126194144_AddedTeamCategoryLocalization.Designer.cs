@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260126194144_AddedTeamCategoryLocalization")]
+    partial class AddedTeamCategoryLocalization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -606,10 +609,9 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("FullName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -789,7 +791,6 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
@@ -966,17 +967,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("WhoWeAreSections");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.AnswerProgramContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
-
-                    b.Property<string>("Answer")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(6);
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.AuthorProgramContent", b =>
                 {
                     b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
@@ -1009,17 +999,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("ImageId");
 
                     b.HasDiscriminator().HasValue(2);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.QuestionProgramContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
-
-                    b.Property<string>("Question")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(5);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.TitleProgramContent", b =>

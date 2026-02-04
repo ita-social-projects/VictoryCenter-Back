@@ -32,6 +32,8 @@ using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -59,6 +61,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPartnerRepository? _partnerRepository;
     private IPartnerSectionsRepository? _partnerSectionRepository;
     private IPartnersPageBannersRepository? _partnersPageBannersRepository;
+    private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -93,6 +96,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPartnerRepository PartnerRepository => _partnerRepository ??= new PartnerRepository(_victoryCenterDbContext);
     public IPartnerSectionsRepository PartnerSectionsRepository => _partnerSectionRepository ??= new PartnerSectionsRepository(_victoryCenterDbContext);
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
+
+    public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository => _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

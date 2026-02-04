@@ -28,6 +28,7 @@ public class GetAllTeamCategoriesHandler : IRequestHandler<GetAllTeamCategoriesQ
             new QueryOptions<TeamCategory>
             {
                 Include = tc => tc.Include(tc => tc.TeamMembers)
+                 .Include(l => l.Localizations).ThenInclude(l => l.Language)
             });
         return Result.Ok(_mapper.Map<IEnumerable<TeamCategoryDto>>(entities));
     }
