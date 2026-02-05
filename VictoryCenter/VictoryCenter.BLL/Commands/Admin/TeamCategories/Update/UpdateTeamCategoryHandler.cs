@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -44,20 +45,21 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
                 return Result.Fail<TeamCategoryDto>(TeamCategoryConstants.DuplicateCategoryName);
             }
 
-            var categoryEntity =
-                await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
-                {
-                    Filter = entity => entity.Id == request.Id
-                });
+            var entityToUpdate = await _repositoryWrapper.TeamCategoriesRepository.GetFirstOrDefaultAsync(new QueryOptions<TeamCategory>
+            {
+                Filter = entity => entity.Id == request.Id,
+                Include = tc => tc.Include(tc => tc.TeamMembers)
+                        .Include(tm => tm.Localizations).ThenInclude(l => l.Language)
+            });
 
-            if (categoryEntity is null)
+            if (entityToUpdate is null)
             {
                 return Result.Fail<TeamCategoryDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory)));
             }
 
-            var entityToUpdate = _mapper.Map<UpdateTeamCategoryDto, TeamCategory>(request.UpdateTeamCategoryDto);
-            entityToUpdate.Id = request.Id;
-            entityToUpdate.CreatedAt = categoryEntity.CreatedAt;
+            SetTranslationsToOutdated(request, entityToUpdate);
+
+            _mapper.Map(request.UpdateTeamCategoryDto, entityToUpdate);
 
             _repositoryWrapper.TeamCategoriesRepository.Update(entityToUpdate);
 
@@ -68,6 +70,7 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
                     {
                         Filter = tc => tc.Id == request.Id,
                         Include = tc => tc.Include(tc => tc.TeamMembers)
+                        .Include(tm => tm.Localizations).ThenInclude(l => l.Language)
                     });
 
                 var resultDto = _mapper.Map<TeamCategory, TeamCategoryDto>(updatedEntity!);
@@ -79,6 +82,18 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
         catch (ValidationException ex)
         {
             return Result.Fail<TeamCategoryDto>(ex.Message);
+        }
+    }
+
+    private static void SetTranslationsToOutdated(UpdateTeamCategoryCommand request, TeamCategory entityToUpdate)
+    {
+        if (!string.Equals(request.UpdateTeamCategoryDto.Name, entityToUpdate.Name) ||
+            !string.Equals(request.UpdateTeamCategoryDto.Description, entityToUpdate.Description))
+        {
+            foreach (var loc in entityToUpdate.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
     }
 }
