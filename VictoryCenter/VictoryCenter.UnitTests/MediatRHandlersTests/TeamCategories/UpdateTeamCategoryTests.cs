@@ -171,41 +171,21 @@ public class UpdateTeamCategoryTests
 
     private void SetupRepositoryWrapper(TeamCategory? categoryToReturn = null, int saveResult = 1, TeamCategory? duplicateCategory = null)
     {
-        var entityWithSameNameDifferentId = new TeamCategory
-        {
-            Id = 999,
-            Name = "Updated Name",
-            Description = "Some other description"
-        };
-
-        var entityWithSameId = new TeamCategory
-        {
-            Id = _testExistingCategory.Id,
-            Name = "Different Name",
-            Description = "Different description"
-        };
-
         _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(
-                It.Is<QueryOptions<TeamCategory>>(q =>
-                    q.Filter != null &&
-                    q.Include == null &&
-                    q.Filter.Compile()(entityWithSameNameDifferentId) &&
-                    !q.Filter.Compile()(entityWithSameId))))
-            .ReturnsAsync(duplicateCategory);
-
-        _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(
-                It.Is<QueryOptions<TeamCategory>>(q =>
-                    q.Filter != null &&
-                    q.Include == null &&
-                    q.Filter.Compile()(entityWithSameId) &&
-                    !q.Filter.Compile()(entityWithSameNameDifferentId))))
-            .ReturnsAsync(categoryToReturn);
+                    It.Is<QueryOptions<TeamCategory>>(q =>
+                        q.Filter != null &&
+                        q.Filter.ToString().Contains("Name") &&
+                        q.Filter.ToString().Contains("Id") &&
+                        q.Include == null)))
+                .ReturnsAsync(duplicateCategory);
 
         _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.GetFirstOrDefaultAsync(
                 It.Is<QueryOptions<TeamCategory>>(q => q.Include != null)))
-            .ReturnsAsync(categoryToReturn ?? _testUpdatedCategory);
+            .ReturnsAsync(categoryToReturn);
 
         _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
             .ReturnsAsync(saveResult);
+
+        _mockRepositoryWrapper.Setup(x => x.TeamCategoriesRepository.Update(It.IsAny<TeamCategory>()));
     }
 }
