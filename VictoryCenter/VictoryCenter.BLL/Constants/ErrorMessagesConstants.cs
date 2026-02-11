@@ -166,4 +166,14 @@ public static class ErrorMessagesConstants
     {
         return $"{property} must contain only digits";
     }
+
+    public static string PropertyMustBeGreaterThanOrEqualToN(string property, long value)
+    {
+        return $"{property} must be greater than or equal to {value}";
+    }
+
+    public static string PropertyMustBeLessThanOrEqualToN(string property, long value)
+    {
+        return $"{property} must be less than or equal to {value}";
+    }
 }
