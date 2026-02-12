@@ -4,7 +4,7 @@ namespace VictoryCenter.DAL.Entities;
 public class CollectedFundsBlock : BaseEntity
 {
     public string Title { get; set; }
-    public int CollectedAmount { get; set; }
+    public long CollectedAmount { get; set; }
     public long ImageId { get; set; }
     public Image Image { get; set; } = null;
 }

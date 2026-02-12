@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class ReportMedia : Migration
+    public partial class AddReportMediaSettings : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -41,7 +41,7 @@ namespace VictoryCenter.DAL.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CollectedAmount = table.Column<int>(type: "int", nullable: false),
+                    CollectedAmount = table.Column<long>(type: "bigint", nullable: false),
                     ImageId = table.Column<long>(type: "bigint", nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },

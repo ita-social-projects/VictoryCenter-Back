@@ -23,12 +23,12 @@ public class UpdateReportMediaSettingsCommandValidator : AbstractValidator<Updat
         RuleFor(x => x.Dto.ChangedLivesBlock.ChangedLives)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateChangedLivesBlockDto.ChangedLives)))
-            .GreaterThanOrEqualTo(ChangedLivesBlockConstants.ChangeLivesMinValue)
+            .GreaterThanOrEqualTo(ChangedLivesBlockConstants.ChangeLivesMinDigits)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
-                nameof(UpdateChangedLivesBlockDto.ChangedLives), ChangedLivesBlockConstants.ChangeLivesMinValue))
-            .Must((command, value) => ValidationHelpers.HaveMaximumDigitsInt(ChangedLivesBlockConstants.ChangeLivesMaxValue)(value))
+                nameof(UpdateChangedLivesBlockDto.ChangedLives), ChangedLivesBlockConstants.ChangeLivesMinDigits))
+            .Must((command, value) => ValidationHelpers.HaveMaximumDigitsInt(ChangedLivesBlockConstants.ChangeLivesMaxDigits)(value))
             .WithMessage(ErrorMessagesConstants.PropertyMustBeLessThanOrEqualToN(
-                nameof(UpdateChangedLivesBlockDto.ChangedLives), ChangedLivesBlockConstants.ChangeLivesMaxValue));
+                nameof(UpdateChangedLivesBlockDto.ChangedLives), ChangedLivesBlockConstants.ChangeLivesMaxDigits));
 
         RuleFor(x => x.Dto.ChangedLivesBlock.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateChangedLivesBlockDto.ImageId)));
@@ -46,12 +46,12 @@ public class UpdateReportMediaSettingsCommandValidator : AbstractValidator<Updat
         RuleFor(x => x.Dto.CollectedFundsBlock.CollectedFunds)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateCollectedFundsBlockDto.CollectedFunds)))
-            .GreaterThanOrEqualTo(CollectedFundsBlockConstants.CollectedAmountMinValue)
+            .GreaterThanOrEqualTo(CollectedFundsBlockConstants.CollectedAmountMinDigits)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
-                nameof(UpdateCollectedFundsBlockDto.CollectedFunds), CollectedFundsBlockConstants.CollectedAmountMinValue))
-            .Must((command, value) => ValidationHelpers.HaveMaximumDigits(CollectedFundsBlockConstants.CollectedAmountMaxValue)(value))
+                nameof(UpdateCollectedFundsBlockDto.CollectedFunds), CollectedFundsBlockConstants.CollectedAmountMinDigits))
+            .Must((command, value) => ValidationHelpers.HaveMaximumDigits(CollectedFundsBlockConstants.CollectedAmountMaxDigits)(value))
             .WithMessage(ErrorMessagesConstants.PropertyMustBeLessThanOrEqualToN(
-                nameof(UpdateCollectedFundsBlockDto.CollectedFunds), CollectedFundsBlockConstants.CollectedAmountMaxValue));
+                nameof(UpdateCollectedFundsBlockDto.CollectedFunds), CollectedFundsBlockConstants.CollectedAmountMaxDigits));
 
         RuleFor(x => x.Dto.CollectedFundsBlock.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateCollectedFundsBlockDto.ImageId)));
