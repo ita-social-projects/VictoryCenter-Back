@@ -10,7 +10,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportMediaSettings;
-public class UpdateReportMediaSettingsTests
+public class UpdateReportMediaSettingsHandlerTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
@@ -57,7 +57,7 @@ public class UpdateReportMediaSettingsTests
         ChangedLivesBlock = new()
     };
 
-    public UpdateReportMediaSettingsTests()
+    public UpdateReportMediaSettingsHandlerTests()
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();

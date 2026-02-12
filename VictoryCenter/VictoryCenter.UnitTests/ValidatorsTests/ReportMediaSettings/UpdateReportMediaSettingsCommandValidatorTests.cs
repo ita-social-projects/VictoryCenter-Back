@@ -51,7 +51,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     public void Validate_ChangedLivesBlockTitleTooShort_ShouldHaveValidationError()
     {
         var command = CreateCommand(
-            changedLivesTitle: "Short", // Менше ніж TitleMinLength (10)
+            changedLivesTitle: "Short",
             changedLives: 1000,
             changedLivesImageId: 1,
             collectedFundsTitle: "Valid Title",
@@ -114,7 +114,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     [Fact]
     public void Validate_ChangedLivesBlockTitleValid_ShouldHaveValidationError()
     {
-        var command = CreateValidCommand();
+        var command = CreateNotValidCommand();
 
         var result = _validator.TestValidate(command);
 
@@ -156,7 +156,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     [Fact]
     public void Validate_ChangedLivesIsValid_ShouldNotHaveValidationError()
     {
-        var command = CreateValidCommand();
+        var command = CreateNotValidCommand();
 
         var result = _validator.TestValidate(command);
 
@@ -198,7 +198,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     [Fact]
     public void Validate_ChangedLivesBlockImageIdIsPositive_ShouldNotHaveValidationError()
     {
-        var command = CreateValidCommand();
+        var command = CreateNotValidCommand();
 
         var result = _validator.TestValidate(command);
 
@@ -304,7 +304,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     [Fact]
     public void Validate_CollectedFundsBlockTitleValid_ShouldNotHaveValidationError()
     {
-        var command = CreateValidCommand();
+        var command = CreateNotValidCommand();
 
         var result = _validator.TestValidate(command);
 
@@ -335,7 +335,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
             changedLives: 1000,
             changedLivesImageId: 1,
             collectedFundsTitle: "Valid Title",
-            collectedFunds: 1_000_000_000_000_000, // 16 цифр
+            collectedFunds: 1_000_000_000_000_000,
             collectedFundsImageId: 2);
 
         var result = _validator.TestValidate(command);
@@ -351,7 +351,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
             changedLives: 1000,
             changedLivesImageId: 1,
             collectedFundsTitle: "Valid Title",
-            collectedFunds: 111111111111111, // 15 цифр
+            collectedFunds: 111111111111111,
             collectedFundsImageId: 2);
 
         var result = _validator.TestValidate(command);
@@ -378,7 +378,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     [Fact]
     public void Validate_CollectedFundsIsValid_ShouldNotHaveValidationError()
     {
-        var command = CreateValidCommand();
+        var command = CreateNotValidCommand();
 
         var result = _validator.TestValidate(command);
 
@@ -420,7 +420,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     [Fact]
     public void Validate_CollectedFundsBlockImageIdIsPositive_ShouldNotHaveValidationError()
     {
-        var command = CreateValidCommand();
+        var command = CreateNotValidCommand();
 
         var result = _validator.TestValidate(command);
 
@@ -448,7 +448,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.ImageId);
     }
 
-    private UpdateReportMediaSettingsCommand CreateValidCommand()
+    private UpdateReportMediaSettingsCommand CreateNotValidCommand()
     {
         return CreateCommand(
             changedLivesTitle: "Valid Title for Changed Lives",
@@ -478,7 +478,7 @@ public class UpdateReportMediaSettingsCommandValidatorTests
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
                 Title = collectedFundsTitle,
-                CollectedFunds = (int)collectedFunds, // ✅ Виправлено - тепер long
+                CollectedFunds = collectedFunds,
                 ImageId = collectedFundsImageId
             }
         };
