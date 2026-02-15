@@ -38,6 +38,14 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategory;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyProgramCategory;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -70,6 +78,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
     private ICollectedFundsBlockRepository? _collectedFundsBlockRepository;
     private IChangedLivesBlockRepository? _changedLivesBlockRepository;
+    private IHippotherapyProgramsLocalizationsRepository? _programsLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -109,6 +118,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
 
     public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository => _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);
+    public IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository => _programsLocalizationsRepository
+            ??= new HippotherapyProgramsLocalizationsRepository(_victoryCenterDbContext);
+
+
 
     public ICollectedFundsBlockRepository CollectedFundsBlockRepository => _collectedFundsBlockRepository ??= new CollectedFundsBlockRepository(_victoryCenterDbContext);
 
