@@ -11,4 +11,6 @@ public record UpdateHippotherapyProgramLocalizationDto
     public string? ParticipantsCount { get; init; }
 
     public string? MeetingsCount { get; init; }
+
+
 }

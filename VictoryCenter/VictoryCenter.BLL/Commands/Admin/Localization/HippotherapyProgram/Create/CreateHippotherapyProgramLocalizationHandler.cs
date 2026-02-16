@@ -31,11 +31,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            HippotherapyProgramLocalization entity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
-            var result = await _localizationService.CreateEntityLocalizationAsync(entity);
-            HippotherapyProgramLocalizationDto responseDto = _mapper.Map<HippotherapyProgramLocalizationDto>(result);
-            return Result.Ok(responseDto);
+            throw new NotImplementedException();
         }
         catch (KeyNotFoundException knfex)
         {
