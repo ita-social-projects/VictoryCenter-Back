@@ -7,7 +7,8 @@ namespace VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyP
 
 public class HippotherapyProgramsLocalizationsRepository : RepositoryBase<HippotherapyProgramLocalization>, IHippotherapyProgramsLocalizationsRepository
 {
-    public HippotherapyProgramsLocalizationsRepository(VictoryCenterDbContext context) : base(context)
+    public HippotherapyProgramsLocalizationsRepository(VictoryCenterDbContext context)
+        : base(context)
     {
     }
 }

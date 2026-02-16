@@ -1,5 +1,5 @@
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.DAL.Migrations;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 

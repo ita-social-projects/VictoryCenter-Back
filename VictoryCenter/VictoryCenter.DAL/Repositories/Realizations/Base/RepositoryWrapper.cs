@@ -118,10 +118,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
 
     public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository => _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);
+
     public IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository => _programsLocalizationsRepository
             ??= new HippotherapyProgramsLocalizationsRepository(_victoryCenterDbContext);
-
-
 
     public ICollectedFundsBlockRepository CollectedFundsBlockRepository => _collectedFundsBlockRepository ??= new CollectedFundsBlockRepository(_victoryCenterDbContext);
 
