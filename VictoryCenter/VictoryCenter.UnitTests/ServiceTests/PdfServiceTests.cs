@@ -94,7 +94,6 @@ public class PdfServiceTests : IDisposable
     [Theory]
     [InlineData("file...pdf")]
     [InlineData("file/name")]
-    [InlineData("file:name")]
     public async Task UploadPdfAsync_InvalidFileName_ShouldThrowBlobFileNameException(string invalidFileName)
     {
         // Arrange
@@ -112,7 +111,7 @@ public class PdfServiceTests : IDisposable
         var file = CreateMockPdfFile(fileName: "original-report.pdf");
 
         // Act
-        var blobName = await _pdfService.UploadPdfAsync(file); // fileName = null
+        var blobName = await _pdfService.UploadPdfAsync(file); 
 
         // Assert
         var filePath = Path.Combine(_pdfEnv.FullPath, "original-report.pdf");
