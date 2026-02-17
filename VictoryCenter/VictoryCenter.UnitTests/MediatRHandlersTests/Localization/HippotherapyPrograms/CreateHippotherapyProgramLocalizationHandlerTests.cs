@@ -223,7 +223,6 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
-        // Program has Title content (Id 100), but we reference non-existent content (Id 999)
         _mockRepositoryWrapper
             .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramEntity>>()))
             .ReturnsAsync(_testProgramWithQuestion);
@@ -238,7 +237,6 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             ParticipantsCount = "20",
             MeetingsCount = "10",
 
-            // Reference content that doesn't exist in program (program has 100, 101, but we reference 999)
             Sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
             {
                 new()
