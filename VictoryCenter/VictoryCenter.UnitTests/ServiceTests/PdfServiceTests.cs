@@ -111,7 +111,7 @@ public class PdfServiceTests : IDisposable
         var file = CreateMockPdfFile(fileName: "original-report.pdf");
 
         // Act
-        var blobName = await _pdfService.UploadPdfAsync(file); 
+        var blobName = await _pdfService.UploadPdfAsync(file);
 
         // Assert
         var filePath = Path.Combine(_pdfEnv.FullPath, "original-report.pdf");
