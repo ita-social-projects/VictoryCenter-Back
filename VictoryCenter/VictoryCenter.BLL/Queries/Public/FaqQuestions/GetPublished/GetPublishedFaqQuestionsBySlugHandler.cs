@@ -29,7 +29,7 @@ public class GetPublishedFaqQuestionsBySlugHandler
     {
         var queryOptions = new QueryOptions<FaqPlacement>
         {
-            Include = placement => placement.Include(pt => pt.Question),
+            Include = placement => placement.Include(pt => pt.Question).ThenInclude(fq => fq.Localizations).ThenInclude(l => l.Language),
             Filter = placement => placement.Page.Slug == request.Slug && placement.Question.Status == Status.Published,
             OrderByASC = placement => placement.Priority
         };
