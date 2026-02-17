@@ -1,4 +1,3 @@
-using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
