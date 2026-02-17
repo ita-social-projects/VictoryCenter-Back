@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -28,6 +29,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
 
     public VictoryCenterWebApplicationFactory<Program> Factory { get; private set; }
     public BlobEnvironmentVariables BlobEnvironmentVariables { get; private set; } = null!;
+    public PdfEnvironmentVariables PdfEnvironmentVariables { get; private set; } = null!;
     public HttpClient HttpClient { get; private set; }
     public VictoryCenterDbContext DbContext { get; private set; } = null!;
     public SeederManager SeederManager { get; private set; } = null!;
@@ -55,6 +57,11 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         {
             Directory.Delete(BlobEnvironmentVariables.FullPath, recursive: true);
         }
+
+        if (Directory.Exists(PdfEnvironmentVariables.FullPath))
+        {
+            Directory.Delete(PdfEnvironmentVariables.FullPath, recursive: true);
+        }
     }
 
     public async Task CreateFreshWebApplicationAsync()
@@ -78,6 +85,8 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
 
         var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
+        var pdfOptions = _scope.ServiceProvider.GetRequiredService<IOptions<PdfEnvironmentVariables>>();
+        PdfEnvironmentVariables = pdfOptions.Value;
         BlobEnvironmentVariables = options.Value;
 
         DbContext = _scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();

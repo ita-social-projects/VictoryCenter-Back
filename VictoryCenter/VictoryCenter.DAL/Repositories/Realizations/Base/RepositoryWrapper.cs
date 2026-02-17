@@ -47,6 +47,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ITeamMembersRepository? _teamMembersRepository;
     private IVisitorPagesRepository? _visitorPagesRepository;
     private IImageRepository? _imageRepository;
+    private IPdfReportRepository? _pdfReportRepository;
     private IHippotherapyProgramCategoriesRepository? _programCategoriesRepository;
     private IHippotherapyProgramsRepository? _hippotherapyProgramsRepository;
     private ILocalizationLanguagesRepository? _localizationLanguagesRepository;
@@ -74,6 +75,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ITeamMembersRepository TeamMembersRepository => _teamMembersRepository ??= new TeamMembersRepository(_victoryCenterDbContext);
     public IVisitorPagesRepository VisitorPagesRepository => _visitorPagesRepository ??= new VisitorPagesRepository(_victoryCenterDbContext);
     public IImageRepository ImageRepository => _imageRepository ??= new ImageRepository(_victoryCenterDbContext);
+    public IPdfReportRepository PdfReportRepository => _pdfReportRepository ??= new PdfReportRepository(_victoryCenterDbContext);
     public IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository => _programCategoriesRepository
         ??= new HippotherapyProgramCategoriesRepository(_victoryCenterDbContext);
     public IHippotherapyProgramsRepository HippotherapyProgramsRepository => _hippotherapyProgramsRepository ??= new HippotherapyProgramsRepository(_victoryCenterDbContext);
