@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 
@@ -7,10 +8,7 @@ namespace VictoryCenter.BLL.Services.PdfStorage;
 
 public class PdfService : IPdfService
 {
-    private const string PdfExtension = "pdf";
-    private const string PdfMimeType = "application/pdf";
     private readonly PdfEnvironmentVariables _pdfEnv;
-    private static readonly byte[] PdfSignature = { 0x25, 0x50, 0x44, 0x46 };
 
     public PdfService(IOptions<PdfEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
@@ -22,7 +20,7 @@ public class PdfService : IPdfService
         }
         catch (Exception ex)
         {
-            throw new BlobFileSystemException(_pdfEnv.FullPath, "Failed to create PDF directory", ex);
+            throw new BlobFileSystemException(_pdfEnv.FullPath, PdfReportConstants.FailedToCreateDirectory, ex);
         }
     }
 
@@ -30,12 +28,12 @@ public class PdfService : IPdfService
     {
         if (file == null || file.Length == 0)
         {
-            throw new InvalidPdfFormatException("File is empty or null");
+            throw new InvalidPdfFormatException(PdfReportConstants.FileCannotBeEmpty);
         }
 
-        if (!file.ContentType.Equals(PdfMimeType, StringComparison.OrdinalIgnoreCase))
+        if (!file.ContentType.Equals(PdfReportConstants.PdfMimeType, StringComparison.OrdinalIgnoreCase))
         {
-            throw new InvalidPdfFormatException($"Invalid file format. Expected PDF, got {file.ContentType}");
+            throw new InvalidPdfFormatException(PdfReportConstants.InvalidPdfFormat);
         }
 
         await ValidatePdfSignatureAsync(file);
@@ -46,7 +44,7 @@ public class PdfService : IPdfService
 
         ValidateFileName(targetFileName);
 
-        var fileNameWithExtension = $"{targetFileName}.{PdfExtension}";
+        var fileNameWithExtension = $"{targetFileName}.{PdfReportConstants.PdfExtension}";
         var filePath = Path.Combine(_pdfEnv.FullPath, fileNameWithExtension);
 
         try
@@ -58,7 +56,7 @@ public class PdfService : IPdfService
         }
         catch (Exception ex)
         {
-            throw new BlobFileSystemException(fileNameWithExtension, "Failed to save PDF file", ex);
+            throw new BlobFileSystemException(fileNameWithExtension, PdfReportConstants.FailedToSavePdf, ex);
         }
     }
 
@@ -71,7 +69,7 @@ public class PdfService : IPdfService
 
         if (!File.Exists(filePath))
         {
-            throw new BlobNotFoundException(normalizedFileName, $"PDF file not found: {filePath}");
+            throw new BlobNotFoundException(normalizedFileName, PdfReportConstants.PdfNotFound);
         }
 
         try
@@ -81,7 +79,7 @@ public class PdfService : IPdfService
         }
         catch (Exception ex) when (ex is not BlobStorageException)
         {
-            throw new BlobFileSystemException(normalizedFileName, "Failed to read PDF file", ex);
+            throw new BlobFileSystemException(normalizedFileName, PdfReportConstants.FailedToReadPdf, ex);
         }
     }
 
@@ -91,9 +89,9 @@ public class PdfService : IPdfService
         var buffer = new byte[4];
         var bytesRead = await stream.ReadAsync(buffer, 0, 4);
 
-        if (bytesRead < 4 || !buffer.SequenceEqual(PdfSignature))
+        if (bytesRead < 4 || !buffer.SequenceEqual(PdfReportConstants.PdfSignature))
         {
-            throw new InvalidPdfFormatException("File does not have a valid PDF signature");
+            throw new InvalidPdfFormatException(PdfReportConstants.InvalidPdfSignature);
         }
 
         stream.Position = 0;
@@ -103,11 +101,11 @@ public class PdfService : IPdfService
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
-            throw new BlobFileNameException(fileName, "File name cannot be empty");
+            throw new BlobFileNameException(fileName, PdfReportConstants.FileNameCannotBeEmpty);
         }
 
         var nameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
-        return $"{nameWithoutExtension}.{PdfExtension}";
+        return $"{nameWithoutExtension}.{PdfReportConstants.PdfExtension}";
     }
 
     private static void ValidateFileName(string name)
@@ -120,7 +118,7 @@ public class PdfService : IPdfService
             || name.Contains('\\')
             || Path.GetInvalidFileNameChars().Any(nameWithoutExtension.Contains))
         {
-            throw new BlobFileNameException(name, $"Invalid file name: {name}");
+            throw new BlobFileNameException(name, PdfReportConstants.InvalidFileName);
         }
     }
 }
