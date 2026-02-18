@@ -120,6 +120,9 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                     .ThenInclude(c => (c as ImageContent)!.Image)
                     .Include(sec => sec.Contents)
                     .ThenInclude(c => (c as CardContent)!.Image)!
+                    .Include(sec => sec.Contents)
+                    .ThenInclude(c => c.Localizations)
+                    .ThenInclude(l => l.Language)
             });
     }
 
