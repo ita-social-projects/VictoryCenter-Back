@@ -8,8 +8,11 @@ public class ReportMediaSettingsProfile : Profile
 {
     public ReportMediaSettingsProfile()
     {
-        CreateMap<ChangedLivesBlock, ChangedLivesBlockDto>();
-        CreateMap<CollectedFundsBlock, CollectedFundsBlockDto>();
+        CreateMap<ChangedLivesBlock, ChangedLivesBlockDto>()
+            .ForMember(dest => dest.ChangedLives, opt => opt.MapFrom(src => src.ChangedLivesCount));
+
+        CreateMap<CollectedFundsBlock, CollectedFundsBlockDto>()
+            .ForMember(dest => dest.CollectedAmount, opt => opt.MapFrom(src => src.CollectedAmount));
 
         CreateMap<UpdateChangedLivesBlockDto, ChangedLivesBlock>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
