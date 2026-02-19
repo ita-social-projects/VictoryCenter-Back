@@ -3,11 +3,14 @@ using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Localization.WhoWeAreContents;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+using VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Validators.WhoWeAreSections;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -35,7 +38,12 @@ public class UpdateWhoWeAreContentTests
         Id = 1,
         SectionId = 1,
         ContentType = ContentType.Description,
-        Description = "Description"
+        Description = "Description",
+        Localizations = new List<WhoWeAreContentLocalization>
+        {
+            new() { TranslationStatus = TranslationStatus.Relevant },
+            new() { TranslationStatus = TranslationStatus.Relevant }
+        }
     };
 
     private readonly CardContent _testCardContent = new()
@@ -44,7 +52,12 @@ public class UpdateWhoWeAreContentTests
         SectionId = 1,
         ImageId = 1,
         ContentType = ContentType.Card,
-        Description = "Description 1"
+        Description = "Description 1",
+        Localizations = new List<WhoWeAreContentLocalization>
+        {
+            new() { TranslationStatus = TranslationStatus.Relevant },
+            new() { TranslationStatus = TranslationStatus.Relevant }
+        }
     };
 
     private readonly Image _testImage = new()
@@ -60,6 +73,20 @@ public class UpdateWhoWeAreContentTests
     {
         Title = "Основне",
         SectionType = SectionType.Main,
+        Contents = new List<WhoWeAreContentDto>
+        {
+            new DescriptionContentDto
+            {
+                Id = 1,
+                ContentType = ContentType.Description,
+                Description = "Updated Description",
+                Localizations = new List<WhoWeAreContentLocalizationDto>
+                {
+                    new() { TranslationStatus = TranslationStatus.Outdated },
+                    new() { TranslationStatus = TranslationStatus.Outdated }
+                }
+            }
+        }
     };
 
     public UpdateWhoWeAreContentTests()
@@ -259,6 +286,30 @@ public class UpdateWhoWeAreContentTests
             result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_UpdateDescriptionContent_ShouldChangeTranslationStatusesToOutdated()
+    {
+        // Arrange
+        var command = new UpdateWhoWeAreContentCommand(
+            SectionType.Main,
+            new List<UpdateWhoWeAreContentDto>
+            {
+                new() { Id = 1, ContentType = ContentType.Description, Description = "Updated Description" }
+            });
+
+        SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });
+
+        var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.All(result.Value.Contents.First().Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
     private void SetupRepositoryWrapper(
         WhoWeAreSection? sectionToReturn = null,
         List<WhoWeAreContent>? contentsToReturn = null)
@@ -276,6 +327,10 @@ public class UpdateWhoWeAreContentTests
         _mockRepositoryWrapper.Setup(r =>
             r.ImageRepository
                 .GetAllAsync(It.IsAny<QueryOptions<Image>>())).ReturnsAsync(new List<Image> { _testImage });
+
+        _mockRepositoryWrapper.Setup(r => r.BeginTransaction())
+            .Returns(new System.Transactions.TransactionScope(
+                System.Transactions.TransactionScopeAsyncFlowOption.Enabled));
 
         _mockMapper.Setup(m => m.Map<WhoWeAreSectionDto>(_testSection))
             .Returns(_testSectionDto);
