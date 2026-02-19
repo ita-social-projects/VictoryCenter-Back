@@ -2,7 +2,6 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
-using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -13,7 +12,6 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 public class GetAllPdfReportsHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IPdfService> _mockPdfService;
     private readonly Mock<IMapper> _mockMapper;
 
     private readonly List<PdfReport> _testPdfReports;
@@ -22,7 +20,6 @@ public class GetAllPdfReportsHandlerTests
     public GetAllPdfReportsHandlerTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _mockPdfService = new Mock<IPdfService>();
         _mockMapper = new Mock<IMapper>();
 
         _testPdfReports =
@@ -148,6 +145,5 @@ public class GetAllPdfReportsHandlerTests
     private GetAllPdfReportsHandler CreateHandler() =>
         new(
             _mockRepositoryWrapper.Object,
-            _mockPdfService.Object,
             _mockMapper.Object);
 }

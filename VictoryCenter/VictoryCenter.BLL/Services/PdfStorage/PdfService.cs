@@ -31,7 +31,13 @@ public class PdfService : IPdfService
             throw new InvalidPdfFormatException(PdfReportConstants.FileCannotBeEmpty);
         }
 
-        if (!file.ContentType.Equals(PdfReportConstants.PdfMimeType, StringComparison.OrdinalIgnoreCase))
+        if (file.Length > PdfReportConstants.MaxPdfSizeInBytes)
+        {
+            throw new InvalidPdfFormatException(
+            string.Format(PdfReportConstants.FileTooLarge, PdfReportConstants.MaxPdfSizeInMb));
+        }
+
+        if (file.ContentType is null || !file.ContentType.Equals(PdfReportConstants.PdfMimeType, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidPdfFormatException(PdfReportConstants.InvalidPdfFormat);
         }
@@ -44,7 +50,12 @@ public class PdfService : IPdfService
 
         ValidateFileName(targetFileName);
 
-        var fileNameWithExtension = $"{targetFileName}.{PdfReportConstants.PdfExtension}";
+        var normalizedFileName =
+            Path.GetFileNameWithoutExtension(targetFileName);
+
+        var fileNameWithExtension =
+            $"{normalizedFileName}.{PdfReportConstants.PdfExtension}";
+
         var filePath = Path.Combine(_pdfEnv.FullPath, fileNameWithExtension);
 
         try
@@ -56,6 +67,17 @@ public class PdfService : IPdfService
         }
         catch (Exception ex)
         {
+            try
+            {
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+            }
+            catch
+            {
+            }
+
             throw new BlobFileSystemException(fileNameWithExtension, PdfReportConstants.FailedToSavePdf, ex);
         }
     }

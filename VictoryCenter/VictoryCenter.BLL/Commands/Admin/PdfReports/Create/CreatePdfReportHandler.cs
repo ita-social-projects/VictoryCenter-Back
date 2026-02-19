@@ -38,6 +38,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
     public async Task<Result<PdfReportDto>> Handle(CreatePdfReportCommand request, CancellationToken cancellationToken)
     {
         string? blobName = null;
+        bool committed = false;
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
@@ -63,11 +64,11 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                _pdfService.DeletePdf(blobName);
                 return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(PdfReport)));
             }
 
             transaction.Complete();
+            committed = true;
 
             var result = _mapper.Map<PdfReportDto>(pdfReport);
             return Result.Ok(result);
@@ -76,18 +77,35 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
         {
             return Result.Fail<PdfReportDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
+        catch (InvalidPdfFormatException ex)
+        {
+            return Result.Fail<PdfReportDto>(ex.Message);
+        }
         catch (BlobStorageException e)
         {
             return Result.Fail<PdfReportDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
         catch (DbUpdateException)
         {
-            if (blobName != null)
-            {
-                _pdfService.DeletePdf(blobName);
-            }
-
             return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(PdfReport)));
+        }
+        finally
+        {
+            if (!committed && blobName != null)
+            {
+                TryDeleteBlob(blobName);
+            }
+        }
+    }
+
+    private void TryDeleteBlob(string blobName)
+    {
+        try
+        {
+            _pdfService.DeletePdf(blobName);
+        }
+        catch
+        {
         }
     }
 }

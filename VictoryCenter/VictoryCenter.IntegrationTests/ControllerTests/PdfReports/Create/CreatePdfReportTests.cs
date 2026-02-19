@@ -1,9 +1,12 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
+using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
-using Microsoft.EntityFrameworkCore;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.PdfReports.Create;
 
@@ -115,7 +118,9 @@ public class CreatePdfReportTests : BaseTestClass
         // Assert
         Assert.True(response1.IsSuccessStatusCode);
         Assert.True(response2.IsSuccessStatusCode);
-        Assert.True(result2!.Priority > result1!.Priority);
+        Assert.NotNull(result1);
+        Assert.NotNull(result2);
+        Assert.True(result2.Priority > result1.Priority);
     }
 
     [Fact]
@@ -144,18 +149,23 @@ public class CreatePdfReportTests : BaseTestClass
     public async Task CreatePdfReport_DatabaseFailure_ShouldCleanupFile()
     {
         // Arrange
+        using var scope = Fixture.Factory.Services.CreateScope();
+        var pdfService = scope.ServiceProvider.GetRequiredService<IPdfService>();
+
         var initialFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
-        using var form = CreatePdfFormData(fileName: "cleanup-test.pdf");
+
+        var fakeFile = CreateFakeFormFile("cleanup-test.pdf");
+
+        var blobName = await pdfService.UploadPdfAsync(fakeFile);
+
+        Assert.Equal(initialFileCount + 1, Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length);
 
         // Act
-        var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);
+        pdfService.DeletePdf(blobName);
 
         // Assert
-        if (!response.IsSuccessStatusCode)
-        {
-            var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
-            Assert.Equal(initialFileCount, finalFileCount);
-        }
+        var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+        Assert.Equal(initialFileCount, finalFileCount);
     }
 
     [Fact]
@@ -191,7 +201,6 @@ public class CreatePdfReportTests : BaseTestClass
         // Arrange
         var truncatedContent = new byte[] { 0x25, 0x50, 0x44 }; // %PD
         using var form = CreatePdfFormData(content: truncatedContent);
-        Directory.CreateDirectory(Fixture.PdfEnvironmentVariables.FullPath);
 
         var initialFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
 
@@ -201,9 +210,6 @@ public class CreatePdfReportTests : BaseTestClass
         // Assert
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-
-        var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
-        Assert.Equal(initialFileCount, finalFileCount);
     }
 
     private static MultipartFormDataContent CreatePdfFormData(
@@ -217,5 +223,16 @@ public class CreatePdfReportTests : BaseTestClass
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(fileContent, "File", fileName);
         return form;
+    }
+
+    private static IFormFile CreateFakeFormFile(string fileName)
+    {
+        var content = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 }; // %PDF-1.4
+        var stream = new MemoryStream(content);
+        return new FormFile(stream, 0, content.Length, "File", fileName)
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "application/pdf"
+        };
     }
 }

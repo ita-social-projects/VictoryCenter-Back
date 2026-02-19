@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
@@ -18,7 +19,7 @@ public class PdfReportsController : AuthorizedApiController
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(List<PdfReportDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginationResult<PdfReportDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPdfReports([FromQuery] BaseFilterDto filter)
     {
         return HandleResult(await Mediator.Send(new GetAllPdfReportsQuery(filter)));

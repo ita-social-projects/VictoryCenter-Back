@@ -72,6 +72,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         }
 
         InitializeServices();
+        Directory.CreateDirectory(PdfEnvironmentVariables.FullPath);
         await InitializeDatabaseAsync();
         InitializeSeeders();
         await SeederManager.SeedAllAsync();

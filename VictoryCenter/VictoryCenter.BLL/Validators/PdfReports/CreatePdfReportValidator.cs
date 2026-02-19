@@ -12,7 +12,9 @@ public class CreatePdfReportValidator : AbstractValidator<CreatePdfReportCommand
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreatePdfReportCommand.CreatePdfReportDto)));
 
-        RuleFor(x => x.CreatePdfReportDto.File)
+        When(x => x.CreatePdfReportDto != null, () =>
+        {
+            RuleFor(x => x.CreatePdfReportDto.File)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("File"))
             .Must(file => file?.Length > 0)
@@ -21,5 +23,6 @@ public class CreatePdfReportValidator : AbstractValidator<CreatePdfReportCommand
             .WithMessage(string.Format(PdfReportConstants.FileTooLarge, PdfReportConstants.MaxPdfSizeInMb))
             .Must(file => file?.ContentType.Equals(PdfReportConstants.PdfMimeType, StringComparison.OrdinalIgnoreCase) == true)
             .WithMessage(PdfReportConstants.FileMustBePdf);
+        });
     }
 }
