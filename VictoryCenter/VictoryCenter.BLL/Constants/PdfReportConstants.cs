@@ -23,4 +23,5 @@ public static class PdfReportConstants
     public static readonly string FailedToCreateDirectory = "Failed to create PDF directory";
     public static readonly string FailedToSavePdf = "Failed to save PDF file";
     public static readonly string FailedToReadPdf = "Failed to read PDF file";
+    public static readonly string FailedToDeletePdf = "Failed to delete PDF file";
 }

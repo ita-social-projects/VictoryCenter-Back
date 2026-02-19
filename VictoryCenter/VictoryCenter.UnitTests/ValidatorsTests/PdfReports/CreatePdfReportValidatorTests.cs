@@ -1,9 +1,10 @@
+using FluentValidation.TestHelper;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Validators.PdfReports;
-using FluentValidation.TestHelper;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.PdfReports;
 
@@ -42,7 +43,7 @@ public class CreatePdfReportValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.CreatePdfReportDto.File)
-            .WithErrorMessage("File cannot be empty");
+            .WithErrorMessage(PdfReportConstants.FileCannotBeEmpty);
     }
 
     [Fact]

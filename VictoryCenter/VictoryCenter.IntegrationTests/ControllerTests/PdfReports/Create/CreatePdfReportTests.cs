@@ -118,6 +118,94 @@ public class CreatePdfReportTests : BaseTestClass
         Assert.True(result2!.Priority > result1!.Priority);
     }
 
+    [Fact]
+    public async Task CreatePdfReport_CorruptedPdfWithValidMimeType_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var corruptedContent = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }; // JPEG magic bytes
+        using var form = CreatePdfFormData(content: corruptedContent);
+
+        // Act
+        var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        // Verify no file was saved
+        var files = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf");
+        var filesBeforeTest = files.Length;
+
+        files = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf");
+        Assert.Equal(filesBeforeTest, files.Length);
+    }
+
+    [Fact]
+    public async Task CreatePdfReport_DatabaseFailure_ShouldCleanupFile()
+    {
+        // Arrange
+        var initialFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+        using var form = CreatePdfFormData(fileName: "cleanup-test.pdf");
+
+        // Act
+        var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);
+
+        // Assert
+        if (!response.IsSuccessStatusCode)
+        {
+            var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+            Assert.Equal(initialFileCount, finalFileCount);
+        }
+    }
+
+    [Fact]
+    public async Task CreatePdfReport_OversizedFile_ShouldReturnBadRequestAndNotSaveFile()
+    {
+        // Arrange
+        var oversizedContent = new byte[11 * 1024 * 1024];
+        Array.Fill(oversizedContent, (byte)0x25);
+
+        oversizedContent[0] = 0x25;
+        oversizedContent[1] = 0x50;
+        oversizedContent[2] = 0x44;
+        oversizedContent[3] = 0x46;
+
+        using var form = CreatePdfFormData(content: oversizedContent);
+
+        var initialFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+
+        // Act
+        var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+        Assert.Equal(initialFileCount, finalFileCount);
+    }
+
+    [Fact]
+    public async Task CreatePdfReport_TruncatedPdf_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var truncatedContent = new byte[] { 0x25, 0x50, 0x44 }; // %PD
+        using var form = CreatePdfFormData(content: truncatedContent);
+        Directory.CreateDirectory(Fixture.PdfEnvironmentVariables.FullPath);
+
+        var initialFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+
+        // Act
+        var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);
+
+        // Assert
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+        Assert.Equal(initialFileCount, finalFileCount);
+    }
+
     private static MultipartFormDataContent CreatePdfFormData(
         byte[] content = null!,
         string fileName = "test-report.pdf",

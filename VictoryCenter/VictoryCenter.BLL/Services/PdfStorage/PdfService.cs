@@ -83,6 +83,26 @@ public class PdfService : IPdfService
         }
     }
 
+    public void DeletePdf(string fileName)
+    {
+        var normalizedFileName = NormalizeFileName(fileName);
+        ValidateFileName(normalizedFileName);
+
+        var filePath = Path.Combine(_pdfEnv.FullPath, normalizedFileName);
+
+        try
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new BlobFileSystemException(normalizedFileName, PdfReportConstants.FailedToDeletePdf, ex);
+        }
+    }
+
     private static async Task ValidatePdfSignatureAsync(IFormFile file)
     {
         using var stream = file.OpenReadStream();

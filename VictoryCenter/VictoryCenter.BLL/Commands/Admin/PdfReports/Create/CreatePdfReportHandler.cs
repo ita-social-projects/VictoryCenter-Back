@@ -37,6 +37,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
 
     public async Task<Result<PdfReportDto>> Handle(CreatePdfReportCommand request, CancellationToken cancellationToken)
     {
+        string? blobName = null;
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
@@ -46,7 +47,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            var blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
+            blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
             var nextPriority = await _reorderService.GetNextDisplayOrderAsync<PdfReport>();
 
             var pdfReport = new PdfReport
@@ -62,12 +63,13 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
+                _pdfService.DeletePdf(blobName);
                 return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(PdfReport)));
             }
 
-            var result = _mapper.Map<PdfReportDto>(pdfReport);
-
             transaction.Complete();
+
+            var result = _mapper.Map<PdfReportDto>(pdfReport);
             return Result.Ok(result);
         }
         catch (ValidationException vex)
@@ -80,6 +82,11 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
         }
         catch (DbUpdateException)
         {
+            if (blobName != null)
+            {
+                _pdfService.DeletePdf(blobName);
+            }
+
             return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(PdfReport)));
         }
     }

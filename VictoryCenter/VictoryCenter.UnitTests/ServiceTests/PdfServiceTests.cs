@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Moq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.PdfStorage;
 
@@ -141,7 +142,7 @@ public class PdfServiceTests : IDisposable
         var ex = await Assert.ThrowsAsync<BlobNotFoundException>(
             () => _pdfService.GetPdfAsync("nonexistent.pdf"));
 
-        Assert.Contains("nonexistent", ex.Message);
+        Assert.Contains(PdfReportConstants.PdfNotFound, ex.Message);
     }
 
     [Theory]
@@ -152,6 +153,47 @@ public class PdfServiceTests : IDisposable
         // Act & Assert
         await Assert.ThrowsAsync<BlobFileNameException>(
             () => _pdfService.GetPdfAsync(fileName));
+    }
+
+    [Fact]
+    public async Task DeletePdf_ExistingFile_ShouldRemoveFile()
+    {
+        // Arrange
+        var file = CreateMockPdfFile();
+        await _pdfService.UploadPdfAsync(file, _fileName);
+        var filePath = Path.Combine(_pdfEnv.FullPath, $"{_fileName}.pdf");
+        Assert.True(File.Exists(filePath));
+
+        // Act
+        _pdfService.DeletePdf($"{_fileName}.pdf");
+
+        // Assert
+        Assert.False(File.Exists(filePath));
+    }
+
+    [Fact]
+    public void DeletePdf_NonExistentFile_ShouldNotThrow()
+    {
+        // Act & Assert
+        var exception = Record.Exception(() => _pdfService.DeletePdf("nonexistent.pdf"));
+        Assert.Null(exception);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void DeletePdf_EmptyFileName_ShouldThrowBlobFileNameException(string fileName)
+    {
+        // Act & Assert
+        Assert.Throws<BlobFileNameException>(() => _pdfService.DeletePdf(fileName));
+    }
+
+    [Theory]
+    [InlineData("file...pdf")]
+    public void DeletePdf_InvalidFileName_ShouldThrowBlobFileNameException(string invalidFileName)
+    {
+        // Act & Assert
+        Assert.Throws<BlobFileNameException>(() => _pdfService.DeletePdf(invalidFileName));
     }
 
     public void Dispose()
