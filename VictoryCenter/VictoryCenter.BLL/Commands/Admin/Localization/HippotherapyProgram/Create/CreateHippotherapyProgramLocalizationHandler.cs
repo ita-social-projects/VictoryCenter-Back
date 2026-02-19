@@ -1,16 +1,16 @@
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
-using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
+using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using HippotherapyProgramEntity = VictoryCenter.DAL.Entities.HippotherapyProgram;
@@ -24,19 +24,22 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
     private readonly IValidator<CreateHippotherapyProgramLocalizationCommand> _validator;
     private readonly ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization> _programLocalizationService;
     private readonly ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> _contentLocalizationService;
+    private readonly IProgramSectionContentService _programSectionContentService;
 
     public CreateHippotherapyProgramLocalizationHandler(
         IMapper mapper,
         IValidator<CreateHippotherapyProgramLocalizationCommand> validator,
         ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization> programLocalizationService,
         IRepositoryWrapper repositoryWrapper,
-        ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> contentLocalizationService)
+        ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> contentLocalizationService,
+        IProgramSectionContentService programSectionContentService)
     {
         _mapper = mapper;
         _validator = validator;
         _programLocalizationService = programLocalizationService;
         _repositoryWrapper = repositoryWrapper;
         _contentLocalizationService = contentLocalizationService;
+        _programSectionContentService = programSectionContentService;
     }
 
     public async Task<Result<HippotherapyProgramLocalizationDto>> Handle(CreateHippotherapyProgramLocalizationCommand request, CancellationToken cancellationToken)
@@ -44,14 +47,22 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var contentTypesById = await GetContentTypesById(request.CreateHippotherapyProgramLocalizationDto.EntityId, cancellationToken);
-            ValidateSections(request.CreateHippotherapyProgramLocalizationDto.Sections, contentTypesById);
+            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId, cancellationToken);
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections(request.CreateHippotherapyProgramLocalizationDto.Sections, contentTypesById);
 
-            var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
-            var createdProgramLocalization = await _programLocalizationService.CreateEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);
-            await CreateSectionContentLocalizationsAsync(request.CreateHippotherapyProgramLocalizationDto.Sections);
+            HippotherapyProgramLocalization createdProgramLocalization;
+            using (var transaction = _repositoryWrapper.BeginTransaction())
+            {
+                var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
+                createdProgramLocalization = await _programLocalizationService.CreateEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);
+                await CreateSectionContentLocalizationsAsync(request.CreateHippotherapyProgramLocalizationDto.Sections);
 
+                transaction.Complete();
+            }
+
+            var sections = await GetProgramSections(createdProgramLocalization.EntityId, createdProgramLocalization.LanguageId);
             var response = _mapper.Map<HippotherapyProgramLocalizationDto>(createdProgramLocalization);
+            response = response with { Sections = sections };
 
             return Result.Ok(response);
         }
@@ -74,147 +85,41 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         }
     }
 
-    private async Task<Dictionary<long, ContentType>> GetContentTypesById(long programId, CancellationToken cancellationToken)
+    private async Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSections(long programId, long languageId)
     {
-        var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<HippotherapyProgramEntity>
-            {
-                Filter = entity => entity.Id == programId,
-                Include = query => query.Include(entity => entity.Sections)
-                    .ThenInclude(section => section.Contents),
-                AsNoTracking = true
-            });
+        var program = await _repositoryWrapper.HippotherapyProgramsLocalizationsRepository
+            .GetFirstOrDefaultAsync(
+                new QueryOptions<HippotherapyProgramLocalization>()
+                {
+                    Filter = entity => programId == entity.EntityId
+                                       && languageId == entity.LanguageId,
+                    Include = query => query.Include(entity => entity.Entity)
+                        .ThenInclude(entity => entity.Sections)
+                        .ThenInclude(section => section.Contents)
+                        .ThenInclude(content => content.Localizations),
+                });
 
         if (program is null)
         {
             throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(programId, typeof(HippotherapyProgramEntity)));
         }
 
-        return program.Sections
-            .SelectMany(section => section.Contents)
-            .ToDictionary(content => content.Id, content => content.ContentType);
-    }
-
-    private static void ValidateSections(
-        IReadOnlyCollection<CreateHippotherapyProgramSectionLocalizationDto> sections,
-        IReadOnlyDictionary<long, ContentType> contentTypesById)
-    {
-        if (sections.Count == 0)
-        {
-            return;
-        }
-
-        var failures = new List<ValidationFailure>();
-
-        foreach (var section in sections)
-        {
-            if (section.Contents is null)
+        var sectionLocalizations = program.Entity
+            .Sections
+            .Select(section => new HippotherapyProgramSectionLocalizationDto
             {
-                continue;
-            }
+                EntityId = section.Id,
+                Contents = section.Contents
+                    .SelectMany(content =>
+                        content.Localizations
+                            .Where(localization => localization.LanguageId == languageId)
+                            .Select(localization =>
+                                _mapper.Map<HippotherapyProgramSectionContentLocalizationDto>(localization)))
+                    .ToList(),
+            })
+            .ToList();
 
-            foreach (var content in section.Contents)
-            {
-                if (!contentTypesById.TryGetValue(content.EntityId, out var contentType))
-                {
-                    failures.Add(new ValidationFailure(
-                        nameof(content.EntityId),
-                        ErrorMessagesConstants.NotFound(content.EntityId, typeof(ProgramSectionContent))));
-                    continue;
-                }
-
-                ValidateContentLocalizationByType(content, contentType, failures);
-            }
-        }
-
-        if (failures.Count > 0)
-        {
-            throw new ValidationException(failures);
-        }
-    }
-
-    private static void ValidateContentLocalizationByType(
-        CreateHippotherapyProgramSectionContentLocalizationDto content,
-        ContentType contentType,
-        List<ValidationFailure> failures)
-    {
-        var hasTitle = HasValue(content.Title);
-        var hasDescription = HasValue(content.Description);
-        var hasAuthor = HasValue(content.Author);
-        var hasQuestion = HasValue(content.Question);
-        var hasAnswer = HasValue(content.Answer);
-
-        switch (contentType)
-        {
-            case ContentType.Title:
-                RequireField(failures, nameof(content.Title), hasTitle);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
-                break;
-            case ContentType.Description:
-                RequireField(failures, nameof(content.Description), hasDescription);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
-                break;
-            case ContentType.Author:
-                RequireField(failures, nameof(content.Author), hasAuthor);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
-                break;
-            case ContentType.Question:
-                RequireField(failures, nameof(content.Question), hasQuestion);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
-                break;
-            case ContentType.Answer:
-                RequireField(failures, nameof(content.Answer), hasAnswer);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                break;
-            case ContentType.Image:
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
-                break;
-            default:
-                failures.Add(new ValidationFailure(
-                    nameof(contentType),
-                    ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(contentType))));
-                break;
-        }
-    }
-
-    private static void RequireField(List<ValidationFailure> failures, string fieldName, bool hasValue)
-    {
-        if (!hasValue)
-        {
-            failures.Add(new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyIsRequired(fieldName)));
-        }
-    }
-
-    private static void ForbidField(List<ValidationFailure> failures, string fieldName, bool hasValue, ContentType contentType)
-    {
-        if (hasValue)
-        {
-            failures.Add(new ValidationFailure(fieldName, $"{fieldName} is not allowed for content type {contentType}"));
-        }
-    }
-
-    private static bool HasValue(string? value)
-    {
-        return !string.IsNullOrWhiteSpace(value);
+        return sectionLocalizations;
     }
 
     private async Task CreateSectionContentLocalizationsAsync(IReadOnlyCollection<CreateHippotherapyProgramSectionLocalizationDto> sections)

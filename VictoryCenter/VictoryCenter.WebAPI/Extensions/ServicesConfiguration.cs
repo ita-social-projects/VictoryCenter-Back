@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
@@ -23,6 +24,7 @@ using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.PdfStorage;
@@ -146,6 +148,8 @@ public static class ServicesConfiguration
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
+
+        services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);

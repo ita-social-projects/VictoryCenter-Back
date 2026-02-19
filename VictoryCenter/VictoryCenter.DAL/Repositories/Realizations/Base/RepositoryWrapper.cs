@@ -79,6 +79,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ICollectedFundsBlockRepository? _collectedFundsBlockRepository;
     private IChangedLivesBlockRepository? _changedLivesBlockRepository;
     private IHippotherapyProgramsLocalizationsRepository? _programsLocalizationsRepository;
+    private IProgramSectionContentsRepository? _programSectionContentsRepository;
+    private IProgramSectionContentLocalizationsRepository? _programSectionContentLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -118,6 +120,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
 
     public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository => _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);
+    public IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository => _programsLocalizationsRepository ??= new HippotherapyProgramsLocalizationsRepository(_victoryCenterDbContext);
+    public IProgramSectionContentsRepository ProgramSectionContentsRepository => _programSectionContentsRepository ??= new ProgramSectionContentsRepository(_victoryCenterDbContext);
+    public IProgramSectionContentLocalizationsRepository ProgramSectionContentLocalizationsRepository => _programSectionContentLocalizationsRepository ??= new ProgramSectionContentLocalizationsRepository(_victoryCenterDbContext);
 
     public IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository => _programsLocalizationsRepository
             ??= new HippotherapyProgramsLocalizationsRepository(_victoryCenterDbContext);

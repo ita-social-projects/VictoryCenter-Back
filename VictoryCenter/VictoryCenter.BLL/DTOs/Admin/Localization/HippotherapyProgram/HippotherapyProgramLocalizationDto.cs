@@ -3,7 +3,7 @@ using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 
-public class HippotherapyProgramLocalizationDto
+public record HippotherapyProgramLocalizationDto
 {
     public long Id { get; init; }
 

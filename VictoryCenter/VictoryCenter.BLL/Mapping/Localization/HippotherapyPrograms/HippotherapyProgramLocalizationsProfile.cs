@@ -1,5 +1,6 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 
@@ -16,6 +17,10 @@ public class HippotherapyProgramLocalizationsProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<HippotherapyProgramLocalization, HippotherapyProgramLocalizationDto>()
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+
+        CreateMap<ProgramSectionContentLocalization, HippotherapyProgramSectionContentLocalizationDto>()
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.EntityId))
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
     }
 }

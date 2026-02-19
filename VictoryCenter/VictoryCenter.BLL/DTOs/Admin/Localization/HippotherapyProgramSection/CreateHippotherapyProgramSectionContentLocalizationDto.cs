@@ -5,5 +5,5 @@ namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 public record CreateHippotherapyProgramSectionContentLocalizationDto : UpdateHippotherapyProgramSectionContentLocalizationDto, ILocalizationIdentity
 {
     public long EntityId { get; init; }
-    public long LanguageId { get; }
+    public long LanguageId { get; init; }
 }

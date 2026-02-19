@@ -46,6 +46,8 @@ public interface IRepositoryWrapper
     IPartnerSectionsRepository PartnerSectionsRepository { get; }
     IPartnersPageBannersRepository PartnersPageBannersRepository { get; }
     IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository { get; }
+    IProgramSectionContentsRepository ProgramSectionContentsRepository { get; }
+    IProgramSectionContentLocalizationsRepository ProgramSectionContentLocalizationsRepository { get; }
 
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
