@@ -61,6 +61,10 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<PartnersPageBanner> PartnersPageBanners { get; set; }
 
+    public DbSet<ChangedLivesBlock> ChangedLivesBlocks { get; set; }
+
+    public DbSet<CollectedFundsBlock> CollectedFundsBlocks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

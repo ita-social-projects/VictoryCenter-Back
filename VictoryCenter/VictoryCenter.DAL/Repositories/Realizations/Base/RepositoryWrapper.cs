@@ -7,10 +7,13 @@ using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
@@ -21,19 +24,18 @@ using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.Partners;
+using VictoryCenter.DAL.Repositories.Realizations.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -62,6 +64,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPartnerSectionsRepository? _partnerSectionRepository;
     private IPartnersPageBannersRepository? _partnersPageBannersRepository;
     private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
+    private ICollectedFundsBlockRepository? _collectedFundsBlockRepository;
+    private IChangedLivesBlockRepository? _changedLivesBlockRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -98,6 +102,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??= new PartnersPageBannersRepository(_victoryCenterDbContext);
 
     public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository => _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);
+
+    public ICollectedFundsBlockRepository CollectedFundsBlockRepository => _collectedFundsBlockRepository ??= new CollectedFundsBlockRepository(_victoryCenterDbContext);
+
+    public IChangedLivesBlockRepository ChangedLivesBlockRepository => _changedLivesBlockRepository ??= new ChangedLivesBlockRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
