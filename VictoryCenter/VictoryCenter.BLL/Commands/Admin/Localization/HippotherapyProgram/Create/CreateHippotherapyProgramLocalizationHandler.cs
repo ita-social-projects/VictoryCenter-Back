@@ -47,7 +47,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId, cancellationToken);
+            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
             ProgramSectionContentLocalizationValidationHelper.ValidateSections(request.CreateHippotherapyProgramLocalizationDto.Sections, contentTypesById);
 
             HippotherapyProgramLocalization createdProgramLocalization;
@@ -96,7 +96,8 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
                     Include = query => query.Include(entity => entity.Entity)
                         .ThenInclude(entity => entity.Sections)
                         .ThenInclude(section => section.Contents)
-                        .ThenInclude(content => content.Localizations),
+                        .ThenInclude(content => content.Localizations)
+                        .ThenInclude(localization => localization.Language),
                 });
 
         if (program is null)
@@ -124,7 +125,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
 
     private async Task CreateSectionContentLocalizationsAsync(IReadOnlyCollection<CreateHippotherapyProgramSectionLocalizationDto> sections)
     {
-        if (sections.Count == 0)
+        if (sections is null || sections.Count == 0)
         {
             return;
         }
