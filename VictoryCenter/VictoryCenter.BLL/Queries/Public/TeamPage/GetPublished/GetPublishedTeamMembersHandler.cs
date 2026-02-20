@@ -28,6 +28,8 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
         {
             Filter = category => category.TeamMembers.Any(member => member.Status == Status.Published),
             Include = categories => categories
+                .Include(category => category.Localizations)
+                    .ThenInclude(l => l.Language)
                 .Include(category => category.TeamMembers
                     .Where(member => member.Status == Status.Published)
                     .OrderBy(members => members.Priority))
@@ -36,7 +38,7 @@ public class GetPublishedTeamMembersHandler : IRequestHandler<GetPublishedTeamMe
                     .Where(member => member.Status == Status.Published)
                     .OrderBy(members => members.Priority))
                     .ThenInclude(member => member.Localizations)
-                .ThenInclude(l => l.Language)
+                        .ThenInclude(l => l.Language)
         };
 
         IEnumerable<TeamCategory> categoriesWithPublishedMembers =
