@@ -168,7 +168,7 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
         _mockProgramSectionContentService
-            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
             .ThrowsAsync(new KeyNotFoundException(ErrorMessagesConstants.NotFound(_testCreateDto.EntityId, typeof(HippotherapyProgramEntity))));
 
         var command = new CreateHippotherapyProgramLocalizationCommand(_testCreateDto);
@@ -280,7 +280,7 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
         _mockProgramSectionContentService
-            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
             .ReturnsAsync(new Dictionary<long, ContentType>
             {
                 { 200, ContentType.Question },
@@ -371,7 +371,7 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             .ReturnsAsync(new ProgramSectionContentLocalization());
 
         _mockProgramSectionContentService
-            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
             .ReturnsAsync(new Dictionary<long, ContentType>
             {
                 { 200, ContentType.Question },

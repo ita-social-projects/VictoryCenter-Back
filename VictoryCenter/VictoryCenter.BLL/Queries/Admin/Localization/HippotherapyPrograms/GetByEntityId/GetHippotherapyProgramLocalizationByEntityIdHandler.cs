@@ -1,7 +1,11 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -18,8 +22,64 @@ public class GetHippotherapyProgramLocalizationByEntityIdHandler : IRequestHandl
         _mapper = mapper;
     }
 
-    public Task<Result<IEnumerable<HippotherapyProgramLocalizationDto>>> Handle(GetHippotherapyProgramLocalizationByEntityIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<HippotherapyProgramLocalizationDto>>> Handle(GetHippotherapyProgramLocalizationByEntityIdQuery request, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var getProgramLocalizations = new QueryOptions<HippotherapyProgramLocalization>()
+        {
+            Filter = entity => entity.EntityId == request.Id,
+            AsNoTracking = true,
+            Include = query => query.Include(entity => entity.Entity)
+                .ThenInclude(entity => entity.Sections)
+                .ThenInclude(section => section.Contents)
+                .ThenInclude(content => content.Localizations)
+                .ThenInclude(localization => localization.Language)
+                .Include(program => program.Language)
+        };
+        var programs = (await _wrapper.HippotherapyProgramsLocalizationsRepository
+            .GetAllAsync(getProgramLocalizations)).ToList();
+        var programLocalizations = _mapper.Map<IEnumerable<HippotherapyProgramLocalizationDto>>(programs);
+        var list = new Dictionary<long, List<HippotherapyProgramSectionLocalizationDto>>();
+        foreach (var program in programs)
+        {
+            var sectionDto = await GetProgramSections(program, program.LanguageId);
+            list.Add(program.EntityId, sectionDto);
+        }
+
+        programLocalizations = programLocalizations.Select(program =>
+        {
+            if (list.TryGetValue(program.EntityId, out var sections))
+            {
+                return program with { Sections = sections };
+            }
+
+            return program;
+        }).ToList();
+
+        return Result.Ok(programLocalizations);
+    }
+
+    private async Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSections(HippotherapyProgramLocalization program, long languageId)
+    {
+        if(program is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(nameof(HippotherapyProgramLocalization), typeof(HippotherapyProgramLocalization)));
+        }
+
+        var sectionLocalizations = program.Entity
+            .Sections
+            .Select(section => new HippotherapyProgramSectionLocalizationDto
+            {
+                EntityId = section.Id,
+                Contents = section.Contents
+                    .SelectMany(content =>
+                        content.Localizations
+                            .Where(localization => localization.LanguageId == languageId)
+                            .Select(localization =>
+                                _mapper.Map<HippotherapyProgramSectionContentLocalizationDto>(localization)))
+                    .ToList(),
+            })
+            .ToList();
+
+        return sectionLocalizations;
     }
 }

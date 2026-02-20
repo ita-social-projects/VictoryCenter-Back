@@ -17,7 +17,7 @@ public class ProgramSectionContentService : IProgramSectionContentService
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Dictionary<long, ContentType>> GetContentTypesByProgramIdAsync(long programId, CancellationToken cancellationToken = default)
+    public async Task<Dictionary<long, ContentType>> GetContentTypesByProgramIdAsync(long programId)
     {
         var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(
             new QueryOptions<HippotherapyProgram>

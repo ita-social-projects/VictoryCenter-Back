@@ -5,7 +5,7 @@ namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 
 public record HippotherapyProgramLocalizationDto
 {
-    public long Id { get; init; }
+    public long EntityId { get; init; }
 
     public LocalizationInfoDto LocalizationInfoDto { get; init; } = null!;
 
