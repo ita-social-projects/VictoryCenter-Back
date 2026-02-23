@@ -1,3 +1,4 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.Localization;
@@ -92,6 +93,85 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         }
 
         throw new InvalidOperationException();
+    }
+
+    public async Task<TEntityLocalization> TrackEntityLocalizationAsync(TEntityLocalization entityLocalization)
+    {
+        var entity = await _repositoryWrapper.GetRepository<TEntity>()
+            .GetFirstOrDefaultAsync(
+                new QueryOptions<TEntity>
+                {
+                    Filter = e => e.Id == entityLocalization.EntityId,
+                });
+
+        if (entity is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.EntityId, typeof(TEntity)));
+        }
+
+        var localizationLanguage = await _repositoryWrapper.LocalizationLanguagesRepository
+            .GetFirstOrDefaultAsync(
+                new QueryOptions<LocalizationLanguage>
+                {
+                    Filter = e => e.Id == entityLocalization.LanguageId,
+                });
+
+        if (localizationLanguage is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.LanguageId, typeof(LocalizationLanguage)));
+        }
+
+        entityLocalization.CreatedAt = DateTimeOffset.UtcNow;
+        var createdEntity = await _repositoryWrapper.GetRepository<TEntityLocalization>().CreateAsync(entityLocalization);
+
+        return createdEntity;
+    }
+
+    public async Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> localizations)
+    {
+        var entityLocalizations = localizations.ToList();
+        var entityIds = entityLocalizations
+            .Select(l => l.EntityId)
+            .Distinct()
+            .ToList();
+
+        var existingEntityIds = (await _repositoryWrapper
+            .GetRepository<TEntity>()
+            .GetAllAsync(new QueryOptions<TEntity>()
+            {
+                Filter = entity => entityIds.Contains(entity.Id)
+            }))
+            .Select(e => e.Id)
+            .ToList();
+
+        var missingEntityIds = entityIds.Except(existingEntityIds).ToList();
+
+        if (missingEntityIds.Count > 0)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(missingEntityIds.First(), typeof(TEntity)));
+        }
+
+        if (entityLocalizations.Select(x => x.LanguageId).Distinct().Count() != 1)
+        {
+            throw new ValidationException("Bulk localization supports only one LanguageId.");
+        }
+
+        var languageId = entityLocalizations.First().LanguageId;
+
+        var languageExists = await _repositoryWrapper
+            .LocalizationLanguagesRepository
+            .GetFirstOrDefaultAsync(new QueryOptions<LocalizationLanguage>()
+            {
+                Filter = l => l.Id == languageId
+            });
+
+        if (languageExists is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(languageId, typeof(LocalizationLanguage)));
+        }
+
+        await _repositoryWrapper.GetRepository<TEntityLocalization>()
+            .CreateRangeAsync(entityLocalizations);
     }
 
     public async Task<TEntityLocalization> UpdateEntityLocalizationAsync(TEntityLocalization entityLocalization)

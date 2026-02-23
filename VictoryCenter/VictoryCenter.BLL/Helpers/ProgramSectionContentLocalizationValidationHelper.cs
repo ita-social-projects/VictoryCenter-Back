@@ -18,6 +18,19 @@ public static class ProgramSectionContentLocalizationValidationHelper
             return;
         }
 
+        var sectionContents = sections
+            .SelectMany(section => section.Contents ?? Enumerable.Empty<CreateHippotherapyProgramSectionContentLocalizationDto>())
+            .ToList();
+
+        if (sectionContents.Count != contentTypesById.Count)
+        {
+            throw new ValidationException(new List<ValidationFailure>
+            {
+                new(nameof(sections),
+                    $"Number of section contents ({sectionContents.Count}) does not match expected program contents ({contentTypesById.Count})")
+            });
+        }
+
         var failures = new List<ValidationFailure>();
 
         foreach (var section in sections)

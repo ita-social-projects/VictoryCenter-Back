@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
@@ -50,19 +51,31 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
             var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
             ProgramSectionContentLocalizationValidationHelper.ValidateSections(request.CreateHippotherapyProgramLocalizationDto.Sections, contentTypesById);
 
-            HippotherapyProgramLocalization createdProgramLocalization;
-            using (var transaction = _repositoryWrapper.BeginTransaction())
-            {
-                var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
-                createdProgramLocalization = await _programLocalizationService.CreateEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);
-                await CreateSectionContentLocalizationsAsync(request.CreateHippotherapyProgramLocalizationDto.Sections);
+            var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
+            HippotherapyProgramLocalization createdProgramLocalization = await _programLocalizationService.TrackEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);
+            var contentDtos = request.CreateHippotherapyProgramLocalizationDto.Sections?
+                .SelectMany(section => section.Contents ?? [])
+                .ToList() ?? [];
+            var contentLocalizations = _mapper.Map<List<ProgramSectionContentLocalization>>(contentDtos);
+            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations);
 
-                transaction.Complete();
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            {
+                return Result.Fail<HippotherapyProgramLocalizationDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgramLocalization)));
             }
 
+            var programLocalizationDto = _mapper.Map<LocalizationInfoDto>(await _repositoryWrapper.LocalizationLanguagesRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<LocalizationLanguage>()
+                {
+                    Filter = l => l.Id == request.CreateHippotherapyProgramLocalizationDto.LanguageId
+                }));
             var sections = await GetProgramSections(createdProgramLocalization.EntityId, createdProgramLocalization.LanguageId);
             var response = _mapper.Map<HippotherapyProgramLocalizationDto>(createdProgramLocalization);
-            response = response with { Sections = sections };
+            response = response with
+            {
+                Sections = sections,
+                LocalizationInfoDto = programLocalizationDto
+            };
 
             return Result.Ok(response);
         }
@@ -121,27 +134,5 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
             .ToList();
 
         return sectionLocalizations;
-    }
-
-    private async Task CreateSectionContentLocalizationsAsync(IReadOnlyCollection<CreateHippotherapyProgramSectionLocalizationDto> sections)
-    {
-        if (sections is null || sections.Count == 0)
-        {
-            return;
-        }
-
-        foreach (var section in sections)
-        {
-            if (section.Contents is null)
-            {
-                continue;
-            }
-
-            foreach (var content in section.Contents)
-            {
-                var mappedContent = _mapper.Map<ProgramSectionContentLocalization>(content);
-                await _contentLocalizationService.CreateEntityLocalizationAsync(mappedContent);
-            }
-        }
     }
 }
