@@ -33,8 +33,4 @@
       <ProjectReference Include="..\VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="ControllerTests\Localizations\HippotherapyProgramsLocalization\" />
-    </ItemGroup>
-
 </Project>
