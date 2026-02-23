@@ -97,6 +97,7 @@ public class CreateWhoWeAreContentLocalizationValidatorTests
     [InlineData(SectionType.Main)]
     [InlineData(SectionType.WhatWeDo)]
     [InlineData(SectionType.People)]
+    [InlineData(SectionType.Team)]
     public void Validate_ShouldHaveError_WhenDescriptionIsTooShort(SectionType sectionType)
     {
         var minLen = WhoWeAreContentLocalizationConstants.ValidationDescriptionRules[sectionType].MinLen;
@@ -114,6 +115,7 @@ public class CreateWhoWeAreContentLocalizationValidatorTests
     [InlineData(SectionType.Main)]
     [InlineData(SectionType.WhatWeDo)]
     [InlineData(SectionType.People)]
+    [InlineData(SectionType.Team)]
     public void Validate_ShouldHaveError_WhenDescriptionIsTooLong(SectionType sectionType)
     {
         var maxLen = WhoWeAreContentLocalizationConstants.ValidationDescriptionRules[sectionType].MaxLen;

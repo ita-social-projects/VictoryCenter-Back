@@ -93,7 +93,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ISupportOptionsRepository SupportOptionsRepository => _supportOptionsRepository
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
-    public IWhoWeAreContentLocalizationsRepository WhoWeAreContentLocalizationsRepository => _whoWeAreContentLocalizationsRepository ??= new WhoWeAreContentLocalizationsRepository(_victoryCenterDbContext);
+    public IWhoWeAreContentLocalizationsRepository WhoWeAreContentLocalizationsRepository => _whoWeAreContentLocalizationsRepository
+        ??= new WhoWeAreContentLocalizationsRepository(_victoryCenterDbContext);
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
     public IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository => _faqQuestionLocalizationsRepository
         ??= new FaqQuestionLocalizationsRepository(_victoryCenterDbContext);

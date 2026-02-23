@@ -306,8 +306,7 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.All(result.Value.Contents.First().Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+        Assert.All(_testDescriptionContent.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
     }
 
     private void SetupRepositoryWrapper(

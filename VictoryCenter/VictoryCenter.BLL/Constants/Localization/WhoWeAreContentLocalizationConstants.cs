@@ -5,7 +5,7 @@ namespace VictoryCenter.BLL.Constants.Localization;
 public static class WhoWeAreContentLocalizationConstants
 {
     public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(10, 50);
-    public static Dictionary<SectionType, (int MinLen, int MaxLen)> ValidationDescriptionRules = new()
+    public static readonly IReadOnlyDictionary<SectionType, (int MinLen, int MaxLen)> ValidationDescriptionRules = new Dictionary<SectionType, (int MinLen, int MaxLen)>
     {
         { SectionType.Main, (10, 600) },
         { SectionType.WhatWeDo, (10, 600) },

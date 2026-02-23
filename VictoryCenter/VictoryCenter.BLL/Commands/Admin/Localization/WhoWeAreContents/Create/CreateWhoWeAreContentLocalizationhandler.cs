@@ -16,14 +16,14 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.WhoWeAreContents.Create;
 
-public class CreateWhoWeAreContentLocalizationhandler : IRequestHandler<CreateWhoWeAreContentLocalizationCommand, Result<List<WhoWeAreContentLocalizationDto>>>
+public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWhoWeAreContentLocalizationCommand, Result<List<WhoWeAreContentLocalizationDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IValidator<CreateWhoWeAreContentLocalizationCommand> _validator;
     private readonly ILocalizationService<WhoWeAreContent, WhoWeAreContentLocalization> _localizationService;
     private readonly IRepositoryWrapper _repository;
 
-    public CreateWhoWeAreContentLocalizationhandler(
+    public CreateWhoWeAreContentLocalizationHandler(
         IMapper mapper,
         IValidator<CreateWhoWeAreContentLocalizationCommand> validator,
         ILocalizationService<WhoWeAreContent, WhoWeAreContentLocalization> localizationService,

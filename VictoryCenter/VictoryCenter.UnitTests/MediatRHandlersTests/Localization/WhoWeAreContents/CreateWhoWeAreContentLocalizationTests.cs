@@ -300,7 +300,7 @@ public class CreateWhoWeAreContentLocalizationTests
             result.Errors[0].Message);
     }
 
-    private CreateWhoWeAreContentLocalizationhandler CreateHandler() =>
+    private CreateWhoWeAreContentLocalizationHandler CreateHandler() =>
         new(_mockMapper.Object, _validator, _mockLocalizationService.Object, _mockRepositoryWrapper.Object);
 
     private void SetupMapperAndService()
