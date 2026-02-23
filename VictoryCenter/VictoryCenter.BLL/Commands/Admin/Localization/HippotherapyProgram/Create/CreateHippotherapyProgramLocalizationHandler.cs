@@ -73,7 +73,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
             var response = _mapper.Map<HippotherapyProgramLocalizationDto>(createdProgramLocalization);
             response = response with
             {
-                Sections = sections,
+                Sections = sections ?? [],
                 LocalizationInfoDto = programLocalizationDto
             };
 
@@ -95,6 +95,10 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         {
             return Result.Fail<HippotherapyProgramLocalizationDto>(ErrorMessagesConstants.
                 FailedToCreateEntityInDatabase(typeof(HippotherapyProgramLocalization)));
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail<HippotherapyProgramLocalizationDto>($"Unexpected error: {ex.Message}");
         }
     }
 

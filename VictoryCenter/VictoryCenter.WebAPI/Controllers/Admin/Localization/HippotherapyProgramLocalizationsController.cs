@@ -11,7 +11,7 @@ public class HippotherapyProgramLocalizationsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(HippotherapyProgramLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateHippotherapyProgramLocalization([FromBody] CreateHippotherapyProgramLocalizationDto createHippotherapyProgramLocalizationDto)
+    public async Task<ActionResult> CreateHippotherapyProgramLocalization([FromBody] CreateHippotherapyProgramLocalizationDto createHippotherapyProgramLocalizationDto)
     {
         return HandleResult(await Mediator.Send(new CreateHippotherapyProgramLocalizationCommand(createHippotherapyProgramLocalizationDto)));
     }
