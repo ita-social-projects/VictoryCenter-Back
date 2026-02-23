@@ -81,6 +81,10 @@ public class CreateWhoWeAreContentLocalizationhandler : IRequestHandler<CreateWh
         {
             return Result.Fail<List<WhoWeAreContentLocalizationDto>>(knfex.Message);
         }
+        catch (ArgumentException aex)
+        {
+            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(aex.Message);
+        }
         catch (InvalidOperationException)
         {
             return Result.Fail<List<WhoWeAreContentLocalizationDto>>(ErrorMessagesConstants.FailedToCreateEntity(typeof(WhoWeAreContentLocalization)));
