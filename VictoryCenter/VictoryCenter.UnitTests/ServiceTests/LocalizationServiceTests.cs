@@ -1,3 +1,4 @@
+using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.Localization;
@@ -316,6 +317,252 @@ public class LocalizationServiceTests
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await _localizationService.DeleteEntityLocalizationAsync(entityId, languageId));
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_ShouldReturnTrackedLocalization_WhenEntityAndLanguageExist()
+    {
+        // Arrange
+        var entityLocalization = new TeamMemberLocalization
+        {
+            EntityId = 1,
+            LanguageId = 1,
+            FullName = "Localized Name",
+            Description = "Localized Description"
+        };
+
+        var language = new LocalizationLanguage { Id = 1, Code = "en", Name = "English" };
+
+        SetupRepositoryWrapper(teamMember: _teamMember, localizationLanguage: language);
+
+        _repositoryWrapper.Setup(x => x.GetRepository<TeamMemberLocalization>()
+                .CreateAsync(It.IsAny<TeamMemberLocalization>()))
+            .ReturnsAsync((TeamMemberLocalization lm) => lm);
+
+        // Act
+        var result = await _localizationService.TrackEntityLocalizationAsync(entityLocalization);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(entityLocalization.EntityId, result.EntityId);
+        Assert.Equal(entityLocalization.LanguageId, result.LanguageId);
+        Assert.Equal(entityLocalization.FullName, result.FullName);
+        Assert.NotEqual(default, result.CreatedAt);
+        _repositoryWrapper.Verify(x => x.GetRepository<TeamMemberLocalization>().CreateAsync(It.IsAny<TeamMemberLocalization>()), Times.Once);
+
+        // Note: SaveChangesAsync is NOT called in TrackEntityLocalizationAsync
+        _repositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_ShouldThrowKeyNotFoundException_WhenEntityDoesNotExist()
+    {
+        // Arrange
+        var entityLocalization = new TeamMemberLocalization
+        {
+            EntityId = 999,
+            LanguageId = 1,
+            FullName = "Localized Name",
+            Description = "Localized Description"
+        };
+
+        SetupRepositoryWrapper();
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            await _localizationService.TrackEntityLocalizationAsync(entityLocalization));
+        Assert.Equal(ErrorMessagesConstants.NotFound(entityLocalization.EntityId, typeof(TeamMember)), ex.Message);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_ShouldThrowKeyNotFoundException_WhenLanguageDoesNotExist()
+    {
+        // Arrange
+        var entityLocalization = new TeamMemberLocalization
+        {
+            EntityId = 1,
+            LanguageId = 999,
+            FullName = "Localized Name",
+            Description = "Localized Description"
+        };
+
+        SetupRepositoryWrapper(teamMember: _teamMember);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            await _localizationService.TrackEntityLocalizationAsync(entityLocalization));
+        Assert.Equal(ErrorMessagesConstants.NotFound(entityLocalization.LanguageId, typeof(LocalizationLanguage)), ex.Message);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_BulkMethod_ShouldTrackMultipleLocalizations_WhenAllEntitiesAndLanguageExist()
+    {
+        // Arrange
+        var localizations = new List<TeamMemberLocalization>
+        {
+            new()
+            {
+                EntityId = 1,
+                LanguageId = 1,
+                FullName = "Localized Name 1",
+                Description = "Localized Description 1"
+            },
+            new()
+            {
+                EntityId = 2,
+                LanguageId = 1,
+                FullName = "Localized Name 2",
+                Description = "Localized Description 2"
+            }
+        };
+
+        var language = new LocalizationLanguage { Id = 1, Code = "en", Name = "English" };
+        var teamMember2 = new TeamMember
+        {
+            Id = 2,
+            FullName = "TestName2 TestSuname2",
+            Priority = 2,
+            CategoryId = 1,
+            Status = Status.Draft,
+            Description = "Long test2 description",
+            Email = "Test2@gmail.com",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+        };
+
+        _repositoryWrapper.Setup(x => x.GetRepository<TeamMember>()
+                .GetAllAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(new List<TeamMember> { _teamMember, teamMember2 });
+
+        _repositoryWrapper.Setup(x => x.LocalizationLanguagesRepository
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(language);
+
+        _repositoryWrapper.Setup(x => x.GetRepository<TeamMemberLocalization>()
+                .CreateRangeAsync(It.IsAny<IEnumerable<TeamMemberLocalization>>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _localizationService.TrackEntityLocalizationAsync(localizations);
+
+        // Assert
+        _repositoryWrapper.Verify(
+            x => x.GetRepository<TeamMember>()
+                .GetAllAsync(It.IsAny<QueryOptions<TeamMember>>()), Times.Once);
+        _repositoryWrapper.Verify(
+            x => x.LocalizationLanguagesRepository
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()), Times.Once);
+        _repositoryWrapper.Verify(
+            x => x.GetRepository<TeamMemberLocalization>()
+                .CreateRangeAsync(It.IsAny<IEnumerable<TeamMemberLocalization>>()), Times.Once);
+
+        _repositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_BulkMethod_ShouldThrowKeyNotFoundException_WhenSomeEntitiesDoNotExist()
+    {
+        // Arrange
+        var localizations = new List<TeamMemberLocalization>
+        {
+            new()
+            {
+                EntityId = 1,
+                LanguageId = 1,
+                FullName = "Localized Name 1",
+                Description = "Localized Description 1"
+            },
+            new()
+            {
+                EntityId = 999, // Non-existent entity
+                LanguageId = 1,
+                FullName = "Localized Name 2",
+                Description = "Localized Description 2"
+            }
+        };
+
+        _repositoryWrapper.Setup(x => x.GetRepository<TeamMember>()
+                .GetAllAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(new List<TeamMember> { _teamMember });
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            await _localizationService.TrackEntityLocalizationAsync(localizations));
+        Assert.Contains("999", ex.Message);
+        Assert.Contains(nameof(TeamMember), ex.Message);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_BulkMethod_ShouldThrowValidationException_WhenMultipleLanguageIdsProvided()
+    {
+        // Arrange
+        var localizations = new List<TeamMemberLocalization>
+        {
+            new()
+            {
+                EntityId = 1,
+                LanguageId = 1,
+                FullName = "Localized Name 1",
+                Description = "Localized Description 1"
+            },
+            new()
+            {
+                EntityId = 2,
+                LanguageId = 2, // Different language ID
+                FullName = "Localized Name 2",
+                Description = "Localized Description 2"
+            }
+        };
+
+        var teamMember2 = new TeamMember
+        {
+            Id = 2,
+            FullName = "TestName2 TestSuname2",
+            Priority = 2,
+            CategoryId = 1,
+            Status = Status.Draft,
+            Description = "Long test2 description",
+            Email = "Test2@gmail.com",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10)
+        };
+
+        _repositoryWrapper.Setup(x => x.GetRepository<TeamMember>()
+                .GetAllAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(new List<TeamMember> { _teamMember, teamMember2 });
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<ValidationException>(async () =>
+            await _localizationService.TrackEntityLocalizationAsync(localizations));
+        Assert.Contains("Bulk localization supports only one LanguageId", ex.Message);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationAsync_BulkMethod_ShouldThrowKeyNotFoundException_WhenLanguageDoesNotExist()
+    {
+        // Arrange
+        var localizations = new List<TeamMemberLocalization>
+        {
+            new()
+            {
+                EntityId = 1,
+                LanguageId = 999, // Non-existent language
+                FullName = "Localized Name 1",
+                Description = "Localized Description 1"
+            }
+        };
+
+        _repositoryWrapper.Setup(x => x.GetRepository<TeamMember>()
+                .GetAllAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(new List<TeamMember> { _teamMember });
+
+        _repositoryWrapper.Setup(x => x.LocalizationLanguagesRepository
+                .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync((LocalizationLanguage?)null);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            await _localizationService.TrackEntityLocalizationAsync(localizations));
+        Assert.Contains("999", ex.Message);
+        Assert.Contains(nameof(LocalizationLanguage), ex.Message);
     }
 
     private void SetupRepositoryWrapper(
