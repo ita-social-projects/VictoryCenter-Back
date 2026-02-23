@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212124426_AddReportMediaSettings")]
+    partial class AddReportMediaSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -713,35 +716,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("TeamMemberLocalizations");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.WhoWeAreContentLocalization", b =>
-                {
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TranslationStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("EntityId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("WhoWeAreContentLocalizations");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Partner", b =>
                 {
                     b.Property<long>("Id")
@@ -1388,25 +1362,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Language");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.WhoWeAreContentLocalization", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent", "Entity")
-                        .WithMany("Localizations")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Partner", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
@@ -1535,11 +1490,6 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.VisitorPage", b =>
                 {
                     b.Navigation("Questions");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent", b =>
-                {
-                    b.Navigation("Localizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreSection", b =>
