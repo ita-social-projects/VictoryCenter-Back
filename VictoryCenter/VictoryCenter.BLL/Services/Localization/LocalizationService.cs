@@ -24,32 +24,7 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
 
     public async Task<TEntityLocalization> CreateEntityLocalizationAsync(TEntityLocalization entityLocalization)
     {
-        var entity = await _repositoryWrapper.GetRepository<TEntity>()
-            .GetFirstOrDefaultAsync(
-                new QueryOptions<TEntity>
-                {
-                    Filter = e => e.Id == entityLocalization.EntityId,
-                });
-
-        if (entity is null)
-        {
-            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.EntityId, typeof(TEntity)));
-        }
-
-        var localizationLanguage = await _repositoryWrapper.LocalizationLanguagesRepository
-            .GetFirstOrDefaultAsync(
-            new QueryOptions<LocalizationLanguage>
-            {
-                Filter = e => e.Id == entityLocalization.LanguageId,
-            });
-
-        if (localizationLanguage is null)
-        {
-            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.LanguageId, typeof(LocalizationLanguage)));
-        }
-
-        entityLocalization.CreatedAt = DateTimeOffset.UtcNow;
-        var createdEntity = await _repositoryWrapper.GetRepository<TEntityLocalization>().CreateAsync(entityLocalization);
+        var createdEntity = await ValidateAndTrackAsync(entityLocalization);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
@@ -97,32 +72,7 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
 
     public async Task<TEntityLocalization> TrackEntityLocalizationAsync(TEntityLocalization entityLocalization)
     {
-        var entity = await _repositoryWrapper.GetRepository<TEntity>()
-            .GetFirstOrDefaultAsync(
-                new QueryOptions<TEntity>
-                {
-                    Filter = e => e.Id == entityLocalization.EntityId,
-                });
-
-        if (entity is null)
-        {
-            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.EntityId, typeof(TEntity)));
-        }
-
-        var localizationLanguage = await _repositoryWrapper.LocalizationLanguagesRepository
-            .GetFirstOrDefaultAsync(
-                new QueryOptions<LocalizationLanguage>
-                {
-                    Filter = e => e.Id == entityLocalization.LanguageId,
-                });
-
-        if (localizationLanguage is null)
-        {
-            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.LanguageId, typeof(LocalizationLanguage)));
-        }
-
-        entityLocalization.CreatedAt = DateTimeOffset.UtcNow;
-        var createdEntity = await _repositoryWrapper.GetRepository<TEntityLocalization>().CreateAsync(entityLocalization);
+        var createdEntity = await ValidateAndTrackAsync(entityLocalization);
 
         return createdEntity;
     }
@@ -212,5 +162,36 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         }
 
         throw new InvalidOperationException();
+    }
+
+    private async Task<TEntityLocalization> ValidateAndTrackAsync(TEntityLocalization entityLocalization)
+    {
+        var entity = await _repositoryWrapper.GetRepository<TEntity>()
+            .GetFirstOrDefaultAsync(
+                new QueryOptions<TEntity>
+                {
+                    Filter = e => e.Id == entityLocalization.EntityId,
+                });
+
+        if (entity is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.EntityId, typeof(TEntity)));
+        }
+
+        var localizationLanguage = await _repositoryWrapper.LocalizationLanguagesRepository
+            .GetFirstOrDefaultAsync(
+                new QueryOptions<LocalizationLanguage>
+                {
+                    Filter = e => e.Id == entityLocalization.LanguageId,
+                });
+
+        if (localizationLanguage is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(entityLocalization.LanguageId, typeof(LocalizationLanguage)));
+        }
+
+        entityLocalization.CreatedAt = DateTimeOffset.UtcNow;
+
+        return await _repositoryWrapper.GetRepository<TEntityLocalization>().CreateAsync(entityLocalization);
     }
 }
