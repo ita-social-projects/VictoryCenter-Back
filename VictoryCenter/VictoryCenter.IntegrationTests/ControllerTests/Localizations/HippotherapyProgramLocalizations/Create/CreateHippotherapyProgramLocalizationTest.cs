@@ -7,7 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.Localizations.HippotherapyProgramsLocalization.Create;
+namespace VictoryCenter.IntegrationTests.ControllerTests.Localizations.HippotherapyProgramLocalizations.Create;
 
 public class CreateHippotherapyProgramLocalizationTest : BaseTestClass
 {
