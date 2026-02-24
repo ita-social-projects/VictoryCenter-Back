@@ -110,4 +110,99 @@ public class ProgramSectionContentLocalizationValidationHelperTests
 
         Assert.Contains("Description is not allowed for content type Title", ex.Message);
     }
+
+    [Fact]
+    public void ValidateSections_DescriptionType_RequireDescriptionAndForbidOthers()
+    {
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        {
+            new()
+            {
+                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                {
+                    new() { EntityId = 2, Title = "x" }
+                }
+            }
+        };
+        var dict = new Dictionary<long, ContentType> { { 2, ContentType.Description } };
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        Assert.Contains("Title is not allowed for content type Description", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateSections_AuthorType_RequireAuthorAndForbidOthers()
+    {
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        {
+            new()
+            {
+                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                {
+                    new() { EntityId = 3, Description = "desc" }
+                }
+            }
+        };
+        var dict = new Dictionary<long, ContentType> { { 3, ContentType.Author } };
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        Assert.Contains("Description is not allowed for content type Author", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateSections_QuestionType_RequireQuestionAndForbidOthers()
+    {
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        {
+            new()
+            {
+                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                {
+                    new() { EntityId = 4, Answer = "ans" }
+                }
+            }
+        };
+        var dict = new Dictionary<long, ContentType> { { 4, ContentType.Question } };
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        Assert.Contains("Answer is not allowed for content type Question", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateSections_AnswerType_RequireAnswerAndForbidOthers()
+    {
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        {
+            new()
+            {
+                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                {
+                    new() { EntityId = 5, Question = "q" }
+                }
+            }
+        };
+        var dict = new Dictionary<long, ContentType> { { 5, ContentType.Answer } };
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        Assert.Contains("Question is not allowed for content type Answer", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateSections_ImageType_ForbidsAllFields()
+    {
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        {
+            new()
+            {
+                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                {
+                    new() { EntityId = 6, Title = "t" }
+                }
+            }
+        };
+        var dict = new Dictionary<long, ContentType> { { 6, ContentType.Image } };
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        Assert.Contains("Title is not allowed for content type Image", ex.Message);
+    }
 }
