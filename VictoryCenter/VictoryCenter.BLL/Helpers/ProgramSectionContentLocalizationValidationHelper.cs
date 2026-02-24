@@ -135,7 +135,7 @@ public static class ProgramSectionContentLocalizationValidationHelper
     {
         if (hasValue)
         {
-            failures.Add(new ValidationFailure(fieldName, $"{fieldName} is not allowed for content type {contentType}"));
+            failures.Add(new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyNotAllowedForContentType(fieldName, contentType)));
         }
     }
 

@@ -20,5 +20,5 @@ public class HippotherapyProgram : BaseEntity, ITranslatedEntity<HippotherapyPro
     public Image? PreviewImage { get; set; }
     public ICollection<HippotherapyProgramCategory> Categories { get; set; } = [];
     public ICollection<HippotherapyProgramSection> Sections { get; set; } = [];
-    public ICollection<HippotherapyProgramLocalization> Localizations { get; set; }
+    public ICollection<HippotherapyProgramLocalization> Localizations { get; set; } = [];
 }

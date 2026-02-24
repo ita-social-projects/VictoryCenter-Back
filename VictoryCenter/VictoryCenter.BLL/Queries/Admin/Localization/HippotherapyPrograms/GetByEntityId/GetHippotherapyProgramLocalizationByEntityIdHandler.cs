@@ -42,12 +42,12 @@ public class GetHippotherapyProgramLocalizationByEntityIdHandler : IRequestHandl
         foreach (var program in programs)
         {
             var sectionDto = await GetProgramSections(program, program.LanguageId);
-            list.Add(program.EntityId, sectionDto);
+            list.Add(program.LanguageId, sectionDto);
         }
 
         programLocalizations = programLocalizations.Select(program =>
         {
-            if (list.TryGetValue(program.EntityId, out var sections))
+            if (list.TryGetValue(program.LocalizationInfoDto.Id, out var sections))
             {
                 return program with { Sections = sections };
             }

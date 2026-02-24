@@ -10,6 +10,10 @@ public class BaseProgramSectionContentLocalizationValidator : AbstractValidator<
     public BaseProgramSectionContentLocalizationValidator()
     {
         RuleFor(x => x.Title)
+            .MinimumLength(ProgramSectionContentLocalizationConstants.TitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateHippotherapyProgramSectionContentLocalizationDto.Title),
+                ProgramSectionContentLocalizationConstants.TitleMinLength))
             .MaximumLength(ProgramSectionContentLocalizationConstants.TitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdateHippotherapyProgramSectionContentLocalizationDto.Title),

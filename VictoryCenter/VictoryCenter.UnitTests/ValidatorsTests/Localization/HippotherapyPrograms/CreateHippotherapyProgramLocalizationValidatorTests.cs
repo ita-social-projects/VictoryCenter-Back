@@ -143,6 +143,43 @@ public class CreateHippotherapyProgramLocalizationValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_When_ContentTitleIsTooShort()
+    {
+        var command = new CreateHippotherapyProgramLocalizationCommand(
+            new CreateHippotherapyProgramLocalizationDto
+            {
+                EntityId = 1,
+                LanguageId = 1,
+                Name = "Valid Name",
+                Description = "Valid description",
+                Location = "Valid location",
+                ParticipantsCount = "10",
+                MeetingsCount = "5",
+                Sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+                {
+                    new()
+                    {
+                        Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                        {
+                            new()
+                            {
+                                Title = new string('T', ProgramSectionContentLocalizationConstants.TitleMinLength - 1)
+                            }
+                        }
+                    }
+                }
+            });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(
+            "CreateHippotherapyProgramLocalizationDto.Sections[0].Contents[0].Title")
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateHippotherapyProgramSectionContentLocalizationDto.Title),
+                ProgramSectionContentLocalizationConstants.TitleMinLength));
+    }
+
+    [Fact]
     public void Validate_ShouldHaveError_When_ContentTitleIsTooLong()
     {
         var command = new CreateHippotherapyProgramLocalizationCommand(
@@ -414,7 +451,7 @@ public class CreateHippotherapyProgramLocalizationValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldIgnoreWhitespaceInContentFileds()
+    public void Validate_ShouldIgnoreWhitespaceInContentFields()
     {
         var command = new CreateHippotherapyProgramLocalizationCommand(
             new CreateHippotherapyProgramLocalizationDto
