@@ -188,7 +188,7 @@ public class ProgramSectionContentLocalizationValidationHelperTests
     }
 
     [Fact]
-    public void ValidateSections_ImageType_ForbidsAllFields()
+    public void ValidateSections_ImageType_FilteredOutFromValidContents()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
@@ -203,6 +203,6 @@ public class ProgramSectionContentLocalizationValidationHelperTests
         var dict = new Dictionary<long, ContentType> { { 6, ContentType.Image } };
         var ex = Assert.Throws<ValidationException>(() =>
             ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Title is not allowed for content type Image", ex.Message);
+        Assert.Contains("Number of section contents", ex.Message);
     }
 }
