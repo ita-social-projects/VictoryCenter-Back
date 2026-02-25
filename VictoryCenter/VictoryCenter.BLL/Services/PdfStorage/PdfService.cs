@@ -135,8 +135,6 @@ public class PdfService : IPdfService
         {
             throw new InvalidPdfFormatException(PdfReportConstants.InvalidPdfSignature);
         }
-
-        stream.Position = 0;
     }
 
     private static string NormalizeFileName(string fileName)
