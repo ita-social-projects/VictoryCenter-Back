@@ -22,7 +22,20 @@ public static class ProgramSectionContentLocalizationValidationHelper
             .SelectMany(section => section.Contents ?? Enumerable.Empty<CreateHippotherapyProgramSectionContentLocalizationDto>())
             .ToList();
 
-        if (sectionContents.Count != contentTypesById.Count)
+        var validContents = new HashSet<ContentType>
+        {
+            ContentType.Title,
+            ContentType.Description,
+            ContentType.Author,
+            ContentType.Answer,
+            ContentType.Question
+        };
+
+        var filteredContentTypes = contentTypesById
+            .Where(c => validContents.Contains(c.Value))
+            .ToDictionary(c => c.Key, c => c.Value);
+
+        if (sectionContents.Count != filteredContentTypes.Count)
         {
             throw new ValidationException(new List<ValidationFailure>
             {
@@ -42,7 +55,7 @@ public static class ProgramSectionContentLocalizationValidationHelper
 
             foreach (var content in section.Contents)
             {
-                if (!contentTypesById.TryGetValue(content.EntityId, out var contentType))
+                if (!filteredContentTypes.TryGetValue(content.EntityId, out var contentType))
                 {
                     failures.Add(new ValidationFailure(
                         nameof(content.EntityId),
