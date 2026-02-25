@@ -28,6 +28,7 @@ public interface IRepositoryWrapper
     ITeamMembersRepository TeamMembersRepository { get; }
     IVisitorPagesRepository VisitorPagesRepository { get; }
     IImageRepository ImageRepository { get; }
+    IPdfReportRepository PdfReportRepository { get; }
     IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository { get; }
     IHippotherapyProgramsRepository HippotherapyProgramsRepository { get; }
     ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }

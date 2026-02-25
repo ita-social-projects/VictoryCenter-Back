@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Slugify;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
@@ -13,6 +14,7 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.SlugService;
@@ -23,6 +25,7 @@ using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.SlugService;
@@ -38,7 +41,6 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
-using Slugify;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -112,6 +114,7 @@ public static class ServicesConfiguration
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
         services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
+        services.ConfigurePdf(configuration);
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
@@ -530,6 +533,38 @@ public static class ServicesConfiguration
                 services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Azure"))
                     .ValidateDataAnnotations();
                 services.AddScoped<IBlobService, BlobService>();
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unsupported Blob Service Type: {serviceType}");
+        }
+
+        return services;
+    }
+
+    private static IServiceCollection ConfigurePdf(this IServiceCollection services, IConfiguration configuration)
+    {
+        var blobSection = configuration.GetSection("BlobEnvironmentVariables");
+        var serviceType = blobSection.GetValue<string>("ServiceType");
+
+        switch (serviceType)
+        {
+            case "Local":
+                services.AddOptions<PdfEnvironmentVariables>()
+                    .Bind(blobSection.GetSection("Local"))
+                    .ValidateDataAnnotations()
+                    .PostConfigure<IWebHostEnvironment>((options, env) =>
+                    {
+                        options.RootPath = env.WebRootPath;
+                    });
+                services.AddScoped<IPdfService, PdfService>();
+                break;
+
+            case "Azure":
+                services.AddOptions<PdfEnvironmentVariables>()
+                    .Bind(blobSection.GetSection("Azure"))
+                    .ValidateDataAnnotations();
+                services.AddScoped<IPdfService, PdfService>();
                 break;
 
             default:
