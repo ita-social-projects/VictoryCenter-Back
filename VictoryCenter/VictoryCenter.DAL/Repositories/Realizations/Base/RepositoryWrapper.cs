@@ -14,6 +14,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
+using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
@@ -32,6 +33,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.Partners;
+using VictoryCenter.DAL.Repositories.Realizations.PdfSection;
 using VictoryCenter.DAL.Repositories.Realizations.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
@@ -52,6 +54,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IVisitorPagesRepository? _visitorPagesRepository;
     private IImageRepository? _imageRepository;
     private IPdfReportRepository? _pdfReportRepository;
+    private IPdfSectionRepository? _pdfSectionRepository;
     private IHippotherapyProgramCategoriesRepository? _programCategoriesRepository;
     private IHippotherapyProgramsRepository? _hippotherapyProgramsRepository;
     private ILocalizationLanguagesRepository? _localizationLanguagesRepository;
@@ -83,6 +86,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IVisitorPagesRepository VisitorPagesRepository => _visitorPagesRepository ??= new VisitorPagesRepository(_victoryCenterDbContext);
     public IImageRepository ImageRepository => _imageRepository ??= new ImageRepository(_victoryCenterDbContext);
     public IPdfReportRepository PdfReportRepository => _pdfReportRepository ??= new PdfReportRepository(_victoryCenterDbContext);
+    public IPdfSectionRepository PdfSectionRepository => _pdfSectionRepository ??= new PdfSectionRepository(_victoryCenterDbContext);
     public IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository => _programCategoriesRepository
         ??= new HippotherapyProgramCategoriesRepository(_victoryCenterDbContext);
     public IHippotherapyProgramsRepository HippotherapyProgramsRepository => _hippotherapyProgramsRepository ??= new HippotherapyProgramsRepository(_victoryCenterDbContext);

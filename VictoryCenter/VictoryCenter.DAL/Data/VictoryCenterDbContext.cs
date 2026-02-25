@@ -26,6 +26,9 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     public DbSet<Image> Images { get; set; }
+
+    public DbSet<PdfSection> PdfSections { get; set; }
+
     public DbSet<PdfReport> PdfReports { get; set; }
 
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
