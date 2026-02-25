@@ -146,7 +146,7 @@ public class CreatePdfReportTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreatePdfReport_DatabaseFailure_ShouldCleanupFile()
+    public async Task PdfService_UploadAndDelete_ShouldCleanupFile()
     {
         // Arrange
         using var scope = Fixture.Factory.Services.CreateScope();
