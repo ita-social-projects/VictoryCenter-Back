@@ -47,6 +47,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<FaqQuestionLocalization> FaqLocalizations { get; set; }
 
+    public DbSet<WhoWeAreContentLocalization> WhoWeAreContentLocalizations { get; set; }
+
     public DbSet<UahBankDetails> UahBankDetails { get; set; }
 
     public DbSet<ForeignBankDetails> ForeignBankDetails { get; set; }

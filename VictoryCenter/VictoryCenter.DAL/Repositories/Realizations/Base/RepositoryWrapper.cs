@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
@@ -28,6 +29,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.Partners;
 using VictoryCenter.DAL.Repositories.Realizations.ReportMediaSettings;
@@ -58,6 +60,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ICorrespondentBankDetailsRepository? _correspondentBankDetailsRepository;
     private ISupportOptionsRepository? _supportOptionsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
+    private IWhoWeAreContentLocalizationsRepository? _whoWeAreContentLocalizationsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
     private IFaqQuestionLocalizationsRepository? _faqQuestionLocalizationsRepository;
     private IPartnerRepository? _partnerRepository;
@@ -94,6 +97,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ISupportOptionsRepository SupportOptionsRepository => _supportOptionsRepository
         ??= new SupportOptionsRepository(_victoryCenterDbContext);
     public IWhoWeAreContentsRepository WhoWeAreContentsRepository => _whoWeAreContentsRepository ??= new WhoWeAreContentsRepository(_victoryCenterDbContext);
+    public IWhoWeAreContentLocalizationsRepository WhoWeAreContentLocalizationsRepository => _whoWeAreContentLocalizationsRepository
+        ??= new WhoWeAreContentLocalizationsRepository(_victoryCenterDbContext);
     public IWhoWeAreSectionsRepository WhoWeAreSectionsRepository => _whoWeAreSectionsRepository ??= new WhoWeAreSectionsRepository(_victoryCenterDbContext);
     public IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository => _faqQuestionLocalizationsRepository
         ??= new FaqQuestionLocalizationsRepository(_victoryCenterDbContext);

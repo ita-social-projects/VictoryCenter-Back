@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -41,47 +42,52 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
             var sectionId = await GetSectionIdByType(request.SectionType) ??
                             throw new ArgumentException(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(request.SectionType)));
 
-            foreach (var dto in request.Contents)
+            using (TransactionScope scope = _repository.BeginTransaction())
             {
-                if (!dictEntities.TryGetValue(dto.Id, out var entity))
+                foreach (var dto in request.Contents)
                 {
-                    return Result.Fail(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent)));
+                    if (!dictEntities.TryGetValue(dto.Id, out var entity))
+                    {
+                        return Result.Fail(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent)));
+                    }
+
+                    if (entity.SectionId != sectionId)
+                    {
+                        return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), request.SectionType));
+                    }
+
+                    if (entity.ContentType != dto.ContentType)
+                    {
+                        return Result.Fail(WhoWeAreConstants.DtoHasWrongContentType(dto.Id, entity.ContentType, dto.ContentType));
+                    }
+
+                    UpdateContent(dto, entity, imageIdsToDelete);
                 }
 
-                if (entity.SectionId != sectionId)
-                {
-                    return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), request.SectionType));
-                }
-
-                if (entity.ContentType != dto.ContentType)
-                {
-                    return Result.Fail(WhoWeAreConstants.DtoHasWrongContentType(dto.Id, entity.ContentType, dto.ContentType));
-                }
-
-                UpdateContent(dto, entity, imageIdsToDelete);
-            }
-
-            await _repository.SaveChangesAsync();
-
-            if (imageIdsToDelete.Count > 0)
-            {
-                var imagesToDelete = await _repository.ImageRepository.GetAllAsync(new QueryOptions<Image>()
-                {
-                    Filter = image => imageIdsToDelete.Contains(image.Id)
-                });
-
-                _repository.ImageRepository.DeleteRange(imagesToDelete);
                 await _repository.SaveChangesAsync();
+
+                if (imageIdsToDelete.Count > 0)
+                {
+                    var imagesToDelete = await _repository.ImageRepository.GetAllAsync(new QueryOptions<Image>()
+                    {
+                        Filter = image => imageIdsToDelete.Contains(image.Id)
+                    });
+
+                    _repository.ImageRepository.DeleteRange(imagesToDelete);
+                    await _repository.SaveChangesAsync();
+                }
+
+                var updatedSection = await GetSection(request.SectionType);
+
+                if (updatedSection == null)
+                {
+                    return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+                }
+
+                scope.Complete();
+
+                return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(updatedSection));
             }
-
-            var updatedSection = await GetSection(request.SectionType);
-
-            if (updatedSection == null)
-            {
-                return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
-            }
-
-            return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(updatedSection));
         }
         catch (ValidationException vex)
         {
@@ -103,7 +109,8 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
         var entities = await _repository.WhoWeAreContentsRepository.GetAllAsync(new QueryOptions<WhoWeAreContent>
         {
-            Filter = w => contentIds.Contains(w.Id)
+            Filter = w => contentIds.Contains(w.Id),
+            Include = w => w.Include(w => w.Localizations).ThenInclude(l => l.Language)
         });
 
         return entities.ToDictionary(x => x.Id, x => x);
@@ -120,24 +127,39 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                     .ThenInclude(c => (c as ImageContent)!.Image)
                     .Include(sec => sec.Contents)
                     .ThenInclude(c => (c as CardContent)!.Image)!
+                    .Include(sec => sec.Contents)
+                    .ThenInclude(c => c.Localizations)
+                    .ThenInclude(l => l.Language)
             });
     }
 
     private void UpdateContent(UpdateWhoWeAreContentDto contentDto, WhoWeAreContent entity, List<long> imageIdsToDelete)
     {
+        bool isContentChanged = false;
+
         switch (contentDto.ContentType)
         {
             case ContentType.Description:
+                var descContent = entity as DescriptionContent
+                                  ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(DescriptionContent)));
+
+                isContentChanged = !string.Equals(contentDto.Description, descContent.Description);
                 _factory.UpdateDescription(contentDto, entity);
                 break;
 
             case ContentType.Title:
+                var titleContent = entity as TitleContent
+                                   ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(TitleContent)));
+
+                isContentChanged = !string.Equals(contentDto.Title, titleContent.Title);
                 _factory.UpdateTitle(contentDto, entity);
                 break;
 
             case ContentType.Card:
                 var cardContent = entity as CardContent
                                   ?? throw new InvalidOperationException(WhoWeAreConstants.EntityIsNotRightContent(typeof(CardContent)));
+
+                isContentChanged = !string.Equals(contentDto.Description, cardContent.Description);
 
                 if (cardContent.ImageId != null && cardContent.ImageId != contentDto.ImageId)
                 {
@@ -158,6 +180,14 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 _factory.UpdateImage(contentDto, entity);
                 break;
+        }
+
+        if (isContentChanged)
+        {
+            foreach (var loc in entity.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
 
         _repository.WhoWeAreContentsRepository.Update(entity);

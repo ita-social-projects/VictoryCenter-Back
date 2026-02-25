@@ -15,6 +15,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -36,6 +37,7 @@ public interface IRepositoryWrapper
     ICorrespondentBankDetailsRepository CorrespondentBankDetailsRepository { get; }
     ISupportOptionsRepository SupportOptionsRepository { get; }
     IWhoWeAreContentsRepository WhoWeAreContentsRepository { get; }
+    IWhoWeAreContentLocalizationsRepository WhoWeAreContentLocalizationsRepository { get; }
     IWhoWeAreSectionsRepository WhoWeAreSectionsRepository { get; }
     IFaqQuestionLocalizationsRepository FaqQuestionLocalizationsRepository { get; }
     IPartnerRepository PartnerRepository { get; }

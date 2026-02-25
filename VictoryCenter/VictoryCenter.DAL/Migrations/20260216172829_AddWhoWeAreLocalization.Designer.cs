@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260216172829_AddWhoWeAreLocalization")]
+    partial class AddWhoWeAreLocalization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -245,64 +248,6 @@ namespace VictoryCenter.DAL.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ChangedLivesBlock", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("ChangedLivesCount")
-                        .HasColumnType("int");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<long>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ImageId")
-                        .IsUnique();
-
-                    b.ToTable("ChangedLivesBlocks");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.CollectedFundsBlock", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("CollectedAmount")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<long>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ImageId")
-                        .IsUnique();
-
-                    b.ToTable("CollectedFundsBlocks");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CorrespondentBankDetails", b =>
@@ -1240,28 +1185,6 @@ namespace VictoryCenter.DAL.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ChangedLivesBlock", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.ChangedLivesBlock", "ImageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Image");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.CollectedFundsBlock", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.CollectedFundsBlock", "ImageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CorrespondentBankDetails", b =>

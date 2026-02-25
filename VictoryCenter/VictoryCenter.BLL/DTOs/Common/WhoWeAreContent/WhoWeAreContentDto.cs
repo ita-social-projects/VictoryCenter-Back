@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using VictoryCenter.BLL.DTOs.Admin.Localization.WhoWeAreContents;
 using ContentType = VictoryCenter.DAL.Enums.ContentType;
 
 namespace VictoryCenter.BLL.DTOs.Common.WhoWeAreContent;
@@ -12,4 +13,6 @@ public class WhoWeAreContentDto
     public long Id { get; set; }
 
     public ContentType ContentType { get; set; }
+
+    public IEnumerable<WhoWeAreContentLocalizationDto> Localizations { get; init; } = [];
 }
