@@ -41,7 +41,7 @@ public class GetPdfSectionWithReportsTests : BaseTestClass
         await Fixture.DbContext.SaveChangesAsync();
 
         // Act
-        var response = await Fixture.HttpClient.GetAsync("/api/pdf-section");
+        var response = await Fixture.HttpClient.GetAsync("/api/PdfSection/pdf-section");
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
