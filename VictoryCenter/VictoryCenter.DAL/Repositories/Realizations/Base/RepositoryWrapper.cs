@@ -38,14 +38,8 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategory;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyProgramCategory;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -81,7 +75,6 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyProgramsLocalizationsRepository? _programsLocalizationsRepository;
     private IProgramSectionContentsRepository? _programSectionContentsRepository;
     private IProgramSectionContentLocalizationsRepository? _programSectionContentLocalizationsRepository;
-
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
