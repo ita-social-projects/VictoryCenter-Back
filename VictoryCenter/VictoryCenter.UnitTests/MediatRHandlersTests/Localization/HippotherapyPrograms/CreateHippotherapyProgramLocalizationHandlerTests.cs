@@ -303,6 +303,87 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
         Assert.NotEmpty(result.Errors);
     }
 
+    [Fact]
+    public async Task Handle_ShouldFail_WhenSaveChangesReturnsZero()
+    {
+        // Arrange
+        SetupDependencies();
+        _mockRepositoryWrapper
+            .Setup(r => r.SaveChangesAsync())
+            .ReturnsAsync(0);
+
+        var command = new CreateHippotherapyProgramLocalizationCommand(_testCreateDto);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Errors);
+        Assert.Contains(
+            ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(HippotherapyProgramLocalization)),
+            result.Errors.Select(e => e.Message));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenLanguageNotFound()
+    {
+        // Arrange
+        _mockValidator
+            .Setup(v => v.ValidateAsync(
+                It.IsAny<FluentValidation.ValidationContext<CreateHippotherapyProgramLocalizationCommand>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
+
+        _mockProgramSectionContentService
+            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
+            .ReturnsAsync(new Dictionary<long, ContentType>());
+
+        _mockMapper
+            .Setup(m => m.Map<HippotherapyProgramLocalization>(It.IsAny<CreateHippotherapyProgramLocalizationDto>()))
+            .Returns(_testEntity);
+
+        _mockMapper
+            .Setup(m => m.Map<List<ProgramSectionContentLocalization>>(It.IsAny<List<CreateHippotherapyProgramSectionContentLocalizationDto>>()))
+            .Returns(new List<ProgramSectionContentLocalization>());
+
+        _mockProgramLocalizationService
+            .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<HippotherapyProgramLocalization>()))
+            .ThrowsAsync(new KeyNotFoundException(ErrorMessagesConstants.NotFound(_testCreateDto.LanguageId, typeof(LocalizationLanguage))));
+
+        var command = new CreateHippotherapyProgramLocalizationCommand(_testCreateDto);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Errors);
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(_testCreateDto.LanguageId, typeof(LocalizationLanguage)),
+            result.Errors.Select(e => e.Message));
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenUnexpectedExceptionThrown()
+    {
+        // Arrange
+        SetupDependencies();
+        _mockProgramLocalizationService
+            .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<HippotherapyProgramLocalization>()))
+            .ThrowsAsync(new Exception("Something went wrong"));
+
+        var command = new CreateHippotherapyProgramLocalizationCommand(_testCreateDto);
+
+        // Act
+        var result = await _handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Errors);
+        Assert.Contains("Unexpected error: Something went wrong", result.Errors.Select(e => e.Message));
+    }
+
     private void SetupDependencies()
     {
         _mockValidator
