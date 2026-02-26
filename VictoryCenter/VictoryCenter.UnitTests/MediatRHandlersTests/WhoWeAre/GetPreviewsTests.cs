@@ -3,6 +3,8 @@ using Moq;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
 using VictoryCenter.BLL.Queries.Admin.WhoWeAreSections.GetPreviews;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -50,11 +52,47 @@ public class GetPreviewsTests
         }
     }
 
+    [Fact]
+    public async Task Handle_WithTranslationStatuses_ShouldAggregateCorrectly()
+    {
+        // Arrange
+        var entities = GetEntitiesWithTranslationStatuses();
+        var expectedDtos = GetDtosWithTranslationStatuses();
+
+        SetupRepositoryWrapper(entities);
+        SetupMapper(expectedDtos);
+
+        var handler = new GetWhoWeAreSectionPreviewsHandler(_repositoryWrapper.Object, _mapper.Object);
+        var query = new GetWhoWeAreSectionPreviewsQuery();
+
+        // Act
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+
+        var sectionDto = result.Value[0];
+        Assert.Equal(expectedDtos[0].Id, sectionDto.Id);
+        Assert.Equal(expectedDtos[0].Title, sectionDto.Title);
+        Assert.Equal(expectedDtos[0].SectionType, sectionDto.SectionType);
+
+        var statuses = sectionDto.TranslationStatuses;
+        Assert.NotNull(statuses);
+        Assert.Equal(2, statuses.Count);
+        Assert.Contains(statuses, s => s.LanguageId == 1 && s.TranslationStatus == TranslationStatus.Relevant);
+        Assert.Contains(statuses, s => s.LanguageId == 2 && s.TranslationStatus == TranslationStatus.Outdated);
+        Assert.DoesNotContain(statuses, s => s.LanguageId == 3);
+        Assert.DoesNotContain(statuses, s => s.LanguageId == 4);
+    }
+
     private void SetupMapper(List<WhoWeAreSectionInfoDto> dtos)
     {
         _mapper
-            .Setup(m => m.Map<List<WhoWeAreSectionInfoDto>>(It.IsAny<List<WhoWeAreSection>>()))
-            .Returns(dtos);
+            .Setup(m => m.Map<WhoWeAreSectionInfoDto>(It.IsAny<WhoWeAreSection>()))
+            .Returns((WhoWeAreSection source) => dtos.FirstOrDefault(d => d.Id == source.Id)!);
     }
 
     private void SetupRepositoryWrapper(List<WhoWeAreSection> entities)
@@ -72,7 +110,7 @@ public class GetPreviewsTests
             SectionType = SectionType.Main,
             Title = "Основне",
             CreatedAt = DateTime.Now,
-            Contents = null!,
+            Contents = [],
         },
         new WhoWeAreSection
         {
@@ -80,7 +118,7 @@ public class GetPreviewsTests
             SectionType = SectionType.WhatWeDo,
             Title = "Що ми робимо",
             CreatedAt = DateTime.Now,
-            Contents = null!,
+            Contents = [],
         },
         new WhoWeAreSection
         {
@@ -88,7 +126,7 @@ public class GetPreviewsTests
             SectionType = SectionType.WhoWeSupport,
             Title = "Кого ми підтримуємо",
             CreatedAt = DateTime.Now,
-            Contents = null!
+            Contents = []
         },
         new WhoWeAreSection
         {
@@ -96,7 +134,7 @@ public class GetPreviewsTests
             SectionType = SectionType.Team,
             Title = "Команда",
             CreatedAt = DateTime.Now,
-            Contents = null!
+            Contents = []
         },
         new WhoWeAreSection
         {
@@ -104,7 +142,7 @@ public class GetPreviewsTests
             SectionType = SectionType.People,
             Title = "Люди",
             CreatedAt = DateTime.Now,
-            Contents = null!
+            Contents = []
         }
     };
 
@@ -139,6 +177,60 @@ public class GetPreviewsTests
             Id = 5,
             Title = "Люди",
             SectionType = "People"
+        }
+    };
+
+    private static List<WhoWeAreSection> GetEntitiesWithTranslationStatuses() => new()
+    {
+        new WhoWeAreSection
+        {
+            Id = 1,
+            SectionType = SectionType.Main,
+            Title = "Test Support",
+            CreatedAt = DateTime.Now,
+            Contents = new List<WhoWeAreContent>
+            {
+                new TitleContent
+                {
+                    Id = 1,
+                    ContentType = ContentType.Title,
+                    Localizations = new List<WhoWeAreContentLocalization>
+                    {
+                        new() { LanguageId = 1, TranslationStatus = TranslationStatus.Relevant },
+                        new() { LanguageId = 2, TranslationStatus = TranslationStatus.Relevant },
+                        new() { LanguageId = 3, TranslationStatus = TranslationStatus.Outdated }
+                    }
+                },
+                new DescriptionContent
+                {
+                    Id = 2,
+                    ContentType = ContentType.Description,
+                    Localizations = new List<WhoWeAreContentLocalization>
+                    {
+                        new() { LanguageId = 1, TranslationStatus = TranslationStatus.Relevant },
+                        new() { LanguageId = 2, TranslationStatus = TranslationStatus.Outdated }
+                    }
+                },
+                new ImageContent
+                {
+                    Id = 3,
+                    ContentType = ContentType.Image,
+                    Localizations = new List<WhoWeAreContentLocalization>
+                    {
+                        new() { LanguageId = 4, TranslationStatus = TranslationStatus.Relevant }
+                    }
+                }
+            }
+        }
+    };
+
+    private static List<WhoWeAreSectionInfoDto> GetDtosWithTranslationStatuses() => new()
+    {
+        new WhoWeAreSectionInfoDto
+        {
+            Id = 1,
+            Title = "Test Support",
+            SectionType = "Main"
         }
     };
 }
