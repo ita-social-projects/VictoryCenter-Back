@@ -18,7 +18,5 @@ public record CreateProgramSectionContentDto
 
     public string? Author { get; init; }
 
-    public string? QuestionText { get; init; }
-
-    public string? AnswerText { get; init; }
+    public CreateFaqQuestionDto? FaqQuestion { get; init; }
 }
