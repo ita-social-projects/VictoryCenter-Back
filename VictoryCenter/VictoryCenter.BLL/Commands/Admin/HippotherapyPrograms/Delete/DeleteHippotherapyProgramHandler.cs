@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -19,16 +20,31 @@ public class DeleteHippotherapyProgramHandler : IRequestHandler<DeleteHippothera
 
     public async Task<Result<long>> Handle(DeleteHippotherapyProgramCommand request, CancellationToken cancellationToken)
     {
-        HippotherapyProgram? entityToDelete = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
+        var entityToDelete = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgram>
         {
             Filter = program => program.Id == request.Id,
-            Include = program => program.Include(p => p.Categories)
+            Include = program => program
+                .Include(p => p.Categories)
+                .Include(p => p.Sections)
+                .ThenInclude(s => s.Contents)
         });
 
         if (entityToDelete is null)
         {
             return Result.Fail<long>(ErrorMessagesConstants
                 .NotFound(request.Id, typeof(HippotherapyProgram)));
+        }
+
+        var faqQuestions = entityToDelete.Sections
+            .SelectMany(s => s.Contents)
+            .OfType<FaqQuestionProgramContent>()
+            .Select(c => c.FaqQuestion)
+            .Where(q => q is not null)
+            .ToList();
+
+        if (faqQuestions.Count > 0)
+        {
+            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(faqQuestions!);
         }
 
         entityToDelete.Categories.Clear();

@@ -9,6 +9,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -102,6 +103,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var now = DateTimeOffset.UtcNow;
 
+            DeleteOrphanedFaqQuestions(program);
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
@@ -126,6 +128,21 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         foreach (var category in categories)
         {
             program.Categories.Add(category);
+        }
+    }
+
+    private void DeleteOrphanedFaqQuestions(HippotherapyProgram program)
+    {
+        var faqQuestions = program.Sections
+            .SelectMany(s => s.Contents)
+            .OfType<FaqQuestionProgramContent>()
+            .Select(c => c.FaqQuestion)
+            .Where(q => q is not null)
+            .ToList();
+
+        if (faqQuestions.Count > 0)
+        {
+            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(faqQuestions!);
         }
     }
 
