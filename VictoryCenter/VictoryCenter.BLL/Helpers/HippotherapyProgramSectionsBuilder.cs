@@ -26,7 +26,7 @@ public static class HippotherapyProgramSectionsBuilder
                 Template = sectionDto.Template,
                 Order = sectionDto.Order,
                 CreatedAt = createdAt,
-                Contents = BuildContents(sectionDto, imagesById)
+                Contents = BuildContents(sectionDto, imagesById, createdAt)
             });
         }
 
@@ -35,7 +35,8 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static List<ProgramSectionContent> BuildContents(
         CreateHippotherapyProgramSectionDto sectionDto,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        DateTimeOffset createdAt)
     {
         var dtoContents = sectionDto.Contents ?? [];
         if (dtoContents.Count == 0)
@@ -47,7 +48,7 @@ public static class HippotherapyProgramSectionsBuilder
 
         foreach (var dto in dtoContents.OrderBy(x => x.Order))
         {
-            var entity = CreateContent(dto, imagesById);
+            var entity = CreateContent(dto, imagesById, createdAt);
             if (entity is null)
             {
                 continue;
@@ -61,7 +62,8 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static ProgramSectionContent? CreateContent(
         CreateProgramSectionContentDto dto,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        DateTimeOffset createdAt)
     {
         if (dto.ContentType == ContentType.Title)
         {
@@ -120,17 +122,18 @@ public static class HippotherapyProgramSectionsBuilder
 
         if (dto.ContentType == ContentType.FaqQuestion)
         {
-            if (dto.FaqQuestionId is null or <= 0)
-            {
-                return null;
-            }
-
             return new FaqQuestionProgramContent
             {
                 ContentType = ContentType.FaqQuestion,
                 Order = dto.Order,
                 GroupIndex = dto.GroupIndex,
-                FaqQuestionId = dto.FaqQuestionId.Value
+                FaqQuestion = new FaqQuestion
+                {
+                    QuestionText = dto.QuestionText!.Trim(),
+                    AnswerText = dto.AnswerText!.Trim(),
+                    Status = Status.Published,
+                    CreatedAt = createdAt
+                }
             };
         }
 

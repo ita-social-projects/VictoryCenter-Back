@@ -19,6 +19,8 @@ public static class HippotherapyProgramSectionConstants
         (int Min, int Max) AuthorCount = default,
         (int Min, int Max) AuthorLength = default,
         (int Min, int Max) FaqQuestionCount = default,
+        (int Min, int Max) QuestionTextLength = default,
+        (int Min, int Max) AnswerTextLength = default,
         GroupingConfig? Grouping = null
     );
 
@@ -141,7 +143,9 @@ public static class HippotherapyProgramSectionConstants
         [ProgramSectionTemplate.SingleTitleQuestionAnswerPairs] = new(
             TitleCount: (1, 1),
             TitleLength: (5, 60),
-            FaqQuestionCount: (1, 100)
+            FaqQuestionCount: (1, 100),
+            QuestionTextLength: (10, 150),
+            AnswerTextLength: (50, 1000)
         ),
     };
     public static TemplateRequirementsConfig GetRequirements(ProgramSectionTemplate template)
@@ -173,6 +177,12 @@ public static class HippotherapyProgramSectionConstants
 
     public static string GetFaqQuestionsCountErrorMessage(CreateHippotherapyProgramSectionDto section)
         => GetCountErrorMessage(section, ContentType.FaqQuestion, GetRequirements(section.Template).FaqQuestionCount, "faq question(s)");
+
+    public static string GetQuestionTextLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetLengthErrorMessage(GetRequirements(section.Template).QuestionTextLength, "question text");
+
+    public static string GetAnswerTextLengthErrorMessage(CreateHippotherapyProgramSectionDto section)
+        => GetLengthErrorMessage(GetRequirements(section.Template).AnswerTextLength, "answer text");
 
     public static string GetGroupIndexRequiredErrorMessage(CreateHippotherapyProgramSectionDto section)
         => $"Template {section.Template} requires GroupIndex for grouped content";
