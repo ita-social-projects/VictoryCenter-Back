@@ -13,6 +13,5 @@ public record HippotherapyProgramSectionContentDto
     public string? Description { get; init; }
     public ImageDto? Image { get; init; }
     public string? Author { get; init; }
-    public string? Question { get; init; }
-    public string? Answer { get; init; }
+    public long? FaqQuestionId { get; init; }
 }
