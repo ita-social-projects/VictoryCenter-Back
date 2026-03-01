@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -103,7 +104,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var now = DateTimeOffset.UtcNow;
 
-            DeleteOrphanedFaqQuestions(program);
+            DeleteOrphanedFaqQuestions(program, request.UpdateProgramDto.Sections);
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
@@ -131,18 +132,26 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
     }
 
-    private void DeleteOrphanedFaqQuestions(HippotherapyProgram program)
+    private void DeleteOrphanedFaqQuestions(HippotherapyProgram program, ICollection<CreateHippotherapyProgramSectionDto>? incomingSections)
     {
-        var faqQuestions = program.Sections
+        var incomingIds = (incomingSections ?? [])
+            .SelectMany(s => s.Contents ?? [])
+            .Where(c => c.ContentType == ContentType.FaqQuestion)
+            .Select(c => c.FaqQuestion?.Id)
+            .Where(id => id is > 0)
+            .Select(id => id!.Value)
+            .ToHashSet();
+
+        var toDelete = program.Sections
             .SelectMany(s => s.Contents)
             .OfType<FaqQuestionProgramContent>()
-            .Select(c => c.FaqQuestion)
-            .Where(q => q is not null)
+            .Where(c => c.FaqQuestion is not null && !incomingIds.Contains(c.FaqQuestionId))
+            .Select(c => c.FaqQuestion!)
             .ToList();
 
-        if (faqQuestions.Count > 0)
+        if (toDelete.Count > 0)
         {
-            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(faqQuestions!);
+            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(toDelete);
         }
     }
 

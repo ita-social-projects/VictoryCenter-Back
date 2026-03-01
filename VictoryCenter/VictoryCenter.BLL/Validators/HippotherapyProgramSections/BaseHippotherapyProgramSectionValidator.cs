@@ -191,9 +191,30 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
 
         var faqQuestions = contents.Where(c => c.ContentType == ContentType.FaqQuestion).ToList();
 
-        if (faqQuestions.Any(c => c.FaqQuestionId is null or <= 0))
+        if (faqQuestions.Any(c => c.FaqQuestion is null))
         {
-            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateProgramSectionContentDto.FaqQuestionId)));
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.FaqQuestion)));
+            return;
+        }
+
+        if (faqQuestions.Any(c => string.IsNullOrWhiteSpace(c.FaqQuestion!.QuestionText)))
+        {
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.QuestionText)));
+        }
+
+        if (faqQuestions.Any(c => !HasValidLength(c.FaqQuestion!.QuestionText, req.QuestionTextLength)))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetQuestionTextLengthErrorMessage(section));
+        }
+
+        if (faqQuestions.Any(c => string.IsNullOrWhiteSpace(c.FaqQuestion!.AnswerText)))
+        {
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)));
+        }
+
+        if (faqQuestions.Any(c => !HasValidLength(c.FaqQuestion!.AnswerText, req.AnswerTextLength)))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetAnswerTextLengthErrorMessage(section));
         }
     }
 

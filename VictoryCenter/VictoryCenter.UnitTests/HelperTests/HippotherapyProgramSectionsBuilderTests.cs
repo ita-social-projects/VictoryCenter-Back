@@ -223,7 +223,7 @@ public class HippotherapyProgramSectionsBuilderTests
     [Fact]
     public void Build_CreatesFaqQuestionProgramContent()
     {
-        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, faqQuestionId: 5));
+        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, "Question?", "Answer."));
 
         var result = Build([dto]);
 
@@ -233,15 +233,28 @@ public class HippotherapyProgramSectionsBuilderTests
     }
 
     [Fact]
-    public void Build_SetsFaqQuestionId()
+    public void Build_SetsFaqQuestionTexts()
     {
-        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, faqQuestionId: 5));
+        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, "  My question?  ", "  My answer.  "));
 
         var result = Build([dto]);
 
-        var faqQuestion = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
+        var content = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
 
-        Assert.Equal(5, faqQuestion.FaqQuestionId);
+        Assert.Equal("My question?", content.FaqQuestion.QuestionText);
+        Assert.Equal("My answer.", content.FaqQuestion.AnswerText);
+    }
+
+    [Fact]
+    public void Build_SetsFaqQuestionCreatedAt()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, "Question?", "Answer."));
+
+        var result = Build([dto]);
+
+        var content = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
+
+        Assert.Equal(CreatedAt, content.FaqQuestion.CreatedAt);
     }
 
     [Fact]
@@ -250,26 +263,19 @@ public class HippotherapyProgramSectionsBuilderTests
         var dto = Section(
             order: 1,
             Title(order: 0, "Title"),
-            new CreateProgramSectionContentDto { ContentType = ContentType.FaqQuestion, Order = 1, GroupIndex = 2, FaqQuestionId = 7 });
+            new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.FaqQuestion,
+                Order = 1,
+                GroupIndex = 2,
+                FaqQuestion = new CreateFaqQuestionDto { QuestionText = "Question?", AnswerText = "Answer." }
+            });
 
         var result = Build([dto]);
 
-        var faqQuestion = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
+        var content = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
 
-        Assert.Equal(2, faqQuestion.GroupIndex);
-    }
-
-    [Fact]
-    public void Build_SkipsFaqQuestionWithInvalidId()
-    {
-        var dto = Section(
-            order: 1,
-            Title(order: 0, "Title"),
-            new CreateProgramSectionContentDto { ContentType = ContentType.FaqQuestion, Order = 1, FaqQuestionId = 0 });
-
-        var result = Build([dto]);
-
-        Assert.Single(result[0].Contents);
+        Assert.Equal(2, content.GroupIndex);
     }
 
     private static List<HippotherapyProgramSection> Build(
@@ -334,13 +340,13 @@ public class HippotherapyProgramSectionsBuilderTests
         };
     }
 
-    private static CreateProgramSectionContentDto FaqQuestion(int order, long faqQuestionId)
+    private static CreateProgramSectionContentDto FaqQuestion(int order, string questionText, string answerText)
     {
         return new CreateProgramSectionContentDto
         {
             ContentType = ContentType.FaqQuestion,
             Order = order,
-            FaqQuestionId = faqQuestionId
+            FaqQuestion = new CreateFaqQuestionDto { QuestionText = questionText, AnswerText = answerText }
         };
     }
 

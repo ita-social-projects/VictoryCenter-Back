@@ -122,19 +122,29 @@ public static class HippotherapyProgramSectionsBuilder
 
         if (dto.ContentType == ContentType.FaqQuestion)
         {
-            return new FaqQuestionProgramContent
+            var content = new FaqQuestionProgramContent
             {
                 ContentType = ContentType.FaqQuestion,
                 Order = dto.Order,
                 GroupIndex = dto.GroupIndex,
-                FaqQuestion = new FaqQuestion
+            };
+
+            if (dto.FaqQuestion!.Id is > 0)
+            {
+                content.FaqQuestionId = dto.FaqQuestion.Id.Value;
+            }
+            else
+            {
+                content.FaqQuestion = new FaqQuestion
                 {
-                    QuestionText = dto.QuestionText!.Trim(),
-                    AnswerText = dto.AnswerText!.Trim(),
+                    QuestionText = dto.FaqQuestion.QuestionText.Trim(),
+                    AnswerText = dto.FaqQuestion.AnswerText.Trim(),
                     Status = Status.Published,
                     CreatedAt = createdAt
-                }
-            };
+                };
+            }
+
+            return content;
         }
 
         return null;
