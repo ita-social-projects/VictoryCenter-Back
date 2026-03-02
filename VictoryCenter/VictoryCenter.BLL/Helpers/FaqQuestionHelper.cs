@@ -14,7 +14,7 @@ public static class FaqQuestionHelper
         IEnumerable<HippotherapyProgramSection> sections)
     {
         var faqQuestionIds = (sections ?? [])
-            .SelectMany(s => s.Contents)
+            .SelectMany(s => s.Contents ?? [])
             .OfType<FaqQuestionProgramContent>()
             .Select(c => c.FaqQuestionId)
             .Distinct()
@@ -41,7 +41,7 @@ public static class FaqQuestionHelper
             return Result.Fail(ErrorMessagesConstants.NotFound(missingIds, typeof(FaqQuestion)));
         }
 
-        foreach (var content in (sections ?? []).SelectMany(s => s.Contents).OfType<FaqQuestionProgramContent>())
+        foreach (var content in (sections ?? []).SelectMany(s => s.Contents ?? []).OfType<FaqQuestionProgramContent>())
         {
             content.FaqQuestion = faqQuestionsById[content.FaqQuestionId];
         }

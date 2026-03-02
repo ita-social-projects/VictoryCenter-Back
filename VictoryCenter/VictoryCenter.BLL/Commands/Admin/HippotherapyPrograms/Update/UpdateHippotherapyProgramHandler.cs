@@ -105,26 +105,29 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var now = DateTimeOffset.UtcNow;
 
-            DeleteOrphanedFaqQuestions(program, request.UpdateProgramDto.Sections);
+            var orphanedFaqQuestions = GetOrphanedFaqQuestions(program, request.UpdateProgramDto.Sections);
+
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            await _repositoryWrapper.SaveChangesAsync();
+
+            if (orphanedFaqQuestions.Count > 0)
             {
-                var assignFaqQuestionsResult = await FaqQuestionHelper
-                    .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, program.Sections);
-
-                if (assignFaqQuestionsResult.IsFailed)
-                {
-                    return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
-                }
-
-                return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
+                _repositoryWrapper.FaqQuestionsRepository.DeleteRange(orphanedFaqQuestions);
+                await _repositoryWrapper.SaveChangesAsync();
             }
 
-            return Result.Fail<HippotherapyProgramDto>(
-                ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
+            var assignFaqQuestionsResult = await FaqQuestionHelper
+                .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, program.Sections);
+
+            if (assignFaqQuestionsResult.IsFailed)
+            {
+                return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
+            }
+
+            return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
         }
         catch (ValidationException vex)
         {
@@ -141,7 +144,9 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
     }
 
-    private void DeleteOrphanedFaqQuestions(HippotherapyProgram program, ICollection<CreateHippotherapyProgramSectionDto>? incomingSections)
+    private static List<FaqQuestion> GetOrphanedFaqQuestions(
+        HippotherapyProgram program,
+        ICollection<CreateHippotherapyProgramSectionDto>? incomingSections)
     {
         var incomingIds = (incomingSections ?? [])
             .SelectMany(s => s.Contents ?? [])
@@ -151,17 +156,12 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             .Select(id => id!.Value)
             .ToHashSet();
 
-        var toDelete = program.Sections
+        return program.Sections
             .SelectMany(s => s.Contents)
             .OfType<FaqQuestionProgramContent>()
             .Where(c => c.FaqQuestion is not null && !incomingIds.Contains(c.FaqQuestionId))
             .Select(c => c.FaqQuestion!)
             .ToList();
-
-        if (toDelete.Count > 0)
-        {
-            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(toDelete);
-        }
     }
 
     private static void ReplaceSections(
