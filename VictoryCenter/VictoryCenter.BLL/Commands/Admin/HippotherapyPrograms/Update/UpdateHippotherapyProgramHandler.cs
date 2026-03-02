@@ -111,7 +111,11 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
 
-            await _repositoryWrapper.SaveChangesAsync();
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            {
+                return Result.Fail<HippotherapyProgramDto>(
+                    ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
+            }
 
             if (orphanedFaqQuestions.Count > 0)
             {

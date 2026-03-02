@@ -343,6 +343,10 @@ public class UpdateHippotherapyProgramTests
             .Setup(r => r.HippotherapyProgramsRepository.Update(It.IsAny<HippotherapyProgram>()));
 
         _repo
+            .Setup(r => r.FaqQuestionsRepository.GetAllAsync(It.IsAny<QueryOptions<FaqQuestion>>()))
+            .ReturnsAsync([]);
+
+        _repo
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(saveChanges);
     }
