@@ -1,4 +1,5 @@
 using FluentResults;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -32,6 +33,13 @@ public static class FaqQuestionHelper
             });
 
         var faqQuestionsById = faqQuestions.ToDictionary(q => q.Id);
+
+        var missingIds = faqQuestionIds.Where(id => !faqQuestionsById.ContainsKey(id)).ToList();
+
+        if (missingIds.Count > 0)
+        {
+            return Result.Fail(ErrorMessagesConstants.NotFound(missingIds, typeof(FaqQuestion)));
+        }
 
         foreach (var content in (sections ?? []).SelectMany(s => s.Contents).OfType<FaqQuestionProgramContent>())
         {
