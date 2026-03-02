@@ -52,6 +52,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                         .Include(x => x.Categories)
                         .Include(x => x.Sections)
                         .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => (c as FaqQuestionProgramContent)!.FaqQuestion)
                 });
 
             if (program is null)
@@ -111,6 +112,14 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                var assignFaqQuestionsResult = await FaqQuestionHelper
+                    .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, program.Sections);
+
+                if (assignFaqQuestionsResult.IsFailed)
+                {
+                    return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
+                }
+
                 return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
             }
 
