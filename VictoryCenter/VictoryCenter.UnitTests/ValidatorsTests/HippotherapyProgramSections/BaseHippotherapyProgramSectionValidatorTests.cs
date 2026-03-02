@@ -8,6 +8,8 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.HippotherapyProgramSections;
 
 public class BaseHippotherapyProgramSectionValidatorTests
 {
+    private const ProgramSectionTemplate FaqTemplate = ProgramSectionTemplate.SingleTitleQuestionAnswerPairs;
+
     private readonly BaseHippotherapyProgramSectionValidator _validator = new();
 
     [Fact]
@@ -338,6 +340,115 @@ public class BaseHippotherapyProgramSectionValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Fact]
+    public void Validate_FaqTemplate_ValidNewFaqQuestion_ShouldNotHaveErrors()
+    {
+        var model = GetValidFaqModel();
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_FaqQuestionObjectIsNull_ShouldHaveError()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.FaqQuestion,
+            Order = 1,
+            FaqQuestion = null
+        });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.FaqQuestion)));
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_NewFaqQuestion_QuestionTextIsEmpty_ShouldHaveError()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+        model.Contents.Add(FaqContent(order: 1, questionText: " ", answerText: ValidAnswerText()));
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.QuestionText)));
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_NewFaqQuestion_QuestionTextInvalidLength_ShouldHaveError()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+        model.Contents.Add(FaqContent(order: 1, questionText: "X", answerText: ValidAnswerText()));
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetQuestionTextLengthErrorMessage(model));
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_NewFaqQuestion_AnswerTextIsEmpty_ShouldHaveError()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+        model.Contents.Add(FaqContent(order: 1, questionText: ValidQuestionText(), answerText: " "));
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)));
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_NewFaqQuestion_AnswerTextInvalidLength_ShouldHaveError()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+        model.Contents.Add(FaqContent(order: 1, questionText: ValidQuestionText(), answerText: "X"));
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetAnswerTextLengthErrorMessage(model));
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_ExistingFaqQuestion_SkipsTextValidation_ShouldNotHaveErrors()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+        model.Contents.Add(new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.FaqQuestion,
+            Order = 1,
+            FaqQuestion = new CreateFaqQuestionDto { Id = 5, QuestionText = "", AnswerText = "" }
+        });
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Contents);
+    }
+
+    [Fact]
+    public void Validate_FaqTemplate_FaqQuestionsCountIsZero_ShouldHaveError()
+    {
+        var model = GetValidFaqModel();
+        model.Contents.RemoveAll(c => c.ContentType == ContentType.FaqQuestion);
+
+        var result = _validator.TestValidate(model);
+
+        result.ShouldHaveValidationErrorFor(x => x.Contents)
+            .WithErrorMessage(HippotherapyProgramSectionConstants.GetFaqQuestionsCountErrorMessage(model));
+    }
+
     private static CreateHippotherapyProgramSectionDto GetValidModel(ProgramSectionTemplate template)
     {
         var req = HippotherapyProgramSectionConstants.GetRequirements(template);
@@ -559,5 +670,39 @@ public class BaseHippotherapyProgramSectionValidatorTests
                 Author = new string('A', Math.Max(req.AuthorLength.Min, 1))
             });
         }
+    }
+
+    private static CreateHippotherapyProgramSectionDto GetValidFaqModel()
+    {
+        var req = HippotherapyProgramSectionConstants.GetRequirements(FaqTemplate);
+        var order = 0;
+        var contents = new List<CreateProgramSectionContentDto>();
+
+        AddTitles(req, contents, ref order);
+        contents.Add(FaqContent(order: order++, questionText: ValidQuestionText(), answerText: ValidAnswerText()));
+
+        return BuildSectionDto(FaqTemplate, contents);
+    }
+
+    private static CreateProgramSectionContentDto FaqContent(int order, string questionText, string answerText)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.FaqQuestion,
+            Order = order,
+            FaqQuestion = new CreateFaqQuestionDto { QuestionText = questionText, AnswerText = answerText }
+        };
+    }
+
+    private static string ValidQuestionText()
+    {
+        var min = HippotherapyProgramSectionConstants.GetRequirements(FaqTemplate).QuestionTextLength.Min;
+        return new string('Q', min);
+    }
+
+    private static string ValidAnswerText()
+    {
+        var min = HippotherapyProgramSectionConstants.GetRequirements(FaqTemplate).AnswerTextLength.Min;
+        return new string('A', min);
     }
 }
