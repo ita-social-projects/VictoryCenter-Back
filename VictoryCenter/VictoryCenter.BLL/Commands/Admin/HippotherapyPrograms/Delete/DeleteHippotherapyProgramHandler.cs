@@ -35,26 +35,33 @@ public class DeleteHippotherapyProgramHandler : IRequestHandler<DeleteHippothera
                 .NotFound(request.Id, typeof(HippotherapyProgram)));
         }
 
-        var faqQuestions = entityToDelete.Sections
+        var faqQuestionIds = entityToDelete.Sections
             .SelectMany(s => s.Contents)
             .OfType<FaqQuestionProgramContent>()
-            .Select(c => c.FaqQuestion)
-            .Where(q => q is not null)
+            .Select(c => c.FaqQuestionId)
+            .Distinct()
             .ToList();
-
-        if (faqQuestions.Count > 0)
-        {
-            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(faqQuestions!);
-        }
 
         entityToDelete.Categories.Clear();
         _repositoryWrapper.HippotherapyProgramsRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
         {
-            return Result.Ok(entityToDelete.Id);
+            return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgram)));
         }
 
-        return Result.Fail(ErrorMessagesConstants.FailedToDeleteEntity(typeof(HippotherapyProgram)));
+        if (faqQuestionIds.Count > 0)
+        {
+            var orphanedFaqQuestions = await _repositoryWrapper.FaqQuestionsRepository.GetAllAsync(
+                new QueryOptions<FaqQuestion>
+                {
+                    Filter = q => faqQuestionIds.Contains(q.Id)
+                });
+
+            _repositoryWrapper.FaqQuestionsRepository.DeleteRange(orphanedFaqQuestions);
+            await _repositoryWrapper.SaveChangesAsync();
+        }
+
+        return Result.Ok(entityToDelete.Id);
     }
 }
