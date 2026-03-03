@@ -152,6 +152,11 @@ public static class ErrorMessagesConstants
         return $"{property} must be a valid value";
     }
 
+    public static string PropertyNotAllowedForContentType(string property, DAL.Enums.ContentType contentType)
+    {
+        return $"{property} is not allowed for content type {contentType}";
+    }
+
     public static string BlobStorageError(string message)
     {
         return $"Blob error: {message}";

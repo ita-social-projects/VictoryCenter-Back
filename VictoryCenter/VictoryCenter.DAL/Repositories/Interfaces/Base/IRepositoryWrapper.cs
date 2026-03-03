@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
@@ -44,6 +45,9 @@ public interface IRepositoryWrapper
     IPartnerRepository PartnerRepository { get; }
     IPartnerSectionsRepository PartnerSectionsRepository { get; }
     IPartnersPageBannersRepository PartnersPageBannersRepository { get; }
+    IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository { get; }
+    IProgramSectionContentsRepository ProgramSectionContentsRepository { get; }
+    IProgramSectionContentLocalizationsRepository ProgramSectionContentLocalizationsRepository { get; }
 
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
