@@ -22,6 +22,7 @@ public class HippotherapyProgramsProfile : Profile
             .ForMember(dest => dest.Categories, opt => opt.Ignore())
             .ForMember(dest => dest.BackgroundImage, opt => opt.Ignore())
             .ForMember(dest => dest.PreviewImage, opt => opt.Ignore())
-            .ForMember(dest => dest.Sections, opt => opt.Ignore());
+            .ForMember(dest => dest.Sections, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
     }
 }

@@ -54,7 +54,9 @@ public class SearchHippotherapyProgramsHandler : IRequestHandler<SearchHippother
                 {
                     Include = q => q
                     .Include(tm => tm.Categories)
-                    .Include(tm => tm.PreviewImage!),
+                    .Include(tm => tm.PreviewImage!)
+                    .Include(tm => tm.Localizations)
+                        .ThenInclude(l => l.Language),
                     Filter = searchExpression,
                     Offset = dto.Offset is > 0 ? (int)dto.Offset : 0,
                     Limit = dto.Limit is > 0 ? (int)dto.Limit : 0
