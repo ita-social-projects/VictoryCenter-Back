@@ -122,6 +122,11 @@ public static class HippotherapyProgramSectionsBuilder
 
         if (dto.ContentType == ContentType.FaqQuestion)
         {
+            if (dto.FaqQuestion is null)
+            {
+                return null;
+            }
+
             var content = new FaqQuestionProgramContent
             {
                 ContentType = ContentType.FaqQuestion,
@@ -129,12 +134,18 @@ public static class HippotherapyProgramSectionsBuilder
                 GroupIndex = dto.GroupIndex,
             };
 
-            if (dto.FaqQuestion!.Id is > 0)
+            if (dto.FaqQuestion.Id is > 0)
             {
                 content.FaqQuestionId = dto.FaqQuestion.Id.Value;
             }
             else
             {
+                if (string.IsNullOrWhiteSpace(dto.FaqQuestion.QuestionText) ||
+                    string.IsNullOrWhiteSpace(dto.FaqQuestion.AnswerText))
+                {
+                    return null;
+                }
+
                 content.FaqQuestion = new FaqQuestion
                 {
                     QuestionText = dto.FaqQuestion.QuestionText.Trim(),
