@@ -50,6 +50,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                         .Include(x => x.Categories)
                         .Include(x => x.Sections)
                         .ThenInclude(s => s.Contents)
+                        .Include(x => x.Localizations)
                 });
 
             if (program is null)
@@ -103,6 +104,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             var now = DateTimeOffset.UtcNow;
 
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
+
+            program.Localizations.Clear();
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
 
