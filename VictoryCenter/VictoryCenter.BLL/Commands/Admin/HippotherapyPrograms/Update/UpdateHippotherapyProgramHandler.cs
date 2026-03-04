@@ -78,6 +78,11 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var oldSlug = program.Slug;
             var nameChanged = request.UpdateProgramDto.Name != program.Name;
+            var translatableFieldsChanged = nameChanged
+                || request.UpdateProgramDto.Description != program.Description
+                || request.UpdateProgramDto.Location != program.Location
+                || request.UpdateProgramDto.ParticipantsCount != program.ParticipantsCount
+                || request.UpdateProgramDto.MeetingsCount != program.MeetingsCount;
 
             _mapper.Map(request.UpdateProgramDto, program);
 
@@ -99,13 +104,22 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
             }
 
-            ReplaceCategories(program, newCategoriesResult.Value);
+            var categoriesChenged = program.Categories.Select(c => c.Id).OrderBy(id => id)
+                .SequenceEqual(request.UpdateProgramDto.CategoryIds.OrderBy(id => id)) == false;
+
+            if (categoriesChenged)
+            {
+                ReplaceCategories(program, newCategoriesResult.Value);
+            }
 
             var now = DateTimeOffset.UtcNow;
 
-            ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
-
-            program.Localizations.Clear();
+            var fieldsChanged = request.UpdateProgramDto.Sections?.Any(s => s.Contents?.Count > 0) ?? false;
+            if (fieldsChanged)
+            {
+                ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
+                program.Localizations.Clear();
+            }
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
 
