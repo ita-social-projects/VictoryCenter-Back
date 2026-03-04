@@ -64,8 +64,8 @@ public class UpdateHippotherapyProgramTests
         await sut.Handle(
             Command(id: 1, dto: Dto(sections:
             [
-                CreateSection(0),
-                CreateSection(1)
+                CreateSection(0, CreateImageContent(0, 1)),
+                CreateSection(1, CreateImageContent(0, 2))
             ])),
             CancellationToken.None);
 
