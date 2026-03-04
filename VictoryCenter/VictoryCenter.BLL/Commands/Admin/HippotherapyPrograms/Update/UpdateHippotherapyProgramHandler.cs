@@ -9,6 +9,8 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -50,6 +52,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                         .Include(x => x.Categories)
                         .Include(x => x.Sections)
                         .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => c.Localizations)
                         .Include(x => x.Localizations)
                 });
 
@@ -78,7 +81,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var oldSlug = program.Slug;
             var nameChanged = request.UpdateProgramDto.Name != program.Name;
-            var translatableFieldsChanged = nameChanged
+            var programFieldsChanged = nameChanged
                 || request.UpdateProgramDto.Description != program.Description
                 || request.UpdateProgramDto.Location != program.Location
                 || request.UpdateProgramDto.ParticipantsCount != program.ParticipantsCount
@@ -104,6 +107,14 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
             }
 
+            foreach (var loc in program.Localizations)
+            {
+                if (programFieldsChanged)
+                {
+                    loc.TranslationStatus = TranslationStatus.Outdated;
+                }
+            }
+
             var categoriesChenged = program.Categories.Select(c => c.Id).OrderBy(id => id)
                 .SequenceEqual(request.UpdateProgramDto.CategoryIds.OrderBy(id => id)) == false;
 
@@ -114,8 +125,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var now = DateTimeOffset.UtcNow;
 
-            var fieldsChanged = request.UpdateProgramDto.Sections?.Any(s => s.Contents?.Count > 0) ?? false;
-            if (fieldsChanged)
+            if (!EnsureReplaceSameSections(program.Sections.ToList(), request.UpdateProgramDto.Sections, imagesByIdResult.Value))
             {
                 ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
                 program.Localizations.Clear();
@@ -144,6 +154,189 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         {
             program.Categories.Add(category);
         }
+    }
+
+    private static bool EnsureReplaceSameSections(
+        List<HippotherapyProgramSection> oldSections,
+        List<CreateHippotherapyProgramSectionDto> newSections,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        if (oldSections.Count != newSections.Count)
+        {
+            return false;
+        }
+
+        Dictionary<int, HippotherapyProgramSection> oldSectionsMap;
+        Dictionary<int, CreateHippotherapyProgramSectionDto> newSectionsMap;
+
+        try
+        {
+            oldSectionsMap = oldSections.ToDictionary(section => section.Order);
+            newSectionsMap = newSections.ToDictionary(section => section.Order);
+        }
+        catch (ArgumentException)
+        {
+            return false;
+        }
+
+        if (oldSectionsMap.Count != newSectionsMap.Count)
+        {
+            return false;
+        }
+
+        foreach (var (sectionOrder, newSection) in newSectionsMap)
+        {
+            if (!oldSectionsMap.TryGetValue(sectionOrder, out var oldSection))
+            {
+                return false;
+            }
+
+            if (oldSection.Template != newSection.Template)
+            {
+                return false;
+            }
+
+            var newContents = newSection.Contents ?? [];
+            var oldContents = oldSection.Contents;
+
+            Dictionary<int, CreateProgramSectionContentDto> newContentsMap;
+            Dictionary<int, ProgramSectionContent> oldContentsMap;
+
+            try
+            {
+                newContentsMap = newContents.ToDictionary(content => content.Order);
+                oldContentsMap = oldContents.ToDictionary(content => content.Order);
+            }
+            catch (ArgumentException)
+            {
+                return false;
+            }
+
+            if (newContentsMap.Count != oldContentsMap.Count)
+            {
+                return false;
+            }
+
+            foreach (var (contentOrder, newContent) in newContentsMap)
+            {
+                if (!oldContentsMap.TryGetValue(contentOrder, out var oldContent))
+                {
+                    return false;
+                }
+
+                if (newContent.ContentType != oldContent.ContentType)
+                {
+                    return false;
+                }
+
+                if (!ApplyContentFieldUpdates(oldContent, newContent, imagesById))
+                {
+                    return false;
+                }
+
+                foreach (var loc in oldContent.Localizations)
+                {
+                    loc.TranslationStatus = TranslationStatus.Outdated;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ApplyContentFieldUpdates(
+        ProgramSectionContent oldContent,
+        CreateProgramSectionContentDto newContent,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        oldContent.GroupIndex = newContent.GroupIndex;
+
+        return newContent.ContentType switch
+        {
+            DAL.Enums.ContentType.Title when oldContent is TitleProgramContent titleContent
+                => UpdateTitleContent(titleContent, newContent),
+            DAL.Enums.ContentType.Description when oldContent is DescriptionProgramContent descriptionContent
+                => UpdateDescriptionContent(descriptionContent, newContent),
+            DAL.Enums.ContentType.Image when oldContent is ImageProgramContent imageContent
+                => UpdateImageContent(imageContent, newContent, imagesById),
+            DAL.Enums.ContentType.Author when oldContent is AuthorProgramContent authorContent
+                => UpdateAuthorContent(authorContent, newContent),
+            DAL.Enums.ContentType.Question when oldContent is QuestionProgramContent questionContent
+                => UpdateQuestionContent(questionContent, newContent),
+            DAL.Enums.ContentType.Answer when oldContent is AnswerProgramContent answerContent
+                => UpdateAnswerContent(answerContent, newContent),
+            _ => false,
+        };
+    }
+
+    private static bool UpdateTitleContent(TitleProgramContent content, CreateProgramSectionContentDto source)
+    {
+        if (source.Title is null)
+        {
+            return false;
+        }
+
+        content.Title = source.Title.Trim();
+        return true;
+    }
+
+    private static bool UpdateDescriptionContent(DescriptionProgramContent content, CreateProgramSectionContentDto source)
+    {
+        if (source.Description is null)
+        {
+            return false;
+        }
+
+        content.Description = source.Description.Trim();
+        return true;
+    }
+
+    private static bool UpdateImageContent(
+        ImageProgramContent content,
+        CreateProgramSectionContentDto source,
+        IReadOnlyDictionary<long, Image> imagesById)
+    {
+        if (source.ImageId is null || !imagesById.TryGetValue(source.ImageId.Value, out var image))
+        {
+            return false;
+        }
+
+        content.ImageId = source.ImageId.Value;
+        content.Image = image;
+        return true;
+    }
+
+    private static bool UpdateAuthorContent(AuthorProgramContent content, CreateProgramSectionContentDto source)
+    {
+        if (source.Author is null)
+        {
+            return false;
+        }
+
+        content.Name = source.Author.Trim();
+        return true;
+    }
+
+    private static bool UpdateQuestionContent(QuestionProgramContent content, CreateProgramSectionContentDto source)
+    {
+        if (source.Question is null)
+        {
+            return false;
+        }
+
+        content.Question = source.Question.Trim();
+        return true;
+    }
+
+    private static bool UpdateAnswerContent(AnswerProgramContent content, CreateProgramSectionContentDto source)
+    {
+        if (source.Answer is null)
+        {
+            return false;
+        }
+
+        content.Answer = source.Answer.Trim();
+        return true;
     }
 
     private static void ReplaceSections(
