@@ -107,9 +107,9 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
             }
 
-            foreach (var loc in program.Localizations)
+            if (programFieldsChanged)
             {
-                if (programFieldsChanged)
+                foreach (var loc in program.Localizations)
                 {
                     loc.TranslationStatus = TranslationStatus.Outdated;
                 }
@@ -229,14 +229,17 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                     return false;
                 }
 
-                if (!ApplyContentFieldUpdates(oldContent, newContent, imagesById))
+                if (!TryApplyContentFieldUpdates(oldContent, newContent, imagesById, out var contentChanged))
                 {
                     return false;
                 }
 
-                foreach (var loc in oldContent.Localizations)
+                if (contentChanged)
                 {
-                    loc.TranslationStatus = TranslationStatus.Outdated;
+                    foreach (var loc in oldContent.Localizations)
+                    {
+                        loc.TranslationStatus = TranslationStatus.Outdated;
+                    }
                 }
             }
         }
@@ -244,98 +247,133 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         return true;
     }
 
-    private static bool ApplyContentFieldUpdates(
+    private static bool TryApplyContentFieldUpdates(
         ProgramSectionContent oldContent,
         CreateProgramSectionContentDto newContent,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        out bool contentChanged)
     {
+        contentChanged = false;
         oldContent.GroupIndex = newContent.GroupIndex;
 
         return newContent.ContentType switch
         {
-            DAL.Enums.ContentType.Title when oldContent is TitleProgramContent titleContent
-                => UpdateTitleContent(titleContent, newContent),
-            DAL.Enums.ContentType.Description when oldContent is DescriptionProgramContent descriptionContent
-                => UpdateDescriptionContent(descriptionContent, newContent),
-            DAL.Enums.ContentType.Image when oldContent is ImageProgramContent imageContent
-                => UpdateImageContent(imageContent, newContent, imagesById),
-            DAL.Enums.ContentType.Author when oldContent is AuthorProgramContent authorContent
-                => UpdateAuthorContent(authorContent, newContent),
-            DAL.Enums.ContentType.Question when oldContent is QuestionProgramContent questionContent
-                => UpdateQuestionContent(questionContent, newContent),
-            DAL.Enums.ContentType.Answer when oldContent is AnswerProgramContent answerContent
-                => UpdateAnswerContent(answerContent, newContent),
+            ContentType.Title when oldContent is TitleProgramContent titleContent
+                => UpdateTitleContent(titleContent, newContent, out contentChanged),
+            ContentType.Description when oldContent is DescriptionProgramContent descriptionContent
+                => UpdateDescriptionContent(descriptionContent, newContent, out contentChanged),
+            ContentType.Image when oldContent is ImageProgramContent imageContent
+                => UpdateImageContent(imageContent, newContent, imagesById, out contentChanged),
+            ContentType.Author when oldContent is AuthorProgramContent authorContent
+                => UpdateAuthorContent(authorContent, newContent, out contentChanged),
+            ContentType.Question when oldContent is QuestionProgramContent questionContent
+                => UpdateQuestionContent(questionContent, newContent, out contentChanged),
+            ContentType.Answer when oldContent is AnswerProgramContent answerContent
+                => UpdateAnswerContent(answerContent, newContent, out contentChanged),
             _ => false,
         };
     }
 
-    private static bool UpdateTitleContent(TitleProgramContent content, CreateProgramSectionContentDto source)
+    private static bool UpdateTitleContent(
+        TitleProgramContent content,
+        CreateProgramSectionContentDto source,
+        out bool changed)
     {
+        changed = false;
         if (source.Title is null)
         {
             return false;
         }
 
-        content.Title = source.Title.Trim();
+        var newValue = source.Title.Trim();
+        changed = !string.Equals(content.Title, newValue, StringComparison.Ordinal);
+        content.Title = newValue;
         return true;
     }
 
-    private static bool UpdateDescriptionContent(DescriptionProgramContent content, CreateProgramSectionContentDto source)
+    private static bool UpdateDescriptionContent(
+        DescriptionProgramContent content,
+        CreateProgramSectionContentDto source,
+        out bool changed)
     {
+        changed = false;
         if (source.Description is null)
         {
             return false;
         }
 
-        content.Description = source.Description.Trim();
+        var newValue = source.Description.Trim();
+        changed = !string.Equals(content.Description, newValue, StringComparison.Ordinal);
+        content.Description = newValue;
         return true;
     }
 
     private static bool UpdateImageContent(
         ImageProgramContent content,
         CreateProgramSectionContentDto source,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        out bool changed)
     {
+        changed = false;
         if (source.ImageId is null || !imagesById.TryGetValue(source.ImageId.Value, out var image))
         {
             return false;
         }
 
+        changed = false;
         content.ImageId = source.ImageId.Value;
         content.Image = image;
         return true;
     }
 
-    private static bool UpdateAuthorContent(AuthorProgramContent content, CreateProgramSectionContentDto source)
+    private static bool UpdateAuthorContent(
+        AuthorProgramContent content,
+        CreateProgramSectionContentDto source,
+        out bool changed)
     {
+        changed = false;
         if (source.Author is null)
         {
             return false;
         }
 
-        content.Name = source.Author.Trim();
+        var newValue = source.Author.Trim();
+        changed = !string.Equals(content.Name, newValue, StringComparison.Ordinal);
+        content.Name = newValue;
         return true;
     }
 
-    private static bool UpdateQuestionContent(QuestionProgramContent content, CreateProgramSectionContentDto source)
+    private static bool UpdateQuestionContent(
+        QuestionProgramContent content,
+        CreateProgramSectionContentDto source,
+        out bool changed)
     {
+        changed = false;
         if (source.Question is null)
         {
             return false;
         }
 
-        content.Question = source.Question.Trim();
+        var newValue = source.Question.Trim();
+        changed = !string.Equals(content.Question, newValue, StringComparison.Ordinal);
+        content.Question = newValue;
         return true;
     }
 
-    private static bool UpdateAnswerContent(AnswerProgramContent content, CreateProgramSectionContentDto source)
+    private static bool UpdateAnswerContent(
+        AnswerProgramContent content,
+        CreateProgramSectionContentDto source,
+        out bool changed)
     {
+        changed = false;
         if (source.Answer is null)
         {
             return false;
         }
 
-        content.Answer = source.Answer.Trim();
+        var newValue = source.Answer.Trim();
+        changed = !string.Equals(content.Answer, newValue, StringComparison.Ordinal);
+        content.Answer = newValue;
         return true;
     }
 
