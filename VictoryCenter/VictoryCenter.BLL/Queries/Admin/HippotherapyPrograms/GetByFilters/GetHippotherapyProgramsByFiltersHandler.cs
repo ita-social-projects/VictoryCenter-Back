@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
@@ -27,12 +28,20 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
 
     public async Task<Result<PaginationResult<HippotherapyProgramDto>>> Handle(GetHippotherapyProgramsByFiltersQuery request, CancellationToken cancellationToken)
     {
+        var languageCount = await _repositoryWrapper.LocalizationLanguagesRepository.CountAsync();
         Status? status = request.RequestDto?.Status;
         List<long>? programCategories = request.RequestDto?.CategoryId;
+        var translationStatusFilter = request.RequestDto?.TranslationStatusFilter;
         Expression<Func<HippotherapyProgram, bool>> filter =
             t => (status == null || t.Status == status) &&
                  (programCategories == null || programCategories.Count == 0 ||
-                  t.Categories.Any(c => programCategories.Contains(c.Id)));
+                  t.Categories.Any(c => programCategories.Contains(c.Id))) &&
+            (translationStatusFilter == null ||
+            translationStatusFilter == TranslationStatusFilter.All ||
+            (translationStatusFilter == TranslationStatusFilter.Outdated &&
+            t.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
+            (translationStatusFilter == TranslationStatusFilter.Missing &&
+            t.Localizations.Count < languageCount));
 
         var queryOptions = new QueryOptions<HippotherapyProgram>
         {
