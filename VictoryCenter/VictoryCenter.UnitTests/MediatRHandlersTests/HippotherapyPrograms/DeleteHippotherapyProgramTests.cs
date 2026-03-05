@@ -1,3 +1,4 @@
+using System.Transactions;
 using FluentResults;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.HippotherapyPrograms.Delete;
@@ -66,5 +67,7 @@ public class DeleteHippotherapyProgramTests
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgram>>())).ReturnsAsync(program);
         _repositoryWrapperMock.Setup(r => r.HippotherapyProgramsRepository.Delete(It.IsAny<HippotherapyProgram>()));
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
+        _repositoryWrapperMock.Setup(r => r.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 }

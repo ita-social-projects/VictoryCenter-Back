@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
@@ -349,6 +350,10 @@ public class UpdateHippotherapyProgramTests
         _repo
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(saveChanges);
+
+        _repo
+            .Setup(r => r.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 
     private void SetUpValidatorToThrow(string message)

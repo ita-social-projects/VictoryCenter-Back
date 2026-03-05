@@ -107,6 +107,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var orphanedFaqQuestions = GetOrphanedFaqQuestions(program, request.UpdateProgramDto.Sections);
 
+            using var transaction = _repositoryWrapper.BeginTransaction();
+
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
@@ -130,6 +132,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             {
                 return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
             }
+
+            transaction.Complete();
 
             return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
         }

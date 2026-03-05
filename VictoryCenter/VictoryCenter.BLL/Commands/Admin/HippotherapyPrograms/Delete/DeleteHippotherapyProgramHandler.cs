@@ -42,6 +42,8 @@ public class DeleteHippotherapyProgramHandler : IRequestHandler<DeleteHippothera
             .Distinct()
             .ToList();
 
+        using var transaction = _repositoryWrapper.BeginTransaction();
+
         entityToDelete.Categories.Clear();
         _repositoryWrapper.HippotherapyProgramsRepository.Delete(entityToDelete);
 
@@ -61,6 +63,8 @@ public class DeleteHippotherapyProgramHandler : IRequestHandler<DeleteHippothera
             _repositoryWrapper.FaqQuestionsRepository.DeleteRange(orphanedFaqQuestions);
             await _repositoryWrapper.SaveChangesAsync();
         }
+
+        transaction.Complete();
 
         return Result.Ok(entityToDelete.Id);
     }
