@@ -9,6 +9,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -236,6 +237,101 @@ public class UpdateHippotherapyProgramTests
         _slugService.Verify(
             s => s.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, "New Name", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_FirstSaveChangesReturnsZero_DoesNotCallDeleteRangeOnFaqQuestions()
+    {
+        var faqQuestion = new FaqQuestion { Id = 10, QuestionText = "Q", AnswerText = "A" };
+        var faqContent = new FaqQuestionProgramContent
+        {
+            FaqQuestionId = 10,
+            FaqQuestion = faqQuestion,
+            ContentType = ContentType.FaqQuestion,
+            Order = 0
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [faqContent] };
+        var program = Program(sections: [section]);
+
+        var sut = CreateSut(program: program, saveChanges: 0);
+
+        await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        _repo.Verify(r => r.FaqQuestionsRepository.DeleteRange(It.IsAny<IEnumerable<FaqQuestion>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_FirstSaveChangesReturnsZero_DoesNotCallSecondSaveChanges()
+    {
+        var sut = CreateSut(program: Program(), saveChanges: 0);
+
+        await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        _repo.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithOrphanedFaqQuestions_CallsDeleteRangeAfterFirstSave()
+    {
+        var faqQuestion = new FaqQuestion { Id = 10, QuestionText = "Q", AnswerText = "A" };
+        var faqContent = new FaqQuestionProgramContent
+        {
+            FaqQuestionId = 10,
+            FaqQuestion = faqQuestion,
+            ContentType = ContentType.FaqQuestion,
+            Order = 0
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [faqContent] };
+        var program = Program(sections: [section]);
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [])), CancellationToken.None);
+
+        var deletedIds = new[] { 10L };
+        _repo.Verify(r => r.FaqQuestionsRepository.DeleteRange(It.Is<IEnumerable<FaqQuestion>>(list => list.Any(q => deletedIds.Contains(q.Id)))), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WithOrphanedFaqQuestions_CallsSaveChangesTwice()
+    {
+        var faqQuestion = new FaqQuestion { Id = 10, QuestionText = "Q", AnswerText = "A" };
+        var faqContent = new FaqQuestionProgramContent
+        {
+            FaqQuestionId = 10,
+            FaqQuestion = faqQuestion,
+            ContentType = ContentType.FaqQuestion,
+            Order = 0
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [faqContent] };
+        var program = Program(sections: [section]);
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [])), CancellationToken.None);
+
+        _repo.Verify(r => r.SaveChangesAsync(), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Handle_WithNoOrphanedFaqQuestions_CallsSaveChangesOnce()
+    {
+        var sut = CreateSut(program: Program(sections: []), saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [])), CancellationToken.None);
+
+        _repo.Verify(r => r.SaveChangesAsync(), Times.Once);
+        _repo.Verify(r => r.FaqQuestionsRepository.DeleteRange(It.IsAny<IEnumerable<FaqQuestion>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_BeginTransaction_CalledOnce()
+    {
+        var sut = CreateSut(program: Program(), saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto()), CancellationToken.None);
+
+        _repo.Verify(r => r.BeginTransaction(), Times.Once);
     }
 
     private UpdateHippotherapyProgramHandler CreateSut(
