@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
 
@@ -74,7 +75,7 @@ public static class ProgramSectionContentLocalizationValidationHelper
     }
 
     private static void ValidateContentLocalizationByType(
-        UpdateHippotherapyProgramSectionContentLocalizationDto content,
+        BaseHippotherapyProgramSectionContentLocalizationDto content,
         ContentType contentType,
         List<ValidationFailure> failures)
     {

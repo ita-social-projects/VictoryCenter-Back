@@ -1,6 +1,5 @@
-namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
-
-public record UpdateHippotherapyProgramSectionContentLocalizationDto
+namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
+public record BaseHippotherapyProgramSectionContentLocalizationDto
 {
     public string? Title { get; init; }
 
