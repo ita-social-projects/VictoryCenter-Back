@@ -21,12 +21,14 @@ public class HippotherapyProgramSectionsProfile : Profile
             .Include<FaqQuestionProgramContent, HippotherapyProgramSectionContentDto>();
 
         CreateMap<TitleProgramContent, HippotherapyProgramSectionContentDto>()
+            .ForMember(d => d.Title, opt => opt.MapFrom(s => s.Title))
             .ForMember(d => d.Description, opt => opt.Ignore())
             .ForMember(d => d.Image, opt => opt.Ignore())
             .ForMember(d => d.Author, opt => opt.Ignore())
             .ForMember(d => d.FaqQuestion, opt => opt.Ignore());
 
         CreateMap<DescriptionProgramContent, HippotherapyProgramSectionContentDto>()
+            .ForMember(d => d.Description, opt => opt.MapFrom(s => s.Description))
             .ForMember(d => d.Title, opt => opt.Ignore())
             .ForMember(d => d.Image, opt => opt.Ignore())
             .ForMember(d => d.Author, opt => opt.Ignore())
