@@ -109,6 +109,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
+            UpdateExistingFaqQuestionTexts(program.Sections, request.UpdateProgramDto.Sections);
+
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
@@ -170,6 +172,32 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             .Where(c => c.FaqQuestion is not null && !incomingIds.Contains(c.FaqQuestionId))
             .Select(c => c.FaqQuestion!)
             .ToList();
+    }
+
+    private static void UpdateExistingFaqQuestionTexts(
+        ICollection<HippotherapyProgramSection> sections,
+        ICollection<CreateHippotherapyProgramSectionDto>? incomingSections)
+    {
+        var incomingById = (incomingSections ?? [])
+            .SelectMany(s => s.Contents ?? [])
+            .Where(c => c.ContentType == ContentType.FaqQuestion
+                && c.FaqQuestion?.Id is > 0)
+            .ToDictionary(c => c.FaqQuestion!.Id!.Value, c => c.FaqQuestion!);
+
+        if (incomingById.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var content in sections
+            .SelectMany(s => s.Contents ?? [])
+            .OfType<FaqQuestionProgramContent>()
+            .Where(c => c.FaqQuestion is not null && incomingById.ContainsKey(c.FaqQuestionId)))
+        {
+            var dto = incomingById[content.FaqQuestionId];
+            content.FaqQuestion!.QuestionText = dto.QuestionText.Trim();
+            content.FaqQuestion!.AnswerText = dto.AnswerText.Trim();
+        }
     }
 
     private static void ReplaceSections(
