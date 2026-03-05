@@ -88,6 +88,33 @@ public class GetPreviewsTests
         Assert.DoesNotContain(statuses, s => s.LanguageId == 4);
     }
 
+    [Fact]
+    public async Task Handle_WithImageOnlyContents_ShouldReturnEmptyTranslationStatuses()
+    {
+        // Arrange
+        var entities = GetEntitiesWithImageOnlyContents();
+        var expectedDtos = GetDtosWithTranslationStatuses();
+
+        SetupRepositoryWrapper(entities);
+        SetupMapper(expectedDtos);
+
+        var handler = new GetWhoWeAreSectionPreviewsHandler(_repositoryWrapper.Object, _mapper.Object);
+        var query = new GetWhoWeAreSectionPreviewsQuery();
+
+        // Act
+        var result = await handler.Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Single(result.Value);
+
+        var statuses = result.Value[0].TranslationStatuses;
+        Assert.NotNull(statuses);
+        Assert.Empty(statuses);
+    }
+
     private void SetupMapper(List<WhoWeAreSectionInfoDto> dtos)
     {
         _mapper
@@ -218,6 +245,30 @@ public class GetPreviewsTests
                     Localizations = new List<WhoWeAreContentLocalization>
                     {
                         new() { LanguageId = 4, TranslationStatus = TranslationStatus.Relevant }
+                    }
+                }
+            }
+        }
+    };
+
+    private static List<WhoWeAreSection> GetEntitiesWithImageOnlyContents() => new()
+    {
+        new WhoWeAreSection
+        {
+            Id = 1,
+            SectionType = SectionType.Main,
+            Title = "Test Support",
+            CreatedAt = DateTime.Now,
+            Contents = new List<WhoWeAreContent>
+            {
+                new ImageContent
+                {
+                    Id = 3,
+                    ContentType = ContentType.Image,
+                    Localizations = new List<WhoWeAreContentLocalization>
+                    {
+                        new() { LanguageId = 1, TranslationStatus = TranslationStatus.Outdated },
+                        new() { LanguageId = 2, TranslationStatus = TranslationStatus.Relevant }
                     }
                 }
             }
