@@ -1,5 +1,6 @@
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 
@@ -18,6 +19,8 @@ public record HippotherapyProgramLocalizationDto
     public string? ParticipantsCount { get; init; }
 
     public string? MeetingsCount { get; init; }
+
+    public TranslationStatus TranslationStatus { get; init; }
 
     public List<HippotherapyProgramSectionLocalizationDto> Sections { get; init; } = [];
 }
