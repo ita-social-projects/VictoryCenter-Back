@@ -1,0 +1,3 @@
+namespace VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+
+public record UpdateReportFundsExpendituresRecordDto : BaseReportFundsExpendituresRecordDto;

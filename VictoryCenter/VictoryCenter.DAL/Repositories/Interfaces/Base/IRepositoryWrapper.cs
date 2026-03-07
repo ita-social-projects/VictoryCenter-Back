@@ -17,6 +17,9 @@ using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -50,6 +53,10 @@ public interface IRepositoryWrapper
     IChangedLivesBlockRepository ChangedLivesBlockRepository { get; }
 
     ICollectedFundsBlockRepository CollectedFundsBlockRepository { get; }
+
+    IReportFundsExpendituresCategoriesRepository ReportFundsExpendituresCategoriesRepository { get; }
+    IReportFundsExpendituresRecordsRepository ReportFundsExpendituresRecordsRepository { get; }
+    IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

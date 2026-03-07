@@ -210,6 +210,7 @@ public static class ServicesConfiguration
         await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPartnersPageBanner();
+        await app.CreateInitialReportFundsExpendituresSettings();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -470,6 +471,26 @@ public static class ServicesConfiguration
         if (!await dbContext.PartnersPageBanners.AnyAsync())
         {
             dbContext.PartnersPageBanners.Add(banner);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        var settings = new ReportFundsExpendituresSettings
+        {
+            Id = 1,
+            DisclaimerTitle = string.Empty,
+            ExchangeRate = 1m,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        if (!await dbContext.ReportFundsExpendituresSettings.AnyAsync())
+        {
+            dbContext.ReportFundsExpendituresSettings.Add(settings);
             await dbContext.SaveChangesAsync();
         }
     }
