@@ -60,14 +60,19 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { Title = new string('A', 51), ContentType = ContentType.Title, Id = 1 }
+                new()
+                {
+                    Title = new string('A', WhoWeAreConstants.ValidationTitleRules.MaxLen + 1),
+                    ContentType = ContentType.Title,
+                    Id = 1
+                }
             });
 
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor("Contents[0].Title")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateWhoWeAreContentDto.Title), 50));
+                nameof(UpdateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen));
     }
 
     [Theory]
@@ -104,7 +109,12 @@ public class UpdateWhoWeAreContentValidatorTests
             sectionType,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { ContentType = ContentType.Description, Description = new string('A', 801), Id = 1 }
+                new()
+                {
+                    ContentType = ContentType.Description,
+                    Description = new string('A', WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen + 1),
+                    Id = 1
+                }
             });
 
         var result = _validator.TestValidate(command);
