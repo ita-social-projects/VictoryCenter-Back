@@ -159,6 +159,26 @@ public class CreateReportFundsExpendituresRecordTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecord()
+    {
+        // Arrange
+        SetupDependencies(category: _category, saveResult: 1, existingRecordInCategory: _recordEntity);
+        var handler = new CreateReportFundsExpendituresRecordHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateReportFundsExpendituresRecordCommand(_createDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord, result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
@@ -204,7 +224,10 @@ public class CreateReportFundsExpendituresRecordTests
             result.Errors[0].Message);
     }
 
-    private void SetupDependencies(ReportFundsExpendituresCategory? category, int saveResult)
+    private void SetupDependencies(
+        ReportFundsExpendituresCategory? category,
+        int saveResult,
+        ReportFundsExpendituresRecord? existingRecordInCategory = null)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -218,6 +241,10 @@ public class CreateReportFundsExpendituresRecordTests
         _recordsRepositoryMock
             .Setup(repository => repository.CreateAsync(It.IsAny<ReportFundsExpendituresRecord>()))
             .ReturnsAsync((ReportFundsExpendituresRecord record) => record);
+
+        _recordsRepositoryMock
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresRecord>>()))
+            .ReturnsAsync(existingRecordInCategory);
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
 

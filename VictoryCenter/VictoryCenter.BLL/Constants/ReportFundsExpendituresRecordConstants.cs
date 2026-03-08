@@ -20,4 +20,7 @@ public static class ReportFundsExpendituresRecordConstants
 
     public static readonly string CategoryTypeMustMatchRecordType =
         "Category type must match record type";
+
+    public static readonly string CategoryAlreadyHasRecord =
+        "Record for this category already exists";
 }

@@ -68,6 +68,20 @@ public class UpdateReportFundsExpendituresRecordHandler
                     return Result.Fail<ReportFundsExpendituresRecordDto>(
                         ReportFundsExpendituresRecordConstants.CategoryTypeMustMatchRecordType);
                 }
+
+                var duplicateRecordInCategory = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresRecord>
+                    {
+                        Filter = entity =>
+                            entity.CategoryId == request.UpdateReportFundsExpendituresRecordDto.CategoryId &&
+                            entity.Id != request.Id
+                    });
+
+                if (duplicateRecordInCategory is not null)
+                {
+                    return Result.Fail<ReportFundsExpendituresRecordDto>(
+                        ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+                }
             }
 
             _mapper.Map(request.UpdateReportFundsExpendituresRecordDto, entityToUpdate);

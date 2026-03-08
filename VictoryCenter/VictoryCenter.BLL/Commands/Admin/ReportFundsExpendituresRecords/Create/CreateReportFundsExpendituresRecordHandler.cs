@@ -55,6 +55,18 @@ public class CreateReportFundsExpendituresRecordHandler
                     ReportFundsExpendituresRecordConstants.CategoryTypeMustMatchRecordType);
             }
 
+            var duplicateRecord = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresRecord>
+                {
+                    Filter = entity => entity.CategoryId == request.CreateReportFundsExpendituresRecordDto.CategoryId
+                });
+
+            if (duplicateRecord is not null)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(
+                    ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+            }
+
             var entity = _mapper.Map<ReportFundsExpendituresRecord>(request.CreateReportFundsExpendituresRecordDto);
             entity.CreatedAt = DateTimeOffset.UtcNow;
 

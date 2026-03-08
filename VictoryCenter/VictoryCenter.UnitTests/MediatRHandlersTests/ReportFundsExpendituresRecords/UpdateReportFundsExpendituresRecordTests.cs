@@ -202,6 +202,49 @@ public class UpdateReportFundsExpendituresRecordTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenNewCategoryAlreadyHasRecord()
+    {
+        // Arrange
+        var changedCategoryDto = _updateDto with { CategoryId = 2 };
+        var matchingCategory = new ReportFundsExpendituresCategory
+        {
+            Id = 2,
+            Name = "Another income category",
+            Type = ReportFundsExpendituresType.Income
+        };
+
+        var existingRecordInCategory = new ReportFundsExpendituresRecord
+        {
+            Id = 2,
+            CategoryId = 2,
+            Type = ReportFundsExpendituresType.Income,
+            ReportingYear = 2025,
+            AmountUah = 150m,
+            AmountUsd = 30m
+        };
+
+        SetupDependencies(
+            recordToUpdate: _existingRecord,
+            category: matchingCategory,
+            saveResult: 1,
+            existingRecordInCategory: existingRecordInCategory);
+
+        var handler = new UpdateReportFundsExpendituresRecordHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportFundsExpendituresRecordCommand(changedCategoryDto, _existingRecord.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord, result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
@@ -250,7 +293,8 @@ public class UpdateReportFundsExpendituresRecordTests
     private void SetupDependencies(
         ReportFundsExpendituresRecord? recordToUpdate,
         ReportFundsExpendituresCategory? category,
-        int saveResult)
+        int saveResult,
+        ReportFundsExpendituresRecord? existingRecordInCategory = null)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -259,7 +303,25 @@ public class UpdateReportFundsExpendituresRecordTests
 
         _recordsRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresRecord>>()))
-            .ReturnsAsync(recordToUpdate);
+            .ReturnsAsync((QueryOptions<ReportFundsExpendituresRecord>? options) =>
+            {
+                var records = new List<ReportFundsExpendituresRecord>();
+
+                if (recordToUpdate is not null)
+                {
+                    records.Add(recordToUpdate);
+                }
+
+                if (existingRecordInCategory is not null)
+                {
+                    records.Add(existingRecordInCategory);
+                }
+
+                var filter = options?.Filter;
+                return filter is null
+                    ? records.FirstOrDefault()
+                    : records.FirstOrDefault(filter.Compile());
+            });
 
         _categoriesRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
