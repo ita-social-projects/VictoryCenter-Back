@@ -46,7 +46,11 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<TeamCategoryLocalization> TeamCategoryLocalizations { get; set; }
 
+    public DbSet<HippotherapyProgramLocalization> HippotherapyProgramLocalizations { get; set; }
+
     public DbSet<FaqQuestionLocalization> FaqLocalizations { get; set; }
+
+    public DbSet<ProgramSectionContentLocalization> ProgramSectionContentLocalizations { get; set; }
 
     public DbSet<WhoWeAreContentLocalization> WhoWeAreContentLocalizations { get; set; }
 

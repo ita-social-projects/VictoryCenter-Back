@@ -36,6 +36,10 @@ public class GetHippotherapyProgramByIdHandler
                 .Include(p => p.BackgroundImage)!
                 .Include(p => p.Sections)
                     .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => c.Localizations)
+                            .ThenInclude(l => l.Language)
+                .Include(p => p.Localizations)
+                    .ThenInclude(l => l.Language)
         };
 
         var program = await _repositoryWrapper

@@ -45,6 +45,10 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
                 .Include(p => p.Categories)
                 .Include(p => p.Sections)
                     .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => c.Localizations)
+                            .ThenInclude(l => l.Language)
+                .Include(p => p.Localizations)
+                    .ThenInclude(l => l.Language)
         };
 
         IEnumerable<HippotherapyProgram> programs = await _repositoryWrapper.HippotherapyProgramsRepository.GetAllAsync(queryOptions);

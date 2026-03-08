@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.DTOs.Public.HippotherapyPrograms;
@@ -11,4 +12,5 @@ public record PublishedHippotherapyProgramDto
     public DateTimeOffset CreatedAt { get; init; }
     public ImageDto? PreviewImage { get; init; }
     public List<ProgramCategoryShortDto> Categories { get; init; } = [];
+    public List<PublishedHippotherapyProgramLocalizationDto> Localizations { get; init; } = [];
 }

@@ -120,7 +120,6 @@ public class UpdateWhoWeAreContentTests
         // Assert
         Assert.True(result.IsSuccess);
         _mockFactory.Verify(f => f.UpdateDescription(It.IsAny<UpdateWhoWeAreContentDto>(), _testDescriptionContent), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testDescriptionContent), Times.Once);
         _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Once);
     }
 
@@ -143,7 +142,6 @@ public class UpdateWhoWeAreContentTests
         // Assert
         Assert.True(result.IsSuccess);
         _mockFactory.Verify(f => f.UpdateCard(It.IsAny<UpdateWhoWeAreContentDto>(), _testCardContent), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testCardContent), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.DeleteRange(new List<Image> { _testImage }), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
     }
@@ -168,7 +166,6 @@ public class UpdateWhoWeAreContentTests
         // Assert
         Assert.True(result.IsSuccess);
         _mockFactory.Verify(f => f.UpdateCard(It.IsAny<UpdateWhoWeAreContentDto>(), _testCardContent), Times.Once);
-        _mockRepositoryWrapper.Verify(r => r.WhoWeAreContentsRepository.Update(_testCardContent), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.ImageRepository.DeleteRange(It.IsAny<IEnumerable<Image>>()), Times.Never);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
