@@ -48,8 +48,14 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(request.CreateHippotherapyProgramLocalizationDto.Sections, contentTypesById);
+            var contentTypesById = await _programSectionContentService
+                .GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
+
+            ProgramSectionContentLocalizationValidationHelper
+                .ValidateSections<CreateHippotherapyProgramSectionLocalizationDto, CreateHippotherapyProgramSectionContentLocalizationDto>(
+                    request.CreateHippotherapyProgramLocalizationDto.Sections,
+                    contentTypesById,
+                    content => content.EntityId);
 
             var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
             HippotherapyProgramLocalization createdProgramLocalization = await _programLocalizationService.TrackEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);

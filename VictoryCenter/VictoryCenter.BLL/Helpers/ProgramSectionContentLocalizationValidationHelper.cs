@@ -1,7 +1,6 @@
 using FluentValidation;
 using FluentValidation.Results;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
@@ -10,17 +9,22 @@ namespace VictoryCenter.BLL.Helpers;
 
 public static class ProgramSectionContentLocalizationValidationHelper
 {
-    public static void ValidateSections(
-        IReadOnlyCollection<CreateHippotherapyProgramSectionLocalizationDto> sections,
-        IReadOnlyDictionary<long, ContentType> contentTypesById)
+    public static void ValidateSections<TSection, TContent>(
+        IReadOnlyCollection<TSection> sections,
+        IReadOnlyDictionary<long, ContentType> contentTypesById,
+        Func<TContent, long> getEntityId)
+        where TSection : BaseHippotherapyProgramSectionLocalizationDto<TContent>
+        where TContent : BaseHippotherapyProgramSectionContentLocalizationDto
     {
+        ArgumentNullException.ThrowIfNull(getEntityId);
+
         if (sections.Count == 0)
         {
             return;
         }
 
         var sectionContents = sections
-            .SelectMany(section => section.Contents ?? Enumerable.Empty<CreateHippotherapyProgramSectionContentLocalizationDto>())
+            .SelectMany(section => section.Contents ?? Enumerable.Empty<TContent>())
             .ToList();
 
         var validContents = new HashSet<ContentType>
@@ -41,7 +45,7 @@ public static class ProgramSectionContentLocalizationValidationHelper
             throw new ValidationException(new List<ValidationFailure>
             {
                 new(nameof(sections),
-                    $"Number of section contents ({sectionContents.Count}) does not match expected program contents ({contentTypesById.Count})")
+                    $"Number of section contents ({sectionContents.Count}) does not match expected program contents ({filteredContentTypes.Count})")
             });
         }
 
@@ -56,11 +60,13 @@ public static class ProgramSectionContentLocalizationValidationHelper
 
             foreach (var content in section.Contents)
             {
-                if (!filteredContentTypes.TryGetValue(content.EntityId, out var contentType))
+                var entityId = getEntityId(content);
+
+                if (!filteredContentTypes.TryGetValue(entityId, out var contentType))
                 {
                     failures.Add(new ValidationFailure(
-                        nameof(content.EntityId),
-                        ErrorMessagesConstants.NotFound(content.EntityId, typeof(ProgramSectionContent))));
+                        "EntityId",
+                        ErrorMessagesConstants.NotFound(entityId, typeof(ProgramSectionContent))));
                     continue;
                 }
 

@@ -1,8 +1,7 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
+
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 
-public class CreateHippotherapyProgramSectionLocalizationDto
+public class CreateHippotherapyProgramSectionLocalizationDto : BaseHippotherapyProgramSectionLocalizationDto<CreateHippotherapyProgramSectionContentLocalizationDto>
 {
-    public long EntityId { get; init; }
-
-    public List<CreateHippotherapyProgramSectionContentLocalizationDto>? Contents { get; set; } = [];
 }

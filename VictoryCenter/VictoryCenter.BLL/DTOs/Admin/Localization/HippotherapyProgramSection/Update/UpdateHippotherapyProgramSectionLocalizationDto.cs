@@ -1,7 +1,6 @@
-namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Update;
-public record UpdateHippotherapyProgramSectionLocalizationDto
-{
-    public long EntityId { get; set; }
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
 
-    public List<UpdateHippotherapyProgramSectionContentLocalizationDto>? Contents { get; set; } = [];
+namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Update;
+public class UpdateHippotherapyProgramSectionLocalizationDto : BaseHippotherapyProgramSectionLocalizationDto<UpdateHippotherapyProgramSectionContentLocalizationDto>
+{
 }
