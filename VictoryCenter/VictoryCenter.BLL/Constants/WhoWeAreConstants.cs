@@ -4,7 +4,14 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class WhoWeAreConstants
 {
+    /// <summary>
+    /// Validation rules for title content in the "Who We Are" section.
+    /// </summary>
     public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(10, CalculateHighestCharactersLimitForRichInput(50));
+
+    /// <summary>
+    /// Validation rules for description content grouped by section type.
+    /// </summary>
     public static readonly IReadOnlyDictionary<SectionType, (int MinLen, int MaxLen)> ValidationDescriptionRules = new Dictionary<SectionType, (int MinLen, int MaxLen)>
     {
         { SectionType.Main, (10, CalculateHighestCharactersLimitForRichInput(300)) },

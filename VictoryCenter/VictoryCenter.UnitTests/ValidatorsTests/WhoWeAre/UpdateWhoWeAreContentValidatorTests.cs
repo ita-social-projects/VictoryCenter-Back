@@ -154,4 +154,29 @@ public class UpdateWhoWeAreContentValidatorTests
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Theory]
+    [InlineData(0, 7)]
+    [InlineData(1, 32)]
+    [InlineData(50, 1257)]
+    public void CalculateHighestCharactersLimitForRichInput_ShouldReturnExpectedValue(int rawLimit, int expected)
+    {
+        var result = WhoWeAreConstants.CalculateHighestCharactersLimitForRichInput(rawLimit);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void CalculateHighestCharactersLimitForRichInput_ShouldCoverRepresentativeRichTextInputs()
+    {
+        var highestOverheadSingleCharacterPayload = "<p><i><strong>a</strong></i></p>";
+        var realisticFormattedPayload = "<p><i><strong>Valid</strong></i> <strong>description</strong></p>";
+
+        var singleCharacterLimit = WhoWeAreConstants.CalculateHighestCharactersLimitForRichInput(1);
+        var realisticTextPlainLength = "Valid description".Length;
+        var realisticTextLimit = WhoWeAreConstants.CalculateHighestCharactersLimitForRichInput(realisticTextPlainLength);
+
+        Assert.Equal(singleCharacterLimit, highestOverheadSingleCharacterPayload.Length);
+        Assert.True(realisticFormattedPayload.Length <= realisticTextLimit);
+    }
 }
