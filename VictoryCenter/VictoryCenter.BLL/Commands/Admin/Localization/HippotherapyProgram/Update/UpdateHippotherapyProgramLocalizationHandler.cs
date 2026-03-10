@@ -49,11 +49,23 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.EntityId);
+            var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramEntity>
+            {
+                Filter = c => c.Id == request.EntityId,
+                Include = query => query.Include(p => p.Sections).ThenInclude(p => p.Contents)
+            });
+
+            if (program is null)
+            {
+                return Result.Fail<HippotherapyProgramLocalizationDto>("Not found programEntity");
+            }
+
             ProgramSectionContentLocalizationValidationHelper
                 .ValidateSections<UpdateHippotherapyProgramSectionLocalizationDto, UpdateHippotherapyProgramSectionContentLocalizationDto>(
                     request.UpdateHippotherapyProgramLocalizationDto.Sections,
                     contentTypesById,
-                    content => content.EntityId);
+                    content => content.EntityId,
+                    program);
 
             var dto = request.UpdateHippotherapyProgramLocalizationDto;
             HippotherapyProgramLocalization programLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(dto);
@@ -66,7 +78,14 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
                 .ToList();
 
             var contentLocalizations = _mapper.Map<List<ProgramSectionContentLocalization>>(contentDtos);
-            await _contentLocalizationService.TrackEntityLocalizationForUpdateAsync(contentLocalizations);
+
+            for (int i = 0; i < contentLocalizations.Count; i++)
+            {
+                contentLocalizations[i].EntityId = contentDtos[i].EntityId;
+                contentLocalizations[i].LanguageId = request.LanguageId;
+            }
+
+            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, true);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {

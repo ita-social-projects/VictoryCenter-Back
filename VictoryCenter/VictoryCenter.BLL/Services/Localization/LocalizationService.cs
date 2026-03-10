@@ -77,7 +77,7 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         return createdEntity;
     }
 
-    public async Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> localizations)
+    public async Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> localizations, bool isUpdate)
     {
         var entityLocalizations = localizations.ToList();
         var entityIds = entityLocalizations
@@ -120,8 +120,15 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
             throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(languageId, typeof(LocalizationLanguage)));
         }
 
-        await _repositoryWrapper.GetRepository<TEntityLocalization>()
-            .CreateRangeAsync(entityLocalizations);
+        if(isUpdate is false)
+        {
+            await _repositoryWrapper.GetRepository<TEntityLocalization>()
+                .CreateRangeAsync(entityLocalizations);
+        }
+        else
+        {
+            _repositoryWrapper.GetRepository<TEntityLocalization>().UpdateRange(localizations);
+        }
     }
 
     public async Task<TEntityLocalization> UpdateEntityLocalizationAsync(TEntityLocalization entityLocalization)

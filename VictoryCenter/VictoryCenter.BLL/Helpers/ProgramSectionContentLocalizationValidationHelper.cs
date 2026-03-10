@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
+using HippotherapyProgramEntity = VictoryCenter.DAL.Entities.HippotherapyProgram;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -12,78 +13,163 @@ public static class ProgramSectionContentLocalizationValidationHelper
     public static void ValidateSections<TSection, TContent>(
         IReadOnlyCollection<TSection> sections,
         IReadOnlyDictionary<long, ContentType> contentTypesById,
-        Func<TContent, long> getEntityId)
+        Func<TContent, long> getEntityId,
+        HippotherapyProgramEntity programEntity)
         where TSection : BaseHippotherapyProgramSectionLocalizationDto<TContent>
         where TContent : BaseHippotherapyProgramSectionContentLocalizationDto
     {
         ArgumentNullException.ThrowIfNull(getEntityId);
+        ArgumentNullException.ThrowIfNull(programEntity);
 
-        if (sections.Count == 0)
-        {
-            return;
-        }
-
-        var sectionContents = sections
-            .SelectMany(section => section.Contents ?? Enumerable.Empty<TContent>())
-            .ToList();
-
-        var validContents = new HashSet<ContentType>
+        var requiredContentTypes = new HashSet<ContentType>
         {
             ContentType.Title,
             ContentType.Description,
             ContentType.Author,
-            ContentType.Answer,
-            ContentType.Question
+            ContentType.Question,
+            ContentType.Answer
         };
-
-        var filteredContentTypes = contentTypesById
-            .Where(c => validContents.Contains(c.Value))
-            .ToDictionary(c => c.Key, c => c.Value);
-
-        if (sectionContents.Count != filteredContentTypes.Count)
-        {
-            throw new ValidationException(new List<ValidationFailure>
-            {
-                new(nameof(sections),
-                    $"Number of section contents ({sectionContents.Count}) does not match expected program contents ({filteredContentTypes.Count})")
-            });
-        }
 
         var failures = new List<ValidationFailure>();
 
+        var expectedSectionIds = programEntity.Sections
+            .Select(s => s.Id)
+            .ToHashSet();
+
+        var requestSectionIds = sections
+            .Select(s => s.EntityId)
+            .ToHashSet();
+
+        var missingSectionIds = expectedSectionIds.Except(requestSectionIds).ToList();
+        if (missingSectionIds.Count > 0)
+        {
+            throw new ValidationException(
+            [
+                new ValidationFailure(
+                    nameof(sections),
+                    $"Missing sections in localization request: {string.Join(", ", missingSectionIds)}.")
+            ]);
+        }
+
+        var extraSectionIds = requestSectionIds.Except(expectedSectionIds).ToList();
+        if (extraSectionIds.Count > 0)
+        {
+            throw new ValidationException(
+            [
+                new ValidationFailure(
+                    nameof(sections),
+                    $"Unknown sections in localization request: {string.Join(", ", extraSectionIds)}.")
+            ]);
+        }
+
+        var programSectionsById = programEntity.Sections
+            .ToDictionary(s => s.Id);
+
+        var contentSectionIdByContentId = programEntity.Sections
+            .SelectMany(section => section.Contents.Select(content => new
+            {
+                ContentId = content.Id,
+                SectionId = section.Id
+            }))
+            .ToDictionary(x => x.ContentId, x => x.SectionId);
+
         foreach (var section in sections)
         {
-            if (section.Contents is null)
+            if (!programSectionsById.TryGetValue(section.EntityId, out var programSection))
             {
                 continue;
             }
 
-            foreach (var content in section.Contents)
+            var expectedRequiredContents = programSection.Contents
+                .Where(c => requiredContentTypes.Contains(c.ContentType))
+                .ToList();
+
+            var expectedRequiredIds = expectedRequiredContents
+                .Select(c => c.Id)
+                .ToHashSet();
+
+            var expectedTypeByContentId = expectedRequiredContents
+                .ToDictionary(c => c.Id, c => c.ContentType);
+
+            var providedContents = section.Contents ?? [];
+            var providedIds = providedContents
+                .Select(getEntityId)
+                .ToList();
+
+            var duplicateIds = providedIds
+                .GroupBy(id => id)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key)
+                .ToList();
+
+            if (duplicateIds.Count > 0)
+            {
+                throw new ValidationException(
+                [
+                    new ValidationFailure(
+                        nameof(sections),
+                        $"Section {section.EntityId} contains duplicate content ids: {string.Join(", ", duplicateIds)}.")
+                ]);
+            }
+
+            var providedIdSet = providedIds.ToHashSet();
+
+            var missingRequiredIds = expectedRequiredIds.Except(providedIdSet).ToList();
+            if (missingRequiredIds.Count > 0)
+            {
+                throw new ValidationException(
+                [
+                    new ValidationFailure(
+                        nameof(sections),
+                        $"Section {section.EntityId} is missing required content ids: {string.Join(", ", missingRequiredIds)}.")
+                ]);
+            }
+
+            if (providedIdSet.Count != expectedRequiredIds.Count)
+            {
+                throw new ValidationException(
+                [
+                    new ValidationFailure(
+                        nameof(sections),
+                        $"Section {section.EntityId} has {providedIdSet.Count} contents, expected {expectedRequiredIds.Count} required contents.")
+                ]);
+            }
+
+            foreach (var content in providedContents)
             {
                 var entityId = getEntityId(content);
 
-                if (!filteredContentTypes.TryGetValue(entityId, out var contentType))
+                if (!contentTypesById.TryGetValue(entityId, out var contentType))
                 {
-                    failures.Add(new ValidationFailure(
-                        "EntityId",
-                        ErrorMessagesConstants.NotFound(entityId, typeof(ProgramSectionContent))));
-                    continue;
+                    throw new ValidationException(
+                    [
+                        new ValidationFailure(
+                            "EntityId",
+                            ErrorMessagesConstants.NotFound(entityId, typeof(ProgramSectionContent)))
+                    ]);
                 }
 
-                ValidateContentLocalizationByType(content, contentType, failures);
-            }
-        }
+                if (!expectedTypeByContentId.TryGetValue(entityId, out var expectedType))
+                {
+                    if (contentType == ContentType.Image)
+                    {
+                        throw new ValidationException(
+                        [
+                            new ValidationFailure(
+                                "EntityId",
+                                $"Section {section.EntityId}: content {entityId} has type {ContentType.Image}, which is not required for localization.")
+                        ]);
+                    }
+                }
 
-        if (failures.Count > 0)
-        {
-            throw new ValidationException(failures);
+                ValidateContentLocalizationByType(content, expectedType);
+            }
         }
     }
 
     private static void ValidateContentLocalizationByType(
         BaseHippotherapyProgramSectionContentLocalizationDto content,
-        ContentType contentType,
-        List<ValidationFailure> failures)
+        ContentType contentType)
     {
         var hasTitle = HasValue(content.Title);
         var hasDescription = HasValue(content.Description);
@@ -94,68 +180,76 @@ public static class ProgramSectionContentLocalizationValidationHelper
         switch (contentType)
         {
             case ContentType.Title:
-                RequireField(failures, nameof(content.Title), hasTitle);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
+                RequireField(nameof(content.Title), hasTitle);
+                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ForbidField(nameof(content.Author), hasAuthor, contentType);
+                ForbidField(nameof(content.Question), hasQuestion, contentType);
+                ForbidField(nameof(content.Answer), hasAnswer, contentType);
                 break;
             case ContentType.Description:
-                RequireField(failures, nameof(content.Description), hasDescription);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
+                RequireField(nameof(content.Description), hasDescription);
+                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ForbidField(nameof(content.Author), hasAuthor, contentType);
+                ForbidField(nameof(content.Question), hasQuestion, contentType);
+                ForbidField(nameof(content.Answer), hasAnswer, contentType);
                 break;
             case ContentType.Author:
-                RequireField(failures, nameof(content.Author), hasAuthor);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
+                RequireField(nameof(content.Author), hasAuthor);
+                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ForbidField(nameof(content.Question), hasQuestion, contentType);
+                ForbidField(nameof(content.Answer), hasAnswer, contentType);
                 break;
             case ContentType.Question:
-                RequireField(failures, nameof(content.Question), hasQuestion);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
+                RequireField(nameof(content.Question), hasQuestion);
+                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ForbidField(nameof(content.Author), hasAuthor, contentType);
+                ForbidField(nameof(content.Answer), hasAnswer, contentType);
                 break;
             case ContentType.Answer:
-                RequireField(failures, nameof(content.Answer), hasAnswer);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
+                RequireField(nameof(content.Answer), hasAnswer);
+                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ForbidField(nameof(content.Author), hasAuthor, contentType);
+                ForbidField(nameof(content.Question), hasQuestion, contentType);
                 break;
             case ContentType.Image:
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
+                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ForbidField(nameof(content.Author), hasAuthor, contentType);
+                ForbidField(nameof(content.Question), hasQuestion, contentType);
+                ForbidField(nameof(content.Answer), hasAnswer, contentType);
                 break;
             default:
-                failures.Add(new ValidationFailure(
-                    nameof(contentType),
-                    ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(contentType))));
-                break;
+                throw new ValidationException(
+                [
+                    new ValidationFailure(
+                        nameof(contentType),
+                        ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(contentType)))
+                ]);
         }
     }
 
-    private static void RequireField(List<ValidationFailure> failures, string fieldName, bool hasValue)
+    private static void RequireField(string fieldName, bool hasValue)
     {
         if (!hasValue)
         {
-            failures.Add(new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyIsRequired(fieldName)));
+            throw new ValidationException(
+            [
+                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyIsRequired(fieldName))
+            ]);
         }
     }
 
-    private static void ForbidField(List<ValidationFailure> failures, string fieldName, bool hasValue, ContentType contentType)
+    private static void ForbidField(string fieldName, bool hasValue, ContentType contentType)
     {
         if (hasValue)
         {
-            failures.Add(new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyNotAllowedForContentType(fieldName, contentType)));
+            throw new ValidationException(
+            [
+                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyNotAllowedForContentType(fieldName, contentType))
+            ]);
         }
     }
 

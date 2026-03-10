@@ -12,7 +12,7 @@ public interface ILocalizationService<TEntity, TEntityLocalization>
     Task<TEntityLocalization> UpdateEntityLocalizationAsync(TEntityLocalization entityLocalization);
     Task<(long entityId, long languageId)> DeleteEntityLocalizationAsync(long entityId, long languageId);
     Task<TEntityLocalization> TrackEntityLocalizationAsync(TEntityLocalization entityLocalization);
-    Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> entityLocalization);
+    Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> entityLocalization, bool isUpdate);
 
     Task TrackEntityLocalizationForUpdateAsync(TEntityLocalization entityLocalization);
     Task TrackEntityLocalizationForUpdateAsync(IEnumerable<TEntityLocalization> entityLocalizations);

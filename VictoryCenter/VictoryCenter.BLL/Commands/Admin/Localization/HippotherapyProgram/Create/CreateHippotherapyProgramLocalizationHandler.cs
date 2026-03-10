@@ -50,12 +50,23 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var contentTypesById = await _programSectionContentService
                 .GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
+            var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramEntity>
+            {
+                Filter = c => c.Id == request.CreateHippotherapyProgramLocalizationDto.EntityId,
+                Include = query => query.Include(p => p.Sections).ThenInclude(p => p.Contents)
+            });
+
+            if(program is null)
+            {
+                return Result.Fail<HippotherapyProgramLocalizationDto>(ErrorMessagesConstants.NotFound(request.CreateHippotherapyProgramLocalizationDto.EntityId, typeof(HippotherapyProgramEntity)));
+            }
 
             ProgramSectionContentLocalizationValidationHelper
                 .ValidateSections<CreateHippotherapyProgramSectionLocalizationDto, CreateHippotherapyProgramSectionContentLocalizationDto>(
                     request.CreateHippotherapyProgramLocalizationDto.Sections,
                     contentTypesById,
-                    content => content.EntityId);
+                    content => content.EntityId,
+                    program);
 
             var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
             HippotherapyProgramLocalization createdProgramLocalization = await _programLocalizationService.TrackEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);
@@ -63,7 +74,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
                 .SelectMany(section => section.Contents ?? [])
                 .ToList() ?? [];
             var contentLocalizations = _mapper.Map<List<ProgramSectionContentLocalization>>(contentDtos);
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations);
+            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, false);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
