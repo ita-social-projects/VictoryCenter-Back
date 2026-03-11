@@ -15,5 +15,4 @@ public interface ILocalizationService<TEntity, TEntityLocalization>
     Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> entityLocalization, bool isUpdate);
 
     Task TrackEntityLocalizationForUpdateAsync(TEntityLocalization entityLocalization);
-    Task TrackEntityLocalizationForUpdateAsync(IEnumerable<TEntityLocalization> entityLocalizations);
 }

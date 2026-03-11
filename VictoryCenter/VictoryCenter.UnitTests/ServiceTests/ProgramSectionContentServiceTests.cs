@@ -1,9 +1,11 @@
-using Moq;
 using AutoMapper;
+using Moq;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -308,6 +310,97 @@ public class ProgramSectionContentServiceTests
         Assert.NotEmpty(result);
         _repositoryWrapperMock.Verify(
             x => x.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetProgramSectionsAsync_ShouldReturnNotFoundExceptionAsync()
+    {
+        _repositoryWrapperMock
+            .Setup(x => x.HippotherapyProgramsLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramLocalization>>()))
+            .ReturnsAsync((HippotherapyProgramLocalization)null);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+             await _service.GetProgramSectionsAsync(1, 1));
+
+        Assert.Equal(ErrorMessagesConstants.NotFound(1, typeof(HippotherapyProgram)), ex.Message);
+    }
+
+    [Fact]
+    public async Task GetProgramSectionsAsync_ShouldReturnSectionsSuccessFully()
+    {
+        var content = new TestProgramSectionContent
+        {
+            Id = 1,
+            ContentType = ContentType.Title,
+            Order = 1,
+            SectionId = 1,
+            Localizations = new List<ProgramSectionContentLocalization>
+            {
+                new()
+                {
+                    EntityId = 1,
+                    LanguageId = 1,
+                    Title = "Test Title",
+                    TranslationStatus = TranslationStatus.Relevant,
+                    Language = new LocalizationLanguage
+                    {
+                        Id = 1,
+                        Code = "en",
+                        Name = "English"
+                    },
+                    CreatedAt = DateTimeOffset.UtcNow
+                }
+            }
+        };
+
+        var section = new HippotherapyProgramSection
+        {
+            Id = 10,
+            ProgramId = 1,
+            Template = ProgramSectionTemplate.TextOnly,
+            Order = 1,
+            Contents = new List<ProgramSectionContent> { content }
+        };
+
+        var programLocalization = new HippotherapyProgramLocalization
+        {
+            EntityId = 1,
+            LanguageId = 1,
+            Entity = new HippotherapyProgram
+            {
+                Id = 1,
+                Name = "Test Program",
+                Slug = "test-program",
+                Status = Status.Published,
+                Sections = new List<HippotherapyProgramSection> { section }
+            }
+        };
+
+        _repositoryWrapperMock
+            .Setup(x => x.HippotherapyProgramsLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramLocalization>>()))
+            .ReturnsAsync(programLocalization);
+
+        _mapperMock
+            .Setup(x => x.Map<HippotherapyProgramSectionContentLocalizationDto>(It.IsAny<ProgramSectionContentLocalization>()))
+            .Returns((ProgramSectionContentLocalization src) => new HippotherapyProgramSectionContentLocalizationDto
+            {
+                EntityId = src.EntityId,
+                Title = src.Title,
+                Description = src.Description,
+                Author = src.Author,
+                Question = src.Question,
+                Answer = src.Answer,
+                TranslationStatus = src.TranslationStatus
+            });
+
+        var result = await _service.GetProgramSectionsAsync(1, 1);
+
+        Assert.NotNull(result);
+        Assert.NotEmpty(result);
+        _repositoryWrapperMock.Verify(
+            x => x.HippotherapyProgramsLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramLocalization>>()),
             Times.Once);
     }
 

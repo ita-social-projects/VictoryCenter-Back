@@ -120,14 +120,14 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
             throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(languageId, typeof(LocalizationLanguage)));
         }
 
-        if(isUpdate is false)
+        if(!isUpdate)
         {
             await _repositoryWrapper.GetRepository<TEntityLocalization>()
                 .CreateRangeAsync(entityLocalizations);
         }
         else
         {
-            _repositoryWrapper.GetRepository<TEntityLocalization>().UpdateRange(localizations);
+            _repositoryWrapper.GetRepository<TEntityLocalization>().UpdateRange(entityLocalizations);
         }
     }
 
@@ -189,54 +189,6 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         entityLocalization.TranslationStatus = TranslationStatus.Relevant;
 
         _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
-    }
-
-    public async Task TrackEntityLocalizationForUpdateAsync(IEnumerable<TEntityLocalization> entityLocalizations)
-    {
-        var localizations = entityLocalizations.ToList();
-
-        if (localizations.Count == 0)
-        {
-            return;
-        }
-
-        if (localizations.Select(x => x.LanguageId).Distinct().Count() != 1)
-        {
-            throw new ValidationException("Bulk localization update supports only one LanguageId.");
-        }
-
-        var languageId = localizations.First().LanguageId;
-        var entityIds = localizations
-            .Select(x => x.EntityId)
-            .Distinct()
-            .ToList();
-
-        var existingLocalizations = (await _repositoryWrapper.GetRepository<TEntityLocalization>()
-            .GetAllAsync(new QueryOptions<TEntityLocalization>
-            {
-                Filter = localization => localization.LanguageId == languageId
-                                     && entityIds.Contains(localization.EntityId)
-            }))
-            .ToList();
-
-        var existingIds = existingLocalizations
-            .Select(x => x.EntityId)
-            .ToHashSet();
-
-        var missingId = entityIds.FirstOrDefault(id => !existingIds.Contains(id));
-
-        if (missingId != 0)
-        {
-            throw new KeyNotFoundException(
-                ErrorMessagesConstants.NotFound((missingId, languageId), typeof(TEntityLocalization)));
-        }
-
-        foreach (var localization in localizations)
-        {
-            localization.TranslationStatus = TranslationStatus.Relevant;
-        }
-
-        _repositoryWrapper.GetRepository<TEntityLocalization>().UpdateRange(localizations);
     }
 
     private async Task<TEntityLocalization> ValidateAndTrackAsync(TEntityLocalization entityLocalization)
