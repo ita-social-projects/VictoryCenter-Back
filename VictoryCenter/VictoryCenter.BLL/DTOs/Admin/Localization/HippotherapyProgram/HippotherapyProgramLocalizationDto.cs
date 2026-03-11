@@ -12,7 +12,5 @@ public record HippotherapyProgramLocalizationDto : BaseHippotherapyProgramLocali
 
     public TranslationStatus TranslationStatus { get; init; }
 
-    public TranslationStatus TranslationStatus { get; init; }
-
     public List<HippotherapyProgramSectionLocalizationDto> Sections { get; init; } = [];
 }
