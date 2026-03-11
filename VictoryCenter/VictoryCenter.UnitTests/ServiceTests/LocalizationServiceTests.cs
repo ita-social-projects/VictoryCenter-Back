@@ -442,7 +442,7 @@ public class LocalizationServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _localizationService.TrackEntityLocalizationAsync(localizations);
+        await _localizationService.TrackEntityLocalizationAsync(localizations, false);
 
         // Assert
         _repositoryWrapper.Verify(
@@ -486,7 +486,7 @@ public class LocalizationServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            await _localizationService.TrackEntityLocalizationAsync(localizations));
+            await _localizationService.TrackEntityLocalizationAsync(localizations, false));
         Assert.Contains("999", ex.Message);
         Assert.Contains(nameof(TeamMember), ex.Message);
     }
@@ -531,7 +531,7 @@ public class LocalizationServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<ValidationException>(async () =>
-            await _localizationService.TrackEntityLocalizationAsync(localizations));
+            await _localizationService.TrackEntityLocalizationAsync(localizations, false));
         Assert.Contains("Bulk localization supports only one LanguageId", ex.Message);
     }
 
@@ -560,7 +560,7 @@ public class LocalizationServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            await _localizationService.TrackEntityLocalizationAsync(localizations));
+            await _localizationService.TrackEntityLocalizationAsync(localizations, false));
         Assert.Contains("999", ex.Message);
         Assert.Contains(nameof(LocalizationLanguage), ex.Message);
     }

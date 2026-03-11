@@ -1,4 +1,5 @@
 using Moq;
+using AutoMapper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.DAL.Entities;
@@ -13,10 +14,11 @@ public class ProgramSectionContentServiceTests
 {
     private readonly ProgramSectionContentService _service;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
+    private readonly Mock<IMapper> _mapperMock = new();
 
     public ProgramSectionContentServiceTests()
     {
-        _service = new ProgramSectionContentService(_repositoryWrapperMock.Object);
+        _service = new ProgramSectionContentService(_repositoryWrapperMock.Object, _mapperMock.Object);
     }
 
     [Fact]

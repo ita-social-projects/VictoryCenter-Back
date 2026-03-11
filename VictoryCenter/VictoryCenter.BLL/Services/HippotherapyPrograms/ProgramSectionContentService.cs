@@ -1,7 +1,10 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -11,10 +14,12 @@ namespace VictoryCenter.BLL.Services.HippotherapyPrograms;
 public class ProgramSectionContentService : IProgramSectionContentService
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IMapper _mapper;
 
-    public ProgramSectionContentService(IRepositoryWrapper repositoryWrapper)
+    public ProgramSectionContentService(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
         _repositoryWrapper = repositoryWrapper;
+        _mapper = mapper;
     }
 
     public async Task<Dictionary<long, ContentType>> GetContentTypesByProgramIdAsync(long programId)
@@ -36,5 +41,43 @@ public class ProgramSectionContentService : IProgramSectionContentService
         return program.Sections
             .SelectMany(section => section.Contents)
             .ToDictionary(content => content.Id, content => content.ContentType);
+    }
+
+    public async Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSectionsAsync(long programId, long languageId)
+    {
+        var program = await _repositoryWrapper.HippotherapyProgramsLocalizationsRepository
+            .GetFirstOrDefaultAsync(
+                new QueryOptions<HippotherapyProgramLocalization>
+                {
+                    Filter = entity => programId == entity.EntityId
+                                       && languageId == entity.LanguageId,
+                    Include = query => query.Include(entity => entity.Entity)
+                        .ThenInclude(entity => entity.Sections)
+                        .ThenInclude(section => section.Contents)
+                        .ThenInclude(content => content.Localizations)
+                        .ThenInclude(localization => localization.Language),
+                });
+
+        if (program is null)
+        {
+            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(programId, typeof(HippotherapyProgram)));
+        }
+
+        var sectionLocalizations = program.Entity
+            .Sections
+            .Select(section => new HippotherapyProgramSectionLocalizationDto
+            {
+                EntityId = section.Id,
+                Contents = section.Contents
+                    .SelectMany(content =>
+                        content.Localizations
+                            .Where(localization => localization.LanguageId == languageId)
+                            .Select(localization =>
+                                _mapper.Map<HippotherapyProgramSectionContentLocalizationDto>(localization)))
+                    .ToList(),
+            })
+            .ToList();
+
+        return sectionLocalizations;
     }
 }
