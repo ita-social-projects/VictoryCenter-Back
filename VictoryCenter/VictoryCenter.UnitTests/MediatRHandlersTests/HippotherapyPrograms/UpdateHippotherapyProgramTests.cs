@@ -8,6 +8,8 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -64,8 +66,8 @@ public class UpdateHippotherapyProgramTests
         await sut.Handle(
             Command(id: 1, dto: Dto(sections:
             [
-                CreateSection(0),
-                CreateSection(1)
+                CreateSection(0, CreateImageContent(0, 1)),
+                CreateSection(1, CreateImageContent(0, 2))
             ])),
             CancellationToken.None);
 
@@ -235,6 +237,255 @@ public class UpdateHippotherapyProgramTests
         _slugService.Verify(
             s => s.GenerateUniqueHippotherapyProgramSlugAsync(program.Id, "New Name", It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ProgramFieldsChanged_MarksProgramLocalizationsOutdated()
+    {
+        var program = Program();
+        program.Name = "SameName";
+        program.Description = "SameDescription";
+        program.Location = "Kyiv";
+        program.ParticipantsCount = "10";
+        program.MeetingsCount = "5";
+        program.Localizations =
+        [
+            ProgramLocalization(1, TranslationStatus.Relevant),
+            ProgramLocalization(2, TranslationStatus.Relevant)
+        ];
+
+        var dto = Dto(name: "SameName", description: "SameDescription", sections: []);
+        dto.Location = "Lviv";
+        dto.ParticipantsCount = "10";
+        dto.MeetingsCount = "5";
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_ProgramFieldsUnchanged_KeepsProgramLocalizationsRelevant()
+    {
+        var program = Program();
+        program.Name = "SameName";
+        program.Description = "SameDescription";
+        program.Location = "Kyiv";
+        program.ParticipantsCount = "10";
+        program.MeetingsCount = "5";
+        program.Localizations =
+        [
+            ProgramLocalization(1, TranslationStatus.Relevant),
+            ProgramLocalization(2, TranslationStatus.Relevant)
+        ];
+
+        var dto = Dto(name: "SameName", description: "SameDescription", sections: []);
+        dto.Location = "Kyiv";
+        dto.ParticipantsCount = "10";
+        dto.MeetingsCount = "5";
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_SameSectionStructureAndChangedTitle_MarksContentLocalizationsOutdated()
+    {
+        var content = new TitleProgramContent
+        {
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Old title",
+            Localizations =
+            [
+                ContentLocalization(1, TranslationStatus.Relevant),
+                ContentLocalization(2, TranslationStatus.Relevant)
+            ]
+        };
+
+        var section = new HippotherapyProgramSection
+        {
+            Template = default,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = [content]
+        };
+
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        var dto = Dto(sections: [CreateSection(0, CreateTitleContent(0, "New title"))]);
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.Equal("New title", ((TitleProgramContent)program.Sections.Single().Contents.Single()).Title);
+        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_SameSectionStructureAndUnchangedTitle_KeepsContentLocalizationsRelevant()
+    {
+        var content = new TitleProgramContent
+        {
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Same title",
+            Localizations =
+            [
+                ContentLocalization(1, TranslationStatus.Relevant),
+                ContentLocalization(2, TranslationStatus.Relevant)
+            ]
+        };
+
+        var section = new HippotherapyProgramSection
+        {
+            Template = default,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = [content]
+        };
+
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        var dto = Dto(sections: [CreateSection(0, CreateTitleContent(0, "Same title"))]);
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_DifferentSectionStructure_ClearsProgramLocalizations()
+    {
+        var section = new HippotherapyProgramSection
+        {
+            Template = default,
+            Order = 99,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = []
+        };
+
+        var program = Program(sections: [section]);
+        program.Localizations =
+        [
+            ProgramLocalization(1, TranslationStatus.Relevant),
+            ProgramLocalization(2, TranslationStatus.Relevant)
+        ];
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(
+            Command(id: 1, dto: Dto(sections:
+            [
+                CreateSection(0, CreateImageContent(0, 1)),
+                CreateSection(1, CreateImageContent(0, 2))
+            ])),
+            CancellationToken.None);
+
+        Assert.Empty(program.Localizations);
+    }
+
+    [Fact]
+    public async Task Handle_SameStructureAndChangedDescription_MarksContentLocalizationsOutdated()
+    {
+        var content = new DescriptionProgramContent
+        {
+            ContentType = ContentType.Description,
+            Order = 0,
+            Description = "Old description",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateDescriptionContent(0, "New description"))])), CancellationToken.None);
+
+        Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_SameStructureAndChangedAuthor_MarksContentLocalizationsOutdated()
+    {
+        var content = new AuthorProgramContent
+        {
+            ContentType = ContentType.Author,
+            Order = 0,
+            Name = "Old author",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateAuthorContent(0, "New author"))])), CancellationToken.None);
+
+        Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_SameStructureAndChangedQuestion_MarksContentLocalizationsOutdated()
+    {
+        var content = new QuestionProgramContent
+        {
+            ContentType = ContentType.Question,
+            Order = 0,
+            Question = "Old question",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateQuestionContent(0, "New question"))])), CancellationToken.None);
+
+        Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_SameStructureAndChangedAnswer_MarksContentLocalizationsOutdated()
+    {
+        var content = new AnswerProgramContent
+        {
+            ContentType = ContentType.Answer,
+            Order = 0,
+            Answer = "Old answer",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateAnswerContent(0, "New answer"))])), CancellationToken.None);
+
+        Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_SameStructureAndImageChanged_DoesNotMarkContentLocalizationsOutdated()
+    {
+        var content = new ImageProgramContent
+        {
+            ContentType = ContentType.Image,
+            Order = 0,
+            ImageId = 1,
+            Image = Images[0],
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateImageContent(0, 2))])), CancellationToken.None);
+
+        Assert.Equal(2, content.ImageId);
+        Assert.Equal(TranslationStatus.Relevant, content.Localizations.Single().TranslationStatus);
     }
 
     private UpdateHippotherapyProgramHandler CreateSut(
@@ -437,6 +688,79 @@ public class UpdateHippotherapyProgramTests
             ContentType = ContentType.Image,
             Order = order,
             ImageId = imageId
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateTitleContent(int order, string title)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Title,
+            Order = order,
+            Title = title
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateDescriptionContent(int order, string description)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Description,
+            Order = order,
+            Description = description
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateAuthorContent(int order, string author)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Author,
+            Order = order,
+            Author = author
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateQuestionContent(int order, string question)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Question,
+            Order = order,
+            Question = question
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateAnswerContent(int order, string answer)
+    {
+        return new CreateProgramSectionContentDto
+        {
+            ContentType = ContentType.Answer,
+            Order = order,
+            Answer = answer
+        };
+    }
+
+    private static HippotherapyProgramLocalization ProgramLocalization(long languageId, TranslationStatus status)
+    {
+        return new HippotherapyProgramLocalization
+        {
+            EntityId = 1,
+            LanguageId = languageId,
+            Name = "Program",
+            TranslationStatus = status,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private static ProgramSectionContentLocalization ContentLocalization(long languageId, TranslationStatus status)
+    {
+        return new ProgramSectionContentLocalization
+        {
+            EntityId = 1,
+            LanguageId = languageId,
+            TranslationStatus = status,
+            CreatedAt = DateTimeOffset.UtcNow
         };
     }
 }

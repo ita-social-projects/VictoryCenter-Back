@@ -29,7 +29,10 @@ public class GetWhoWeArePageHandler : IRequestHandler<GetWhoWeArePageQuery, Resu
                 .Include(section => section.Contents)
                 .ThenInclude(content => (content as CardContent)!.Image)
                 .Include(section => section.Contents)
-                .ThenInclude(content => (content as ImageContent)!.Image)!,
+                .ThenInclude(content => (content as ImageContent)!.Image)!
+                .Include(section => section.Contents)
+                .ThenInclude(c => c.Localizations)
+                .ThenInclude(l => l.Language),
         });
 
         return Result.Ok(_mapper.Map<List<WhoWeArePageSectionDto>>(result));
