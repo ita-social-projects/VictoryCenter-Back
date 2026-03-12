@@ -475,6 +475,19 @@ public class UpdateHippotherapyProgramTests
         Assert.Equal(TranslationStatus.Relevant, content.Localizations.Single().TranslationStatus);
     }
 
+    [Fact]
+    public async Task Handle_CategoriesUnchanged_KeepsExistingCategories()
+    {
+        var program = Program(categories: [new HippotherapyProgramCategory { Id = 1, Name = "C1" }, new HippotherapyProgramCategory { Id = 2, Name = "C2" }]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
+
+        Assert.Equal(2, program.Categories.Count);
+        Assert.Contains(program.Categories, c => c.Id == 1);
+        Assert.Contains(program.Categories, c => c.Id == 2);
+    }
+
     private UpdateHippotherapyProgramHandler CreateSut(
         HippotherapyProgram? program,
         int saveChanges,
