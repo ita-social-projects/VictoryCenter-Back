@@ -130,10 +130,10 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            UpdateExistingFaqQuestionTexts(program.Sections, request.UpdateProgramDto.Sections);
+            var oldSections = program.Sections.ToList();
 
             ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
-            if (!EnsureReplaceSameSections(program.Sections.ToList(), request.UpdateProgramDto.Sections, imagesByIdResult.Value))
+            if (!EnsureReplaceSameSections(oldSections, request.UpdateProgramDto.Sections, imagesByIdResult.Value))
             {
                 program.Localizations.Clear();
             }
