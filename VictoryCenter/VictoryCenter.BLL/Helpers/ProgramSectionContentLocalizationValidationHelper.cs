@@ -27,8 +27,7 @@ public static class ProgramSectionContentLocalizationValidationHelper
             ContentType.Title,
             ContentType.Description,
             ContentType.Author,
-            ContentType.Answer,
-            ContentType.Question
+            ContentType.FaqQuestion
         };
 
         var filteredContentTypes = contentTypesById
@@ -107,19 +106,12 @@ public static class ProgramSectionContentLocalizationValidationHelper
                 ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
                 ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
                 break;
-            case ContentType.Question:
+            case ContentType.FaqQuestion:
                 RequireField(failures, nameof(content.Question), hasQuestion);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Answer), hasAnswer, contentType);
-                break;
-            case ContentType.Answer:
                 RequireField(failures, nameof(content.Answer), hasAnswer);
                 ForbidField(failures, nameof(content.Title), hasTitle, contentType);
                 ForbidField(failures, nameof(content.Description), hasDescription, contentType);
                 ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
-                ForbidField(failures, nameof(content.Question), hasQuestion, contentType);
                 break;
             case ContentType.Image:
                 ForbidField(failures, nameof(content.Title), hasTitle, contentType);

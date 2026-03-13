@@ -74,31 +74,16 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                 Id = 100,
                 Contents = new List<ProgramSectionContent>
                 {
-                    new QuestionProgramContent
+                    new FaqQuestionProgramContent
                     {
                         Id = 200,
-                        ContentType = ContentType.Question,
-                        Question = "Test Question",
+                        ContentType = ContentType.FaqQuestion,
+                        FaqQuestionId = 1,
                         Localizations = new List<ProgramSectionContentLocalization>
                         {
                             new()
                             {
                                 EntityId = 200,
-                                LanguageId = 2,
-                                Language = new LocalizationLanguage { Id = 2, Code = "en" }
-                            }
-                        }
-                    },
-                    new AnswerProgramContent
-                    {
-                        Id = 201,
-                        ContentType = ContentType.Answer,
-                        Answer = "Test Answer",
-                        Localizations = new List<ProgramSectionContentLocalization>
-                        {
-                            new()
-                            {
-                                EntityId = 201,
                                 LanguageId = 2,
                                 Language = new LocalizationLanguage { Id = 2, Code = "en" }
                             }
@@ -263,8 +248,8 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
             .ReturnsAsync(new Dictionary<long, ContentType>
             {
-                { 200, ContentType.Question },
-                { 201, ContentType.Answer }
+                { 200, ContentType.FaqQuestion },
+                { 201, ContentType.FaqQuestion }
             });
 
         var dtoWithWrongFields = new CreateHippotherapyProgramLocalizationDto
@@ -451,8 +436,8 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
             .ReturnsAsync(new Dictionary<long, ContentType>
             {
-                { 200, ContentType.Question },
-                { 201, ContentType.Answer }
+                { 200, ContentType.FaqQuestion },
+                { 201, ContentType.FaqQuestion }
             });
     }
 }

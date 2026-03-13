@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
@@ -180,8 +181,7 @@ public class UpdateHippotherapyProgramTests
                 CreateSection(
                     0,
                     CreateImageContent(0, 1),
-                    CreateImageContent(1, 2))
-            ]);
+                    CreateImageContent(1, 2))]);
 
         var result = await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
@@ -430,40 +430,27 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_SameStructureAndChangedQuestion_MarksContentLocalizationsOutdated()
+    public async Task Handle_SameStructureAndChangedFaqQuestion_MarksContentLocalizationsOutdated()
     {
-        var content = new QuestionProgramContent
+        var faqQuestion = new FaqQuestion { Id = 10, QuestionText = "Old question", AnswerText = "Old answer" };
+        var content = new FaqQuestionProgramContent
         {
-            ContentType = ContentType.Question,
+            ContentType = ContentType.FaqQuestion,
             Order = 0,
-            Question = "Old question",
+            FaqQuestionId = 10,
+            FaqQuestion = faqQuestion,
             Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
         };
         var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateQuestionContent(0, "New question"))])), CancellationToken.None);
+        var dto = Dto(sections: [CreateSection(0, CreateFaqQuestionContent(0, 10, "New question", "New answer"))]);
 
-        Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
-    }
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-    [Fact]
-    public async Task Handle_SameStructureAndChangedAnswer_MarksContentLocalizationsOutdated()
-    {
-        var content = new AnswerProgramContent
-        {
-            ContentType = ContentType.Answer,
-            Order = 0,
-            Answer = "Old answer",
-            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
-        };
-        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
-        var program = Program(sections: [section]);
-        var sut = CreateSut(program: program, saveChanges: 1);
-
-        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateAnswerContent(0, "New answer"))])), CancellationToken.None);
-
+        Assert.Equal("New question", faqQuestion.QuestionText);
+        Assert.Equal("New answer", faqQuestion.AnswerText);
         Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
     }
 
@@ -486,6 +473,19 @@ public class UpdateHippotherapyProgramTests
 
         Assert.Equal(2, content.ImageId);
         Assert.Equal(TranslationStatus.Relevant, content.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_CategoriesUnchanged_KeepsExistingCategories()
+    {
+        var program = Program(categories: [new HippotherapyProgramCategory { Id = 1, Name = "C1" }, new HippotherapyProgramCategory { Id = 2, Name = "C2" }]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
+
+        Assert.Equal(2, program.Categories.Count);
+        Assert.Contains(program.Categories, c => c.Id == 1);
+        Assert.Contains(program.Categories, c => c.Id == 2);
     }
 
     private UpdateHippotherapyProgramHandler CreateSut(
@@ -594,8 +594,16 @@ public class UpdateHippotherapyProgramTests
             .Setup(r => r.HippotherapyProgramsRepository.Update(It.IsAny<HippotherapyProgram>()));
 
         _repo
+            .Setup(r => r.FaqQuestionsRepository.GetAllAsync(It.IsAny<QueryOptions<FaqQuestion>>()))
+            .ReturnsAsync([]);
+
+        _repo
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(saveChanges);
+
+        _repo
+            .Setup(r => r.BeginTransaction())
+            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 
     private void SetUpValidatorToThrow(string message)
@@ -721,23 +729,13 @@ public class UpdateHippotherapyProgramTests
         };
     }
 
-    private static CreateProgramSectionContentDto CreateQuestionContent(int order, string question)
+    private static CreateProgramSectionContentDto CreateFaqQuestionContent(int order, long id, string questionText, string answerText)
     {
         return new CreateProgramSectionContentDto
         {
-            ContentType = ContentType.Question,
+            ContentType = ContentType.FaqQuestion,
             Order = order,
-            Question = question
-        };
-    }
-
-    private static CreateProgramSectionContentDto CreateAnswerContent(int order, string answer)
-    {
-        return new CreateProgramSectionContentDto
-        {
-            ContentType = ContentType.Answer,
-            Order = order,
-            Answer = answer
+            FaqQuestion = new CreateFaqQuestionDto { Id = id, QuestionText = questionText, AnswerText = answerText }
         };
     }
 

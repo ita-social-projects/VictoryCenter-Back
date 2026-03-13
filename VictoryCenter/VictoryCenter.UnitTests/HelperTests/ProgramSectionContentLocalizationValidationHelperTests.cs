@@ -150,7 +150,7 @@ public class ProgramSectionContentLocalizationValidationHelperTests
     }
 
     [Fact]
-    public void ValidateSections_QuestionType_RequireQuestionAndForbidOthers()
+    public void ValidateSections_FaqQuestionType_RequiresBothQuestionAndAnswer()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
@@ -162,14 +162,14 @@ public class ProgramSectionContentLocalizationValidationHelperTests
                 }
             }
         };
-        var dict = new Dictionary<long, ContentType> { { 4, ContentType.Question } };
+        var dict = new Dictionary<long, ContentType> { { 4, ContentType.FaqQuestion } };
         var ex = Assert.Throws<ValidationException>(() =>
             ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Answer is not allowed for content type Question", ex.Message);
+        Assert.Contains("Question is required", ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_AnswerType_RequireAnswerAndForbidOthers()
+    public void ValidateSections_FaqQuestionType_ForbidsTitleField()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
@@ -177,14 +177,14 @@ public class ProgramSectionContentLocalizationValidationHelperTests
             {
                 Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
                 {
-                    new() { EntityId = 5, Question = "q" }
+                    new() { EntityId = 4, Question = "q", Answer = "ans", Title = "oops" }
                 }
             }
         };
-        var dict = new Dictionary<long, ContentType> { { 5, ContentType.Answer } };
+        var dict = new Dictionary<long, ContentType> { { 4, ContentType.FaqQuestion } };
         var ex = Assert.Throws<ValidationException>(() =>
             ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Question is not allowed for content type Answer", ex.Message);
+        Assert.Contains("Title is not allowed for content type FaqQuestion", ex.Message);
     }
 
     [Fact]

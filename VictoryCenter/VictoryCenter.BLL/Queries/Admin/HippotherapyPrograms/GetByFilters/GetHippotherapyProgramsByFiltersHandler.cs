@@ -80,6 +80,14 @@ public class GetHippotherapyProgramsByFiltersHandler : IRequestHandler<GetHippot
             }
         }
 
+        var assignFaqQuestionsResult = await FaqQuestionHelper
+            .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, programs.SelectMany(p => p.Sections));
+
+        if (assignFaqQuestionsResult.IsFailed)
+        {
+            return Result.Fail<PaginationResult<HippotherapyProgramDto>>(assignFaqQuestionsResult.Errors);
+        }
+
         var programDto = _mapper.Map<IEnumerable<HippotherapyProgramDto>>(programs).ToList();
 
         return Result.Ok(new PaginationResult<HippotherapyProgramDto>([.. programDto], totalCount));
