@@ -48,8 +48,6 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var contentTypesById = await _programSectionContentService
-                .GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
             var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramEntity>
             {
                 Filter = c => c.Id == request.CreateHippotherapyProgramLocalizationDto.EntityId,
@@ -61,6 +59,8 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
                 return Result.Fail<HippotherapyProgramLocalizationDto>(ErrorMessagesConstants.NotFound(request.CreateHippotherapyProgramLocalizationDto.EntityId, typeof(HippotherapyProgramEntity)));
             }
 
+            var contentTypesById = await _programSectionContentService
+                .GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
             ProgramSectionContentLocalizationValidationHelper
                 .ValidateSections<CreateHippotherapyProgramSectionLocalizationDto, CreateHippotherapyProgramSectionContentLocalizationDto>(
                     request.CreateHippotherapyProgramLocalizationDto.Sections,

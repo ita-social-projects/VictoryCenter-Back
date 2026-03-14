@@ -47,7 +47,6 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.EntityId);
             var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramEntity>
             {
                 Filter = c => c.Id == request.EntityId,
@@ -58,6 +57,8 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
             {
                 return Result.Fail<HippotherapyProgramLocalizationDto>("Not found programEntity");
             }
+
+            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.EntityId);
 
             ProgramSectionContentLocalizationValidationHelper
                 .ValidateSections<UpdateHippotherapyProgramSectionLocalizationDto, UpdateHippotherapyProgramSectionContentLocalizationDto>(

@@ -260,6 +260,9 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
+        _mockRepositoryWrapper
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramEntity>>()))
+            .ReturnsAsync(_testProgramWithContent);
         var expectedError = ErrorMessagesConstants.NotFound(1, typeof(HippotherapyProgramEntity));
         _mockProgramSectionContentService
             .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))

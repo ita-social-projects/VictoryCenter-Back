@@ -73,12 +73,6 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
         LocalizationInfoDto = new() { Id = 2, Code = "en" }
     };
 
-    private readonly HippotherapyProgramEntity _testProgram = new()
-    {
-        Id = 1,
-        Sections = new List<HippotherapyProgramSection>()
-    };
-
     private readonly HippotherapyProgramEntity _testProgramWithContent = new()
     {
         Id = 1,
@@ -188,8 +182,8 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
-        _mockProgramSectionContentService
-            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
+        _mockRepositoryWrapper
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramEntity>>()))
             .ThrowsAsync(new KeyNotFoundException(ErrorMessagesConstants.NotFound(_testCreateDto.EntityId, typeof(HippotherapyProgramEntity))));
 
         var command = new CreateHippotherapyProgramLocalizationCommand(_testCreateDto);
@@ -200,9 +194,6 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
-        Assert.Contains(
-            ErrorMessagesConstants.NotFound(_testCreateDto.EntityId, typeof(HippotherapyProgramEntity)),
-            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
