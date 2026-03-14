@@ -200,11 +200,11 @@ public static class ProgramSectionContentLocalizationValidationHelper
                 ForbidField(nameof(content.Answer), hasAnswer, contentType);
                 break;
             case ContentType.FaqQuestion:
-                RequireField(failures, nameof(content.Question), hasQuestion);
-                RequireField(failures, nameof(content.Answer), hasAnswer);
-                ForbidField(failures, nameof(content.Title), hasTitle, contentType);
-                ForbidField(failures, nameof(content.Description), hasDescription, contentType);
-                ForbidField(failures, nameof(content.Author), hasAuthor, contentType);
+                RequireField(nameof(content.Question), hasQuestion);
+                RequireField(nameof(content.Answer), hasAnswer);
+                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ForbidField(nameof(content.Author), hasAuthor, contentType);
                 break;
             case ContentType.Image:
                 ForbidField(nameof(content.Title), hasTitle, contentType);

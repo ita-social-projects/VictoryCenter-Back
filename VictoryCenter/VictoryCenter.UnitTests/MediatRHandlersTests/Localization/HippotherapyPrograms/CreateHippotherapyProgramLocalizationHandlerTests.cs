@@ -48,11 +48,7 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                     new()
                     {
                         EntityId = 200,
-                        Question = "Localized question"
-                    },
-                    new()
-                    {
-                        EntityId = 201,
+                        Question = "Localized question",
                         Answer = "Localized answer"
                     }
                 }

@@ -378,7 +378,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.QuestionText)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqSectionQuestionDto.QuestionText)));
     }
 
     [Fact]
@@ -404,7 +404,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqSectionQuestionDto.AnswerText)));
     }
 
     [Fact]
@@ -429,7 +429,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         {
             ContentType = ContentType.FaqQuestion,
             Order = 1,
-            FaqQuestion = new CreateFaqQuestionDto { Id = 5, QuestionText = "", AnswerText = "" }
+            FaqQuestion = new CreateFaqSectionQuestionDto { Id = 5, QuestionText = "", AnswerText = "" }
         });
 
         var result = _validator.TestValidate(model);
@@ -690,7 +690,7 @@ public class BaseHippotherapyProgramSectionValidatorTests
         {
             ContentType = ContentType.FaqQuestion,
             Order = order,
-            FaqQuestion = new CreateFaqQuestionDto { QuestionText = questionText, AnswerText = answerText }
+            FaqQuestion = new CreateFaqSectionQuestionDto { QuestionText = questionText, AnswerText = answerText }
         };
     }
 

@@ -47,11 +47,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
                     new()
                     {
                         EntityId = 200,
-                        Question = "Updated localized question"
-                    },
-                    new()
-                    {
-                        EntityId = 201,
+                        Question = "Updated localized question",
                         Answer = "Updated localized answer"
                     }
                 }
@@ -86,15 +82,10 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
                 Id = 100,
                 Contents = new List<ProgramSectionContent>
                 {
-                    new QuestionProgramContent
+                    new TestProgramSectionContent
                     {
                         Id = 200,
-                        ContentType = ContentType.Question
-                    },
-                    new AnswerProgramContent
-                    {
-                        Id = 201,
-                        ContentType = ContentType.Answer
+                        ContentType = ContentType.FaqQuestion
                     }
                 }
             }
@@ -296,8 +287,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
             .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
             .ReturnsAsync(new Dictionary<long, ContentType>
             {
-                { 200, ContentType.Question },
-                { 201, ContentType.Answer }
+                { 200, ContentType.FaqQuestion }
             });
 
         _mockRepositoryWrapper
@@ -332,7 +322,6 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
             .Setup(m => m.Map<List<ProgramSectionContentLocalization>>(It.IsAny<List<UpdateHippotherapyProgramSectionContentLocalizationDto>>()))
             .Returns(new List<ProgramSectionContentLocalization>
             {
-                new(),
                 new()
             });
 
@@ -347,5 +336,9 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
         _mockProgramSectionContentService
             .Setup(s => s.GetProgramSectionsAsync(It.IsAny<long>(), It.IsAny<long>()))
             .ReturnsAsync(new List<HippotherapyProgramSectionLocalizationDto>());
+    }
+
+    private sealed class TestProgramSectionContent : ProgramSectionContent
+    {
     }
 }

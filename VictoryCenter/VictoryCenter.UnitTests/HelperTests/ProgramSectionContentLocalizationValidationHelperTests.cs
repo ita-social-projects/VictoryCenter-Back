@@ -303,8 +303,7 @@ public class ProgramSectionContentLocalizationValidationHelperTests
                     new() { EntityId = 10, Title = "Title" },
                     new() { EntityId = 11, Description = "Description" },
                     new() { EntityId = 12, Author = "Author" },
-                    new() { EntityId = 13, Question = "Question?" },
-                    new() { EntityId = 14, Answer = "Answer." }
+                    new() { EntityId = 13, Question = "Question?", Answer = "Answer." }
                 ]
             }
         };
@@ -314,9 +313,8 @@ public class ProgramSectionContentLocalizationValidationHelperTests
             { 10, ContentType.Title },
             { 11, ContentType.Description },
             { 12, ContentType.Author },
-            { 13, ContentType.Question },
-            { 14, ContentType.Answer },
-            { 15, ContentType.Image }
+            { 13, ContentType.FaqQuestion },
+            { 14, ContentType.Image }
         };
 
         var program = CreateProgram(
@@ -325,9 +323,8 @@ public class ProgramSectionContentLocalizationValidationHelperTests
                 (10, ContentType.Title),
                 (11, ContentType.Description),
                 (12, ContentType.Author),
-                (13, ContentType.Question),
-                (14, ContentType.Answer),
-                (15, ContentType.Image)));
+                (13, ContentType.FaqQuestion),
+                (14, ContentType.Image)));
 
         ProgramSectionContentLocalizationValidationHelper.ValidateSections<
             CreateHippotherapyProgramSectionLocalizationDto,

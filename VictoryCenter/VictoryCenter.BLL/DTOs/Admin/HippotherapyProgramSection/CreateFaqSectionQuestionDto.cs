@@ -1,6 +1,6 @@
 namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 
-public record CreateFaqQuestionDto
+public record CreateFaqSectionQuestionDto
 {
     public long? Id { get; init; }
 
