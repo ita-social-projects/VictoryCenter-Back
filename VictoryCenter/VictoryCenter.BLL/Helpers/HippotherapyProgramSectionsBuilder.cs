@@ -26,7 +26,7 @@ public static class HippotherapyProgramSectionsBuilder
                 Template = sectionDto.Template,
                 Order = sectionDto.Order,
                 CreatedAt = createdAt,
-                Contents = BuildContents(sectionDto, imagesById)
+                Contents = BuildContents(sectionDto, imagesById, createdAt)
             });
         }
 
@@ -35,7 +35,8 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static List<ProgramSectionContent> BuildContents(
         CreateHippotherapyProgramSectionDto sectionDto,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        DateTimeOffset createdAt)
     {
         var dtoContents = sectionDto.Contents ?? [];
         if (dtoContents.Count == 0)
@@ -47,7 +48,7 @@ public static class HippotherapyProgramSectionsBuilder
 
         foreach (var dto in dtoContents.OrderBy(x => x.Order))
         {
-            var entity = CreateContent(dto, imagesById);
+            var entity = CreateContent(dto, imagesById, createdAt);
             if (entity is null)
             {
                 continue;
@@ -61,7 +62,8 @@ public static class HippotherapyProgramSectionsBuilder
 
     private static ProgramSectionContent? CreateContent(
         CreateProgramSectionContentDto dto,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        DateTimeOffset createdAt)
     {
         if (dto.ContentType == ContentType.Title)
         {
@@ -118,26 +120,42 @@ public static class HippotherapyProgramSectionsBuilder
             };
         }
 
-        if (dto.ContentType == ContentType.Question)
+        if (dto.ContentType == ContentType.FaqQuestion)
         {
-            return new QuestionProgramContent
+            if (dto.FaqQuestion is null)
             {
-                ContentType = ContentType.Question,
-                Order = dto.Order,
-                GroupIndex = dto.GroupIndex,
-                Question = dto.Question!.Trim()
-            };
-        }
+                return null;
+            }
 
-        if (dto.ContentType == ContentType.Answer)
-        {
-            return new AnswerProgramContent
+            var content = new FaqQuestionProgramContent
             {
-                ContentType = ContentType.Answer,
+                ContentType = ContentType.FaqQuestion,
                 Order = dto.Order,
                 GroupIndex = dto.GroupIndex,
-                Answer = dto.Answer!.Trim()
             };
+
+            if (dto.FaqQuestion.Id is > 0)
+            {
+                content.FaqQuestionId = dto.FaqQuestion.Id.Value;
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(dto.FaqQuestion.QuestionText) ||
+                    string.IsNullOrWhiteSpace(dto.FaqQuestion.AnswerText))
+                {
+                    return null;
+                }
+
+                content.FaqQuestion = new FaqQuestion
+                {
+                    QuestionText = dto.FaqQuestion.QuestionText.Trim(),
+                    AnswerText = dto.FaqQuestion.AnswerText.Trim(),
+                    Status = Status.Published,
+                    CreatedAt = createdAt
+                };
+            }
+
+            return content;
         }
 
         return null;

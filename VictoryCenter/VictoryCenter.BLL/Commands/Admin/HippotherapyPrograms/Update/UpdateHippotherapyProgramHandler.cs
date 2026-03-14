@@ -52,6 +52,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                         .Include(x => x.Categories)
                         .Include(x => x.Sections)
                         .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => (c as FaqQuestionProgramContent)!.FaqQuestion)
                         .ThenInclude(c => c.Localizations)
                         .Include(x => x.Localizations)
                 });
@@ -125,21 +126,43 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var now = DateTimeOffset.UtcNow;
 
-            if (!EnsureReplaceSameSections(program.Sections.ToList(), request.UpdateProgramDto.Sections, imagesByIdResult.Value))
+            var orphanedFaqQuestions = GetOrphanedFaqQuestions(program, request.UpdateProgramDto.Sections);
+
+            using var transaction = _repositoryWrapper.BeginTransaction();
+
+            var oldSections = program.Sections.ToList();
+
+            ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
+            if (!EnsureReplaceSameSections(oldSections, request.UpdateProgramDto.Sections, imagesByIdResult.Value))
             {
-                ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
                 program.Localizations.Clear();
             }
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
 
-            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
+                return Result.Fail<HippotherapyProgramDto>(
+                    ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
             }
 
-            return Result.Fail<HippotherapyProgramDto>(
-                ErrorMessagesConstants.FailedToUpdateEntity(typeof(HippotherapyProgram)));
+            if (orphanedFaqQuestions.Count > 0)
+            {
+                _repositoryWrapper.FaqQuestionsRepository.DeleteRange(orphanedFaqQuestions);
+                await _repositoryWrapper.SaveChangesAsync();
+            }
+
+            var assignFaqQuestionsResult = await FaqQuestionHelper
+                .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, program.Sections);
+
+            if (assignFaqQuestionsResult.IsFailed)
+            {
+                return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
+            }
+
+            transaction.Complete();
+
+            return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
         }
         catch (ValidationException vex)
         {
@@ -266,10 +289,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 => UpdateImageContent(imageContent, newContent, imagesById, out contentChanged),
             ContentType.Author when oldContent is AuthorProgramContent authorContent
                 => UpdateAuthorContent(authorContent, newContent, out contentChanged),
-            ContentType.Question when oldContent is QuestionProgramContent questionContent
-                => UpdateQuestionContent(questionContent, newContent, out contentChanged),
-            ContentType.Answer when oldContent is AnswerProgramContent answerContent
-                => UpdateAnswerContent(answerContent, newContent, out contentChanged),
+            ContentType.FaqQuestion when oldContent is FaqQuestionProgramContent faqContent
+                => UpdateFaqQuestionContent(faqContent, newContent, out contentChanged),
             _ => false,
         };
     }
@@ -343,38 +364,72 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         return true;
     }
 
-    private static bool UpdateQuestionContent(
-        QuestionProgramContent content,
+    private static bool UpdateFaqQuestionContent(
+        FaqQuestionProgramContent content,
         CreateProgramSectionContentDto source,
         out bool changed)
     {
         changed = false;
-        if (source.Question is null)
+        if (source.FaqQuestion is null || content.FaqQuestion is null)
         {
-            return false;
+            return true;
         }
 
-        var newValue = source.Question.Trim();
-        changed = !string.Equals(content.Question, newValue, StringComparison.Ordinal);
-        content.Question = newValue;
+        var newQuestion = source.FaqQuestion.QuestionText?.Trim() ?? string.Empty;
+        var newAnswer = source.FaqQuestion.AnswerText?.Trim() ?? string.Empty;
+
+        changed = !string.Equals(content.FaqQuestion.QuestionText, newQuestion, StringComparison.Ordinal)
+            || !string.Equals(content.FaqQuestion.AnswerText, newAnswer, StringComparison.Ordinal);
+
+        content.FaqQuestion.QuestionText = newQuestion;
+        content.FaqQuestion.AnswerText = newAnswer;
         return true;
     }
 
-    private static bool UpdateAnswerContent(
-        AnswerProgramContent content,
-        CreateProgramSectionContentDto source,
-        out bool changed)
+    private static List<FaqQuestion> GetOrphanedFaqQuestions(
+        HippotherapyProgram program,
+        ICollection<CreateHippotherapyProgramSectionDto>? incomingSections)
     {
-        changed = false;
-        if (source.Answer is null)
+        var incomingIds = (incomingSections ?? [])
+            .SelectMany(s => s.Contents ?? [])
+            .Where(c => c.ContentType == ContentType.FaqQuestion)
+            .Select(c => c.FaqQuestion?.Id)
+            .Where(id => id is > 0)
+            .Select(id => id!.Value)
+            .ToHashSet();
+
+        return program.Sections
+            .SelectMany(s => s.Contents)
+            .OfType<FaqQuestionProgramContent>()
+            .Where(c => c.FaqQuestion is not null && !incomingIds.Contains(c.FaqQuestionId))
+            .Select(c => c.FaqQuestion!)
+            .ToList();
+    }
+
+    private static void UpdateExistingFaqQuestionTexts(
+        ICollection<HippotherapyProgramSection> sections,
+        ICollection<CreateHippotherapyProgramSectionDto>? incomingSections)
+    {
+        var incomingById = (incomingSections ?? [])
+            .SelectMany(s => s.Contents ?? [])
+            .Where(c => c.ContentType == ContentType.FaqQuestion
+                && c.FaqQuestion?.Id is > 0)
+            .ToDictionary(c => c.FaqQuestion!.Id!.Value, c => c.FaqQuestion!);
+
+        if (incomingById.Count == 0)
         {
-            return false;
+            return;
         }
 
-        var newValue = source.Answer.Trim();
-        changed = !string.Equals(content.Answer, newValue, StringComparison.Ordinal);
-        content.Answer = newValue;
-        return true;
+        foreach (var content in sections
+            .SelectMany(s => s.Contents ?? [])
+            .OfType<FaqQuestionProgramContent>()
+            .Where(c => c.FaqQuestion is not null && incomingById.ContainsKey(c.FaqQuestionId)))
+        {
+            var dto = incomingById[content.FaqQuestionId];
+            content.FaqQuestion!.QuestionText = dto.QuestionText.Trim();
+            content.FaqQuestion!.AnswerText = dto.AnswerText.Trim();
+        }
     }
 
     private static void ReplaceSections(
