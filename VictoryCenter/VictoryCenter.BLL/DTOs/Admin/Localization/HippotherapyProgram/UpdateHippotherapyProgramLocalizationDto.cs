@@ -1,14 +1,8 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Update;
+
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 
-public record UpdateHippotherapyProgramLocalizationDto
+public record UpdateHippotherapyProgramLocalizationDto : BaseHippotherapyProgramLocalizationDto
 {
-    public string? Name { get; init; }
-
-    public string? Description { get; init; }
-
-    public string? Location { get; init; }
-
-    public string? ParticipantsCount { get; init; }
-
-    public string? MeetingsCount { get; init; }
+    public List<UpdateHippotherapyProgramSectionLocalizationDto> Sections { get; init; } = [];
 }

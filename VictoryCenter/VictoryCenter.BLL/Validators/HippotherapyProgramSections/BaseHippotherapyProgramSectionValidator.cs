@@ -201,7 +201,7 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
 
         if (newFaqQuestions.Any(c => string.IsNullOrWhiteSpace(c.FaqQuestion!.QuestionText)))
         {
-            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.QuestionText)));
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqSectionQuestionDto.QuestionText)));
         }
 
         if (newFaqQuestions.Any(c => !HasValidLength(c.FaqQuestion!.QuestionText, req.QuestionTextLength)))
@@ -211,7 +211,7 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
 
         if (newFaqQuestions.Any(c => string.IsNullOrWhiteSpace(c.FaqQuestion!.AnswerText)))
         {
-            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)));
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqSectionQuestionDto.AnswerText)));
         }
 
         if (newFaqQuestions.Any(c => !HasValidLength(c.FaqQuestion!.AnswerText, req.AnswerTextLength)))

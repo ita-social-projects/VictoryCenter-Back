@@ -268,7 +268,7 @@ public class HippotherapyProgramSectionsBuilderTests
                 ContentType = ContentType.FaqQuestion,
                 Order = 1,
                 GroupIndex = 2,
-                FaqQuestion = new CreateFaqQuestionDto { QuestionText = "Question?", AnswerText = "Answer." }
+                FaqQuestion = new CreateFaqSectionQuestionDto { QuestionText = "Question?", AnswerText = "Answer." }
             });
 
         var result = Build([dto]);
@@ -346,7 +346,7 @@ public class HippotherapyProgramSectionsBuilderTests
         {
             ContentType = ContentType.FaqQuestion,
             Order = order,
-            FaqQuestion = new CreateFaqQuestionDto { QuestionText = questionText, AnswerText = answerText }
+            FaqQuestion = new CreateFaqSectionQuestionDto { QuestionText = questionText, AnswerText = answerText }
         };
     }
 

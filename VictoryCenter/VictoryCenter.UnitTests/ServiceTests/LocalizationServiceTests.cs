@@ -442,7 +442,7 @@ public class LocalizationServiceTests
             .Returns(Task.CompletedTask);
 
         // Act
-        await _localizationService.TrackEntityLocalizationAsync(localizations);
+        await _localizationService.TrackEntityLocalizationAsync(localizations, false);
 
         // Assert
         _repositoryWrapper.Verify(
@@ -486,7 +486,7 @@ public class LocalizationServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            await _localizationService.TrackEntityLocalizationAsync(localizations));
+            await _localizationService.TrackEntityLocalizationAsync(localizations, false));
         Assert.Contains("999", ex.Message);
         Assert.Contains(nameof(TeamMember), ex.Message);
     }
@@ -531,7 +531,7 @@ public class LocalizationServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<ValidationException>(async () =>
-            await _localizationService.TrackEntityLocalizationAsync(localizations));
+            await _localizationService.TrackEntityLocalizationAsync(localizations, false));
         Assert.Contains("Bulk localization supports only one LanguageId", ex.Message);
     }
 
@@ -560,9 +560,68 @@ public class LocalizationServiceTests
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-            await _localizationService.TrackEntityLocalizationAsync(localizations));
+            await _localizationService.TrackEntityLocalizationAsync(localizations, false));
         Assert.Contains("999", ex.Message);
         Assert.Contains(nameof(LocalizationLanguage), ex.Message);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationForUpdateAsync_ShouldTrackLocalizationForUpdate_WhenLocalizationExists()
+    {
+        // Arrange
+        var existingLocalization = new TeamMemberLocalization
+        {
+            EntityId = 1,
+            LanguageId = 1,
+            FullName = "Old Name",
+            Description = "Old Description"
+        };
+
+        var localizationToUpdate = new TeamMemberLocalization
+        {
+            EntityId = 1,
+            LanguageId = 1,
+            FullName = "New Name",
+            Description = "New Description"
+        };
+
+        SetupRepositoryWrapper(teamMemberLocalization: existingLocalization);
+
+        // Act
+        await _localizationService.TrackEntityLocalizationForUpdateAsync(localizationToUpdate);
+
+        // Assert
+        Assert.Equal(TranslationStatus.Relevant, localizationToUpdate.TranslationStatus);
+
+        _repositoryWrapper.Verify(
+            x => x.GetRepository<TeamMemberLocalization>()
+                .Update(It.Is<TeamMemberLocalization>(l => l == localizationToUpdate)),
+            Times.Once);
+
+        _repositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task TrackEntityLocalizationForUpdateAsync_ShouldThrowKeyNotFoundException_WhenLocalizationDoesNotExist()
+    {
+        // Arrange
+        var localizationToUpdate = new TeamMemberLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            FullName = "Name",
+            Description = "Description"
+        };
+
+        SetupRepositoryWrapper(teamMemberLocalization: null);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
+            await _localizationService.TrackEntityLocalizationForUpdateAsync(localizationToUpdate));
+
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((localizationToUpdate.EntityId, localizationToUpdate.LanguageId), typeof(TeamMemberLocalization)),
+            ex.Message);
     }
 
     private void SetupRepositoryWrapper(

@@ -3,8 +3,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 
-public record CreateHippotherapyProgramLocalizationDto : UpdateHippotherapyProgramLocalizationDto,
-    ILocalizationIdentity
+public record CreateHippotherapyProgramLocalizationDto : BaseHippotherapyProgramLocalizationDto, ILocalizationIdentity
 {
     public long EntityId { get; init; }
 

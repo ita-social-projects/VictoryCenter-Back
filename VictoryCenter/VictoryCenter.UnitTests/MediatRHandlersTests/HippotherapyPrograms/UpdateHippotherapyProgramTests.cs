@@ -735,7 +735,7 @@ public class UpdateHippotherapyProgramTests
         {
             ContentType = ContentType.FaqQuestion,
             Order = order,
-            FaqQuestion = new CreateFaqQuestionDto { Id = id, QuestionText = questionText, AnswerText = answerText }
+            FaqQuestion = new CreateFaqSectionQuestionDto { Id = id, QuestionText = questionText, AnswerText = answerText }
         };
     }
 

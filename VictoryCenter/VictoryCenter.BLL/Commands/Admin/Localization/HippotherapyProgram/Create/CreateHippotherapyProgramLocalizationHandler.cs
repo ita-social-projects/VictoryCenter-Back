@@ -48,8 +48,25 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(request.CreateHippotherapyProgramLocalizationDto.Sections, contentTypesById);
+            var program = await _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramEntity>
+            {
+                Filter = c => c.Id == request.CreateHippotherapyProgramLocalizationDto.EntityId,
+                Include = query => query.Include(p => p.Sections).ThenInclude(p => p.Contents)
+            });
+
+            if(program is null)
+            {
+                return Result.Fail<HippotherapyProgramLocalizationDto>(ErrorMessagesConstants.NotFound(request.CreateHippotherapyProgramLocalizationDto.EntityId, typeof(HippotherapyProgramEntity)));
+            }
+
+            var contentTypesById = await _programSectionContentService
+                .GetContentTypesByProgramIdAsync(request.CreateHippotherapyProgramLocalizationDto.EntityId);
+            ProgramSectionContentLocalizationValidationHelper
+                .ValidateSections<CreateHippotherapyProgramSectionLocalizationDto, CreateHippotherapyProgramSectionContentLocalizationDto>(
+                    request.CreateHippotherapyProgramLocalizationDto.Sections,
+                    contentTypesById,
+                    content => content.EntityId,
+                    program);
 
             var hippotherapyProgramLocalizationEntity = _mapper.Map<HippotherapyProgramLocalization>(request.CreateHippotherapyProgramLocalizationDto);
             HippotherapyProgramLocalization createdProgramLocalization = await _programLocalizationService.TrackEntityLocalizationAsync(hippotherapyProgramLocalizationEntity);
@@ -57,7 +74,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
                 .SelectMany(section => section.Contents ?? [])
                 .ToList() ?? [];
             var contentLocalizations = _mapper.Map<List<ProgramSectionContentLocalization>>(contentDtos);
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations);
+            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, false);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
@@ -69,7 +86,8 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
                 {
                     Filter = l => l.Id == request.CreateHippotherapyProgramLocalizationDto.LanguageId
                 }));
-            var sections = await GetProgramSections(createdProgramLocalization.EntityId, createdProgramLocalization.LanguageId);
+            var sections = await _programSectionContentService
+                .GetProgramSectionsAsync(createdProgramLocalization.EntityId, createdProgramLocalization.LanguageId);
             var response = _mapper.Map<HippotherapyProgramLocalizationDto>(createdProgramLocalization);
             response = response with
             {
@@ -100,43 +118,5 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         {
             return Result.Fail<HippotherapyProgramLocalizationDto>($"Unexpected error: {ex.Message}");
         }
-    }
-
-    private async Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSections(long programId, long languageId)
-    {
-        var program = await _repositoryWrapper.HippotherapyProgramsLocalizationsRepository
-            .GetFirstOrDefaultAsync(
-                new QueryOptions<HippotherapyProgramLocalization>()
-                {
-                    Filter = entity => programId == entity.EntityId
-                                       && languageId == entity.LanguageId,
-                    Include = query => query.Include(entity => entity.Entity)
-                        .ThenInclude(entity => entity.Sections)
-                        .ThenInclude(section => section.Contents)
-                        .ThenInclude(content => content.Localizations)
-                        .ThenInclude(localization => localization.Language),
-                });
-
-        if (program is null)
-        {
-            throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(programId, typeof(HippotherapyProgramEntity)));
-        }
-
-        var sectionLocalizations = program.Entity
-            .Sections
-            .Select(section => new HippotherapyProgramSectionLocalizationDto
-            {
-                EntityId = section.Id,
-                Contents = section.Contents
-                    .SelectMany(content =>
-                        content.Localizations
-                            .Where(localization => localization.LanguageId == languageId)
-                            .Select(localization =>
-                                _mapper.Map<HippotherapyProgramSectionContentLocalizationDto>(localization)))
-                    .ToList(),
-            })
-            .ToList();
-
-        return sectionLocalizations;
     }
 }

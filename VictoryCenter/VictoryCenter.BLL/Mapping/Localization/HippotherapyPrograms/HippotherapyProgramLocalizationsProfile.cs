@@ -15,7 +15,7 @@ public class HippotherapyProgramLocalizationsProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<UpdateHippotherapyProgramLocalizationDto, HippotherapyProgramLocalization>()
-            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<HippotherapyProgramLocalization, HippotherapyProgramLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));

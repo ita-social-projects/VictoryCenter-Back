@@ -5,7 +5,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 
 namespace VictoryCenter.BLL.Validators.Localization.HippotherapyPrograms;
 
-public class BaseHippotherapyProgramLocalizationValidator : AbstractValidator<UpdateHippotherapyProgramLocalizationDto>
+public class BaseHippotherapyProgramLocalizationValidator : AbstractValidator<BaseHippotherapyProgramLocalizationDto>
 {
     public BaseHippotherapyProgramLocalizationValidator()
     {

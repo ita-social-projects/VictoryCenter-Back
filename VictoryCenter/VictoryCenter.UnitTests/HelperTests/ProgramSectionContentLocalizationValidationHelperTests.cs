@@ -2,207 +2,368 @@ using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
+using HippotherapyProgramEntity = VictoryCenter.DAL.Entities.HippotherapyProgram;
 
 namespace VictoryCenter.UnitTests.HelperTests;
 
 public class ProgramSectionContentLocalizationValidationHelperTests
 {
     [Fact]
-    public void ValidateSections_NoSections_DoesNotThrow()
+    public void ValidateSections_NoSectionsAndNoProgramSections_DoesNotThrow()
     {
-        ProgramSectionContentLocalizationValidationHelper.ValidateSections(
-            new List<CreateHippotherapyProgramSectionLocalizationDto>(),
-            new Dictionary<long, ContentType>());
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>();
+        var contentTypesById = new Dictionary<long, ContentType>();
+        var program = CreateProgram();
+
+        ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+            sections,
+            contentTypesById,
+            content => content.EntityId,
+            program);
     }
 
     [Fact]
-    public void ValidateSections_CountMismatch_ThrowsValidationException()
+    public void ValidateSections_MissingSectionInRequest_ThrowsValidationException()
+    {
+        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>();
+        var contentTypesById = new Dictionary<long, ContentType>();
+        var program = CreateProgram(CreateSection(1));
+
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains("Missing sections in localization request", ex.Message);
+    }
+
+    [Fact]
+    public void ValidateSections_UnknownSectionInRequest_ThrowsValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 1, Title = "A" }
-                }
+                EntityId = 99,
+                Contents = []
             }
         };
 
-        var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, new Dictionary<long, ContentType>()));
+        var contentTypesById = new Dictionary<long, ContentType>();
+        var program = CreateProgram(CreateSection(1));
 
-        Assert.Contains("Number of section contents", ex.Message);
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains("Missing sections in localization request", ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_InvalidContentId_AddsNotFoundFailure()
+    public void ValidateSections_DuplicateContentIds_ThrowsValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 5, Title = "some" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 10, Title = "A" },
+                    new() { EntityId = 10, Title = "B" }
+                ]
             }
         };
 
-        var dict = new Dictionary<long, ContentType>
+        var contentTypesById = new Dictionary<long, ContentType>
         {
-            { 1, ContentType.Title }
+            { 10, ContentType.Title }
         };
 
-        var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        var program = CreateProgram(CreateSection(1, (10, ContentType.Title)));
 
-        Assert.Contains(ErrorMessagesConstants.NotFound(5, typeof(object)).Split(' ')[0], ex.Message);
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains("duplicate content ids", ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_TitleRequired_WhenMissing_ShouldThrow()
+    public void ValidateSections_MissingRequiredContentIds_ThrowsValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 1, Title = "" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 10, Title = "A" }
+                ]
             }
         };
 
-        var dict = new Dictionary<long, ContentType>
+        var contentTypesById = new Dictionary<long, ContentType>
         {
-            { 1, ContentType.Title }
+            { 10, ContentType.Title },
+            { 11, ContentType.Description }
         };
 
-        var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        var program = CreateProgram(CreateSection(1, (10, ContentType.Title), (11, ContentType.Description)));
 
-        Assert.Contains("Title is required", ex.Message);
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains("missing required content ids", ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_ForbiddenField_ThrowsForbidMessage()
+    public void ValidateSections_ContentCountMismatch_ThrowsValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 1, Title = "Good", Description = "oops" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 10, Title = "A" },
+                    new() { EntityId = 12, Description = "img payload" }
+                ]
             }
         };
 
-        var dict = new Dictionary<long, ContentType>
+        var contentTypesById = new Dictionary<long, ContentType>
         {
-            { 1, ContentType.Title }
+            { 10, ContentType.Title },
+            { 12, ContentType.Image }
         };
 
-        var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
+        var program = CreateProgram(CreateSection(1, (10, ContentType.Title), (12, ContentType.Image)));
 
-        Assert.Contains("Description is not allowed for content type Title", ex.Message);
+        var ex = Assert.Throws<ValidationException>(() =>
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains("expected 1 required contents", ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_DescriptionType_RequireDescriptionAndForbidOthers()
+    public void ValidateSections_InvalidContentId_ThrowsNotFoundValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 2, Title = "x" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 10, Title = "A" }
+                ]
             }
         };
-        var dict = new Dictionary<long, ContentType> { { 2, ContentType.Description } };
+
+        var contentTypesById = new Dictionary<long, ContentType>();
+        var program = CreateProgram(CreateSection(1, (10, ContentType.Title)));
+
         var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Title is not allowed for content type Description", ex.Message);
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(10, typeof(ProgramSectionContent)).Split(' ')[0],
+            ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_AuthorType_RequireAuthorAndForbidOthers()
+    public void ValidateSections_TitleType_WithoutTitle_ThrowsValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 3, Description = "desc" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 10, Title = "" }
+                ]
             }
         };
-        var dict = new Dictionary<long, ContentType> { { 3, ContentType.Author } };
+
+        var contentTypesById = new Dictionary<long, ContentType>
+        {
+            { 10, ContentType.Title }
+        };
+
+        var program = CreateProgram(CreateSection(1, (10, ContentType.Title)));
+
         var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Description is not allowed for content type Author", ex.Message);
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired("Title"), ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_FaqQuestionType_RequiresBothQuestionAndAnswer()
+    public void ValidateSections_DescriptionType_WithForbiddenTitle_ThrowsValidationException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 4, Answer = "ans" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 11, Description = "D", Title = "Forbidden" }
+                ]
             }
         };
-        var dict = new Dictionary<long, ContentType> { { 4, ContentType.FaqQuestion } };
+
+        var contentTypesById = new Dictionary<long, ContentType>
+        {
+            { 11, ContentType.Description }
+        };
+
+        var program = CreateProgram(CreateSection(1, (11, ContentType.Description)));
+
         var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Question is required", ex.Message);
+            ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+                sections,
+                contentTypesById,
+                content => content.EntityId,
+                program));
+
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyNotAllowedForContentType("Title", ContentType.Description),
+            ex.Message);
     }
 
     [Fact]
-    public void ValidateSections_FaqQuestionType_ForbidsTitleField()
+    public void ValidateSections_AllRequiredTypesValid_DoesNotThrow()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
             new()
             {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 4, Question = "q", Answer = "ans", Title = "oops" }
-                }
+                EntityId = 1,
+                Contents =
+                [
+                    new() { EntityId = 10, Title = "Title" },
+                    new() { EntityId = 11, Description = "Description" },
+                    new() { EntityId = 12, Author = "Author" },
+                    new() { EntityId = 13, Question = "Question?", Answer = "Answer." }
+                ]
             }
         };
-        var dict = new Dictionary<long, ContentType> { { 4, ContentType.FaqQuestion } };
-        var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Title is not allowed for content type FaqQuestion", ex.Message);
+
+        var contentTypesById = new Dictionary<long, ContentType>
+        {
+            { 10, ContentType.Title },
+            { 11, ContentType.Description },
+            { 12, ContentType.Author },
+            { 13, ContentType.FaqQuestion },
+            { 14, ContentType.Image }
+        };
+
+        var program = CreateProgram(
+            CreateSection(
+                1,
+                (10, ContentType.Title),
+                (11, ContentType.Description),
+                (12, ContentType.Author),
+                (13, ContentType.FaqQuestion),
+                (14, ContentType.Image)));
+
+        ProgramSectionContentLocalizationValidationHelper.ValidateSections<
+            CreateHippotherapyProgramSectionLocalizationDto,
+            CreateHippotherapyProgramSectionContentLocalizationDto
+        >(
+            sections,
+            contentTypesById,
+            content => content.EntityId,
+            program);
     }
 
-    [Fact]
-    public void ValidateSections_ImageType_FilteredOutFromValidContents()
+    private static HippotherapyProgramEntity CreateProgram(params HippotherapyProgramSection[] sections)
     {
-        var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        return new HippotherapyProgramEntity
         {
-            new()
-            {
-                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
-                {
-                    new() { EntityId = 6, Title = "t" }
-                }
-            }
+            Sections = sections.ToList()
         };
-        var dict = new Dictionary<long, ContentType> { { 6, ContentType.Image } };
-        var ex = Assert.Throws<ValidationException>(() =>
-            ProgramSectionContentLocalizationValidationHelper.ValidateSections(sections, dict));
-        Assert.Contains("Number of section contents", ex.Message);
+    }
+
+    private static HippotherapyProgramSection CreateSection(
+        long sectionId,
+        params (long contentId, ContentType contentType)[] contents)
+    {
+        return new HippotherapyProgramSection
+        {
+            Id = sectionId,
+            Contents = contents
+                .Select(content => new TestProgramSectionContent
+                {
+                    Id = content.contentId,
+                    ContentType = content.contentType,
+                    SectionId = sectionId
+                })
+                .Cast<ProgramSectionContent>()
+                .ToList()
+        };
+    }
+
+    private sealed class TestProgramSectionContent : ProgramSectionContent
+    {
     }
 }

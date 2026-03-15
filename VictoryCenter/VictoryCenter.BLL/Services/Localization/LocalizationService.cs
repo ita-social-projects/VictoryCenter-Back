@@ -77,7 +77,7 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         return createdEntity;
     }
 
-    public async Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> localizations)
+    public async Task TrackEntityLocalizationAsync(IEnumerable<TEntityLocalization> localizations, bool isUpdate)
     {
         var entityLocalizations = localizations.ToList();
         var entityIds = entityLocalizations
@@ -120,8 +120,15 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
             throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(languageId, typeof(LocalizationLanguage)));
         }
 
-        await _repositoryWrapper.GetRepository<TEntityLocalization>()
-            .CreateRangeAsync(entityLocalizations);
+        if(!isUpdate)
+        {
+            await _repositoryWrapper.GetRepository<TEntityLocalization>()
+                .CreateRangeAsync(entityLocalizations);
+        }
+        else
+        {
+            _repositoryWrapper.GetRepository<TEntityLocalization>().UpdateRange(entityLocalizations);
+        }
     }
 
     public async Task<TEntityLocalization> UpdateEntityLocalizationAsync(TEntityLocalization entityLocalization)
@@ -162,6 +169,26 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         }
 
         throw new InvalidOperationException();
+    }
+
+    public async Task TrackEntityLocalizationForUpdateAsync(TEntityLocalization entityLocalization)
+    {
+        var existingLocalization = await _repositoryWrapper.GetRepository<TEntityLocalization>()
+            .GetFirstOrDefaultAsync(new QueryOptions<TEntityLocalization>
+            {
+                Filter = localization => localization.EntityId == entityLocalization.EntityId
+                                     && localization.LanguageId == entityLocalization.LanguageId
+            });
+
+        if (existingLocalization is null)
+        {
+            throw new KeyNotFoundException(
+                ErrorMessagesConstants.NotFound((entityLocalization.EntityId, entityLocalization.LanguageId), typeof(TEntityLocalization)));
+        }
+
+        entityLocalization.TranslationStatus = TranslationStatus.Relevant;
+
+        _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
     }
 
     private async Task<TEntityLocalization> ValidateAndTrackAsync(TEntityLocalization entityLocalization)

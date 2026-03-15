@@ -4,6 +4,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetByFilters;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
@@ -132,6 +133,10 @@ public class GetHippotherapyProgramsTests
             CategoryId = null
         };
 
+        _repositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.LocalizationLanguagesRepository.CountAsync(
+             It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
+
         var handler = new GetHippotherapyProgramsByFiltersHandler(_mockMapper.Object, _repositoryWrapper.Object);
         var result = await handler.Handle(new GetHippotherapyProgramsByFiltersQuery(requestDto), CancellationToken.None);
 
@@ -161,6 +166,9 @@ public class GetHippotherapyProgramsTests
             Status = Status.Published,
             Sections = new List<HippotherapyProgramSection> { section }
         };
+        _repositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.LocalizationLanguagesRepository.CountAsync(
+             It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
 
         _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(new List<HippotherapyProgram> { program });
@@ -192,6 +200,10 @@ public class GetHippotherapyProgramsTests
         };
 
         var program = new HippotherapyProgram { Id = 1, Sections = new List<HippotherapyProgramSection> { section } };
+
+        _repositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.LocalizationLanguagesRepository.CountAsync(
+             It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
 
         _repositoryWrapper.Setup(r => r.HippotherapyProgramsRepository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgram>>()))
             .ReturnsAsync(new List<HippotherapyProgram> { program });

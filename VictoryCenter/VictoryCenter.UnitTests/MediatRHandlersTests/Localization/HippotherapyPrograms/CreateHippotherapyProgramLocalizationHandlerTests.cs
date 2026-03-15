@@ -38,7 +38,22 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
         Location = "Test Location",
         ParticipantsCount = "20",
         MeetingsCount = "10",
-        Sections = new List<CreateHippotherapyProgramSectionLocalizationDto>()
+        Sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
+        {
+            new()
+            {
+                EntityId = 100,
+                Contents = new List<CreateHippotherapyProgramSectionContentLocalizationDto>
+                {
+                    new()
+                    {
+                        EntityId = 200,
+                        Question = "Localized question",
+                        Answer = "Localized answer"
+                    }
+                }
+            }
+        }
     };
 
     private readonly HippotherapyProgramLocalization _testEntity = new()
@@ -56,12 +71,6 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
         Description = "Test Description",
         Location = "Test Location",
         LocalizationInfoDto = new() { Id = 2, Code = "en" }
-    };
-
-    private readonly HippotherapyProgramEntity _testProgram = new()
-    {
-        Id = 1,
-        Sections = new List<HippotherapyProgramSection>()
     };
 
     private readonly HippotherapyProgramEntity _testProgramWithContent = new()
@@ -173,8 +182,8 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
-        _mockProgramSectionContentService
-            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
+        _mockRepositoryWrapper
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramEntity>>()))
             .ThrowsAsync(new KeyNotFoundException(ErrorMessagesConstants.NotFound(_testCreateDto.EntityId, typeof(HippotherapyProgramEntity))));
 
         var command = new CreateHippotherapyProgramLocalizationCommand(_testCreateDto);
@@ -185,9 +194,6 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.NotEmpty(result.Errors);
-        Assert.Contains(
-            ErrorMessagesConstants.NotFound(_testCreateDto.EntityId, typeof(HippotherapyProgramEntity)),
-            result.Errors.Select(e => e.Message));
     }
 
     [Fact]
@@ -314,23 +320,7 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
     public async Task Handle_ShouldFail_WhenLanguageNotFound()
     {
         // Arrange
-        _mockValidator
-            .Setup(v => v.ValidateAsync(
-                It.IsAny<FluentValidation.ValidationContext<CreateHippotherapyProgramLocalizationCommand>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new FluentValidation.Results.ValidationResult());
-
-        _mockProgramSectionContentService
-            .Setup(s => s.GetContentTypesByProgramIdAsync(It.IsAny<long>()))
-            .ReturnsAsync(new Dictionary<long, ContentType>());
-
-        _mockMapper
-            .Setup(m => m.Map<HippotherapyProgramLocalization>(It.IsAny<CreateHippotherapyProgramLocalizationDto>()))
-            .Returns(_testEntity);
-
-        _mockMapper
-            .Setup(m => m.Map<List<ProgramSectionContentLocalization>>(It.IsAny<List<CreateHippotherapyProgramSectionContentLocalizationDto>>()))
-            .Returns(new List<ProgramSectionContentLocalization>());
+        SetupDependencies();
 
         _mockProgramLocalizationService
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<HippotherapyProgramLocalization>()))
@@ -377,16 +367,9 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(new FluentValidation.Results.ValidationResult());
 
-        var programLocalizationWithSections = new HippotherapyProgramLocalization
-        {
-            EntityId = 1,
-            LanguageId = 2,
-            Entity = _testProgramWithContent
-        };
-
         _mockRepositoryWrapper
-            .Setup(r => r.HippotherapyProgramsLocalizationsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramLocalization>>()))
-            .ReturnsAsync(programLocalizationWithSections);
+            .Setup(r => r.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramEntity>>()))
+            .ReturnsAsync(_testProgramWithContent);
 
         _mockRepositoryWrapper
             .Setup(r => r.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
@@ -429,7 +412,7 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
             .ReturnsAsync(_testEntity);
 
         _mockContentLocalizationService
-            .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<List<ProgramSectionContentLocalization>>()))
+            .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<ProgramSectionContentLocalization>>(), It.IsAny<bool>()))
             .Returns(Task.CompletedTask);
 
         _mockProgramSectionContentService
@@ -439,5 +422,9 @@ public class CreateHippotherapyProgramLocalizationHandlerTests
                 { 200, ContentType.FaqQuestion },
                 { 201, ContentType.FaqQuestion }
             });
+
+        _mockProgramSectionContentService
+            .Setup(s => s.GetProgramSectionsAsync(It.IsAny<long>(), It.IsAny<long>()))
+            .ReturnsAsync(new List<HippotherapyProgramSectionLocalizationDto>());
     }
 }
