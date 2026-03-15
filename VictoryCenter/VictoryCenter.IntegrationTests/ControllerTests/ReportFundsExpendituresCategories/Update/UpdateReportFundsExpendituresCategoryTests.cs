@@ -60,6 +60,26 @@ public class UpdateReportFundsExpendituresCategoryTests : BaseTestClass
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_WhenDuplicateExists_IgnoringCaseAndWhitespace()
+    {
+        var categoryToUpdate = await CreateCategoryAsync("Initial category", ReportFundsExpendituresType.Income);
+        await CreateCategoryAsync("  Updated category  ", ReportFundsExpendituresType.Income);
+
+        var updateDto = new UpdateReportFundsExpendituresCategoryDto
+        {
+            Name = "updated CATEGORY"
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"/api/ReportFundsExpendituresCategories/{categoryToUpdate.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task<ReportFundsExpendituresCategory> CreateCategoryAsync(
         string name,
         ReportFundsExpendituresType type)

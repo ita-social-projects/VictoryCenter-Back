@@ -142,6 +142,75 @@ public class UpdateReportFundsExpendituresCategoryTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenDuplicateNameExistsForSameType_IgnoringCaseAndWhitespace()
+    {
+        // Arrange
+        var duplicateCategory = new ReportFundsExpendituresCategory
+        {
+            Id = 2,
+            Name = $"  {_updateDto.Name.ToUpperInvariant()}  ",
+            Type = _existingCategory.Type
+        };
+
+        SetupDependencies([_existingCategory, duplicateCategory], saveResult: 1);
+        var handler = new UpdateReportFundsExpendituresCategoryHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportFundsExpendituresCategoryCommand(_updateDto, _existingCategory.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReportFundsExpendituresCategoryConstants.DuplicateCategoryName, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUseNormalizedNameInQueryFilter()
+    {
+        // Arrange
+        QueryOptions<ReportFundsExpendituresCategory>? capturedOptions = null;
+
+        SetupDependencies(
+            [_existingCategory],
+            saveResult: 1,
+            queryOptionsCallback: options => capturedOptions = options);
+
+        var handler = new UpdateReportFundsExpendituresCategoryHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        await handler.Handle(
+            new UpdateReportFundsExpendituresCategoryCommand(_updateDto, _existingCategory.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(capturedOptions);
+        var filter = capturedOptions!.Filter!.Compile();
+
+        Assert.True(filter(new ReportFundsExpendituresCategory
+        {
+            Id = 2,
+            Name = $"  {_updateDto.Name.ToUpperInvariant()}  "
+        }));
+        Assert.True(filter(new ReportFundsExpendituresCategory
+        {
+            Id = _existingCategory.Id,
+            Name = "Another name"
+        }));
+        Assert.False(filter(new ReportFundsExpendituresCategory
+        {
+            Id = 3,
+            Name = "Another name"
+        }));
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
@@ -188,13 +257,17 @@ public class UpdateReportFundsExpendituresCategoryTests
             result.Errors[0].Message);
     }
 
-    private void SetupDependencies(IEnumerable<ReportFundsExpendituresCategory> categories, int saveResult)
+    private void SetupDependencies(
+        IEnumerable<ReportFundsExpendituresCategory> categories,
+        int saveResult,
+        Action<QueryOptions<ReportFundsExpendituresCategory>>? queryOptionsCallback = null)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresCategoriesRepository)
             .Returns(_categoriesRepositoryMock.Object);
 
         _categoriesRepositoryMock
             .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
+            .Callback<QueryOptions<ReportFundsExpendituresCategory>>(options => queryOptionsCallback?.Invoke(options))
             .ReturnsAsync(categories);
 
         _categoriesRepositoryMock

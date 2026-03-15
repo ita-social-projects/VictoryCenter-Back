@@ -35,6 +35,7 @@ public class UpdateReportFundsExpendituresCategoryHandler
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            var normalizedRequestedName = NormalizeName(request.UpdateReportFundsExpendituresCategoryDto.Name);
 
             var categories = (await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
                 .GetAllAsync(new QueryOptions<ReportFundsExpendituresCategory>
@@ -42,7 +43,7 @@ public class UpdateReportFundsExpendituresCategoryHandler
                     AsNoTracking = false,
                     Filter = category =>
                         category.Id == request.Id ||
-                        category.Name == request.UpdateReportFundsExpendituresCategoryDto.Name
+                        category.Name.Trim().ToUpper() == normalizedRequestedName
                 }))
                 .ToList();
 
@@ -54,13 +55,9 @@ public class UpdateReportFundsExpendituresCategoryHandler
                     ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
             }
 
-            if (!string.Equals(
-                    categoryToUpdate.Name,
-                    request.UpdateReportFundsExpendituresCategoryDto.Name,
-                    StringComparison.Ordinal) &&
+            if (NormalizeName(categoryToUpdate.Name) != normalizedRequestedName &&
                 categories.Any(category =>
                     category.Id != request.Id &&
-                    category.Name == request.UpdateReportFundsExpendituresCategoryDto.Name &&
                     category.Type == categoryToUpdate.Type))
             {
                 return Result.Fail<ReportFundsExpendituresCategoryDto>(
@@ -89,5 +86,10 @@ public class UpdateReportFundsExpendituresCategoryHandler
             return Result.Fail<ReportFundsExpendituresCategoryDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(ReportFundsExpendituresCategory)));
         }
+    }
+
+    private static string NormalizeName(string name)
+    {
+        return name.Trim().ToUpper();
     }
 }
