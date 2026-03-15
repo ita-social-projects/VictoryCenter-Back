@@ -39,9 +39,16 @@ public class DeleteReportFundsExpendituresCategoryHandler
 
         _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.Delete(categoryToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        try
         {
-            return Result.Ok(categoryToDelete.Id);
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(categoryToDelete.Id);
+            }
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(ReportFundsExpendituresCategory)));
         }
 
         return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(ReportFundsExpendituresCategory)));

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresCategories.Delete;
 using VictoryCenter.BLL.Constants;
@@ -109,7 +110,29 @@ public class DeleteReportFundsExpendituresCategoryTests
             result.Errors[0].Message);
     }
 
-    private void SetupDependencies(ReportFundsExpendituresCategory? category, int saveResult)
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies(
+            _category,
+            saveResult: 1,
+            saveException: new DbUpdateException("Database error"));
+        var handler = new DeleteReportFundsExpendituresCategoryHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new DeleteReportFundsExpendituresCategoryCommand(_category.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            ErrorMessagesConstants.FailedToDeleteEntity(typeof(ReportFundsExpendituresCategory)),
+            result.Errors[0].Message);
+    }
+
+    private void SetupDependencies(ReportFundsExpendituresCategory? category, int saveResult, Exception? saveException = null)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresCategoriesRepository)
             .Returns(_categoriesRepositoryMock.Object);
@@ -121,6 +144,12 @@ public class DeleteReportFundsExpendituresCategoryTests
         _categoriesRepositoryMock
             .Setup(repository => repository.Delete(It.IsAny<ReportFundsExpendituresCategory>()));
 
-        _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+        if (saveException is null)
+        {
+            _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+            return;
+        }
+
+        _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(saveException);
     }
 }
