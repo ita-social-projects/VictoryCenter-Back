@@ -1,4 +1,3 @@
-using System.Net;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.Constants;
@@ -33,16 +32,21 @@ public class GetReportFundsExpendituresSettingsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Get_ShouldReturnNotFound_WhenSettingsMissing()
+    public async Task Get_ShouldCreateSettings_WhenSettingsMissing()
     {
         var settings = await Fixture.DbContext.ReportFundsExpendituresSettings.ToListAsync();
         Fixture.DbContext.ReportFundsExpendituresSettings.RemoveRange(settings);
         await Fixture.DbContext.SaveChangesAsync();
 
         HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/ReportFundsExpendituresSettings/");
+        response.EnsureSuccessStatusCode();
 
-        Assert.False(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var createdSettings = await Fixture.DbContext.ReportFundsExpendituresSettings
+            .FirstOrDefaultAsync(entity => entity.Id == ReportFundsExpendituresSettingsConstants.SingletonSettingsId);
+
+        Assert.NotNull(createdSettings);
+        Assert.Equal(string.Empty, createdSettings.DisclaimerTitle);
+        Assert.Equal(1m, createdSettings.ExchangeRate);
     }
 
     private async Task EnsureSettingsExistsAsync()

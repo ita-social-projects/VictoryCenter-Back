@@ -482,20 +482,12 @@ public static class ServicesConfiguration
     private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
-        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var repositoryWrapper = asyncServiceScope.ServiceProvider.GetRequiredService<IRepositoryWrapper>();
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper);
 
-        var settings = new ReportFundsExpendituresSettings
+        if (settingsResult.IsFailed)
         {
-            Id = 1,
-            DisclaimerTitle = string.Empty,
-            ExchangeRate = 1m,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
-
-        if (!await dbContext.ReportFundsExpendituresSettings.AnyAsync())
-        {
-            dbContext.ReportFundsExpendituresSettings.Add(settings);
-            await dbContext.SaveChangesAsync();
+            throw new InvalidOperationException(settingsResult.Errors[0].Message);
         }
     }
 

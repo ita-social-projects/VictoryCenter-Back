@@ -1,11 +1,9 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
-using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.BLL.Queries.Admin.ReportFundsExpendituresSettings.Get;
 
@@ -27,20 +25,12 @@ public class GetReportFundsExpendituresSettingsHandler
         GetReportFundsExpendituresSettingsQuery request,
         CancellationToken cancellationToken)
     {
-        var settings = await _repositoryWrapper.ReportFundsExpendituresSettingsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresSettingsEntity>
-            {
-                Filter = entity => entity.Id == ReportFundsExpendituresSettingsConstants.SingletonSettingsId
-            });
-
-        if (settings is null)
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(_repositoryWrapper);
+        if (settingsResult.IsFailed)
         {
-            return Result.Fail<ReportFundsExpendituresSettingsDto>(
-                ErrorMessagesConstants.NotFound(
-                    ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
-                    typeof(ReportFundsExpendituresSettingsEntity)));
+            return Result.Fail<ReportFundsExpendituresSettingsDto>(settingsResult.Errors);
         }
 
-        return Result.Ok(_mapper.Map<ReportFundsExpendituresSettingsDto>(settings));
+        return Result.Ok(_mapper.Map<ReportFundsExpendituresSettingsDto>(settingsResult.Value));
     }
 }
