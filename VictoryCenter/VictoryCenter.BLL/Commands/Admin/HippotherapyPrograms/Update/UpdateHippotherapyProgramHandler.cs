@@ -52,7 +52,9 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                         .Include(x => x.Categories)
                         .Include(x => x.Sections)
                         .ThenInclude(s => s.Contents)
-                        .ThenInclude(c => (c as FaqQuestionProgramContent)!.FaqQuestion)
+                        .ThenInclude(c => c.Localizations)
+                        .Include(x => x.Sections)
+                        .ThenInclude(s => s.Contents)
                         .ThenInclude(c => c.Localizations)
                         .Include(x => x.Localizations)
                 });
@@ -108,14 +110,6 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
             }
 
-            if (programFieldsChanged)
-            {
-                foreach (var loc in program.Localizations)
-                {
-                    loc.TranslationStatus = TranslationStatus.Outdated;
-                }
-            }
-
             var categoriesChenged = program.Categories.Select(c => c.Id).OrderBy(id => id)
                 .SequenceEqual(request.UpdateProgramDto.CategoryIds.OrderBy(id => id)) == false;
 
@@ -132,10 +126,16 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var oldSections = program.Sections.ToList();
 
-            ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
-            if (!EnsureReplaceSameSections(oldSections, request.UpdateProgramDto.Sections, imagesByIdResult.Value))
+            var sectionsChanged = EnsureReplaceSameSections(oldSections, request.UpdateProgramDto.Sections, imagesByIdResult.Value);
+            if (!sectionsChanged)
             {
+                ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
                 program.Localizations.Clear();
+            }
+
+            if (programFieldsChanged || sectionsChanged)
+            {
+                SerTranslationsToOutdated(program);
             }
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
@@ -167,6 +167,25 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         catch (ValidationException vex)
         {
             return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+    }
+
+    private static void SerTranslationsToOutdated(HippotherapyProgram program)
+    {
+        foreach (var loc in program.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+
+        var sections = program.Sections.ToList();
+        var contentsToOutdated = sections
+            .SelectMany(s => s.Contents
+                .SelectMany(c => c.Localizations))
+            .ToList();
+
+        foreach (var content in contentsToOutdated)
+        {
+            content.TranslationStatus = TranslationStatus.Outdated;
         }
     }
 
