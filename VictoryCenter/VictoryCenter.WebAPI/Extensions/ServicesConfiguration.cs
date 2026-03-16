@@ -210,6 +210,7 @@ public static class ServicesConfiguration
         await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPartnersPageBanner();
+        await app.CreateInitialReportsMediaSettings();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -470,6 +471,40 @@ public static class ServicesConfiguration
         if (!await dbContext.PartnersPageBanners.AnyAsync())
         {
             dbContext.PartnersPageBanners.Add(banner);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static async Task CreateInitialReportsMediaSettings(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        var changedLives = new ChangedLivesBlock
+        {
+            Title = "Змінено життів",
+            ChangedLivesCount = 125,
+            CreatedAt = DateTimeOffset.UtcNow,
+            ImageId = null
+        };
+
+        var collectedFunds = new CollectedFundsBlock
+        {
+            Title = "Змінено життів",
+            CollectedAmount = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            ImageId = null
+        };
+
+        if (!await dbContext.ChangedLivesBlocks.AnyAsync())
+        {
+            dbContext.ChangedLivesBlocks.Add(changedLives);
+            await dbContext.SaveChangesAsync();
+        }
+
+        if (!await dbContext.CollectedFundsBlocks.AnyAsync())
+        {
+            dbContext.CollectedFundsBlocks.Add(collectedFunds);
             await dbContext.SaveChangesAsync();
         }
     }
