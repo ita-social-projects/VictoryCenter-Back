@@ -490,7 +490,7 @@ public static class ServicesConfiguration
 
         var collectedFunds = new CollectedFundsBlock
         {
-            Title = "Змінено життів",
+            Title = "Зібрано коштів",
             CollectedAmount = 0,
             CreatedAt = DateTimeOffset.UtcNow,
             ImageId = null
