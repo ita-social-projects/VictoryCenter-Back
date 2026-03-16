@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Delete;
 using VictoryCenter.BLL.Constants;
@@ -69,6 +70,28 @@ public class DeleteReportFundsExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(_record, saveResult: 0);
+        var handler = new DeleteReportFundsExpendituresRecordHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new DeleteReportFundsExpendituresRecordCommand(_record.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            ErrorMessagesConstants.FailedToDeleteEntity(typeof(ReportFundsExpendituresRecord)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
+    {
+        // Arrange
+        SetupDependencies(_record, saveResult: 1);
+        _repositoryWrapperMock
+            .Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException("Database error"));
         var handler = new DeleteReportFundsExpendituresRecordHandler(_repositoryWrapperMock.Object);
 
         // Act

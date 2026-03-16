@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -34,9 +35,17 @@ public class DeleteReportFundsExpendituresRecordHandler
 
         _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Delete(entityToDelete);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        try
         {
-            return Result.Ok(entityToDelete.Id);
+            if (await _repositoryWrapper.SaveChangesAsync() > 0)
+            {
+                return Result.Ok(entityToDelete.Id);
+            }
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<long>(
+                ErrorMessagesConstants.FailedToDeleteEntity(typeof(ReportFundsExpendituresRecord)));
         }
 
         return Result.Fail<long>(
