@@ -93,7 +93,7 @@ public class UpdateReportFundsExpendituresSettingsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenSettingsNotFound()
+    public async Task Handle_ShouldCreateAndUpdateSettings_WhenSettingsNotFound()
     {
         // Arrange
         SetupDependencies(null, saveResult: 1);
@@ -108,12 +108,12 @@ public class UpdateReportFundsExpendituresSettingsTests
             CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(
-            ErrorMessagesConstants.NotFound(
-                ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
-                typeof(ReportFundsExpendituresSettingsEntity)),
-            result.Errors[0].Message);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(_updateDto.DisclaimerTitle, result.Value.DisclaimerTitle);
+        Assert.Equal(_updateDto.ExchangeRate, result.Value.ExchangeRate);
+        _settingsRepositoryMock.Verify(
+            repository => repository.CreateAsync(It.IsAny<ReportFundsExpendituresSettingsEntity>()),
+            Times.Once);
     }
 
     [Fact]
@@ -170,6 +170,10 @@ public class UpdateReportFundsExpendituresSettingsTests
         _settingsRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresSettingsEntity>>()))
             .ReturnsAsync(settings);
+
+        _settingsRepositoryMock
+            .Setup(repository => repository.CreateAsync(It.IsAny<ReportFundsExpendituresSettingsEntity>()))
+            .ReturnsAsync((ReportFundsExpendituresSettingsEntity entity) => entity);
 
         _settingsRepositoryMock.Setup(repository => repository.Update(It.IsAny<ReportFundsExpendituresSettingsEntity>()));
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);

@@ -5,8 +5,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresSettings.Update;
@@ -36,20 +36,13 @@ public class UpdateReportFundsExpendituresSettingsHandler
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var entityToUpdate = await _repositoryWrapper.ReportFundsExpendituresSettingsRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresSettingsEntity>
-                {
-                    Filter = settings => settings.Id == ReportFundsExpendituresSettingsConstants.SingletonSettingsId
-                });
-
-            if (entityToUpdate is null)
+            var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(_repositoryWrapper);
+            if (settingsResult.IsFailed)
             {
-                return Result.Fail<ReportFundsExpendituresSettingsDto>(
-                    ErrorMessagesConstants.NotFound(
-                        ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
-                        typeof(ReportFundsExpendituresSettingsEntity)));
+                return Result.Fail<ReportFundsExpendituresSettingsDto>(settingsResult.Errors);
             }
 
+            var entityToUpdate = settingsResult.Value;
             _mapper.Map(request.UpdateReportFundsExpendituresSettingsDto, entityToUpdate);
             _repositoryWrapper.ReportFundsExpendituresSettingsRepository.Update(entityToUpdate);
 
