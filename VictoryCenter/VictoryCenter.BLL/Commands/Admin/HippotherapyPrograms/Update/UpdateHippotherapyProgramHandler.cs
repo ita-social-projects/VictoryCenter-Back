@@ -135,21 +135,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             if (programFieldsChanged || sectionsChanged)
             {
-                foreach (var loc in program.Localizations)
-                {
-                    loc.TranslationStatus = TranslationStatus.Outdated;
-                }
-
-                var sections = program.Sections.ToList();
-                var contentsToOutdated = sections
-                    .SelectMany(s => s.Contents
-                        .SelectMany(c => c.Localizations))
-                    .ToList();
-
-                foreach (var content in contentsToOutdated)
-                {
-                    content.TranslationStatus = TranslationStatus.Outdated;
-                }
+                SerTranslationsToOutdated(program);
             }
 
             _repositoryWrapper.HippotherapyProgramsRepository.Update(program);
@@ -181,6 +167,25 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         catch (ValidationException vex)
         {
             return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
+        }
+    }
+
+    private static void SerTranslationsToOutdated(HippotherapyProgram program)
+    {
+        foreach (var loc in program.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+
+        var sections = program.Sections.ToList();
+        var contentsToOutdated = sections
+            .SelectMany(s => s.Contents
+                .SelectMany(c => c.Localizations))
+            .ToList();
+
+        foreach (var content in contentsToOutdated)
+        {
+            content.TranslationStatus = TranslationStatus.Outdated;
         }
     }
 
