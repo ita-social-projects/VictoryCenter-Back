@@ -214,7 +214,7 @@ public static class ServicesConfiguration
         await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPartnersPageBanner();
-        await app.CreateInitialReportsMediaSettings();
+        await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
     }
 
@@ -480,7 +480,7 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialReportsMediaSettings(this WebApplication app)
+    private static async Task CreateInitialReportsMediaSettingsAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
