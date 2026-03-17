@@ -7,6 +7,5 @@ public enum ContentType
     Image,
     Card,
     Author,
-    Question,
-    Answer
+    FaqQuestion
 }

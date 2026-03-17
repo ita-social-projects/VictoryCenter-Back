@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 
@@ -13,6 +14,6 @@ public record HippotherapyProgramSectionContentDto
     public string? Description { get; init; }
     public ImageDto? Image { get; init; }
     public string? Author { get; init; }
-    public string? Question { get; init; }
-    public string? Answer { get; init; }
+    public FaqSectionQuestionDto? FaqQuestion { get; init; }
+    public List<HippotherapyProgramSectionContentLocalizationDto> Localizations { get; init; } = [];
 }

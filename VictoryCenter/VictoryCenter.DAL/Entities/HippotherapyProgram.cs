@@ -1,9 +1,11 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class HippotherapyProgram : BaseEntity
+public class HippotherapyProgram : BaseEntity, ITranslatedEntity<HippotherapyProgramLocalization>
 {
     public string Name { get; set; } = null!;
     public string? Slug { get; set; }
@@ -18,4 +20,5 @@ public class HippotherapyProgram : BaseEntity
     public Image? PreviewImage { get; set; }
     public ICollection<HippotherapyProgramCategory> Categories { get; set; } = [];
     public ICollection<HippotherapyProgramSection> Sections { get; set; } = [];
+    public ICollection<HippotherapyProgramLocalization> Localizations { get; set; } = [];
 }

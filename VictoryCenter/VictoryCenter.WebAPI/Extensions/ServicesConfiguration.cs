@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
@@ -23,6 +24,7 @@ using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.PdfStorage;
@@ -147,6 +149,8 @@ public static class ServicesConfiguration
 
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
 
+        services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
+
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
     }
@@ -211,6 +215,7 @@ public static class ServicesConfiguration
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialReportsMediaSettings();
+        await app.CreateInitialReportFundsExpendituresSettings();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -505,6 +510,18 @@ public static class ServicesConfiguration
         }
 
         await dbContext.SaveChangesAsync();
+    }
+  
+    private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var repositoryWrapper = asyncServiceScope.ServiceProvider.GetRequiredService<IRepositoryWrapper>();
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper);
+
+        if (settingsResult.IsFailed)
+        {
+            throw new InvalidOperationException(settingsResult.Errors[0].Message);
+        }
     }
 
     private static void AddOpenApi(this IServiceCollection services)

@@ -45,6 +45,14 @@ public class GetHippotherapyProgramBySlugHandler
             return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
         }
 
+        var assignFaqQuestionsResult = await FaqQuestionHelper
+            .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, program.Sections);
+
+        if (assignFaqQuestionsResult.IsFailed)
+        {
+            return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
+        }
+
         return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));
     }
 }

@@ -46,7 +46,11 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<TeamCategoryLocalization> TeamCategoryLocalizations { get; set; }
 
+    public DbSet<HippotherapyProgramLocalization> HippotherapyProgramLocalizations { get; set; }
+
     public DbSet<FaqQuestionLocalization> FaqLocalizations { get; set; }
+
+    public DbSet<ProgramSectionContentLocalization> ProgramSectionContentLocalizations { get; set; }
 
     public DbSet<WhoWeAreContentLocalization> WhoWeAreContentLocalizations { get; set; }
 
@@ -67,6 +71,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<ChangedLivesBlock> ChangedLivesBlocks { get; set; }
 
     public DbSet<CollectedFundsBlock> CollectedFundsBlocks { get; set; }
+
+    public DbSet<ReportFundsExpendituresSettings> ReportFundsExpendituresSettings { get; set; }
+
+    public DbSet<ReportFundsExpendituresCategory> ReportFundsExpendituresCategories { get; set; }
+
+    public DbSet<ReportFundsExpendituresRecord> ReportFundsExpendituresRecords { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
