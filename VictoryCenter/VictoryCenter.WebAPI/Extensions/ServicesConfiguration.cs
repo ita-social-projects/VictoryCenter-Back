@@ -480,33 +480,31 @@ public static class ServicesConfiguration
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
-        var changedLives = new ChangedLivesBlock
-        {
-            Title = "Змінено життів",
-            ChangedLivesCount = 125,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = null
-        };
-
-        var collectedFunds = new CollectedFundsBlock
-        {
-            Title = "Зібрано коштів",
-            CollectedAmount = 0,
-            CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = null
-        };
-
         if (!await dbContext.ChangedLivesBlocks.AnyAsync())
         {
+            var changedLives = new ChangedLivesBlock
+            {
+                Title = "Змінено життів",
+                ChangedLivesCount = 205,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ImageId = null
+            };
             dbContext.ChangedLivesBlocks.Add(changedLives);
-            await dbContext.SaveChangesAsync();
         }
 
         if (!await dbContext.CollectedFundsBlocks.AnyAsync())
         {
+            var collectedFunds = new CollectedFundsBlock
+            {
+                Title = "Зібрано коштів на реабілітацію",
+                CollectedAmount = 0,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ImageId = null
+            };
             dbContext.CollectedFundsBlocks.Add(collectedFunds);
-            await dbContext.SaveChangesAsync();
         }
+
+        await dbContext.SaveChangesAsync();
     }
 
     private static void AddOpenApi(this IServiceCollection services)
