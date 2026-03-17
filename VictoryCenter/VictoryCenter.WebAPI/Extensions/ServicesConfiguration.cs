@@ -511,7 +511,7 @@ public static class ServicesConfiguration
 
         await dbContext.SaveChangesAsync();
     }
-  
+
     private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
