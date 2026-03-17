@@ -72,6 +72,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<CollectedFundsBlock> CollectedFundsBlocks { get; set; }
 
+    public DbSet<ReportFundsExpendituresSettings> ReportFundsExpendituresSettings { get; set; }
+
+    public DbSet<ReportFundsExpendituresCategory> ReportFundsExpendituresCategories { get; set; }
+
+    public DbSet<ReportFundsExpendituresRecord> ReportFundsExpendituresRecords { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

@@ -1,0 +1,3 @@
+namespace VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresCategories;
+
+public record CreateReportFundsExpendituresCategoryDto : BaseReportFundsExpendituresCategoryDto;
