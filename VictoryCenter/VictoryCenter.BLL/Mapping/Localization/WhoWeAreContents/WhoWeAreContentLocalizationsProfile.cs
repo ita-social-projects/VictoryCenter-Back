@@ -12,6 +12,9 @@ public class WhoWeAreContentLocalizationsProfile : Profile
         CreateMap<CreateWhoWeAreContentLocalizationDto, WhoWeAreContentLocalization>()
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
+        CreateMap<UpdateWhoWeAreContentLocalizationDto, WhoWeAreContentLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+
         CreateMap<WhoWeAreContentLocalization, WhoWeAreContentLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
     }
