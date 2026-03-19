@@ -267,7 +267,7 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_ProgramFieldsUnchanged_KeepsProgramLocalizationsRelevant()
+    public async Task Handle_ProgramFieldsUnchanged_MarksProgramLocalizationsOutdated()
     {
         var program = Program();
         program.Name = "SameName";
@@ -290,7 +290,7 @@ public class UpdateHippotherapyProgramTests
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
     }
 
     [Fact]
@@ -328,7 +328,7 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_SameSectionStructureAndUnchangedTitle_KeepsContentLocalizationsRelevant()
+    public async Task Handle_SameSectionStructureAndUnchangedTitle_MarksContentLocalizationsOutdated()
     {
         var content = new TitleProgramContent
         {
@@ -357,7 +357,7 @@ public class UpdateHippotherapyProgramTests
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
     }
 
     [Fact]
@@ -455,7 +455,7 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_SameStructureAndImageChanged_DoesNotMarkContentLocalizationsOutdated()
+    public async Task Handle_SameStructureAndImageChanged_MarksContentLocalizationsOutdated()
     {
         var content = new ImageProgramContent
         {
@@ -472,7 +472,7 @@ public class UpdateHippotherapyProgramTests
         await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateImageContent(0, 2))])), CancellationToken.None);
 
         Assert.Equal(2, content.ImageId);
-        Assert.Equal(TranslationStatus.Relevant, content.Localizations.Single().TranslationStatus);
+        Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
     }
 
     [Fact]

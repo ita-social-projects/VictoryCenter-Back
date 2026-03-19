@@ -14,6 +14,9 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
@@ -32,6 +35,9 @@ using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.Partners;
+using VictoryCenter.DAL.Repositories.Realizations.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Realizations.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Realizations.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Realizations.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
@@ -72,6 +78,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
     private ICollectedFundsBlockRepository? _collectedFundsBlockRepository;
     private IChangedLivesBlockRepository? _changedLivesBlockRepository;
+    private IReportFundsExpendituresCategoriesRepository? _reportFundsExpendituresCategoriesRepository;
+    private IReportFundsExpendituresRecordsRepository? _reportFundsExpendituresRecordsRepository;
+    private IReportFundsExpendituresSettingsRepository? _reportFundsExpendituresSettingsRepository;
     private IHippotherapyProgramsLocalizationsRepository? _programsLocalizationsRepository;
     private IProgramSectionContentsRepository? _programSectionContentsRepository;
     private IProgramSectionContentLocalizationsRepository? _programSectionContentLocalizationsRepository;
@@ -123,6 +132,15 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ICollectedFundsBlockRepository CollectedFundsBlockRepository => _collectedFundsBlockRepository ??= new CollectedFundsBlockRepository(_victoryCenterDbContext);
 
     public IChangedLivesBlockRepository ChangedLivesBlockRepository => _changedLivesBlockRepository ??= new ChangedLivesBlockRepository(_victoryCenterDbContext);
+
+    public IReportFundsExpendituresCategoriesRepository ReportFundsExpendituresCategoriesRepository =>
+        _reportFundsExpendituresCategoriesRepository ??= new ReportFundsExpendituresCategoriesRepository(_victoryCenterDbContext);
+
+    public IReportFundsExpendituresRecordsRepository ReportFundsExpendituresRecordsRepository =>
+        _reportFundsExpendituresRecordsRepository ??= new ReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository =>
+        _reportFundsExpendituresSettingsRepository ??= new ReportFundsExpendituresSettingsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

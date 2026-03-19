@@ -214,6 +214,7 @@ public static class ServicesConfiguration
         await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPartnersPageBanner();
+        await app.CreateInitialReportFundsExpendituresSettings();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -475,6 +476,18 @@ public static class ServicesConfiguration
         {
             dbContext.PartnersPageBanners.Add(banner);
             await dbContext.SaveChangesAsync();
+        }
+    }
+
+    private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var repositoryWrapper = asyncServiceScope.ServiceProvider.GetRequiredService<IRepositoryWrapper>();
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper);
+
+        if (settingsResult.IsFailed)
+        {
+            throw new InvalidOperationException(settingsResult.Errors[0].Message);
         }
     }
 
