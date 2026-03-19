@@ -8,7 +8,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Commands.Admin.Localization.WhoWeAreContents;
+namespace VictoryCenter.BLL.Helpers;
 
 internal static class WhoWeAreContentLocalizationHandlerHelper
 {
