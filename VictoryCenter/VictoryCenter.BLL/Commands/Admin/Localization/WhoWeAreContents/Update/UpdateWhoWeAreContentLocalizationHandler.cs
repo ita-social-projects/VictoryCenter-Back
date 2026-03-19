@@ -4,13 +4,10 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.WhoWeAreContents;
 using VictoryCenter.BLL.Interfaces.Localization;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -42,34 +39,19 @@ public class UpdateWhoWeAreContentLocalizationHandler : IRequestHandler<UpdateWh
             using var transaction = _repository.BeginTransaction();
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var dictEntities = await GetContentToLocalizeMappedToDictionary(request.ContentLocalizationDtos);
-            var sectionId = await GetSectionIdByType(request.SectionType) ??
-                            throw new ArgumentException(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(request.SectionType)));
+            var sanitizedDtosResult = await WhoWeAreContentLocalizationHandlerHelper.ValidateAndSanitizeAsync(
+                _repository,
+                request.SectionType,
+                request.ContentLocalizationDtos);
 
-            var localizationsToUpdate = new List<WhoWeAreContentLocalization>();
-
-            foreach (var dto in request.ContentLocalizationDtos)
+            if (sanitizedDtosResult.IsFailed)
             {
-                if (!dictEntities.TryGetValue(dto.EntityId, out var whoWeAreContent))
-                {
-                    return Result.Fail(ErrorMessagesConstants.NotFound(dto.EntityId, typeof(WhoWeAreContent)));
-                }
-
-                if (whoWeAreContent.SectionId != sectionId)
-                {
-                    return Result.Fail(WhoWeAreConstants.EntityDoesNotBelongToTheSection(typeof(WhoWeAreContent), request.SectionType));
-                }
-
-                var validationError = ValidateDtoFieldsMatchContentType(dto, whoWeAreContent);
-                if (validationError != null)
-                {
-                    return Result.Fail(validationError);
-                }
-
-                var sanitizedDto = SanitizeDtoBasedOnContentType(dto, whoWeAreContent);
-
-                localizationsToUpdate.Add(_mapper.Map<WhoWeAreContentLocalization>(sanitizedDto));
+                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors.Select(e => e.Message));
             }
+
+            var localizationsToUpdate = sanitizedDtosResult.Value
+                .Select(sanitizedDto => _mapper.Map<WhoWeAreContentLocalization>(sanitizedDto))
+                .ToList();
 
             await _localizationService.TrackEntityLocalizationAsync(localizationsToUpdate, true);
 
@@ -115,54 +97,5 @@ public class UpdateWhoWeAreContentLocalizationHandler : IRequestHandler<UpdateWh
             return Result.Fail<List<WhoWeAreContentLocalizationDto>>(ErrorMessagesConstants.
                 FailedToUpdateEntityInDatabase(typeof(WhoWeAreContentLocalization)));
         }
-    }
-
-    private async Task<Dictionary<long, WhoWeAreContent>> GetContentToLocalizeMappedToDictionary(List<UpdateWhoWeAreContentLocalizationDto> content)
-    {
-        var contentIds = content.Select(x => x.EntityId).ToList();
-
-        var entities = await _repository.WhoWeAreContentsRepository.GetAllAsync(new QueryOptions<WhoWeAreContent>
-        {
-            Filter = w => contentIds.Contains(w.Id)
-        });
-
-        return entities.ToDictionary(x => x.Id, x => x);
-    }
-
-    private async Task<long?> GetSectionIdByType(SectionType sectionType)
-    {
-        var section = await _repository.WhoWeAreSectionsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<WhoWeAreSection>
-            {
-                Filter = x => x.SectionType == sectionType
-            });
-
-        return section?.Id;
-    }
-
-    private static string? ValidateDtoFieldsMatchContentType(UpdateWhoWeAreContentLocalizationDto dto, WhoWeAreContent content)
-    {
-        return content switch
-        {
-            ImageContent => WhoWeAreContentLocalizationConstants.CannotCreateLocalizationForContentType(typeof(ImageContent), dto.EntityId),
-            TitleContent when string.IsNullOrWhiteSpace(dto.Title) =>
-                WhoWeAreContentLocalizationConstants.FieldIsRequiredForContentType(nameof(dto.Title), typeof(TitleContent), dto.EntityId),
-            DescriptionContent when string.IsNullOrWhiteSpace(dto.Description) =>
-                WhoWeAreContentLocalizationConstants.FieldIsRequiredForContentType(nameof(dto.Description), typeof(DescriptionContent), dto.EntityId),
-            CardContent when string.IsNullOrWhiteSpace(dto.Description) =>
-                WhoWeAreContentLocalizationConstants.FieldIsRequiredForContentType(nameof(dto.Description), typeof(CardContent), dto.EntityId),
-            _ => null
-        };
-    }
-
-    private static UpdateWhoWeAreContentLocalizationDto SanitizeDtoBasedOnContentType(UpdateWhoWeAreContentLocalizationDto dto, WhoWeAreContent content)
-    {
-        return content switch
-        {
-            TitleContent => dto with { Description = null },
-            DescriptionContent => dto with { Title = null },
-            CardContent => dto with { Title = null },
-            _ => dto
-        };
     }
 }
