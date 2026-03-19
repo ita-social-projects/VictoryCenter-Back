@@ -72,6 +72,14 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<CollectedFundsBlock> CollectedFundsBlocks { get; set; }
 
+    public DbSet<CompanyProfile> CompanyProfiles { get; set; }
+
+    public DbSet<CompanyProfileContact> CompanyProfileContacts { get; set; }
+
+    public DbSet<CompanyProfileRequisite> CompanyProfileRequisites { get; set; }
+
+    public DbSet<CompanyProfileSocialLink> CompanyProfileSocialLinks { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
