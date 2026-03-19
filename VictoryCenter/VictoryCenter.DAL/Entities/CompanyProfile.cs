@@ -7,5 +7,5 @@ public class CompanyProfile : BaseEntity
     public CompanyProfileContact Contact { get; set; } = null!;
     public CompanyProfileRequisite Requisite { get; set; } = null!;
 
-    public ICollection<CompanyProfileSocialLink> SocialLinks { get; set; } = new List<CompanyProfileSocialLink>();
+    public ICollection<CompanyProfileSocialLink> SocialLinks { get; set; } = [];
 }
