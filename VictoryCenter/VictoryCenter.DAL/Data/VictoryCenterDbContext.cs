@@ -79,7 +79,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<CompanyProfileRequisite> CompanyProfileRequisites { get; set; }
 
     public DbSet<CompanyProfileSocialLink> CompanyProfileSocialLinks { get; set; }
-    
+
     public DbSet<ReportFundsExpendituresSettings> ReportFundsExpendituresSettings { get; set; }
 
     public DbSet<ReportFundsExpendituresCategory> ReportFundsExpendituresCategories { get; set; }
