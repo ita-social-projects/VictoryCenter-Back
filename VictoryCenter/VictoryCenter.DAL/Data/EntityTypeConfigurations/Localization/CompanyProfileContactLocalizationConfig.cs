@@ -14,9 +14,9 @@ public class CompanyProfileContactLocalizationConfig
         entity.HasIndex(e => e.LanguageId);
 
         entity.Property(e => e.Address)
-            .HasMaxLength(300);
+            .HasMaxLength(100);
 
         entity.Property(e => e.Motto)
-            .HasMaxLength(300);
+            .HasMaxLength(200);
     }
 }

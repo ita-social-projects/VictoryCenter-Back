@@ -31,11 +31,11 @@ namespace VictoryCenter.DAL.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProfileId = table.Column<long>(type: "bigint", nullable: false),
-                    Phone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CorrespondenceEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Motto = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    CorrespondenceEmail = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Motto = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -56,9 +56,9 @@ namespace VictoryCenter.DAL.Migrations
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ProfileId = table.Column<long>(type: "bigint", nullable: false),
-                    Recipient = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    Edrpou = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    Recipient = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Edrpou = table.Column<string>(type: "nvarchar(8)", maxLength: 8, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
@@ -94,11 +94,77 @@ namespace VictoryCenter.DAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "CompanyProfileContactLocalization",
+                columns: table => new
+                {
+                    EntityId = table.Column<long>(type: "bigint", nullable: false),
+                    LanguageId = table.Column<long>(type: "bigint", nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Motto = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    TranslationStatus = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CompanyProfileContactLocalization", x => new { x.EntityId, x.LanguageId });
+                    table.ForeignKey(
+                        name: "FK_CompanyProfileContactLocalization_CompanyProfileContacts_EntityId",
+                        column: x => x.EntityId,
+                        principalTable: "CompanyProfileContacts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CompanyProfileContactLocalization_LocalizationLanguages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "LocalizationLanguages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CompanyProfileRequisiteLocalization",
+                columns: table => new
+                {
+                    EntityId = table.Column<long>(type: "bigint", nullable: false),
+                    LanguageId = table.Column<long>(type: "bigint", nullable: false),
+                    Recipient = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    TranslationStatus = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CompanyProfileRequisiteLocalization", x => new { x.EntityId, x.LanguageId });
+                    table.ForeignKey(
+                        name: "FK_CompanyProfileRequisiteLocalization_CompanyProfileRequisites_EntityId",
+                        column: x => x.EntityId,
+                        principalTable: "CompanyProfileRequisites",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CompanyProfileRequisiteLocalization_LocalizationLanguages_LanguageId",
+                        column: x => x.LanguageId,
+                        principalTable: "LocalizationLanguages",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CompanyProfileContactLocalization_LanguageId",
+                table: "CompanyProfileContactLocalization",
+                column: "LanguageId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_CompanyProfileContacts_ProfileId",
                 table: "CompanyProfileContacts",
                 column: "ProfileId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CompanyProfileRequisiteLocalization_LanguageId",
+                table: "CompanyProfileRequisiteLocalization",
+                column: "LanguageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CompanyProfileRequisites_ProfileId",
@@ -117,13 +183,19 @@ namespace VictoryCenter.DAL.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "CompanyProfileContactLocalization");
+
+            migrationBuilder.DropTable(
+                name: "CompanyProfileRequisiteLocalization");
+
+            migrationBuilder.DropTable(
+                name: "CompanyProfileSocialLinks");
+
+            migrationBuilder.DropTable(
                 name: "CompanyProfileContacts");
 
             migrationBuilder.DropTable(
                 name: "CompanyProfileRequisites");
-
-            migrationBuilder.DropTable(
-                name: "CompanyProfileSocialLinks");
 
             migrationBuilder.DropTable(
                 name: "CompanyProfiles");

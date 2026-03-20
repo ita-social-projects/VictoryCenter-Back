@@ -17,19 +17,19 @@ public class CompanyProfileContactConfig : IEntityTypeConfiguration<CompanyProfi
             .IsRequired();
 
         builder.Property(e => e.Phone)
-            .HasMaxLength(50);
+            .HasMaxLength(20);
 
         builder.Property(e => e.Address)
-            .HasMaxLength(300);
+            .HasMaxLength(100);
 
         builder.Property(e => e.Email)
-            .HasMaxLength(100);
+            .HasMaxLength(50);
 
         builder.Property(e => e.CorrespondenceEmail)
-            .HasMaxLength(100);
+            .HasMaxLength(50);
 
         builder.Property(e => e.Motto)
-            .HasMaxLength(300);
+            .HasMaxLength(200);
 
         builder.HasIndex(e => e.ProfileId)
             .IsUnique();
