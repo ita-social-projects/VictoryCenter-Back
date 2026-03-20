@@ -213,6 +213,7 @@ public static class ServicesConfiguration
         await app.SeedVisitorPagesAsync();
         await app.CreateInitialLocalizationLanguages();
         await app.CreateInitialWhoWeArePages();
+        await app.CreateInitialPdfSection();
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialReportFundsExpendituresSettings();
     }
@@ -457,6 +458,26 @@ public static class ServicesConfiguration
             dbContext.AddRange(sectionsToAdd);
             await dbContext.SaveChangesAsync();
         }
+    }
+
+    private static async Task CreateInitialPdfSection(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        if (await dbContext.PdfSections.AnyAsync())
+        {
+            return;
+        }
+
+        var pdfSection = new PdfSection
+        {
+            Title = "Результат у звітах",
+            Description = "Для того, щоб побачити детальнішу інформацію, завантажте звіт конкретного року. Якщо цікавить щось інше, чи бажаєте дізнатись більше, зверніться до нас",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        dbContext.PdfSections.Add(pdfSection);
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task CreateInitialPartnersPageBanner(this WebApplication app)

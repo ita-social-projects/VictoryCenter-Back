@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260225190139_AddPdfSection")]
+    partial class AddPdfSection
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -622,45 +625,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("FaqLocalizations");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyProgramLocalization", b =>
-                {
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Location")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MeetingsCount")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ParticipantsCount")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TranslationStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("EntityId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("HippotherapyProgramLocalizations");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", b =>
                 {
                     b.Property<long>("Id")
@@ -689,44 +653,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("LocalizationLanguages");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ProgramSectionContentLocalization", b =>
-                {
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Answer")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Author")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Question")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TranslationStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("EntityId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("ProgramSectionContentLocalizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.TeamCategoryLocalization", b =>
@@ -976,88 +902,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("PdfSections");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ReportFundsExpendituresCategories");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresRecord", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("AmountUah")
-                        .HasPrecision(13, 2)
-                        .HasColumnType("decimal(13,2)");
-
-                    b.Property<decimal>("AmountUsd")
-                        .HasPrecision(13, 2)
-                        .HasColumnType("decimal(13,2)");
-
-                    b.Property<long>("CategoryId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("ReportingYear")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("ReportFundsExpendituresRecords");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings", b =>
-                {
-                    b.Property<long>("Id")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("DisclaimerTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("ExchangeRate")
-                        .HasPrecision(18, 6)
-                        .HasColumnType("decimal(18,6)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ReportFundsExpendituresSettings", t =>
-                        {
-                            t.HasCheckConstraint("CK_ReportFundsExpendituresSettings_SingletonId", "Id = 1");
-                        });
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.SupportOptions", b =>
                 {
                     b.Property<long>("Id")
@@ -1273,6 +1117,17 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("WhoWeAreSections");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.AnswerProgramContent", b =>
+                {
+                    b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
+
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasDiscriminator().HasValue(6);
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.AuthorProgramContent", b =>
                 {
                     b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
@@ -1295,18 +1150,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasDiscriminator().HasValue(1);
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.FaqQuestionProgramContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
-
-                    b.Property<long>("FaqQuestionId")
-                        .HasColumnType("bigint");
-
-                    b.HasIndex("FaqQuestionId");
-
-                    b.HasDiscriminator().HasValue(5);
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ImageProgramContent", b =>
                 {
                     b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
@@ -1317,6 +1160,17 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("ImageId");
 
                     b.HasDiscriminator().HasValue(2);
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.QuestionProgramContent", b =>
+                {
+                    b.HasBaseType("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasDiscriminator().HasValue(5);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.TitleProgramContent", b =>
@@ -1560,44 +1414,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Language");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyProgramLocalization", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.HippotherapyProgram", "Entity")
-                        .WithMany("Localizations")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("Language");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ProgramSectionContentLocalization", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent", "Entity")
-                        .WithMany("Localizations")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.TeamCategoryLocalization", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.TeamCategory", "Entity")
@@ -1684,17 +1500,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresRecord", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", "Category")
-                        .WithMany("Records")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Category");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.TeamCategory", "TeamCategory")
@@ -1721,17 +1526,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Section");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.FaqQuestionProgramContent", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.FaqQuestion", "FaqQuestion")
-                        .WithMany()
-                        .HasForeignKey("FaqQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("FaqQuestion");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ImageProgramContent", b =>
@@ -1777,14 +1571,7 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgram", b =>
                 {
-                    b.Navigation("Localizations");
-
                     b.Navigation("Sections");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent", b =>
-                {
-                    b.Navigation("Localizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramSection", b =>
@@ -1795,11 +1582,6 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnerSection", b =>
                 {
                     b.Navigation("Partners");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", b =>
-                {
-                    b.Navigation("Records");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamCategory", b =>

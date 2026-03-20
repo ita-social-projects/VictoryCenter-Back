@@ -18,6 +18,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
+using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
@@ -33,6 +34,7 @@ public interface IRepositoryWrapper
     IVisitorPagesRepository VisitorPagesRepository { get; }
     IImageRepository ImageRepository { get; }
     IPdfReportRepository PdfReportRepository { get; }
+    IPdfSectionRepository PdfSectionRepository { get; }
     IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository { get; }
     IHippotherapyProgramsRepository HippotherapyProgramsRepository { get; }
     ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }
