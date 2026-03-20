@@ -96,7 +96,13 @@ reviews:
     enabled: true
     auto_incremental_review: true
     drafts: true
-    base_branches: ["main", "^release\/.*", "^feature\/.*", "^hotfix\/.*"]
+    base_branches:
+    - "main"
+    - "develop"
+    - "^release\/.*"
+    - "^hotfix\/.*"
+    - "^feature\/.*"
+    - "^fix\/.*"
 
 chat:
   auto_reply: true
