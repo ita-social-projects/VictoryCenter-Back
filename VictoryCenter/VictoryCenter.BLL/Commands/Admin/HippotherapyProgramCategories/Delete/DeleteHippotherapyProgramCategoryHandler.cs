@@ -19,7 +19,7 @@ public class DeleteHippotherapyProgramCategoryHandler : IRequestHandler<DeleteHi
 
     public async Task<Result<long>> Handle(DeleteHippotherapyProgramCategoryCommand request, CancellationToken cancellationToken)
     {
-        HippotherapyProgramCategory? entityToDelete = await _repositoryWrapper.HippotherapyProgramCategoriesRepository
+        var entityToDelete = await _repositoryWrapper.HippotherapyProgramCategoriesRepository
             .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
             {
                 Filter = programCategory => programCategory.Id == request.Id,

@@ -221,81 +221,61 @@ public class HippotherapyProgramSectionsBuilderTests
     }
 
     [Fact]
-    public void Build_CreatesQuestionProgramContent()
+    public void Build_CreatesFaqQuestionProgramContent()
     {
-        var dto = Section(order: 1, Title(order: 0, "Title"), Question(order: 1, "Question?"));
+        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, "Question?", "Answer."));
 
         var result = Build([dto]);
 
-        var content = result[0].Contents.First(x => x.ContentType == ContentType.Question);
+        var content = result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
 
-        Assert.IsType<QuestionProgramContent>(content);
+        Assert.IsType<FaqQuestionProgramContent>(content);
     }
 
     [Fact]
-    public void Build_TrimsQuestion()
+    public void Build_SetsFaqQuestionTexts()
     {
-        var dto = Section(order: 1, Title(order: 0, "Title"), Question(order: 1, "  Question?  "));
+        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, "  My question?  ", "  My answer.  "));
 
         var result = Build([dto]);
 
-        var question = (QuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Question);
+        var content = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
 
-        Assert.Equal("Question?", question.Question);
+        Assert.Equal("My question?", content.FaqQuestion.QuestionText);
+        Assert.Equal("My answer.", content.FaqQuestion.AnswerText);
     }
 
     [Fact]
-    public void Build_MapsGroupIndex_ForQuestion()
+    public void Build_SetsFaqQuestionCreatedAt()
+    {
+        var dto = Section(order: 1, Title(order: 0, "Title"), FaqQuestion(order: 1, "Question?", "Answer."));
+
+        var result = Build([dto]);
+
+        var content = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
+
+        Assert.Equal(CreatedAt, content.FaqQuestion.CreatedAt);
+    }
+
+    [Fact]
+    public void Build_MapsGroupIndex_ForFaqQuestion()
     {
         var dto = Section(
             order: 1,
             Title(order: 0, "Title"),
-            new CreateProgramSectionContentDto { ContentType = ContentType.Question, Order = 1, GroupIndex = 2, Question = "Question?" });
+            new CreateProgramSectionContentDto
+            {
+                ContentType = ContentType.FaqQuestion,
+                Order = 1,
+                GroupIndex = 2,
+                FaqQuestion = new CreateFaqSectionQuestionDto { QuestionText = "Question?", AnswerText = "Answer." }
+            });
 
         var result = Build([dto]);
 
-        var question = (QuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Question);
+        var content = (FaqQuestionProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.FaqQuestion);
 
-        Assert.Equal(2, question.GroupIndex);
-    }
-
-    [Fact]
-    public void Build_CreatesAnswerProgramContent()
-    {
-        var dto = Section(order: 1, Title(order: 0, "Title"), Answer(order: 1, "Answer."));
-
-        var result = Build([dto]);
-
-        var content = result[0].Contents.First(x => x.ContentType == ContentType.Answer);
-
-        Assert.IsType<AnswerProgramContent>(content);
-    }
-
-    [Fact]
-    public void Build_TrimsAnswer()
-    {
-        var dto = Section(order: 1, Title(order: 0, "Title"), Answer(order: 1, "  Answer.  "));
-
-        var result = Build([dto]);
-
-        var answer = (AnswerProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Answer);
-
-        Assert.Equal("Answer.", answer.Answer);
-    }
-
-    [Fact]
-    public void Build_MapsGroupIndex_ForAnswer()
-    {
-        var dto = Section(
-            order: 1,
-            Title(order: 0, "Title"),
-            new CreateProgramSectionContentDto { ContentType = ContentType.Answer, Order = 1, GroupIndex = 2, Answer = "Answer." });
-
-        var result = Build([dto]);
-
-        var answer = (AnswerProgramContent)result[0].Contents.First(x => x.ContentType == ContentType.Answer);
-
-        Assert.Equal(2, answer.GroupIndex);
+        Assert.Equal(2, content.GroupIndex);
     }
 
     private static List<HippotherapyProgramSection> Build(
@@ -360,23 +340,13 @@ public class HippotherapyProgramSectionsBuilderTests
         };
     }
 
-    private static CreateProgramSectionContentDto Question(int order, string question)
+    private static CreateProgramSectionContentDto FaqQuestion(int order, string questionText, string answerText)
     {
         return new CreateProgramSectionContentDto
         {
-            ContentType = ContentType.Question,
+            ContentType = ContentType.FaqQuestion,
             Order = order,
-            Question = question
-        };
-    }
-
-    private static CreateProgramSectionContentDto Answer(int order, string answer)
-    {
-        return new CreateProgramSectionContentDto
-        {
-            ContentType = ContentType.Answer,
-            Order = order,
-            Answer = answer
+            FaqQuestion = new CreateFaqSectionQuestionDto { QuestionText = questionText, AnswerText = answerText }
         };
     }
 

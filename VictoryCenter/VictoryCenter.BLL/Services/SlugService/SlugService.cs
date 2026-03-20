@@ -65,7 +65,11 @@ public class SlugService : ISlugService
                 .Include(p => p.PreviewImage)!
                 .Include(p => p.BackgroundImage)!
                 .Include(p => p.Sections)
-                    .ThenInclude(s => s.Contents),
+                    .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => c.Localizations)
+                            .ThenInclude(l => l.Language)
+                .Include(p => p.Localizations)
+                    .ThenInclude(l => l.Language)
         };
 
         return _repositoryWrapper.HippotherapyProgramsRepository.GetFirstOrDefaultAsync(queryOptions);

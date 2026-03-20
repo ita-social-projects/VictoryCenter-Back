@@ -1,0 +1,7 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
+
+namespace VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
+
+public class CreateHippotherapyProgramSectionLocalizationDto : BaseHippotherapyProgramSectionLocalizationDto<CreateHippotherapyProgramSectionContentLocalizationDto>
+{
+}

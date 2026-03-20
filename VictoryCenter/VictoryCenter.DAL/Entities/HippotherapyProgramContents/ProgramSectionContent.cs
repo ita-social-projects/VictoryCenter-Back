@@ -1,8 +1,11 @@
+using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 
-public abstract class ProgramSectionContent
+public abstract class ProgramSectionContent : IEntity, ITranslatedEntity<ProgramSectionContentLocalization>
 {
     public long Id { get; set; }
 
@@ -15,4 +18,6 @@ public abstract class ProgramSectionContent
     public int? GroupIndex { get; set; }
 
     public HippotherapyProgramSection Section { get; set; } = null!;
+
+    public ICollection<ProgramSectionContentLocalization> Localizations { get; set; } = [];
 }

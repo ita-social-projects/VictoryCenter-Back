@@ -50,8 +50,7 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         ValidateDescriptions(section, ctx, contents, req, prop);
         ValidateImages(ctx, contents, prop);
         ValidateAuthors(section, ctx, contents, req, prop);
-        ValidateQuestions(section, ctx, contents, req, prop);
-        ValidateAnswers(section, ctx, contents, req, prop);
+        ValidateFaqQuestions(section, ctx, contents, req, prop);
         ValidateGrouping(section, ctx, contents, req, prop);
     }
 
@@ -80,6 +79,11 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         if (!InRange(CountByType(contents, ContentType.Author), req.AuthorCount))
         {
             ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetAuthorsCountErrorMessage(section));
+        }
+
+        if (!InRange(CountByType(contents, ContentType.FaqQuestion), req.FaqQuestionCount))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetFaqQuestionsCountErrorMessage(section));
         }
     }
 
@@ -173,43 +177,46 @@ public class BaseHippotherapyProgramSectionValidator : AbstractValidator<CreateH
         }
     }
 
-    private static void ValidateQuestions(
+    private static void ValidateFaqQuestions(
         CreateHippotherapyProgramSectionDto section,
         ValidationContext<CreateHippotherapyProgramSectionDto> ctx,
         List<CreateProgramSectionContentDto> contents,
         HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
         string prop)
     {
-        var questions = contents.Where(c => c.ContentType == ContentType.Question).ToList();
-
-        if (questions.Any(c => string.IsNullOrWhiteSpace(c.Question)))
+        if (req.FaqQuestionCount.Min == 0 && req.FaqQuestionCount.Max == 0)
         {
-            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Question)));
+            return;
         }
 
-        if (questions.Any(c => !HasValidLength(c.Question, req.QuestionLength)))
-        {
-            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetQuestionLengthErrorMessage(section));
-        }
-    }
+        var faqQuestions = contents.Where(c => c.ContentType == ContentType.FaqQuestion).ToList();
 
-    private static void ValidateAnswers(
-        CreateHippotherapyProgramSectionDto section,
-        ValidationContext<CreateHippotherapyProgramSectionDto> ctx,
-        List<CreateProgramSectionContentDto> contents,
-        HippotherapyProgramSectionConstants.TemplateRequirementsConfig req,
-        string prop)
-    {
-        var answers = contents.Where(c => c.ContentType == ContentType.Answer).ToList();
-
-        if (answers.Any(c => string.IsNullOrWhiteSpace(c.Answer)))
+        if (faqQuestions.Any(c => c.FaqQuestion is null))
         {
-            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.Answer)));
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateProgramSectionContentDto.FaqQuestion)));
+            return;
         }
 
-        if (answers.Any(c => !HasValidLength(c.Answer, req.AnswerLength)))
+        var newFaqQuestions = faqQuestions.Where(c => c.FaqQuestion!.Id is null or <= 0).ToList();
+
+        if (newFaqQuestions.Any(c => string.IsNullOrWhiteSpace(c.FaqQuestion!.QuestionText)))
         {
-            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetAnswerLengthErrorMessage(section));
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqSectionQuestionDto.QuestionText)));
+        }
+
+        if (newFaqQuestions.Any(c => !HasValidLength(c.FaqQuestion!.QuestionText, req.QuestionTextLength)))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetQuestionTextLengthErrorMessage(section));
+        }
+
+        if (newFaqQuestions.Any(c => string.IsNullOrWhiteSpace(c.FaqQuestion!.AnswerText)))
+        {
+            ctx.AddFailure(prop, ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqSectionQuestionDto.AnswerText)));
+        }
+
+        if (newFaqQuestions.Any(c => !HasValidLength(c.FaqQuestion!.AnswerText, req.AnswerTextLength)))
+        {
+            ctx.AddFailure(prop, HippotherapyProgramSectionConstants.GetAnswerTextLengthErrorMessage(section));
         }
     }
 
