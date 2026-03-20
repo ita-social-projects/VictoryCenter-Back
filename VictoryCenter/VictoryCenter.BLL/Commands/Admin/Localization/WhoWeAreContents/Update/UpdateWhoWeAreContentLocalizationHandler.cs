@@ -10,19 +10,20 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Commands.Admin.Localization.WhoWeAreContents.Create;
+namespace VictoryCenter.BLL.Commands.Admin.Localization.WhoWeAreContents.Update;
 
-public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWhoWeAreContentLocalizationCommand, Result<List<WhoWeAreContentLocalizationDto>>>
+public class UpdateWhoWeAreContentLocalizationHandler : IRequestHandler<UpdateWhoWeAreContentLocalizationCommand, Result<List<WhoWeAreContentLocalizationDto>>>
 {
     private readonly IMapper _mapper;
-    private readonly IValidator<CreateWhoWeAreContentLocalizationCommand> _validator;
+    private readonly IValidator<UpdateWhoWeAreContentLocalizationCommand> _validator;
     private readonly ILocalizationService<WhoWeAreContent, WhoWeAreContentLocalization> _localizationService;
     private readonly IRepositoryWrapper _repository;
 
-    public CreateWhoWeAreContentLocalizationHandler(
+    public UpdateWhoWeAreContentLocalizationHandler(
         IMapper mapper,
-        IValidator<CreateWhoWeAreContentLocalizationCommand> validator,
+        IValidator<UpdateWhoWeAreContentLocalizationCommand> validator,
         ILocalizationService<WhoWeAreContent, WhoWeAreContentLocalization> localizationService,
         IRepositoryWrapper repository)
     {
@@ -32,7 +33,7 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
         _repository = repository;
     }
 
-    public async Task<Result<List<WhoWeAreContentLocalizationDto>>> Handle(CreateWhoWeAreContentLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<List<WhoWeAreContentLocalizationDto>>> Handle(UpdateWhoWeAreContentLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -49,18 +50,32 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
                 return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors.Select(e => e.Message));
             }
 
-            var createdLocalizations = new List<WhoWeAreContentLocalizationDto>();
+            var localizationsToUpdate = sanitizedDtosResult.Value
+                .Select(sanitizedDto => _mapper.Map<WhoWeAreContentLocalization>(sanitizedDto))
+                .ToList();
 
-            foreach (var sanitizedDto in sanitizedDtosResult.Value)
+            await _localizationService.TrackEntityLocalizationAsync(localizationsToUpdate, true);
+
+            if (await _repository.SaveChangesAsync() <= 0)
             {
-                WhoWeAreContentLocalization entity = _mapper.Map<WhoWeAreContentLocalization>(sanitizedDto);
-                var result = await _localizationService.CreateEntityLocalizationAsync(entity);
-                WhoWeAreContentLocalizationDto responseDto = _mapper.Map<WhoWeAreContentLocalizationDto>(result);
-                createdLocalizations.Add(responseDto);
+                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(
+                    ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(WhoWeAreContentLocalization)));
             }
 
+            var languageId = request.ContentLocalizationDtos.First().LanguageId;
+            var entityIds = request.ContentLocalizationDtos.Select(x => x.EntityId).ToList();
+
+            var updatedLocalizations = await _repository.GetRepository<WhoWeAreContentLocalization>()
+                .GetAllAsync(new QueryOptions<WhoWeAreContentLocalization>
+                {
+                    Filter = l => entityIds.Contains(l.EntityId) && l.LanguageId == languageId,
+                    Include = l => l.Include(x => x.Language)
+                });
+
+            var response = _mapper.Map<List<WhoWeAreContentLocalizationDto>>(updatedLocalizations);
+
             transaction.Complete();
-            return Result.Ok(createdLocalizations);
+            return Result.Ok(response);
         }
         catch (KeyNotFoundException knfex)
         {
@@ -72,7 +87,7 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(ErrorMessagesConstants.FailedToCreateEntity(typeof(WhoWeAreContentLocalization)));
+            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(WhoWeAreContentLocalization)));
         }
         catch (ValidationException vex)
         {
@@ -81,7 +96,7 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
         catch (DbUpdateException)
         {
             return Result.Fail<List<WhoWeAreContentLocalizationDto>>(ErrorMessagesConstants.
-                FailedToCreateEntityInDatabase(typeof(WhoWeAreContentLocalization)));
+                FailedToUpdateEntityInDatabase(typeof(WhoWeAreContentLocalization)));
         }
     }
 }
