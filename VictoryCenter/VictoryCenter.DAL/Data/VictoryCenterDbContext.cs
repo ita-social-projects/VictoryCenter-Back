@@ -76,7 +76,11 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<CompanyProfileContact> CompanyProfileContacts { get; set; }
 
+    public DbSet<CompanyProfileContactLocalization> CompanyProfileContactLocalizations { get; set; }
+
     public DbSet<CompanyProfileRequisite> CompanyProfileRequisites { get; set; }
+
+    public DbSet<CompanyProfileRequisiteLocalization> CompanyProfileRequisiteLocalizations { get; set; }
 
     public DbSet<CompanyProfileSocialLink> CompanyProfileSocialLinks { get; set; }
 

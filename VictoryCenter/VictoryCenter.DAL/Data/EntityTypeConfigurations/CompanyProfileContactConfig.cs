@@ -20,13 +20,16 @@ public class CompanyProfileContactConfig : IEntityTypeConfiguration<CompanyProfi
             .HasMaxLength(20);
 
         builder.Property(e => e.Address)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
 
         builder.Property(e => e.Email)
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.Property(e => e.CorrespondenceEmail)
-            .HasMaxLength(50);
+            .HasMaxLength(50)
+            .IsRequired();
 
         builder.Property(e => e.Motto)
             .HasMaxLength(200);

@@ -14,9 +14,11 @@ public class CompanyProfileRequisiteLocalizationConfig
         entity.HasIndex(e => e.LanguageId);
 
         entity.Property(e => e.Recipient)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
 
         entity.Property(e => e.Address)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
     }
 }

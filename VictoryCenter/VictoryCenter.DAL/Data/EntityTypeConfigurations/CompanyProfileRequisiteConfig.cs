@@ -17,13 +17,16 @@ public class CompanyProfileRequisiteConfig : IEntityTypeConfiguration<CompanyPro
             .IsRequired();
 
         builder.Property(e => e.Recipient)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
 
         builder.Property(e => e.Edrpou)
-            .HasMaxLength(8);
+            .HasMaxLength(8)
+            .IsRequired();
 
         builder.Property(e => e.Address)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
 
         builder.HasIndex(e => e.ProfileId)
             .IsUnique();

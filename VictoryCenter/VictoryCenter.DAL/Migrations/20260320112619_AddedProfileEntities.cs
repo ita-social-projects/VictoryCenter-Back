@@ -95,7 +95,7 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CompanyProfileContactLocalization",
+                name: "CompanyProfileContactLocalizations",
                 columns: table => new
                 {
                     EntityId = table.Column<long>(type: "bigint", nullable: false),
@@ -107,15 +107,15 @@ namespace VictoryCenter.DAL.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CompanyProfileContactLocalization", x => new { x.EntityId, x.LanguageId });
+                    table.PrimaryKey("PK_CompanyProfileContactLocalizations", x => new { x.EntityId, x.LanguageId });
                     table.ForeignKey(
-                        name: "FK_CompanyProfileContactLocalization_CompanyProfileContacts_EntityId",
+                        name: "FK_CompanyProfileContactLocalizations_CompanyProfileContacts_EntityId",
                         column: x => x.EntityId,
                         principalTable: "CompanyProfileContacts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CompanyProfileContactLocalization_LocalizationLanguages_LanguageId",
+                        name: "FK_CompanyProfileContactLocalizations_LocalizationLanguages_LanguageId",
                         column: x => x.LanguageId,
                         principalTable: "LocalizationLanguages",
                         principalColumn: "Id",
@@ -123,36 +123,37 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "CompanyProfileRequisiteLocalization",
+                name: "CompanyProfileRequisiteLocalizations",
                 columns: table => new
                 {
                     EntityId = table.Column<long>(type: "bigint", nullable: false),
                     LanguageId = table.Column<long>(type: "bigint", nullable: false),
-                    Recipient = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    Recipient = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     TranslationStatus = table.Column<int>(type: "int", nullable: false, defaultValue: 1),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CompanyProfileRequisiteLocalization", x => new { x.EntityId, x.LanguageId });
+                    table.PrimaryKey("PK_CompanyProfileRequisiteLocalizations", x => new { x.EntityId, x.LanguageId });
                     table.ForeignKey(
-                        name: "FK_CompanyProfileRequisiteLocalization_CompanyProfileRequisites_EntityId",
+                        name: "FK_CompanyProfileRequisiteLocalizations_CompanyProfileRequisites_EntityId",
                         column: x => x.EntityId,
                         principalTable: "CompanyProfileRequisites",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_CompanyProfileRequisiteLocalization_LocalizationLanguages_LanguageId",
+                        name: "FK_CompanyProfileRequisiteLocalizations_LocalizationLanguages_LanguageId",
                         column: x => x.LanguageId,
                         principalTable: "LocalizationLanguages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            
             migrationBuilder.CreateIndex(
-                name: "IX_CompanyProfileContactLocalization_LanguageId",
-                table: "CompanyProfileContactLocalization",
+                name: "IX_CompanyProfileContactLocalizations_LanguageId",
+                table: "CompanyProfileContactLocalizations",
                 column: "LanguageId");
 
             migrationBuilder.CreateIndex(
@@ -162,8 +163,8 @@ namespace VictoryCenter.DAL.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CompanyProfileRequisiteLocalization_LanguageId",
-                table: "CompanyProfileRequisiteLocalization",
+                name: "IX_CompanyProfileRequisiteLocalizations_LanguageId",
+                table: "CompanyProfileRequisiteLocalizations",
                 column: "LanguageId");
 
             migrationBuilder.CreateIndex(
@@ -177,16 +178,18 @@ namespace VictoryCenter.DAL.Migrations
                 table: "CompanyProfileSocialLinks",
                 columns: new[] { "ProfileId", "SocialPlatform" },
                 unique: true);
+
+            
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "CompanyProfileContactLocalization");
+                name: "CompanyProfileContactLocalizations");
 
             migrationBuilder.DropTable(
-                name: "CompanyProfileRequisiteLocalization");
+                name: "CompanyProfileRequisiteLocalizations");
 
             migrationBuilder.DropTable(
                 name: "CompanyProfileSocialLinks");
