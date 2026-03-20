@@ -21,7 +21,7 @@ public class GetPdfSectionWithReportsTests : BaseTestClass
         var expectedSection = await Fixture.DbContext.PdfSections.FirstAsync();
 
         // Act
-        var response = await Fixture.HttpClient.GetAsync("/api/PdfSection");
+        var response = await Fixture.HttpClient.GetAsync("/api/PdfSection/pdf-section");
         var responseString = await response.Content.ReadAsStringAsync();
         var result = JsonSerializer.Deserialize<PdfSectionWithReportsDto>(responseString, JsonOptions);
 

@@ -7,7 +7,7 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class PdfSectionController : AuthorizedApiController
 {
-    [HttpGet]
+    [HttpGet("pdf-section")]
     [ProducesResponseType(typeof(PdfSectionWithReportsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPdfSection()

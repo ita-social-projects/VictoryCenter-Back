@@ -60,7 +60,7 @@ public class GetPdfSectionWithReportsHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SectionExists_DoesNotCallPdfReportRepository()
+    public async Task Handle_SectionExists_ReturnsDtoWithCorrectData()
     {
         // Arrange
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
@@ -69,9 +69,12 @@ public class GetPdfSectionWithReportsHandlerTests
         var handler = new GetPdfSectionWithReportsHandler(_mockRepo.Object);
 
         // Act
-        await handler.Handle(new GetPdfSectionWithReportsQuery(), CancellationToken.None);
+        var result = await handler.Handle(new GetPdfSectionWithReportsQuery(), CancellationToken.None);
 
         // Assert
-        _mockRepo.Verify(r => r.PdfReportRepository.GetAllAsync(It.IsAny<QueryOptions<PdfReport>>()), Times.Never);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(_pdfSection.Title, result.Value.Title);
+        Assert.Equal(_pdfSection.Description, result.Value.Description);
     }
 }
