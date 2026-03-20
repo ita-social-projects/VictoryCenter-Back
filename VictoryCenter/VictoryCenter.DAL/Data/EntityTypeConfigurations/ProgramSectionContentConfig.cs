@@ -36,8 +36,7 @@ public class ProgramSectionContentConfig : IEntityTypeConfiguration<ProgramSecti
             .HasValue<DescriptionProgramContent>(ContentType.Description)
             .HasValue<ImageProgramContent>(ContentType.Image)
             .HasValue<AuthorProgramContent>(ContentType.Author)
-            .HasValue<QuestionProgramContent>(ContentType.Question)
-            .HasValue<AnswerProgramContent>(ContentType.Answer);
+            .HasValue<FaqQuestionProgramContent>(ContentType.FaqQuestion);
     }
 }
 
@@ -81,20 +80,16 @@ public class AuthorProgramContentConfig : IEntityTypeConfiguration<AuthorProgram
     }
 }
 
-public class QuestionProgramContentConfig : IEntityTypeConfiguration<QuestionProgramContent>
+public class FaqQuestionProgramContentConfig : IEntityTypeConfiguration<FaqQuestionProgramContent>
 {
-    public void Configure(EntityTypeBuilder<QuestionProgramContent> builder)
+    public void Configure(EntityTypeBuilder<FaqQuestionProgramContent> builder)
     {
-        builder.Property(c => c.Question)
+        builder.Property(c => c.FaqQuestionId)
             .IsRequired();
-    }
-}
 
-public class AnswerProgramContentConfig : IEntityTypeConfiguration<AnswerProgramContent>
-{
-    public void Configure(EntityTypeBuilder<AnswerProgramContent> builder)
-    {
-        builder.Property(c => c.Answer)
-            .IsRequired();
+        builder.HasOne(c => c.FaqQuestion)
+            .WithMany()
+            .HasForeignKey(c => c.FaqQuestionId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

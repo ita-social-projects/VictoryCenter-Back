@@ -60,14 +60,19 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { Title = new string('A', 51), ContentType = ContentType.Title, Id = 1 }
+                new()
+                {
+                    Title = new string('A', WhoWeAreConstants.ValidationTitleRules.MaxLen + 1),
+                    ContentType = ContentType.Title,
+                    Id = 1
+                }
             });
 
         var result = _validator.TestValidate(command);
 
         result.ShouldHaveValidationErrorFor("Contents[0].Title")
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateWhoWeAreContentDto.Title), 50));
+                nameof(UpdateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen));
     }
 
     [Theory]
@@ -104,7 +109,12 @@ public class UpdateWhoWeAreContentValidatorTests
             sectionType,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { ContentType = ContentType.Description, Description = new string('A', 801), Id = 1 }
+                new()
+                {
+                    ContentType = ContentType.Description,
+                    Description = new string('A', WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen + 1),
+                    Id = 1
+                }
             });
 
         var result = _validator.TestValidate(command);
@@ -143,5 +153,30 @@ public class UpdateWhoWeAreContentValidatorTests
         var result = _validator.TestValidate(command);
 
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData(0, 7)]
+    [InlineData(1, 32)]
+    [InlineData(50, 1257)]
+    public void CalculateHighestCharactersLimitForRichInput_ShouldReturnExpectedValue(int rawLimit, int expected)
+    {
+        var result = WhoWeAreConstants.CalculateHighestCharactersLimitForRichInput(rawLimit);
+
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void CalculateHighestCharactersLimitForRichInput_ShouldCoverRepresentativeRichTextInputs()
+    {
+        var highestOverheadSingleCharacterPayload = "<p><i><strong>a</strong></i></p>";
+        var realisticFormattedPayload = "<p><i><strong>Valid</strong></i> <strong>description</strong></p>";
+
+        var singleCharacterLimit = WhoWeAreConstants.CalculateHighestCharactersLimitForRichInput(1);
+        var realisticTextPlainLength = "Valid description".Length;
+        var realisticTextLimit = WhoWeAreConstants.CalculateHighestCharactersLimitForRichInput(realisticTextPlainLength);
+
+        Assert.Equal(singleCharacterLimit, highestOverheadSingleCharacterPayload.Length);
+        Assert.True(realisticFormattedPayload.Length <= realisticTextLimit);
     }
 }

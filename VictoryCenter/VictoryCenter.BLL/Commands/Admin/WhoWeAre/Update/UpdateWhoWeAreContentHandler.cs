@@ -109,6 +109,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
         var entities = await _repository.WhoWeAreContentsRepository.GetAllAsync(new QueryOptions<WhoWeAreContent>
         {
+            AsNoTracking = false,
             Filter = w => contentIds.Contains(w.Id),
             Include = w => w.Include(w => w.Localizations).ThenInclude(l => l.Language)
         });
@@ -189,8 +190,6 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 loc.TranslationStatus = TranslationStatus.Outdated;
             }
         }
-
-        _repository.WhoWeAreContentsRepository.Update(entity);
     }
 
     private async Task<long?> GetSectionIdByType(SectionType sectionType)

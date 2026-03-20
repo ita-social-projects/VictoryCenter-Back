@@ -36,6 +36,10 @@ public class GetHippotherapyProgramByIdHandler
                 .Include(p => p.BackgroundImage)!
                 .Include(p => p.Sections)
                     .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => c.Localizations)
+                            .ThenInclude(l => l.Language)
+                .Include(p => p.Localizations)
+                    .ThenInclude(l => l.Language)
         };
 
         var program = await _repositoryWrapper
@@ -54,6 +58,14 @@ public class GetHippotherapyProgramByIdHandler
         if (assignImagesResult.IsFailed)
         {
             return Result.Fail<HippotherapyProgramDto>(assignImagesResult.Errors);
+        }
+
+        var assignFaqQuestionsResult = await FaqQuestionHelper
+            .AssignSectionContentFaqQuestionsAsync(_repositoryWrapper, program.Sections);
+
+        if (assignFaqQuestionsResult.IsFailed)
+        {
+            return Result.Fail<HippotherapyProgramDto>(assignFaqQuestionsResult.Errors);
         }
 
         return Result.Ok(_mapper.Map<HippotherapyProgramDto>(program));

@@ -29,7 +29,9 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
             Filter = program => program.Status == Status.Published,
             Include = program => program
                 .Include(program => program.Categories)
-                .Include(program => program.PreviewImage)!
+                .Include(program => program.PreviewImage)
+                .Include(program => program.Localizations)
+                    .ThenInclude(l => l.Language)
         };
 
         IEnumerable<HippotherapyProgram> publishedPrograms = await _repositoryWrapper.HippotherapyProgramsRepository.GetAllAsync(queryOptions);

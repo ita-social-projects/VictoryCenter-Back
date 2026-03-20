@@ -1,0 +1,3 @@
+namespace VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+
+public record CreateReportFundsExpendituresSettingsDto : BaseReportFundsExpendituresSettingsDto;

@@ -13,11 +13,15 @@ using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -46,12 +50,19 @@ public interface IRepositoryWrapper
     IPartnerRepository PartnerRepository { get; }
     IPartnerSectionsRepository PartnerSectionsRepository { get; }
     IPartnersPageBannersRepository PartnersPageBannersRepository { get; }
+    IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository { get; }
+    IProgramSectionContentsRepository ProgramSectionContentsRepository { get; }
+    IProgramSectionContentLocalizationsRepository ProgramSectionContentLocalizationsRepository { get; }
 
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
     IChangedLivesBlockRepository ChangedLivesBlockRepository { get; }
 
     ICollectedFundsBlockRepository CollectedFundsBlockRepository { get; }
+
+    IReportFundsExpendituresCategoriesRepository ReportFundsExpendituresCategoriesRepository { get; }
+    IReportFundsExpendituresRecordsRepository ReportFundsExpendituresRecordsRepository { get; }
+    IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
