@@ -4,5 +4,10 @@ public enum SocialPlatform
 {
     Facebook,
     Instagram,
-    Telegram
+    Telegram,
+    YouTube,
+    X,
+    WhatsApp,
+    LinkedIn,
+    Viber
 }
