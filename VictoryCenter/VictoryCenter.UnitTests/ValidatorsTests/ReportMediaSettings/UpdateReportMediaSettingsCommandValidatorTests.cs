@@ -312,80 +312,6 @@ public class UpdateReportMediaSettingsCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_CollectedFundsIsNegative_ShouldHaveValidationError()
-    {
-        var command = CreateCommand(
-            changedLivesTitle: "Valid Title",
-            changedLives: 1000,
-            changedLivesImageId: 1,
-            collectedFundsTitle: "Valid Title",
-            collectedFunds: -1,
-            collectedFundsImageId: 2);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.CollectedFunds);
-    }
-
-    [Fact]
-    public void Validate_CollectedFundsExceeds15Digits_ShouldHaveValidationError()
-    {
-        var command = CreateCommand(
-            changedLivesTitle: "Valid Title",
-            changedLives: 1000,
-            changedLivesImageId: 1,
-            collectedFundsTitle: "Valid Title",
-            collectedFunds: 1_000_000_000_000_000,
-            collectedFundsImageId: 2);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.CollectedFunds);
-    }
-
-    [Fact]
-    public void Validate_CollectedFundsIs15Digits_ShouldNotHaveValidationError()
-    {
-        var command = CreateCommand(
-            changedLivesTitle: "Valid Title",
-            changedLives: 1000,
-            changedLivesImageId: 1,
-            collectedFundsTitle: "Valid Title",
-            collectedFunds: 111111111111111,
-            collectedFundsImageId: 2);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldNotHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.CollectedFunds);
-    }
-
-    [Fact]
-    public void Validate_CollectedFundsIsZero_ShouldNotHaveValidationError()
-    {
-        var command = CreateCommand(
-            changedLivesTitle: "Valid Title",
-            changedLives: 1000,
-            changedLivesImageId: 1,
-            collectedFundsTitle: "Valid Title",
-            collectedFunds: 0,
-            collectedFundsImageId: 2);
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldNotHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.CollectedFunds);
-    }
-
-    [Fact]
-    public void Validate_CollectedFundsIsValid_ShouldNotHaveValidationError()
-    {
-        var command = CreateNotValidCommand();
-
-        var result = _validator.TestValidate(command);
-
-        result.ShouldNotHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.CollectedFunds);
-    }
-
-    [Fact]
     public void Validate_CollectedFundsBlockImageIdIsZero_ShouldHaveValidationError()
     {
         var command = CreateCommand(
@@ -444,7 +370,6 @@ public class UpdateReportMediaSettingsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Dto.ChangedLivesBlock.ChangedLives);
         result.ShouldHaveValidationErrorFor(x => x.Dto.ChangedLivesBlock.ImageId);
         result.ShouldHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.Title);
-        result.ShouldHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.CollectedFunds);
         result.ShouldHaveValidationErrorFor(x => x.Dto.CollectedFundsBlock.ImageId);
     }
 
@@ -478,7 +403,6 @@ public class UpdateReportMediaSettingsCommandValidatorTests
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
                 Title = collectedFundsTitle,
-                CollectedFunds = collectedFunds,
                 ImageId = collectedFundsImageId
             }
         };

@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace VictoryCenter.DAL.Migrations
 {
     /// <inheritdoc />
-    public partial class MakeImageIdNullableInReportsMediaSettings : Migration
+    public partial class ChangeCollectedFundsAndNullableImage : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,6 +18,10 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_ChangedLivesBlocks_ImageId",
                 table: "ChangedLivesBlocks");
+
+            migrationBuilder.DropColumn(
+                name: "CollectedAmount",
+                table: "CollectedFundsBlocks");
 
             migrationBuilder.AlterColumn<long>(
                 name: "ImageId",
@@ -69,6 +74,13 @@ namespace VictoryCenter.DAL.Migrations
                 oldClrType: typeof(long),
                 oldType: "bigint",
                 oldNullable: true);
+
+            migrationBuilder.AddColumn<long>(
+                name: "CollectedAmount",
+                table: "CollectedFundsBlocks",
+                type: "bigint",
+                nullable: false,
+                defaultValue: 0L);
 
             migrationBuilder.AlterColumn<long>(
                 name: "ImageId",

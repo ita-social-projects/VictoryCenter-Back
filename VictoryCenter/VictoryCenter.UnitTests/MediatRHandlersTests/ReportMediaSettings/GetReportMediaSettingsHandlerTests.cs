@@ -16,7 +16,6 @@ public class GetReportMediaSettingsHandlerTests
     {
         Id = 1,
         Title = "Collected",
-        CollectedAmount = 100,
         ImageId = 10
     };
 

@@ -43,16 +43,6 @@ public class UpdateReportMediaSettingsCommandValidator : AbstractValidator<Updat
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdateCollectedFundsBlockDto.Title), CollectedFundsBlockConstants.TitleMaxLength));
 
-        RuleFor(x => x.Dto.CollectedFundsBlock.CollectedFunds)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateCollectedFundsBlockDto.CollectedFunds)))
-            .GreaterThanOrEqualTo(CollectedFundsBlockConstants.CollectedAmountMinDigits)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
-                nameof(UpdateCollectedFundsBlockDto.CollectedFunds), CollectedFundsBlockConstants.CollectedAmountMinDigits))
-            .Must((command, value) => ValidationHelpers.HaveMaximumDigits(CollectedFundsBlockConstants.CollectedAmountMaxDigits)(value))
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeLessThanOrEqualToN(
-                nameof(UpdateCollectedFundsBlockDto.CollectedFunds), CollectedFundsBlockConstants.CollectedAmountMaxDigits));
-
         RuleFor(x => x.Dto.CollectedFundsBlock.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateCollectedFundsBlockDto.ImageId)));
     }

@@ -21,7 +21,6 @@ public class UpdateReportMediaSettingsHandlerTests
         CollectedFundsBlock = new()
         {
             Title = "Collected",
-            CollectedFunds = 100,
             ImageId = 1
         },
         ChangedLivesBlock = new()
@@ -39,7 +38,6 @@ public class UpdateReportMediaSettingsHandlerTests
     {
         Id = 1,
         Title = "Old",
-        CollectedAmount = 10,
         ImageId = 5
     };
 

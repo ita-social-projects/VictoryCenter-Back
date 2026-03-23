@@ -502,7 +502,6 @@ public static class ServicesConfiguration
             var collectedFunds = new CollectedFundsBlock
             {
                 Title = "Зібрано коштів на реабілітацію",
-                CollectedAmount = 0,
                 CreatedAt = DateTimeOffset.UtcNow,
                 ImageId = null
             };

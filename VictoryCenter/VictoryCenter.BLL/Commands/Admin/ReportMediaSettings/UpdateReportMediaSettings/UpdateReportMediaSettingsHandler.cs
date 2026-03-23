@@ -65,7 +65,6 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                 collectedFundsEntity = new CollectedFundsBlock
                 {
                     Title = request.Dto.CollectedFundsBlock.Title,
-                    CollectedAmount = request.Dto.CollectedFundsBlock.CollectedFunds,
                     ImageId = request.Dto.CollectedFundsBlock.ImageId,
                 };
                 await collectedFundsRepository.CreateAsync(collectedFundsEntity);
@@ -73,7 +72,6 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
             else
             {
                 collectedFundsEntity.Title = request.Dto.CollectedFundsBlock.Title;
-                collectedFundsEntity.CollectedAmount = request.Dto.CollectedFundsBlock.CollectedFunds;
                 collectedFundsEntity.ImageId = request.Dto.CollectedFundsBlock.ImageId;
                 collectedFundsRepository.Update(collectedFundsEntity);
             }

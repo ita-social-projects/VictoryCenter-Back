@@ -28,7 +28,6 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
                 Title = "Updated Funds Title",
-                CollectedFunds = 500000,
                 ImageId = image1.Id
             },
             ChangedLivesBlock = new UpdateChangedLivesBlockDto
@@ -54,7 +53,6 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
         var changedLivesEntity = await Fixture.DbContext.ChangedLivesBlocks.FirstAsync();
 
         Assert.Equal(updateDto.CollectedFundsBlock.Title, collectedFundsEntity.Title);
-        Assert.Equal(updateDto.CollectedFundsBlock.CollectedFunds, collectedFundsEntity.CollectedAmount);
         Assert.Equal(updateDto.CollectedFundsBlock.ImageId, collectedFundsEntity.ImageId);
 
         Assert.Equal(updateDto.ChangedLivesBlock.Title, changedLivesEntity.Title);
@@ -75,7 +73,6 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
                 Title = "Funds Title",
-                CollectedFunds = 1000,
                 ImageId = nonExistentImageId
             },
             ChangedLivesBlock = new UpdateChangedLivesBlockDto
@@ -107,7 +104,6 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
                 Title = "",
-                CollectedFunds = 1000,
                 ImageId = image.Id
             },
             ChangedLivesBlock = new UpdateChangedLivesBlockDto
