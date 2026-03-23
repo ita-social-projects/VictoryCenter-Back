@@ -11,8 +11,7 @@ public class ReportMediaSettingsProfile : Profile
         CreateMap<ChangedLivesBlock, ChangedLivesBlockDto>()
             .ForMember(dest => dest.ChangedLives, opt => opt.MapFrom(src => src.ChangedLivesCount));
 
-        CreateMap<CollectedFundsBlock, CollectedFundsBlockDto>()
-            .ForMember(dest => dest.CollectedAmount, opt => opt.MapFrom(src => src.CollectedAmount));
+        CreateMap<CollectedFundsBlock, CollectedFundsBlockDto>();
 
         CreateMap<UpdateChangedLivesBlockDto, ChangedLivesBlock>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -23,7 +22,6 @@ public class ReportMediaSettingsProfile : Profile
         CreateMap<UpdateCollectedFundsBlockDto, CollectedFundsBlock>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Image, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.CollectedAmount, opt => opt.MapFrom(src => src.CollectedFunds));
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
     }
 }

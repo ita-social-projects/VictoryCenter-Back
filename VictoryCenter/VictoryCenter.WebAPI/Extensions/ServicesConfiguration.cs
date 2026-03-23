@@ -215,6 +215,7 @@ public static class ServicesConfiguration
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPdfSection();
         await app.CreateInitialPartnersPageBanner();
+        await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
     }
 
@@ -498,6 +499,37 @@ public static class ServicesConfiguration
             dbContext.PartnersPageBanners.Add(banner);
             await dbContext.SaveChangesAsync();
         }
+    }
+
+    private static async Task CreateInitialReportsMediaSettingsAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        if (!await dbContext.ChangedLivesBlocks.AnyAsync())
+        {
+            var changedLives = new ChangedLivesBlock
+            {
+                Title = "Змінено життів",
+                ChangedLivesCount = 205,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ImageId = null
+            };
+            dbContext.ChangedLivesBlocks.Add(changedLives);
+        }
+
+        if (!await dbContext.CollectedFundsBlocks.AnyAsync())
+        {
+            var collectedFunds = new CollectedFundsBlock
+            {
+                Title = "Зібрано коштів на реабілітацію",
+                CreatedAt = DateTimeOffset.UtcNow,
+                ImageId = null
+            };
+            dbContext.CollectedFundsBlocks.Add(collectedFunds);
+        }
+
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)

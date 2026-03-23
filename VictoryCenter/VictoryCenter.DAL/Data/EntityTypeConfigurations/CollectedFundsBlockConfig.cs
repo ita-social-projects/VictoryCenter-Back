@@ -19,10 +19,6 @@ internal class CollectedFundsBlockConfig : IEntityTypeConfiguration<CollectedFun
             .IsRequired();
 
         entity
-            .Property(e => e.CollectedAmount)
-            .IsRequired();
-
-        entity
             .Property(e => e.ImageId);
 
         entity
