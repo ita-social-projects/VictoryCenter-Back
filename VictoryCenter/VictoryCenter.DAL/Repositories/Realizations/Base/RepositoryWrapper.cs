@@ -48,6 +48,10 @@ using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -87,6 +91,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyProgramsLocalizationsRepository? _programsLocalizationsRepository;
     private IProgramSectionContentsRepository? _programSectionContentsRepository;
     private IProgramSectionContentLocalizationsRepository? _programSectionContentLocalizationsRepository;
+    private ICompanyProfileRepository? _companyProfileRepository;
+    private ICompanyProfileContactRepository? _companyProfileContactRepository;
+    private ICompanyProfileRequisiteRepository? _companyProfileRequisiteRepository;
+    private ICompanyProfileContactLocalizationsRepository? _companyProfileContactLocalizationsRepository;
+    private ICompanyProfileRequisiteLocalizationsRepository? _companyProfileRequisiteLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -145,6 +154,17 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository =>
         _reportFundsExpendituresSettingsRepository ??= new ReportFundsExpendituresSettingsRepository(_victoryCenterDbContext);
+
+    public ICompanyProfileRepository CompanyProfileRepository =>
+        _companyProfileRepository ??= new CompanyProfileRepository(_victoryCenterDbContext);
+    public ICompanyProfileContactRepository CompanyProfileContactRepository =>
+        _companyProfileContactRepository ??= new CompanyProfileContactRepository(_victoryCenterDbContext);
+    public ICompanyProfileRequisiteRepository CompanyProfileRequisiteRepository =>
+        _companyProfileRequisiteRepository ??= new CompanyProfileRequisiteRepository(_victoryCenterDbContext);
+    public ICompanyProfileContactLocalizationsRepository CompanyProfileContactLocalizationsRepository =>
+        _companyProfileContactLocalizationsRepository ??= new CompanyProfileContactLocalizationsRepository(_victoryCenterDbContext);
+    public ICompanyProfileRequisiteLocalizationsRepository CompanyProfileRequisiteLocalizationsRepository =>
+        _companyProfileRequisiteLocalizationsRepository ??= new CompanyProfileRequisiteLocalizationsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
