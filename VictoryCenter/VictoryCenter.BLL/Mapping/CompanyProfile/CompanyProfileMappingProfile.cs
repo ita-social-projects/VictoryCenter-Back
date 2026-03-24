@@ -1,6 +1,6 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfileContacts;
-using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisite;
+using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
 using VictoryCenter.BLL.DTOs.Admin.Localization.CompanyProfile;
 using VictoryCenter.BLL.DTOs.Admin.SocialLinks;

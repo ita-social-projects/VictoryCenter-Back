@@ -1,6 +1,6 @@
 using VictoryCenter.BLL.DTOs.Admin.Localization.CompanyProfile;
 
-namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisite;
+namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 
 public record CompanyProfileRequisiteDto : BaseCompanyProfileRequisiteDto
 {

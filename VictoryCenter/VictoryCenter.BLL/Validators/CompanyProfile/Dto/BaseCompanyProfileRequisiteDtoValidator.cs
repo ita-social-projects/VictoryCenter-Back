@@ -1,6 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisite;
+using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 
 namespace VictoryCenter.BLL.Validators.CompanyProfile.Dto;
 

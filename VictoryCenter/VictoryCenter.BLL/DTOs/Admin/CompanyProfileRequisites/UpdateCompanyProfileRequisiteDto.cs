@@ -1,4 +1,4 @@
-namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisite;
+namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 
 public record UpdateCompanyProfileRequisiteDto : BaseCompanyProfileRequisiteDto
 {

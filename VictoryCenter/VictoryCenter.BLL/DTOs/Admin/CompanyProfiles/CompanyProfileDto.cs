@@ -1,5 +1,5 @@
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfileContacts;
-using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisite;
+using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 using VictoryCenter.BLL.DTOs.Admin.SocialLinks;
 
 namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
