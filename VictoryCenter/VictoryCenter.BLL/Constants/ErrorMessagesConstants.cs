@@ -36,6 +36,11 @@ public static class ErrorMessagesConstants
         return $"Cannot update and delete the same entity {entityType.Name}. Conflicting IDs: {string.Join(", ", ids)}";
     }
 
+    public static string OnlyOneEntityOfTypeIsAllowed(string entityTypeName)
+    {
+        return $"Only one instance of {entityTypeName} is allowed";
+    }
+
     public static string FailedToCreateEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
