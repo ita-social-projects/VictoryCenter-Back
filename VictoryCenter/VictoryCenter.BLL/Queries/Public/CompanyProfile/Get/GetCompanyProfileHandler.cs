@@ -39,7 +39,7 @@ public class GetCompanyProfileHandler : IRequestHandler<GetCompanyProfileQuery, 
         if (entity is null)
         {
             return Result.Fail<CompanyProfileDto>(
-                ErrorMessagesConstants.NotFound(null, typeof(DAL.Entities.CompanyProfile)));
+                ErrorMessagesConstants.NotFound());
         }
 
         return Result.Ok(_mapper.Map<CompanyProfileDto>(entity));

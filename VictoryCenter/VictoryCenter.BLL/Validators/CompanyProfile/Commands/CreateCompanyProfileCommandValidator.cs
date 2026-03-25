@@ -16,7 +16,6 @@ public class CreateCompanyProfileCommandValidator : AbstractValidator<CreateComp
             .SetValidator(new BaseCompanyProfileDtoValidator<
                 CreateCompanyProfileContactsDto,
                 CreateCompanyProfileRequisiteDto,
-                CreateSocialLinkDto>())
-            .When(x => x.CreateCompanyProfileDto is not null);
+                CreateSocialLinkDto>());
     }
 }

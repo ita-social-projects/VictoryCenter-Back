@@ -16,13 +16,11 @@ public class BaseCompanyProfileDtoValidator<TContacts, TRequisites, TSocialLink>
     {
         RuleFor(x => x.Contacts)
             .NotNull()
-            .SetValidator(new BaseCompanyProfileContactDtoValidator())
-            .When(x => x.Contacts is not null);
+            .SetValidator(new BaseCompanyProfileContactDtoValidator());
 
         RuleFor(x => x.Requisites)
             .NotNull()
-            .SetValidator(new BaseCompanyProfileRequisiteDtoValidator())
-            .When(x => x.Requisites is not null);
+            .SetValidator(new BaseCompanyProfileRequisiteDtoValidator());
 
         RuleForEach(x => x.SocialLinks)
             .SetValidator(new BaseSocialLinkDtoValidator());

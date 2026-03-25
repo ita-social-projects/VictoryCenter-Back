@@ -18,8 +18,7 @@ public class UpdateCompanyProfileCommandValidator : AbstractValidator<UpdateComp
             .SetValidator(new BaseCompanyProfileDtoValidator<
                 UpdateCompanyProfileContactDto,
                 UpdateCompanyProfileRequisiteDto,
-                UpdateSocialLinkDto>())
-            .When(x => x.UpdateCompanyProfileDto is not null);
+                UpdateSocialLinkDto>());
 
         When(x => x.UpdateCompanyProfileDto is not null, () =>
         {
