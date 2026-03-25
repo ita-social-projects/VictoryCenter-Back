@@ -10,5 +10,4 @@ public record CompanyProfileContactLocalizationDto : BaseCompanyProfileContactLo
     public LocalizationInfoDto LocalizationInfoDto { get; init; } = null!;
 
     public TranslationStatus TranslationStatus { get; init; }
-
 }

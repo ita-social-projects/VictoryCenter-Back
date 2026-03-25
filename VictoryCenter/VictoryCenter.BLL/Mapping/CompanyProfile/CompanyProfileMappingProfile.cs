@@ -42,6 +42,32 @@ public class CompanyProfileMappingProfile : Profile
             .ForMember(dest => dest.ProfileId, opt => opt.Ignore())
             .ForMember(dest => dest.Profile, opt => opt.Ignore());
 
+        CreateMap<UpdateCompanyProfileDto, CompanyProfileEntity>()
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Contact, opt => opt.MapFrom(src => src.Contacts))
+            .ForMember(dest => dest.Requisite, opt => opt.MapFrom(src => src.Requisites))
+            .ForMember(dest => dest.SocialLinks, opt => opt.MapFrom(src => src.SocialLinks));
+
+        CreateMap<UpdateCompanyProfileContactDto, CompanyProfileContact>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.ProfileId, opt => opt.Ignore())
+            .ForMember(dest => dest.Profile, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<UpdateCompanyProfileRequisiteDto, CompanyProfileRequisite>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.ProfileId, opt => opt.Ignore())
+            .ForMember(dest => dest.Profile, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<UpdateSocialLinkDto, CompanyProfileSocialLink>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.ProfileId, opt => opt.Ignore())
+            .ForMember(dest => dest.Profile, opt => opt.Ignore());
+
         CreateMap<CompanyProfileEntity, CompanyProfileDto>()
             .ForMember(dest => dest.Contacts, opt => opt.MapFrom(src => src.Contact))
             .ForMember(dest => dest.Requisites, opt => opt.MapFrom(src => src.Requisite));
@@ -60,12 +86,20 @@ public class CompanyProfileMappingProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<UpdateCompanyProfileContactLocalizationDto, CompanyProfileContactLocalization>()
-            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant))
+            .ForMember(dest => dest.EntityId, opt => opt.Ignore())
+            .ForMember(dest => dest.Entity, opt => opt.Ignore())
+            .ForMember(dest => dest.Language, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
         CreateMap<CreateCompanyProfileRequisiteLocalizationDto, CompanyProfileRequisiteLocalization>()
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<UpdateCompanyProfileRequisiteLocalizationDto, CompanyProfileRequisiteLocalization>()
-            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant))
+            .ForMember(dest => dest.EntityId, opt => opt.Ignore())
+            .ForMember(dest => dest.Entity, opt => opt.Ignore())
+            .ForMember(dest => dest.Language, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
     }
 }

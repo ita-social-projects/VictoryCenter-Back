@@ -4,7 +4,7 @@ using VictoryCenter.BLL.DTOs.Admin.SocialLinks;
 
 namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
 
-public class CreateCompanyProfileDto
-    : BaseCompanyProfileDto<CreateCompanyProfileContactsDto, CreateCompanyProfileRequisiteDto, CreateSocialLinkDto>
+public class UpdateCompanyProfileDto
+    : BaseCompanyProfileDto<UpdateCompanyProfileContactDto, UpdateCompanyProfileRequisiteDto, UpdateSocialLinkDto>
 {
 }
