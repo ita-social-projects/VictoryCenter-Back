@@ -191,7 +191,7 @@ public class CreateCompanyProfileCommandValidatorTests
         Email = "test@test.com",
         CorrespondenceEmail = "corr@test.com",
         Motto = "Our motto",
-        Localization = []
+        Localizations = []
     };
 
     private static CreateCompanyProfileRequisiteDto GetValidRequisites() => new()
@@ -199,6 +199,6 @@ public class CreateCompanyProfileCommandValidatorTests
         Recipient = "Recipient Name",
         Edrpou = "12345678",
         Address = "Requisite Address",
-        Localization = []
+        Localizations = []
     };
 }

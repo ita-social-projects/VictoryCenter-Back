@@ -288,7 +288,7 @@ public class UpdateCompanyProfileHandlerTests
             Email = "test@test.com",
             CorrespondenceEmail = "corr@test.com",
             Motto = "New Motto",
-            Localization =
+            Localizations =
             [
                 new UpdateCompanyProfileContactLocalizationDto { LanguageId = languageId, Address = "New Addr" }
             ]
@@ -298,7 +298,7 @@ public class UpdateCompanyProfileHandlerTests
             Recipient = "New Recipient",
             Edrpou = "12345678",
             Address = "New Address",
-            Localization =
+            Localizations =
             [
                 new UpdateCompanyProfileRequisiteLocalizationDto { LanguageId = languageId, Recipient = "New Recipient UA" }
             ]

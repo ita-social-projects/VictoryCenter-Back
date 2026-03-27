@@ -4,5 +4,5 @@ namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 
 public record CreateCompanyProfileRequisiteDto : BaseCompanyProfileRequisiteDto
 {
-    public List<CreateCompanyProfileRequisiteLocalizationDto> Localization { get; set; } = [];
+    public List<CreateCompanyProfileRequisiteLocalizationDto> Localizations { get; set; } = [];
 }

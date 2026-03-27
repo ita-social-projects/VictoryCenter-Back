@@ -57,14 +57,14 @@ public class CreateCompanyProfileHandler : IRequestHandler<CreateCompanyProfileC
                     return Result.Fail<CompanyProfileDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(DAL.Entities.CompanyProfile)));
                 }
 
-                foreach (var localizationDto in request.CreateCompanyProfileDto.Contacts.Localization)
+                foreach (var localizationDto in request.CreateCompanyProfileDto.Contacts.Localizations)
                 {
                     var localization = _mapper.Map<CompanyProfileContactLocalization>(localizationDto);
                     localization.EntityId = entity.Contact.Id;
                     await _localizationContactService.TrackEntityLocalizationAsync(localization);
                 }
 
-                foreach (var localizationDto in request.CreateCompanyProfileDto.Requisites.Localization)
+                foreach (var localizationDto in request.CreateCompanyProfileDto.Requisites.Localizations)
                 {
                     var localization = _mapper.Map<CompanyProfileRequisiteLocalization>(localizationDto);
                     localization.EntityId = entity.Requisite.Id;

@@ -238,7 +238,7 @@ public class CreateCompanyProfileHandlerTests
             Email = "test@test.com",
             CorrespondenceEmail = "corr@test.com",
             Motto = "Motto",
-            Localization =
+            Localizations =
             [
                 new CreateCompanyProfileContactLocalizationDto { EntityId = 0, LanguageId = 1, Address = "Addr UA" }
             ]
@@ -248,7 +248,7 @@ public class CreateCompanyProfileHandlerTests
             Recipient = "Recipient",
             Edrpou = "12345678",
             Address = "Requisite Address",
-            Localization =
+            Localizations =
             [
                 new CreateCompanyProfileRequisiteLocalizationDto { EntityId = 0, LanguageId = 1, Recipient = "Recipient UA" }
             ]

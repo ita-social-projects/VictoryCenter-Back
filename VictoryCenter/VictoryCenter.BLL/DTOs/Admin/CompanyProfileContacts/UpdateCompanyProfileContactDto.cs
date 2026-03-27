@@ -4,5 +4,5 @@ namespace VictoryCenter.BLL.DTOs.Admin.CompanyProfileContacts;
 
 public record UpdateCompanyProfileContactDto : BaseCompanyProfileContactsDto
 {
-    public List<UpdateCompanyProfileContactLocalizationDto> Localization { get; set; } = [];
+    public List<UpdateCompanyProfileContactLocalizationDto> Localizations { get; set; } = [];
 }

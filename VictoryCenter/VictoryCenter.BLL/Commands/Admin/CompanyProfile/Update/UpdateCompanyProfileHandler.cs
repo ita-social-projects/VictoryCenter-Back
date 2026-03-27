@@ -95,7 +95,7 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
                     entity.SocialLinks.Add(link);
                 }
 
-                foreach (var localizationDto in request.UpdateCompanyProfileDto.Contacts.Localization)
+                foreach (var localizationDto in request.UpdateCompanyProfileDto.Contacts.Localizations)
                 {
                     if(contactLocalizationByLanguage.TryGetValue(localizationDto.LanguageId, out var existingLocalization))
                     {
@@ -108,7 +108,7 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
                     await _localizationContactService.TrackEntityLocalizationForUpdateAsync(localization);
                 }
 
-                foreach (var localizationDto in request.UpdateCompanyProfileDto.Requisites.Localization)
+                foreach (var localizationDto in request.UpdateCompanyProfileDto.Requisites.Localizations)
                 {
                     if(requisiteLocalizationByLanguage.TryGetValue(localizationDto.LanguageId, out var existingLocalization))
                     {

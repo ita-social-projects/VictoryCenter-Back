@@ -22,14 +22,14 @@ public class UpdateCompanyProfileCommandValidator : AbstractValidator<UpdateComp
 
         When(x => x.UpdateCompanyProfileDto is not null, () =>
         {
-            RuleForEach(x => x.UpdateCompanyProfileDto.Contacts.Localization)
+            RuleForEach(x => x.UpdateCompanyProfileDto.Contacts.Localizations)
                 .ChildRules(l => l
                     .RuleFor(x => x.LanguageId)
                     .GreaterThan(0)
                     .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateCompanyProfileContactLocalizationDto.LanguageId))))
                 .When(x => x.UpdateCompanyProfileDto.Contacts is not null);
 
-            RuleForEach(x => x.UpdateCompanyProfileDto.Requisites.Localization)
+            RuleForEach(x => x.UpdateCompanyProfileDto.Requisites.Localizations)
                 .ChildRules(l => l
                     .RuleFor(x => x.LanguageId)
                     .GreaterThan(0)

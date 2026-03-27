@@ -27,13 +27,13 @@ public class UpdateCompanyProfileCommandValidatorTests
     {
         var dto = GetValidDto();
         dto.Contacts = GetValidContacts();
-        dto.Contacts.Localization =
+        dto.Contacts.Localizations =
         [
             new UpdateCompanyProfileContactLocalizationDto { LanguageId = 1, Address = "Addr UA" },
             new UpdateCompanyProfileContactLocalizationDto { LanguageId = 2, Address = "Addr EN" }
         ];
         dto.Requisites = GetValidRequisites();
-        dto.Requisites.Localization =
+        dto.Requisites.Localizations =
         [
             new UpdateCompanyProfileRequisiteLocalizationDto { LanguageId = 1, Recipient = "Recipient UA" }
         ];
@@ -99,7 +99,7 @@ public class UpdateCompanyProfileCommandValidatorTests
     public void Validate_ShouldHaveError_WhenContactLocalizationLanguageIdIsZero()
     {
         var contacts = GetValidContacts();
-        contacts.Localization =
+        contacts.Localizations =
         [
             new UpdateCompanyProfileContactLocalizationDto { LanguageId = 0 }
         ];
@@ -113,7 +113,7 @@ public class UpdateCompanyProfileCommandValidatorTests
     public void Validate_ShouldHaveError_WhenRequisiteLocalizationLanguageIdIsZero()
     {
         var requisites = GetValidRequisites();
-        requisites.Localization =
+        requisites.Localizations =
         [
             new UpdateCompanyProfileRequisiteLocalizationDto { LanguageId = 0 }
         ];
@@ -160,7 +160,7 @@ public class UpdateCompanyProfileCommandValidatorTests
         Email = "test@test.com",
         CorrespondenceEmail = "corr@test.com",
         Motto = "Our motto",
-        Localization = []
+        Localizations = []
     };
 
     private static UpdateCompanyProfileRequisiteDto GetValidRequisites() => new()
@@ -168,6 +168,6 @@ public class UpdateCompanyProfileCommandValidatorTests
         Recipient = "Recipient Name",
         Edrpou = "12345678",
         Address = "Requisite Address",
-        Localization = []
+        Localizations = []
     };
 }
