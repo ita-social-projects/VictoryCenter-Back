@@ -70,6 +70,18 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
                 var contactLocalizationByLanguage = entity.Contact.Localizations.ToDictionary(l => l.LanguageId);
                 var requisiteLocalizationByLanguage = entity.Requisite.Localizations.ToDictionary(l => l.LanguageId);
 
+                var requestPlatforms = request.UpdateCompanyProfileDto.SocialLinks
+                    .Select(sl => sl.SocialPlatform)
+                    .ToHashSet();
+
+                foreach (var (platform, linkToRemove) in linksByPlatform)
+                {
+                    if (!requestPlatforms.Contains(platform))
+                    {
+                        entity.SocialLinks.Remove(linkToRemove);
+                    }
+                }
+
                 foreach (var dto in request.UpdateCompanyProfileDto.SocialLinks)
                 {
                     if (linksByPlatform.TryGetValue(dto.SocialPlatform, out var existingLink))
