@@ -1,4 +1,5 @@
 using FluentValidation;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfileContacts;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
@@ -21,6 +22,15 @@ public class BaseCompanyProfileDtoValidator<TContacts, TRequisites, TSocialLink>
         RuleFor(x => x.Requisites)
             .NotNull()
             .SetValidator(new BaseCompanyProfileRequisiteDtoValidator());
+
+        RuleFor(x => x.SocialLinks)
+            .Must(list => list.Count <= CompanyProfileConstants.SocialLinks.MaxCount)
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                nameof(BaseCompanyProfileDto<TContacts, TRequisites, TSocialLink>.SocialLinks),
+                CompanyProfileConstants.SocialLinks.MaxCount))
+            .Must(list => list.Select(sl => sl.SocialPlatform).Distinct().Count() == list.Count)
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
+                nameof(BaseCompanyProfileDto<TContacts, TRequisites, TSocialLink>.SocialLinks)));
 
         RuleForEach(x => x.SocialLinks)
             .SetValidator(new BaseSocialLinkDtoValidator());

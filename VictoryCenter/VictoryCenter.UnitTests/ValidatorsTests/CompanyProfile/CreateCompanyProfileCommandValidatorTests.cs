@@ -174,6 +174,50 @@ public class CreateCompanyProfileCommandValidatorTests
         Assert.NotEmpty(result.Errors);
     }
 
+    [Fact]
+    public void Validate_ShouldHaveError_WhenSocialLinksExceedMaxCount()
+    {
+        var dto = GetValidDto();
+        dto.SocialLinks =
+        [
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Facebook, Url = "https://facebook.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Instagram, Url = "https://instagram.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.X, Url = "https://twitter.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.YouTube, Url = "https://youtube.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Telegram, Url = "https://t.me/test" }
+        ];
+        var result = _validator.TestValidate(new CreateCompanyProfileCommand(dto));
+        Assert.NotEmpty(result.Errors);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenSocialLinksContainDuplicatePlatforms()
+    {
+        var dto = GetValidDto();
+        dto.SocialLinks =
+        [
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Facebook, Url = "https://facebook.com/test1" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Facebook, Url = "https://facebook.com/test2" }
+        ];
+        var result = _validator.TestValidate(new CreateCompanyProfileCommand(dto));
+        Assert.NotEmpty(result.Errors);
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveError_WhenSocialLinksHaveExactlyMaxCount()
+    {
+        var dto = GetValidDto();
+        dto.SocialLinks =
+        [
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Facebook, Url = "https://facebook.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.Instagram, Url = "https://instagram.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.X, Url = "https://twitter.com/test" },
+            new CreateSocialLinkDto { SocialPlatform = SocialPlatform.YouTube, Url = "https://youtube.com/test" }
+        ];
+        var result = _validator.TestValidate(new CreateCompanyProfileCommand(dto));
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
     private static CreateCompanyProfileDto GetValidDto() => new()
     {
         Contacts = GetValidContacts(),

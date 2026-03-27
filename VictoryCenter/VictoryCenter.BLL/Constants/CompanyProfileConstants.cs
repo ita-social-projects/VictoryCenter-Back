@@ -42,4 +42,9 @@ public static class CompanyProfileConstants
     {
         public static readonly int MaxLength = 500;
     }
+
+    public static class SocialLinks
+    {
+        public static readonly int MaxCount = 4;
+    }
 }
