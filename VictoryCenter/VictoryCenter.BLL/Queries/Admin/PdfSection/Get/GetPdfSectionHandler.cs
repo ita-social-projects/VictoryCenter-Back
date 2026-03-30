@@ -2,35 +2,35 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
 
-namespace VictoryCenter.BLL.Queries.Admin.PdfSectionWithReport;
+namespace VictoryCenter.BLL.Queries.Admin.PdfSection.Get;
 
-public class GetPdfSectionWithReportsHandler
-    : IRequestHandler<GetPdfSectionWithReportsQuery, Result<PdfSectionWithReportsDto>>
+public class GetPdfSectionHandler
+    : IRequestHandler<GetPdfSectionQuery, Result<PdfSectionDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetPdfSectionWithReportsHandler(IRepositoryWrapper repositoryWrapper)
+    public GetPdfSectionHandler(IRepositoryWrapper repositoryWrapper)
     {
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<PdfSectionWithReportsDto>> Handle(
-        GetPdfSectionWithReportsQuery request,
+    public async Task<Result<PdfSectionDto>> Handle(
+        GetPdfSectionQuery request,
         CancellationToken cancellationToken)
     {
         var section = await _repositoryWrapper.PdfSectionRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<PdfSection> { AsNoTracking = true });
+            new QueryOptions<PdfSectionEntity> { AsNoTracking = true });
 
         if (section == null)
         {
-            return Result.Fail<PdfSectionWithReportsDto>(PdfSectionConstants.SectionNotFound);
+            return Result.Fail<PdfSectionDto>(PdfSectionConstants.SectionNotFound);
         }
 
-        var dto = new PdfSectionWithReportsDto
+        var dto = new PdfSectionDto
         {
             Title = section.Title,
             Description = section.Description,

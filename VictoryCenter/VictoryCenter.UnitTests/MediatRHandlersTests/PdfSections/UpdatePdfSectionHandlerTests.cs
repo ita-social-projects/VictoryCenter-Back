@@ -1,0 +1,189 @@
+using FluentValidation;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using VictoryCenter.BLL.Commands.Admin.PdfSection.Update;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.PdfSection;
+using VictoryCenter.BLL.Validators.PdfSection;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSections;
+
+public class UpdatePdfSectionHandlerTests
+{
+    private readonly Mock<IRepositoryWrapper> _mockRepo;
+    private readonly IValidator<UpdatePdfSectionCommand> _validator;
+    private readonly PdfSection _existingSection;
+
+    public UpdatePdfSectionHandlerTests()
+    {
+        _mockRepo = new Mock<IRepositoryWrapper>();
+        _validator = new UpdatePdfSectionValidator();
+        _existingSection = new PdfSection
+        {
+            Id = 1,
+            Title = "Стара назва",
+            Description = "Старий опис",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    [Fact]
+    public async Task Handle_ValidRequest_UpdatesSectionAndReturnsUpdatedDto()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = "Новий опис"
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(_existingSection);
+
+        _mockRepo.Setup(r => r.SaveChangesAsync())
+                 .ReturnsAsync(1);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("Нова назва", result.Value.Title);
+        Assert.Equal("Новий опис", result.Value.Description);
+
+        _mockRepo.Verify(r => r.PdfSectionRepository.Update(It.IsAny<PdfSection>()), Times.Once);
+        _mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_SectionNotFound_ReturnsFailResult()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = "Новий опис"
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync((PdfSection?)null);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(PdfSectionConstants.SectionNotFound, result.Errors.Select(e => e.Message));
+    }
+
+    [Fact]
+    public async Task Handle_SaveChangesFails_ReturnsFailResult()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = "Новий опис"
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(_existingSection);
+
+        _mockRepo.Setup(r => r.SaveChangesAsync())
+                 .ReturnsAsync(0);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Handle_ValidationFails_ReturnsFailResult()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "",
+            Description = ""
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Handle_NormalizesTextWithExtraSpaces_UpdatesWithCleanedText()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "  Назва   з   пробілами  ",
+            Description = "  Опис   з   пробілами  "
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(_existingSection);
+
+        _mockRepo.Setup(r => r.SaveChangesAsync())
+                 .ReturnsAsync(1);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal("Назва з пробілами", result.Value.Title);
+        Assert.Equal("Опис з пробілами", result.Value.Description);
+    }
+
+    [Fact]
+    public async Task Handle_DbUpdateException_ReturnsFailResult()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = "Новий опис"
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(_existingSection);
+
+        _mockRepo.Setup(r => r.SaveChangesAsync())
+                 .ThrowsAsync(new DbUpdateException());
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+    }
+}
