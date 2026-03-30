@@ -24,11 +24,11 @@ public class BaseCompanyProfileDtoValidator<TContacts, TRequisites, TSocialLink>
             .SetValidator(new BaseCompanyProfileRequisiteDtoValidator());
 
         RuleFor(x => x.SocialLinks)
-            .Must(list => list.Count <= CompanyProfileConstants.SocialLinks.MaxCount)
+            .Must(list => list is null || list.Count <= CompanyProfileConstants.SocialLinks.MaxCount)
             .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
                 nameof(BaseCompanyProfileDto<TContacts, TRequisites, TSocialLink>.SocialLinks),
                 CompanyProfileConstants.SocialLinks.MaxCount))
-            .Must(list => list.Select(sl => sl.SocialPlatform).Distinct().Count() == list.Count)
+            .Must(list => list is null || list.Select(sl => sl.SocialPlatform).Distinct().Count() == list.Count)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
                 nameof(BaseCompanyProfileDto<TContacts, TRequisites, TSocialLink>.SocialLinks)));
 
