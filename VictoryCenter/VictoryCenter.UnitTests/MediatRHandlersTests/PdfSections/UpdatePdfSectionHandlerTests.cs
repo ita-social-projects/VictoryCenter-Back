@@ -186,4 +186,54 @@ public class UpdatePdfSectionHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
     }
+
+    [Fact]
+    public async Task Handle_DescriptionLongerThan160Chars_ReturnsFailResult()
+    {
+        // Arrange
+        var longDescription = new string('a', 161);
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = longDescription
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Handle_DescriptionExactly160Chars_UpdatesSuccessfully()
+    {
+        // Arrange
+        var description160Chars = new string('a', 160);
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = description160Chars
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(_existingSection);
+
+        _mockRepo.Setup(r => r.SaveChangesAsync())
+                 .ReturnsAsync(1);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(description160Chars, result.Value.Description);
+    }
 }
