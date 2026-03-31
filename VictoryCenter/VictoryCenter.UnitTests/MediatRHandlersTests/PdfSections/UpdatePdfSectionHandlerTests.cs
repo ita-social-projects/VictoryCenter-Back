@@ -41,6 +41,9 @@ public class UpdatePdfSectionHandlerTests
         };
         var command = new UpdatePdfSectionCommand(updateDto);
 
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
+
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_existingSection);
 
@@ -63,7 +66,7 @@ public class UpdatePdfSectionHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SectionNotFound_ReturnsFailResult()
+    public async Task Handle_NoSectionExists_ReturnsFailResult()
     {
         // Arrange
         var updateDto = new PdfSectionDto
@@ -73,8 +76,8 @@ public class UpdatePdfSectionHandlerTests
         };
         var command = new UpdatePdfSectionCommand(updateDto);
 
-        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
-                 .ReturnsAsync((PdfSection?)null);
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(0);
 
         var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
 
@@ -87,6 +90,30 @@ public class UpdatePdfSectionHandlerTests
     }
 
     [Fact]
+    public async Task Handle_MultipleSectionsExist_ReturnsFailResult()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = "Нова назва",
+            Description = "Новий опис"
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(2);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Multiple", result.Errors.Select(e => e.Message).First());
+    }
+
+    [Fact]
     public async Task Handle_SaveChangesFails_ReturnsFailResult()
     {
         // Arrange
@@ -96,6 +123,9 @@ public class UpdatePdfSectionHandlerTests
             Description = "Новий опис"
         };
         var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
 
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_existingSection);
@@ -143,6 +173,9 @@ public class UpdatePdfSectionHandlerTests
         };
         var command = new UpdatePdfSectionCommand(updateDto);
 
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
+
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_existingSection);
 
@@ -171,6 +204,9 @@ public class UpdatePdfSectionHandlerTests
             Description = "Новий опис"
         };
         var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
 
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_existingSection);
@@ -219,6 +255,9 @@ public class UpdatePdfSectionHandlerTests
             Description = description160Chars
         };
         var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
 
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_existingSection);

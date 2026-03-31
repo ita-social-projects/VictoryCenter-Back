@@ -30,6 +30,17 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
+            var count = await _repositoryWrapper.PdfSectionRepository.CountAsync();
+            if (count == 0)
+            {
+                return Result.Fail<PdfSectionDto>(PdfSectionConstants.SectionNotFound);
+            }
+
+            if (count > 1)
+            {
+                return Result.Fail<PdfSectionDto>("Multiple PdfSection records found. Expected exactly one.");
+            }
+
             var pdfSection = await _repositoryWrapper.PdfSectionRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<DAL.Entities.PdfSection>
                 {
