@@ -22,6 +22,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
+using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -63,6 +65,12 @@ public interface IRepositoryWrapper
     IReportFundsExpendituresCategoriesRepository ReportFundsExpendituresCategoriesRepository { get; }
     IReportFundsExpendituresRecordsRepository ReportFundsExpendituresRecordsRepository { get; }
     IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository { get; }
+
+    ICompanyProfileRepository CompanyProfileRepository { get; }
+    ICompanyProfileContactRepository CompanyProfileContactRepository { get; }
+    ICompanyProfileRequisiteRepository CompanyProfileRequisiteRepository { get; }
+    ICompanyProfileContactLocalizationsRepository CompanyProfileContactLocalizationsRepository { get; }
+    ICompanyProfileRequisiteLocalizationsRepository CompanyProfileRequisiteLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
