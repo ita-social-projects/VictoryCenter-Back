@@ -52,13 +52,20 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
                 return Result.Fail<PdfSectionDto>(PdfSectionConstants.SectionNotFound);
             }
 
-            pdfSection.Title = NormalizeText(request.Dto.Title);
-            pdfSection.Description = NormalizeText(request.Dto.Description);
+            var normalizedTitle = NormalizeText(request.Dto.Title);
+            var normalizedDescription = NormalizeText(request.Dto.Description);
+            var hasChanges = pdfSection.Title != normalizedTitle || pdfSection.Description != normalizedDescription;
 
-            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            if (hasChanges)
             {
-                return Result.Fail<PdfSectionDto>(
-                    ErrorMessagesConstants.FailedToUpdateEntity(typeof(DAL.Entities.PdfSection)));
+                pdfSection.Title = normalizedTitle;
+                pdfSection.Description = normalizedDescription;
+
+                if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+                {
+                    return Result.Fail<PdfSectionDto>(
+                        ErrorMessagesConstants.FailedToUpdateEntity(typeof(DAL.Entities.PdfSection)));
+                }
             }
 
             var dto = new PdfSectionDto
@@ -88,7 +95,6 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
         }
 
         var trimmed = text.Trim();
-
         while (trimmed.Contains("  "))
         {
             trimmed = trimmed.Replace("  ", " ");

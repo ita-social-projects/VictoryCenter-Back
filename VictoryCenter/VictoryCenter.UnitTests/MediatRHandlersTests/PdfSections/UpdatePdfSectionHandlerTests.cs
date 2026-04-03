@@ -113,7 +113,37 @@ public class UpdatePdfSectionHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SaveChangesFails_ReturnsFailResult()
+    public async Task Handle_SameDataAsExisting_ReturnsSuccessWithoutSaveChanges()
+    {
+        // Arrange
+        var updateDto = new PdfSectionDto
+        {
+            Title = _existingSection.Title,
+            Description = _existingSection.Description
+        };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(_existingSection);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(_existingSection.Title, result.Value.Title);
+        Assert.Equal(_existingSection.Description, result.Value.Description);
+
+        _mockRepo.Verify(r => r.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_SaveChangesReturnsZero_ReturnsFailResult()
     {
         // Arrange
         var updateDto = new PdfSectionDto
@@ -212,62 +242,6 @@ public class UpdatePdfSectionHandlerTests
 
         _mockRepo.Setup(r => r.SaveChangesAsync())
                  .ThrowsAsync(new DbUpdateException());
-
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-    }
-
-    [Fact]
-    public async Task Handle_SameData_UpdatesSuccessfully()
-    {
-        // Arrange
-        var updateDto = new PdfSectionDto
-        {
-            Title = _existingSection.Title,
-            Description = _existingSection.Description
-        };
-        var command = new UpdatePdfSectionCommand(updateDto);
-
-        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
-                 .ReturnsAsync(1);
-        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
-                 .ReturnsAsync(_existingSection);
-        _mockRepo.Setup(r => r.SaveChangesAsync())
-                 .ReturnsAsync(1);
-
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(_existingSection.Title, result.Value.Title);
-        Assert.Equal(_existingSection.Description, result.Value.Description);
-    }
-
-    [Fact]
-    public async Task Handle_DbUpdateConcurrencyException_ReturnsFailResult()
-    {
-        // Arrange
-        var updateDto = new PdfSectionDto
-        {
-            Title = "Нова назва",
-            Description = "Новий опис"
-        };
-        var command = new UpdatePdfSectionCommand(updateDto);
-
-        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
-                 .ReturnsAsync(1);
-        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
-                 .ReturnsAsync(_existingSection);
-        _mockRepo.Setup(r => r.SaveChangesAsync())
-                 .ThrowsAsync(new DbUpdateConcurrencyException());
 
         var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
 
