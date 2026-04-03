@@ -55,8 +55,6 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
             pdfSection.Title = NormalizeText(request.Dto.Title);
             pdfSection.Description = NormalizeText(request.Dto.Description);
 
-            _repositoryWrapper.PdfSectionRepository.Update(pdfSection);
-
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
                 return Result.Fail<PdfSectionDto>(

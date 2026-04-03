@@ -53,7 +53,6 @@ public class UpdatePdfSectionTests : BaseTestClass
         Assert.Equal("Оновлена назва", result!.Title);
         Assert.Equal("Оновлений опис", result.Description);
 
-        // Refresh from database to ensure changes are persisted
         Fixture.DbContext.ChangeTracker.Clear();
         var updatedSection = await Fixture.DbContext.PdfSections.AsNoTracking().FirstAsync();
         Assert.Equal("Оновлена назва", updatedSection.Title);
