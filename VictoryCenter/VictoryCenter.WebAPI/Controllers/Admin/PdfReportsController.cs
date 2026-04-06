@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
+using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
@@ -23,5 +24,13 @@ public class PdfReportsController : AuthorizedApiController
     public async Task<IActionResult> GetAllPdfReports([FromQuery] BaseFilterDto filter)
     {
         return HandleResult(await Mediator.Send(new GetAllPdfReportsQuery(filter)));
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeletePdfReport(long id)
+    {
+        return HandleResult(await Mediator.Send(new DeletePdfReportCommand(id)));
     }
 }
