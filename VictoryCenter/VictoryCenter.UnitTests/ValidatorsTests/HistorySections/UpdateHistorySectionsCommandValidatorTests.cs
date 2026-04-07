@@ -30,7 +30,6 @@ public class UpdateHistorySectionsCommandValidatorTests
         [
             new UpdateHistorySectionDto
             {
-                Id = 1,
                 Template = HistorySectionTemplate.TextOnly,
                 Order = -1,
                 Contents =
@@ -55,7 +54,6 @@ public class UpdateHistorySectionsCommandValidatorTests
         [
             new UpdateHistorySectionDto
             {
-                Id = 1,
                 Template = HistorySectionTemplate.TextOnly,
                 Order = 0,
                 Contents =

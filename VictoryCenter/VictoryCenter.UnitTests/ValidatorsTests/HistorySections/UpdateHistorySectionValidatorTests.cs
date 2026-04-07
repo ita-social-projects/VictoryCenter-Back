@@ -197,7 +197,6 @@ public class UpdateHistorySectionValidatorTests
         {
             HistorySectionTemplate.DualImagesBottom => new UpdateHistorySectionDto
             {
-                Id = 1,
                 Template = template,
                 Order = 0,
                 Contents =
@@ -210,7 +209,6 @@ public class UpdateHistorySectionValidatorTests
             },
             HistorySectionTemplate.SingleImageBottom => new UpdateHistorySectionDto
             {
-                Id = 1,
                 Template = template,
                 Order = 0,
                 Contents =
@@ -222,7 +220,6 @@ public class UpdateHistorySectionValidatorTests
             },
             _ => new UpdateHistorySectionDto
             {
-                Id = 1,
                 Template = HistorySectionTemplate.TextOnly,
                 Order = 0,
                 Contents =

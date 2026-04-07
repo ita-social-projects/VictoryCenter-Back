@@ -68,26 +68,32 @@ public class UpdateHistorySectionsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Update_WithUnknownSectionId_ShouldReturnNotFound()
+    public async Task Update_WhenSectionsAlreadyExist_ShouldReplaceSections()
     {
-        var payload = new List<UpdateHistorySectionDto>
+        var initialPayload = new List<UpdateHistorySectionDto>
         {
-            new()
-            {
-                Id = 999,
-                Template = HistorySectionTemplate.TextOnly,
-                Order = 0,
-                Contents =
-                [
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Title" },
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Description text" },
-                ]
-            },
+            CreateTextOnlySection(order: 0, title: "Initial title", description: "Initial description text"),
         };
 
-        var response = await PutRaw(payload);
+        var initialResponse = await PutRaw(initialPayload);
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var replacementPayload = new List<UpdateHistorySectionDto>
+        {
+            CreateSingleImageSection(order: 0, title: "Replacement title", description: "Replacement description text", imageId: 1),
+        };
+
+        var response = await PutRaw(replacementPayload);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var sectionsInDb = await Fixture.DbContext.Set<HistorySection>()
+            .Include(s => s.Contents)
+            .ToListAsync();
+
+        Assert.Single(sectionsInDb);
+        Assert.Equal(HistorySectionTemplate.SingleImageBottom, sectionsInDb[0].Template);
+        Assert.Equal(3, sectionsInDb[0].Contents.Count);
     }
 
     [Fact]

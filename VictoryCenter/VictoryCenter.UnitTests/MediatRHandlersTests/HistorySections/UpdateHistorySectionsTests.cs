@@ -25,7 +25,7 @@ public class UpdateHistorySectionsTests
     private readonly Mock<IValidator<UpdateHistorySectionsCommand>> _validator = new();
 
     [Fact]
-    public async Task Handle_SameStructure_UpdatesExistingContentsWithoutReplace()
+    public async Task Handle_SameStructure_ReplacesSections()
     {
         var image = MakeImage(10);
         var existing = ExistingSection(
@@ -37,7 +37,6 @@ public class UpdateHistorySectionsTests
             ImageContent(order: 2, imageId: 10, image: image));
 
         var dto = SectionDto(
-            id: 1,
             order: 0,
             template: HistorySectionTemplate.SingleImageBottom,
             TitleDto(order: 0, title: "  New title  "),
@@ -48,10 +47,8 @@ public class UpdateHistorySectionsTests
 
         await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
 
-        Assert.Equal("New title", ((TitleHistoryContent)existing.Contents.Single(c => c.ContentType == ContentType.Title)).Title);
-        Assert.Equal("New description", ((DescriptionHistoryContent)existing.Contents.Single(c => c.ContentType == ContentType.Description)).Description);
-        _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Never);
-        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Never);
+        _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
+        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
     }
 
     [Fact]
@@ -67,7 +64,6 @@ public class UpdateHistorySectionsTests
         var image = MakeImage(20);
 
         var replacement = SectionDto(
-            id: null,
             order: 0,
             template: HistorySectionTemplate.SingleImageBottom,
             TitleDto(order: 0, title: "Title"),
@@ -83,7 +79,7 @@ public class UpdateHistorySectionsTests
     }
 
     [Fact]
-    public async Task Handle_UnknownExistingSectionId_ReturnsNotFound()
+    public async Task Handle_ReplacesSectionsWithoutSectionIds()
     {
         var existing = ExistingSection(
             id: 1,
@@ -93,7 +89,6 @@ public class UpdateHistorySectionsTests
             DescriptionContent(order: 1, description: "Description"));
 
         var dto = SectionDto(
-            id: 999,
             order: 0,
             template: HistorySectionTemplate.TextOnly,
             TitleDto(order: 0, title: "Title"),
@@ -103,7 +98,9 @@ public class UpdateHistorySectionsTests
 
         var result = await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
 
-        Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains("HistorySection") && m.Contains("999"));
+        Assert.True(result.IsSuccess);
+        _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
+        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
     }
 
     [Fact]
@@ -117,7 +114,6 @@ public class UpdateHistorySectionsTests
             DescriptionContent(order: 1, description: "Old description"));
 
         var replacement = SectionDto(
-            id: null,
             order: 1,
             template: HistorySectionTemplate.TextOnly,
             TitleDto(order: 0, title: "Title"),
@@ -142,7 +138,6 @@ public class UpdateHistorySectionsTests
             ImageContent(order: 2, imageId: 1, image: MakeImage(1)));
 
         var dto = SectionDto(
-            id: 1,
             order: 0,
             template: HistorySectionTemplate.SingleImageBottom,
             TitleDto(order: 0, title: "Title"),
@@ -200,14 +195,12 @@ public class UpdateHistorySectionsTests
     }
 
     private static UpdateHistorySectionDto SectionDto(
-        long? id,
         int order,
         HistorySectionTemplate template,
         params CreateHistorySectionContentDto[] contents)
     {
         return new UpdateHistorySectionDto
         {
-            Id = id,
             Order = order,
             Template = template,
             Contents = [.. contents]
