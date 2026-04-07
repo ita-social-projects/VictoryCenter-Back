@@ -1,10 +1,11 @@
 using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
+using VictoryCenter.BLL.DTOs.Admin.HistorySection;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -100,6 +101,17 @@ public static class ImageValidationHelper
 
     public static Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetSectionImagesAsync(
         IRepositoryWrapper repositoryWrapper, List<CreateHippotherapyProgramSectionDto>? sections)
+    {
+        var sectionImageIds = (sections ?? [])
+            .SelectMany(s => s.Contents ?? [])
+            .Where(c => c.ContentType == ContentType.Image && c.ImageId.HasValue)
+            .Select(c => c.ImageId!.Value);
+
+        return ValidateAndGetImagesByIdsAsync(repositoryWrapper, sectionImageIds);
+    }
+
+    public static Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetSectionImagesAsync(
+        IRepositoryWrapper repositoryWrapper, List<CreateHistorySectionDto>? sections)
     {
         var sectionImageIds = (sections ?? [])
             .SelectMany(s => s.Contents ?? [])
