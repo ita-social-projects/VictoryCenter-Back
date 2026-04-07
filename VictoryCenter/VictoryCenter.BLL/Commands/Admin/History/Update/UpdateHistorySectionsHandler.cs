@@ -14,13 +14,13 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.History.Update;
 
-public class UpdateHistorySectionHandler : IRequestHandler<UpdateHistorySectionsCommand, Result<List<HistorySectionDto>>>
+public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySectionsCommand, Result<List<HistorySectionDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateHistorySectionsCommand> _validator;
 
-    public UpdateHistorySectionHandler(
+    public UpdateHistorySectionsHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateHistorySectionsCommand> validator)

@@ -159,7 +159,7 @@ public class UpdateHistorySectionsTests
     [Fact]
     public async Task Handle_ValidatorThrows_ReturnsValidationErrors()
     {
-        var sut = new UpdateHistorySectionHandler(
+        var sut = new UpdateHistorySectionsHandler(
             _mapper.Object,
             _repositoryWrapper.Object,
             new UpdateHistorySectionsCommandValidator(new UpdateHistorySectionValidator()));
@@ -169,7 +169,7 @@ public class UpdateHistorySectionsTests
         Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains(nameof(UpdateHistorySectionsCommand.UpdateSections)));
     }
 
-    private UpdateHistorySectionHandler CreateSut(
+    private UpdateHistorySectionsHandler CreateSut(
         IEnumerable<HistorySection>? existingSections = null,
         IEnumerable<Image>? images = null,
         int saveChanges = 1)
@@ -196,7 +196,7 @@ public class UpdateHistorySectionsTests
             .Setup(v => v.ValidateAsync(It.IsAny<UpdateHistorySectionsCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
 
-        return new UpdateHistorySectionHandler(_mapper.Object, _repositoryWrapper.Object, _validator.Object);
+        return new UpdateHistorySectionsHandler(_mapper.Object, _repositoryWrapper.Object, _validator.Object);
     }
 
     private static UpdateHistorySectionDto SectionDto(
