@@ -5,6 +5,7 @@ using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -24,6 +25,21 @@ public class PdfReportsController : AuthorizedApiController
     public async Task<IActionResult> GetAllPdfReports([FromQuery] BaseFilterDto filter)
     {
         return HandleResult(await Mediator.Send(new GetAllPdfReportsQuery(filter)));
+    }
+
+    [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPdfReportById(long id)
+    {
+        var result = await Mediator.Send(new GetPdfReportByIdQuery(id));
+
+        if (!result.IsSuccess)
+        {
+            return HandleResult(result);
+        }
+
+        return File(result.Value, "application/pdf", fileDownloadName: null);
     }
 
     [HttpDelete("{id}")]
