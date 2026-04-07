@@ -267,7 +267,7 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_ProgramFieldsUnchanged_MarksProgramLocalizationsOutdated()
+    public async Task Handle_ProgramFieldsUnchanged_MarksProgramLocalizationsRelevant()
     {
         var program = Program();
         program.Name = "SameName";
@@ -290,7 +290,7 @@ public class UpdateHippotherapyProgramTests
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
     }
 
     [Fact]
