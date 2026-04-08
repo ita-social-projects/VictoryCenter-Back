@@ -306,7 +306,7 @@ public class CreateMainPageHandlerTests
     {
         _validatorMock
             .Setup(x => x.ValidateAsync(It.IsAny<ValidationContext<CreateMainPageCommand>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new ValidationResult(new[]
+            .ThrowsAsync(new ValidationException(new[]
             {
                 new ValidationFailure("CreateMainPageDto", errorMessage),
             }));
