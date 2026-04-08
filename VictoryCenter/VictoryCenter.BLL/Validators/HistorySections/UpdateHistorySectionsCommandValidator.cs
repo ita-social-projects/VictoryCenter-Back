@@ -15,6 +15,7 @@ public class UpdateHistorySectionsCommandValidator : AbstractValidator<UpdateHis
 
         RuleFor(x => x.UpdateSections)
             .Must(HasUniqueSectionOrders)
+            .When(x => x.UpdateSections is not null)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateHistorySectionDto.Order)));
 
         RuleForEach(x => x.UpdateSections)
