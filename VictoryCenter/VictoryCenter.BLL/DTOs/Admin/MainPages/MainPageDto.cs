@@ -12,7 +12,7 @@ public record MainPageDto
     public string Description { get; init; } = null!;
     public ImageDto? Image { get; init; }
 
-    public MainAboutUsDto MainAboutUs { get; init; } = null!;
-    public MainPartnersDto MainPartners { get; init; } = null!;
+    public MainAboutUsDto? MainAboutUs { get; init; }
+    public MainPartnersDto? MainPartners { get; init; }
     public ICollection<ImpactStatisticDto> ImpactStatistics { get; init; } = [];
 }

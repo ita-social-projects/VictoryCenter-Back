@@ -9,7 +9,6 @@ using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.BLL.Queries.Admin.MainPage.GetMainPage;
-
 public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainPageDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -40,7 +39,7 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
         if (mainPageEntity is null)
         {
             return Result.Fail<MainPageDto>(
-                ErrorMessagesConstants.NotFound(null, typeof(MainPageEntity)));
+                ErrorMessagesConstants.NotFound());
         }
 
         var resultDto = _mapper.Map<MainPageEntity, MainPageDto>(mainPageEntity);

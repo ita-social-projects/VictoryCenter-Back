@@ -11,7 +11,6 @@ using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.BLL.Commands.Admin.MainPage.Create;
-
 public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Result<MainPageDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
