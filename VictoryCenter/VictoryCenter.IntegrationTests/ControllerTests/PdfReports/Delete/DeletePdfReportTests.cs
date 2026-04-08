@@ -100,11 +100,16 @@ public class DeletePdfReportTests : BaseTestClass
 
         Fixture.DbContext.ChangeTracker.Clear();
 
+        var deletedStillExists = await Fixture.DbContext.PdfReports.AnyAsync(r => r.Id == report1.Id);
+        Assert.False(deletedStillExists, "Deleted report should not exist in database");
+
         var remaining = await Fixture.DbContext.PdfReports
             .OrderBy(r => r.Priority)
             .ToListAsync();
 
         Assert.Equal(2, remaining.Count);
+        Assert.Equal(report2.Id, remaining[0].Id);
+        Assert.Equal(report3.Id, remaining[1].Id);
 
         for (var i = 0; i < remaining.Count; i++)
         {
@@ -130,11 +135,16 @@ public class DeletePdfReportTests : BaseTestClass
 
         Fixture.DbContext.ChangeTracker.Clear();
 
+        var deletedStillExists = await Fixture.DbContext.PdfReports.AnyAsync(r => r.Id == report2.Id);
+        Assert.False(deletedStillExists, "Deleted report should not exist in database");
+
         var remaining = await Fixture.DbContext.PdfReports
             .OrderBy(r => r.Priority)
             .ToListAsync();
 
         Assert.Equal(2, remaining.Count);
+        Assert.Equal(report1.Id, remaining[0].Id);
+        Assert.Equal(report3.Id, remaining[1].Id);
         Assert.Equal(1, remaining[0].Priority);
         Assert.Equal(2, remaining[1].Priority);
     }

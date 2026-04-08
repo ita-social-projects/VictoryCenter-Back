@@ -111,8 +111,10 @@ public class GetPdfReportByIdTests : BaseTestClass
     {
         // Arrange
         await ClearPdfReportsAsync();
-        var report1 = await CreateReportWithFileAsync("multi-get-1", 1);
-        var report2 = await CreateReportWithFileAsync("multi-get-2", 2);
+        var bytes1 = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34, 0x01 };
+        var bytes2 = new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34, 0x02 };
+        var report1 = await CreateReportWithFileAsync("multi-get-1", 1, bytes1);
+        var report2 = await CreateReportWithFileAsync("multi-get-2", 2, bytes2);
 
         // Act
         var response = await Fixture.HttpClient.GetAsync($"/api/PdfReports/{report2.Id}");
@@ -120,7 +122,7 @@ public class GetPdfReportByIdTests : BaseTestClass
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(PdfSignatureBytes, responseBytes);
+        Assert.Equal(bytes2, responseBytes);
 
         Fixture.DbContext.ChangeTracker.Clear();
         var fetchedReport = await Fixture.DbContext.PdfReports
@@ -155,20 +157,24 @@ public class GetPdfReportByIdTests : BaseTestClass
     /// Writes a real PDF file to disk and inserts a matching DB record.
     /// BlobName is always "{baseName}.pdf" — exactly what PdfService produces.
     /// </summary>
-    private async Task<PdfReport> CreateReportWithFileAsync(string baseName, int priority)
+    private async Task<PdfReport> CreateReportWithFileAsync(
+        string baseName,
+        int priority,
+        byte[] fileBytes = null!)
     {
         var blobName = $"{baseName}.pdf";
         var filePath = Path.Combine(Fixture.PdfEnvironmentVariables.FullPath, blobName);
 
         Directory.CreateDirectory(Fixture.PdfEnvironmentVariables.FullPath);
 
-        await File.WriteAllBytesAsync(filePath, PdfSignatureBytes);
+        var content = fileBytes ?? PdfSignatureBytes;
+        await File.WriteAllBytesAsync(filePath, content);
 
         var report = new PdfReport
         {
             Name = baseName,
             BlobName = blobName,
-            FileSizeBytes = PdfSignatureBytes.Length,
+            FileSizeBytes = content.Length,
             Priority = priority,
             CreatedAt = DateTimeOffset.UtcNow
         };

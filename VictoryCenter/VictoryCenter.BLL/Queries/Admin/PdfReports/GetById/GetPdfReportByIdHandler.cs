@@ -36,8 +36,14 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
             return Result.Fail<Stream>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
         }
 
-        var pdfStream = await _pdfService.GetPdfAsync(pdfReport.BlobName);
-
-        return Result.Ok<Stream>(pdfStream);
+        try
+        {
+            var pdfStream = await _pdfService.GetPdfAsync(pdfReport.BlobName);
+            return Result.Ok<Stream>(pdfStream);
+        }
+        catch (Exception ex)
+        {
+            return Result.Fail<Stream>($"Failed to retrieve PDF file: {ex.Message}");
+        }
     }
 }

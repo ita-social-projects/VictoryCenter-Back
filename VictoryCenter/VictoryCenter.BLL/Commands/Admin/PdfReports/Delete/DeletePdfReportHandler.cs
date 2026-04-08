@@ -48,6 +48,7 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
 
             var blobName = pdfReport.BlobName;
             _repositoryWrapper.PdfReportRepository.Delete(pdfReport);
+            await _reorderService.RenumberPriorityAsync<PdfReport>();
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
@@ -55,12 +56,8 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
                     ErrorMessagesConstants.FailedToDeleteEntity(typeof(PdfReport)));
             }
 
-            _pdfService.DeletePdf(blobName);
-            await _reorderService.RenumberPriorityAsync<PdfReport>();
-
-            await _repositoryWrapper.SaveChangesAsync();
-
             transaction.Complete();
+            _pdfService.DeletePdf(blobName);
 
             return Result.Ok(Unit.Value);
         }
