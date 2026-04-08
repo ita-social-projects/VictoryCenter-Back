@@ -5,17 +5,17 @@ using VictoryCenter.BLL.DTOs.Admin.PdfSection;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.PdfSections.GetWithReports;
+namespace VictoryCenter.IntegrationTests.ControllerTests.PdfSections.Get;
 
-public class GetPdfSectionWithReportsTests : BaseTestClass
+public class GetPdfSectionTests : BaseTestClass
 {
-    public GetPdfSectionWithReportsTests(IntegrationTestDbFixture fixture)
+    public GetPdfSectionTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
     }
 
     [Fact]
-    public async Task GetPdfSectionWithReports_SectionExists_ShouldReturnSectionWithReports()
+    public async Task GetPdfSection_SectionExists_ShouldReturnSection()
     {
         // Arrange
         var expectedSection = await Fixture.DbContext.PdfSections.FirstAsync();
@@ -23,7 +23,7 @@ public class GetPdfSectionWithReportsTests : BaseTestClass
         // Act
         var response = await Fixture.HttpClient.GetAsync("/api/PdfSection/pdf-section");
         var responseString = await response.Content.ReadAsStringAsync();
-        var result = JsonSerializer.Deserialize<PdfSectionWithReportsDto>(responseString, JsonOptions);
+        var result = JsonSerializer.Deserialize<PdfSectionDto>(responseString, JsonOptions);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -33,7 +33,7 @@ public class GetPdfSectionWithReportsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetPdfSectionWithReports_NoSection_ShouldReturnNotFound()
+    public async Task GetPdfSection_NoSection_ShouldReturnNotFound()
     {
         // Arrange
         var sections = await Fixture.DbContext.PdfSections.ToListAsync();

@@ -125,14 +125,19 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var oldSections = program.Sections.ToList();
 
-            var sectionsChanged = EnsureReplaceSameSections(oldSections, request.UpdateProgramDto.Sections, imagesByIdResult.Value);
-            if (!sectionsChanged)
+            var sectionsMatched = EnsureReplaceSameSections(
+                oldSections,
+                request.UpdateProgramDto.Sections,
+                imagesByIdResult.Value,
+                out var programContentsChanged);
+
+            if (!sectionsMatched)
             {
                 ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
                 program.Localizations.Clear();
             }
 
-            if (programFieldsChanged || sectionsChanged)
+            if (programFieldsChanged || programContentsChanged)
             {
                 SerTranslationsToOutdated(program);
             }
@@ -200,8 +205,11 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
     private static bool EnsureReplaceSameSections(
         List<HippotherapyProgramSection> oldSections,
         List<CreateHippotherapyProgramSectionDto> newSections,
-        IReadOnlyDictionary<long, Image> imagesById)
+        IReadOnlyDictionary<long, Image> imagesById,
+        out bool anyContentChanged)
     {
+        anyContentChanged = false;
+
         if (oldSections.Count != newSections.Count)
         {
             return false;
@@ -275,8 +283,10 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                     return false;
                 }
 
-                if (contentChanged)
+                if (contentChanged && oldContent.ContentType != ContentType.Image)
                 {
+                    anyContentChanged = true;
+
                     foreach (var loc in oldContent.Localizations)
                     {
                         loc.TranslationStatus = TranslationStatus.Outdated;

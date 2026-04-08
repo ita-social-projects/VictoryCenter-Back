@@ -93,6 +93,16 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<ReportFundsExpendituresRecord> ReportFundsExpendituresRecords { get; set; }
 
+    public DbSet<MainPage> MainPages { get; set; }
+
+    public DbSet<MainAboutUs> MainAboutUs { get; set; }
+
+    public DbSet<MainPartners> MainPartners { get; set; }
+
+    public DbSet<ImpactStatistics> ImpactStatistics { get; set; }
+
+    public DbSet<Metric> Metrics { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

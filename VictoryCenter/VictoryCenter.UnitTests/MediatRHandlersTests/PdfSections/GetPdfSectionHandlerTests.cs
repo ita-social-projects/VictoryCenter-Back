@@ -1,18 +1,18 @@
 using Moq;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Queries.Admin.PdfSectionWithReport;
+using VictoryCenter.BLL.Queries.Admin.PdfSection.Get;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSections;
 
-public class GetPdfSectionWithReportsHandlerTests
+public class GetPdfSectionHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepo;
     private readonly PdfSection _pdfSection;
 
-    public GetPdfSectionWithReportsHandlerTests()
+    public GetPdfSectionHandlerTests()
     {
         _mockRepo = new Mock<IRepositoryWrapper>();
         _pdfSection = new PdfSection
@@ -31,10 +31,10 @@ public class GetPdfSectionWithReportsHandlerTests
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_pdfSection);
 
-        var handler = new GetPdfSectionWithReportsHandler(_mockRepo.Object);
+        var handler = new GetPdfSectionHandler(_mockRepo.Object);
 
         // Act
-        var result = await handler.Handle(new GetPdfSectionWithReportsQuery(), CancellationToken.None);
+        var result = await handler.Handle(new GetPdfSectionQuery(), CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -49,10 +49,10 @@ public class GetPdfSectionWithReportsHandlerTests
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync((PdfSection?)null);
 
-        var handler = new GetPdfSectionWithReportsHandler(_mockRepo.Object);
+        var handler = new GetPdfSectionHandler(_mockRepo.Object);
 
         // Act
-        var result = await handler.Handle(new GetPdfSectionWithReportsQuery(), CancellationToken.None);
+        var result = await handler.Handle(new GetPdfSectionQuery(), CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
@@ -66,10 +66,10 @@ public class GetPdfSectionWithReportsHandlerTests
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_pdfSection);
 
-        var handler = new GetPdfSectionWithReportsHandler(_mockRepo.Object);
+        var handler = new GetPdfSectionHandler(_mockRepo.Object);
 
         // Act
-        var result = await handler.Handle(new GetPdfSectionWithReportsQuery(), CancellationToken.None);
+        var result = await handler.Handle(new GetPdfSectionQuery(), CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
