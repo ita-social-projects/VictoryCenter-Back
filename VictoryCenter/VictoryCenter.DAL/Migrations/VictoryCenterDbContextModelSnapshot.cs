@@ -694,56 +694,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("HippotherapyProgramSections");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.HistorySectionContent", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<int>("ContentType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<long>("SectionId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SectionId");
-
-                    b.ToTable("HistorySectionContent");
-
-                    b.HasDiscriminator<int>("ContentType");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistorySection", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Template")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HistorySection");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
                 {
                     b.Property<long>("Id")
@@ -1575,40 +1525,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasDiscriminator().HasValue(0);
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.DescriptionHistoryContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HistoryContents.HistorySectionContent");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(1);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.ImageHistoryContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HistoryContents.HistorySectionContent");
-
-                    b.Property<long>("ImageId")
-                        .HasColumnType("bigint");
-
-                    b.HasIndex("ImageId");
-
-                    b.HasDiscriminator().HasValue(2);
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.TitleHistoryContent", b =>
-                {
-                    b.HasBaseType("VictoryCenter.DAL.Entities.HistoryContents.HistorySectionContent");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasDiscriminator().HasValue(0);
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.CardContent", b =>
                 {
                     b.HasBaseType("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent");
@@ -1849,17 +1765,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Program");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.HistorySectionContent", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.HistorySection", "Section")
-                        .WithMany("Contents")
-                        .HasForeignKey("SectionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Section");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.CompanyProfileContactLocalization", b =>
@@ -2104,17 +2009,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Image");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.ImageHistoryContent", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithMany()
-                        .HasForeignKey("ImageId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Image");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.CardContent", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
@@ -2179,11 +2073,6 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramSection", b =>
-                {
-                    b.Navigation("Contents");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HistorySection", b =>
                 {
                     b.Navigation("Contents");
                 });
