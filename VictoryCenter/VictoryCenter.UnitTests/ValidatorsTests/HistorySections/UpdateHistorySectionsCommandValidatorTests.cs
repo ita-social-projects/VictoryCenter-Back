@@ -48,6 +48,40 @@ public class UpdateHistorySectionsCommandValidatorTests
     }
 
     [Fact]
+    public void Validate_DuplicateSectionOrders_ShouldHaveError()
+    {
+        var command = new UpdateHistorySectionsCommand(
+        [
+            new UpdateHistorySectionDto
+            {
+                Template = HistorySectionTemplate.TextOnly,
+                Order = 0,
+                Contents =
+                [
+                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
+                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
+                ]
+            },
+            new UpdateHistorySectionDto
+            {
+                Template = HistorySectionTemplate.TextOnly,
+                Order = 0,
+                Contents =
+                [
+                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Another valid title" },
+                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Another valid description" }
+                ]
+            }
+
+        ]);
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.UpdateSections)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateHistorySectionDto.Order)));
+    }
+
+    [Fact]
     public void Validate_ValidCommand_ShouldNotHaveErrors()
     {
         var command = new UpdateHistorySectionsCommand(
