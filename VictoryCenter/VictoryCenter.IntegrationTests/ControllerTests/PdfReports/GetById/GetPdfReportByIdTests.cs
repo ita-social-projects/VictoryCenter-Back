@@ -149,6 +149,14 @@ public class GetPdfReportByIdTests : BaseTestClass
         }
 
         Fixture.DbContext.PdfReports.RemoveRange(all);
+
+        foreach (var entry in Fixture.DbContext.ChangeTracker.Entries()
+        .Where(e => !all.Contains(e.Entity))
+        .ToList())
+        {
+            entry.State = EntityState.Detached;
+        }
+
         await Fixture.DbContext.SaveChangesAsync();
         Fixture.DbContext.ChangeTracker.Clear();
     }

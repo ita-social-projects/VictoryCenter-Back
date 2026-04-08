@@ -105,11 +105,18 @@ public class GetPdfReportByIdHandlerTests
 
         var query = new GetPdfReportByIdQuery(1);
 
-        // Act & Assert
-        await Assert.ThrowsAsync<IOException>(() => CreateHandler().Handle(query, CancellationToken.None));
+        // Act
+        var result = await CreateHandler().Handle(query, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Failed to retrieve PDF file", result.Errors.Select(e => e.Message).FirstOrDefault() ?? string.Empty);
 
         _mockRepositoryWrapper.Verify(
             x => x.PdfReportRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfReport>>()),
+            Times.Once);
+        _mockPdfService.Verify(
+            x => x.GetPdfAsync(_testPdfReport.BlobName),
             Times.Once);
     }
 

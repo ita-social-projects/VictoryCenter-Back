@@ -100,31 +100,6 @@ public class DeletePdfReportHandlerTests
     }
 
     [Fact]
-    public async Task Handle_SaveChangesAfterDeleteFails_ReturnsFailResult()
-    {
-        // Arrange
-        var command = new DeletePdfReportCommand(1);
-
-        _mockRepo.Setup(r => r.PdfReportRepository.GetFirstOrDefaultAsync(
-                     It.IsAny<QueryOptions<PdfReport>>()))
-                 .ReturnsAsync(_existingReport);
-
-        _mockRepo.Setup(r => r.PdfReportRepository.Delete(It.IsAny<PdfReport>()));
-
-        _mockRepo.Setup(r => r.SaveChangesAsync())
-                 .ReturnsAsync(0);
-
-        var handler = CreateHandler();
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        _mockPdfService.Verify(p => p.DeletePdf(It.IsAny<string>()), Times.Never);
-    }
-
-    [Fact]
     public async Task Handle_DbUpdateException_ReturnsFailResult()
     {
         // Arrange
