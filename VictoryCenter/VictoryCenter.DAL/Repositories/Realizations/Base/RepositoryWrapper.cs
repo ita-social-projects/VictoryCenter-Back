@@ -50,8 +50,10 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgram
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Realizations.MainPage;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -96,6 +98,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ICompanyProfileRequisiteRepository? _companyProfileRequisiteRepository;
     private ICompanyProfileContactLocalizationsRepository? _companyProfileContactLocalizationsRepository;
     private ICompanyProfileRequisiteLocalizationsRepository? _companyProfileRequisiteLocalizationsRepository;
+    private IMainPageRepository? _mainPageRepository;
+    private IMainAboutUsRepository? _mainAboutUsRepository;
+    private IMainPartnersRepository? _mainPartnersRepository;
+    private IImpactStatisticsRepository? _impactStatisticsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -165,6 +171,18 @@ public class RepositoryWrapper : IRepositoryWrapper
         _companyProfileContactLocalizationsRepository ??= new CompanyProfileContactLocalizationsRepository(_victoryCenterDbContext);
     public ICompanyProfileRequisiteLocalizationsRepository CompanyProfileRequisiteLocalizationsRepository =>
         _companyProfileRequisiteLocalizationsRepository ??= new CompanyProfileRequisiteLocalizationsRepository(_victoryCenterDbContext);
+
+    public IMainPageRepository MainPageRepository =>
+        _mainPageRepository ??= new MainPageRepository(_victoryCenterDbContext);
+
+    public IMainAboutUsRepository MainAboutUsRepository =>
+        _mainAboutUsRepository ??= new MainAboutUsRepository(_victoryCenterDbContext);
+
+    public IMainPartnersRepository MainPartnersRepository =>
+        _mainPartnersRepository ??= new MainPartnersRepository(_victoryCenterDbContext);
+
+    public IImpactStatisticsRepository ImpactStatisticsRepository =>
+        _impactStatisticsRepository ??= new ImpactStatisticsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

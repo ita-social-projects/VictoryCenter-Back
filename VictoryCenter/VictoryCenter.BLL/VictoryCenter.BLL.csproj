@@ -25,4 +25,9 @@
       <PackageReference Include="StyleCop.Analyzers" Version="1.1.118" PrivateAssets="all" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="DTOs\Admin\MainAboutUs\" />
+      <Folder Include="DTOs\Admin\MainPartners\" />
+    </ItemGroup>
+
 </Project>
