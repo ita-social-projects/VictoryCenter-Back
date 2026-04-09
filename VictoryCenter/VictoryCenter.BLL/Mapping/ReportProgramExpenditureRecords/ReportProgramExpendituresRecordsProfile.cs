@@ -6,9 +6,10 @@ namespace VictoryCenter.BLL.Mapping.ReportProgramExpenditureRecords;
 
 public class ReportProgramExpendituresRecordsProfile : Profile
 {
-    protected ReportProgramExpendituresRecordsProfile()
+    public ReportProgramExpendituresRecordsProfile()
     {
         CreateMap<ReportProgramExpendituresRecord, ReportProgramExpendituresRecordDto>();
         CreateMap<ReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
+        CreateMap<CreateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
     }
 }
