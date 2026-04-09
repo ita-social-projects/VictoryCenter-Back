@@ -103,6 +103,93 @@ public class GetAllHistorySectionsTests
         _imageRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Handle_MapsSectionsOrderedByOrder()
+    {
+        var sectionWithHigherOrder = new HistorySection
+        {
+            Id = 3,
+            Template = HistorySectionTemplate.TextOnly,
+            Order = 2,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = []
+        };
+
+        var sectionWithLowestOrder = new HistorySection
+        {
+            Id = 1,
+            Template = HistorySectionTemplate.TextOnly,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = []
+        };
+
+        var sectionWithMiddleOrder = new HistorySection
+        {
+            Id = 2,
+            Template = HistorySectionTemplate.TextOnly,
+            Order = 1,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = []
+        };
+
+        var sections = new[]
+        {
+            sectionWithHigherOrder,
+            sectionWithMiddleOrder,
+            sectionWithLowestOrder
+        };
+
+        var orderedIds = new[]
+        {
+            sectionWithLowestOrder.Id,
+            sectionWithMiddleOrder.Id,
+            sectionWithHigherOrder.Id
+        };
+
+        var expected = new List<HistorySectionDto>();
+
+        _repositoryWrapper.Setup(r => r.HistorySectionsRepository).Returns(_historySectionsRepository.Object);
+        _repositoryWrapper.Setup(r => r.ImageRepository).Returns(_imageRepository.Object);
+
+        _historySectionsRepository
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HistorySection>>()))
+            .ReturnsAsync((QueryOptions<HistorySection>? options) =>
+            {
+                var query = sections.AsQueryable();
+
+                if (options?.OrderByASC is not null)
+                {
+                    query = query.OrderBy(options.OrderByASC);
+                }
+
+                if (options?.OrderByDESC is not null)
+                {
+                    query = query.OrderByDescending(options.OrderByDESC);
+                }
+
+                return query.ToList();
+            });
+
+        _mapper
+            .Setup(m => m.Map<List<HistorySectionDto>>(It.IsAny<IEnumerable<HistorySection>>()))
+            .Returns(expected);
+
+        var sut = new GetAllHistorySectionsQueryHandler(_mapper.Object, _repositoryWrapper.Object);
+
+        var result = await sut.Handle(new GetAllHistorySectionsQuery(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Same(expected, result.Value);
+        _historySectionsRepository.Verify(
+            r => r.GetAllAsync(It.Is<QueryOptions<HistorySection>>(options => options.OrderByASC != null)),
+            Times.Once);
+        _mapper.Verify(
+            m => m.Map<List<HistorySectionDto>>(It.Is<IEnumerable<HistorySection>>(mappedSections =>
+                mappedSections.Select(section => section.Id).SequenceEqual(orderedIds))),
+            Times.Once);
+    }
+
     private GetAllHistorySectionsQueryHandler CreateSut(
         IEnumerable<HistorySection> sections,
         IEnumerable<Image> images,

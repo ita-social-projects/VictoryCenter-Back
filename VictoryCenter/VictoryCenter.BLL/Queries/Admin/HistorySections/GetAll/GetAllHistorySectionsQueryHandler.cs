@@ -26,7 +26,8 @@ public class GetAllHistorySectionsQueryHandler : IRequestHandler<GetAllHistorySe
     {
         var queryOptions = new QueryOptions<HistorySection>
         {
-            Include = section => section.Include(s => s.Contents)
+            Include = section => section.Include(s => s.Contents),
+            OrderByASC = section => section.Order
         };
 
         IEnumerable<HistorySection> sections = await _repositoryWrapper.HistorySectionsRepository.GetAllAsync(queryOptions);
