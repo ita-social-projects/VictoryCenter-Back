@@ -1,29 +1,31 @@
 using System.Transactions;
+using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
+using VictoryCenter.DAL.Repositories.Interfaces.Partners;
+using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
-using VictoryCenter.DAL.Repositories.Interfaces.Partners;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
-using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
-using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -65,6 +67,9 @@ public interface IRepositoryWrapper
     IReportFundsExpendituresCategoriesRepository ReportFundsExpendituresCategoriesRepository { get; }
     IReportFundsExpendituresRecordsRepository ReportFundsExpendituresRecordsRepository { get; }
     IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository { get; }
+
+    IReportProgramExpendituresCategoriesRepository ReportProgramExpendituresCategoriesRepository { get; }
+    IReportProgramExpendituresRecordsRepository ReportProgramExpendituresRecordsRepository { get; }
 
     ICompanyProfileRepository CompanyProfileRepository { get; }
     ICompanyProfileContactRepository CompanyProfileContactRepository { get; }

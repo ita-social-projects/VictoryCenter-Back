@@ -50,8 +50,12 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgram
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Realizations.ReportProgramExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Realizations.ReportProgramExpendituresRecords;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -88,6 +92,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IReportFundsExpendituresCategoriesRepository? _reportFundsExpendituresCategoriesRepository;
     private IReportFundsExpendituresRecordsRepository? _reportFundsExpendituresRecordsRepository;
     private IReportFundsExpendituresSettingsRepository? _reportFundsExpendituresSettingsRepository;
+    private IReportProgramExpendituresCategoriesRepository? _reportProgramExpendituresCategoriesRepository;
+    private IReportProgramExpendituresRecordsRepository? _reportProgramExpendituresRecordsRepository;
     private IHippotherapyProgramsLocalizationsRepository? _programsLocalizationsRepository;
     private IProgramSectionContentsRepository? _programSectionContentsRepository;
     private IProgramSectionContentLocalizationsRepository? _programSectionContentLocalizationsRepository;
@@ -154,6 +160,13 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository =>
         _reportFundsExpendituresSettingsRepository ??= new ReportFundsExpendituresSettingsRepository(_victoryCenterDbContext);
+
+    public IReportProgramExpendituresCategoriesRepository ReportProgramExpendituresCategoriesRepository =>
+        _reportProgramExpendituresCategoriesRepository ??= new ReportProgramExpendituresCategoriesRepository(_victoryCenterDbContext);
+
+    public IReportProgramExpendituresRecordsRepository ReportProgramExpendituresRecordsRepository =>
+        _reportProgramExpendituresRecordsRepository ??=
+            new ReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
 
     public ICompanyProfileRepository CompanyProfileRepository =>
         _companyProfileRepository ??= new CompanyProfileRepository(_victoryCenterDbContext);
