@@ -190,6 +190,57 @@ public class GetAllHistorySectionsTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_MapsSectionContentsOrderedByOrder()
+    {
+        var section = new HistorySection
+        {
+            Id = 1,
+            Template = HistorySectionTemplate.TextOnly,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents =
+            [
+                new DescriptionHistoryContent
+                {
+                    ContentType = ContentType.Description,
+                    Order = 2,
+                    Description = "Description 2"
+                },
+                new TitleHistoryContent
+                {
+                    ContentType = ContentType.Title,
+                    Order = 0,
+                    Title = "Title"
+                },
+                new DescriptionHistoryContent
+                {
+                    ContentType = ContentType.Description,
+                    Order = 1,
+                    Description = "Description 1"
+                },
+            ]
+        };
+
+        var expectedContentOrders = new[] { 0, 1, 2 };
+        var expected = new List<HistorySectionDto>();
+
+        var sut = CreateSut([section], [], expected);
+
+        var result = await sut.Handle(new GetAllHistorySectionsQuery(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Same(expected, result.Value);
+        _mapper.Verify(
+            m => m.Map<List<HistorySectionDto>>(It.Is<IEnumerable<HistorySection>>(mappedSections =>
+                mappedSections
+                    .Single(s => s.Id == section.Id)
+                    .Contents
+                    .Select(content => content.Order)
+                    .SequenceEqual(expectedContentOrders))),
+            Times.Once);
+    }
+
     private GetAllHistorySectionsQueryHandler CreateSut(
         IEnumerable<HistorySection> sections,
         IEnumerable<Image> images,

@@ -109,6 +109,26 @@ public class UpdateHistorySectionsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Update_EmptyRequest_WhenHistoryAlreadyEmpty_ShouldReturnOk()
+    {
+        var emptyPayload = new List<UpdateHistorySectionDto>();
+
+        var firstResponse = await PutRaw(emptyPayload);
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+
+        var secondResponse = await PutRaw(emptyPayload);
+        var responseString = await secondResponse.Content.ReadAsStringAsync();
+        var responseContent = JsonSerializer.Deserialize<List<HistorySectionDto>>(responseString, JsonOptions);
+
+        Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
+        Assert.NotNull(responseContent);
+        Assert.Empty(responseContent);
+
+        var sectionsCount = await Fixture.DbContext.Set<HistorySection>().CountAsync();
+        Assert.Equal(0, sectionsCount);
+    }
+
     private async Task<HttpResponseMessage> PutRaw(List<UpdateHistorySectionDto> payload)
     {
         var serialized = JsonSerializer.Serialize(payload);

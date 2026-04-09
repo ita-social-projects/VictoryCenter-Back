@@ -127,6 +127,24 @@ public class UpdateHistorySectionsTests
     }
 
     [Fact]
+    public async Task Handle_EmptyIncomingAndNoExistingSections_ReturnsSuccessWithoutSaving()
+    {
+        var sut = CreateSut(existingSections: [], saveChanges: 0);
+
+        var result = await sut.Handle(new UpdateHistorySectionsCommand([]), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Empty(result.Value);
+
+        _repositoryWrapper.Verify(r => r.BeginTransaction(), Times.Never);
+        _repositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Never);
+        _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Never);
+        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Never);
+        _imageRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ImageNotFound_ReturnsNotFoundError()
     {
         var existing = ExistingSection(

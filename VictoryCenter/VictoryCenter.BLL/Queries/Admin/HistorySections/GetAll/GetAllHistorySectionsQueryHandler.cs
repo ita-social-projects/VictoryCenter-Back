@@ -30,7 +30,14 @@ public class GetAllHistorySectionsQueryHandler : IRequestHandler<GetAllHistorySe
             OrderByASC = section => section.Order
         };
 
-        IEnumerable<HistorySection> sections = await _repositoryWrapper.HistorySectionsRepository.GetAllAsync(queryOptions);
+        List<HistorySection> sections = (await _repositoryWrapper.HistorySectionsRepository.GetAllAsync(queryOptions)).ToList();
+
+        foreach (var section in sections)
+        {
+            section.Contents = section.Contents
+                .OrderBy(content => content.Order)
+                .ToList();
+        }
 
         var allImageIds = sections
             .SelectMany(s => s.Contents)

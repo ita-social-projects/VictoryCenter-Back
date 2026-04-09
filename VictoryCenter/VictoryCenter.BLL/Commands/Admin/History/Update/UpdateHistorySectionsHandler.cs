@@ -34,9 +34,14 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var existingSections = await _repositoryWrapper.HistorySectionsRepository.GetAllAsync();
+            var existingSections = (await _repositoryWrapper.HistorySectionsRepository.GetAllAsync()).ToList();
 
             var incomingSections = request.UpdateSections.ToList();
+
+            if (existingSections.Count == 0 && incomingSections.Count == 0)
+            {
+                return Result.Ok<List<HistorySectionDto>>([]);
+            }
 
             var imagesByIdResult = await ImageValidationHelper.ValidateAndGetSectionImagesAsync(
                 _repositoryWrapper,
@@ -52,7 +57,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
             using var transaction = _repositoryWrapper.BeginTransaction();
 
             var finalSections = await ReplaceSections(
-                existingSections.ToList(),
+                existingSections,
                 incomingSections,
                 now,
                 imagesByIdResult.Value);
