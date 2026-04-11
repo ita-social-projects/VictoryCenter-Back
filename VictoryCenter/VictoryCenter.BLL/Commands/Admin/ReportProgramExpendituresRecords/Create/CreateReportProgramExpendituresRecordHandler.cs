@@ -37,22 +37,24 @@ public class CreateReportProgramExpendituresRecordHandler :
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var programCategory =
-                await _repositoryWrapper.ReportProgramExpendituresCategoriesRepository.GetFirstOrDefaultAsync(
-                    new QueryOptions<ReportProgramExpendituresCategory>
+                await _repositoryWrapper.HippotherapyProgramCategoriesRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<HippotherapyProgramCategory>
                     {
                         Filter = category =>
-                            category.Id == request.CreateReportProgramExpendituresRecordDto.ProgramCategoryId
+                            category.Id == request.CreateReportProgramExpendituresRecordDto
+                                .HippotherapyProgramCategoryId
                     });
 
             if (programCategory is null)
             {
                 return Result.Fail(
                     ErrorMessagesConstants.NotFound(
-                        request.CreateReportProgramExpendituresRecordDto.ProgramCategoryId,
-                        typeof(ReportProgramExpendituresCategory)));
+                        request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
+                        typeof(HippotherapyProgramCategory)));
             }
 
-            if (await DuplicateRecordExistsAsync(request.CreateReportProgramExpendituresRecordDto.ProgramCategoryId))
+            if (await DuplicateRecordExistsAsync(request.CreateReportProgramExpendituresRecordDto
+                    .HippotherapyProgramCategoryId))
             {
                 return Result.Fail(ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord);
             }
@@ -89,7 +91,7 @@ public class CreateReportProgramExpendituresRecordHandler :
         return await _repositoryWrapper.ReportProgramExpendituresRecordsRepository.GetFirstOrDefaultAsync(
             new QueryOptions<ReportProgramExpendituresRecord>
             {
-                Filter = record => record.ProgramCategoryId == programCategoryId
+                Filter = record => record.HippotherapyProgramCategoryId == programCategoryId
             }) is not null;
     }
 }

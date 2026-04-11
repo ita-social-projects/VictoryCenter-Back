@@ -27,9 +27,9 @@ public class ReportProgramExpendituresRecordConfig : IEntityTypeConfiguration<Re
         builder.Property(e => e.CreatedAt)
             .IsRequired();
 
-        builder.HasOne(e => e.ProgramCategory)
+        builder.HasOne(e => e.HippotherapyProgramCategory)
             .WithMany(e => e.ReportProgramExpendituresRecords)
-            .HasForeignKey(e => e.ProgramCategoryId)
+            .HasForeignKey(e => e.HippotherapyProgramCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

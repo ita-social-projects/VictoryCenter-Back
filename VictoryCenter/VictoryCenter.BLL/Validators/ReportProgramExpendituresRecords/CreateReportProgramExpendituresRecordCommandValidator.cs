@@ -16,8 +16,8 @@ public class CreateReportProgramExpendituresRecordCommandValidator
                 childValidator.RuleFor(dto => dto.ReportingYear)
                     .MustBeValidReportingYear(nameof(ReportProgramExpendituresRecordDto.ReportingYear));
 
-                childValidator.RuleFor(dto => dto.ProgramCategoryId)
-                    .MustBeValidId(nameof(ReportProgramExpendituresRecordDto.ProgramCategoryId));
+                childValidator.RuleFor(dto => dto.HippotherapyProgramCategoryId)
+                    .MustBeValidId(nameof(ReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId));
 
                 childValidator.RuleFor(dto => dto.AmountUah)
                     .MustBeValidAmountOfMoney(nameof(ReportProgramExpendituresRecordDto.AmountUah));

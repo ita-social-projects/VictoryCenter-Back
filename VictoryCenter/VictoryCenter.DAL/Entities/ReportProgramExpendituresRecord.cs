@@ -6,11 +6,11 @@ public class ReportProgramExpendituresRecord : BaseEntity
 {
     public int ReportingYear { get; init; }
 
-    public long ProgramCategoryId { get; set; }
+    public long HippotherapyProgramCategoryId { get; set; }
 
     public decimal AmountUah { get; set; }
 
     public decimal AmountUsd { get; set; }
 
-    public ReportProgramExpendituresCategory ProgramCategory { get; set; } = null!;
+    public HippotherapyProgramCategory HippotherapyProgramCategory { get; set; } = null!;
 }

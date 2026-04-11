@@ -19,7 +19,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategorie
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
@@ -68,7 +67,6 @@ public interface IRepositoryWrapper
     IReportFundsExpendituresRecordsRepository ReportFundsExpendituresRecordsRepository { get; }
     IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository { get; }
 
-    IReportProgramExpendituresCategoriesRepository ReportProgramExpendituresCategoriesRepository { get; }
     IReportProgramExpendituresRecordsRepository ReportProgramExpendituresRecordsRepository { get; }
 
     ICompanyProfileRepository CompanyProfileRepository { get; }

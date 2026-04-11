@@ -4,7 +4,7 @@ public record CreateReportProgramExpendituresRecordDto
 {
     public int ReportingYear { get; init; }
 
-    public long ProgramCategoryId { get; init; }
+    public long HippotherapyProgramCategoryId { get; init; }
 
     public decimal AmountUah { get; set; }
 

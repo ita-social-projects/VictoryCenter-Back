@@ -32,16 +32,17 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
     public void Validate_ShouldHaveError_WhenProgramCategoryIdIsNotPositive()
     {
         // Arrange
-        var dto = GetValidDto() with { ProgramCategoryId = 0 };
+        var dto = GetValidDto() with { HippotherapyProgramCategoryId = 0 };
         var command = new CreateReportProgramExpendituresRecordCommand(dto);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.CreateReportProgramExpendituresRecordDto.ProgramCategoryId)
+        result.ShouldHaveValidationErrorFor(x =>
+                x.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
-                nameof(ReportProgramExpendituresRecordDto.ProgramCategoryId)));
+                nameof(ReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId)));
     }
 
     [Fact]
@@ -167,7 +168,7 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
     {
         return new CreateReportProgramExpendituresRecordDto
         {
-            ProgramCategoryId = 1,
+            HippotherapyProgramCategoryId = 1,
             AmountUah = 100.25m,
             AmountUsd = 50.50m,
             ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue

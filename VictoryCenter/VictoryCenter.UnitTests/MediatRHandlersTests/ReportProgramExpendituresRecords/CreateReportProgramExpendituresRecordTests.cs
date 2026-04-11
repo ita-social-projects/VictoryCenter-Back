@@ -8,7 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -16,9 +16,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpenditures
 
 public class CreateReportProgramExpendituresRecordTests
 {
-    private readonly Mock<IReportProgramExpendituresCategoriesRepository> _categoriesRepositoryMock;
-
-    private readonly ReportProgramExpendituresCategory _category = new()
+    private readonly HippotherapyProgramCategory _category = new()
     {
         Id = 1,
         Name = "Program category"
@@ -26,18 +24,20 @@ public class CreateReportProgramExpendituresRecordTests
 
     private readonly CreateReportProgramExpendituresRecordDto _createDto = new()
     {
-        ProgramCategoryId = 1,
+        HippotherapyProgramCategoryId = 1,
         ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
         AmountUah = 100.50m,
         AmountUsd = 25.25m
     };
+
+    private readonly Mock<IHippotherapyProgramCategoriesRepository> _hippotherapyProgramCategoriesRepositoryMock;
 
     private readonly Mock<IMapper> _mapperMock;
 
     private readonly ReportProgramExpendituresRecordDto _recordDto = new()
     {
         Id = 1,
-        ProgramCategoryId = 1,
+        HippotherapyProgramCategoryId = 1,
         ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
         AmountUah = 100.50m,
         AmountUsd = 25.25m
@@ -46,7 +46,7 @@ public class CreateReportProgramExpendituresRecordTests
     private readonly ReportProgramExpendituresRecord _recordEntity = new()
     {
         Id = 1,
-        ProgramCategoryId = 1,
+        HippotherapyProgramCategoryId = 1,
         ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
         AmountUah = 100.50m,
         AmountUsd = 25.25m
@@ -61,7 +61,7 @@ public class CreateReportProgramExpendituresRecordTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
-        _categoriesRepositoryMock = new Mock<IReportProgramExpendituresCategoriesRepository>();
+        _hippotherapyProgramCategoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
         _validator = new CreateReportProgramExpendituresRecordCommandValidator();
     }
 
@@ -82,7 +82,7 @@ public class CreateReportProgramExpendituresRecordTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(_recordDto.ProgramCategoryId, result.Value.ProgramCategoryId);
+        Assert.Equal(_recordDto.HippotherapyProgramCategoryId, result.Value.HippotherapyProgramCategoryId);
         Assert.Equal(_recordDto.AmountUah, result.Value.AmountUah);
     }
 
@@ -90,7 +90,7 @@ public class CreateReportProgramExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenValidationFails()
     {
         // Arrange
-        var invalidDto = _createDto with { ProgramCategoryId = 0 };
+        var invalidDto = _createDto with { HippotherapyProgramCategoryId = 0 };
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
@@ -124,7 +124,9 @@ public class CreateReportProgramExpendituresRecordTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
-            ErrorMessagesConstants.NotFound(_createDto.ProgramCategoryId, typeof(ReportProgramExpendituresCategory)),
+            ErrorMessagesConstants.NotFound(
+                _createDto.HippotherapyProgramCategoryId,
+                typeof(HippotherapyProgramCategory)),
             result.Errors[0].Message);
     }
 
@@ -197,18 +199,18 @@ public class CreateReportProgramExpendituresRecordTests
     }
 
     private void SetupDependencies(
-        ReportProgramExpendituresCategory? category,
+        HippotherapyProgramCategory? category,
         int saveResult,
         ReportProgramExpendituresRecord? existingRecordInCategory = null)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
-        _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresCategoriesRepository)
-            .Returns(_categoriesRepositoryMock.Object);
+        _repositoryWrapperMock.SetupGet(wrapper => wrapper.HippotherapyProgramCategoriesRepository)
+            .Returns(_hippotherapyProgramCategoriesRepositoryMock.Object);
 
-        _categoriesRepositoryMock
+        _hippotherapyProgramCategoriesRepositoryMock
             .Setup(repository =>
-                repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportProgramExpendituresCategory>>()))
+                repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync(category);
 
         _recordsRepositoryMock
