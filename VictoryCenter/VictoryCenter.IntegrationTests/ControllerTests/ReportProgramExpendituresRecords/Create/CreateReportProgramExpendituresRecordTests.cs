@@ -40,7 +40,7 @@ public class CreateReportProgramExpendituresRecordTests : BaseTestClass
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.True(response.IsSuccessStatusCode);
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]
