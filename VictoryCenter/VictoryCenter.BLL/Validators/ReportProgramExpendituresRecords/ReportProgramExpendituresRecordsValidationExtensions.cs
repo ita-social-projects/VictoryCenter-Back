@@ -10,16 +10,16 @@ public static class ReportProgramExpendituresRecordsValidationExtensions
         string property)
     {
         return ruleBuilder
-            .GreaterThan(ReportFundsExpendituresRecordConstants.AmountMinValue)
+            .GreaterThan(ReportProgramExpendituresRecordConstants.AmountMinValue)
             .WithMessage(
                 ErrorMessagesConstants.PropertyMustBePositive(property))
             .PrecisionScale(
-                ReportFundsExpendituresRecordConstants.AmountPrecision,
-                ReportFundsExpendituresRecordConstants.AmountScale,
+                ReportProgramExpendituresRecordConstants.AmountPrecision,
+                ReportProgramExpendituresRecordConstants.AmountScale,
                 true)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
                 property,
-                ReportFundsExpendituresRecordConstants.AmountFormat));
+                ReportProgramExpendituresRecordConstants.AmountFormat));
     }
 
     public static IRuleBuilderOptions<T, long> MustBeValidId<T>(
