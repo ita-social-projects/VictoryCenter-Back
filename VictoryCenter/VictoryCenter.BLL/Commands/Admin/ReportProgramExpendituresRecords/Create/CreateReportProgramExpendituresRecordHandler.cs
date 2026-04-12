@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -79,6 +80,12 @@ public class CreateReportProgramExpendituresRecordHandler :
         {
             return Result.Fail<ReportProgramExpendituresRecordDto>(
                 validationException.Errors.Select(error => error.ErrorMessage));
+        }
+        catch (DbUpdateException dbUpdateException) when (dbUpdateException.IsUniqueConstraintException())
+        {
+            return Result.Fail<ReportProgramExpendituresRecordDto>(
+                ErrorMessagesConstants.PropertyMustBeUnique(
+                    nameof(ReportProgramExpendituresRecord.HippotherapyProgramCategoryId)));
         }
         catch (DbUpdateException)
         {
