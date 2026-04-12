@@ -62,10 +62,10 @@ public class CreateReportProgramExpendituresRecordHandler :
             var reportProgramExpendituresRecord =
                 _mapper.Map<ReportProgramExpendituresRecord>(request.CreateReportProgramExpendituresRecordDto);
 
+            reportProgramExpendituresRecord.CreatedAt = DateTimeOffset.UtcNow;
+
             await _repositoryWrapper.ReportProgramExpendituresRecordsRepository.CreateAsync(
                 reportProgramExpendituresRecord);
-
-            reportProgramExpendituresRecord.CreatedAt = DateTimeOffset.UtcNow;
 
             if (await _repositoryWrapper.SaveChangesAsync() == 0)
             {
