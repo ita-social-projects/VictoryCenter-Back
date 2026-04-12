@@ -75,14 +75,16 @@ public class CreateReportProgramExpendituresRecordHandler :
 
             return Result.Ok(_mapper.Map<ReportProgramExpendituresRecordDto>(reportProgramExpendituresRecord));
         }
-        catch (ValidationException ex)
+        catch (ValidationException validationException)
         {
-            return Result.Fail<ReportProgramExpendituresRecordDto>(ex.Message);
+            return Result.Fail<ReportProgramExpendituresRecordDto>(
+                validationException.Errors.Select(error => error.ErrorMessage));
         }
         catch (DbUpdateException)
         {
             return Result.Fail<ReportProgramExpendituresRecordDto>(
-                ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(ReportProgramExpendituresRecord)));
+                ErrorMessagesConstants.FailedToCreateEntityInDatabase(
+                    typeof(ReportProgramExpendituresRecord)));
         }
     }
 
