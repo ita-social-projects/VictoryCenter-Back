@@ -38,7 +38,9 @@ public class CreateReportProgramExpendituresRecordTests : BaseTestClass
         var response = await Fixture.HttpClient.PostAsync(
             "/api/ReportProgramExpendituresRecords/",
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
-        response.EnsureSuccessStatusCode();
+
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]
