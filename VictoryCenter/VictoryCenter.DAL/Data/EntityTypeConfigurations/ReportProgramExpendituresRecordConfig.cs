@@ -31,5 +31,8 @@ public class ReportProgramExpendituresRecordConfig : IEntityTypeConfiguration<Re
             .WithMany(e => e.ReportProgramExpendituresRecords)
             .HasForeignKey(e => e.HippotherapyProgramCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => e.HippotherapyProgramCategoryId)
+            .IsUnique();
     }
 }
