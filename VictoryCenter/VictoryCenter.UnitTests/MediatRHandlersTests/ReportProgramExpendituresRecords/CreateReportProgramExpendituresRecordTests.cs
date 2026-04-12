@@ -103,7 +103,10 @@ public class CreateReportProgramExpendituresRecordTests
 
         // Assert
         Assert.True(result.IsFailed);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.Equal(
+            ErrorMessagesConstants.PropertyMustBePositive(
+                nameof(ReportProgramExpendituresRecord.HippotherapyProgramCategoryId)),
+            result.Errors[0].Message);
     }
 
     [Fact]
