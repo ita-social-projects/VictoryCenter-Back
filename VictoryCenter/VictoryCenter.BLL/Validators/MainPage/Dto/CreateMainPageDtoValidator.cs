@@ -29,6 +29,7 @@ public class CreateMainPageDtoValidator : BaseMainPageDtoValidator<CreateMainPag
                 nameof(CreateMainPageDto.ImpactStatistics), MainPageConstants.ImpactStatistic.MaxCount));
 
         RuleForEach(x => x.ImpactStatistics)
+            .NotNull()
             .SetValidator(new CreateImpactStatisticDtoValidator());
     }
 }

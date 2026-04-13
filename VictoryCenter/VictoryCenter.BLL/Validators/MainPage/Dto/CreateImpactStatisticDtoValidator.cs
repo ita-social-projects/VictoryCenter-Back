@@ -17,6 +17,7 @@ public class CreateImpactStatisticDtoValidator : BaseImpactStatisticDtoValidator
                 nameof(CreateImpactStatisticDto.Metrics), MainPageConstants.ImpactStatistic.MaxCount));
 
         RuleForEach(x => x.Metrics)
+            .NotNull()
             .SetValidator(new CreateMetricDtoValidator());
     }
 }

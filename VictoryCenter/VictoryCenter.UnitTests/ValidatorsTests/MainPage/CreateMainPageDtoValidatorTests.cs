@@ -181,6 +181,19 @@ public class CreateMainPageDtoValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenImpactStatisticsContainsNullElement()
+    {
+        var dto = GetValidDto() with
+        {
+            ImpactStatistics = [null!],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor("ImpactStatistics[0]");
+    }
+
+    [Fact]
     public void Validate_ShouldNotHaveErrors_WhenOptionalSectionsAreNull()
     {
         var dto = GetValidDto() with

@@ -105,6 +105,19 @@ public class CreateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor("Metrics[0].Value");
     }
 
+    [Fact]
+    public void Validate_ShouldHaveError_WhenMetricsContainsNullElement()
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics = [null!],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor("Metrics[0]");
+    }
+
     private static CreateImpactStatisticDto GetValidDto() => new()
     {
         Description = "Impact description",
