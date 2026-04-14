@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260408071058_AddHistoryEntities")]
+    partial class AddHistoryEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1455,39 +1458,6 @@ namespace VictoryCenter.DAL.Migrations
                         });
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportProgramExpendituresRecord", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<decimal>("AmountUah")
-                        .HasPrecision(13, 2)
-                        .HasColumnType("decimal(13,2)");
-
-                    b.Property<decimal>("AmountUsd")
-                        .HasPrecision(13, 2)
-                        .HasColumnType("decimal(13,2)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<long>("HippotherapyProgramCategoryId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("ReportingYear")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HippotherapyProgramCategoryId")
-                        .IsUnique();
-
-                    b.ToTable("ReportProgramExpendituresRecords");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.SupportOptions", b =>
                 {
                     b.Property<long>("Id")
@@ -2300,17 +2270,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportProgramExpendituresRecord", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.HippotherapyProgramCategory", "HippotherapyProgramCategory")
-                        .WithMany("ReportProgramExpendituresRecords")
-                        .HasForeignKey("HippotherapyProgramCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("HippotherapyProgramCategory");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.TeamCategory", "TeamCategory")
@@ -2428,11 +2387,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Localizations");
 
                     b.Navigation("Sections");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramCategory", b =>
-                {
-                    b.Navigation("ReportProgramExpendituresRecords");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent", b =>

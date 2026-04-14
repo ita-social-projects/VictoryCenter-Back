@@ -25,6 +25,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -74,6 +75,9 @@ public interface IRepositoryWrapper
     ICompanyProfileRequisiteRepository CompanyProfileRequisiteRepository { get; }
     ICompanyProfileContactLocalizationsRepository CompanyProfileContactLocalizationsRepository { get; }
     ICompanyProfileRequisiteLocalizationsRepository CompanyProfileRequisiteLocalizationsRepository { get; }
+
+    IHistorySectionsRepository HistorySectionsRepository { get; }
+    IHistorySectionContentsRepository HistorySectionContentsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

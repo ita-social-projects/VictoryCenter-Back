@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
@@ -34,6 +35,7 @@ using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
@@ -99,6 +101,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IWhoWeAreContentLocalizationsRepository? _whoWeAreContentLocalizationsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
+    private IHistorySectionsRepository? _historySectionsRepository;
+    private IHistorySectionContentsRepository? _historySectionContentsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -227,6 +231,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     public ICompanyProfileRequisiteLocalizationsRepository CompanyProfileRequisiteLocalizationsRepository =>
         _companyProfileRequisiteLocalizationsRepository ??=
             new CompanyProfileRequisiteLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHistorySectionsRepository HistorySectionsRepository =>
+        _historySectionsRepository ??= new HistorySectionsRepository(_victoryCenterDbContext);
+    public IHistorySectionContentsRepository HistorySectionContentsRepository =>
+        _historySectionContentsRepository ??= new HistorySectionContentsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
