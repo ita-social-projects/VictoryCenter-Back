@@ -24,6 +24,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -73,6 +74,10 @@ public interface IRepositoryWrapper
     ICompanyProfileContactLocalizationsRepository CompanyProfileContactLocalizationsRepository { get; }
     ICompanyProfileRequisiteLocalizationsRepository CompanyProfileRequisiteLocalizationsRepository { get; }
 
+    IMainPageRepository MainPageRepository { get; }
+    IMainAboutUsRepository MainAboutUsRepository { get; }
+    IMainPartnersRepository MainPartnersRepository { get; }
+    IImpactStatisticsRepository ImpactStatisticsRepository { get; }
     IHistorySectionsRepository HistorySectionsRepository { get; }
     IHistorySectionContentsRepository HistorySectionContentsRepository { get; }
 
