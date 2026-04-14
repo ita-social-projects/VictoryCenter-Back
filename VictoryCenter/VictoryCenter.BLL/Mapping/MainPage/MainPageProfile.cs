@@ -48,5 +48,11 @@ public class MainPageProfile : Profile
         CreateMap<MainPartners, MainPartnersDto>();
         CreateMap<ImpactStatistics, ImpactStatisticDto>();
         CreateMap<Metric, MetricDto>();
+
+        CreateMap<UpdateMainPageDto, MainPageEntity>();
+        CreateMap<UpdateMainAboutUsDto, MainAboutUs>();
+        CreateMap<UpdateMainPartnersDto, MainPartners>();
+        CreateMap<UpdateImpactStatisticDto, ImpactStatistics>();
+        CreateMap<UpdateMetricDto, Metric>();
     }
 }
