@@ -54,13 +54,7 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
-using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
-using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
-using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.MainPage;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
