@@ -2,12 +2,16 @@ using System.Reflection;
 using System.Transactions;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
@@ -24,12 +28,16 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
@@ -102,6 +110,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IMainAboutUsRepository? _mainAboutUsRepository;
     private IMainPartnersRepository? _mainPartnersRepository;
     private IImpactStatisticsRepository? _impactStatisticsRepository;
+    private IHistorySectionsRepository? _historySectionsRepository;
+    private IHistorySectionContentsRepository? _historySectionContentsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -183,6 +193,10 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IImpactStatisticsRepository ImpactStatisticsRepository =>
         _impactStatisticsRepository ??= new ImpactStatisticsRepository(_victoryCenterDbContext);
+    public IHistorySectionsRepository HistorySectionsRepository =>
+        _historySectionsRepository ??= new HistorySectionsRepository(_victoryCenterDbContext);
+    public IHistorySectionContentsRepository HistorySectionContentsRepository =>
+        _historySectionContentsRepository ??= new HistorySectionContentsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
