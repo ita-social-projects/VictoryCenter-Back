@@ -189,10 +189,10 @@ public class UpdateMainPageHandlerTests
     public async Task Handle_ShouldFail_WhenUpdatedEntityCannotBeLoaded()
     {
         // Arrange
-        var command = new UpdateMainPageCommand(GetValidUpdateDto() with { ImageId = null });
-        SetupValidationSuccess();
-
         var entity = GetExistingMainPageEntity(1);
+        var command = new UpdateMainPageCommand(GetValidUpdateDto(entity) with { ImageId = null });
+
+        SetupValidationSuccess();
 
         _mainPageRepositoryMock
             .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
@@ -226,10 +226,10 @@ public class UpdateMainPageHandlerTests
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
     {
         // Arrange
-        var command = new UpdateMainPageCommand(GetValidUpdateDto());
-        SetupValidationSuccess();
-
         var entity = GetExistingMainPageEntity(1);
+        var command = new UpdateMainPageCommand(GetValidUpdateDto(entity) with { ImageId = null });
+
+        SetupValidationSuccess();
 
         _mainPageRepositoryMock
             .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
@@ -257,6 +257,136 @@ public class UpdateMainPageHandlerTests
         Assert.Equal(
             ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(DAL.Entities.MainPage)),
             result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateAndCreateNestedItems_WhenPayloadIsMixed()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+
+        var command = new UpdateMainPageCommand(new UpdateMainPageDto
+        {
+            Title = "Updated main page title",
+            Description = "Updated main page description long enough",
+            ImageId = 5,
+            MainAboutUs = new UpdateMainAboutUsDto
+            {
+                Title = "Updated about us title",
+                Description = "Updated about us description long enough",
+            },
+            MainPartners = new UpdateMainPartnersDto
+            {
+                Title = "Updated partners title",
+                Description = "Updated partners description long enough",
+            },
+            ImpactStatistics =
+            [
+                new UpdateImpactStatisticDto
+                {
+                    Id = entity.ImpactStatistics.Single().Id,
+                    Description = "Updated existing stat",
+                    ImageId = 6,
+                    Metrics =
+                    [
+                        new UpdateMetricDto
+                        {
+                            Id = entity.ImpactStatistics.Single().Metrics.Single().Id,
+                            Value = "999",
+                            Signature = "updated-signature",
+                        },
+                        new UpdateMetricDto
+                        {
+                            Value = "123",
+                            Signature = "new-metric",
+                        },
+                    ],
+                },
+                new UpdateImpactStatisticDto
+                {
+                    Description = "Brand new stat",
+                    ImageId = 6,
+                    Metrics =
+                    [
+                        new UpdateMetricDto
+                        {
+                            Value = "321",
+                            Signature = "brand-new-metric",
+                        },
+                    ],
+                },
+            ],
+        });
+
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity)
+            .ReturnsAsync(entity);
+
+        _imageRepositoryMock
+            .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
+            .ReturnsAsync(new List<Image>
+            {
+                new() { Id = 5 },
+                new() { Id = 6 },
+            });
+
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
+            .Verifiable();
+
+        _mapperMock
+            .Setup(x => x.Map<Metric>(It.IsAny<UpdateMetricDto>()))
+            .Returns((UpdateMetricDto dto) => new Metric
+            {
+                Value = dto.Value,
+                Signature = dto.Signature,
+            });
+
+        _mapperMock
+            .Setup(x => x.Map<ImpactStatistics>(It.Is<UpdateImpactStatisticDto>(d => !d.Id.HasValue)))
+            .Returns((UpdateImpactStatisticDto dto) => new ImpactStatistics
+            {
+                Description = dto.Description,
+                ImageId = dto.ImageId,
+                Metrics = dto.Metrics.Select(m => new Metric
+                {
+                    Value = m.Value,
+                    Signature = m.Signature,
+                }).ToList(),
+            });
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
+            .Returns(new MainPageDto
+            {
+                Id = entity.Id,
+                Title = command.UpdateMainPageDto.Title,
+                Description = command.UpdateMainPageDto.Description,
+            });
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        Assert.Contains(entity.ImpactStatistics, s => s.Id == 13 && s.Description == "Updated existing stat");
+        Assert.Contains(entity.ImpactStatistics.SelectMany(s => s.Metrics), m => m.Id == 14 && m.Value == "999");
+
+        Assert.True(entity.ImpactStatistics.Count >= 2);
+        Assert.Contains(entity.ImpactStatistics, s => s.Description == "Brand new stat");
     }
 
     private UpdateMainPageHandler CreateHandler() => new(

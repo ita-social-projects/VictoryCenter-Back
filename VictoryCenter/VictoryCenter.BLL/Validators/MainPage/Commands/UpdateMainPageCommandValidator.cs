@@ -24,12 +24,12 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
         When(x => x.UpdateMainPageDto is not null, () =>
         {
             RuleFor(x => x)
-                .MustAsync(RequireIdsWhenExistingImpactStatisticsPresentAsync)
+                .MustAsync(ValidateNestedIdsByMembershipAsync)
                 .WithMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics[].Id and ImpactStatistics[].Metrics[].Id"));
         });
     }
 
-    private async Task<bool> RequireIdsWhenExistingImpactStatisticsPresentAsync(
+    private async Task<bool> ValidateNestedIdsByMembershipAsync(
         UpdateMainPageCommand command,
         CancellationToken cancellationToken)
     {
@@ -42,21 +42,42 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
                         .ThenInclude(s => s.Metrics),
             });
 
-        if (existingMainPage is null || existingMainPage.ImpactStatistics.Count == 0)
+        if (existingMainPage is null)
         {
             return true;
         }
 
         var stats = command.UpdateMainPageDto.ImpactStatistics ?? [];
 
-        if (stats.Any(s => !s.Id.HasValue))
+        var existingStatIds = existingMainPage.ImpactStatistics.Select(s => s.Id).ToHashSet();
+
+        foreach (var stat in stats)
         {
-            return false;
+            if (!stat.Id.HasValue)
+            {
+                continue;
+            }
+
+            if (!existingStatIds.Contains(stat.Id.Value))
+            {
+                return false;
+            }
         }
 
-        if (stats.Any(s => s.Metrics.Any(m => !m.Id.HasValue)))
+        var existingMetricIds = existingMainPage.ImpactStatistics
+            .SelectMany(s => s.Metrics)
+            .Select(m => m.Id)
+            .ToHashSet();
+
+        foreach (var metricId in stats
+                     .SelectMany(s => s.Metrics ?? [])
+                     .Where(m => m.Id.HasValue)
+                     .Select(m => m.Id!.Value))
         {
-            return false;
+            if (!existingMetricIds.Contains(metricId))
+            {
+                return false;
+            }
         }
 
         return true;
