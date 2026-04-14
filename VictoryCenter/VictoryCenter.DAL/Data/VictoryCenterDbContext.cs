@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 
@@ -102,6 +103,10 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<ImpactStatistics> ImpactStatistics { get; set; }
 
     public DbSet<Metric> Metrics { get; set; }
+
+    public DbSet<HistorySection> HistorySections { get; set; }
+
+    public DbSet<HistorySectionContent> HistorySectionContents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
