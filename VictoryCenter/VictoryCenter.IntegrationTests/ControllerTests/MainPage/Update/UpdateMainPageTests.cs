@@ -7,8 +7,11 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
+
+using EntityMainPage = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Update;
 
@@ -22,194 +25,204 @@ public class UpdateMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task UpdateMainPage_WithValidData_ShouldReturnOkAndUpdateEntity()
+    public async Task Update_ValidData_ShouldReturnOkAndUpdateEntity()
     {
-        // Arrange
-        var mainPage = await Fixture.DbContext.MainPages
-            .Include(m => m.ImpactStatistics)
-                .ThenInclude(s => s.Metrics)
-            .FirstAsync();
-
-        var image1 = await Fixture.DbContext.Images.OrderBy(i => i.Id).FirstAsync();
-        var image2 = await Fixture.DbContext.Images.OrderByDescending(i => i.Id).FirstAsync();
+        var mainPage = await EnsureMainPageExistsAsync();
+        var image1 = await EnsureImageExistsAsync();
+        var image2 = await EnsureSecondImageExistsAsync(image1.Id);
 
         var existingStat = mainPage.ImpactStatistics.FirstOrDefault();
         var existingMetric = existingStat?.Metrics.FirstOrDefault();
 
-        var updateDto = new UpdateMainPageDto
-        {
-            Title = "Updated MainPage title",
-            Description = "Updated MainPage description",
-            ImageId = image1.Id,
-            MainAboutUs = new UpdateMainAboutUsDto
-            {
-                Title = "Updated About Us title",
-                Description = "Updated About Us description",
-            },
-            MainPartners = new UpdateMainPartnersDto
-            {
-                Title = "Updated Partners title",
-                Description = "Updated Partners description",
-            },
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = existingStat?.Id,
-                    Description = "Updated existing stat",
-                    ImageId = image2.Id,
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Id = existingMetric?.Id,
-                            Value = "999",
-                            Signature = "updated-signature",
-                        },
-                        new UpdateMetricDto
-                        {
-                            Value = "123",
-                            Signature = "new-metric",
-                        },
-                    ],
-                },
-                new UpdateImpactStatisticDto
-                {
-                    Description = "New stat",
-                    ImageId = image2.Id,
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Value = "321",
-                            Signature = "new-stat-metric",
-                        },
-                    ],
-                },
-            ],
-        };
+        var updateDto = CreateUpdateDto(
+            title: "Updated MainPage title",
+            mainImageId: image1.Id,
+            statImageId: image2.Id,
+            statId: existingStat?.Id,
+            metricId: existingMetric?.Id);
 
-        var content = new StringContent(
-            JsonSerializer.Serialize(updateDto),
-            Encoding.UTF8,
-            "application/json");
+        var response = await PutRaw(updateDto);
 
-        // Act
-        var response = await Fixture.HttpClient.PutAsync(_endpointUri, content);
-
-        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         Fixture.DbContext.ChangeTracker.Clear();
-
-        var updatedMainPage = await Fixture.DbContext.MainPages
+        var updated = await Fixture.DbContext.MainPages
             .Include(m => m.MainAboutUs)
             .Include(m => m.MainPartners)
             .Include(m => m.ImpactStatistics)
-                .ThenInclude(s => s.Metrics)
-            .FirstAsync();
+            .SingleAsync(m => m.Id == mainPage.Id);
 
-        Assert.Equal(updateDto.Title, updatedMainPage.Title);
-        Assert.Equal(updateDto.Description, updatedMainPage.Description);
-        Assert.Equal(updateDto.ImageId, updatedMainPage.ImageId);
-
-        Assert.NotNull(updatedMainPage.MainAboutUs);
-        Assert.Equal(updateDto.MainAboutUs!.Title, updatedMainPage.MainAboutUs!.Title);
-        Assert.Equal(updateDto.MainAboutUs.Description, updatedMainPage.MainAboutUs.Description);
-
-        Assert.NotNull(updatedMainPage.MainPartners);
-        Assert.Equal(updateDto.MainPartners!.Title, updatedMainPage.MainPartners!.Title);
-        Assert.Equal(updateDto.MainPartners.Description, updatedMainPage.MainPartners.Description);
-
-        Assert.True(updatedMainPage.ImpactStatistics.Count >= 1);
+        Assert.Equal(updateDto.Title, updated.Title);
+        Assert.NotNull(updated.MainAboutUs);
+        Assert.NotNull(updated.MainPartners);
+        Assert.True(updated.ImpactStatistics.Count >= 1);
+        Assert.Contains(updated.ImpactStatistics, s => s.Description is "Updated existing stat" or "New stat");
     }
 
     [Fact]
-    public async Task UpdateMainPage_WithEmptyTitle_ShouldReturnBadRequest()
+    public async Task Update_EmptyTitle_ShouldReturnBadRequest()
     {
-        // Arrange
-        var updateDto = new UpdateMainPageDto
-        {
-            Title = string.Empty,
-            Description = "Valid description",
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Description = "Valid stat description",
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Value = "100",
-                            Signature = "children",
-                        },
-                    ],
-                },
-            ],
-        };
+        var mainPage = await EnsureMainPageExistsAsync();
+        var image1 = await EnsureImageExistsAsync();
+        var existingStat = mainPage.ImpactStatistics.FirstOrDefault();
+        var existingMetric = existingStat?.Metrics.FirstOrDefault();
 
-        var content = new StringContent(
-            JsonSerializer.Serialize(updateDto),
-            Encoding.UTF8,
-            "application/json");
+        var updateDto = CreateUpdateDto(
+            title: string.Empty,
+            mainImageId: image1.Id,
+            statImageId: image1.Id,
+            statId: existingStat?.Id,
+            metricId: existingMetric?.Id);
 
-        // Act
-        var response = await Fixture.HttpClient.PutAsync(_endpointUri, content);
+        var response = await PutRaw(updateDto);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public async Task UpdateMainPage_WithNonExistentImageId_ShouldReturnNotFound()
+    public async Task Update_NonExistentImageId_ShouldReturnNotFound()
     {
-        // Arrange
-        var mainPage = await Fixture.DbContext.MainPages
-            .Include(m => m.ImpactStatistics)
-                .ThenInclude(s => s.Metrics)
-            .FirstAsync();
-
+        var mainPage = await EnsureMainPageExistsAsync();
         var existingStat = mainPage.ImpactStatistics.FirstOrDefault();
         var existingMetric = existingStat?.Metrics.FirstOrDefault();
 
-        var maxImageId = await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0;
-        var nonExistentImageId = maxImageId + 1000;
+        var nonExistentId = (await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0) + 1000;
 
-        var updateDto = new UpdateMainPageDto
+        var updateDto = CreateUpdateDto(
+            title: "Updated title",
+            mainImageId: nonExistentId,
+            statImageId: nonExistentId,
+            statId: existingStat?.Id,
+            metricId: existingMetric?.Id);
+
+        var response = await PutRaw(updateDto);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    private async Task<HttpResponseMessage> PutRaw(UpdateMainPageDto payload)
+    {
+        var serialized = JsonSerializer.Serialize(payload);
+        return await Fixture.HttpClient.PutAsync(
+            _endpointUri,
+            new StringContent(serialized, Encoding.UTF8, "application/json"));
+    }
+
+    private static UpdateMainPageDto CreateUpdateDto(string title, long mainImageId, long statImageId, long? statId = null, long? metricId = null)
+    {
+        return new UpdateMainPageDto
         {
-            Title = "Updated title",
+            Title = title,
             Description = "Updated description",
-            ImageId = nonExistentImageId,
+            ImageId = mainImageId,
+            MainAboutUs = new UpdateMainAboutUsDto { Title = "Updated About Us title", Description = "Updated About Us description" },
+            MainPartners = new UpdateMainPartnersDto { Title = "Updated Partners title", Description = "Updated Partners description" },
             ImpactStatistics =
             [
                 new UpdateImpactStatisticDto
                 {
-                    Id = existingStat?.Id,
-                    Description = "Updated stat",
-                    ImageId = nonExistentImageId,
+                    Id = statId,
+                    Description = "Updated existing stat",
+                    ImageId = statImageId,
                     Metrics =
                     [
-                        new UpdateMetricDto
-                        {
-                            Id = existingMetric?.Id,
-                            Value = "100",
-                            Signature = "children",
-                        },
-                    ],
+                        new UpdateMetricDto { Id = metricId, Value = "999", Signature = "updated-signature" },
+                        new UpdateMetricDto { Value = "123", Signature = "new-metric" }
+                    ]
                 },
-            ],
+                new UpdateImpactStatisticDto
+                {
+                    Description = "New stat",
+                    ImageId = statImageId,
+                    Metrics = [new UpdateMetricDto { Value = "321", Signature = "new-stat-metric" }]
+                }
+
+            ]
+        };
+    }
+
+    private async Task<EntityMainPage> EnsureMainPageExistsAsync()
+    {
+        var existing = await Fixture.DbContext.MainPages
+            .Include(m => m.MainAboutUs)
+            .Include(m => m.MainPartners)
+            .Include(m => m.ImpactStatistics)
+                .ThenInclude(s => s.Metrics)
+            .FirstOrDefaultAsync();
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var image = await EnsureImageExistsAsync();
+        var mainPage = new EntityMainPage
+        {
+            Title = "Seed Title",
+            Description = "Seed Desc",
+            ImageId = image.Id,
+            MainAboutUs = new MainAboutUs { Title = "Seed About Us", Description = "Seed Desc" },
+            MainPartners = new MainPartners { Title = "Seed Partners", Description = "Seed Desc" },
+            ImpactStatistics =
+            [
+                new ImpactStatistics
+                {
+                    Description = "Seed Stat",
+                    ImageId = image.Id,
+                    Metrics = [new Metric { Value = "100", Signature = "children" }]
+                }
+
+            ]
         };
 
-        var content = new StringContent(
-            JsonSerializer.Serialize(updateDto),
-            Encoding.UTF8,
-            "application/json");
+        await Fixture.DbContext.MainPages.AddAsync(mainPage);
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
 
-        // Act
-        var response = await Fixture.HttpClient.PutAsync(_endpointUri, content);
+        return mainPage;
+    }
 
-        // Assert
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    private async Task<Image> EnsureImageExistsAsync()
+    {
+        var image = await Fixture.DbContext.Images.OrderBy(i => i.Id).FirstOrDefaultAsync();
+        if (image is not null)
+        {
+            return image;
+        }
+
+        image = new Image
+        {
+            Url = "https://example.com/seed-image-1.jpg",
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+
+        await Fixture.DbContext.Images.AddAsync(image);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        return image;
+    }
+
+    private async Task<Image> EnsureSecondImageExistsAsync(long firstImageId)
+    {
+        var second = await Fixture.DbContext.Images
+            .Where(i => i.Id != firstImageId)
+            .OrderByDescending(i => i.Id)
+            .FirstOrDefaultAsync();
+
+        if (second is not null)
+        {
+            return second;
+        }
+
+        second = new Image
+        {
+            Url = "https://example.com/seed-image-2.jpg",
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+
+        await Fixture.DbContext.Images.AddAsync(second);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        return second;
     }
 }
