@@ -56,6 +56,8 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
+using VictoryCenter.DAL.Repositories.Realizations.MainPage;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -101,6 +103,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IWhoWeAreContentLocalizationsRepository? _whoWeAreContentLocalizationsRepository;
     private IWhoWeAreContentsRepository? _whoWeAreContentsRepository;
     private IWhoWeAreSectionsRepository? _whoWeAreSectionsRepository;
+    private IMainPageRepository? _mainPageRepository;
+    private IMainAboutUsRepository? _mainAboutUsRepository;
+    private IMainPartnersRepository? _mainPartnersRepository;
+    private IImpactStatisticsRepository? _impactStatisticsRepository;
     private IHistorySectionsRepository? _historySectionsRepository;
     private IHistorySectionContentsRepository? _historySectionContentsRepository;
 
@@ -232,6 +238,17 @@ public class RepositoryWrapper : IRepositoryWrapper
         _companyProfileRequisiteLocalizationsRepository ??=
             new CompanyProfileRequisiteLocalizationsRepository(_victoryCenterDbContext);
 
+    public IMainPageRepository MainPageRepository =>
+        _mainPageRepository ??= new MainPageRepository(_victoryCenterDbContext);
+
+    public IMainAboutUsRepository MainAboutUsRepository =>
+        _mainAboutUsRepository ??= new MainAboutUsRepository(_victoryCenterDbContext);
+
+    public IMainPartnersRepository MainPartnersRepository =>
+        _mainPartnersRepository ??= new MainPartnersRepository(_victoryCenterDbContext);
+
+    public IImpactStatisticsRepository ImpactStatisticsRepository =>
+        _impactStatisticsRepository ??= new ImpactStatisticsRepository(_victoryCenterDbContext);
     public IHistorySectionsRepository HistorySectionsRepository =>
         _historySectionsRepository ??= new HistorySectionsRepository(_victoryCenterDbContext);
     public IHistorySectionContentsRepository HistorySectionContentsRepository =>
