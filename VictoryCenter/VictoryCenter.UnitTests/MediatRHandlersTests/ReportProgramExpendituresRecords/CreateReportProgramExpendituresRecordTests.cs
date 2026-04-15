@@ -134,7 +134,7 @@ public class CreateReportProgramExpendituresRecordTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecord()
+    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecordForSpecifiedYear()
     {
         // Arrange
         SetupDependencies(_category, 1, _recordEntity);
@@ -151,7 +151,8 @@ public class CreateReportProgramExpendituresRecordTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
-            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord,
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecordForSpecifiedYear(
+                _createDto.HippotherapyProgramCategoryId, _createDto.ReportingYear),
             result.Errors[0].Message);
     }
 

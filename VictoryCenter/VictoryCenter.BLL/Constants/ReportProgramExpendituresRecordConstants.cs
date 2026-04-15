@@ -1,6 +1,6 @@
 namespace VictoryCenter.BLL.Constants;
 
-public class ReportProgramExpendituresRecordConstants
+public static class ReportProgramExpendituresRecordConstants
 {
     public static readonly int ReportingYearMinValue = 2010;
     public static readonly int ReportingYearMaxValue = 2050;
@@ -18,6 +18,8 @@ public class ReportProgramExpendituresRecordConstants
     public static readonly string AmountFormat =
         $"a number with up to {AmountDigitsBeforeDecimalPoint} digits before the decimal separator and up to {AmountDigitsAfterDecimalPoint} after";
 
-    public static readonly string ProgramCategoryAlreadyHasRecord =
-        "Record for this program category already exists";
+    public static string ProgramCategoryAlreadyHasRecordForSpecifiedYear(long programCategoryId, int year)
+    {
+        return $"A record for the {programCategoryId} program category already exists for the year {year}.";
+    }
 }

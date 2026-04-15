@@ -54,14 +54,16 @@ public class CreateReportProgramExpendituresRecordHandler :
                         typeof(HippotherapyProgramCategory)));
             }
 
-            if (await DuplicateRecordExistsAsync(request.CreateReportProgramExpendituresRecordDto
-                    .HippotherapyProgramCategoryId))
-            {
-                return Result.Fail(ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord);
-            }
-
             var reportProgramExpendituresRecord =
                 _mapper.Map<ReportProgramExpendituresRecord>(request.CreateReportProgramExpendituresRecordDto);
+
+            if (await DuplicateRecordExistsAsync(reportProgramExpendituresRecord))
+            {
+                return Result.Fail(ReportProgramExpendituresRecordConstants
+                    .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
+                        request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
+                        request.CreateReportProgramExpendituresRecordDto.ReportingYear));
+            }
 
             reportProgramExpendituresRecord.CreatedAt = DateTimeOffset.UtcNow;
 
@@ -84,8 +86,10 @@ public class CreateReportProgramExpendituresRecordHandler :
         catch (DbUpdateException dbUpdateException) when (dbUpdateException.IsUniqueConstraintException())
         {
             return Result.Fail<ReportProgramExpendituresRecordDto>(
-                ErrorMessagesConstants.PropertyMustBeUnique(
-                    nameof(ReportProgramExpendituresRecord.HippotherapyProgramCategoryId)));
+                ReportProgramExpendituresRecordConstants
+                    .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
+                        request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
+                        request.CreateReportProgramExpendituresRecordDto.ReportingYear));
         }
         catch (DbUpdateException)
         {
@@ -95,12 +99,14 @@ public class CreateReportProgramExpendituresRecordHandler :
         }
     }
 
-    private async Task<bool> DuplicateRecordExistsAsync(long programCategoryId)
+    private async Task<bool> DuplicateRecordExistsAsync(ReportProgramExpendituresRecord record)
     {
         return await _repositoryWrapper.ReportProgramExpendituresRecordsRepository.GetFirstOrDefaultAsync(
             new QueryOptions<ReportProgramExpendituresRecord>
             {
-                Filter = record => record.HippotherapyProgramCategoryId == programCategoryId
+                Filter = recordFromDatabase =>
+                    recordFromDatabase.HippotherapyProgramCategoryId == record.HippotherapyProgramCategoryId &&
+                    recordFromDatabase.ReportingYear == record.ReportingYear
             }) is not null;
     }
 }
