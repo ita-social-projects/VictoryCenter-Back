@@ -1,7 +1,9 @@
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -15,53 +17,63 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IPdfService _pdfService;
     private readonly IReorderService _reorderService;
+    private readonly ILogger<DeletePdfReportHandler> _logger;
 
     public DeletePdfReportHandler(
         IRepositoryWrapper repositoryWrapper,
         IPdfService pdfService,
-        IReorderService reorderService)
+        IReorderService reorderService,
+        ILogger<DeletePdfReportHandler> logger)
     {
         _repositoryWrapper = repositoryWrapper;
         _pdfService = pdfService;
         _reorderService = reorderService;
+        _logger = logger;
     }
 
     public async Task<Result<Unit>> Handle(
         DeletePdfReportCommand request,
         CancellationToken cancellationToken)
     {
+        var pdfReport = await _repositoryWrapper.PdfReportRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<PdfReport>
+            {
+                Filter = pr => pr.Id == request.Id,
+                AsNoTracking = false
+            });
+
+        if (pdfReport == null)
+        {
+            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+        }
+
+        var blobName = pdfReport.BlobName;
+
         try
         {
-            var pdfReport = await _repositoryWrapper.PdfReportRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<PdfReport>
-                {
-                    Filter = pr => pr.Id == request.Id,
-                    AsNoTracking = false
-                });
-
-            if (pdfReport == null)
-            {
-                return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
-            }
-
             using var transaction = _repositoryWrapper.BeginTransaction();
-
-            var blobName = pdfReport.BlobName;
 
             _repositoryWrapper.PdfReportRepository.Delete(pdfReport);
             await _repositoryWrapper.SaveChangesAsync();
-
             await _reorderService.RenumberPriorityAsync<PdfReport>();
 
             transaction.Complete();
-            _pdfService.DeletePdf(blobName);
-
-            return Result.Ok(Unit.Value);
         }
         catch (DbUpdateException)
         {
             return Result.Fail<Unit>(
                 ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(PdfReport)));
         }
+
+        try
+        {
+            _pdfService.DeletePdf(blobName);
+        }
+        catch (BlobFileSystemException ex)
+        {
+            _logger.LogError(ex, "Failed to delete blob {BlobName} after deleting PdfReport with Id {PdfReportId}", blobName, request.Id);
+        }
+
+        return Result.Ok(Unit.Value);
     }
 }

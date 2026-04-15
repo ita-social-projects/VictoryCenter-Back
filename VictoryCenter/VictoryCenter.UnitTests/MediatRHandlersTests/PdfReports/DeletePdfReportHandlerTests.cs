@@ -1,8 +1,10 @@
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -16,6 +18,7 @@ public class DeletePdfReportHandlerTests
     private readonly Mock<IRepositoryWrapper> _mockRepo;
     private readonly Mock<IPdfService> _mockPdfService;
     private readonly Mock<IReorderService> _mockReorderService;
+    private readonly Mock<ILogger<DeletePdfReportHandler>> _mockLogger;
     private readonly PdfReport _existingReport;
 
     public DeletePdfReportHandlerTests()
@@ -23,6 +26,7 @@ public class DeletePdfReportHandlerTests
         _mockRepo = new Mock<IRepositoryWrapper>();
         _mockPdfService = new Mock<IPdfService>();
         _mockReorderService = new Mock<IReorderService>();
+        _mockLogger = new Mock<ILogger<DeletePdfReportHandler>>();
         _existingReport = new PdfReport
         {
             Id = 1,
@@ -124,6 +128,46 @@ public class DeletePdfReportHandlerTests
         _mockPdfService.Verify(p => p.DeletePdf(It.IsAny<string>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Handle_BlobDeleteThrows_ReturnsSuccessAndLogsError()
+    {
+        // Arrange
+        var command = new DeletePdfReportCommand(1);
+
+        _mockRepo.Setup(r => r.PdfReportRepository.GetFirstOrDefaultAsync(
+                     It.IsAny<QueryOptions<PdfReport>>()))
+                 .ReturnsAsync(_existingReport);
+
+        _mockRepo.Setup(r => r.PdfReportRepository.Delete(It.IsAny<PdfReport>()));
+
+        _mockRepo.SetupSequence(r => r.SaveChangesAsync())
+                 .ReturnsAsync(1);
+
+        _mockPdfService.Setup(p => p.DeletePdf(It.IsAny<string>()))
+               .Throws(new BlobFileSystemException("blob-name-123", "Failed to delete"));
+
+        _mockReorderService.Setup(r => r.RenumberPriorityAsync<PdfReport>(
+                                It.IsAny<System.Linq.Expressions.Expression<Func<PdfReport, bool>>>()))
+                           .Returns(Task.CompletedTask);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _mockPdfService.Verify(p => p.DeletePdf(_existingReport.BlobName), Times.Once);
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
     private DeletePdfReportHandler CreateHandler() =>
-        new(_mockRepo.Object, _mockPdfService.Object, _mockReorderService.Object);
+        new(_mockRepo.Object, _mockPdfService.Object, _mockReorderService.Object, _mockLogger.Object);
 }

@@ -28,6 +28,7 @@ public class PdfReportsController : AuthorizedApiController
     }
 
     [HttpGet("{id}")]
+    [Produces("application/pdf")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPdfReportById(long id)

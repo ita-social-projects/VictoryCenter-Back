@@ -1,6 +1,7 @@
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -41,9 +42,13 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
             var pdfStream = await _pdfService.GetPdfAsync(pdfReport.BlobName);
             return Result.Ok<Stream>(pdfStream);
         }
-        catch (Exception ex)
+        catch (BlobNotFoundException)
         {
-            return Result.Fail<Stream>($"Failed to retrieve PDF file: {ex.Message}");
+            return Result.Fail<Stream>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+        }
+        catch (BlobFileSystemException)
+        {
+            return Result.Fail<Stream>(ErrorMessagesConstants.FailedToRetrievePdf());
         }
     }
 }

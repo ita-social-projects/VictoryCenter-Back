@@ -1,5 +1,6 @@
 using Moq;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
 using VictoryCenter.DAL.Entities;
@@ -92,32 +93,41 @@ public class GetPdfReportByIdHandlerTests
     }
 
     [Fact]
-    public async Task Handle_PdfServiceThrowsException_ReturnsFailResult()
+    public async Task Handle_BlobNotFound_ReturnsFailResult()
     {
-        // Arrange
         _mockRepositoryWrapper
             .Setup(x => x.PdfReportRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfReport>>()))
             .ReturnsAsync(_testPdfReport);
 
         _mockPdfService
             .Setup(x => x.GetPdfAsync(_testPdfReport.BlobName))
-            .ThrowsAsync(new IOException("File not found"));
+            .ThrowsAsync(new BlobNotFoundException("report-2024.pdf", "Not found"));
 
-        var query = new GetPdfReportByIdQuery(1);
+        var result = await CreateHandler().Handle(new GetPdfReportByIdQuery(1), CancellationToken.None);
 
-        // Act
-        var result = await CreateHandler().Handle(query, CancellationToken.None);
-
-        // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Failed to retrieve PDF file", result.Errors.Select(e => e.Message).FirstOrDefault() ?? string.Empty);
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(1, typeof(PdfReport)),
+            result.Errors.Select(e => e.Message));
+    }
 
-        _mockRepositoryWrapper.Verify(
-            x => x.PdfReportRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfReport>>()),
-            Times.Once);
-        _mockPdfService.Verify(
-            x => x.GetPdfAsync(_testPdfReport.BlobName),
-            Times.Once);
+    [Fact]
+    public async Task Handle_BlobFileSystemException_ReturnsFailResult()
+    {
+        _mockRepositoryWrapper
+            .Setup(x => x.PdfReportRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfReport>>()))
+            .ReturnsAsync(_testPdfReport);
+
+        _mockPdfService
+            .Setup(x => x.GetPdfAsync(_testPdfReport.BlobName))
+            .ThrowsAsync(new BlobFileSystemException("report-2024.pdf", "Read failed"));
+
+        var result = await CreateHandler().Handle(new GetPdfReportByIdQuery(1), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains(
+            ErrorMessagesConstants.FailedToRetrievePdf(),
+            result.Errors.Select(e => e.Message));
     }
 
     private GetPdfReportByIdHandler CreateHandler() =>
