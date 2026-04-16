@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Transactions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +30,9 @@ public class BulkDeleteReportProgramExpendituresRecordTests
     {
         // Arrange
         var ids = new long[] { 1, 2, 3 };
+        var entities = ids.Select(id => new ReportProgramExpendituresRecord { Id = id }).ToList();
         var command = new BulkDeleteReportProgramExpendituresRecordCommand(ids);
-        SetupDependencies(ids.ToList(), 3);
+        SetupDependencies(entities, 1);
 
         var handler = new BulkDeleteReportProgramExpendituresRecordCommandHandler(
             _validator, _repositoryWrapperMock.Object);
@@ -90,9 +90,10 @@ public class BulkDeleteReportProgramExpendituresRecordTests
         // Arrange
         var ids = new long[] { 1, 2, 3 };
         var existingIds = new List<long> { 1, 2 };
+        var entities = existingIds.Select(id => new ReportProgramExpendituresRecord { Id = id }).ToList();
         var nonExistingIds = new List<long> { 3 };
         var command = new BulkDeleteReportProgramExpendituresRecordCommand(ids);
-        SetupDependencies(existingIds, 0);
+        SetupDependencies(entities, 0);
 
         var handler = new BulkDeleteReportProgramExpendituresRecordCommandHandler(
             _validator, _repositoryWrapperMock.Object);
@@ -108,12 +109,13 @@ public class BulkDeleteReportProgramExpendituresRecordTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenDeletedCountDoesNotMatch()
+    public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
         var ids = new long[] { 1, 2, 3 };
+        var entities = ids.Select(id => new ReportProgramExpendituresRecord { Id = id }).ToList();
         var command = new BulkDeleteReportProgramExpendituresRecordCommand(ids);
-        SetupDependencies(ids.ToList(), 2);
+        SetupDependencies(entities, 0);
 
         var handler = new BulkDeleteReportProgramExpendituresRecordCommandHandler(
             _validator, _repositoryWrapperMock.Object);
@@ -133,6 +135,7 @@ public class BulkDeleteReportProgramExpendituresRecordTests
     {
         // Arrange
         var ids = new long[] { 1, 2, 3 };
+        var entities = ids.Select(id => new ReportProgramExpendituresRecord { Id = id }).ToList();
         var command = new BulkDeleteReportProgramExpendituresRecordCommand(ids);
 
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
@@ -142,13 +145,13 @@ public class BulkDeleteReportProgramExpendituresRecordTests
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _recordsRepositoryMock.Setup(repository =>
-                repository.GetAllProjectedAsync(
-                    It.IsAny<Expression<Func<ReportProgramExpendituresRecord, long>>>(),
-                    It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
-            .ReturnsAsync(ids.ToList());
+                repository.GetAllAsync(It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
+            .ReturnsAsync(entities);
 
         _recordsRepositoryMock.Setup(repository =>
-                repository.BulkDeleteAsync(It.IsAny<Expression<Func<ReportProgramExpendituresRecord, bool>>>()))
+            repository.DeleteRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()));
+
+        _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(new DbUpdateException());
 
         var handler = new BulkDeleteReportProgramExpendituresRecordCommandHandler(
@@ -164,7 +167,7 @@ public class BulkDeleteReportProgramExpendituresRecordTests
             result.Errors[0].Message);
     }
 
-    private void SetupDependencies(List<long> returnedProjectionIds, int deletedCount)
+    private void SetupDependencies(IEnumerable<ReportProgramExpendituresRecord> returnedEntities, int saveResult)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -173,13 +176,12 @@ public class BulkDeleteReportProgramExpendituresRecordTests
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _recordsRepositoryMock.Setup(repository =>
-                repository.GetAllProjectedAsync(
-                    It.IsAny<Expression<Func<ReportProgramExpendituresRecord, long>>>(),
-                    It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
-            .ReturnsAsync(returnedProjectionIds);
+                repository.GetAllAsync(It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
+            .ReturnsAsync(returnedEntities);
 
         _recordsRepositoryMock.Setup(repository =>
-                repository.BulkDeleteAsync(It.IsAny<Expression<Func<ReportProgramExpendituresRecord, bool>>>()))
-            .ReturnsAsync(deletedCount);
+            repository.DeleteRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()));
+
+        _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
     }
 }
