@@ -82,7 +82,7 @@ public static class ErrorMessagesConstants
     {
         ArgumentNullException.ThrowIfNull(entityType);
 
-        return $"Failed to delete {entityType.Name} entities  in the database";
+        return $"Failed to delete {entityType.Name} entities";
     }
 
     public static string FailedToDeleteEntitiesInDatabase(Type entityType)
