@@ -1,3 +1,5 @@
+using VictoryCenter.DAL.Enums;
+
 namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
@@ -74,6 +76,20 @@ public static class ErrorMessagesConstants
         ArgumentNullException.ThrowIfNull(entityType);
 
         return $"Failed to delete {entityType.Name}";
+    }
+
+    public static string FailedToDeleteEntities(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to delete {entityType.Name} entities  in the database";
+    }
+
+    public static string FailedToDeleteEntitiesInDatabase(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to delete {entityType.Name} entities in the database";
     }
 
     public static string FailedToDeleteEntityInDatabase(Type entityType)
@@ -157,7 +173,7 @@ public static class ErrorMessagesConstants
         return $"{property} must be a valid value";
     }
 
-    public static string PropertyNotAllowedForContentType(string property, DAL.Enums.ContentType contentType)
+    public static string PropertyNotAllowedForContentType(string property, ContentType contentType)
     {
         return $"{property} is not allowed for content type {contentType}";
     }
