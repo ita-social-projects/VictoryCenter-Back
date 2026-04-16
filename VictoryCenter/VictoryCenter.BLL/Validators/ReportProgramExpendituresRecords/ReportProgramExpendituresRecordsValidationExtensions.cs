@@ -46,4 +46,16 @@ public static class ReportProgramExpendituresRecordsValidationExtensions
                 property,
                 ReportProgramExpendituresRecordConstants.ReportingYearMaxValue));
     }
+
+    public static IRuleBuilderOptions<T, IEnumerable<long>> MustHaveUniqueIds<T>(
+        this IRuleBuilder<T, IEnumerable<long>> ruleBuilder,
+        string collection)
+    {
+        return ruleBuilder.Must(e =>
+            {
+                var enumerable = e as long[] ?? e.ToArray();
+                return enumerable.Count() == enumerable.Distinct().Count();
+            })
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(collection));
+    }
 }
