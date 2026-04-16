@@ -27,7 +27,7 @@ public class BulkDeleteReportProgramExpendituresRecordTests : BaseTestClass
             Name = "Hippotherapy category",
             CreatedAt = DateTimeOffset.UtcNow
         };
-        await Fixture.DbContext.HippotherapyProgramCategories.AddAsync(category);
+        await Fixture.DbContext.HippotherapyProgramCategories.AddRangeAsync(category, category2);
         await Fixture.DbContext.SaveChangesAsync();
 
         var record1 = new ReportProgramExpendituresRecord
