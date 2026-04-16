@@ -32,30 +32,29 @@ public class BulkDeleteReportProgramExpendituresRecordCommandHandler
 
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            var existingRecordIds = await _repositoryWrapper
+            var entitiesToDelete = (await _repositoryWrapper
                 .ReportProgramExpendituresRecordsRepository
-                .GetAllProjectedAsync(
-                    record => record.Id,
-                    new QueryOptions<ReportProgramExpendituresRecord>
-                    {
-                        Filter = record => request.Ids.Contains(record.Id),
-                        AsNoTracking = true
-                    });
+                .GetAllAsync(new QueryOptions<ReportProgramExpendituresRecord>
+                {
+                    Filter = record => request.Ids.Contains(record.Id)
+                })).ToList();
+
+            var existingRecordIds = entitiesToDelete.Select(e => e.Id);
 
             var nonExistingRecordIds = request.Ids.Except(existingRecordIds).ToList();
 
-            if (nonExistingRecordIds.Count > 0)
+            if (nonExistingRecordIds.Any())
             {
                 return Result.Fail(ErrorMessagesConstants.NotFound(
                     nonExistingRecordIds,
                     typeof(ReportProgramExpendituresRecord)));
             }
 
-            var deletedEntityCount = await _repositoryWrapper
+            _repositoryWrapper
                 .ReportProgramExpendituresRecordsRepository
-                .BulkDeleteAsync(record => request.Ids.Contains(record.Id));
+                .DeleteRange(entitiesToDelete);
 
-            if (deletedEntityCount != request.Ids.Count())
+            if (await _repositoryWrapper.SaveChangesAsync() == 0)
             {
                 return Result.Fail(
                     ErrorMessagesConstants.FailedToDeleteEntities(typeof(ReportProgramExpendituresRecord)));
