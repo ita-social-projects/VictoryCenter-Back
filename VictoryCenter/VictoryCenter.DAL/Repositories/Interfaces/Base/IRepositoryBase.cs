@@ -9,7 +9,15 @@ public interface IRepositoryBase<T>
 {
     Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null);
 
+    Task<IEnumerable<TResult>> GetAllProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        QueryOptions<T>? queryOptions = null);
+
     Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null);
+
+    Task<TResult?> GetFirstOrDefaultProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        QueryOptions<T>? queryOptions = null);
 
     Task<T> CreateAsync(T entity);
 

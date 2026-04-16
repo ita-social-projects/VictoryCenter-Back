@@ -30,6 +30,22 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return await query.ToListAsync();
     }
 
+    public async Task<IEnumerable<TResult>> GetAllProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        QueryOptions<T>? queryOptions = null)
+    {
+        IQueryable<T> query = DbContext.Set<T>();
+
+        if (queryOptions != null)
+        {
+            query = ApplyQueryOptions(query, queryOptions);
+        }
+
+        var projectedQuery = ApplySelect(query, selector);
+
+        return await projectedQuery.ToListAsync();
+    }
+
     public async Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null)
     {
         IQueryable<T> query = DbContext.Set<T>();
@@ -42,6 +58,24 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         }
 
         return await query.FirstOrDefaultAsync();
+    }
+
+    public async Task<TResult?> GetFirstOrDefaultProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        QueryOptions<T>? queryOptions = null)
+    {
+        IQueryable<T> query = DbContext.Set<T>();
+
+        if (queryOptions != null)
+        {
+            query = ApplyTracking(query, queryOptions.AsNoTracking);
+            query = ApplyInclude(query, queryOptions.Include);
+            query = ApplyFilter(query, queryOptions.Filter);
+        }
+
+        var projectedQuery = ApplySelect(query, selector);
+
+        return await projectedQuery.FirstOrDefaultAsync();
     }
 
     public async Task<T> CreateAsync(T entity)
@@ -163,9 +197,14 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return query;
     }
 
-    static private IQueryable<T> ApplyTracking(IQueryable<T> query, bool asNoTracking)
+    private static IQueryable<T> ApplyTracking(IQueryable<T> query, bool asNoTracking)
     {
         return asNoTracking ? query.AsNoTracking() : query;
+    }
+
+    private static IQueryable<TResult> ApplySelect<TResult>(IQueryable<T> query, Expression<Func<T, TResult>> selector)
+    {
+        return query.Select(selector);
     }
 
     private static IQueryable<T> ApplyQueryOptions(IQueryable<T> query, QueryOptions<T> queryOptions)
