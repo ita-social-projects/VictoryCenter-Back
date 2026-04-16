@@ -30,8 +30,6 @@ public class BulkDeleteReportProgramExpendituresRecordCommandHandler
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
-
             var entitiesToDelete = (await _repositoryWrapper
                 .ReportProgramExpendituresRecordsRepository
                 .GetAllAsync(new QueryOptions<ReportProgramExpendituresRecord>
@@ -59,8 +57,6 @@ public class BulkDeleteReportProgramExpendituresRecordCommandHandler
                 return Result.Fail(
                     ErrorMessagesConstants.FailedToDeleteEntities(typeof(ReportProgramExpendituresRecord)));
             }
-
-            transaction.Complete();
 
             return Result.Ok(request.Ids.ToArray());
         }
