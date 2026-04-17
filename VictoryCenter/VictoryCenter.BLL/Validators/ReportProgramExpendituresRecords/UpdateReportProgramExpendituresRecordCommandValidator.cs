@@ -18,9 +18,11 @@ public class UpdateReportProgramExpendituresRecordCommandValidator
                 nameof(UpdateReportProgramExpendituresRecordCommand.ReportProgramExpendituresRecordId));
 
         RuleFor(x => x.Dto)
-            .ChildRules(dto =>
+            .NotNull()
+            .DependentRules(() =>
             {
-                dto.RuleFor(x => x.HippotherapyProgramCategoryId)
+                RuleFor(x => x.Dto.HippotherapyProgramCategoryId)
+                    .Cascade(CascadeMode.Stop)
                     .MustBeValidId(
                         nameof(UpdateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId))
                     .MustAsync(async (categoryId, cancellationToken) =>
@@ -32,11 +34,13 @@ public class UpdateReportProgramExpendituresRecordCommandValidator
                                 Filter = e => e.Id == categoryId,
                                 AsNoTracking = true
                             });
-                        var categoryExists = category is not null;
-
-                        return categoryExists;
+                        return category is not null;
                     })
                     .WithMessage(ErrorMessagesConstants.NotFound());
+                RuleFor(x => x.Dto.AmountUah)
+                    .MustBeValidAmountOfMoney(nameof(UpdateReportProgramExpendituresRecordDto.AmountUah));
+                RuleFor(x => x.Dto.AmountUsd)
+                    .MustBeValidAmountOfMoney(nameof(UpdateReportProgramExpendituresRecordDto.AmountUsd));
             });
     }
 }
