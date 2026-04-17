@@ -85,6 +85,46 @@ public class BulkDeleteReportProgramExpendituresRecordTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenIdsAreEmpty()
+    {
+        // Arrange
+        var command = new BulkDeleteReportProgramExpendituresRecordCommand(Array.Empty<long>());
+        var handler = new BulkDeleteReportProgramExpendituresRecordCommandHandler(
+            _validator, _repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.CollectionCannotBeEmpty(
+                nameof(BulkDeleteReportProgramExpendituresRecordCommand.Ids)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenIdsExceedMaximumCount()
+    {
+        // Arrange
+        var maxCount = ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete;
+        var ids = Enumerable.Range(1, maxCount + 1).Select(i => (long)i).ToArray();
+        var command = new BulkDeleteReportProgramExpendituresRecordCommand(ids);
+        var handler = new BulkDeleteReportProgramExpendituresRecordCommandHandler(
+            _validator, _repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                nameof(BulkDeleteReportProgramExpendituresRecordCommand.Ids), maxCount),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenEntitiesNotFound()
     {
         // Arrange
