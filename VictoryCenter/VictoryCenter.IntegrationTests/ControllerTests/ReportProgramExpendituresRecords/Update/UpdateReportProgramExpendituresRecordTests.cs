@@ -131,14 +131,20 @@ public class UpdateReportProgramExpendituresRecordTests : BaseTestClass
     [Fact]
     public async Task Update_ShouldReturnNotFound_WhenRecordDoesNotExist()
     {
+        var programCategory = new HippotherapyProgramCategory
+        {
+            Name = "Category for missing record test",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.HippotherapyProgramCategories.AddAsync(programCategory);
+        await Fixture.DbContext.SaveChangesAsync();
         var updateDto = new UpdateReportProgramExpendituresRecordDto
         {
-            HippotherapyProgramCategoryId = 1,
+            HippotherapyProgramCategoryId = programCategory.Id,
             AmountUah = 500m,
             AmountUsd = 12m
         };
         var serializedDto = JsonConvert.SerializeObject(updateDto);
-
         var response = await Fixture.HttpClient.PutAsync(
             "/api/ReportProgramExpendituresRecords/9999",
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
