@@ -1,4 +1,3 @@
-using System.Transactions;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -181,9 +180,6 @@ public class BulkDeleteReportProgramExpendituresRecordTests
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
 
-        _repositoryWrapperMock.Setup(wrapper => wrapper.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
-
         _recordsRepositoryMock.Setup(repository =>
                 repository.GetAllAsync(It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
             .ReturnsAsync(entities);
@@ -211,9 +207,6 @@ public class BulkDeleteReportProgramExpendituresRecordTests
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
-
-        _repositoryWrapperMock.Setup(wrapper => wrapper.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _recordsRepositoryMock.Setup(repository =>
                 repository.GetAllAsync(It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
