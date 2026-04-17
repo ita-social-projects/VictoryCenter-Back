@@ -17,9 +17,6 @@ public class BulkDeleteReportProgramExpendituresRecordCommandValidator
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
                 nameof(BulkDeleteReportProgramExpendituresRecordCommand.Ids)))
-            .WithMessage(
-                ErrorMessagesConstants.CollectionCannotBeEmpty(
-                    nameof(BulkDeleteReportProgramExpendituresRecordCommand.Ids)))
             .Must(e =>
                 e.Count() <= ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete)
             .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
