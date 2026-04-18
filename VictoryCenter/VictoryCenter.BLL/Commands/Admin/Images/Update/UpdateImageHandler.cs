@@ -52,6 +52,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             var previousType = imageEntity.MimeType;
             imageEntity.MimeType = request.UpdateImageDto.MimeType!;
+            imageEntity.UpdatedAt = DateTimeOffset.UtcNow;
 
             _repositoryWrapper.ImageRepository.Update(imageEntity);
 
