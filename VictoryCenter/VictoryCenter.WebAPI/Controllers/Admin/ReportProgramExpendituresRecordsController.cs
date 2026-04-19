@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -16,5 +17,15 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     {
         return HandleResult(await Mediator.Send(
             new CreateReportProgramExpendituresRecordCommand(createReportProgramExpendituresRecordDto)));
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ReportProgramExpendituresRecordDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAllReportProgramExpenditureRecordsAsync(
+        [FromQuery] long? hippotherapyProgramCategoryId = null)
+    {
+        return HandleResult(await Mediator.Send(
+            new GetAllReportProgramExpendituresRecordsQuery(hippotherapyProgramCategoryId)));
     }
 }
