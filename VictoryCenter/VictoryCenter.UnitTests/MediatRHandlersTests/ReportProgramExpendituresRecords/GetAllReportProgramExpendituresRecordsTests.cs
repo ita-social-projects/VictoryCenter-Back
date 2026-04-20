@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Moq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetAll;
 using VictoryCenter.DAL.Entities;
@@ -81,10 +82,19 @@ public class GetAllReportProgramExpendituresRecordsTests
     public async Task Handle_ShouldFilterByCategory_WhenCategoryIdProvided()
     {
         // Arrange
-        var filtered = _recordDtos
-            .Where(r => r.HippotherapyProgramCategoryId == 1)
-            .ToList();
-        SetupDependencies(filtered);
+        QueryOptions<ReportProgramExpendituresRecord>? capturedOptions = null;
+
+        _repositoryWrapperMock.SetupGet(w => w.ReportProgramExpendituresRecordsRepository)
+            .Returns(_recordsRepositoryMock.Object);
+
+        _recordsRepositoryMock
+            .Setup(r => r.GetAllProjectedAsync(
+                It.IsAny<Expression<Func<ReportProgramExpendituresRecord, ReportProgramExpendituresRecordDto>>>(),
+                It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
+            .Callback<Expression<Func<ReportProgramExpendituresRecord, ReportProgramExpendituresRecordDto>>,
+                QueryOptions<ReportProgramExpendituresRecord>>((_, opts) => capturedOptions = opts)
+            .ReturnsAsync(_recordDtos.Where(r => r.HippotherapyProgramCategoryId == 1).ToList());
+
         var handler = new GetAllReportProgramExpendituresRecordsHandler(_repositoryWrapperMock.Object);
 
         // Act
@@ -95,14 +105,34 @@ public class GetAllReportProgramExpendituresRecordsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Single(result.Value);
-        Assert.Equal(1, result.Value.First().HippotherapyProgramCategoryId);
+
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Filter);
+        Assert.Equal(ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerOneRetrieval, capturedOptions.Limit);
+        Assert.True(capturedOptions.AsNoTracking);
+
+        var predicate = capturedOptions.Filter!.Compile();
+        Assert.True(predicate(new ReportProgramExpendituresRecord { HippotherapyProgramCategoryId = 1 }));
+        Assert.False(predicate(new ReportProgramExpendituresRecord { HippotherapyProgramCategoryId = 2 }));
     }
 
     [Fact]
     public async Task Handle_ShouldReturnAllRecords_WhenCategoryIdIsNull()
     {
         // Arrange
-        SetupDependencies(_recordDtos);
+        QueryOptions<ReportProgramExpendituresRecord>? capturedOptions = null;
+
+        _repositoryWrapperMock.SetupGet(w => w.ReportProgramExpendituresRecordsRepository)
+            .Returns(_recordsRepositoryMock.Object);
+
+        _recordsRepositoryMock
+            .Setup(r => r.GetAllProjectedAsync(
+                It.IsAny<Expression<Func<ReportProgramExpendituresRecord, ReportProgramExpendituresRecordDto>>>(),
+                It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
+            .Callback<Expression<Func<ReportProgramExpendituresRecord, ReportProgramExpendituresRecordDto>>,
+                QueryOptions<ReportProgramExpendituresRecord>>((_, opts) => capturedOptions = opts)
+            .ReturnsAsync(_recordDtos);
+
         var handler = new GetAllReportProgramExpendituresRecordsHandler(_repositoryWrapperMock.Object);
 
         // Act
@@ -113,6 +143,15 @@ public class GetAllReportProgramExpendituresRecordsTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_recordDtos.Count, result.Value.Count());
+
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Filter);
+        Assert.Equal(ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerOneRetrieval, capturedOptions.Limit);
+        Assert.True(capturedOptions.AsNoTracking);
+
+        var predicate = capturedOptions.Filter!.Compile();
+        Assert.True(predicate(new ReportProgramExpendituresRecord { HippotherapyProgramCategoryId = 1 }));
+        Assert.True(predicate(new ReportProgramExpendituresRecord { HippotherapyProgramCategoryId = 99 }));
     }
 
     private void SetupDependencies(IEnumerable<ReportProgramExpendituresRecordDto> recordDtos)
