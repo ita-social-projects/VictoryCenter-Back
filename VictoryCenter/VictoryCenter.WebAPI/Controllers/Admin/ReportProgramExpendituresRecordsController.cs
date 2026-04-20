@@ -13,7 +13,7 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(ReportProgramExpendituresRecordDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateReportProgramExpenditureRecordAsync(
+    public async Task<IActionResult> CreateReportProgramExpendituresRecordAsync(
         CreateReportProgramExpendituresRecordDto createReportProgramExpendituresRecordDto)
     {
         return HandleResult(await Mediator.Send(
@@ -23,7 +23,7 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ReportProgramExpendituresRecordDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetAllReportProgramExpenditureRecordsAsync(
+    public async Task<IActionResult> GetAllReportProgramExpendituresRecordsAsync(
         [FromQuery] long? hippotherapyProgramCategoryId = null)
     {
         return HandleResult(await Mediator.Send(
