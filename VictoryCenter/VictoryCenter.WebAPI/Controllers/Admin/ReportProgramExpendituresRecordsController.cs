@@ -23,7 +23,7 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> DeleteReportProgramExpenditureRecordAsync([FromRoute] long id)
+    public async Task<IActionResult> DeleteReportProgramExpendituresRecordAsync([FromRoute] long id)
     {
         return HandleResult(await Mediator.Send(new DeleteReportProgramExpendituresRecordCommand(id)));
     }
