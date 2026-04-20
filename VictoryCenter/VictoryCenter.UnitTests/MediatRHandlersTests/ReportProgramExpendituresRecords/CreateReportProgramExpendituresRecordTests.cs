@@ -1,11 +1,9 @@
 using AutoMapper;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
-using VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
@@ -54,7 +52,6 @@ public class CreateReportProgramExpendituresRecordTests
 
     private readonly Mock<IReportProgramExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
-    private readonly IValidator<CreateReportProgramExpendituresRecordCommand> _validator;
 
     public CreateReportProgramExpendituresRecordTests()
     {
@@ -62,7 +59,6 @@ public class CreateReportProgramExpendituresRecordTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
         _hippotherapyProgramCategoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
-        _validator = new CreateReportProgramExpendituresRecordCommandValidator();
     }
 
     [Fact]
@@ -71,7 +67,6 @@ public class CreateReportProgramExpendituresRecordTests
         // Arrange
         SetupDependencies(_category, 1);
         var handler = new CreateReportProgramExpendituresRecordHandler(
-            _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
@@ -87,35 +82,11 @@ public class CreateReportProgramExpendituresRecordTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenValidationFails()
-    {
-        // Arrange
-        var invalidDto = _createDto with { HippotherapyProgramCategoryId = 0 };
-        var handler = new CreateReportProgramExpendituresRecordHandler(
-            _validator,
-            _repositoryWrapperMock.Object,
-            _mapperMock.Object);
-
-        // Act
-        var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(invalidDto),
-            CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsFailed);
-        Assert.Equal(
-            ErrorMessagesConstants.PropertyMustBePositive(
-                nameof(ReportProgramExpendituresRecord.HippotherapyProgramCategoryId)),
-            result.Errors[0].Message);
-    }
-
-    [Fact]
     public async Task Handle_ShouldFail_WhenCategoryNotFound()
     {
         // Arrange
         SetupDependencies(null, 1);
         var handler = new CreateReportProgramExpendituresRecordHandler(
-            _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
@@ -139,7 +110,6 @@ public class CreateReportProgramExpendituresRecordTests
         // Arrange
         SetupDependencies(_category, 1, _recordEntity);
         var handler = new CreateReportProgramExpendituresRecordHandler(
-            _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
@@ -162,7 +132,6 @@ public class CreateReportProgramExpendituresRecordTests
         // Arrange
         SetupDependencies(_category, 0);
         var handler = new CreateReportProgramExpendituresRecordHandler(
-            _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
@@ -186,7 +155,6 @@ public class CreateReportProgramExpendituresRecordTests
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
 
         var handler = new CreateReportProgramExpendituresRecordHandler(
-            _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
