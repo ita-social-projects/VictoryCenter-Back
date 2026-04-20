@@ -6,7 +6,7 @@ namespace VictoryCenter.BLL.Behaviors;
 
 public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators)
     : IPipelineBehavior<TRequest, TResponse>
-    where TRequest : IValidatableRequest
+    where TRequest : IBaseValidatableRequest
 {
     public async Task<TResponse> Handle(
         TRequest request,
