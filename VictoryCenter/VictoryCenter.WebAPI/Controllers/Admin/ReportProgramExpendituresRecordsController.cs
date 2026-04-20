@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.BulkDelete;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
+using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Delete;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.WebAPI.Controllers.Common;
 
@@ -26,5 +27,14 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     public async Task<IActionResult> BulkDeleteReportProgramExpenditureRecordsAsync([FromBody] IEnumerable<long> ids)
     {
         return HandleResult(await Mediator.Send(new BulkDeleteReportProgramExpendituresRecordCommand(ids)));
+    }
+
+    [HttpDelete("{id:long}")]
+    [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeleteReportProgramExpendituresRecordAsync([FromRoute] long id)
+    {
+        return HandleResult(await Mediator.Send(new DeleteReportProgramExpendituresRecordCommand(id)));
     }
 }
