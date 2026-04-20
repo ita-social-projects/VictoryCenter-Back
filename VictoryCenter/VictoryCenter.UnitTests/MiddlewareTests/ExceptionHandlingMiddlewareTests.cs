@@ -196,7 +196,15 @@ public class ExceptionHandlingMiddlewareTests
 
         await middleware.InvokeAsync(context);
 
+        var expectedResponse = validationException.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group
+                    .Select(error => error.ErrorMessage)
+                    .ToArray());
+
         Assert.True(problemDetails.Extensions.ContainsKey("errors"));
-        Assert.Equal(validationException.Errors, problemDetails.Extensions["errors"]);
+        Assert.Equal(expectedResponse, problemDetails.Extensions["errors"]);
     }
 }

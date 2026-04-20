@@ -35,12 +35,22 @@ public class ExceptionHandlingMiddleware
                 "ValidationFailure",
                 "One or more validation errors has occurred");
 
-            if (validationException.Errors is not null)
+            var errors = validationException.Errors
+                .GroupBy(error => error.PropertyName)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group
+                        .Select(error => error.ErrorMessage)
+                        .ToArray());
+
+            if (errors.Count > 0)
             {
-                problemDetails.Extensions["errors"] = validationException.Errors;
+                problemDetails.Extensions["errors"] = errors;
             }
 
+            context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
             await context.Response.WriteAsJsonAsync(problemDetails);
         }
         catch (Exception exception)
