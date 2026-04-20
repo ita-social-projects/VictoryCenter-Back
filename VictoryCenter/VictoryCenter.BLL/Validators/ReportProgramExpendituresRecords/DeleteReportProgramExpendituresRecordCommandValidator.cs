@@ -10,7 +10,6 @@ public class DeleteReportProgramExpendituresRecordCommandValidator
     public DeleteReportProgramExpendituresRecordCommandValidator()
     {
         RuleFor(x => x.ReportProgramExpendituresRecordId)
-            .NotNull()
             .MustBeValidId(nameof(ReportProgramExpendituresRecord.Id));
     }
 }
