@@ -24,7 +24,7 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(ReportProgramExpendituresRecordDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateReportProgramExpenditureRecordAsync(
+    public async Task<IActionResult> UpdateReportProgramExpendituresRecordAsync(
         [FromRoute] long id,
         [FromBody] UpdateReportProgramExpendituresRecordDto updateReportProgramExpendituresRecordDto)
     {
