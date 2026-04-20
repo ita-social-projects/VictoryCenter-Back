@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -29,18 +28,20 @@ public class GetPublishedFaqQuestionsBySlugHandler
     {
         var queryOptions = new QueryOptions<FaqPlacement>
         {
-            Include = placement => placement.Include(pt => pt.Question).ThenInclude(fq => fq.Localizations).ThenInclude(l => l.Language),
-            Filter = placement => placement.Page.Slug == request.Slug && placement.Question.Status == Status.Published,
+            Include = placement => placement
+                .Include(pt => pt.Question)
+                .ThenInclude(fq => fq.Localizations)
+                .ThenInclude(l => l.Language),
+            Filter = placement => placement.Page.Slug == request.Slug
+                && placement.Question.Status == Status.Published,
             OrderByASC = placement => placement.Priority
         };
 
         var publishedFaqFromVisitorPage = await _repositoryWrapper.FaqPlacementsRepository.GetAllAsync(queryOptions);
-        if (!publishedFaqFromVisitorPage.Any())
-        {
-            return Result.Fail<List<PublishedFaqQuestionDto>>(FaqConstants.PageNotFoundOrContainsNoFaqQuestions);
-        }
 
-        var publishedFaqDtos = _mapper.Map<List<PublishedFaqQuestionDto>>(publishedFaqFromVisitorPage.Select(p => p.Question));
+        var publishedFaqDtos = _mapper.Map<List<PublishedFaqQuestionDto>>(
+            publishedFaqFromVisitorPage.Select(p => p.Question));
+
         return Result.Ok(publishedFaqDtos);
     }
 }

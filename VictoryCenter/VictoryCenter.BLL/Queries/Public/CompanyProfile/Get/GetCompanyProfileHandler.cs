@@ -2,7 +2,8 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.CompanyProfileContacts;
+using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -38,8 +39,26 @@ public class GetCompanyProfileHandler : IRequestHandler<GetCompanyProfileQuery, 
 
         if (entity is null)
         {
-            return Result.Fail<CompanyProfileDto>(
-                ErrorMessagesConstants.NotFound());
+            return Result.Ok(new CompanyProfileDto
+            {
+                Contacts = new CompanyProfileContactsDto
+                {
+                    Phone = string.Empty,
+                    Address = string.Empty,
+                    Email = string.Empty,
+                    CorrespondenceEmail = string.Empty,
+                    Motto = string.Empty,
+                    Localizations = []
+                },
+                Requisites = new CompanyProfileRequisiteDto
+                {
+                    Recipient = string.Empty,
+                    Edrpou = string.Empty,
+                    Address = string.Empty,
+                    Localizations = []
+                },
+                SocialLinks = []
+            });
         }
 
         return Result.Ok(_mapper.Map<CompanyProfileDto>(entity));
