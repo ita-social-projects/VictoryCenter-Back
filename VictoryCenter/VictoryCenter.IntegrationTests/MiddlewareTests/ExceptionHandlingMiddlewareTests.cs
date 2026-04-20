@@ -17,12 +17,14 @@ public class ExceptionHandlingMiddlewareTests
 
     public ExceptionHandlingMiddlewareTests(IntegrationTestDbFixture fixture)
     {
+        _loggerProvider = new InMemoryLoggerProvider();
+
         var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging =>
             {
                 logging.ClearProviders();
-                logging.AddProvider(new InMemoryLoggerProvider());
+                logging.AddProvider(_loggerProvider);
             });
 
             builder.ConfigureServices(services =>
@@ -35,15 +37,10 @@ public class ExceptionHandlingMiddlewareTests
         });
 
         _client = customFactory.CreateClient();
-
-        _loggerProvider = customFactory.Services
-            .GetServices<ILoggerProvider>()
-            .OfType<InMemoryLoggerProvider>()
-            .Single();
     }
 
     [Fact]
-    public async Task InvokeAsync_UnhandledException_ShouldWriteProblemDetailsAndLogAtCriticalLevel()
+    public async Task InvokeAsync_ShouldReturn500AndLogCritical_WhenUnhandledExceptionThrown()
     {
         var response = await _client.GetAsync("/api/Test/ThrowException");
         var content = await response.Content.ReadAsStringAsync();
@@ -60,6 +57,26 @@ public class ExceptionHandlingMiddlewareTests
         var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
         var log = _loggerProvider.Entries.Last(e => e.Category == categoryName);
 
+        Assert.Equal(LogLevel.Critical, log.LogLevel);
         Assert.Contains("Unhandled exception occured while processing request", log.Message);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ShouldReturn400WithValidationErrors_WhenValidationExceptionThrown()
+    {
+        var response = await _client.GetAsync("/api/Test/ThrowValidationException");
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(400, (int)response.StatusCode);
+
+        var pd = JsonSerializer.Deserialize<ProblemDetails>(content);
+
+        Assert.NotNull(pd);
+        Assert.Equal(400, pd.Status);
+        Assert.Equal("Validation error", pd.Title);
+        Assert.Contains("validation errors", pd.Detail);
+
+        var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
+        Assert.DoesNotContain(_loggerProvider.Entries, e => e.Category == categoryName);
     }
 }
