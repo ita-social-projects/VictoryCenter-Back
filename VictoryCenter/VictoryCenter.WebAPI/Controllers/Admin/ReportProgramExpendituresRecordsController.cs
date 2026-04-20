@@ -24,7 +24,7 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(long[]), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> BulkDeleteReportProgramExpenditureRecordsAsync([FromBody] IEnumerable<long> ids)
+    public async Task<IActionResult> BulkDeleteReportProgramExpendituresRecordsAsync([FromBody] IEnumerable<long> ids)
     {
         return HandleResult(await Mediator.Send(new BulkDeleteReportProgramExpendituresRecordCommand(ids)));
     }
