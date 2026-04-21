@@ -28,25 +28,13 @@ public class ExceptionHandlingMiddleware
         }
         catch (ValidationException validationException)
         {
+            var errorDetail = string.Join(
+                "; ", validationException.Errors.Select(e => e.ErrorMessage));
+
             var problemDetails = _problemsFactory.CreateProblemDetails(
                 context,
-                StatusCodes.Status400BadRequest,
-                "Validation error",
-                "ValidationFailure",
-                "One or more validation errors has occurred");
-
-            var errors = validationException.Errors
-                .GroupBy(error => error.PropertyName)
-                .ToDictionary(
-                    group => group.Key,
-                    group => group
-                        .Select(error => error.ErrorMessage)
-                        .ToArray());
-
-            if (errors.Count > 0)
-            {
-                problemDetails.Extensions["errors"] = errors;
-            }
+                statusCode: StatusCodes.Status400BadRequest,
+                detail: errorDetail);
 
             context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
