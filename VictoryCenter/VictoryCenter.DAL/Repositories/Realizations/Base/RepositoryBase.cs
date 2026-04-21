@@ -123,6 +123,16 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         DbContext.Set<T>().RemoveRange(entities);
     }
 
+    public async Task<int> BulkDeleteAsync(Expression<Func<T, bool>> filter)
+    {
+        return await DbContext.Set<T>().Where(filter).ExecuteDeleteAsync();
+    }
+
+    public async Task<bool> ExistsAsync(Expression<Func<T, bool>> filter)
+    {
+        return await DbContext.Set<T>().AnyAsync(filter);
+    }
+
     public async Task<TKey?> MaxAsync<TKey>(
         Expression<Func<T, TKey>> selector,
         Expression<Func<T, bool>>? filter = null)

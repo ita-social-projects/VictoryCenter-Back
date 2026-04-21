@@ -86,10 +86,27 @@ public class ReportProgramExpendituresRecordsValidationExtensionsTests
         {
             Amount = 100.50m,
             Id = 1,
-            Year = ReportProgramExpendituresRecordConstants.ReportingYearMinValue
+            Year = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
+            Ids = [1, 2, 3]
         };
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenIdsAreNotUnique()
+    {
+        var model = new DummyModel
+        {
+            Amount = 100.50m,
+            Id = 1,
+            Year = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
+            Ids = [1, 1, 1]
+        };
+
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Ids)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(DummyModel.Ids)));
     }
 
     private class DummyModel
@@ -97,6 +114,7 @@ public class ReportProgramExpendituresRecordsValidationExtensionsTests
         public decimal Amount { get; set; }
         public long Id { get; set; }
         public int Year { get; set; }
+        public IEnumerable<long> Ids { get; set; } = [];
     }
 
     private class DummyValidator : AbstractValidator<DummyModel>
@@ -106,6 +124,7 @@ public class ReportProgramExpendituresRecordsValidationExtensionsTests
             RuleFor(x => x.Amount).MustBeValidAmountOfMoney(nameof(DummyModel.Amount));
             RuleFor(x => x.Id).MustBeValidId(nameof(DummyModel.Id));
             RuleFor(x => x.Year).MustBeValidReportingYear(nameof(DummyModel.Year));
+            RuleFor(x => x.Ids).MustHaveUniqueIds(nameof(DummyModel.Ids));
         }
     }
 }

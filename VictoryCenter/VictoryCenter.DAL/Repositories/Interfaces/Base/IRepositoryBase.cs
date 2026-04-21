@@ -37,6 +37,10 @@ public interface IRepositoryBase<T>
 
     void DeleteRange(IEnumerable<T> entities);
 
+    Task<int> BulkDeleteAsync(Expression<Func<T, bool>> filter);
+
+    Task<bool> ExistsAsync(Expression<Func<T, bool>> filter);
+
     Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
         where TKey : struct;
 

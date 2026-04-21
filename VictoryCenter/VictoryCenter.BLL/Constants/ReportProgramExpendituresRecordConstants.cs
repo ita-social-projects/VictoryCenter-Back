@@ -20,6 +20,8 @@ public static class ReportProgramExpendituresRecordConstants
 
     public static readonly int MaxNumberOfRecordsPerOneRetrieval = 100;
 
+    public static readonly int MaxNumberOfRecordsPerBulkDelete = 100;
+
     public static string ProgramCategoryAlreadyHasRecordForSpecifiedYear(long programCategoryId, int year)
     {
         return $"A record for the {programCategoryId} program category already exists for the year {year}.";
