@@ -73,8 +73,8 @@ public class ExceptionHandlingMiddlewareTests
 
         Assert.NotNull(pd);
         Assert.Equal(400, pd.Status);
-        Assert.Equal("Validation error", pd.Title);
-        Assert.Contains("validation errors", pd.Detail);
+        Assert.Equal("Bad Request", pd.Title);
+        Assert.Contains("Name is required", pd.Detail);
 
         var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
         Assert.DoesNotContain(_loggerProvider.Entries, e => e.Category == categoryName);

@@ -101,7 +101,7 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_ShouldReturn400WithErrors_WhenValidationExceptionThrown()
+    public async Task InvokeAsync_ShouldReturn400WithJoinedErrors_WhenValidationExceptionThrown()
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
@@ -112,22 +112,21 @@ public class ExceptionHandlingMiddlewareTests
             new("Amount", "Amount must be positive")
         };
         var validationException = new ValidationException(failures);
+        var expectedDetail = "Name is required; Amount must be positive";
 
         var problemDetails = new ProblemDetails
         {
             Status = StatusCodes.Status400BadRequest,
-            Title = "Validation error",
-            Type = "ValidationFailure",
-            Detail = "One or more validation errors has occurred"
+            Detail = expectedDetail
         };
 
         _factoryMock
             .Setup(f => f.CreateProblemDetails(
                 context,
                 StatusCodes.Status400BadRequest,
-                "Validation error",
-                "ValidationFailure",
-                "One or more validation errors has occurred",
+                null,
+                null,
+                expectedDetail,
                 null))
             .Returns(problemDetails);
 
@@ -148,18 +147,21 @@ public class ExceptionHandlingMiddlewareTests
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
 
+        var failure = new ValidationFailure("P", "E");
+        var validationException = new ValidationException([failure]);
+
         _factoryMock
             .Setup(f => f.CreateProblemDetails(
                 context,
                 StatusCodes.Status400BadRequest,
-                "Validation error",
-                "ValidationFailure",
-                "One or more validation errors has occurred",
+                null,
+                null,
+                "E",
                 null))
             .Returns(new ProblemDetails { Status = StatusCodes.Status400BadRequest });
 
         var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new ValidationException([new ValidationFailure("P", "E")]),
+            _ => throw validationException,
             _loggerMock.Object,
             _factoryMock.Object);
 
@@ -169,23 +171,33 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_ShouldIncludeValidationErrors_InProblemDetailsExtensions()
+    public async Task InvokeAsync_MultipleValidationErrors_ShouldJoinWithSemicolon()
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
 
-        var failure = new ValidationFailure("Name", "Name is required");
-        var validationException = new ValidationException([failure]);
+        var failures = new List<ValidationFailure>
+        {
+            new("A", "Error A"),
+            new("B", "Error B"),
+            new("C", "Error C")
+        };
+        var validationException = new ValidationException(failures);
+        var expectedDetail = "Error A; Error B; Error C";
 
-        var problemDetails = new ProblemDetails { Status = StatusCodes.Status400BadRequest };
+        var problemDetails = new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Detail = expectedDetail
+        };
 
         _factoryMock
             .Setup(f => f.CreateProblemDetails(
                 context,
                 StatusCodes.Status400BadRequest,
-                "Validation error",
-                "ValidationFailure",
-                "One or more validation errors has occurred",
+                null,
+                null,
+                expectedDetail,
                 null))
             .Returns(problemDetails);
 
@@ -196,15 +208,12 @@ public class ExceptionHandlingMiddlewareTests
 
         await middleware.InvokeAsync(context);
 
-        var expectedResponse = validationException.Errors
-            .GroupBy(error => error.PropertyName)
-            .ToDictionary(
-                group => group.Key,
-                group => group
-                    .Select(error => error.ErrorMessage)
-                    .ToArray());
+        context.Response.Body.Seek(0, SeekOrigin.Begin);
+        var body = JsonSerializer.Deserialize<ProblemDetails>(
+            await new StreamReader(context.Response.Body).ReadToEndAsync());
 
-        Assert.True(problemDetails.Extensions.ContainsKey("errors"));
-        Assert.Equal(expectedResponse, problemDetails.Extensions["errors"]);
+        Assert.NotNull(body);
+        Assert.Equal(expectedDetail, body.Detail);
+        Assert.Equal(StatusCodes.Status400BadRequest, body.Status);
     }
 }
