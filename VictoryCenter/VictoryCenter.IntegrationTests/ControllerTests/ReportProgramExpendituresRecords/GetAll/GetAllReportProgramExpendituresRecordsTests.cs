@@ -47,7 +47,7 @@ public class GetAllReportProgramExpendituresRecordsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetAll_ShouldReturnFilteredRecords_WhenCategoryIdProvided()
+    public async Task GetAll_ShouldReturnFilteredRecords_WhenCategoryIdsProvided()
     {
         var category1 = new HippotherapyProgramCategory
         {
@@ -82,7 +82,7 @@ public class GetAllReportProgramExpendituresRecordsTests : BaseTestClass
         await Fixture.DbContext.SaveChangesAsync();
 
         var response = await Fixture.HttpClient.GetAsync(
-            $"/api/ReportProgramExpendituresRecords/?hippotherapyProgramCategoryId={category1.Id}");
+            $"/api/ReportProgramExpendituresRecords/?hippotherapyProgramCategoryIds={category1.Id}");
         response.EnsureSuccessStatusCode();
 
         var responseString = await response.Content.ReadAsStringAsync();

@@ -4,5 +4,5 @@ using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 
 namespace VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetAll;
 
-public record GetAllReportProgramExpendituresRecordsQuery(long? HippotherapyProgramCategoryId = null)
+public record GetAllReportProgramExpendituresRecordsQuery(IEnumerable<long>? HippotherapyProgramCategoryIds = null)
     : IRequest<Result<IEnumerable<ReportProgramExpendituresRecordDto>>>;

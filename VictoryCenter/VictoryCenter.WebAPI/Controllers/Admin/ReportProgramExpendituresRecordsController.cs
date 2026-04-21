@@ -24,10 +24,10 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(IEnumerable<ReportProgramExpendituresRecordDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAllReportProgramExpendituresRecordsAsync(
-        [FromQuery] long? hippotherapyProgramCategoryId = null)
+        [FromQuery] IEnumerable<long>? hippotherapyProgramCategoryIds = null)
     {
         return HandleResult(await Mediator.Send(
-            new GetAllReportProgramExpendituresRecordsQuery(hippotherapyProgramCategoryId)));
+            new GetAllReportProgramExpendituresRecordsQuery(hippotherapyProgramCategoryIds)));
     }
 
     [HttpDelete("{id:long}")]

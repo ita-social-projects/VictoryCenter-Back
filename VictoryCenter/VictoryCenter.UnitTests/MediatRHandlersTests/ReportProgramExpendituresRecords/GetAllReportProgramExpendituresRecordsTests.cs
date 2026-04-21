@@ -79,7 +79,7 @@ public class GetAllReportProgramExpendituresRecordsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFilterByCategory_WhenCategoryIdProvided()
+    public async Task Handle_ShouldFilterByCategory_WhenCategoryIdsProvided()
     {
         // Arrange
         QueryOptions<ReportProgramExpendituresRecord>? capturedOptions = null;
@@ -99,7 +99,7 @@ public class GetAllReportProgramExpendituresRecordsTests
 
         // Act
         var result = await handler.Handle(
-            new GetAllReportProgramExpendituresRecordsQuery(1),
+            new GetAllReportProgramExpendituresRecordsQuery([1]),
             CancellationToken.None);
 
         // Assert
@@ -117,7 +117,7 @@ public class GetAllReportProgramExpendituresRecordsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnAllRecords_WhenCategoryIdIsNull()
+    public async Task Handle_ShouldReturnAllRecords_WhenCategoryIdsAreNull()
     {
         // Arrange
         QueryOptions<ReportProgramExpendituresRecord>? capturedOptions = null;

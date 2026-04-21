@@ -34,8 +34,9 @@ public class GetAllReportProgramExpendituresRecordsHandler
                     AmountUsd = record.AmountUsd
                 }, new QueryOptions<ReportProgramExpendituresRecord>
                 {
-                    Filter = record => request.HippotherapyProgramCategoryId == null ||
-                                       record.HippotherapyProgramCategoryId == request.HippotherapyProgramCategoryId,
+                    Filter = record => request.HippotherapyProgramCategoryIds == null ||
+                                       request.HippotherapyProgramCategoryIds.Contains(
+                                           record.HippotherapyProgramCategoryId),
                     Limit = ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerOneRetrieval,
                     AsNoTracking = true
                 });
