@@ -9,7 +9,15 @@ public interface IRepositoryBase<T>
 {
     Task<IEnumerable<T>> GetAllAsync(QueryOptions<T>? queryOptions = null);
 
+    Task<IEnumerable<TResult>> GetAllProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        QueryOptions<T>? queryOptions = null);
+
     Task<T?> GetFirstOrDefaultAsync(QueryOptions<T>? queryOptions = null);
+
+    Task<TResult?> GetFirstOrDefaultProjectedAsync<TResult>(
+        Expression<Func<T, TResult>> selector,
+        QueryOptions<T>? queryOptions = null);
 
     Task<T> CreateAsync(T entity);
 
@@ -28,6 +36,10 @@ public interface IRepositoryBase<T>
     void DeleteRange(params T[] entities);
 
     void DeleteRange(IEnumerable<T> entities);
+
+    Task<int> BulkDeleteAsync(Expression<Func<T, bool>> filter);
+
+    Task<bool> ExistsAsync(Expression<Func<T, bool>> filter);
 
     Task<TKey?> MaxAsync<TKey>(Expression<Func<T, TKey>> selector, Expression<Func<T, bool>>? filter = null)
         where TKey : struct;
