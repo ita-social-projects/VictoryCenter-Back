@@ -18,18 +18,21 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
     private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
     private readonly IValidator<UpdateImageCommand> _validator;
 
     public UpdateImageHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateImageCommand> validator,
-        IBlobService blobService)
+        IBlobService blobService,
+        TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _blobService = blobService;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<ImageDto>> Handle(UpdateImageCommand request, CancellationToken cancellationToken)
@@ -52,7 +55,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             var previousType = imageEntity.MimeType;
             imageEntity.MimeType = request.UpdateImageDto.MimeType!;
-            imageEntity.UpdatedAt = DateTimeOffset.UtcNow;
+            imageEntity.UpdatedAt = _timeProvider.GetUtcNow();
 
             _repositoryWrapper.ImageRepository.Update(imageEntity);
 

@@ -19,6 +19,7 @@ public class UpdateImageHandlerTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IBlobService> _mockBlobService;
+    private readonly Mock<TimeProvider> _mockTimeProvider;
     private readonly IValidator<UpdateImageCommand> _validator;
 
     private readonly UpdateImageDto _testUpdateImageDto = new()
@@ -35,13 +36,16 @@ public class UpdateImageHandlerTests
         CreatedAt = new DateTimeOffset(2025, 7, 16, 14, 30, 0, TimeZoneInfo.Utc.BaseUtcOffset)
     };
 
+    private static readonly DateTimeOffset TestNow = new(2025, 7, 16, 14, 30, 0, TimeSpan.Zero);
+
     private readonly ImageDto _testImageDto = new()
     {
         Id = 1,
         BlobName = "testblob.png",
         MimeType = "image/png",
         Url = "dGVzdA==",
-        CreatedAt = DateTimeOffset.UtcNow
+        CreatedAt = TestNow,
+        UpdatedAt = TestNow
     };
 
     public UpdateImageHandlerTests()
@@ -49,6 +53,8 @@ public class UpdateImageHandlerTests
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockBlobService = new Mock<IBlobService>();
+        _mockTimeProvider = new Mock<TimeProvider>();
+        _mockTimeProvider.Setup(x => x.GetUtcNow()).Returns(TestNow);
         _validator = new UpdateImageValidator();
     }
 
@@ -84,7 +90,8 @@ public class UpdateImageHandlerTests
             _mockMapper.Object,
             _mockRepositoryWrapper.Object,
             _validator,
-            _mockBlobService.Object);
+            _mockBlobService.Object,
+            _mockTimeProvider.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -120,7 +127,8 @@ public class UpdateImageHandlerTests
             _mockMapper.Object,
             _mockRepositoryWrapper.Object,
             _validator,
-            _mockBlobService.Object);
+            _mockBlobService.Object,
+            _mockTimeProvider.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -160,7 +168,8 @@ public class UpdateImageHandlerTests
             _mockMapper.Object,
             _mockRepositoryWrapper.Object,
             _validator,
-            _mockBlobService.Object);
+            _mockBlobService.Object,
+            _mockTimeProvider.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
