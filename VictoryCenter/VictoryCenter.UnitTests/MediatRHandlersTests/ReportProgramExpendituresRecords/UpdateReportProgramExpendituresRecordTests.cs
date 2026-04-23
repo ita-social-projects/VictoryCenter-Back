@@ -2,7 +2,7 @@ using AutoMapper;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
-using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
+using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
@@ -14,91 +14,106 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
 
-public class CreateReportProgramExpendituresRecordTests
+public class UpdateReportProgramExpendituresRecordTests
 {
-    private readonly HippotherapyProgramCategory _category = new()
+    private readonly UpdateReportProgramExpendituresRecordDto _updateDto = new()
     {
-        Id = 1,
-        Name = "Program category"
+        HippotherapyProgramCategoryId = 2,
+        AmountUah = 150.75m,
+        AmountUsd = 40.50m
     };
-
-    private readonly CreateReportProgramExpendituresRecordDto _createDto = new()
-    {
-        HippotherapyProgramCategoryId = 1,
-        ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
-        AmountUah = 100.50m,
-        AmountUsd = 25.25m
-    };
-
-    private readonly Mock<IHippotherapyProgramCategoriesRepository> _hippotherapyProgramCategoriesRepositoryMock;
 
     private readonly Mock<IMapper> _mapperMock;
 
     private readonly ReportProgramExpendituresRecordDto _recordDto = new()
     {
         Id = 1,
-        HippotherapyProgramCategoryId = 1,
+        HippotherapyProgramCategoryId = 2,
         ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
-        AmountUah = 100.50m,
-        AmountUsd = 25.25m
+        AmountUah = 150.75m,
+        AmountUsd = 40.50m
     };
 
-    private readonly ReportProgramExpendituresRecord _recordEntity = new()
-    {
-        Id = 1,
-        HippotherapyProgramCategoryId = 1,
-        ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
-        AmountUah = 100.50m,
-        AmountUsd = 25.25m
-    };
+    private readonly ReportProgramExpendituresRecord _recordEntity;
 
+    private readonly Mock<IHippotherapyProgramCategoriesRepository> _hippotherapyProgramCategoriesRepositoryMock;
     private readonly Mock<IReportProgramExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
-    private readonly IValidator<CreateReportProgramExpendituresRecordCommand> _validator;
+    private readonly IValidator<UpdateReportProgramExpendituresRecordCommand> _validator;
 
-    public CreateReportProgramExpendituresRecordTests()
+    public UpdateReportProgramExpendituresRecordTests()
     {
+        _recordEntity = new ReportProgramExpendituresRecord
+        {
+            Id = 1,
+            HippotherapyProgramCategoryId = 1,
+            ReportingYear = ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
+            AmountUah = 100.50m,
+            AmountUsd = 25.25m
+        };
+
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
-        _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
         _hippotherapyProgramCategoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
-        _validator = new CreateReportProgramExpendituresRecordCommandValidator();
+        _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
+        _validator = new UpdateReportProgramExpendituresRecordCommandValidator(_repositoryWrapperMock.Object);
     }
 
     [Fact]
-    public async Task Handle_ShouldCreateRecord()
+    public async Task Handle_ShouldUpdateRecord_WhenCategoryNotChanged()
     {
         // Arrange
-        SetupDependencies(_category, 1);
-        var handler = new CreateReportProgramExpendituresRecordHandler(
+        var updateDto = _updateDto with { HippotherapyProgramCategoryId = 1 };
+        SetupDependencies(_recordEntity, 1);
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
         // Act
         var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(_createDto),
+            new UpdateReportProgramExpendituresRecordCommand(1, updateDto),
             CancellationToken.None);
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(_recordDto.HippotherapyProgramCategoryId, result.Value.HippotherapyProgramCategoryId);
-        Assert.Equal(_recordDto.AmountUah, result.Value.AmountUah);
+        _recordsRepositoryMock.Verify(x => x.Update(It.IsAny<ReportProgramExpendituresRecord>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldUpdateRecord_WhenCategoryChangedAndNoConflict()
+    {
+        // Arrange
+        SetupDependencies(_recordEntity, 1);
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
+            _validator,
+            _repositoryWrapperMock.Object,
+            _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _recordsRepositoryMock.Verify(x => x.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()), Times.Once);
+        _recordsRepositoryMock.Verify(x => x.Update(It.IsAny<ReportProgramExpendituresRecord>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_ShouldFail_WhenValidationFails()
     {
         // Arrange
-        var invalidDto = _createDto with { HippotherapyProgramCategoryId = 0 };
-        var handler = new CreateReportProgramExpendituresRecordHandler(
+        var invalidDto = _updateDto with { HippotherapyProgramCategoryId = 0 };
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
         // Act
         var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(invalidDto),
+            new UpdateReportProgramExpendituresRecordCommand(1, invalidDto),
             CancellationToken.None);
 
         // Assert
@@ -110,49 +125,49 @@ public class CreateReportProgramExpendituresRecordTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenCategoryNotFound()
+    public async Task Handle_ShouldFail_WhenRecordNotFound()
     {
         // Arrange
         SetupDependencies(null, 1);
-        var handler = new CreateReportProgramExpendituresRecordHandler(
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
         // Act
         var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(_createDto),
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
             CancellationToken.None);
 
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
             ErrorMessagesConstants.NotFound(
-                _createDto.HippotherapyProgramCategoryId,
-                typeof(HippotherapyProgramCategory)),
+                1,
+                typeof(ReportProgramExpendituresRecord)),
             result.Errors[0].Message);
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecordForSpecifiedYear()
+    public async Task Handle_ShouldFail_WhenMovedToDifferentCategoryAndRecordAlreadyExists()
     {
         // Arrange
-        SetupDependencies(_category, 1, true);
-        var handler = new CreateReportProgramExpendituresRecordHandler(
+        SetupDependencies(_recordEntity, 1, conflictExists: true);
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
         // Act
         var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(_createDto),
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
             CancellationToken.None);
 
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
             ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                _createDto.HippotherapyProgramCategoryId, _createDto.ReportingYear),
+                _updateDto.HippotherapyProgramCategoryId, _recordEntity.ReportingYear),
             result.Errors[0].Message);
     }
 
@@ -160,21 +175,21 @@ public class CreateReportProgramExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
-        SetupDependencies(_category, 0);
-        var handler = new CreateReportProgramExpendituresRecordHandler(
+        SetupDependencies(_recordEntity, 0);
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
         // Act
         var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(_createDto),
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
             CancellationToken.None);
 
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
-            ErrorMessagesConstants.FailedToCreateEntity(typeof(ReportProgramExpendituresRecord)),
+            ErrorMessagesConstants.FailedToUpdateEntity(typeof(ReportProgramExpendituresRecord)),
             result.Errors[0].Message);
     }
 
@@ -182,30 +197,30 @@ public class CreateReportProgramExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
     {
         // Arrange
-        SetupDependencies(_category, 1);
+        SetupDependencies(_recordEntity, 1);
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
 
-        var handler = new CreateReportProgramExpendituresRecordHandler(
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
 
         // Act
         var result = await handler.Handle(
-            new CreateReportProgramExpendituresRecordCommand(_createDto),
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
             CancellationToken.None);
 
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(
-            ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(ReportProgramExpendituresRecord)),
+            ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(ReportProgramExpendituresRecord)),
             result.Errors[0].Message);
     }
 
     private void SetupDependencies(
-        HippotherapyProgramCategory? category,
+        ReportProgramExpendituresRecord? existingRecord,
         int saveResult,
-        bool recordWithinSameCategoryWithSameYearExists = false)
+        bool conflictExists = false)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -215,23 +230,35 @@ public class CreateReportProgramExpendituresRecordTests
         _hippotherapyProgramCategoriesRepositoryMock
             .Setup(repository =>
                 repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
-            .ReturnsAsync(category);
+            .ReturnsAsync(new HippotherapyProgramCategory { Id = 1 });
 
         _recordsRepositoryMock
-            .Setup(repository => repository.CreateAsync(It.IsAny<ReportProgramExpendituresRecord>()))
-            .ReturnsAsync((ReportProgramExpendituresRecord record) => record);
+            .Setup(repository =>
+                repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
+            .ReturnsAsync(existingRecord);
 
         _recordsRepositoryMock
             .Setup(repository =>
                 repository.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
-            .ReturnsAsync(recordWithinSameCategoryWithSameYearExists);
+            .ReturnsAsync(conflictExists);
+
+        _recordsRepositoryMock
+            .Setup(repository => repository.Update(It.IsAny<ReportProgramExpendituresRecord>()));
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
 
         _mapperMock
             .Setup(mapper =>
-                mapper.Map<ReportProgramExpendituresRecord>(It.IsAny<CreateReportProgramExpendituresRecordDto>()))
-            .Returns(_recordEntity);
+                mapper.Map(It.IsAny<UpdateReportProgramExpendituresRecordDto>(), It.IsAny<ReportProgramExpendituresRecord>()))
+            .Callback<UpdateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>((src, dest) =>
+            {
+                if (dest != null)
+                {
+                    dest.HippotherapyProgramCategoryId = src.HippotherapyProgramCategoryId;
+                }
+            })
+            .Returns((UpdateReportProgramExpendituresRecordDto src, ReportProgramExpendituresRecord dest) => dest);
+
         _mapperMock
             .Setup(mapper =>
                 mapper.Map<ReportProgramExpendituresRecordDto>(It.IsAny<ReportProgramExpendituresRecord>()))

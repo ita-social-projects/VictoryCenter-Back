@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.BulkDelete;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
+using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Delete;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetAll;
@@ -19,6 +20,18 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     {
         return HandleResult(await Mediator.Send(
             new CreateReportProgramExpendituresRecordCommand(createReportProgramExpendituresRecordDto)));
+    }
+
+    [HttpPut("{id:long}")]
+    [ProducesResponseType(typeof(ReportProgramExpendituresRecordDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateReportProgramExpendituresRecordAsync(
+        [FromRoute] long id,
+        [FromBody] UpdateReportProgramExpendituresRecordDto updateReportProgramExpendituresRecordDto)
+    {
+        return HandleResult(await Mediator.Send(
+            new UpdateReportProgramExpendituresRecordCommand(id, updateReportProgramExpendituresRecordDto)));
     }
 
     [HttpGet]

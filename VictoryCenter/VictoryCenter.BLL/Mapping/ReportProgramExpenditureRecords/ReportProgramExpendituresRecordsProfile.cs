@@ -11,5 +11,6 @@ public class ReportProgramExpendituresRecordsProfile : Profile
         CreateMap<ReportProgramExpendituresRecord, ReportProgramExpendituresRecordDto>();
         CreateMap<ReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
         CreateMap<CreateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
+        CreateMap<UpdateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
     }
 }
