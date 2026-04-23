@@ -134,6 +134,7 @@ public static class ServicesConfiguration
                 AllowAutoRedirect = false
             });
 
+        services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages(new SlugHelperConfiguration
         {

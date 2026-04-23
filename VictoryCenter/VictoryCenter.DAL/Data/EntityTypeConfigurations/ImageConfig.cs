@@ -26,6 +26,9 @@ public class ImageConfig : IEntityTypeConfiguration<Image>
         entity.Property(e => e.CreatedAt)
             .IsRequired();
 
+        entity.Property(e => e.UpdatedAt)
+            .IsRequired();
+
         entity.Ignore(e => e.Url);
     }
 }
