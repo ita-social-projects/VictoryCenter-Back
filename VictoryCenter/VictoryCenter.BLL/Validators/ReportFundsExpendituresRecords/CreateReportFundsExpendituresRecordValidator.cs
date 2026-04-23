@@ -9,8 +9,13 @@ public class CreateReportFundsExpendituresRecordValidator
     : AbstractValidator<CreateReportFundsExpendituresRecordCommand>
 {
     public CreateReportFundsExpendituresRecordValidator(
-        BaseReportFundsExpendituresRecordValidator baseRecordValidator)
+        BaseReportFundsExpendituresRecordValidator baseRecordValidator,
+        TimeProvider timeProvider)
     {
+        var currentYear = timeProvider.GetUtcNow().Year;
+        var minReportingYear = currentYear - 1;
+        var maxReportingYear = currentYear + 1;
+
         RuleFor(command => command.CreateReportFundsExpendituresRecordDto)
             .NotNull()
             .SetValidator(baseRecordValidator);
@@ -23,14 +28,14 @@ public class CreateReportFundsExpendituresRecordValidator
                 .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(ReportFundsExpendituresRecordDto.Type)));
 
             dto.RuleFor(recordDto => recordDto.ReportingYear)
-                .GreaterThanOrEqualTo(ReportFundsExpendituresRecordConstants.ReportingYearMinValue)
+                .GreaterThanOrEqualTo(minReportingYear)
                 .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
                     nameof(ReportFundsExpendituresRecordDto.ReportingYear),
-                    ReportFundsExpendituresRecordConstants.ReportingYearMinValue))
-                .LessThanOrEqualTo(ReportFundsExpendituresRecordConstants.ReportingYearMaxValue)
+                    minReportingYear))
+                .LessThanOrEqualTo(maxReportingYear)
                 .WithMessage(ErrorMessagesConstants.PropertyMustBeLessThanOrEqualToN(
                     nameof(ReportFundsExpendituresRecordDto.ReportingYear),
-                    ReportFundsExpendituresRecordConstants.ReportingYearMaxValue));
+                    maxReportingYear));
         });
     }
 }

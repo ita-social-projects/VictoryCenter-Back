@@ -27,7 +27,7 @@ public class CreateReportFundsExpendituresRecordTests
     {
         CategoryId = 1,
         Type = ReportFundsExpendituresType.Income,
-        ReportingYear = ReportFundsExpendituresRecordConstants.ReportingYearMinValue,
+        ReportingYear = TimeProvider.System.GetUtcNow().Year,
         AmountUah = 100.50m,
         AmountUsd = 25.25m
     };
@@ -44,7 +44,7 @@ public class CreateReportFundsExpendituresRecordTests
         Id = 1,
         CategoryId = 1,
         Type = ReportFundsExpendituresType.Income,
-        ReportingYear = ReportFundsExpendituresRecordConstants.ReportingYearMinValue,
+        ReportingYear = TimeProvider.System.GetUtcNow().Year,
         AmountUah = 100.50m,
         AmountUsd = 25.25m
     };
@@ -54,7 +54,7 @@ public class CreateReportFundsExpendituresRecordTests
         Id = 1,
         CategoryId = 1,
         Type = ReportFundsExpendituresType.Income,
-        ReportingYear = ReportFundsExpendituresRecordConstants.ReportingYearMinValue,
+        ReportingYear = TimeProvider.System.GetUtcNow().Year,
         AmountUah = 100.50m,
         AmountUsd = 25.25m
     };
@@ -65,7 +65,9 @@ public class CreateReportFundsExpendituresRecordTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
-        _validator = new CreateReportFundsExpendituresRecordValidator(new BaseReportFundsExpendituresRecordValidator());
+        _validator = new CreateReportFundsExpendituresRecordValidator(
+            new BaseReportFundsExpendituresRecordValidator(),
+            TimeProvider.System);
     }
 
     [Fact]
