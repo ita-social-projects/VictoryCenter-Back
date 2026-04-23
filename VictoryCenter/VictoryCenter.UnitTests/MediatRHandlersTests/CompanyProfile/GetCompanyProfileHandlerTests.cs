@@ -1,6 +1,5 @@
 using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfileContacts;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfileRequisites;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
@@ -90,7 +89,7 @@ public class GetCompanyProfileHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenProfileNotFound()
+    public async Task Handle_ShouldReturnEmptyDto_WhenProfileNotFound()
     {
         // Arrange
         _companyProfileRepositoryMock
@@ -99,13 +98,25 @@ public class GetCompanyProfileHandlerTests
 
         var handler = new GetCompanyProfileHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
 
-        // Act
         var result = await handler.Handle(new GetCompanyProfileQuery(), CancellationToken.None);
 
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(
-            ErrorMessagesConstants.NotFound(),
-            result.Errors[0].Message);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+
+        Assert.NotNull(result.Value.Contacts);
+        Assert.Equal(string.Empty, result.Value.Contacts.Phone);
+        Assert.Equal(string.Empty, result.Value.Contacts.Address);
+        Assert.Equal(string.Empty, result.Value.Contacts.Email);
+        Assert.Equal(string.Empty, result.Value.Contacts.CorrespondenceEmail);
+        Assert.Equal(string.Empty, result.Value.Contacts.Motto);
+        Assert.Empty(result.Value.Contacts.Localizations);
+
+        Assert.NotNull(result.Value.Requisites);
+        Assert.Equal(string.Empty, result.Value.Requisites.Recipient);
+        Assert.Equal(string.Empty, result.Value.Requisites.Edrpou);
+        Assert.Equal(string.Empty, result.Value.Requisites.Address);
+        Assert.Empty(result.Value.Requisites.Localizations);
+
+        Assert.Empty(result.Value.SocialLinks);
     }
 }

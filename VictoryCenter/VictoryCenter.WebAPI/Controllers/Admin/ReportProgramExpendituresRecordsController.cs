@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Delete;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -14,7 +15,7 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     [ProducesResponseType(typeof(ReportProgramExpendituresRecordDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateReportProgramExpenditureRecordAsync(
+    public async Task<IActionResult> CreateReportProgramExpendituresRecordAsync(
         CreateReportProgramExpendituresRecordDto createReportProgramExpendituresRecordDto)
     {
         return HandleResult(await Mediator.Send(
@@ -31,6 +32,16 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     {
         return HandleResult(await Mediator.Send(
             new UpdateReportProgramExpendituresRecordCommand(id, updateReportProgramExpendituresRecordDto)));
+    }
+
+    [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ReportProgramExpendituresRecordDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAllReportProgramExpendituresRecordsAsync(
+        [FromQuery] IEnumerable<long>? hippotherapyProgramCategoryIds = null)
+    {
+        return HandleResult(await Mediator.Send(
+            new GetAllReportProgramExpendituresRecordsQuery(hippotherapyProgramCategoryIds)));
     }
 
     [HttpPost("bulk-delete")]
