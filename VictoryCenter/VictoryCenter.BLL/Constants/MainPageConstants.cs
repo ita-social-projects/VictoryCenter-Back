@@ -16,9 +16,9 @@ public static class MainPageConstants
 
     public static class ImpactStatistic
     {
-        public const int MaxCount = 20;
+        public const int ExactMetricCount = 4;
 
-        public static class Description
+        public static class Title
         {
             public const int MinLength = 5;
             public const int MaxLength = 500;
@@ -27,13 +27,7 @@ public static class MainPageConstants
 
     public static class Metric
     {
-        public static class Value
-        {
-            public const int MinLength = 1;
-            public const int MaxLength = 50;
-        }
-
-        public static class Signature
+        public static class Name
         {
             public const int MinLength = 1;
             public const int MaxLength = 100;

@@ -6,6 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
@@ -98,35 +99,6 @@ public class CreateMainPageDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsIsNull()
-    {
-        var dto = GetValidDto() with { ImpactStatistics = null! };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.ImpactStatistics)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateMainPageDto.ImpactStatistics)));
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsCountIsTooLarge()
-    {
-        var dto = GetValidDto() with
-        {
-            ImpactStatistics = Enumerable
-                .Range(1, MainPageConstants.ImpactStatistic.MaxCount + 1)
-                .Select(_ => GetValidImpactStatisticDto())
-                .ToList(),
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.ImpactStatistics)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(CreateMainPageDto.ImpactStatistics), MainPageConstants.ImpactStatistic.MaxCount));
-    }
-
-    [Fact]
     public void Validate_ShouldHaveError_WhenMainAboutUsIsInvalid()
     {
         var dto = GetValidDto() with
@@ -161,36 +133,26 @@ public class CreateMainPageDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenNestedImpactStatisticIsInvalid()
+    public void Validate_ShouldHaveError_WhenImpactStatisticsIsInvalid()
     {
         var dto = GetValidDto() with
         {
-            ImpactStatistics =
-            [
-                new CreateImpactStatisticDto
-                {
-                    Description = string.Empty,
-                    Metrics = [new CreateMetricDto { Value = "10", Signature = "kids" }],
-                },
-            ],
+            ImpactStatistics = new CreateImpactStatisticDto
+            {
+                Title = string.Empty,
+                Metrics =
+                [
+                    new CreateMetricDto { Value = 10, Name = "a", Type = MetricType.Partners },
+                    new CreateMetricDto { Value = 20, Name = "b", Type = MetricType.Programs },
+                    new CreateMetricDto { Value = 30, Name = "c", Type = MetricType.Raiced },
+                    new CreateMetricDto { Value = 40, Name = "d", Type = MetricType.TherapyHours },
+                ],
+            },
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor("ImpactStatistics[0].Description");
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsContainsNullElement()
-    {
-        var dto = GetValidDto() with
-        {
-            ImpactStatistics = [null!],
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor("ImpactStatistics[0]");
+        result.ShouldHaveValidationErrorFor("ImpactStatistics.Title");
     }
 
     [Fact]
@@ -200,6 +162,7 @@ public class CreateMainPageDtoValidatorTests
         {
             MainAboutUs = null,
             MainPartners = null,
+            ImpactStatistics = null,
         };
 
         var result = _validator.TestValidate(dto);
@@ -222,13 +185,19 @@ public class CreateMainPageDtoValidatorTests
             Title = "Partners title",
             Description = "Partners description",
         },
-        ImpactStatistics = [GetValidImpactStatisticDto()],
+        ImpactStatistics = GetValidImpactStatisticDto(),
     };
 
     private static CreateImpactStatisticDto GetValidImpactStatisticDto() => new()
     {
-        Description = "Impact statistic description",
+        Title = "Impact statistic title",
         ImageId = 2,
-        Metrics = [new CreateMetricDto { Value = "100", Signature = "children" }],
+        Metrics =
+        [
+            new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+            new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+            new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+        ],
     };
 }

@@ -51,9 +51,10 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
                 requestedImageIds.Add(request.CreateMainPageDto.ImageId.Value);
             }
 
-            requestedImageIds.AddRange(request.CreateMainPageDto.ImpactStatistics
-                .Where(s => s.ImageId.HasValue)
-                .Select(s => s.ImageId!.Value));
+            if (request.CreateMainPageDto.ImpactStatistics?.ImageId.HasValue == true)
+            {
+                requestedImageIds.Add(request.CreateMainPageDto.ImpactStatistics.ImageId!.Value);
+            }
 
             if (requestedImageIds.Count > 0)
             {

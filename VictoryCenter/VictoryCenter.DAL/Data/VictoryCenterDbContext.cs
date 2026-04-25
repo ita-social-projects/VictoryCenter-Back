@@ -106,7 +106,11 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<ImpactStatistics> ImpactStatistics { get; set; }
 
+    public DbSet<ImpactStatisticsLocalization> ImpactStatisticsLocalizations { get; set; }
+
     public DbSet<Metric> Metrics { get; set; }
+
+    public DbSet<MetricLocalization> MetricLocalizations { get; set; }
 
     public DbSet<HistorySection> HistorySections { get; set; }
 

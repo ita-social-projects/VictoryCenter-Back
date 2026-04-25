@@ -14,5 +14,5 @@ public record MainPageDto
 
     public MainAboutUsDto? MainAboutUs { get; init; }
     public MainPartnersDto? MainPartners { get; init; }
-    public ICollection<ImpactStatisticDto> ImpactStatistics { get; init; } = [];
+    public ImpactStatisticDto? ImpactStatistics { get; init; }
 }

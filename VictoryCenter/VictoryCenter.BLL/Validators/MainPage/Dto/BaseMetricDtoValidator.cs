@@ -10,25 +10,27 @@ public abstract class BaseMetricDtoValidator<TDto> : AbstractValidator<TDto>
     protected BaseMetricDtoValidator()
     {
         RuleFor(x => x.Value)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Value)))
-            .MinimumLength(MainPageConstants.Metric.Value.MinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMetricDto.Value), MainPageConstants.Metric.Value.MinLength))
-            .MaximumLength(MainPageConstants.Metric.Value.MaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMetricDto.Value), MainPageConstants.Metric.Value.MaxLength));
+            .GreaterThanOrEqualTo(0)
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Value)));
 
-        RuleFor(x => x.Signature)
+        RuleFor(x => x.Name)
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Signature)))
-            .MinimumLength(MainPageConstants.Metric.Signature.MinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Name)))
+            .MinimumLength(MainPageConstants.Metric.Name.MinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMetricDto.Signature), MainPageConstants.Metric.Signature.MinLength))
-            .MaximumLength(MainPageConstants.Metric.Signature.MaxLength)
+                nameof(BaseMetricDto.Name), MainPageConstants.Metric.Name.MinLength))
+            .MaximumLength(MainPageConstants.Metric.Name.MaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMetricDto.Signature), MainPageConstants.Metric.Signature.MaxLength));
+                nameof(BaseMetricDto.Name), MainPageConstants.Metric.Name.MaxLength));
+
+        RuleFor(x => x.Type)
+            .IsInEnum()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Type)));
+
+        RuleFor(x => x.Prefix)
+            .IsInEnum()
+            .When(x => x.Prefix.HasValue)
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Prefix)));
     }
 }

@@ -11,5 +11,5 @@ public class MainPage : BaseEntity
 
     public MainAboutUs? MainAboutUs { get; set; }
     public MainPartners? MainPartners { get; set; }
-    public ICollection<ImpactStatistics> ImpactStatistics { get; set; } = [];
+    public ImpactStatistics? ImpactStatistics { get; set; }
 }

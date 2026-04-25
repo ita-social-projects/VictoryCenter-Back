@@ -2,6 +2,7 @@ using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
@@ -16,13 +17,10 @@ public class CreateMetricDtoValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Validate_ShouldHaveError_WhenValueIsEmpty(string? value)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenValueIsNegative()
     {
-        var dto = GetValidDto() with { Value = value! };
+        var dto = GetValidDto() with { Value = -1 };
 
         var result = _validator.TestValidate(dto);
 
@@ -30,50 +28,69 @@ public class CreateMetricDtoValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Value)));
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenValueIsTooLong()
-    {
-        var dto = GetValidDto() with { Value = new string('a', MainPageConstants.Metric.Value.MaxLength + 1) };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.Value)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMetricDto.Value), MainPageConstants.Metric.Value.MaxLength));
-    }
-
     [Theory]
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Validate_ShouldHaveError_WhenSignatureIsEmpty(string? signature)
+    public void Validate_ShouldHaveError_WhenNameIsEmpty(string? signature)
     {
-        var dto = GetValidDto() with { Signature = signature! };
+        var dto = GetValidDto() with { Name = signature! };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Signature)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Signature)));
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Name)));
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenSignatureIsTooLong()
+    public void Validate_ShouldHaveError_WhenNameIsTooLong()
     {
         var dto = GetValidDto() with
         {
-            Signature = new string('a', MainPageConstants.Metric.Signature.MaxLength + 1),
+            Name = new string('a', MainPageConstants.Metric.Name.MaxLength + 1),
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Signature)
+        result.ShouldHaveValidationErrorFor(x => x.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMetricDto.Signature), MainPageConstants.Metric.Signature.MaxLength));
+                nameof(BaseMetricDto.Name), MainPageConstants.Metric.Name.MaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTypeIsInvalid()
+    {
+        var dto = GetValidDto() with { Type = (MetricType)999 };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Type);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPrefixIsInvalid()
+    {
+        var dto = GetValidDto() with { Prefix = (MetricPrefix)999 };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Prefix);
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenPrefixIsNull()
+    {
+        var dto = GetValidDto() with { Prefix = null };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Prefix);
     }
 
     private static CreateMetricDto GetValidDto() => new()
     {
-        Value = "100",
-        Signature = "children",
+        Value = 100,
+        Name = "children",
+        Type = MetricType.Partners,
     };
 }

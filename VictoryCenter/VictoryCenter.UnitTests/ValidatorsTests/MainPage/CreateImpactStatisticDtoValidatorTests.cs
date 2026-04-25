@@ -2,7 +2,9 @@ using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
@@ -21,46 +23,39 @@ public class CreateImpactStatisticDtoValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Validate_ShouldHaveError_WhenDescriptionIsEmpty(string? description)
+    public void Validate_ShouldHaveError_WhenTitleIsEmpty(string? title)
     {
-        var dto = GetValidDto() with { Description = description! };
+        var dto = GetValidDto() with { Title = title! };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseImpactStatisticDto.Description)));
+        result.ShouldHaveValidationErrorFor(x => x.Title);
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenDescriptionIsTooShort()
+    public void Validate_ShouldHaveError_WhenTitleIsTooShort()
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.ImpactStatistic.Description.MinLength - 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.Title.MinLength - 1),
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseImpactStatisticDto.Description),
-                MainPageConstants.ImpactStatistic.Description.MinLength));
+        result.ShouldHaveValidationErrorFor(x => x.Title);
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenDescriptionIsTooLong()
+    public void Validate_ShouldHaveError_WhenTitleIsTooLong()
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.ImpactStatistic.Description.MaxLength + 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.Title.MaxLength + 1),
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseImpactStatisticDto.Description),
-                MainPageConstants.ImpactStatistic.Description.MaxLength));
+        result.ShouldHaveValidationErrorFor(x => x.Title);
     }
 
     [Fact]
@@ -70,26 +65,86 @@ public class CreateImpactStatisticDtoValidatorTests
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImpactStatisticDto.Metrics)));
+        result.ShouldHaveValidationErrorFor(x => x.Metrics);
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenMetricsCountIsTooLarge()
+    public void Validate_ShouldHaveError_WhenMetricsCountIsNot4()
     {
         var dto = GetValidDto() with
         {
-            Metrics = Enumerable
-                .Range(1, MainPageConstants.ImpactStatistic.MaxCount + 1)
-                .Select(_ => new CreateMetricDto { Value = "100", Signature = "kids" })
-                .ToList(),
+            Metrics = [new CreateMetricDto { Value = 100, Name = "kids", Type = MetricType.Partners }],
         };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(CreateImpactStatisticDto.Metrics), MainPageConstants.ImpactStatistic.MaxCount));
+            .WithErrorMessage($"Metrics must contain exactly {MainPageConstants.ImpactStatistic.ExactMetricCount} items.");
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenMetricTypesAreNotUnique()
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics =
+            [
+                new CreateMetricDto { Value = 100, Name = "a", Type = MetricType.Partners },
+                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Partners },
+                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Programs },
+                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+            ],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenLocalizationSetOnNonRaicedMetric()
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics =
+            [
+                new CreateMetricDto
+                {
+                    Value = 100, Name = "a", Type = MetricType.Partners,
+                    Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Partners" },
+                },
+                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
+                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raiced },
+                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+            ],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveError_WhenLocalizationSetOnRaicedMetric()
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics =
+            [
+                new CreateMetricDto { Value = 100, Name = "a", Type = MetricType.Partners },
+                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
+                new CreateMetricDto
+                {
+                    Value = 300, Name = "c", Type = MetricType.Raiced,
+                    Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
+                },
+                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+            ],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
@@ -97,7 +152,13 @@ public class CreateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Metrics = [new CreateMetricDto { Value = string.Empty, Signature = "kids" }],
+            Metrics =
+            [
+                new CreateMetricDto { Value = -1, Name = "a", Type = MetricType.Partners },
+                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
+                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raiced },
+                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+            ],
         };
 
         var result = _validator.TestValidate(dto);
@@ -110,7 +171,7 @@ public class CreateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Metrics = [null!],
+            Metrics = [null!, null!, null!, null!],
         };
 
         var result = _validator.TestValidate(dto);
@@ -120,8 +181,14 @@ public class CreateImpactStatisticDtoValidatorTests
 
     private static CreateImpactStatisticDto GetValidDto() => new()
     {
-        Description = "Impact description",
+        Title = "Impact title",
         ImageId = 1,
-        Metrics = [new CreateMetricDto { Value = "100", Signature = "kids" }],
+        Metrics =
+        [
+            new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+            new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+            new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+        ],
     };
 }

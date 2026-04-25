@@ -12,6 +12,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
@@ -188,22 +189,18 @@ public class CreateMainPageHandlerTests
         dtoWithoutImages = dtoWithoutImages with
         {
             ImageId = null,
-            ImpactStatistics =
-            [
-                new CreateImpactStatisticDto
-                {
-                    Description = "Impact statistic description",
-                    ImageId = null,
-                    Metrics =
-                    [
-                        new CreateMetricDto
-                        {
-                            Value = "100",
-                            Signature = "children",
-                        },
-                    ],
-                },
-            ],
+            ImpactStatistics = new CreateImpactStatisticDto
+            {
+                Title = "Impact statistic title",
+                ImageId = null,
+                Metrics =
+                [
+                    new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+                    new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+                    new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                    new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                ],
+            },
         };
 
         var command = new CreateMainPageCommand(dtoWithoutImages);
@@ -327,22 +324,18 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description that is long enough",
         },
-        ImpactStatistics =
-        [
-            new CreateImpactStatisticDto
-            {
-                Description = "Impact statistic description",
-                ImageId = 6,
-                Metrics =
-                [
-                    new CreateMetricDto
-                    {
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new CreateImpactStatisticDto
+        {
+            Title = "Impact statistic title",
+            ImageId = 6,
+            Metrics =
+            [
+                new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+                new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+                new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            ],
+        },
     };
 
     private static DAL.Entities.MainPage GetMainPageEntity(long id) => new()
@@ -363,24 +356,19 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description",
         },
-        ImpactStatistics =
-        [
-            new ImpactStatistics
-            {
-                Id = 13,
-                Description = "Impact statistic",
-                ImageId = 6,
-                Metrics =
-                [
-                    new Metric
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new ImpactStatistics
+        {
+            Id = 13,
+            Title = "Impact statistic",
+            ImageId = 6,
+            Metrics =
+            [
+                new Metric { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
+                new Metric { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
+                new Metric { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                new Metric { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            ],
+        },
     };
 
     private static MainPageDto GetMainPageDto(long id) => new()
@@ -400,22 +388,17 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description",
         },
-        ImpactStatistics =
-        [
-            new ImpactStatisticDto
-            {
-                Id = 13,
-                Description = "Impact statistic",
-                Metrics =
-                [
-                    new MetricDto
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new ImpactStatisticDto
+        {
+            Id = 13,
+            Title = "Impact statistic",
+            Metrics =
+            [
+                new MetricDto { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
+                new MetricDto { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
+                new MetricDto { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                new MetricDto { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            ],
+        },
     };
 }
