@@ -12,6 +12,6 @@ public class ImpactStatisticsLocalizationConfig
         base.Configure(entity);
 
         entity.Property(e => e.Title)
-            .IsRequired();
+            .IsRequired(false);
     }
 }

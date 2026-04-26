@@ -10,5 +10,5 @@ public record ImpactStatisticDto
     public string Title { get; init; } = null!;
     public ImageDto? Image { get; init; } = null!;
     public ICollection<MetricDto> Metrics { get; init; } = [];
-    public ImpactStatisticLocalizationDto? Localization { get; init; }
+    public ICollection<ImpactStatisticLocalizationDto> Localizations { get; init; } = [];
 }

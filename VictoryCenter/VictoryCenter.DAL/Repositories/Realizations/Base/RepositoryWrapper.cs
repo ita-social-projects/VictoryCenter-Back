@@ -60,6 +60,10 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Realizations.MainPage;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -110,6 +114,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IMainAboutUsRepository? _mainAboutUsRepository;
     private IMainPartnersRepository? _mainPartnersRepository;
     private IImpactStatisticsRepository? _impactStatisticsRepository;
+    private IImpactStatisticsLocalizationsRepository? _impactStatisticsLocalizationsRepository;
+    private IMetricLocalizationsRepository? _metricLocalizationsRepository;
     private IHistorySectionsRepository? _historySectionsRepository;
     private IHistorySectionContentsRepository? _historySectionContentsRepository;
 
@@ -255,6 +261,13 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IImpactStatisticsRepository ImpactStatisticsRepository =>
         _impactStatisticsRepository ??= new ImpactStatisticsRepository(_victoryCenterDbContext);
+
+    public IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository =>
+        _impactStatisticsLocalizationsRepository ??= new ImpactStatisticsLocalizationsRepository(_victoryCenterDbContext);
+
+    public IMetricLocalizationsRepository MetricLocalizationsRepository =>
+        _metricLocalizationsRepository ??= new MetricLocalizationsRepository(_victoryCenterDbContext);
+
     public IHistorySectionsRepository HistorySectionsRepository =>
         _historySectionsRepository ??= new HistorySectionsRepository(_victoryCenterDbContext);
     public IHistorySectionContentsRepository HistorySectionContentsRepository =>
