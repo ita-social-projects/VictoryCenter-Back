@@ -37,7 +37,7 @@ public class CreateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.ImpactStatistic.Title.MinLength - 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MinLength - 1),
         };
 
         var result = _validator.TestValidate(dto);
@@ -50,7 +50,7 @@ public class CreateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.ImpactStatistic.Title.MaxLength + 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength + 1),
         };
 
         var result = _validator.TestValidate(dto);

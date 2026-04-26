@@ -20,12 +20,12 @@ public abstract class BaseImpactStatisticDtoValidator<TDto, TMetric> : AbstractV
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Title"))
-            .MinimumLength(MainPageConstants.ImpactStatistic.Title.MinLength)
+            .MinimumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                "Title", MainPageConstants.ImpactStatistic.Title.MinLength))
-            .MaximumLength(MainPageConstants.ImpactStatistic.Title.MaxLength)
+                "Title", MainPageConstants.ImpactStatistic.TitleConstraints.MinLength))
+            .MaximumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                "Title", MainPageConstants.ImpactStatistic.Title.MaxLength));
+                "Title", MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
 
         RuleFor(metricsSelector)
             .Cascade(CascadeMode.Stop)

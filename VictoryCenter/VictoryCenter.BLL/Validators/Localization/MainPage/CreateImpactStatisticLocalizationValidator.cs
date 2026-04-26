@@ -16,13 +16,13 @@ public class CreateImpactStatisticLocalizationValidator : AbstractValidator<Crea
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImpactStatisticLocalizationDto.Title)))
-            .MinimumLength(MainPageConstants.ImpactStatistic.Title.MinLength)
+            .MinimumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateImpactStatisticLocalizationDto.Title),
-                MainPageConstants.ImpactStatistic.Title.MinLength))
-            .MaximumLength(MainPageConstants.ImpactStatistic.Title.MaxLength)
+                MainPageConstants.ImpactStatistic.TitleConstraints.MinLength))
+            .MaximumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateImpactStatisticLocalizationDto.Title),
-                MainPageConstants.ImpactStatistic.Title.MaxLength));
+                MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
     }
 }

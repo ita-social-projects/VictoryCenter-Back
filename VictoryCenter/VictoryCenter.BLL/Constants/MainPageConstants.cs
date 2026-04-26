@@ -18,7 +18,7 @@ public static class MainPageConstants
     {
         public const int ExactMetricCount = 4;
 
-        public static class Title
+        public static class TitleConstraints
         {
             public const int MinLength = 5;
             public const int MaxLength = 500;
