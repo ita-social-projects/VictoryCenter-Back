@@ -17,7 +17,7 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdatePdfReportCommand> _validator;
     private readonly IMapper _mapper;
-    private static readonly Regex MultipleSpaces = new(@" {2,}", RegexOptions.Compiled);
+    private static readonly Regex MultipleSpaces = new(@" {2,}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public UpdatePdfReportHandler(
         IRepositoryWrapper repositoryWrapper,
