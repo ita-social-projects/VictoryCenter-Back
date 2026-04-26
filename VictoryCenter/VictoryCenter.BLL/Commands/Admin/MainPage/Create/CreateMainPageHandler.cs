@@ -148,9 +148,11 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
             hasLocalizations = true;
         }
 
-        foreach (var (metricEntity, metricDto) in impactEntity.Metrics.Zip(impactDto.Metrics))
+        var metricsByType = impactEntity.Metrics.ToDictionary(m => m.Type);
+
+        foreach (var metricDto in impactDto.Metrics)
         {
-            if (metricDto.Localization is null)
+            if (metricDto.Localization is null || !metricsByType.TryGetValue(metricDto.Type, out var metricEntity))
             {
                 continue;
             }
