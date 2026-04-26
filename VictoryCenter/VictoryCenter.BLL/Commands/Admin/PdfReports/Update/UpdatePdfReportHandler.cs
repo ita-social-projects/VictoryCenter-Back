@@ -30,31 +30,31 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
     }
 
     public async Task<Result<PdfReportDto>> Handle(
-        UpdatePdfReportCommand request,
-        CancellationToken cancellationToken)
+    UpdatePdfReportCommand request,
+    CancellationToken cancellationToken)
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
+            var normalizedRequest = request with { Name = NormalizeText(request.Name) };
+            await _validator.ValidateAndThrowAsync(normalizedRequest, cancellationToken);
 
             var pdfReport = await _repositoryWrapper.PdfReportRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<PdfReport>
                 {
-                    Filter = pr => pr.Id == request.Id,
+                    Filter = pr => pr.Id == normalizedRequest.Id,
                     AsNoTracking = false
                 });
 
             if (pdfReport == null)
             {
-                return Result.Fail<PdfReportDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+                return Result.Fail<PdfReportDto>(ErrorMessagesConstants.NotFound(normalizedRequest.Id, typeof(PdfReport)));
             }
 
-            var normalizedName = NormalizeText(request.Name);
-            var hasChanges = pdfReport.Name != normalizedName;
+            var hasChanges = pdfReport.Name != normalizedRequest.Name;
 
             if (hasChanges)
             {
-                pdfReport.Name = normalizedName;
+                pdfReport.Name = normalizedRequest.Name;
 
                 if (await _repositoryWrapper.SaveChangesAsync() <= 0)
                 {
