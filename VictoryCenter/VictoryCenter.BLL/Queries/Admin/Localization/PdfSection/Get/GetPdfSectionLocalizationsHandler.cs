@@ -28,7 +28,11 @@ public class GetPdfSectionLocalizationsHandler
         CancellationToken cancellationToken)
     {
         var section = await _repository.PdfSectionRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<PdfSectionEntity> { AsNoTracking = true });
+            .GetFirstOrDefaultAsync(new QueryOptions<PdfSectionEntity>
+            {
+                AsNoTracking = true,
+                OrderByASC = x => x.Id
+            });
 
         if (section is null)
         {

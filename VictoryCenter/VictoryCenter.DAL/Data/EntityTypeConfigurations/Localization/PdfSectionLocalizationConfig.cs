@@ -11,11 +11,9 @@ public class PdfSectionLocalizationConfig : EntityLocalizationConfig<PdfSectionL
         base.Configure(entity);
 
         entity.Property(e => e.Title)
-            .IsRequired()
-            .HasMaxLength(30);
+            .IsRequired();
 
         entity.Property(e => e.Description)
-            .IsRequired()
-            .HasMaxLength(200);
+            .IsRequired();
     }
 }
