@@ -5,11 +5,12 @@ using VictoryCenter.BLL.Commands.Admin.PdfSection.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
 using VictoryCenter.BLL.Validators.PdfSection;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSections;
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSection;
+
+using PdfSection = DAL.Entities.PdfSection;
 
 public class UpdatePdfSectionHandlerTests
 {

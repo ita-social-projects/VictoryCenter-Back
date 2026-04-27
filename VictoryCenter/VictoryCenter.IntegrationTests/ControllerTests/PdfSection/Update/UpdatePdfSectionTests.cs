@@ -3,11 +3,12 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.PdfSections.Update;
+namespace VictoryCenter.IntegrationTests.ControllerTests.PdfSection.Update;
+
+using PdfSection = DAL.Entities.PdfSection;
 
 public class UpdatePdfSectionTests : BaseTestClass
 {
