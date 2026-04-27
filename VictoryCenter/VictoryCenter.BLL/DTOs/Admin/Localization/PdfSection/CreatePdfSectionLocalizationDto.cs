@@ -1,9 +1,6 @@
-using VictoryCenter.BLL.DTOs.Admin.Localization.Base;
-
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
 
-public record CreatePdfSectionLocalizationDto : UpdatePdfSectionLocalizationDto, ILocalizationIdentity
+public record CreatePdfSectionLocalizationDto : UpdatePdfSectionLocalizationDto
 {
-    public long EntityId { get; init; }
     public long LanguageId { get; init; }
 }

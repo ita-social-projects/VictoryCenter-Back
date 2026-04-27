@@ -9,7 +9,7 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
 
-namespace VictoryCenter.BLL.Commands.Admin.Localization.PdfSections.Update;
+namespace VictoryCenter.BLL.Commands.Admin.Localization.PdfSection.Update;
 
 public class UpdatePdfSectionLocalizationHandler
     : IRequestHandler<UpdatePdfSectionLocalizationCommand, Result<PdfSectionLocalizationDto>>
@@ -38,7 +38,6 @@ public class UpdatePdfSectionLocalizationHandler
 
             var dto = request.UpdatePdfSectionLocalizationDto;
             PdfSectionLocalization entity = _mapper.Map<PdfSectionLocalization>(dto);
-            entity.EntityId = request.EntityId;
             entity.LanguageId = request.LanguageId;
 
             var result = await _localizationService.UpdateEntityLocalizationAsync(entity);

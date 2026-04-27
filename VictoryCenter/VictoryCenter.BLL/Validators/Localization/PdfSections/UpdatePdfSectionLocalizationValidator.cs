@@ -1,5 +1,5 @@
 using FluentValidation;
-using VictoryCenter.BLL.Commands.Admin.Localization.PdfSections.Update;
+using VictoryCenter.BLL.Commands.Admin.Localization.PdfSection.Update;
 
 namespace VictoryCenter.BLL.Validators.Localization.PdfSections;
 
