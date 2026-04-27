@@ -408,8 +408,14 @@ public class CreateMainPageHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        impactStatLocRepoMock.Verify(x => x.CreateAsync(It.IsAny<ImpactStatisticsLocalization>()), Times.Once);
-        metricLocRepoMock.Verify(x => x.CreateAsync(It.IsAny<MetricLocalization>()), Times.Once);
+        impactStatLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<ImpactStatisticsLocalization>(
+                l => l.EntityId == 13 && l.LanguageId == 1 && l.Title == "Вплив")),
+            Times.Once);
+        metricLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<MetricLocalization>(
+                l => l.EntityId == 16 && l.LanguageId == 1 && l.Name == "Зібрано")),
+            Times.Once);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
     }
 
