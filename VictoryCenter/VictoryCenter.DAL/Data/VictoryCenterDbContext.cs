@@ -30,6 +30,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<PdfSection> PdfSections { get; set; }
 
+    public DbSet<PdfSectionLocalization> PdfSectionLocalizations { get; set; }
+
     public DbSet<PdfReport> PdfReports { get; set; }
 
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
