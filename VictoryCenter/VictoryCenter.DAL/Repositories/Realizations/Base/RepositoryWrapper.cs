@@ -13,9 +13,11 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
@@ -40,9 +42,11 @@ using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Realizations.MainPage;
 using VictoryCenter.DAL.Repositories.Realizations.Media;
 using VictoryCenter.DAL.Repositories.Realizations.Partners;
 using VictoryCenter.DAL.Repositories.Realizations.PdfSection;
@@ -56,8 +60,6 @@ using VictoryCenter.DAL.Repositories.Realizations.TeamMembers;
 using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
-using VictoryCenter.DAL.Repositories.Realizations.MainPage;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -85,6 +87,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPartnerSectionsRepository? _partnerSectionRepository;
     private IPartnersPageBannersRepository? _partnersPageBannersRepository;
     private IPdfReportRepository? _pdfReportRepository;
+    private IPdfSectionLocalizationsRepository? _pdfSectionLocalizationsRepository;
     private IPdfSectionRepository? _pdfSectionRepository;
     private IHippotherapyProgramCategoriesRepository? _programCategoriesRepository;
     private IProgramSectionContentLocalizationsRepository? _programSectionContentLocalizationsRepository;
@@ -137,6 +140,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IPdfSectionRepository PdfSectionRepository =>
         _pdfSectionRepository ??= new PdfSectionRepository(_victoryCenterDbContext);
+
+    public IPdfSectionLocalizationsRepository PdfSectionLocalizationsRepository =>
+        _pdfSectionLocalizationsRepository ??= new PdfSectionLocalizationsRepository(_victoryCenterDbContext);
 
     public IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository =>
         _programCategoriesRepository

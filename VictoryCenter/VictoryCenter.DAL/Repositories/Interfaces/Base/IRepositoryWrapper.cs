@@ -5,13 +5,16 @@ using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
+using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
@@ -25,9 +28,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
-
-using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -44,6 +44,7 @@ public interface IRepositoryWrapper
     IHippotherapyProgramCategoriesRepository HippotherapyProgramCategoriesRepository { get; }
     IHippotherapyProgramsRepository HippotherapyProgramsRepository { get; }
     ILocalizationLanguagesRepository LocalizationLanguagesRepository { get; }
+    IPdfSectionLocalizationsRepository PdfSectionLocalizationsRepository { get; }
     ITeamMemberLocalizationsRepository TeamMemberLocalizationsRepository { get; }
     IUahBankDetailsRepository UahBankDetailsRepository { get; }
     IForeignBankDetailsRepository ForeignBankDetailsRepository { get; }
