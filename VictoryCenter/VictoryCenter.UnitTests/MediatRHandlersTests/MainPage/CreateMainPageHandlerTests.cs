@@ -63,11 +63,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-                new() { Id = 6 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
 
         _mapperMock
             .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
@@ -165,10 +161,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }]);
 
         var handler = CreateHandler();
 
@@ -261,11 +254,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-                new() { Id = 6 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
 
         _mapperMock
             .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))

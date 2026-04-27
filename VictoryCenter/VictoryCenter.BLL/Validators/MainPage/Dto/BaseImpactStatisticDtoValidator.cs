@@ -41,6 +41,6 @@ public abstract class BaseImpactStatisticDtoValidator<TDto, TMetric> : AbstractV
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics[]"));
     }
 
-    private static bool HasAllUniqueMetricTypes(ICollection<TMetric> metrics)
-        => Enum.GetValues<MetricType>().All(t => metrics.Any(m => m is not null && m.Type == t));
+    private static bool HasAllUniqueMetricTypes(IEnumerable<TMetric> metrics)
+        => Array.TrueForAll(Enum.GetValues<MetricType>(), t => metrics.Any(m => m is not null && m.Type == t));
 }
