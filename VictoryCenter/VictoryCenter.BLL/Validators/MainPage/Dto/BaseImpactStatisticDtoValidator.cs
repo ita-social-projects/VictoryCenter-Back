@@ -32,9 +32,9 @@ public abstract class BaseImpactStatisticDtoValidator<TDto, TMetric> : AbstractV
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics"))
             .Must(m => m.Count == MainPageConstants.ImpactStatistic.ExactMetricCount)
-            .WithMessage($"Metrics must contain exactly {MainPageConstants.ImpactStatistic.ExactMetricCount} items.")
+            .WithMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount))
             .Must(HasAllUniqueMetricTypes)
-            .WithMessage("Each of the four metric types must appear exactly once: Partners, Programs, Raiced, TherapyHours.");
+            .WithMessage(ErrorMessagesConstants.MetricTypesMustBeUnique());
 
         RuleForEach(enumerableSelector)
             .NotNull()

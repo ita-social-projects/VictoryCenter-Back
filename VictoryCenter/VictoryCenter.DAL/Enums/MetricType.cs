@@ -4,6 +4,6 @@ public enum MetricType
 {
     Partners,
     Programs,
-    Raiced,
+    Raised,
     TherapyHours
 }

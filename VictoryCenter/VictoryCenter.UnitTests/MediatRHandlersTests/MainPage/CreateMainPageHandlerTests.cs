@@ -197,7 +197,7 @@ public class CreateMainPageHandlerTests
                 [
                     new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
                     new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-                    new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                    new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
                     new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
                 ],
             },
@@ -332,7 +332,7 @@ public class CreateMainPageHandlerTests
             [
                 new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
                 new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
                 new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
             ],
         },
@@ -365,7 +365,7 @@ public class CreateMainPageHandlerTests
             [
                 new Metric { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
                 new Metric { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
-                new Metric { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                new Metric { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raised },
                 new Metric { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
             ],
         },
@@ -396,7 +396,7 @@ public class CreateMainPageHandlerTests
             [
                 new MetricDto { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
                 new MetricDto { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
-                new MetricDto { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raiced },
+                new MetricDto { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raised },
                 new MetricDto { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
             ],
         },

@@ -79,7 +79,7 @@ public class CreateImpactStatisticDtoValidatorTests
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage($"Metrics must contain exactly {MainPageConstants.ImpactStatistic.ExactMetricCount} items.");
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount));
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class CreateImpactStatisticDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenLocalizationSetOnNonRaicedMetric()
+    public void Validate_ShouldHaveError_WhenLocalizationSetOnNonRaisedMetric()
     {
         var dto = GetValidDto() with
         {
@@ -114,7 +114,7 @@ public class CreateImpactStatisticDtoValidatorTests
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Partners" },
                 },
                 new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raiced },
+                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raised },
                 new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
             ],
         };
@@ -125,7 +125,7 @@ public class CreateImpactStatisticDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_WhenLocalizationSetOnRaicedMetric()
+    public void Validate_ShouldNotHaveError_WhenLocalizationSetOnRaisedMetric()
     {
         var dto = GetValidDto() with
         {
@@ -135,7 +135,7 @@ public class CreateImpactStatisticDtoValidatorTests
                 new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
                 new CreateMetricDto
                 {
-                    Value = 300, Name = "c", Type = MetricType.Raiced,
+                    Value = 300, Name = "c", Type = MetricType.Raised,
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
                 },
                 new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
@@ -156,7 +156,7 @@ public class CreateImpactStatisticDtoValidatorTests
             [
                 new CreateMetricDto { Value = -1, Name = "a", Type = MetricType.Partners },
                 new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raiced },
+                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raised },
                 new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
             ],
         };
@@ -187,7 +187,7 @@ public class CreateImpactStatisticDtoValidatorTests
         [
             new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
             new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
             new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
         ],
     };

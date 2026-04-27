@@ -1,4 +1,5 @@
 using FluentValidation;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.Validators.Localization.MainPage;
@@ -17,8 +18,8 @@ public class CreateImpactStatisticDtoValidator
             .When(x => x.Metrics is not null);
 
         RuleForEach(x => x.Metrics)
-            .Must(m => m is null || m.Type == MetricType.Raiced || m.Localization == null)
-            .WithMessage("Localization is only allowed for the metric with type Raiced.");
+            .Must(m => m is null || m.Type == MetricType.Raised || m.Localization == null)
+            .WithMessage(ErrorMessagesConstants.LocalizationOnlyAllowedForRaisedMetric());
 
         When(x => x.Localization is not null, () =>
         {

@@ -144,7 +144,7 @@ public class CreateMainPageDtoValidatorTests
                 [
                     new CreateMetricDto { Value = 10, Name = "a", Type = MetricType.Partners },
                     new CreateMetricDto { Value = 20, Name = "b", Type = MetricType.Programs },
-                    new CreateMetricDto { Value = 30, Name = "c", Type = MetricType.Raiced },
+                    new CreateMetricDto { Value = 30, Name = "c", Type = MetricType.Raised },
                     new CreateMetricDto { Value = 40, Name = "d", Type = MetricType.TherapyHours },
                 ],
             },
@@ -196,7 +196,7 @@ public class CreateMainPageDtoValidatorTests
         [
             new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
             new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raiced },
+            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
             new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
         ],
     };
