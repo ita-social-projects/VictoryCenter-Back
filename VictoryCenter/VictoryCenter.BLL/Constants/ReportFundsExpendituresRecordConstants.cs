@@ -23,4 +23,6 @@ public static class ReportFundsExpendituresRecordConstants
 
     public static readonly string CategoryAlreadyHasRecord =
         "Record for this category already exists";
+
+    public static readonly int MaxNumberOfRecordsPerBulkDelete = 100;
 }
