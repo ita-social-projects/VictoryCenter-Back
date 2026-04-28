@@ -25,7 +25,7 @@ public class GetReportFundsExpendituresSummaryTests
 
         _recordsRepositoryMock
             .Setup(repository => repository.GetSummaryAsync())
-            .ReturnsAsync((1000m, 250m, 4, 500m, 120m, 3));
+            .ReturnsAsync((1000m, 250m, 4, 501m, 120m, 3));
 
         var handler = new GetReportFundsExpendituresSummaryHandler(_repositoryWrapperMock.Object);
 
@@ -37,7 +37,7 @@ public class GetReportFundsExpendituresSummaryTests
         Assert.Equal(1000m, result.Value.IncomeUahTotal);
         Assert.Equal(250m, result.Value.IncomeUsdTotal);
         Assert.Equal(4, result.Value.IncomeCategoriesCount);
-        Assert.Equal(500m, result.Value.ExpenditureUahTotal);
+        Assert.Equal(501m, result.Value.ExpenditureUahTotal);
         Assert.Equal(120m, result.Value.ExpenditureUsdTotal);
         Assert.Equal(3, result.Value.ExpenditureCategoriesCount);
     }
