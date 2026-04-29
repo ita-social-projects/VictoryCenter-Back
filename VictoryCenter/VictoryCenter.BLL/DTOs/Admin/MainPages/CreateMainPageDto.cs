@@ -8,5 +8,5 @@ public record CreateMainPageDto : BaseMainPageDto
 {
     public CreateMainAboutUsDto? MainAboutUs { get; init; }
     public CreateMainPartnersDto? MainPartners { get; init; }
-    public ICollection<CreateImpactStatisticDto> ImpactStatistics { get; init; } = [];
+    public CreateImpactStatisticDto? ImpactStatistics { get; init; }
 }

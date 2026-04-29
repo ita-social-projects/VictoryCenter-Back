@@ -1,7 +1,11 @@
+using VictoryCenter.DAL.Enums;
+
 namespace VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 
 public abstract record BaseMetricDto
 {
-    public string Value { get; init; } = null!;
-    public string Signature { get; init; } = null!;
+    public int Value { get; init; }
+    public string Name { get; init; } = null!;
+    public MetricType Type { get; init; }
+    public MetricPrefix? Prefix { get; init; }
 }

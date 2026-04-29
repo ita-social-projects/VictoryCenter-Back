@@ -12,6 +12,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
@@ -96,12 +97,12 @@ public class UpdateMainPageHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(expectedDto.Id, result.Value.Id);
 
-        var updatedStat = existingEntity.ImpactStatistics.Single();
-        Assert.Equal(command.UpdateMainPageDto.ImpactStatistics.Single().Description, updatedStat.Description);
+        var updatedStat = existingEntity.ImpactStatistics!;
+        Assert.Equal(command.UpdateMainPageDto.ImpactStatistics!.Title, updatedStat.Title);
 
         var updatedMetric = updatedStat.Metrics.Single();
-        Assert.Equal(command.UpdateMainPageDto.ImpactStatistics.Single().Metrics.Single().Value, updatedMetric.Value);
-        Assert.Equal(command.UpdateMainPageDto.ImpactStatistics.Single().Metrics.Single().Signature, updatedMetric.Signature);
+        Assert.Equal(command.UpdateMainPageDto.ImpactStatistics!.Metrics.Single().Value, updatedMetric.Value);
+        Assert.Equal(command.UpdateMainPageDto.ImpactStatistics!.Metrics.Single().Name, updatedMetric.Name);
 
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         _imageRepositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()), Times.Once);
@@ -260,7 +261,7 @@ public class UpdateMainPageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdateAndCreateNestedItems_WhenPayloadIsMixed()
+    public async Task Handle_ShouldSyncMetrics_WhenMetricsAreAdded()
     {
         // Arrange
         var entity = GetExistingMainPageEntity(1);
@@ -280,42 +281,28 @@ public class UpdateMainPageHandlerTests
                 Title = "Updated partners title",
                 Description = "Updated partners description long enough",
             },
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = entity.ImpactStatistics.Single().Id,
-                    Description = "Updated existing stat",
-                    ImageId = 6,
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Id = entity.ImpactStatistics.Single().Metrics.Single().Id,
-                            Value = "999",
-                            Signature = "updated-signature",
-                        },
-                        new UpdateMetricDto
-                        {
-                            Value = "123",
-                            Signature = "new-metric",
-                        },
-                    ],
-                },
-                new UpdateImpactStatisticDto
-                {
-                    Description = "Brand new stat",
-                    ImageId = 6,
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Value = "321",
-                            Signature = "brand-new-metric",
-                        },
-                    ],
-                },
-            ],
+            ImpactStatistics = new UpdateImpactStatisticDto
+            {
+                Id = entity.ImpactStatistics!.Id,
+                Title = "Updated impact stat title",
+                ImageId = 6,
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = entity.ImpactStatistics!.Metrics.First().Id,
+                        Value = 999,
+                        Name = "updated-name",
+                        Type = MetricType.Raised,
+                    },
+                    new UpdateMetricDto
+                    {
+                        Value = 123,
+                        Name = "new-metric",
+                        Type = MetricType.Partners,
+                    },
+                ],
+            },
         });
 
         SetupValidationSuccess();
@@ -327,11 +314,7 @@ public class UpdateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-                new() { Id = 6 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
 
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
@@ -339,27 +322,9 @@ public class UpdateMainPageHandlerTests
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
             .Verifiable();
-
         _mapperMock
             .Setup(x => x.Map<Metric>(It.IsAny<UpdateMetricDto>()))
-            .Returns((UpdateMetricDto dto) => new Metric
-            {
-                Value = dto.Value,
-                Signature = dto.Signature,
-            });
-
-        _mapperMock
-            .Setup(x => x.Map<ImpactStatistics>(It.Is<UpdateImpactStatisticDto>(d => !d.Id.HasValue)))
-            .Returns((UpdateImpactStatisticDto dto) => new ImpactStatistics
-            {
-                Description = dto.Description,
-                ImageId = dto.ImageId,
-                Metrics = dto.Metrics.Select(m => new Metric
-                {
-                    Value = m.Value,
-                    Signature = m.Signature,
-                }).ToList(),
-            });
+            .Returns((UpdateMetricDto dto) => new Metric { Value = dto.Value, Name = dto.Name, Type = dto.Type });
 
         _repositoryWrapperMock
             .Setup(x => x.SaveChangesAsync())
@@ -367,12 +332,7 @@ public class UpdateMainPageHandlerTests
 
         _mapperMock
             .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
-            .Returns(new MainPageDto
-            {
-                Id = entity.Id,
-                Title = command.UpdateMainPageDto.Title,
-                Description = command.UpdateMainPageDto.Description,
-            });
+            .Returns(new MainPageDto { Id = entity.Id });
 
         var handler = CreateHandler();
 
@@ -382,11 +342,10 @@ public class UpdateMainPageHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
 
-        Assert.Contains(entity.ImpactStatistics, s => s.Id == 13 && s.Description == "Updated existing stat");
-        Assert.Contains(entity.ImpactStatistics.SelectMany(s => s.Metrics), m => m.Id == 14 && m.Value == "999");
-
-        Assert.True(entity.ImpactStatistics.Count >= 2);
-        Assert.Contains(entity.ImpactStatistics, s => s.Description == "Brand new stat");
+        Assert.Equal("Updated impact stat title", entity.ImpactStatistics!.Title);
+        Assert.Equal(2, entity.ImpactStatistics.Metrics.Count);
+        Assert.Contains(entity.ImpactStatistics.Metrics, m => m.Id == 14 && m.Value == 999);
+        Assert.Contains(entity.ImpactStatistics.Metrics, m => m.Name == "new-metric" && m.Value == 123);
     }
 
     private UpdateMainPageHandler CreateHandler() => new(
@@ -426,18 +385,15 @@ public class UpdateMainPageHandlerTests
             Title = "Updated partners title",
             Description = "Updated partners description long enough",
         },
-        ImpactStatistics =
-        [
-            new UpdateImpactStatisticDto
-            {
-                Description = "Updated impact statistic description",
-                ImageId = 6,
-                Metrics =
-                [
-                    new UpdateMetricDto { Value = "250", Signature = "families" },
-                ],
-            },
-        ],
+        ImpactStatistics = new UpdateImpactStatisticDto
+        {
+            Title = "Updated impact statistic title",
+            ImageId = 6,
+            Metrics =
+            [
+                new UpdateMetricDto { Value = 250, Name = "families", Type = MetricType.Partners },
+            ],
+        },
     };
 
     private static UpdateMainPageDto GetValidUpdateDto(DAL.Entities.MainPage existing) => new()
@@ -455,24 +411,22 @@ public class UpdateMainPageHandlerTests
             Title = "Updated partners title",
             Description = "Updated partners description long enough",
         },
-        ImpactStatistics =
-        [
-            new UpdateImpactStatisticDto
-            {
-                Id = existing.ImpactStatistics.Single().Id,
-                Description = "Updated impact statistic description",
-                ImageId = 6,
-                Metrics =
-                [
-                    new UpdateMetricDto
-                    {
-                        Id = existing.ImpactStatistics.Single().Metrics.Single().Id,
-                        Value = "250",
-                        Signature = "families",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new UpdateImpactStatisticDto
+        {
+            Id = existing.ImpactStatistics!.Id,
+            Title = "Updated impact statistic title",
+            ImageId = 6,
+            Metrics =
+            [
+                new UpdateMetricDto
+                {
+                    Id = existing.ImpactStatistics!.Metrics.First().Id,
+                    Value = 250,
+                    Name = "families",
+                    Type = MetricType.Partners,
+                },
+            ],
+        },
     };
 
     private static DAL.Entities.MainPage GetExistingMainPageEntity(long id) => new()
@@ -493,23 +447,21 @@ public class UpdateMainPageHandlerTests
             Title = "Old partners title",
             Description = "Old partners description",
         },
-        ImpactStatistics =
-        [
-            new ImpactStatistics
-            {
-                Id = 13,
-                Description = "Old impact statistic",
-                ImageId = 2,
-                Metrics =
-                [
-                    new Metric
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new ImpactStatistics
+        {
+            Id = 13,
+            Title = "Old impact statistic",
+            ImageId = 2,
+            Metrics =
+            [
+                new Metric
+                {
+                    Id = 14,
+                    Value = 100,
+                    Name = "children",
+                    Type = MetricType.Raised,
+                },
+            ],
+        },
     };
 }

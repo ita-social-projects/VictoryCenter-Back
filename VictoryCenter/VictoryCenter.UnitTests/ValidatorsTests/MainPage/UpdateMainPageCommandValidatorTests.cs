@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.Validators.MainPage.Commands;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Options;
@@ -50,23 +51,21 @@ public class UpdateMainPageCommandValidatorTests
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto() with
         {
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = 9999,
-                    Description = "Updated stat",
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Id = 14,
-                            Value = "123",
-                            Signature = "kids",
-                        },
-                    ],
-                },
-            ],
+            ImpactStatistics = new UpdateImpactStatisticDto
+            {
+                Id = 9999,
+                Title = "Updated stat",
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = 14,
+                        Value = 123,
+                        Name = "kids",
+                        Type = MetricType.Raised,
+                    },
+                ],
+            },
         });
 
         _mainPageRepositoryMock
@@ -80,7 +79,7 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics[].Id and ImpactStatistics[].Metrics[].Id"));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
     }
 
     [Fact]
@@ -89,23 +88,21 @@ public class UpdateMainPageCommandValidatorTests
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto() with
         {
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = 13,
-                    Description = "Updated stat",
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Id = 9999,
-                            Value = "123",
-                            Signature = "kids",
-                        },
-                    ],
-                },
-            ],
+            ImpactStatistics = new UpdateImpactStatisticDto
+            {
+                Id = 13,
+                Title = "Updated stat",
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = 9999,
+                        Value = 123,
+                        Name = "kids",
+                        Type = MetricType.Raised,
+                    },
+                ],
+            },
         });
 
         _mainPageRepositoryMock
@@ -119,51 +116,37 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics[].Id and ImpactStatistics[].Metrics[].Id"));
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
     }
 
     [Fact]
-    public async Task Validate_ShouldNotHaveErrors_WhenPayloadIsMixedAndIdsBelongToMainPage()
+    public async Task Validate_ShouldNotHaveErrors_WhenIdsMatchExistingMainPage()
     {
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto() with
         {
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = 13,
-                    Description = "Updated existing stat",
-                    ImageId = 2,
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Id = 14,
-                            Value = "999",
-                            Signature = "updated-signature",
-                        },
-                        new UpdateMetricDto
-                        {
-                            Value = "123",
-                            Signature = "new-metric",
-                        },
-                    ],
-                },
-                new UpdateImpactStatisticDto
-                {
-                    Description = "Brand new stat",
-                    ImageId = 2,
-                    Metrics =
-                    [
-                        new UpdateMetricDto
-                        {
-                            Value = "321",
-                            Signature = "brand-new-metric",
-                        },
-                    ],
-                },
-            ],
+            ImpactStatistics = new UpdateImpactStatisticDto
+            {
+                Id = 13,
+                Title = "Updated existing stat",
+                ImageId = 2,
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = 14,
+                        Value = 999,
+                        Name = "updated-name",
+                        Type = MetricType.Raised,
+                    },
+                    new UpdateMetricDto
+                    {
+                        Value = 123,
+                        Name = "new-metric",
+                        Type = MetricType.Partners,
+                    },
+                ],
+            },
         });
 
         _mainPageRepositoryMock
@@ -187,24 +170,22 @@ public class UpdateMainPageCommandValidatorTests
         Title = "Main page title",
         Description = "Main page description",
         ImageId = 1,
-        ImpactStatistics =
-        [
-            new UpdateImpactStatisticDto
-            {
-                Id = 13,
-                Description = "Impact statistic",
-                ImageId = 2,
-                Metrics =
-                [
-                    new UpdateMetricDto
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new UpdateImpactStatisticDto
+        {
+            Id = 13,
+            Title = "Impact statistic",
+            ImageId = 2,
+            Metrics =
+            [
+                new UpdateMetricDto
+                {
+                    Id = 14,
+                    Value = 100,
+                    Name = "children",
+                    Type = MetricType.Raised,
+                },
+            ],
+        },
     };
 
     private static DAL.Entities.MainPage GetExistingMainPage() => new()
@@ -225,23 +206,21 @@ public class UpdateMainPageCommandValidatorTests
             Title = "Old partners",
             Description = "Old partners desc",
         },
-        ImpactStatistics =
-        [
-            new ImpactStatistics
-            {
-                Id = 13,
-                Description = "Old stat",
-                ImageId = 2,
-                Metrics =
-                [
-                    new Metric
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new ImpactStatistics
+        {
+            Id = 13,
+            Title = "Old stat",
+            ImageId = 2,
+            Metrics =
+            [
+                new Metric
+                {
+                    Id = 14,
+                    Value = 100,
+                    Name = "children",
+                    Type = MetricType.Raised,
+                },
+            ],
+        },
     };
 }

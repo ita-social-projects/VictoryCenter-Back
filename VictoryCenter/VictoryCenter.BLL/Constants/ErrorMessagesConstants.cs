@@ -207,4 +207,19 @@ public static class ErrorMessagesConstants
     {
         return $"{property} must be less than or equal to {value}";
     }
+
+    public static string MetricsMustContainExactlyNItems(int count)
+    {
+        return $"Metrics must contain exactly {count} items.";
+    }
+
+    public static string MetricTypesMustBeUnique()
+    {
+        return "Each of the four metric types must appear exactly once: Partners, Programs, Raised, TherapyHours.";
+    }
+
+    public static string LocalizationOnlyAllowedForRaisedMetric()
+    {
+        return "Localization is only allowed for the metric with type Raised.";
+    }
 }

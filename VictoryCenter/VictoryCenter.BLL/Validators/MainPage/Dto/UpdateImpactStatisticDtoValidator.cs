@@ -4,47 +4,51 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 
-public class UpdateImpactStatisticDtoValidator : BaseImpactStatisticDtoValidator<UpdateImpactStatisticDto>
+public class UpdateImpactStatisticDtoValidator : AbstractValidator<UpdateImpactStatisticDto>
 {
     public UpdateImpactStatisticDtoValidator()
     {
+        RuleFor(x => x.Title)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Title)))
+            .MinimumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.TitleConstraints.MinLength))
+            .MaximumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
+
         RuleFor(x => x.Id)
             .GreaterThan(0)
             .When(x => x.Id.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateImpactStatisticDto.Id)));
 
         RuleFor(x => x.Metrics)
-            .Cascade(CascadeMode.Stop)
             .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)))
-            .Must(m => m.Count <= MainPageConstants.ImpactStatistic.MaxCount)
-            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(UpdateImpactStatisticDto.Metrics), MainPageConstants.ImpactStatistic.MaxCount));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)));
 
         RuleForEach(x => x.Metrics)
             .NotNull()
-            .SetValidator(new UpdateMetricDtoValidator());
+            .SetValidator(new UpdateMetricDtoValidator())
+            .When(x => x.Metrics is not null);
 
         RuleFor(x => x.Metrics)
             .Must(metrics =>
             {
-                if (metrics is null)
-                {
-                    return true;
-                }
-
-                if (metrics.Any(m => m is null))
+                if (metrics is null || metrics.Any(m => m is null))
                 {
                     return true;
                 }
 
                 var ids = metrics
-                    .Where(m => m!.Id.HasValue)
-                    .Select(m => m!.Id!.Value)
+                    .Where(m => m.Id.HasValue)
+                    .Select(m => m.Id!.Value)
                     .ToList();
 
                 return ids.Distinct().Count() == ids.Count;
             })
-            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateImpactStatisticDto.Metrics)));
+            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateImpactStatisticDto.Metrics)))
+            .When(x => x.Metrics is not null);
     }
 }

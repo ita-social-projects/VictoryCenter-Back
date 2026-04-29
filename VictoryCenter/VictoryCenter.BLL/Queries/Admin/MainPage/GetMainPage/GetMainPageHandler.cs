@@ -30,9 +30,12 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
                     .Include(e => e.MainAboutUs)
                     .Include(e => e.MainPartners)
                     .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s.Image)
+                    .ThenInclude(s => s!.Image)
                     .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s.Metrics),
+                    .ThenInclude(s => s!.Localizations)
+                    .Include(e => e.ImpactStatistics)
+                    .ThenInclude(s => s!.Metrics)
+                    .ThenInclude(m => m.Localizations),
                 AsNoTracking = true
             });
 

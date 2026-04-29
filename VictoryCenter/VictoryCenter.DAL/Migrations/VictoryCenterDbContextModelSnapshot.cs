@@ -784,15 +784,15 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<long?>("ImageId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("MainPageId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -800,7 +800,8 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.HasIndex("MainPageId");
+                    b.HasIndex("MainPageId")
+                        .IsUnique();
 
                     b.ToTable("ImpactStatistics");
                 });
@@ -941,6 +942,32 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("HippotherapyProgramLocalizations");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ImpactStatisticsLocalization", b =>
+                {
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LanguageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TranslationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("EntityId", "LanguageId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("ImpactStatisticsLocalizations");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", b =>
                 {
                     b.Property<long>("Id")
@@ -971,6 +998,35 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("LocalizationLanguages");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MetricLocalization", b =>
+                {
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LanguageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TranslationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Value")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("EntityId", "LanguageId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("MetricLocalizations");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.PdfSectionLocalization", b =>
                 {
                     b.Property<long>("EntityId")
@@ -984,13 +1040,11 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("TranslationStatus")
                         .ValueGeneratedOnAdd()
@@ -1234,16 +1288,21 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("Signature")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("Prefix")
+                        .HasColumnType("int");
 
                     b.Property<long>("StatisticId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -2091,8 +2150,8 @@ namespace VictoryCenter.DAL.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("VictoryCenter.DAL.Entities.MainPage", "MainPage")
-                        .WithMany("ImpactStatistics")
-                        .HasForeignKey("MainPageId")
+                        .WithOne("ImpactStatistics")
+                        .HasForeignKey("VictoryCenter.DAL.Entities.ImpactStatistics", "MainPageId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2161,6 +2220,44 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyProgramLocalization", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.HippotherapyProgram", "Entity")
+                        .WithMany("Localizations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ImpactStatisticsLocalization", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.ImpactStatistics", "Entity")
+                        .WithMany("Localizations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MetricLocalization", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.Metric", "Entity")
                         .WithMany("Localizations")
                         .HasForeignKey("EntityId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -2507,6 +2604,8 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ImpactStatistics", b =>
                 {
+                    b.Navigation("Localizations");
+
                     b.Navigation("Metrics");
                 });
 
@@ -2517,6 +2616,11 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("MainAboutUs");
 
                     b.Navigation("MainPartners");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Metric", b =>
+                {
+                    b.Navigation("Localizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnerSection", b =>

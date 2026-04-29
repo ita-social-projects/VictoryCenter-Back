@@ -4,39 +4,33 @@ public static class MainPageConstants
 {
     public static class Title
     {
-        public const int MinLength = 5;
-        public const int MaxLength = 150;
+        public static int MinLength => 5;
+        public static int MaxLength => 150;
     }
 
     public static class Description
     {
-        public const int MinLength = 10;
-        public const int MaxLength = 1000;
+        public static int MinLength => 10;
+        public static int MaxLength => 1000;
     }
 
     public static class ImpactStatistic
     {
-        public const int MaxCount = 20;
+        public static int ExactMetricCount => 4;
 
-        public static class Description
+        public static class TitleConstraints
         {
-            public const int MinLength = 5;
-            public const int MaxLength = 500;
+            public static int MinLength => 5;
+            public static int MaxLength => 500;
         }
     }
 
     public static class Metric
     {
-        public static class Value
+        public static class Name
         {
-            public const int MinLength = 1;
-            public const int MaxLength = 50;
-        }
-
-        public static class Signature
-        {
-            public const int MinLength = 1;
-            public const int MaxLength = 100;
+            public static int MinLength => 1;
+            public static int MaxLength => 100;
         }
     }
 }

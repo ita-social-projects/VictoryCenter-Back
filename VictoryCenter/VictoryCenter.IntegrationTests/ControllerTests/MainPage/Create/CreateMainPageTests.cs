@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -45,24 +46,18 @@ public class CreateMainPageTests : BaseTestClass
                 Title = "New Partners title",
                 Description = "New Partners description",
             },
-            ImpactStatistics =
-            [
-                new CreateImpactStatisticDto
-                {
-                    Description = "New stat",
-                    ImageId = image.Id,
-                    Metrics =
-                    [
-                        new CreateMetricDto
-                        {
-                            Value = "500",
-                            Signature = "new-metric",
-                        }
-
-                    ]
-                }
-
-            ]
+            ImpactStatistics = new CreateImpactStatisticDto
+            {
+                Title = "New stat",
+                ImageId = image.Id,
+                Metrics =
+                [
+                    new CreateMetricDto { Value = 120,  Name = "Партнерів",      Type = MetricType.Partners },
+                    new CreateMetricDto { Value = 45,   Name = "Програм",        Type = MetricType.Programs },
+                    new CreateMetricDto { Value = 2500, Name = "Зібрано",        Type = MetricType.Raised },
+                    new CreateMetricDto { Value = 8400, Name = "Годин терапії",  Type = MetricType.TherapyHours },
+                ],
+            },
         };
 
         var content = new StringContent(
@@ -85,7 +80,7 @@ public class CreateMainPageTests : BaseTestClass
         Assert.Equal(createDto.ImageId, createdMainPage.ImageId);
         Assert.NotNull(createdMainPage.MainAboutUs);
         Assert.NotNull(createdMainPage.MainPartners);
-        Assert.Single(createdMainPage.ImpactStatistics);
+        Assert.NotNull(createdMainPage.ImpactStatistics);
     }
 
     [Fact]
@@ -117,7 +112,7 @@ public class CreateMainPageTests : BaseTestClass
         {
             Title = "Valid title",
             Description = "Valid description",
-            ImageId = nonExistentImageId
+            ImageId = nonExistentImageId,
         };
 
         var content = new StringContent(

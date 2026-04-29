@@ -8,11 +8,16 @@ using VictoryCenter.BLL.Commands.Admin.MainPage.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Options;
@@ -58,11 +63,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-                new() { Id = 6 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
 
         _mapperMock
             .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
@@ -160,10 +161,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }]);
 
         var handler = CreateHandler();
 
@@ -188,22 +186,18 @@ public class CreateMainPageHandlerTests
         dtoWithoutImages = dtoWithoutImages with
         {
             ImageId = null,
-            ImpactStatistics =
-            [
-                new CreateImpactStatisticDto
-                {
-                    Description = "Impact statistic description",
-                    ImageId = null,
-                    Metrics =
-                    [
-                        new CreateMetricDto
-                        {
-                            Value = "100",
-                            Signature = "children",
-                        },
-                    ],
-                },
-            ],
+            ImpactStatistics = new CreateImpactStatisticDto
+            {
+                Title = "Impact statistic title",
+                ImageId = null,
+                Metrics =
+                [
+                    new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+                    new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+                    new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
+                    new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                ],
+            },
         };
 
         var command = new CreateMainPageCommand(dtoWithoutImages);
@@ -260,11 +254,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync(new List<Image>
-            {
-                new() { Id = 5 },
-                new() { Id = 6 },
-            });
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
 
         _mapperMock
             .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
@@ -288,6 +278,145 @@ public class CreateMainPageHandlerTests
         Assert.Equal(
             ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(DAL.Entities.MainPage)),
             result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateMainPage_WhenImpactStatisticsIsNull()
+    {
+        // Arrange
+        var dto = GetValidCreateDto() with { ImageId = null, ImpactStatistics = null };
+        var command = new CreateMainPageCommand(dto);
+        var entity = GetMainPageEntity(20);
+        entity.ImpactStatistics = null;
+        var resultDto = GetMainPageDto(20);
+
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .Setup(x => x.CountAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(0);
+
+        _mapperMock
+            .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
+            .Returns(entity);
+
+        _mainPageRepositoryMock
+            .Setup(x => x.CreateAsync(entity))
+            .ReturnsAsync(entity);
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
+            .Returns(resultDto);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _imageRepositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSaveLocalizations_WhenLocalizationsAreProvided()
+    {
+        // Arrange
+        var impactStatLocRepoMock = new Mock<IImpactStatisticsLocalizationsRepository>();
+        var metricLocRepoMock = new Mock<IMetricLocalizationsRepository>();
+
+        _repositoryWrapperMock
+            .SetupGet(x => x.ImpactStatisticsLocalizationsRepository)
+            .Returns(impactStatLocRepoMock.Object);
+
+        _repositoryWrapperMock
+            .SetupGet(x => x.MetricLocalizationsRepository)
+            .Returns(metricLocRepoMock.Object);
+
+        var dto = GetValidCreateDto() with
+        {
+            ImageId = null,
+            ImpactStatistics = new CreateImpactStatisticDto
+            {
+                Title = "Impact title",
+                Localization = new CreateImpactStatisticLocalizationDto { LanguageId = 1, Title = "Вплив" },
+                Metrics =
+                [
+                    new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+                    new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+                    new CreateMetricDto
+                    {
+                        Value = 300, Name = "Raised", Type = MetricType.Raised,
+                        Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
+                    },
+                    new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                ],
+            },
+        };
+
+        var command = new CreateMainPageCommand(dto);
+        var entity = GetMainPageEntity(30);
+        var resultDto = GetMainPageDto(30);
+
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .Setup(x => x.CountAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(0);
+
+        _mapperMock
+            .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
+            .Returns(entity);
+
+        _mainPageRepositoryMock
+            .Setup(x => x.CreateAsync(entity))
+            .ReturnsAsync(entity);
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        impactStatLocRepoMock
+            .Setup(x => x.CreateAsync(It.IsAny<ImpactStatisticsLocalization>()))
+            .ReturnsAsync(new ImpactStatisticsLocalization());
+
+        metricLocRepoMock
+            .Setup(x => x.CreateAsync(It.IsAny<MetricLocalization>()))
+            .ReturnsAsync(new MetricLocalization());
+
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
+            .Returns(resultDto);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        impactStatLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<ImpactStatisticsLocalization>(
+                l => l.EntityId == 13 && l.LanguageId == 1 && l.Title == "Вплив")),
+            Times.Once);
+        metricLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<MetricLocalization>(
+                l => l.EntityId == 16 && l.LanguageId == 1 && l.Name == "Зібрано")),
+            Times.Once);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
     }
 
     private CreateMainPageHandler CreateHandler() => new(
@@ -327,22 +456,18 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description that is long enough",
         },
-        ImpactStatistics =
-        [
-            new CreateImpactStatisticDto
-            {
-                Description = "Impact statistic description",
-                ImageId = 6,
-                Metrics =
-                [
-                    new CreateMetricDto
-                    {
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new CreateImpactStatisticDto
+        {
+            Title = "Impact statistic title",
+            ImageId = 6,
+            Metrics =
+            [
+                new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
+                new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+                new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
+                new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            ],
+        },
     };
 
     private static DAL.Entities.MainPage GetMainPageEntity(long id) => new()
@@ -363,24 +488,19 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description",
         },
-        ImpactStatistics =
-        [
-            new ImpactStatistics
-            {
-                Id = 13,
-                Description = "Impact statistic",
-                ImageId = 6,
-                Metrics =
-                [
-                    new Metric
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new ImpactStatistics
+        {
+            Id = 13,
+            Title = "Impact statistic",
+            ImageId = 6,
+            Metrics =
+            [
+                new Metric { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
+                new Metric { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
+                new Metric { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raised },
+                new Metric { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            ],
+        },
     };
 
     private static MainPageDto GetMainPageDto(long id) => new()
@@ -400,22 +520,17 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description",
         },
-        ImpactStatistics =
-        [
-            new ImpactStatisticDto
-            {
-                Id = 13,
-                Description = "Impact statistic",
-                Metrics =
-                [
-                    new MetricDto
-                    {
-                        Id = 14,
-                        Value = "100",
-                        Signature = "children",
-                    },
-                ],
-            },
-        ],
+        ImpactStatistics = new ImpactStatisticDto
+        {
+            Id = 13,
+            Title = "Impact statistic",
+            Metrics =
+            [
+                new MetricDto { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
+                new MetricDto { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
+                new MetricDto { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raised },
+                new MetricDto { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            ],
+        },
     };
 }

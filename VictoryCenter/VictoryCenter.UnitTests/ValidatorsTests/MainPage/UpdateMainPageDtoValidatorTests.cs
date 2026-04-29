@@ -6,6 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
@@ -97,35 +98,6 @@ public class UpdateMainPageDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsIsNull()
-    {
-        var dto = GetValidDto() with { ImpactStatistics = null! };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.ImpactStatistics)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateMainPageDto.ImpactStatistics)));
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsCountIsTooLarge()
-    {
-        var dto = GetValidDto() with
-        {
-            ImpactStatistics = Enumerable
-                .Range(1, MainPageConstants.ImpactStatistic.MaxCount + 1)
-                .Select(_ => GetValidImpactStatisticDto())
-                .ToList(),
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.ImpactStatistics)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(UpdateMainPageDto.ImpactStatistics), MainPageConstants.ImpactStatistic.MaxCount));
-    }
-
-    [Fact]
     public void Validate_ShouldHaveError_WhenMainAboutUsIsInvalid()
     {
         var dto = GetValidDto() with
@@ -164,32 +136,16 @@ public class UpdateMainPageDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Description = string.Empty,
-                    Metrics = [new UpdateMetricDto { Value = "10", Signature = "kids" }],
-                },
-            ],
+            ImpactStatistics = new UpdateImpactStatisticDto
+            {
+                Title = string.Empty,
+                Metrics = [new UpdateMetricDto { Value = 10, Name = "kids", Type = MetricType.Raised }],
+            },
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor("ImpactStatistics[0].Description");
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsContainsNullElement()
-    {
-        var dto = GetValidDto() with
-        {
-            ImpactStatistics = [null!],
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor("ImpactStatistics[0]");
+        result.ShouldHaveValidationErrorFor("ImpactStatistics.Title");
     }
 
     [Fact]
@@ -199,39 +155,12 @@ public class UpdateMainPageDtoValidatorTests
         {
             MainAboutUs = null,
             MainPartners = null,
+            ImpactStatistics = null,
         };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldNotHaveAnyValidationErrors();
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenImpactStatisticsContainDuplicateIds()
-    {
-        var dto = GetValidDto() with
-        {
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = 10,
-                    Description = "Desc 1",
-                    Metrics = [new UpdateMetricDto { Id = 1, Value = "10", Signature = "kids" }],
-                },
-                new UpdateImpactStatisticDto
-                {
-                    Id = 10,
-                    Description = "Desc 2",
-                    Metrics = [new UpdateMetricDto { Id = 2, Value = "20", Signature = "families" }],
-                },
-            ],
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.ImpactStatistics)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateMainPageDto.ImpactStatistics)));
     }
 
     private static UpdateMainPageDto GetValidDto() => new()
@@ -249,14 +178,14 @@ public class UpdateMainPageDtoValidatorTests
             Title = "Partners title",
             Description = "Partners description",
         },
-        ImpactStatistics = [GetValidImpactStatisticDto()],
+        ImpactStatistics = GetValidImpactStatisticDto(),
     };
 
     private static UpdateImpactStatisticDto GetValidImpactStatisticDto() => new()
     {
         Id = 1,
-        Description = "Impact statistic description",
+        Title = "Impact statistic title",
         ImageId = 2,
-        Metrics = [new UpdateMetricDto { Id = 1, Value = "100", Signature = "children" }],
+        Metrics = [new UpdateMetricDto { Id = 1, Value = 100, Name = "children", Type = MetricType.Raised }],
     };
 }

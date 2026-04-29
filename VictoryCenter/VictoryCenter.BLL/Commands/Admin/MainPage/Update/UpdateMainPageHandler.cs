@@ -4,10 +4,12 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
@@ -44,9 +46,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 return Result.Fail<MainPageDto>(ErrorMessagesConstants.NotFound());
             }
 
-            var impactStatisticsDto = request.UpdateMainPageDto.ImpactStatistics ?? [];
-
-            var imageValidationResult = await ValidateImagesExistAsync(request.UpdateMainPageDto, impactStatisticsDto);
+            var imageValidationResult = await ValidateImagesExistAsync(request.UpdateMainPageDto);
             if (imageValidationResult.IsFailed)
             {
                 return Result.Fail<MainPageDto>(imageValidationResult.Errors);
@@ -54,9 +54,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
             UpdateBaseFields(entity, request.UpdateMainPageDto);
             UpdateSections(entity, request.UpdateMainPageDto);
-            SyncImpactStatistics(entity, impactStatisticsDto);
+            SyncImpactStatistics(entity, request.UpdateMainPageDto.ImpactStatistics);
 
             await _repositoryWrapper.SaveChangesAsync();
+
+            await SyncLocalizationsAsync(entity, request.UpdateMainPageDto.ImpactStatistics);
 
             var resultEntity = await GetMainPageAggregateAsync(entity.Id);
             if (resultEntity is null)
@@ -88,9 +90,12 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 .Include(e => e.MainAboutUs)
                 .Include(e => e.MainPartners)
                 .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s.Image)
+                    .ThenInclude(s => s!.Image)
                 .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s.Metrics)
+                    .ThenInclude(s => s!.Localizations)
+                .Include(e => e.ImpactStatistics)
+                    .ThenInclude(s => s!.Metrics)
+                    .ThenInclude(m => m.Localizations),
         };
 
         if (id.HasValue)
@@ -101,17 +106,18 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         return await _repositoryWrapper.MainPageRepository.GetFirstOrDefaultAsync(options);
     }
 
-    private async Task<Result> ValidateImagesExistAsync(UpdateMainPageDto requestDto, IEnumerable<UpdateImpactStatisticDto> impactStatisticsDto)
+    private async Task<Result> ValidateImagesExistAsync(UpdateMainPageDto requestDto)
     {
         var requestedImageIds = new HashSet<long>();
+
         if (requestDto.ImageId.HasValue)
         {
             requestedImageIds.Add(requestDto.ImageId.Value);
         }
 
-        foreach (var imageId in impactStatisticsDto.Where(s => s.ImageId.HasValue).Select(s => s.ImageId!.Value))
+        if (requestDto.ImpactStatistics?.ImageId.HasValue == true)
         {
-            requestedImageIds.Add(imageId);
+            requestedImageIds.Add(requestDto.ImpactStatistics.ImageId!.Value);
         }
 
         if (requestedImageIds.Count == 0)
@@ -121,7 +127,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
         var existingImageIds = (await _repositoryWrapper.ImageRepository.GetAllAsync(new QueryOptions<Image>
         {
-            Filter = i => requestedImageIds.Contains(i.Id)
+            Filter = i => requestedImageIds.Contains(i.Id),
         }))
         .Select(i => i.Id)
         .ToHashSet();
@@ -169,53 +175,36 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         }
     }
 
-    private void SyncImpactStatistics(MainPageEntity entity, IEnumerable<UpdateImpactStatisticDto> impactStatisticsDto)
+    private void SyncImpactStatistics(MainPageEntity entity, UpdateImpactStatisticDto? statDto)
     {
-        var existingStatsById = entity.ImpactStatistics.ToDictionary(s => s.Id);
-        var requestStatIds = impactStatisticsDto.Where(s => s.Id.HasValue).Select(s => s.Id!.Value).ToHashSet();
-
-        foreach (var existingStat in entity.ImpactStatistics.ToList())
+        if (statDto is null)
         {
-            if (!requestStatIds.Contains(existingStat.Id))
-            {
-                entity.ImpactStatistics.Remove(existingStat);
-            }
+            return;
         }
 
-        foreach (var statDto in impactStatisticsDto)
+        if (entity.ImpactStatistics is null)
         {
-            if (statDto.Id.HasValue && existingStatsById.TryGetValue(statDto.Id.Value, out var existingStat))
-            {
-                existingStat.Description = statDto.Description;
-                existingStat.ImageId = statDto.ImageId;
-
-                SyncMetrics(existingStat, statDto.Metrics);
-            }
-            else
-            {
-                var newStat = _mapper.Map<ImpactStatistics>(statDto);
-                newStat.MainPageId = entity.Id;
-
-                foreach (var metric in newStat.Metrics)
-                {
-                    metric.Statistics = newStat;
-                }
-
-                entity.ImpactStatistics.Add(newStat);
-            }
+            entity.ImpactStatistics = _mapper.Map<ImpactStatistics>(statDto);
+            entity.ImpactStatistics.MainPageId = entity.Id;
+            return;
         }
+
+        entity.ImpactStatistics.Title = statDto.Title;
+        entity.ImpactStatistics.ImageId = statDto.ImageId;
+
+        SyncMetrics(entity.ImpactStatistics, statDto.Metrics);
     }
 
-    private void SyncMetrics(ImpactStatistics existingStat, IEnumerable<UpdateMetricDto> metricsDto)
+    private void SyncMetrics(ImpactStatistics stat, ICollection<UpdateMetricDto> metricsDto)
     {
-        var existingMetricsById = existingStat.Metrics.ToDictionary(m => m.Id);
+        var existingMetricsById = stat.Metrics.ToDictionary(m => m.Id);
         var requestMetricIds = metricsDto.Where(m => m.Id.HasValue).Select(m => m.Id!.Value).ToHashSet();
 
-        foreach (var existingMetric in existingStat.Metrics.ToList())
+        foreach (var existingMetric in stat.Metrics.ToList())
         {
             if (!requestMetricIds.Contains(existingMetric.Id))
             {
-                existingStat.Metrics.Remove(existingMetric);
+                stat.Metrics.Remove(existingMetric);
             }
         }
 
@@ -224,14 +213,89 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             if (metricDto.Id.HasValue && existingMetricsById.TryGetValue(metricDto.Id.Value, out var existingMetric))
             {
                 existingMetric.Value = metricDto.Value;
-                existingMetric.Signature = metricDto.Signature;
+                existingMetric.Name = metricDto.Name;
+                existingMetric.Type = metricDto.Type;
+                existingMetric.Prefix = metricDto.Prefix;
             }
             else
             {
                 var newMetric = _mapper.Map<Metric>(metricDto);
-                newMetric.Statistics = existingStat;
-                existingStat.Metrics.Add(newMetric);
+                newMetric.Statistics = stat;
+                stat.Metrics.Add(newMetric);
             }
+        }
+    }
+
+    private async Task SyncLocalizationsAsync(MainPageEntity entity, UpdateImpactStatisticDto? statDto)
+    {
+        var impactEntity = entity.ImpactStatistics;
+        if (impactEntity is null || statDto is null)
+        {
+            return;
+        }
+
+        bool hasChanges = false;
+
+        if (statDto.Localization is not null)
+        {
+            var existingLoc = impactEntity.Localizations
+                .FirstOrDefault(l => l.LanguageId == statDto.Localization.LanguageId);
+
+            if (existingLoc is not null)
+            {
+                existingLoc.Title = statDto.Localization.Title;
+                existingLoc.TranslationStatus = TranslationStatus.Relevant;
+            }
+            else
+            {
+                await _repositoryWrapper.ImpactStatisticsLocalizationsRepository.CreateAsync(
+                    new ImpactStatisticsLocalization
+                    {
+                        EntityId = impactEntity.Id,
+                        LanguageId = statDto.Localization.LanguageId,
+                        Title = statDto.Localization.Title,
+                    });
+            }
+
+            hasChanges = true;
+        }
+
+        var metricsByType = impactEntity.Metrics.ToDictionary(m => m.Type);
+
+        foreach (var metricDto in statDto.Metrics)
+        {
+            if (metricDto.Localization is null || !metricsByType.TryGetValue(metricDto.Type, out var metricEntity))
+            {
+                continue;
+            }
+
+            var existingMetricLoc = metricEntity.Localizations
+                .FirstOrDefault(l => l.LanguageId == metricDto.Localization.LanguageId);
+
+            if (existingMetricLoc is not null)
+            {
+                existingMetricLoc.Value = metricDto.Localization.Value;
+                existingMetricLoc.Name = metricDto.Localization.Name;
+                existingMetricLoc.TranslationStatus = TranslationStatus.Relevant;
+            }
+            else
+            {
+                await _repositoryWrapper.MetricLocalizationsRepository.CreateAsync(
+                    new MetricLocalization
+                    {
+                        EntityId = metricEntity.Id,
+                        LanguageId = metricDto.Localization.LanguageId,
+                        Value = metricDto.Localization.Value,
+                        Name = metricDto.Localization.Name,
+                    });
+            }
+
+            hasChanges = true;
+        }
+
+        if (hasChanges)
+        {
+            await _repositoryWrapper.SaveChangesAsync();
         }
     }
 }

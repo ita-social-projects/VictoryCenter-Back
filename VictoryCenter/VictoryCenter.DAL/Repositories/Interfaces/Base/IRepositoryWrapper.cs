@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
@@ -83,6 +84,8 @@ public interface IRepositoryWrapper
     IMainAboutUsRepository MainAboutUsRepository { get; }
     IMainPartnersRepository MainPartnersRepository { get; }
     IImpactStatisticsRepository ImpactStatisticsRepository { get; }
+    IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository { get; }
+    IMetricLocalizationsRepository MetricLocalizationsRepository { get; }
     IHistorySectionsRepository HistorySectionsRepository { get; }
     IHistorySectionContentsRepository HistorySectionContentsRepository { get; }
 
