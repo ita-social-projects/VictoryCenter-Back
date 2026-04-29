@@ -25,7 +25,7 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
         {
             RuleFor(x => x)
                 .MustAsync(ValidateNestedIdsByMembershipAsync)
-                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics[].Id and ImpactStatistics[].Metrics[].Id"));
+                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
         });
     }
 
@@ -39,7 +39,7 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
                 AsNoTracking = true,
                 Include = q => q
                     .Include(e => e.ImpactStatistics)
-                        .ThenInclude(s => s.Metrics),
+                        .ThenInclude(s => s!.Metrics),
             });
 
         if (existingMainPage is null)
@@ -47,30 +47,23 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return true;
         }
 
-        var stats = command.UpdateMainPageDto.ImpactStatistics ?? [];
+        var statDto = command.UpdateMainPageDto.ImpactStatistics;
 
-        var existingStatIds = existingMainPage.ImpactStatistics.Select(s => s.Id).ToHashSet();
-
-        foreach (var stat in stats)
+        if (statDto?.Id.HasValue == true && existingMainPage.ImpactStatistics?.Id != statDto.Id.Value)
         {
-            if (!stat.Id.HasValue)
-            {
-                continue;
-            }
-
-            if (!existingStatIds.Contains(stat.Id.Value))
-            {
-                return false;
-            }
+            return false;
         }
 
-        var existingMetricIds = existingMainPage.ImpactStatistics
-            .SelectMany(s => s.Metrics)
+        if (statDto?.Metrics is null || existingMainPage.ImpactStatistics is null)
+        {
+            return true;
+        }
+
+        var existingMetricIds = existingMainPage.ImpactStatistics.Metrics
             .Select(m => m.Id)
             .ToHashSet();
 
-        foreach (var metricId in stats
-                     .SelectMany(s => s.Metrics ?? [])
+        foreach (var metricId in statDto.Metrics
                      .Where(m => m.Id.HasValue)
                      .Select(m => m.Id!.Value))
         {

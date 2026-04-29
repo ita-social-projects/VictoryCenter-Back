@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -31,7 +32,7 @@ public class UpdateMainPageTests : BaseTestClass
         var image1 = await EnsureImageExistsAsync();
         var image2 = await EnsureSecondImageExistsAsync(image1.Id);
 
-        var existingStat = mainPage.ImpactStatistics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics;
         var existingMetric = existingStat?.Metrics.FirstOrDefault();
 
         var updateDto = CreateUpdateDto(
@@ -55,8 +56,8 @@ public class UpdateMainPageTests : BaseTestClass
         Assert.Equal(updateDto.Title, updated.Title);
         Assert.NotNull(updated.MainAboutUs);
         Assert.NotNull(updated.MainPartners);
-        Assert.True(updated.ImpactStatistics.Count >= 1);
-        Assert.Contains(updated.ImpactStatistics, s => s.Description is "Updated existing stat" or "New stat");
+        Assert.NotNull(updated.ImpactStatistics);
+        Assert.Equal("Updated existing stat", updated.ImpactStatistics.Title);
     }
 
     [Fact]
@@ -64,7 +65,7 @@ public class UpdateMainPageTests : BaseTestClass
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var image1 = await EnsureImageExistsAsync();
-        var existingStat = mainPage.ImpactStatistics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics;
         var existingMetric = existingStat?.Metrics.FirstOrDefault();
 
         var updateDto = CreateUpdateDto(
@@ -83,7 +84,7 @@ public class UpdateMainPageTests : BaseTestClass
     public async Task Update_NonExistentImageId_ShouldReturnNotFound()
     {
         var mainPage = await EnsureMainPageExistsAsync();
-        var existingStat = mainPage.ImpactStatistics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics;
         var existingMetric = existingStat?.Metrics.FirstOrDefault();
 
         var nonExistentId = (await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0) + 1000;
@@ -117,27 +118,17 @@ public class UpdateMainPageTests : BaseTestClass
             ImageId = mainImageId,
             MainAboutUs = new UpdateMainAboutUsDto { Title = "Updated About Us title", Description = "Updated About Us description" },
             MainPartners = new UpdateMainPartnersDto { Title = "Updated Partners title", Description = "Updated Partners description" },
-            ImpactStatistics =
-            [
-                new UpdateImpactStatisticDto
-                {
-                    Id = statId,
-                    Description = "Updated existing stat",
-                    ImageId = statImageId,
-                    Metrics =
-                    [
-                        new UpdateMetricDto { Id = metricId, Value = "999", Signature = "updated-signature" },
-                        new UpdateMetricDto { Value = "123", Signature = "new-metric" }
-                    ]
-                },
-                new UpdateImpactStatisticDto
-                {
-                    Description = "New stat",
-                    ImageId = statImageId,
-                    Metrics = [new UpdateMetricDto { Value = "321", Signature = "new-stat-metric" }]
-                }
-
-            ]
+            ImpactStatistics = new UpdateImpactStatisticDto
+            {
+                Id = statId,
+                Title = "Updated existing stat",
+                ImageId = statImageId,
+                Metrics =
+                [
+                    new UpdateMetricDto { Id = metricId, Value = 999, Name = "updated-name", Type = MetricType.Raised },
+                    new UpdateMetricDto { Value = 123, Name = "new-metric", Type = MetricType.Partners },
+                ],
+            },
         };
     }
 
@@ -147,7 +138,7 @@ public class UpdateMainPageTests : BaseTestClass
             .Include(m => m.MainAboutUs)
             .Include(m => m.MainPartners)
             .Include(m => m.ImpactStatistics)
-                .ThenInclude(s => s.Metrics)
+                .ThenInclude(s => s!.Metrics)
             .FirstOrDefaultAsync();
 
         if (existing is not null)
@@ -163,16 +154,12 @@ public class UpdateMainPageTests : BaseTestClass
             ImageId = image.Id,
             MainAboutUs = new MainAboutUs { Title = "Seed About Us", Description = "Seed Desc" },
             MainPartners = new MainPartners { Title = "Seed Partners", Description = "Seed Desc" },
-            ImpactStatistics =
-            [
-                new ImpactStatistics
-                {
-                    Description = "Seed Stat",
-                    ImageId = image.Id,
-                    Metrics = [new Metric { Value = "100", Signature = "children" }]
-                }
-
-            ]
+            ImpactStatistics = new ImpactStatistics
+            {
+                Title = "Seed Stat",
+                ImageId = image.Id,
+                Metrics = [new Metric { Value = 100, Name = "children", Type = MetricType.Raised }],
+            },
         };
 
         await Fixture.DbContext.MainPages.AddAsync(mainPage);

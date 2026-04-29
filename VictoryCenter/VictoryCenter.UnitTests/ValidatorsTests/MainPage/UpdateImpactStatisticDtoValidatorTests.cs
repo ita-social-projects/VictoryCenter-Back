@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
@@ -47,8 +48,8 @@ public class UpdateImpactStatisticDtoValidatorTests
         {
             Metrics =
             [
-                new UpdateMetricDto { Id = 10, Value = "100", Signature = "kids" },
-                new UpdateMetricDto { Id = 10, Value = "200", Signature = "families" },
+                new UpdateMetricDto { Id = 10, Value = 100, Name = "kids", Type = MetricType.Raised },
+                new UpdateMetricDto { Id = 10, Value = 200, Name = "families", Type = MetricType.Partners },
             ],
         };
 
@@ -62,46 +63,46 @@ public class UpdateImpactStatisticDtoValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Validate_ShouldHaveError_WhenDescriptionIsEmpty(string? description)
+    public void Validate_ShouldHaveError_WhenTitleIsEmpty(string? title)
     {
-        var dto = GetValidDto() with { Description = description! };
+        var dto = GetValidDto() with { Title = title! };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseImpactStatisticDto.Description)));
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseImpactStatisticDto.Title)));
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenDescriptionIsTooShort()
+    public void Validate_ShouldHaveError_WhenTitleIsTooShort()
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.ImpactStatistic.Description.MinLength - 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MinLength - 1),
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Description)
+        result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseImpactStatisticDto.Description),
-                MainPageConstants.ImpactStatistic.Description.MinLength));
+                nameof(BaseImpactStatisticDto.Title),
+                MainPageConstants.ImpactStatistic.TitleConstraints.MinLength));
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenDescriptionIsTooLong()
+    public void Validate_ShouldHaveError_WhenTitleIsTooLong()
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.ImpactStatistic.Description.MaxLength + 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength + 1),
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Description)
+        result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseImpactStatisticDto.Description),
-                MainPageConstants.ImpactStatistic.Description.MaxLength));
+                nameof(BaseImpactStatisticDto.Title),
+                MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
     }
 
     [Fact]
@@ -116,29 +117,11 @@ public class UpdateImpactStatisticDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenMetricsCountIsTooLarge()
-    {
-        var dto = GetValidDto() with
-        {
-            Metrics = Enumerable
-                .Range(1, MainPageConstants.ImpactStatistic.MaxCount + 1)
-                .Select(i => new UpdateMetricDto { Id = i, Value = "100", Signature = "kids" })
-                .ToList(),
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(UpdateImpactStatisticDto.Metrics), MainPageConstants.ImpactStatistic.MaxCount));
-    }
-
-    [Fact]
     public void Validate_ShouldHaveError_WhenNestedMetricIsInvalid()
     {
         var dto = GetValidDto() with
         {
-            Metrics = [new UpdateMetricDto { Id = 1, Value = string.Empty, Signature = "kids" }],
+            Metrics = [new UpdateMetricDto { Id = 1, Value = -1, Name = "kids", Type = MetricType.Raised }],
         };
 
         var result = _validator.TestValidate(dto);
@@ -162,8 +145,8 @@ public class UpdateImpactStatisticDtoValidatorTests
     private static UpdateImpactStatisticDto GetValidDto() => new()
     {
         Id = 1,
-        Description = "Impact description",
+        Title = "Impact title",
         ImageId = 1,
-        Metrics = [new UpdateMetricDto { Id = 2, Value = "100", Signature = "kids" }],
+        Metrics = [new UpdateMetricDto { Id = 2, Value = 100, Name = "kids", Type = MetricType.Raised }],
     };
 }

@@ -8,5 +8,5 @@ public record UpdateMainPageDto : BaseMainPageDto
 {
     public UpdateMainAboutUsDto? MainAboutUs { get; init; }
     public UpdateMainPartnersDto? MainPartners { get; init; }
-    public ICollection<UpdateImpactStatisticDto> ImpactStatistics { get; init; } = [];
+    public UpdateImpactStatisticDto? ImpactStatistics { get; init; }
 }

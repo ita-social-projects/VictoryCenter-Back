@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -45,24 +46,20 @@ public class CreateMainPageTests : BaseTestClass
                 Title = "New Partners title",
                 Description = "New Partners description",
             },
-            ImpactStatistics =
-            [
-                new CreateImpactStatisticDto
-                {
-                    Description = "New stat",
-                    ImageId = image.Id,
-                    Metrics =
-                    [
-                        new CreateMetricDto
-                        {
-                            Value = "500",
-                            Signature = "new-metric",
-                        }
-
-                    ]
-                }
-
-            ]
+            ImpactStatistics = new CreateImpactStatisticDto
+            {
+                Title = "New stat",
+                ImageId = image.Id,
+                Metrics =
+                [
+                    new CreateMetricDto
+                    {
+                        Value = 500,
+                        Name = "new-metric",
+                        Type = MetricType.Raised,
+                    },
+                ],
+            },
         };
 
         var content = new StringContent(
@@ -85,7 +82,7 @@ public class CreateMainPageTests : BaseTestClass
         Assert.Equal(createDto.ImageId, createdMainPage.ImageId);
         Assert.NotNull(createdMainPage.MainAboutUs);
         Assert.NotNull(createdMainPage.MainPartners);
-        Assert.Single(createdMainPage.ImpactStatistics);
+        Assert.NotNull(createdMainPage.ImpactStatistics);
     }
 
     [Fact]
@@ -117,7 +114,7 @@ public class CreateMainPageTests : BaseTestClass
         {
             Title = "Valid title",
             Description = "Valid description",
-            ImageId = nonExistentImageId
+            ImageId = nonExistentImageId,
         };
 
         var content = new StringContent(

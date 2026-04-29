@@ -57,8 +57,21 @@ public class MainPageProfile : Profile
         CreateMap<UpdateMainPageDto, MainPageEntity>();
         CreateMap<UpdateMainAboutUsDto, MainAboutUs>();
         CreateMap<UpdateMainPartnersDto, MainPartners>();
-        CreateMap<UpdateImpactStatisticDto, ImpactStatistics>();
-        CreateMap<UpdateMetricDto, Metric>();
+
+        CreateMap<UpdateImpactStatisticDto, ImpactStatistics>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Image, opt => opt.Ignore())
+            .ForMember(dest => dest.MainPageId, opt => opt.Ignore())
+            .ForMember(dest => dest.MainPage, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<UpdateMetricDto, Metric>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.StatisticId, opt => opt.Ignore())
+            .ForMember(dest => dest.Statistics, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<ImpactStatisticsLocalization, ImpactStatisticLocalizationDto>();
         CreateMap<MetricLocalization, MetricLocalizationDto>();
