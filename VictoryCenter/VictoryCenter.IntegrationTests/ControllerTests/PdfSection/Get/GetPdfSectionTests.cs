@@ -5,7 +5,7 @@ using VictoryCenter.BLL.DTOs.Admin.PdfSection;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
-namespace VictoryCenter.IntegrationTests.ControllerTests.PdfSections.Get;
+namespace VictoryCenter.IntegrationTests.ControllerTests.PdfSection.Get;
 
 public class GetPdfSectionTests : BaseTestClass
 {

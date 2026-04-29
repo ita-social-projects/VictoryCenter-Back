@@ -1,11 +1,12 @@
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Queries.Admin.PdfSection.Get;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSections;
+namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSection;
+
+using PdfSection = DAL.Entities.PdfSection;
 
 public class GetPdfSectionHandlerTests
 {

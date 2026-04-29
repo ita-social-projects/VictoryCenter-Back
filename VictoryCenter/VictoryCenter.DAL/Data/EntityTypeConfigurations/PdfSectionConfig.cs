@@ -4,7 +4,7 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
 
-public class PdfSectionsConfig : IEntityTypeConfiguration<PdfSection>
+public class PdfSectionConfig : IEntityTypeConfiguration<PdfSection>
 {
     public void Configure(EntityTypeBuilder<PdfSection> entity)
     {
