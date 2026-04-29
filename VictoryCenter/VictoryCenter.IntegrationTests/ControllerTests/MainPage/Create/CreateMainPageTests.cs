@@ -52,12 +52,10 @@ public class CreateMainPageTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new CreateMetricDto
-                    {
-                        Value = 500,
-                        Name = "new-metric",
-                        Type = MetricType.Raised,
-                    },
+                    new CreateMetricDto { Value = 120,  Name = "Партнерів",      Type = MetricType.Partners },
+                    new CreateMetricDto { Value = 45,   Name = "Програм",        Type = MetricType.Programs },
+                    new CreateMetricDto { Value = 2500, Name = "Зібрано",        Type = MetricType.Raised },
+                    new CreateMetricDto { Value = 8400, Name = "Годин терапії",  Type = MetricType.TherapyHours },
                 ],
             },
         };
