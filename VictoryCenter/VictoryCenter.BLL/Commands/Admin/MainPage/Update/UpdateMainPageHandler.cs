@@ -87,15 +87,12 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             AsNoTracking = false,
             Include = q => q
                 .Include(e => e.Image)
-                .Include(e => e.MainAboutUs)
-                .Include(e => e.MainPartners)
-                .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s!.Image)
-                .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s!.Localizations)
-                .Include(e => e.ImpactStatistics)
-                    .ThenInclude(s => s!.Metrics)
-                    .ThenInclude(m => m.Localizations),
+                .Include(e => e.Localizations).ThenInclude(l => l.Language)
+                .Include(e => e.MainAboutUs).ThenInclude(a => a!.Localizations).ThenInclude(l => l.Language)
+                .Include(e => e.MainPartners).ThenInclude(p => p!.Localizations).ThenInclude(l => l.Language)
+                .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Image)
+                .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Localizations)
+                .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Metrics).ThenInclude(m => m.Localizations),
         };
 
         if (id.HasValue)

@@ -19,19 +19,22 @@ public class MainPageProfile : Profile
         CreateMap<CreateMainPageDto, MainPageEntity>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.Image, opt => opt.Ignore());
+            .ForMember(dest => dest.Image, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<CreateMainAboutUsDto, MainAboutUs>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.MainPageId, opt => opt.Ignore())
-            .ForMember(dest => dest.MainPage, opt => opt.Ignore());
+            .ForMember(dest => dest.MainPage, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<CreateMainPartnersDto, MainPartners>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.MainPageId, opt => opt.Ignore())
-            .ForMember(dest => dest.MainPage, opt => opt.Ignore());
+            .ForMember(dest => dest.MainPage, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<CreateImpactStatisticDto, ImpactStatistics>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -54,9 +57,14 @@ public class MainPageProfile : Profile
         CreateMap<ImpactStatistics, ImpactStatisticDto>();
         CreateMap<Metric, MetricDto>();
 
-        CreateMap<UpdateMainPageDto, MainPageEntity>();
-        CreateMap<UpdateMainAboutUsDto, MainAboutUs>();
-        CreateMap<UpdateMainPartnersDto, MainPartners>();
+        CreateMap<UpdateMainPageDto, MainPageEntity>()
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<UpdateMainAboutUsDto, MainAboutUs>()
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<UpdateMainPartnersDto, MainPartners>()
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<UpdateImpactStatisticDto, ImpactStatistics>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
