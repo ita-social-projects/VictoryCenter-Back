@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -44,7 +45,8 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
             var pdfSection = await _repositoryWrapper.PdfSectionRepository.GetFirstOrDefaultAsync(
                 new QueryOptions<DAL.Entities.PdfSection>
                 {
-                    AsNoTracking = false
+                    AsNoTracking = false,
+                    Include = ps => ps.Include(ps => ps.Localizations)
                 });
 
             if (pdfSection == null)
@@ -60,6 +62,8 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
             {
                 pdfSection.Title = normalizedTitle;
                 pdfSection.Description = normalizedDescription;
+
+                SetLocalizationsToOutdated(pdfSection);
 
                 if (await _repositoryWrapper.SaveChangesAsync() <= 0)
                 {
@@ -101,5 +105,13 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
         }
 
         return trimmed;
+    }
+
+    private static void SetLocalizationsToOutdated(DAL.Entities.PdfSection pdfSection)
+    {
+        foreach (var loc in pdfSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
     }
 }

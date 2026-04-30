@@ -1,6 +1,8 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -23,7 +25,11 @@ public class GetPdfSectionHandler
         CancellationToken cancellationToken)
     {
         var section = await _repositoryWrapper.PdfSectionRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<PdfSectionEntity> { AsNoTracking = true });
+            new QueryOptions<PdfSectionEntity>
+            {
+                AsNoTracking = true,
+                Include = ps => ps.Include(ps => ps.Localizations).ThenInclude(l => l.Language)
+            });
 
         if (section == null)
         {
@@ -34,6 +40,13 @@ public class GetPdfSectionHandler
         {
             Title = section.Title,
             Description = section.Description,
+            Localizations = section.Localizations.Select(l => new PdfSectionLocalizationDto
+            {
+                LanguageId = l.LanguageId,
+                Title = l.Title,
+                Description = l.Description,
+                TranslationStatus = l.TranslationStatus,
+            }).ToList()
         };
 
         return Result.Ok(dto);
