@@ -47,7 +47,7 @@ public class BaseApiController : ControllerBase
             var internalDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
                 statusCode: StatusCodes.Status500InternalServerError);
-            return StatusCode(StatusCodes.Status500InternalServerError);
+            return StatusCode(StatusCodes.Status500InternalServerError, internalDetails);
         }
 
         var errorDetail = string.Join("; ", result.Errors.Select(e => e.Message));
