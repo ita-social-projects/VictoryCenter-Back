@@ -11,6 +11,7 @@ builder.Services.AddCustomServices(builder.Configuration);
 builder.Services.AddOpenTelemetryTracing();
 builder.Logging.AddOpenTelemetryLogging();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddRateLimiterConfiguration();
 
 var app = builder.Build();
 
@@ -21,6 +22,7 @@ await app.CreateInitialDataAsync();
 
 app.UseRequestResponseLogging();
 app.UseCors();
+app.UseRateLimiter();
 app.MapControllers();
 app.UseHttpsRedirection();
 app.UseCookiePolicy();

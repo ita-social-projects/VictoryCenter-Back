@@ -222,4 +222,9 @@ public static class ErrorMessagesConstants
     {
         return "Localization is only allowed for the metric with type Raised.";
     }
+
+    public static string PropertyMustBeValidEmail(string property)
+    {
+        return $"{property} must be a valid email address.";
+    }
 }
