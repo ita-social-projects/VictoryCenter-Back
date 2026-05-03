@@ -54,7 +54,7 @@ public class CreateReportFundsExpendituresCategoryTests
     public async Task Handle_ShouldCreateCategory()
     {
         // Arrange
-        SetupDependencies(categoriesCount: 0, duplicateCategoriesCount: 0, saveResult: 1);
+        SetupDependencies(duplicateCategoriesCount: 0, saveResult: 1);
         var handler = new CreateReportFundsExpendituresCategoryHandler(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
@@ -95,36 +95,10 @@ public class CreateReportFundsExpendituresCategoryTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenMaximumCountReached()
-    {
-        // Arrange
-        SetupDependencies(
-            categoriesCount: ReportFundsExpendituresCategoryConstants.MaxCategoriesCountPerType,
-            duplicateCategoriesCount: 0,
-            saveResult: 1);
-
-        var handler = new CreateReportFundsExpendituresCategoryHandler(
-            _mapperMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
-
-        // Act
-        var result = await handler.Handle(
-            new CreateReportFundsExpendituresCategoryCommand(_createDto),
-            CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(
-            ReportFundsExpendituresCategoryConstants.CannotCreateCategoryWhenMaximumCountReached,
-            result.Errors[0].Message);
-    }
-
-    [Fact]
     public async Task Handle_ShouldFail_WhenDuplicateCategoryExists()
     {
         // Arrange
-        SetupDependencies(categoriesCount: 0, duplicateCategoriesCount: 1, saveResult: 1);
+        SetupDependencies(duplicateCategoriesCount: 1, saveResult: 1);
 
         var handler = new CreateReportFundsExpendituresCategoryHandler(
             _mapperMock.Object,
@@ -145,7 +119,7 @@ public class CreateReportFundsExpendituresCategoryTests
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
-        SetupDependencies(categoriesCount: 0, duplicateCategoriesCount: 0, saveResult: 0);
+        SetupDependencies(duplicateCategoriesCount: 0, saveResult: 0);
 
         var handler = new CreateReportFundsExpendituresCategoryHandler(
             _mapperMock.Object,
@@ -168,7 +142,7 @@ public class CreateReportFundsExpendituresCategoryTests
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
     {
         // Arrange
-        SetupDependencies(categoriesCount: 0, duplicateCategoriesCount: 0, saveResult: 1);
+        SetupDependencies(duplicateCategoriesCount: 0, saveResult: 1);
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(new DbUpdateException());
 
@@ -189,14 +163,13 @@ public class CreateReportFundsExpendituresCategoryTests
             result.Errors[0].Message);
     }
 
-    private void SetupDependencies(int categoriesCount, int duplicateCategoriesCount, int saveResult)
+    private void SetupDependencies(int duplicateCategoriesCount, int saveResult)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresCategoriesRepository)
             .Returns(_categoriesRepositoryMock.Object);
 
         _categoriesRepositoryMock
-            .SetupSequence(repository => repository.CountAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
-            .ReturnsAsync(categoriesCount)
+            .Setup(repository => repository.CountAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
             .ReturnsAsync(duplicateCategoriesCount);
 
         _categoriesRepositoryMock
