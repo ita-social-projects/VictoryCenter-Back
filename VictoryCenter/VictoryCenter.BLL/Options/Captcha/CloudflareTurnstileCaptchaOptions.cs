@@ -10,5 +10,6 @@ public class CloudflareTurnstileCaptchaOptions
     public required string SecretKey { get; init; }
 
     [Required]
+    [Url]
     public required string SiteVerifyUrl { get; init; }
 }
