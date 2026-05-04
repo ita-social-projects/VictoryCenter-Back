@@ -176,7 +176,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
 
-        services.AddScoped<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
+        services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
