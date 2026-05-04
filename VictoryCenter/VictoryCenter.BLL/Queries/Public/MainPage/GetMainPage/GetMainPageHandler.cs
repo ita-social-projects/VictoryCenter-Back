@@ -8,7 +8,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
-namespace VictoryCenter.BLL.Queries.Admin.MainPage.GetMainPage;
+namespace VictoryCenter.BLL.Queries.Public.MainPage.GetMainPage;
+
 public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainPageDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -42,8 +43,6 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
                 ErrorMessagesConstants.NotFound());
         }
 
-        var resultDto = _mapper.Map<MainPageEntity, MainPageDto>(mainPageEntity);
-
-        return Result.Ok(resultDto);
+        return Result.Ok(_mapper.Map<MainPageEntity, MainPageDto>(mainPageEntity));
     }
 }
