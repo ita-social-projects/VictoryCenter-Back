@@ -13,6 +13,8 @@ public class ContactUsController : BaseApiController
     [EnableRateLimiting(RateLimitingPolicyNameConstants.SubmitContactUsForm)]
     [ProducesResponseType(typeof(ContactUsFormDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> SubmitContactFormAsync([FromBody] SubmitContactUsFormDto dto)
     {
         return HandleResult(await Mediator.Send(new SubmitContactFormCommand(dto)));
