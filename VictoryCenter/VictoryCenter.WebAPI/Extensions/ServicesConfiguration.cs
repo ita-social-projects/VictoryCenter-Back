@@ -27,6 +27,7 @@ using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Captcha;
 using VictoryCenter.BLL.Options.Email;
+using VictoryCenter.BLL.Options.Email.EmailOptions;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
@@ -698,8 +699,7 @@ public static class ServicesConfiguration
 
     private static IServiceCollection ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
     {
-        var emailOptions = new EmailOptions();
-        configuration.GetSection(EmailOptions.Position).Bind(emailOptions);
+        var emailOptions = configuration.GetValidated<EmailOptions>(EmailOptions.Position);
 
         switch (emailOptions.EmailProvider)
         {
