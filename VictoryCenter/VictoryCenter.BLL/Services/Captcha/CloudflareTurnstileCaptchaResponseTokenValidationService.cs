@@ -47,7 +47,7 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
             return Result.Fail(sendTokenVerificationRequestResult.Errors);
         }
 
-        var response = sendTokenVerificationRequestResult.Value;
+        using var response = sendTokenVerificationRequestResult.Value;
 
         if (!response.IsSuccessStatusCode)
         {
