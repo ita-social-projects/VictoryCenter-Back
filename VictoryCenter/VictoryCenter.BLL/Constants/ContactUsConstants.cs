@@ -20,7 +20,7 @@ public static class ContactUsConstants
 
     public static string EmailSubjectTemplate(ContactUsFormDto dto)
     {
-        return $"$Нове заповнення контактної форми від {dto.FromName}. Тема: {dto.Subject}";
+        return $"Нове заповнення контактної форми від {dto.FromName}. Тема: {dto.Subject}";
     }
 
     public static string EmailTextBodyTemplate(ContactUsFormDto dto)
