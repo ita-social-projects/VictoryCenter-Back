@@ -1,7 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
-using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Common;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History.Create;
 
 namespace VictoryCenter.BLL.Validators.Localization.History;
@@ -11,24 +10,24 @@ public class CreateHistorySectionContentLocalizationValidator : AbstractValidato
     public CreateHistorySectionContentLocalizationValidator()
     {
         RuleFor(x => x.Title)
-            .MinimumLength(ProgramSectionContentLocalizationConstants.TitleMinLength)
+            .MinimumLength(HistoryLocalizationConstants.ContentTitleMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseHippotherapyProgramSectionContentLocalizationDto.Title),
-                ProgramSectionContentLocalizationConstants.TitleMinLength))
-            .MaximumLength(ProgramSectionContentLocalizationConstants.TitleMaxLength)
+                nameof(CreateHistorySectionContentLocalizationDto.Title),
+                HistoryLocalizationConstants.ContentTitleMinLength))
+            .MaximumLength(HistoryLocalizationConstants.ContentTitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseHippotherapyProgramSectionContentLocalizationDto.Title),
-                ProgramSectionContentLocalizationConstants.TitleMaxLength))
+                nameof(CreateHistorySectionContentLocalizationDto.Title),
+                HistoryLocalizationConstants.ContentTitleMaxLength))
             .When(x => !string.IsNullOrWhiteSpace(x.Title));
         RuleFor(x => x.Description)
-            .MinimumLength(ProgramSectionContentLocalizationConstants.DescriptionMinLength)
+            .MinimumLength(HistoryLocalizationConstants.ContentDescriptionMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseHippotherapyProgramSectionContentLocalizationDto.Description),
-                ProgramSectionContentLocalizationConstants.DescriptionMinLength))
-            .MaximumLength(ProgramSectionContentLocalizationConstants.DescriptionMaxLength)
+                nameof(CreateHistorySectionContentLocalizationDto.Description),
+                HistoryLocalizationConstants.ContentDescriptionMinLength))
+            .MaximumLength(HistoryLocalizationConstants.ContentDescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseHippotherapyProgramSectionContentLocalizationDto.Description),
-                ProgramSectionContentLocalizationConstants.DescriptionMaxLength))
+                nameof(CreateHistorySectionContentLocalizationDto.Description),
+                HistoryLocalizationConstants.ContentDescriptionMaxLength))
             .When(x => !string.IsNullOrWhiteSpace(x.Description));
     }
 }

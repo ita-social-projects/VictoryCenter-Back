@@ -36,26 +36,26 @@ public class HistorySectionContentLocalizationValidationHelper
                 ]);
             }
 
-            ValidateContentLocalizationByType(content, contentType);
+            ValidateContentLocalizationByTypes(content, contentType);
         }
     }
 
-    private static void ValidateContentLocalizationByType(
+    private static void ValidateContentLocalizationByTypes(
         IHistoryContentLocalization content,
         ContentType contentType)
     {
-        var hasTitle = HasValue(content.Title);
-        var hasDescription = HasValue(content.Description);
+        var hasTitle = ProgramSectionContentLocalizationValidationHelper.HasValue(content.Title);
+        var hasDescription = ProgramSectionContentLocalizationValidationHelper.HasValue(content.Description);
 
         switch (contentType)
         {
             case ContentType.Title:
-                RequireField(nameof(content.Title), hasTitle);
-                ForbidField(nameof(content.Description), hasDescription, contentType);
+                ProgramSectionContentLocalizationValidationHelper.RequireField(nameof(content.Title), hasTitle);
+                ProgramSectionContentLocalizationValidationHelper.ForbidField(nameof(content.Description), hasDescription, contentType);
                 break;
             case ContentType.Description:
-                RequireField(nameof(content.Description), hasDescription);
-                ForbidField(nameof(content.Title), hasTitle, contentType);
+                ProgramSectionContentLocalizationValidationHelper.RequireField(nameof(content.Description), hasDescription);
+                ProgramSectionContentLocalizationValidationHelper.ForbidField(nameof(content.Title), hasTitle, contentType);
                 break;
             default:
                 throw new ValidationException(
@@ -65,32 +65,5 @@ public class HistorySectionContentLocalizationValidationHelper
                         ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(contentType)))
                 ]);
         }
-    }
-
-    private static void RequireField(string fieldName, bool hasValue)
-    {
-        if (!hasValue)
-        {
-            throw new ValidationException(
-            [
-                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyIsRequired(fieldName))
-            ]);
-        }
-    }
-
-    private static void ForbidField(string fieldName, bool hasValue, ContentType contentType)
-    {
-        if (hasValue)
-        {
-            throw new ValidationException(
-            [
-                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyNotAllowedForContentType(fieldName, contentType))
-            ]);
-        }
-    }
-
-    private static bool HasValue(string? value)
-    {
-        return !string.IsNullOrWhiteSpace(value);
     }
 }

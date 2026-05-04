@@ -71,7 +71,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
             var result = new HistorySectionLocalizationDto
             {
                 EntityId = section.Id,
-                Contents = _mapper.Map<List<HistorySectionContentLocalizationDto>>(contentLocalizations)
+                Contents = _mapper.Map<List<HistorySectionContentLocalizationDto>>(createdLocalizations)
             };
 
             return Result.Ok(result);
