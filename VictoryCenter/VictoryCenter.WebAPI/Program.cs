@@ -1,4 +1,5 @@
 using dotenv.net;
+using Microsoft.AspNetCore.HttpOverrides;
 using VictoryCenter.WebAPI.Extensions;
 
 DotEnv.Load();
@@ -22,6 +23,10 @@ await app.CreateInitialDataAsync();
 
 app.UseRequestResponseLogging();
 app.UseCors();
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
 app.UseRateLimiter();
 app.MapControllers();
 app.UseHttpsRedirection();
