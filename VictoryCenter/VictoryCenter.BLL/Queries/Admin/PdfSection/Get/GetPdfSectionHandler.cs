@@ -40,13 +40,13 @@ public class GetPdfSectionHandler
         {
             Title = section.Title,
             Description = section.Description,
-            Localizations = section.Localizations.Select(l => new PdfSectionLocalizationDto
+            Localizations = [.. section.Localizations.Select(l => new PdfSectionLocalizationDto
             {
                 LanguageId = l.LanguageId,
                 Title = l.Title,
                 Description = l.Description,
                 TranslationStatus = l.TranslationStatus,
-            }).ToList()
+            })]
         };
 
         return Result.Ok(dto);

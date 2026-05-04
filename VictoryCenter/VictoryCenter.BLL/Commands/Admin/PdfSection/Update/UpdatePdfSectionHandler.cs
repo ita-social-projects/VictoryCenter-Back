@@ -109,6 +109,11 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
 
     private static void SetLocalizationsToOutdated(DAL.Entities.PdfSection pdfSection)
     {
+        if (pdfSection.Localizations == null)
+        {
+            return;
+        }
+
         foreach (var loc in pdfSection.Localizations)
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
