@@ -8,6 +8,7 @@ public static class RateLimiterConfiguration
     {
         services.AddRateLimiter(options =>
         {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.AddPolicy(RateLimitingPolicyNameConstants.SubmitContactUsForm, httpContext =>
             {
                 return RateLimitPartition.GetFixedWindowLimiter(
