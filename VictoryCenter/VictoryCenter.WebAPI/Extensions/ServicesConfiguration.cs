@@ -722,6 +722,10 @@ public static class ServicesConfiguration
             case EmailProvider.Dummy:
                 services.AddScoped<IEmailSender, DummyEmailSender>();
                 break;
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported EmailProvider value: '{emailOptions.EmailProvider}'. "
+                    + "Valid values are 'Resend' and 'Dummy'.");
         }
 
         return services;
