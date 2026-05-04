@@ -17,7 +17,7 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdatePdfReportCommand> _validator;
     private readonly IMapper _mapper;
-    private static readonly Regex MultipleSpaces = new(@" {2,}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+    private static readonly Regex ExcessiveWhitespace = new(@"\s+", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public UpdatePdfReportHandler(
         IRepositoryWrapper repositoryWrapper,
@@ -84,6 +84,6 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
             return string.Empty;
         }
 
-        return MultipleSpaces.Replace(text.Trim(), " ");
+        return ExcessiveWhitespace.Replace(text.Trim(), " ");
     }
 }
