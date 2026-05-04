@@ -33,13 +33,22 @@ public class ResendEmailSender : IEmailSender
             ReplyTo = replyToAddressList
         };
 
-        var response = await _resend.EmailSendAsync(message);
-
-        if (!response.Success)
+        try
         {
-            const string errorMessage = "Failed to send email via Resend API.";
-            _logger.LogError(response.Exception, errorMessage);
+            var response = await _resend.EmailSendAsync(message);
 
+            if (!response.Success)
+            {
+                const string errorMessage = "Failed to send email via Resend API.";
+                _logger.LogError(response.Exception, errorMessage);
+
+                return Result.Fail(new InternalError(errorMessage));
+            }
+        }
+        catch (Exception ex)
+        {
+            const string errorMessage = "An unexpected error occurred while sending email via Resend API.";
+            _logger.LogError(ex, errorMessage);
             return Result.Fail(new InternalError(errorMessage));
         }
 
