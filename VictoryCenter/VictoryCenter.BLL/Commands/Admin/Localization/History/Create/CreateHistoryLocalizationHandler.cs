@@ -57,7 +57,8 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Fail<HistorySectionLocalizationDto>("Failed to save in Database");
+                return Result.Fail<HistorySectionLocalizationDto>(ErrorMessagesConstants.
+                FailedToCreateEntityInDatabase(typeof(HistorySectionLocalizationDto)));
             }
 
             var createdLocalizations = await _repositoryWrapper.HistorySectionContentLocalizationsRepository
