@@ -83,6 +83,9 @@ public interface IRepositoryWrapper
     IMainPageRepository MainPageRepository { get; }
     IMainAboutUsRepository MainAboutUsRepository { get; }
     IMainPartnersRepository MainPartnersRepository { get; }
+    IMainPageLocalizationsRepository MainPageLocalizationsRepository { get; }
+    IMainAboutUsLocalizationsRepository MainAboutUsLocalizationsRepository { get; }
+    IMainPartnersLocalizationsRepository MainPartnersLocalizationsRepository { get; }
     IImpactStatisticsRepository ImpactStatisticsRepository { get; }
     IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository { get; }
     IMetricLocalizationsRepository MetricLocalizationsRepository { get; }

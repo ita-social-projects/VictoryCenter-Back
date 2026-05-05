@@ -1,6 +1,7 @@
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.DTOs.Admin.MainPages;
@@ -15,4 +16,5 @@ public record MainPageDto
     public MainAboutUsDto? MainAboutUs { get; init; }
     public MainPartnersDto? MainPartners { get; init; }
     public ImpactStatisticDto? ImpactStatistics { get; init; }
+    public ICollection<MainPageLocalizationDto> Localizations { get; init; } = [];
 }
