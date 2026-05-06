@@ -12,6 +12,9 @@ public class MainPageLocalizationProfile : Profile
         CreateMap<CreateMainPageLocalizationDto, MainPageLocalization>()
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
+        CreateMap<UpdateMainPageLocalizationDto, MainPageLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+
         CreateMap<MainPageLocalization, MainPageLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language))
             .ForMember(dest => dest.MainAboutUs, opt => opt.Ignore())
@@ -21,12 +24,18 @@ public class MainPageLocalizationProfile : Profile
             .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
+        CreateMap<UpdateMainAboutUsLocalizationDto, MainAboutUsLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+
         CreateMap<MainAboutUsLocalization, MainAboutUsLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
 
         CreateMap<CreateMainPartnersLocalizationDto, MainPartnersLocalization>()
             .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<UpdateMainPartnersLocalizationDto, MainPartnersLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<MainPartnersLocalization, MainPartnersLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
