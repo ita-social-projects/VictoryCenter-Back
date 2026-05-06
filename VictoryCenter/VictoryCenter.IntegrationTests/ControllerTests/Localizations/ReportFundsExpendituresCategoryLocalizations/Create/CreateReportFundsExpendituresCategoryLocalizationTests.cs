@@ -3,6 +3,8 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.Localization.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -18,14 +20,21 @@ public class CreateReportFundsExpendituresCategoryLocalizationTests : BaseTestCl
     [Fact]
     public async Task CreateLocalization_ShouldReturnOk()
     {
-        var category = await Fixture.DbContext.ReportFundsExpendituresCategories.FirstOrDefaultAsync()
-            ?? throw new InvalidOperationException("Couldn't setup existing entity");
-        var language = await Fixture.DbContext.LocalizationLanguages.FirstOrDefaultAsync(l => l.Id == 3)
+        var freshCategory = new ReportFundsExpendituresCategory
+        {
+            Name = "Fresh Category For Localization",
+            Type = ReportFundsExpendituresType.Income,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.ReportFundsExpendituresCategories.AddAsync(freshCategory);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var language = await Fixture.DbContext.LocalizationLanguages.FirstOrDefaultAsync(l => l.Id == 2)
             ?? throw new InvalidOperationException("Couldn't setup existing language");
 
         var createDto = new CreateReportFundsExpendituresCategoryLocalizationDto
         {
-            EntityId = category.Id,
+            EntityId = freshCategory.Id,
             LanguageId = language.Id,
             Name = "New Localization Name"
         };
