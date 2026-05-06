@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
@@ -63,6 +64,8 @@ public interface IRepositoryWrapper
     IProgramSectionContentLocalizationsRepository ProgramSectionContentLocalizationsRepository { get; }
 
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
+
+    IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository { get; }
 
     IChangedLivesBlockRepository ChangedLivesBlockRepository { get; }
 
