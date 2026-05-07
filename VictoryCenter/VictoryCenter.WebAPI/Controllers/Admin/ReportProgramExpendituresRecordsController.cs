@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Delete;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetAll;
+using VictoryCenter.BLL.Queries.Admin.ReportProgramExpendituresRecords.GetSummary;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -42,6 +43,13 @@ public class ReportProgramExpendituresRecordsController : AuthorizedApiControlle
     {
         return HandleResult(await Mediator.Send(
             new GetAllReportProgramExpendituresRecordsQuery(hippotherapyProgramCategoryIds)));
+    }
+
+    [HttpGet("summary")]
+    [ProducesResponseType(typeof(ReportProgramExpendituresSummaryDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReportProgramExpendituresSummaryAsync()
+    {
+        return HandleResult(await Mediator.Send(new GetReportProgramExpendituresSummaryQuery()));
     }
 
     [HttpPost("bulk-delete")]
