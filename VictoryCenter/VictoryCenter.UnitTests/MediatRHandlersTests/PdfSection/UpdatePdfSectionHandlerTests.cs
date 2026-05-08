@@ -305,4 +305,73 @@ public class UpdatePdfSectionHandlerTests
         Assert.NotNull(result.Value);
         Assert.Equal(description160Chars, result.Value.Description);
     }
+
+    [Fact]
+    public async Task Handle_SectionWithNullLocalizations_DoesNotThrow()
+    {
+        // Arrange
+        var sectionWithNullLocalizations = new PdfSection
+        {
+            Id = 1,
+            Title = "Стара назва",
+            Description = "Старий опис",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Localizations = null!
+        };
+
+        var updateDto = new PdfSectionDto { Title = "Нова назва", Description = "Новий опис" };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(sectionWithNullLocalizations);
+        _mockRepo.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
+    public async Task Handle_SectionWithLocalizations_SetsAllLocalizationsToOutdated()
+    {
+        // Arrange
+        var sectionWithLocalizations = new PdfSection
+        {
+            Id = 1,
+            Title = "Стара назва",
+            Description = "Старий опис",
+            CreatedAt = DateTimeOffset.UtcNow,
+            Localizations =
+            [
+                new() { TranslationStatus = DAL.Enums.TranslationStatus.Relevant },
+            new() { TranslationStatus = DAL.Enums.TranslationStatus.Relevant },
+        ]
+        };
+
+        var updateDto = new PdfSectionDto { Title = "Нова назва", Description = "Новий опис" };
+        var command = new UpdatePdfSectionCommand(updateDto);
+
+        _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(1);
+        _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
+                 .ReturnsAsync(sectionWithLocalizations);
+        _mockRepo.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
+        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(
+            sectionWithLocalizations.Localizations,
+            loc => Assert.Equal(DAL.Enums.TranslationStatus.Outdated, loc.TranslationStatus));
+    }
 }

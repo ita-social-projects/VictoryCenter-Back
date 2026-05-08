@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
+using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
@@ -41,6 +42,15 @@ public class PdfReportsController : AuthorizedApiController
         }
 
         return File(result.Value, "application/pdf", fileDownloadName: null);
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(typeof(PdfReportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdatePdfReport(long id, [FromBody] UpdatePdfReportRequestDto request)
+    {
+        return HandleResult(await Mediator.Send(new UpdatePdfReportCommand(id, request.Name)));
     }
 
     [HttpDelete("{id}")]

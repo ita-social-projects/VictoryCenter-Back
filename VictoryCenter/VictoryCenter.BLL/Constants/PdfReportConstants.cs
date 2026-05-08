@@ -24,4 +24,10 @@ public static class PdfReportConstants
     public static readonly string FailedToSavePdf = "Failed to save PDF file";
     public static readonly string FailedToReadPdf = "Failed to read PDF file";
     public static readonly string FailedToDeletePdf = "Failed to delete PDF file";
+
+    public static readonly int NameMinLength = 2;
+    public static readonly int NameMaxLength = 50;
+    public static readonly string NameMinLengthErrorMessage = "Не менше 2 символів";
+    public static readonly string NameMaxLengthErrorMessage = "Не більше 50 символів";
+    public static readonly string NameRequiredErrorMessage = "Поле обов'язкове";
 }

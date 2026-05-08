@@ -113,6 +113,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IMainPageRepository? _mainPageRepository;
     private IMainAboutUsRepository? _mainAboutUsRepository;
     private IMainPartnersRepository? _mainPartnersRepository;
+    private IMainPageLocalizationsRepository? _mainPageLocalizationsRepository;
+    private IMainAboutUsLocalizationsRepository? _mainAboutUsLocalizationsRepository;
+    private IMainPartnersLocalizationsRepository? _mainPartnersLocalizationsRepository;
     private IImpactStatisticsRepository? _impactStatisticsRepository;
     private IImpactStatisticsLocalizationsRepository? _impactStatisticsLocalizationsRepository;
     private IMetricLocalizationsRepository? _metricLocalizationsRepository;
@@ -259,6 +262,15 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IMainPartnersRepository MainPartnersRepository =>
         _mainPartnersRepository ??= new MainPartnersRepository(_victoryCenterDbContext);
+
+    public IMainPageLocalizationsRepository MainPageLocalizationsRepository =>
+        _mainPageLocalizationsRepository ??= new MainPageLocalizationsRepository(_victoryCenterDbContext);
+
+    public IMainAboutUsLocalizationsRepository MainAboutUsLocalizationsRepository =>
+        _mainAboutUsLocalizationsRepository ??= new MainAboutUsLocalizationsRepository(_victoryCenterDbContext);
+
+    public IMainPartnersLocalizationsRepository MainPartnersLocalizationsRepository =>
+        _mainPartnersLocalizationsRepository ??= new MainPartnersLocalizationsRepository(_victoryCenterDbContext);
 
     public IImpactStatisticsRepository ImpactStatisticsRepository =>
         _impactStatisticsRepository ??= new ImpactStatisticsRepository(_victoryCenterDbContext);

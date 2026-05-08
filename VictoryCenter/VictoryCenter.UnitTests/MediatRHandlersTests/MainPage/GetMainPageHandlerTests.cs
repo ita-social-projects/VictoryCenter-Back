@@ -2,7 +2,7 @@ using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
-using VictoryCenter.BLL.Queries.Admin.MainPage.GetMainPage;
+using VictoryCenter.BLL.Queries.Public.MainPage.GetMainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Options;
