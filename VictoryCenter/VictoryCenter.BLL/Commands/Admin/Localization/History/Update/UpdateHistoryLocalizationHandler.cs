@@ -20,21 +20,25 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
     private readonly ILocalizationService<HistorySectionContent, HistorySectionContentLocalization> _contentLocalizationService;
+    private readonly IValidator<UpdateHistoryLocalizationCommand> _validator;
 
     public UpdateHistoryLocalizationHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
-        ILocalizationService<HistorySectionContent, HistorySectionContentLocalization> contentLocalizationService)
+        ILocalizationService<HistorySectionContent, HistorySectionContentLocalization> contentLocalizationService,
+        IValidator<UpdateHistoryLocalizationCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _contentLocalizationService = contentLocalizationService;
+        _validator = validator;
     }
 
     public async Task<Result<HistorySectionLocalizationDto>> Handle(UpdateHistoryLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var section = await _repositoryWrapper.HistorySectionsRepository
                 .GetFirstOrDefaultAsync(new QueryOptions<HistorySection>
                 {
@@ -102,6 +106,10 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
         {
             return Result.Fail<HistorySectionLocalizationDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(HistorySectionContentLocalization)));
+        }
+        catch(Exception ex)
+        {
+            return Result.Fail<HistorySectionLocalizationDto>(ex.Message);
         }
     }
 }

@@ -6,13 +6,13 @@ using VictoryCenter.BLL.Validators.Localization.History;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.Localization.History;
 
-public class CreateHistorySectionContentLocalizationValidatorTests
+public class BaseHistorySectionContentLocalizationValidatorTests
 {
-    private readonly CreateHistorySectionContentLocalizationValidator _validator;
+    private readonly BaseHistorySectionContentLocalizationValidator _validator;
 
-    public CreateHistorySectionContentLocalizationValidatorTests()
+    public BaseHistorySectionContentLocalizationValidatorTests()
     {
-        _validator = new CreateHistorySectionContentLocalizationValidator();
+        _validator = new BaseHistorySectionContentLocalizationValidator();
     }
 
     [Theory]
