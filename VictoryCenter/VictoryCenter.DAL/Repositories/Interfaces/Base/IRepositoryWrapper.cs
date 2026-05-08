@@ -29,6 +29,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -91,6 +92,7 @@ public interface IRepositoryWrapper
     IMetricLocalizationsRepository MetricLocalizationsRepository { get; }
     IHistorySectionsRepository HistorySectionsRepository { get; }
     IHistorySectionContentsRepository HistorySectionContentsRepository { get; }
+    IHistorySectionContentLocalizationsRepository HistorySectionContentLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260504074542_AddLocalizationForHistory")]
+    partial class AddLocalizationForHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1027,93 +1030,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("LocalizationLanguages");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainAboutUsLocalization", b =>
-                {
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TranslationStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("EntityId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("MainAboutUsLocalizations");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainPageLocalization", b =>
-                {
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TranslationStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("EntityId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("MainPageLocalizations");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainPartnersLocalization", b =>
-                {
-                    b.Property<long>("EntityId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("LanguageId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TranslationStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
-                    b.HasKey("EntityId", "LanguageId");
-
-                    b.HasIndex("LanguageId");
-
-                    b.ToTable("MainPartnersLocalizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MetricLocalization", b =>
@@ -2392,63 +2308,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Language");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainAboutUsLocalization", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.MainAboutUs", "Entity")
-                        .WithMany("Localizations")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("Language");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainPageLocalization", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.MainPage", "Entity")
-                        .WithMany("Localizations")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("Language");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainPartnersLocalization", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.MainPartners", "Entity")
-                        .WithMany("Localizations")
-                        .HasForeignKey("EntityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
-                        .WithMany()
-                        .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Entity");
-
-                    b.Navigation("Language");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MetricLocalization", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.Metric", "Entity")
@@ -2808,25 +2667,13 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Metrics");
                 });
 
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.MainAboutUs", b =>
-                {
-                    b.Navigation("Localizations");
-                });
-
             modelBuilder.Entity("VictoryCenter.DAL.Entities.MainPage", b =>
                 {
                     b.Navigation("ImpactStatistics");
 
-                    b.Navigation("Localizations");
-
                     b.Navigation("MainAboutUs");
 
                     b.Navigation("MainPartners");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.MainPartners", b =>
-                {
-                    b.Navigation("Localizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Metric", b =>

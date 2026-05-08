@@ -62,6 +62,8 @@ using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.History;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -119,6 +121,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IMetricLocalizationsRepository? _metricLocalizationsRepository;
     private IHistorySectionsRepository? _historySectionsRepository;
     private IHistorySectionContentsRepository? _historySectionContentsRepository;
+    private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -282,6 +285,9 @@ public class RepositoryWrapper : IRepositoryWrapper
         _historySectionsRepository ??= new HistorySectionsRepository(_victoryCenterDbContext);
     public IHistorySectionContentsRepository HistorySectionContentsRepository =>
         _historySectionContentsRepository ??= new HistorySectionContentsRepository(_victoryCenterDbContext);
+
+    public IHistorySectionContentLocalizationsRepository HistorySectionContentLocalizationsRepository =>
+        _historySectionContentLocalizationsRepository ??= new HistorySectionContentLocalizationsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
