@@ -1,4 +1,5 @@
 using VictoryCenter.BLL.DTOs.Admin.Localization.Base;
+using VictoryCenter.BLL.DTOs.Admin.Localization.History.Common;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.History.Create;
 

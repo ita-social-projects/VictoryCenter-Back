@@ -1,7 +1,7 @@
 using FluentValidation;
 using FluentValidation.Results;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.DTOs.Admin.Localization.History.Create;
+using VictoryCenter.BLL.DTOs.Admin.Localization.History.Common;
 using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Enums;
 

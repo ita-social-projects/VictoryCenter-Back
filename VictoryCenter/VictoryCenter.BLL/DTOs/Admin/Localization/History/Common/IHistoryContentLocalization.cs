@@ -1,4 +1,4 @@
-namespace VictoryCenter.BLL.DTOs.Admin.Localization.History.Create;
+namespace VictoryCenter.BLL.DTOs.Admin.Localization.History.Common;
 
 public interface IHistoryContentLocalization
 {

@@ -1,6 +1,7 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History.Create;
+using VictoryCenter.BLL.DTOs.Admin.Localization.History.Update;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 
@@ -11,6 +12,9 @@ public class HistoryLocalizationProfile : Profile
     public HistoryLocalizationProfile()
     {
         CreateMap<CreateHistorySectionContentLocalizationDto, HistorySectionContentLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<UpdateHistorySectionContentLocalizationDto, HistorySectionContentLocalization>()
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<HistorySectionContentLocalization, HistorySectionContentLocalizationDto>()
