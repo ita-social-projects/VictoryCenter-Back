@@ -8,7 +8,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 
-public class HistoryLocalizationController : AuthorizedApiController
+public class HistoryLocalizationsController : AuthorizedApiController
 {
     [HttpPost]
     [ProducesResponseType(typeof(HistorySectionLocalizationDto), StatusCodes.Status200OK)]
