@@ -36,18 +36,6 @@ public class CreateReportFundsExpendituresCategoryHandler
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var categoriesCount = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.CountAsync(
-                new QueryOptions<ReportFundsExpendituresCategory>
-                {
-                    Filter = category => category.Type == request.CreateReportFundsExpendituresCategoryDto.Type
-                });
-
-            if (categoriesCount >= ReportFundsExpendituresCategoryConstants.MaxCategoriesCountPerType)
-            {
-                return Result.Fail<ReportFundsExpendituresCategoryDto>(
-                    ReportFundsExpendituresCategoryConstants.CannotCreateCategoryWhenMaximumCountReached);
-            }
-
             var duplicateCategoriesCount = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.CountAsync(
                 new QueryOptions<ReportFundsExpendituresCategory>
                 {
