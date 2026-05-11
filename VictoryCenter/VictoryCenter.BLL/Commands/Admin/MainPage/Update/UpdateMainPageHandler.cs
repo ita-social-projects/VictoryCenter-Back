@@ -206,8 +206,8 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             }
         }
 
-        long nextPriority = stat.Metrics.Any() 
-            ? stat.Metrics.Max(m => m.Priority) + 1 
+        long nextPriority = stat.Metrics.Any()
+            ? stat.Metrics.Max(m => m.Priority) + 1
             : 1;
 
         foreach (var metricDto in metricsDto)
@@ -224,7 +224,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 var newMetric = _mapper.Map<Metric>(metricDto);
                 newMetric.Statistics = stat;
 
-                newMetric.Priority = nextPriority++; 
+                newMetric.Priority = nextPriority++;
 
                 stat.Metrics.Add(newMetric);
             }
