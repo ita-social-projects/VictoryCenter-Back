@@ -10,5 +10,6 @@ public record MetricDto
     public string Name { get; init; } = null!;
     public MetricType Type { get; init; }
     public MetricPrefix? Prefix { get; init; }
+    public bool IsHidden { get; init; }
     public ICollection<MetricLocalizationDto> Localizations { get; init; } = [];
 }

@@ -121,6 +121,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IMainPartnersLocalizationsRepository? _mainPartnersLocalizationsRepository;
     private IImpactStatisticsRepository? _impactStatisticsRepository;
     private IImpactStatisticsLocalizationsRepository? _impactStatisticsLocalizationsRepository;
+    private IMetricRepository? _metricRepository;
     private IMetricLocalizationsRepository? _metricLocalizationsRepository;
     private IHistorySectionsRepository? _historySectionsRepository;
     private IHistorySectionContentsRepository? _historySectionContentsRepository;
@@ -284,6 +285,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository =>
         _impactStatisticsLocalizationsRepository ??= new ImpactStatisticsLocalizationsRepository(_victoryCenterDbContext);
+
+    public IMetricRepository MetricRepository =>
+        _metricRepository ??= new MetricRepository(_victoryCenterDbContext);
 
     public IMetricLocalizationsRepository MetricLocalizationsRepository =>
         _metricLocalizationsRepository ??= new MetricLocalizationsRepository(_victoryCenterDbContext);

@@ -13,5 +13,6 @@ public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>
     public string Name { get; set; } = null!;
     public MetricType Type { get; set; }
     public MetricPrefix? Prefix { get; set; }
+    public bool IsHidden { get; set; }
     public ICollection<MetricLocalization> Localizations { get; set; } = [];
 }
