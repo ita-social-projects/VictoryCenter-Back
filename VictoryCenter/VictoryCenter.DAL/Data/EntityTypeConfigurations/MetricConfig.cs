@@ -39,7 +39,7 @@ internal class MetricConfig : IEntityTypeConfiguration<Metric>
             .IsRequired();
 
         entity
-            .Property(e => e.isHidden)
+            .Property(e => e.IsHidden)
             .IsRequired()
             .HasDefaultValue(false);
     }
