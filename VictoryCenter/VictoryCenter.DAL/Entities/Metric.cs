@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>
+public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>, IOrderableEntity
 {
     public long StatisticId { get; set; }
     public ImpactStatistics Statistics { get; set; } = null!;
@@ -14,5 +14,6 @@ public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>
     public MetricType Type { get; set; }
     public MetricPrefix? Prefix { get; set; }
     public bool IsHidden { get; set; }
+    public long Priority { get; set; }
     public ICollection<MetricLocalization> Localizations { get; set; } = [];
 }

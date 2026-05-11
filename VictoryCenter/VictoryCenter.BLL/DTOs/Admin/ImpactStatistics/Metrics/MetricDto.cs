@@ -11,5 +11,6 @@ public record MetricDto
     public MetricType Type { get; init; }
     public MetricPrefix? Prefix { get; init; }
     public bool IsHidden { get; init; }
+    public long Priority { get; init; }
     public ICollection<MetricLocalizationDto> Localizations { get; init; } = [];
 }
