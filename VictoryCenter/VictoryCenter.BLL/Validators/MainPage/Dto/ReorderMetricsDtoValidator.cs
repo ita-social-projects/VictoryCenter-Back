@@ -8,7 +8,7 @@ namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 public class ReorderMetricsDtoValidator : BaseReorderValidator<ReorderMetricsDto>
 {
     public ReorderMetricsDtoValidator()
-        : base(MainPageConstants.ExactMetricCount)
+        : base(MainPageConstants.ImpactStatistic.ExactMetricCount)
     {
         RuleFor(x => x.StatisticId)
             .GreaterThan(0)

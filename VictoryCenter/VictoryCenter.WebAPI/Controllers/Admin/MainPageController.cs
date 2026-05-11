@@ -44,7 +44,8 @@ public class MainPageController : AuthorizedApiController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ReorderMetrics([FromBody] ReorderMetricsDto reorderMetricsDto) {
+    public async Task<IActionResult> ReorderMetrics([FromBody] ReorderMetricsDto reorderMetricsDto)
+    {
         return HandleResult(await Mediator.Send(new ReorderMetricsCommand(reorderMetricsDto)));
     }
 }
