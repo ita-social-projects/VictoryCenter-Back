@@ -17,6 +17,8 @@ public class MetricVisibilityService : IMetricVisibilityService
 
     public async Task ToggleMetricVisibilityAsync(long id, bool isHidden)
     {
+        using var transaction = _repositoryWrapper.BeginTransaction();
+
         var metricRepository = _repositoryWrapper.GetRepository<Metric>();
 
         var metric = await metricRepository.GetFirstOrDefaultAsync(new QueryOptions<Metric>
@@ -54,5 +56,7 @@ public class MetricVisibilityService : IMetricVisibilityService
         {
             throw new InvalidOperationException(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Metric)));
         }
+
+        transaction.Complete();
     }
 }
