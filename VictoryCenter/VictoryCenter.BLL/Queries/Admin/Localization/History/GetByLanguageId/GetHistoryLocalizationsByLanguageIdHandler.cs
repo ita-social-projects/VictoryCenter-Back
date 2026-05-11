@@ -30,7 +30,6 @@ public class GetHistoryLocalizationsByLanguageIdHandler : IRequestHandler<GetHis
                 Include = x => x.Include(s => s.Contents)
                     .ThenInclude(c => c.Localizations.Where(l => l.LanguageId == request.LanguageId))
                     .ThenInclude(l => l.Language),
-                AsNoTracking = true
             });
 
         var result = sections
