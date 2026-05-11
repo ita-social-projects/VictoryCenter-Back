@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Commands.Admin.ImpactStatistics.ReorderMetrics;
 using VictoryCenter.BLL.Commands.Admin.ImpactStatistics.ToggleMetricVisibility;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Create;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
@@ -37,5 +38,13 @@ public class MainPageController : AuthorizedApiController
         [FromBody] UpdateMetricVisibilityDto dto)
     {
         return HandleResult(await Mediator.Send(new ToggleMetricVisibilityCommand(id, dto)));
+    }
+
+    [HttpPut("metrics/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReorderMetrics([FromBody] ReorderMetricsDto reorderMetricsDto) {
+        return HandleResult(await Mediator.Send(new ReorderMetricsCommand(reorderMetricsDto)));
     }
 }
