@@ -49,12 +49,14 @@ public class MainPageProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.StatisticId, opt => opt.Ignore())
             .ForMember(dest => dest.Statistics, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<MainPageEntity, MainPageDto>();
         CreateMap<MainAboutUs, MainAboutUsDto>();
         CreateMap<MainPartners, MainPartnersDto>();
-        CreateMap<ImpactStatistics, ImpactStatisticDto>();
+        CreateMap<ImpactStatistics, ImpactStatisticDto>()
+            .ForMember(dest => dest.Metrics, opt => opt.MapFrom(src => src.Metrics.OrderBy(m => m.Priority)));
         CreateMap<Metric, MetricDto>();
 
         CreateMap<UpdateMainPageDto, MainPageEntity>()
@@ -79,6 +81,7 @@ public class MainPageProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.StatisticId, opt => opt.Ignore())
             .ForMember(dest => dest.Statistics, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<ImpactStatisticsLocalization, ImpactStatisticLocalizationDto>();
