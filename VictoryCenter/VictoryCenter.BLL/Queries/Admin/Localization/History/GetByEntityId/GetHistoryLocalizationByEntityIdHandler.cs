@@ -26,6 +26,7 @@ public class GetHistoryLocalizationByEntityIdHandler : IRequestHandler<GetHistor
             .GetFirstOrDefaultAsync(new QueryOptions<HistorySection>
             {
                 Filter = x => x.Id == request.EntityId,
+                AsNoTracking = true,
                 Include = x => x.Include(s => s.Contents)
                     .ThenInclude(c => c.Localizations)
                     .ThenInclude(l => l.Language)

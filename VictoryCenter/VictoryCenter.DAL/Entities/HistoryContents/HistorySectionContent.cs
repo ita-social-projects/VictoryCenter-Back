@@ -17,5 +17,5 @@ public abstract class HistorySectionContent : IEntity, ITranslatedEntity<History
 
     public HistorySection Section { get; set; } = null!;
 
-    public ICollection<HistorySectionContentLocalization> Localizations { get; set; } = null!;
+    public ICollection<HistorySectionContentLocalization> Localizations { get; set; } = [];
 }
