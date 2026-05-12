@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.History;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 
@@ -11,4 +12,5 @@ public record HistorySectionContentDto
     public string? Title { get; init; }
     public string? Description { get; init; }
     public ImageDto? Image { get; init; }
+    public List<HistorySectionContentLocalizationDto> Localizations { get; init; } = [];
 }

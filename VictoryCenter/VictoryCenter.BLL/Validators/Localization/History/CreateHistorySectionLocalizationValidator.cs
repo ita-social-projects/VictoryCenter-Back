@@ -4,7 +4,7 @@ namespace VictoryCenter.BLL.Validators.Localization.History;
 
 public class CreateHistorySectionLocalizationValidator : AbstractValidator<CreateHistoryLocalizationCommand>
 {
-    public CreateHistorySectionLocalizationValidator(CreateHistorySectionContentLocalizationValidator contentValidator)
+    public CreateHistorySectionLocalizationValidator(BaseHistorySectionContentLocalizationValidator contentValidator)
     {
         RuleForEach(x => x.CreateHistorySectionLocalizationDto.Contents)
             .SetValidator(contentValidator)

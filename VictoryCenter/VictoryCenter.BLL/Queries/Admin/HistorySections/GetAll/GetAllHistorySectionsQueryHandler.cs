@@ -26,7 +26,7 @@ public class GetAllHistorySectionsQueryHandler : IRequestHandler<GetAllHistorySe
     {
         var queryOptions = new QueryOptions<HistorySection>
         {
-            Include = section => section.Include(s => s.Contents),
+            Include = section => section.Include(s => s.Contents).ThenInclude(c => c.Localizations).ThenInclude(l => l.Language),
             OrderByASC = section => section.Order
         };
 
