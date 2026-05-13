@@ -351,14 +351,26 @@ public class CreateMainPageHandlerTests
                 Localization = new CreateImpactStatisticLocalizationDto { LanguageId = 1, Title = "Вплив" },
                 Metrics =
                 [
-                    new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
-                    new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
+                    new CreateMetricDto
+                    {
+                        Value = 100, Name = "Partners", Type = MetricType.Partners,
+                        Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Партнери" },
+                    },
+                    new CreateMetricDto
+                    {
+                        Value = 200, Name = "Programs", Type = MetricType.Programs,
+                        Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Програми" },
+                    },
                     new CreateMetricDto
                     {
                         Value = 300, Name = "Raised", Type = MetricType.Raised,
                         Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
                     },
-                    new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                    new CreateMetricDto
+                    {
+                        Value = 400, Name = "Therapy", Type = MetricType.TherapyHours,
+                        Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Терапія" },
+                    },
                 ],
             },
         };
@@ -414,7 +426,19 @@ public class CreateMainPageHandlerTests
             Times.Once);
         metricLocRepoMock.Verify(
             x => x.CreateAsync(It.Is<MetricLocalization>(
+                l => l.EntityId == 14 && l.LanguageId == 1 && l.Name == "Партнери")),
+            Times.Once);
+        metricLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<MetricLocalization>(
+                l => l.EntityId == 15 && l.LanguageId == 1 && l.Name == "Програми")),
+            Times.Once);
+        metricLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<MetricLocalization>(
                 l => l.EntityId == 16 && l.LanguageId == 1 && l.Name == "Зібрано")),
+            Times.Once);
+        metricLocRepoMock.Verify(
+            x => x.CreateAsync(It.Is<MetricLocalization>(
+                l => l.EntityId == 17 && l.LanguageId == 1 && l.Name == "Терапія")),
             Times.Once);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
     }
