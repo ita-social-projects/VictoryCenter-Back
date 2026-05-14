@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.WebAPI.Controllers.Common;
 
@@ -39,6 +40,14 @@ public class BaseApiController : ControllerBase
                 HttpContext,
                 statusCode: StatusCodes.Status401Unauthorized);
             return Unauthorized(unauthorizedDetails);
+        }
+
+        if (result.HasError<InternalError>())
+        {
+            var internalDetails = problemsFactory.CreateProblemDetails(
+                HttpContext,
+                statusCode: StatusCodes.Status500InternalServerError);
+            return StatusCode(StatusCodes.Status500InternalServerError, internalDetails);
         }
 
         var errorDetail = string.Join("; ", result.Errors.Select(e => e.Message));
