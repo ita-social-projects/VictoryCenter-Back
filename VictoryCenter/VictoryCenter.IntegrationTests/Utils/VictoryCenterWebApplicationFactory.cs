@@ -36,7 +36,10 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
                 ["BlobEnvironmentVariables:ServiceType"] = "Local",
                 ["BlobEnvironmentVariables:Local:BlobStoreKey"] = Environment.GetEnvironmentVariable("BLOB_LOCAL_STORE_KEY")
                     ?? throw new InvalidOperationException("BLOB_LOCAL_STORE_KEY is not set in environment variables"),
-                ["BlobEnvironmentVariables:Local:BlobStorePath"] = TestBlobPath
+                ["BlobEnvironmentVariables:Local:BlobStorePath"] = TestBlobPath,
+                ["CloudflareTurnstileCaptchaOptions:SecretKey"] = Environment.GetEnvironmentVariable("CLOUDFLARE_TURNSTILE_SECRET_KEY"),
+                ["CloudflareTurnstileCaptchaOptions:SiteVerifyUrl"] = Environment.GetEnvironmentVariable("CLOUDFLARE_TURNSTILE_SITE_VERIFY_URL"),
+                ["ContactUsEmailOptions:FromAddress"] = Environment.GetEnvironmentVariable("CONTACT_US_EMAIL_OPTIONS_FROM_ADDRESS")
             };
 
             config.AddInMemoryCollection(dict);
@@ -78,6 +81,9 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         Environment.SetEnvironmentVariable("WAY4PAY_MERCHANT_DOMAIN_NAME", "MOCK_VALUE");
         Environment.SetEnvironmentVariable("WAY4PAY_API_URL", "https://mock/pay");
         Environment.SetEnvironmentVariable("BLOB_LOCAL_STORE_KEY", "test-blob-key");
+        Environment.SetEnvironmentVariable("CLOUDFLARE_TURNSTILE_SECRET_KEY", IntegrationTestConstants.CloudflareTurnstile.AlwaysPassesSecretKey);
+        Environment.SetEnvironmentVariable("CLOUDFLARE_TURNSTILE_SITE_VERIFY_URL", "https://challenges.cloudflare.com/turnstile/v0/siteverify");
+        Environment.SetEnvironmentVariable("CONTACT_US_EMAIL_OPTIONS_FROM_ADDRESS", "test@example.com");
     }
 
     private static void RemoveExistingContext(IServiceCollection services)
