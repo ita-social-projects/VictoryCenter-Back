@@ -6,7 +6,9 @@ using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresSettings.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresSettings;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Options;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
@@ -18,6 +20,7 @@ public class UpdateReportFundsExpendituresSettingsTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresSettingsRepository> _settingsRepositoryMock;
+    private readonly Mock<IReportFundsExpendituresSettingsLocalizationsRepository> _localizationsRepositoryMock;
     private readonly IValidator<UpdateReportFundsExpendituresSettingsCommand> _validator;
 
     private readonly UpdateReportFundsExpendituresSettingsDto _updateDto = new()
@@ -45,6 +48,7 @@ public class UpdateReportFundsExpendituresSettingsTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _settingsRepositoryMock = new Mock<IReportFundsExpendituresSettingsRepository>();
+        _localizationsRepositoryMock = new Mock<IReportFundsExpendituresSettingsLocalizationsRepository>();
         _validator = new UpdateReportFundsExpendituresSettingsValidator(new BaseReportFundsExpendituresSettingsValidator());
     }
 
@@ -166,6 +170,11 @@ public class UpdateReportFundsExpendituresSettingsTests
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresSettingsRepository)
             .Returns(_settingsRepositoryMock.Object);
+        _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresSettingsLocalizationsRepository)
+            .Returns(_localizationsRepositoryMock.Object);
+        _localizationsRepositoryMock
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<ReportFundsExpendituresSettingsLocalization>>()))
+            .ReturnsAsync(new List<ReportFundsExpendituresSettingsLocalization>());
 
         _settingsRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresSettingsEntity>>()))

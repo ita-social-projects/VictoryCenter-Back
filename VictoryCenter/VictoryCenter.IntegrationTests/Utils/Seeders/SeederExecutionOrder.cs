@@ -17,4 +17,5 @@ public enum SeederExecutionOrder
     PartnersPageBanner,
     TeamCategoryLocalizations,
     ReportFundsExpendituresCategoryLocalizations,
+    ReportFundsExpendituresSettingsLocalizations,
 }
