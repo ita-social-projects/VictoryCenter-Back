@@ -9,7 +9,7 @@ using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.Admin.HistorySections.GetAll;
+namespace VictoryCenter.BLL.Queries.Public.HistorySections.GetAll;
 
 public class GetAllHistorySectionsQueryHandler : IRequestHandler<GetAllHistorySectionsQuery, Result<List<HistorySectionDto>>>
 {
