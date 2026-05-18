@@ -218,11 +218,6 @@ public static class ErrorMessagesConstants
         return "Each of the four metric types must appear exactly once: Partners, Programs, Raised, TherapyHours.";
     }
 
-    public static string LocalizationOnlyAllowedForRaisedMetric()
-    {
-        return "Localization is only allowed for the metric with type Raised.";
-    }
-
     public static string PropertyMustBeValidEmail(string property)
     {
         return $"{property} must be a valid email address.";
