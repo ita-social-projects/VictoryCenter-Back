@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260511165323_AddIsHiddenToMetric")]
+    partial class AddIsHiddenToMetric
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1434,9 +1437,7 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<bool>("IsHidden")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1444,9 +1445,6 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<int?>("Prefix")
                         .HasColumnType("int");
-
-                    b.Property<long>("Priority")
-                        .HasColumnType("bigint");
 
                     b.Property<long>("StatisticId")
                         .HasColumnType("bigint");

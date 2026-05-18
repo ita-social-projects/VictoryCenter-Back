@@ -37,5 +37,14 @@ internal class MetricConfig : IEntityTypeConfiguration<Metric>
         entity
             .Property(e => e.CreatedAt)
             .IsRequired();
+
+        entity
+            .Property(e => e.IsHidden)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        entity
+            .Property(e => e.Priority)
+            .IsRequired();
     }
 }

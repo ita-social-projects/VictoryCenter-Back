@@ -92,6 +92,7 @@ public interface IRepositoryWrapper
     IMainPartnersLocalizationsRepository MainPartnersLocalizationsRepository { get; }
     IImpactStatisticsRepository ImpactStatisticsRepository { get; }
     IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository { get; }
+    IMetricRepository MetricRepository { get; }
     IMetricLocalizationsRepository MetricLocalizationsRepository { get; }
     IHistorySectionsRepository HistorySectionsRepository { get; }
     IHistorySectionContentsRepository HistorySectionContentsRepository { get; }

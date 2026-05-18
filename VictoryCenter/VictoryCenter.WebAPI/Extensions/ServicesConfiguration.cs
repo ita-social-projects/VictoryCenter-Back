@@ -17,6 +17,7 @@ using VictoryCenter.BLL.Interfaces.Captcha;
 using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
+using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -34,6 +35,7 @@ using VictoryCenter.BLL.Services.Captcha;
 using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.Localization;
+using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
@@ -169,6 +171,7 @@ public static class ServicesConfiguration
         services.AddScoped<IPaymentService, PaymentService>();
 
         services.AddScoped<IReorderService, ReorderService>();
+        services.AddScoped<IMetricVisibilityService, MetricVisibilityService>();
 
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
