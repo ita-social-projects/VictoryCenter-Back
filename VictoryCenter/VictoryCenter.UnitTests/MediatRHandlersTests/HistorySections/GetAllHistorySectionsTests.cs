@@ -1,7 +1,7 @@
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.HistorySection;
-using VictoryCenter.BLL.Queries.Admin.HistorySections.GetAll;
+using VictoryCenter.BLL.Queries.Public.HistorySections.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Enums;
