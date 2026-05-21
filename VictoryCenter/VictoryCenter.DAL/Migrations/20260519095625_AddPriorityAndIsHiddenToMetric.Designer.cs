@@ -12,8 +12,8 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260511165323_AddIsHiddenToMetric")]
-    partial class AddIsHiddenToMetric
+    [Migration("20260519095625_AddPriorityAndIsHiddenToMetric")]
+    partial class AddPriorityAndIsHiddenToMetric
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1437,7 +1437,9 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<bool>("IsHidden")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1445,6 +1447,9 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<int?>("Prefix")
                         .HasColumnType("int");
+
+                    b.Property<long>("Priority")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("StatisticId")
                         .HasColumnType("bigint");
