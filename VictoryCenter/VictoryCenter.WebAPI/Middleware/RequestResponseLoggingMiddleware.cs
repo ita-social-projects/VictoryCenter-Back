@@ -21,7 +21,7 @@ public class RequestResponseLoggingMiddleware
             var httpContext = (HttpContext)state;
             var status = httpContext.Response.StatusCode;
 
-            LogLevel level = status switch
+            var level = status switch
             {
                 >= 500 => LogLevel.Error,
                 >= 400 => LogLevel.Warning,
