@@ -1,8 +1,11 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Admin.ReportFundsExpendituresCategories.GetAll;
 
@@ -24,7 +27,11 @@ public class GetAllReportFundsExpendituresCategoriesHandler
         GetAllReportFundsExpendituresCategoriesQuery request,
         CancellationToken cancellationToken)
     {
-        var categories = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.GetAllAsync();
+        var categories = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.GetAllAsync(
+            new QueryOptions<ReportFundsExpendituresCategory>
+            {
+                Include = c => c.Include(c => c.Localizations).ThenInclude(l => l.Language)
+            });
 
         return Result.Ok(_mapper.Map<IEnumerable<ReportFundsExpendituresCategoryDto>>(categories));
     }

@@ -92,6 +92,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<ReportFundsExpendituresSettings> ReportFundsExpendituresSettings { get; set; }
 
+    public DbSet<ReportFundsExpendituresSettingsLocalization> ReportFundsExpendituresSettingsLocalizations { get; set; }
+
     public DbSet<ReportFundsExpendituresCategory> ReportFundsExpendituresCategories { get; set; }
 
     public DbSet<ReportFundsExpendituresCategoryLocalization> ReportFundsExpendituresCategoryLocalizations { get; set; }
