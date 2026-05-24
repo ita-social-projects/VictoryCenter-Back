@@ -11,23 +11,22 @@ namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 public class HistoryLocalizationsController : AuthorizedApiController
 {
     [HttpPost]
-    [ProducesResponseType(typeof(HistorySectionLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<HistorySectionLocalizationDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateHistoryLocalization([FromBody] CreateHistorySectionLocalizationDto createHistorySectionLocalizationDto)
+    public async Task<IActionResult> CreateHistoryLocalization([FromBody] List<CreateHistorySectionLocalizationDto> createHistorySectionLocalizationDtos)
     {
-        return HandleResult(await Mediator.Send(new CreateHistoryLocalizationCommand(createHistorySectionLocalizationDto)));
+        return HandleResult(await Mediator.Send(new CreateHistoryLocalizationCommand(createHistorySectionLocalizationDtos)));
     }
 
-    [HttpPut("{entityId:long}/{languageId:long}")]
-    [ProducesResponseType(typeof(HistorySectionLocalizationDto), StatusCodes.Status200OK)]
+    [HttpPut("{languageId:long}")]
+    [ProducesResponseType(typeof(List<HistorySectionLocalizationDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateHistoryLocalization(
-        [FromBody] UpdateHistorySectionLocalizationDto updateHistorySectionLocalizationDto,
-        [FromRoute(Name = "entityId")] long EntityId,
+        [FromBody] List<UpdateHistorySectionLocalizationDto> updateHistorySectionLocalizationDtos,
         [FromRoute(Name = "languageId")] long LanguageId)
     {
-        return HandleResult(await Mediator.Send(new UpdateHistoryLocalizationCommand(updateHistorySectionLocalizationDto, EntityId, LanguageId)));
+        return HandleResult(await Mediator.Send(new UpdateHistoryLocalizationCommand(updateHistorySectionLocalizationDtos, LanguageId)));
     }
 }

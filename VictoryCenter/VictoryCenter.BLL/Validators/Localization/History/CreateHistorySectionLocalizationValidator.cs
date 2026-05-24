@@ -6,8 +6,13 @@ public class CreateHistorySectionLocalizationValidator : AbstractValidator<Creat
 {
     public CreateHistorySectionLocalizationValidator(BaseHistorySectionContentLocalizationValidator contentValidator)
     {
-        RuleForEach(x => x.CreateHistorySectionLocalizationDto.Contents)
-            .SetValidator(contentValidator)
-            .When(x => x.CreateHistorySectionLocalizationDto.Contents != null);
+        RuleForEach(x => x.CreateHistorySectionLocalizationDtos)
+            .ChildRules(section =>
+            {
+                section.RuleForEach(s => s.Contents)
+                    .SetValidator(contentValidator)
+                    .When(s => s.Contents != null);
+            })
+            .When(x => x.CreateHistorySectionLocalizationDtos != null);
     }
 }

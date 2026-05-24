@@ -104,7 +104,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
     {
         SetupDependencies();
 
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -118,7 +118,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
             .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HistorySection>>()))
             .ThrowsAsync(new KeyNotFoundException(ErrorMessagesConstants.NotFound(_testSectionLocalizationDto.EntityId, typeof(HistorySection))));
 
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -139,7 +139,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<HistorySectionContentLocalization>>(), It.IsAny<bool>()))
             .ThrowsAsync(new KeyNotFoundException(ErrorMessagesConstants.NotFound(2, typeof(HistorySectionContentLocalization))));
 
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -160,7 +160,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<HistorySectionContentLocalization>>(), It.IsAny<bool>()))
             .ThrowsAsync(new ValidationException(new[] { new ValidationFailure("test", "Bulk localization supports only one LanguageId.") }));
 
-        var command = new CreateHistoryLocalizationCommand(_failedFortest);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _failedFortest });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -181,7 +181,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<HistorySectionContentLocalization>>(), It.IsAny<bool>()))
             .ThrowsAsync(new InvalidOperationException());
 
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -204,7 +204,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
 
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(0);
 
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -227,7 +227,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
 
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
 
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -246,7 +246,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<HistorySectionContentLocalization>>(), It.IsAny<bool>()))
             .Returns(Task.CompletedTask);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new Exception("Unexpected error"));
-        var command = new CreateHistoryLocalizationCommand(_testSectionLocalizationDto);
+        var command = new CreateHistoryLocalizationCommand(new List<CreateHistorySectionLocalizationDto> { _testSectionLocalizationDto });
         var result = await _handler.Handle(command, CancellationToken.None);
         Assert.True(result.IsFailed);
     }

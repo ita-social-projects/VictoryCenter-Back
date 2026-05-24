@@ -7,8 +7,13 @@ public class UpdateHistorySectionLocalizationValidator : AbstractValidator<Updat
 {
     public UpdateHistorySectionLocalizationValidator(BaseHistorySectionContentLocalizationValidator contentValidator)
     {
-        RuleForEach(x => x.UpdateHistorySectionLocalizationDto.Contents)
-            .SetValidator(contentValidator)
-            .When(x => x.UpdateHistorySectionLocalizationDto.Contents != null);
+        RuleForEach(x => x.UpdateHistorySectionLocalizationDtos)
+            .ChildRules(section =>
+            {
+                section.RuleForEach(s => s.Contents)
+                    .SetValidator(contentValidator)
+                    .When(s => s.Contents != null);
+            })
+            .When(x => x.UpdateHistorySectionLocalizationDtos != null);
     }
 }
