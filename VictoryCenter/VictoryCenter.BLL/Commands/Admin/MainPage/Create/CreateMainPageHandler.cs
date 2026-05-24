@@ -79,6 +79,15 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
 
             var mainPageEntity = _mapper.Map<CreateMainPageDto, MainPageEntity>(request.CreateMainPageDto);
 
+            if (mainPageEntity.ImpactStatistics?.Metrics != null)
+            {
+                int priorityIndex = 0;
+                foreach (var metric in mainPageEntity.ImpactStatistics.Metrics)
+                {
+                    metric.Priority = priorityIndex++;
+                }
+            }
+
             await _repositoryWrapper.MainPageRepository.CreateAsync(mainPageEntity);
             await _repositoryWrapper.SaveChangesAsync();
 

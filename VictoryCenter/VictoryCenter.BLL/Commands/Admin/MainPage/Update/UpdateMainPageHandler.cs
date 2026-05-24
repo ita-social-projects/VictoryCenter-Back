@@ -12,6 +12,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using ImpactStatisticsEntity = VictoryCenter.DAL.Entities.ImpactStatistics;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.BLL.Commands.Admin.MainPage.Update;
@@ -181,7 +182,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
         if (entity.ImpactStatistics is null)
         {
-            entity.ImpactStatistics = _mapper.Map<ImpactStatistics>(statDto);
+            entity.ImpactStatistics = _mapper.Map<ImpactStatisticsEntity>(statDto);
             entity.ImpactStatistics.MainPageId = entity.Id;
             return;
         }
@@ -192,7 +193,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         SyncMetrics(entity.ImpactStatistics, statDto.Metrics);
     }
 
-    private void SyncMetrics(ImpactStatistics stat, ICollection<UpdateMetricDto> metricsDto)
+    private void SyncMetrics(ImpactStatisticsEntity stat, ICollection<UpdateMetricDto> metricsDto)
     {
         var existingMetricsById = stat.Metrics.ToDictionary(m => m.Id);
         var requestMetricIds = metricsDto.Where(m => m.Id.HasValue).Select(m => m.Id!.Value).ToHashSet();
@@ -204,6 +205,10 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 stat.Metrics.Remove(existingMetric);
             }
         }
+
+        long nextPriority = stat.Metrics.Any()
+            ? stat.Metrics.Max(m => m.Priority) + 1
+            : 1;
 
         foreach (var metricDto in metricsDto)
         {
@@ -218,6 +223,9 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             {
                 var newMetric = _mapper.Map<Metric>(metricDto);
                 newMetric.Statistics = stat;
+
+                newMetric.Priority = nextPriority++;
+
                 stat.Metrics.Add(newMetric);
             }
         }

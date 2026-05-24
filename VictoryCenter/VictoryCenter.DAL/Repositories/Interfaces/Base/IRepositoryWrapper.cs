@@ -11,6 +11,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
@@ -65,6 +67,10 @@ public interface IRepositoryWrapper
 
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
+    IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository { get; }
+
+    IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository { get; }
+
     IChangedLivesBlockRepository ChangedLivesBlockRepository { get; }
 
     ICollectedFundsBlockRepository CollectedFundsBlockRepository { get; }
@@ -89,6 +95,7 @@ public interface IRepositoryWrapper
     IMainPartnersLocalizationsRepository MainPartnersLocalizationsRepository { get; }
     IImpactStatisticsRepository ImpactStatisticsRepository { get; }
     IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository { get; }
+    IMetricRepository MetricRepository { get; }
     IMetricLocalizationsRepository MetricLocalizationsRepository { get; }
     IHistorySectionsRepository HistorySectionsRepository { get; }
     IHistorySectionContentsRepository HistorySectionContentsRepository { get; }

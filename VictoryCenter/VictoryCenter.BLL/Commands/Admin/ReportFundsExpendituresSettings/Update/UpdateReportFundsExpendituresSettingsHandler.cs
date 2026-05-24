@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresSettings.Update;
@@ -43,8 +46,30 @@ public class UpdateReportFundsExpendituresSettingsHandler
             }
 
             var entityToUpdate = settingsResult.Value;
+            var disclaimerChanged = entityToUpdate.DisclaimerTitle != request.UpdateReportFundsExpendituresSettingsDto.DisclaimerTitle;
+
             _mapper.Map(request.UpdateReportFundsExpendituresSettingsDto, entityToUpdate);
             _repositoryWrapper.ReportFundsExpendituresSettingsRepository.Update(entityToUpdate);
+
+            if (disclaimerChanged)
+            {
+                var localizations = (await _repositoryWrapper.ReportFundsExpendituresSettingsLocalizationsRepository
+                    .GetAllAsync(new QueryOptions<ReportFundsExpendituresSettingsLocalization>
+                    {
+                        Filter = l => l.EntityId == entityToUpdate.Id,
+                        AsNoTracking = false
+                    })).ToList();
+
+                foreach (var loc in localizations)
+                {
+                    loc.TranslationStatus = TranslationStatus.Outdated;
+                }
+
+                if (localizations.Count > 0)
+                {
+                    _repositoryWrapper.ReportFundsExpendituresSettingsLocalizationsRepository.UpdateRange(localizations);
+                }
+            }
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {

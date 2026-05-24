@@ -102,7 +102,7 @@ public class CreateImpactStatisticDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenLocalizationSetOnNonRaisedMetric()
+    public void Validate_ShouldNotHaveError_WhenLocalizationsSetOnAllMetricTypes()
     {
         var dto = GetValidDto() with
         {
@@ -111,34 +111,23 @@ public class CreateImpactStatisticDtoValidatorTests
                 new CreateMetricDto
                 {
                     Value = 100, Name = "a", Type = MetricType.Partners,
-                    Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Partners" },
+                    Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Партнери" },
                 },
-                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raised },
-                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
-            ],
-        };
-
-        var result = _validator.TestValidate(dto);
-
-        result.ShouldHaveValidationErrors();
-    }
-
-    [Fact]
-    public void Validate_ShouldNotHaveError_WhenLocalizationSetOnRaisedMetric()
-    {
-        var dto = GetValidDto() with
-        {
-            Metrics =
-            [
-                new CreateMetricDto { Value = 100, Name = "a", Type = MetricType.Partners },
-                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
+                new CreateMetricDto
+                {
+                    Value = 200, Name = "b", Type = MetricType.Programs,
+                    Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Програми" },
+                },
                 new CreateMetricDto
                 {
                     Value = 300, Name = "c", Type = MetricType.Raised,
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
                 },
-                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+                new CreateMetricDto
+                {
+                    Value = 400, Name = "d", Type = MetricType.TherapyHours,
+                    Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Терапія" },
+                },
             ],
         };
 

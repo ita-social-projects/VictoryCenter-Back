@@ -6,14 +6,18 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Resend;
 using Slugify;
 using VictoryCenter.BLL;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Interfaces.Captcha;
+using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
+using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -22,10 +26,16 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Options.Captcha;
+using VictoryCenter.BLL.Options.Email;
+using VictoryCenter.BLL.Options.Email.EmailOptions;
 using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
+using VictoryCenter.BLL.Services.Captcha;
+using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.Localization;
+using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
@@ -117,6 +127,7 @@ public static class ServicesConfiguration
         services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
         services.ConfigurePdf(configuration);
+        services.ConfigureEmail(configuration);
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
@@ -125,6 +136,21 @@ public static class ServicesConfiguration
 
         services.AddOptions<WayForPayOptions>()
             .BindConfiguration(WayForPayOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<ContactUsEmailOptions>()
+            .BindConfiguration(ContactUsEmailOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<EmailOptions>()
+            .BindConfiguration(EmailOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<CloudflareTurnstileCaptchaOptions>()
+            .BindConfiguration(CloudflareTurnstileCaptchaOptions.Position)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
@@ -145,12 +171,15 @@ public static class ServicesConfiguration
         services.AddScoped<IPaymentService, PaymentService>();
 
         services.AddScoped<IReorderService, ReorderService>();
+        services.AddScoped<IMetricVisibilityService, MetricVisibilityService>();
 
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
+
+        services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
@@ -669,5 +698,39 @@ public static class ServicesConfiguration
                 }
             }
         }
+    }
+
+    private static IServiceCollection ConfigureEmail(this IServiceCollection services, IConfiguration configuration)
+    {
+        var emailOptions = configuration.GetValidated<EmailOptions>(EmailOptions.Position);
+
+        switch (emailOptions.EmailProvider)
+        {
+            case EmailProvider.Resend:
+                if (emailOptions.ResendApiToken is null)
+                {
+                    throw new InvalidOperationException(
+                        "When the EmailOptions:EmailProvider option is set to 'Resend', " +
+                        "EmailOptions:ResendApiToken (RESEND_API_TOKEN env) must not be null");
+                }
+
+                services.AddHttpClient<ResendClient>();
+                services.Configure<ResendClientOptions>(o =>
+                {
+                    o.ApiToken = emailOptions.ResendApiToken;
+                });
+                services.AddTransient<IResend, ResendClient>();
+                services.AddScoped<IEmailSender, ResendEmailSender>();
+                break;
+            case EmailProvider.Dummy:
+                services.AddScoped<IEmailSender, DummyEmailSender>();
+                break;
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported EmailProvider value: '{emailOptions.EmailProvider}'. "
+                    + "Valid values are 'Resend' and 'Dummy'.");
+        }
+
+        return services;
     }
 }
