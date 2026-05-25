@@ -184,6 +184,7 @@ public class GetPdfReportByIdTests : BaseTestClass
             BlobName = blobName,
             FileSizeBytes = content.Length,
             Priority = priority,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

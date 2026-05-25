@@ -104,6 +104,19 @@ public class CreatePdfReportValidatorTests
         result.ShouldNotHaveValidationErrorFor(x => x.CreatePdfReportDto.File);
     }
 
+    [Fact]
+    public void Validate_LanguageIdIsZero_ShouldHaveError()
+    {
+        // Arrange
+        var command = CreateCommand(CreateMockFile(), languageId: 0);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.CreatePdfReportDto.LanguageId);
+    }
+
     private static IFormFile CreateMockFile(
         string contentType = PdfMimeType,
         long length = 1024,
@@ -116,11 +129,12 @@ public class CreatePdfReportValidatorTests
         return mockFile.Object;
     }
 
-    private static CreatePdfReportCommand CreateCommand(IFormFile? file)
+    private static CreatePdfReportCommand CreateCommand(IFormFile? file, long languageId = 1)
     {
         return new CreatePdfReportCommand(new CreatePdfReportDto
         {
-            File = file!
+            File = file!,
+            LanguageId = languageId
         });
     }
 }

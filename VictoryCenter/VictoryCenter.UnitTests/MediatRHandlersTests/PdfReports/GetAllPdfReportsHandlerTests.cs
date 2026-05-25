@@ -24,8 +24,8 @@ public class GetAllPdfReportsHandlerTests
 
         _testPdfReports =
         [
-            new PdfReport { Id = 1, Name = "Звіт 2024", BlobName = "abc.pdf", Priority = 1, FileSizeBytes = 1024, CreatedAt = DateTimeOffset.UtcNow },
-            new PdfReport { Id = 2, Name = "Звіт 2025", BlobName = "def.pdf", Priority = 2, FileSizeBytes = 2048, CreatedAt = DateTimeOffset.UtcNow },
+            new PdfReport { Id = 1, Name = "Звіт 2024", BlobName = "abc.pdf", Priority = 1, FileSizeBytes = 1024, LanguageId = 1, CreatedAt = DateTimeOffset.UtcNow },
+            new PdfReport { Id = 2, Name = "Звіт 2025", BlobName = "def.pdf", Priority = 2, FileSizeBytes = 2048, LanguageId = 1, CreatedAt = DateTimeOffset.UtcNow },
         ];
 
         _testPdfReportDtos =

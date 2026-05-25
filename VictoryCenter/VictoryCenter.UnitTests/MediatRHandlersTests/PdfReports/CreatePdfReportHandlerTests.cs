@@ -11,7 +11,9 @@ using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.PdfReports;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 
@@ -34,6 +36,10 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
+        _mockRepositoryWrapper
+            .Setup(x => x.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(new LocalizationLanguage { Id = 1, Code = "uk", Name = "Ukrainian" });
 
         var mockFile = new Mock<IFormFile>();
         mockFile.Setup(f => f.ContentType).Returns("application/pdf");
@@ -48,6 +54,7 @@ public class CreatePdfReportHandlerTests
             BlobName = "abc123.pdf",
             FileSizeBytes = 1024,
             Priority = 1,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -84,7 +91,7 @@ public class CreatePdfReportHandlerTests
         _mockMapper.Setup(x => x.Map<PdfReportDto>(It.IsAny<PdfReport>()))
             .Returns(_testPdfReportDto);
 
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
@@ -106,7 +113,7 @@ public class CreatePdfReportHandlerTests
     public async Task Handle_NullFile_ShouldReturnValidationError()
     {
         // Arrange
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = null! });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = null!, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
@@ -135,7 +142,7 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
@@ -155,7 +162,7 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);

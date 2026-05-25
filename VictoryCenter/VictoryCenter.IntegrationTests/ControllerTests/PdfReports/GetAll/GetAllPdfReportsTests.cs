@@ -86,7 +86,7 @@ public class GetAllPdfReportsTests : BaseTestClass
         Assert.Equal(0, result.TotalItemsCount);
     }
 
-    private async Task SeedPdfReportsAsync(int count)
+    private async Task SeedPdfReportsAsync(int count, long languageId = 1)
     {
         var reports = Enumerable.Range(1, count).Select(i => new PdfReport
         {
@@ -94,6 +94,7 @@ public class GetAllPdfReportsTests : BaseTestClass
             BlobName = $"{Guid.NewGuid():N}.pdf",
             FileSizeBytes = 1024 * i,
             Priority = i,
+            LanguageId = languageId,
             CreatedAt = DateTimeOffset.UtcNow
         });
 
