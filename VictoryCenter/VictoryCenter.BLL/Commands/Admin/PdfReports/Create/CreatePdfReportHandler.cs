@@ -9,7 +9,9 @@ using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 
@@ -46,10 +48,21 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
             var dto = request.CreatePdfReportDto;
             var fileName = Guid.NewGuid().ToString().Replace("-", string.Empty);
 
+            var language = await _repositoryWrapper.LocalizationLanguagesRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<LocalizationLanguage>
+                {
+                    Filter = l => l.Id == dto.LanguageId
+                });
+            if (language == null)
+            {
+                return Result.Fail<PdfReportDto>("Language not found");
+            }
+
             using var transaction = _repositoryWrapper.BeginTransaction();
 
             blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
-            var nextPriority = await _reorderService.GetNextDisplayOrderAsync<PdfReport>();
+            var nextPriority = await _reorderService.GetNextDisplayOrderAsync<PdfReport>(
+                p => p.LanguageId == dto.LanguageId);
 
             var pdfReport = new PdfReport
             {
@@ -57,6 +70,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
                 BlobName = blobName,
                 FileSizeBytes = dto.File.Length,
                 Priority = nextPriority,
+                LanguageId = dto.LanguageId,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 

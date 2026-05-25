@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetByLanguage;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -26,6 +27,13 @@ public class PdfReportsController : AuthorizedApiController
     public async Task<IActionResult> GetAllPdfReports([FromQuery] BaseFilterDto filter)
     {
         return HandleResult(await Mediator.Send(new GetAllPdfReportsQuery(filter)));
+    }
+
+    [HttpGet("by-language/{languageId}")]
+    [ProducesResponseType(typeof(List<PdfReportDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPdfReportsByLanguage(long languageId)
+    {
+        return HandleResult(await Mediator.Send(new GetPdfReportsByLanguageQuery(languageId)));
     }
 
     [HttpGet("{id}")]
