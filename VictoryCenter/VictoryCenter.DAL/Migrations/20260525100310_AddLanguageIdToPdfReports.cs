@@ -15,13 +15,41 @@ namespace VictoryCenter.DAL.Migrations
                 schema: "media",
                 table: "PdfReports");
 
+            migrationBuilder.Sql("""
+                INSERT INTO LocalizationLanguages (Code, Name)
+                SELECT 'uk', N'Українська'
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM LocalizationLanguages
+                    WHERE Code = 'uk'
+                );
+                """);
+
             migrationBuilder.AddColumn<long>(
                 name: "LanguageId",
                 schema: "media",
                 table: "PdfReports",
                 type: "bigint",
+                nullable: true);
+
+            migrationBuilder.Sql("""
+                UPDATE pr
+                SET LanguageId = ll.Id
+                FROM media.PdfReports pr
+                CROSS JOIN LocalizationLanguages ll
+                WHERE ll.Code = 'uk'
+                  AND pr.LanguageId IS NULL;
+             """);
+
+            migrationBuilder.AlterColumn<long>(
+                name: "LanguageId",
+                schema: "media",
+                table: "PdfReports",
+                type: "bigint",
                 nullable: false,
-                defaultValue: 1L);
+                oldClrType: typeof(long),
+                oldType: "bigint",
+                oldNullable: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PdfReports_LanguageId_Priority",
