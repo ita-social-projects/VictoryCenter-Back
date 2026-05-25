@@ -10,7 +10,6 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -70,24 +69,15 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
                     return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
                 }
 
-                var requestContentIds = sectionDto.Contents.Select(c => c.EntityId).ToHashSet();
-                var missingContentIds = section.Contents
-                    .Where(c => c.ContentType != ContentType.Image)
-                    .Select(c => c.Id)
-                    .Where(id => !requestContentIds.Contains(id))
-                    .ToList();
-
-                if (missingContentIds.Count > 0)
-                {
-                    return Result.Fail<List<HistorySectionLocalizationDto>>(
-                        ErrorMessagesConstants.MissingContentsLocalization(section.Id, missingContentIds));
-                }
-
-                var contentTypesById = section.Contents.ToDictionary(c => c.Id, c => c.ContentType);
-
-                HistorySectionContentLocalizationValidationHelper.ValidateHistoryContents(
+                var validationResult = HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
+                    section.Id,
                     sectionDto.Contents,
-                    contentTypesById);
+                    section.Contents);
+
+                if (validationResult.IsFailed)
+                {
+                    return Result.Fail<List<HistorySectionLocalizationDto>>(validationResult.Errors);
+                }
 
                 var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(sectionDto.Contents);
                 allContentLocalizations.AddRange(contentLocalizations);
