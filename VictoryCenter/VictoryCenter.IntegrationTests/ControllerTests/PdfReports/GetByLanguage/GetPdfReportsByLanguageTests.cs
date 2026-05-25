@@ -82,7 +82,7 @@ public class GetPdfReportsByLanguageTests : BaseTestClass
         // Arrange
         await ClearAndSeedAsync();
 
-        // Act — language 999 has no reports
+        // Act
         var response = await Fixture.HttpClient.GetAsync("api/PdfReports/by-language/999");
         var result = JsonSerializer.Deserialize<List<PdfReportDto>>(
             await response.Content.ReadAsStringAsync(), JsonOptions);
