@@ -69,15 +69,10 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
                     return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
                 }
 
-                var validationResult = HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
+                HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
                     section.Id,
                     sectionDto.Contents,
                     section.Contents);
-
-                if (validationResult.IsFailed)
-                {
-                    return Result.Fail<List<HistorySectionLocalizationDto>>(validationResult.Errors);
-                }
 
                 var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(sectionDto.Contents);
                 allContentLocalizations.AddRange(contentLocalizations);
@@ -102,10 +97,6 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
                                   allLanguageIds.Contains(l.LanguageId),
                     Include = q => q.Include(l => l.Language)
                 });
-
-            var localizationsByContentId = createdLocalizations
-                .GroupBy(l => l.EntityId)
-                .ToDictionary(g => g.Key, g => g.ToList());
 
             var results = new List<HistorySectionLocalizationDto>();
             foreach (var (sectionId, section) in sectionById)

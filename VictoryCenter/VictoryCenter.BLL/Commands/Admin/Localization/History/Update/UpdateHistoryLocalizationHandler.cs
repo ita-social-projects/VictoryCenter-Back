@@ -76,15 +76,10 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
                         ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
                 }
 
-                var validationResult = HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
+                HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
                     section.Id,
                     sectionDto.Contents,
                     section.Contents);
-
-                if (validationResult.IsFailed)
-                {
-                    return Result.Fail<List<HistorySectionLocalizationDto>>(validationResult.Errors);
-                }
 
                 var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(sectionDto.Contents);
 

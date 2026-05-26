@@ -1,4 +1,3 @@
-using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using VictoryCenter.BLL.Constants;
@@ -10,7 +9,7 @@ namespace VictoryCenter.BLL.Helpers;
 
 public class HistorySectionContentLocalizationValidationHelper
 {
-    public static Result ValidateSectionContents<TContent>(
+    public static void ValidateSectionContents<TContent>(
         long sectionId,
         IEnumerable<TContent> requestContents,
         IEnumerable<HistorySectionContent> existingContents)
@@ -26,14 +25,17 @@ public class HistorySectionContentLocalizationValidationHelper
 
         if (missingContentIds.Count > 0)
         {
-            return Result.Fail(ErrorMessagesConstants.MissingContentsLocalization(sectionId, missingContentIds));
+            throw new ValidationException(
+            [
+                new ValidationFailure(
+                    "MissingContents",
+                    ErrorMessagesConstants.MissingContentsLocalization(sectionId, missingContentIds))
+            ]);
         }
 
         var contentTypesById = existingContents.ToDictionary(c => c.Id, c => c.ContentType);
 
         ValidateHistoryContents(requestContents, contentTypesById);
-
-        return Result.Ok();
     }
 
     public static void ValidateHistoryContents<TContent>(
