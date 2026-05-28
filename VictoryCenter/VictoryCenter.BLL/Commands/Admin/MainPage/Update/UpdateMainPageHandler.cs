@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
@@ -21,15 +22,18 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
     private readonly IValidator<UpdateMainPageCommand> _validator;
 
     public UpdateMainPageHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
+        IMediator mediator,
         IValidator<UpdateMainPageCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
+        _mediator = mediator;
         _validator = validator;
     }
 
@@ -60,6 +64,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             await _repositoryWrapper.SaveChangesAsync();
 
             await SyncLocalizationsAsync(entity, request.UpdateMainPageDto.ImpactStatistics);
+
+            if (ShouldSyncRaisedFunds(request.UpdateMainPageDto.ImpactStatistics))
+            {
+                await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
+            }
 
             var resultEntity = await GetMainPageAggregateAsync(entity.Id);
             if (resultEntity is null)
@@ -191,6 +200,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         entity.ImpactStatistics.ImageId = statDto.ImageId;
 
         SyncMetrics(entity.ImpactStatistics, statDto.Metrics);
+    }
+
+    private static bool ShouldSyncRaisedFunds(UpdateImpactStatisticDto? statDto)
+    {
+        return statDto?.Metrics.Any(metric => metric.Type == MetricType.Raised && metric.IsAutoSynced) == true;
     }
 
     private void SyncMetrics(ImpactStatisticsEntity stat, ICollection<UpdateMetricDto> metricsDto)

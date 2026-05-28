@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -15,15 +16,18 @@ public class UpdateReportFundsExpendituresRecordHandler
     : IRequestHandler<UpdateReportFundsExpendituresRecordCommand, Result<ReportFundsExpendituresRecordDto>>
 {
     private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateReportFundsExpendituresRecordCommand> _validator;
 
     public UpdateReportFundsExpendituresRecordHandler(
         IMapper mapper,
+        IMediator mediator,
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateReportFundsExpendituresRecordCommand> validator)
     {
         _mapper = mapper;
+        _mediator = mediator;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
     }
@@ -89,6 +93,8 @@ public class UpdateReportFundsExpendituresRecordHandler
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
+
                 return Result.Ok(_mapper.Map<ReportFundsExpendituresRecordDto>(entityToUpdate));
             }
 

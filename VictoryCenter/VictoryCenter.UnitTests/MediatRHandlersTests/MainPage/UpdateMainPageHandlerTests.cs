@@ -2,6 +2,7 @@ using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
@@ -26,6 +27,7 @@ public class UpdateMainPageHandlerTests
     private readonly Mock<IMainPageRepository> _mainPageRepositoryMock = new();
     private readonly Mock<IImageRepository> _imageRepositoryMock = new();
     private readonly Mock<IMapper> _mapperMock = new();
+    private readonly Mock<IMediator> _mediatorMock = new();
     private readonly Mock<IValidator<UpdateMainPageCommand>> _validatorMock = new();
 
     public UpdateMainPageHandlerTests()
@@ -351,6 +353,7 @@ public class UpdateMainPageHandlerTests
     private UpdateMainPageHandler CreateHandler() => new(
         _repositoryWrapperMock.Object,
         _mapperMock.Object,
+        _mediatorMock.Object,
         _validatorMock.Object);
 
     private void SetupValidationSuccess()

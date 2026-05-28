@@ -1,4 +1,5 @@
 using AutoMapper;
+using MediatR;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -18,6 +19,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRe
 public class UpdateReportFundsExpendituresRecordTests
 {
     private readonly Mock<IMapper> _mapperMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IReportFundsExpendituresCategoriesRepository> _categoriesRepositoryMock;
@@ -53,6 +55,7 @@ public class UpdateReportFundsExpendituresRecordTests
     public UpdateReportFundsExpendituresRecordTests()
     {
         _mapperMock = new Mock<IMapper>();
+        _mediatorMock = new Mock<IMediator>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
@@ -66,6 +69,7 @@ public class UpdateReportFundsExpendituresRecordTests
         SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 1);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -95,6 +99,7 @@ public class UpdateReportFundsExpendituresRecordTests
         SetupDependencies(recordToUpdate: _existingRecord, category: matchingCategory, saveResult: 1);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -114,6 +119,7 @@ public class UpdateReportFundsExpendituresRecordTests
         var invalidDto = _updateDto with { CategoryId = 0 };
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -134,6 +140,7 @@ public class UpdateReportFundsExpendituresRecordTests
         SetupDependencies(recordToUpdate: null, category: null, saveResult: 1);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -158,6 +165,7 @@ public class UpdateReportFundsExpendituresRecordTests
 
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -188,6 +196,7 @@ public class UpdateReportFundsExpendituresRecordTests
         SetupDependencies(recordToUpdate: _existingRecord, category: expenseCategory, saveResult: 1);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -231,6 +240,7 @@ public class UpdateReportFundsExpendituresRecordTests
 
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -251,6 +261,7 @@ public class UpdateReportFundsExpendituresRecordTests
         SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 0);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -275,6 +286,7 @@ public class UpdateReportFundsExpendituresRecordTests
 
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
