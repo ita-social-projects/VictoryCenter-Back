@@ -31,6 +31,11 @@ internal class MetricConfig : IEntityTypeConfiguration<Metric>
             .Property(e => e.Prefix);
 
         entity
+            .Property(e => e.IsAutoSynced)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        entity
             .Property(e => e.StatisticId)
             .IsRequired();
 

@@ -218,6 +218,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 existingMetric.Name = metricDto.Name;
                 existingMetric.Type = metricDto.Type;
                 existingMetric.Prefix = metricDto.Prefix;
+                existingMetric.IsAutoSynced = metricDto.IsAutoSynced;
             }
             else
             {
