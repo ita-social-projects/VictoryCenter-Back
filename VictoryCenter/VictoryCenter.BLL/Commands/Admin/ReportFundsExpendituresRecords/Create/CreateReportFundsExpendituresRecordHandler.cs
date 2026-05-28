@@ -78,7 +78,7 @@ public class CreateReportFundsExpendituresRecordHandler
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
-                await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
+                await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
 
                 return Result.Ok(_mapper.Map<ReportFundsExpendituresRecordDto>(entity));
             }

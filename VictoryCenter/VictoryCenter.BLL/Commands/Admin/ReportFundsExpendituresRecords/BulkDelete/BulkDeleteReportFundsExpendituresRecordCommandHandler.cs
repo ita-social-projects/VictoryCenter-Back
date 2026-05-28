@@ -63,7 +63,7 @@ public class BulkDeleteReportFundsExpendituresRecordCommandHandler
                     ErrorMessagesConstants.FailedToDeleteEntities(typeof(ReportFundsExpendituresRecord)));
             }
 
-            await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
+            await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
 
             return Result.Ok(request.Ids.ToArray());
         }

@@ -50,6 +50,7 @@ public class SyncRaisedFundsMetricHandler : INotificationHandler<ReportFundsChan
 
         if (englishLanguage is null)
         {
+            await _repositoryWrapper.SaveChangesAsync();
             return;
         }
 

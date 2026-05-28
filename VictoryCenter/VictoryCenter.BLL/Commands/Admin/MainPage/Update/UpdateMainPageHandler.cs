@@ -67,7 +67,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
             if (ShouldSyncRaisedFunds(request.UpdateMainPageDto.ImpactStatistics))
             {
-                await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
+                await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
             }
 
             var resultEntity = await GetMainPageAggregateAsync(entity.Id);
