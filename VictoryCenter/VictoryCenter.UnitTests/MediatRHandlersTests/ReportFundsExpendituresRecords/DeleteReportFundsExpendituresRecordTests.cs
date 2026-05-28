@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Delete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
@@ -47,6 +48,11 @@ public class DeleteReportFundsExpendituresRecordTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_record.Id, result.Value);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.Is<CancellationToken>(token => token == CancellationToken.None)),
+            Times.Once);
     }
 
     [Fact]
@@ -120,5 +126,10 @@ public class DeleteReportFundsExpendituresRecordTests
 
         _recordsRepositoryMock.Setup(repository => repository.Delete(It.IsAny<ReportFundsExpendituresRecord>()));
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+        _mediatorMock
+            .Setup(mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
     }
 }

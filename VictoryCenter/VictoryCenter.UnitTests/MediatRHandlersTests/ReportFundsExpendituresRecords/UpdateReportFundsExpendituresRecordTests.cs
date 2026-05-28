@@ -6,6 +6,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -82,6 +83,11 @@ public class UpdateReportFundsExpendituresRecordTests
         Assert.True(result.IsSuccess);
         Assert.Equal(_recordDto.AmountUah, result.Value.AmountUah);
         Assert.Equal(_recordDto.AmountUsd, result.Value.AmountUsd);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.Is<CancellationToken>(token => token == CancellationToken.None)),
+            Times.Once);
     }
 
     [Fact]
@@ -341,6 +347,11 @@ public class UpdateReportFundsExpendituresRecordTests
 
         _recordsRepositoryMock.Setup(repository => repository.Update(It.IsAny<ReportFundsExpendituresRecord>()));
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+        _mediatorMock
+            .Setup(mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         _mapperMock
             .Setup(mapper => mapper.Map(
