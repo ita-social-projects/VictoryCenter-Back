@@ -1,12 +1,13 @@
 using System.Text.Json;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace VictoryCenter.WebAPI.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
-    private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly RequestDelegate _next;
     private readonly ProblemDetailsFactory _problemsFactory;
 
     public ExceptionHandlingMiddleware(
@@ -24,6 +25,21 @@ public class ExceptionHandlingMiddleware
         try
         {
             await _next(context);
+        }
+        catch (ValidationException validationException)
+        {
+            var errorDetail = string.Join(
+                "; ", validationException.Errors.Select(e => e.ErrorMessage));
+
+            var problemDetails = _problemsFactory.CreateProblemDetails(
+                context,
+                statusCode: StatusCodes.Status400BadRequest,
+                detail: errorDetail);
+
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+
+            await context.Response.WriteAsJsonAsync(problemDetails);
         }
         catch (Exception exception)
         {
