@@ -49,7 +49,11 @@ public class CreateReportProgramExpendituresRecordHandler :
         var reportProgramExpendituresRecord =
             _mapper.Map<ReportProgramExpendituresRecord>(request.CreateReportProgramExpendituresRecordDto);
 
-        if (await DuplicateRecordExistsAsync(reportProgramExpendituresRecord))
+        var recordWithinSameCategoryWithSameYearExists = await _repositoryWrapper
+            .ReportProgramExpendituresRecordsRepository
+            .RecordWithinSameCategoryWithSameYearExistsAsync(reportProgramExpendituresRecord);
+
+        if (recordWithinSameCategoryWithSameYearExists)
         {
             return Result.Fail(ReportProgramExpendituresRecordConstants
                 .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
@@ -86,16 +90,5 @@ public class CreateReportProgramExpendituresRecordHandler :
         }
 
         return Result.Ok(_mapper.Map<ReportProgramExpendituresRecordDto>(reportProgramExpendituresRecord));
-    }
-
-    private async Task<bool> DuplicateRecordExistsAsync(ReportProgramExpendituresRecord record)
-    {
-        return await _repositoryWrapper.ReportProgramExpendituresRecordsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<ReportProgramExpendituresRecord>
-            {
-                Filter = recordFromDatabase =>
-                    recordFromDatabase.HippotherapyProgramCategoryId == record.HippotherapyProgramCategoryId &&
-                    recordFromDatabase.ReportingYear == record.ReportingYear
-            }) is not null;
     }
 }

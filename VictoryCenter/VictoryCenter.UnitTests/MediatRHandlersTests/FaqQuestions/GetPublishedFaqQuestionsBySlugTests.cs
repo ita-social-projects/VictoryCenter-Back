@@ -1,6 +1,5 @@
 using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.FaqQuestions;
 using VictoryCenter.BLL.Queries.Public.FaqQuestions.GetPublished;
 using VictoryCenter.DAL.Entities;
@@ -85,21 +84,19 @@ public class GetPublishedFaqQuestionsBySlugTests
     }
 
     [Fact]
-    public async Task Handle_PageDoesNotExistOrIsEmpty_ShouldReturnFailure()
+    public async Task Handle_PageDoesNotExistOrIsEmpty_ShouldReturnOkWithEmptyList()
     {
-        // Arrange
         SetupRepository([]);
         SetupMapper();
         var handler = new GetPublishedFaqQuestionsBySlugHandler(_mockMapper.Object, _mockRepoWrapper.Object);
         var query = new GetPublishedFaqQuestionsBySlugQuery("another-test-slug");
 
-        // Act
         var result = await handler.Handle(query, CancellationToken.None);
 
-        // Assert
         Assert.NotNull(result);
-        Assert.True(result.IsFailed);
-        Assert.Equal(FaqConstants.PageNotFoundOrContainsNoFaqQuestions, result.Errors[0].Message);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Empty(result.Value);
     }
 
     private void SetupRepository(List<FaqPlacement> entities)

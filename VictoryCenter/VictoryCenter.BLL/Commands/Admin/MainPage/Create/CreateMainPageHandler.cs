@@ -6,11 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.BLL.Commands.Admin.MainPage.Create;
+
 public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Result<MainPageDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -51,9 +53,10 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
                 requestedImageIds.Add(request.CreateMainPageDto.ImageId.Value);
             }
 
-            requestedImageIds.AddRange(request.CreateMainPageDto.ImpactStatistics
-                .Where(s => s.ImageId.HasValue)
-                .Select(s => s.ImageId!.Value));
+            if (request.CreateMainPageDto.ImpactStatistics?.ImageId.HasValue == true)
+            {
+                requestedImageIds.Add(request.CreateMainPageDto.ImpactStatistics.ImageId!.Value);
+            }
 
             if (requestedImageIds.Count > 0)
             {
@@ -76,10 +79,10 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
 
             var mainPageEntity = _mapper.Map<CreateMainPageDto, MainPageEntity>(request.CreateMainPageDto);
 
-            await _repositoryWrapper.MainPageRepository
-                .CreateAsync(mainPageEntity);
-
+            await _repositoryWrapper.MainPageRepository.CreateAsync(mainPageEntity);
             await _repositoryWrapper.SaveChangesAsync();
+
+            await SaveLocalizationsAsync(request.CreateMainPageDto, mainPageEntity);
 
             var resultEntity = await _repositoryWrapper.MainPageRepository
                 .GetFirstOrDefaultAsync(new QueryOptions<MainPageEntity>
@@ -87,12 +90,12 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
                     Filter = e => e.Id == mainPageEntity.Id,
                     Include = q => q
                         .Include(e => e.Image)
-                        .Include(e => e.MainAboutUs)
-                        .Include(e => e.MainPartners)
-                        .Include(e => e.ImpactStatistics)
-                        .ThenInclude(s => s.Image)
-                        .Include(e => e.ImpactStatistics)
-                        .ThenInclude(s => s.Metrics)
+                        .Include(e => e.Localizations).ThenInclude(l => l.Language)
+                        .Include(e => e.MainAboutUs).ThenInclude(a => a!.Localizations).ThenInclude(l => l.Language)
+                        .Include(e => e.MainPartners).ThenInclude(p => p!.Localizations).ThenInclude(l => l.Language)
+                        .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Image)
+                        .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
+                        .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Metrics).ThenInclude(m => m.Localizations).ThenInclude(l => l.Language)
                 });
 
             if (resultEntity is null)
@@ -107,7 +110,7 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
 
             return Result.Ok(resultDto);
         }
-         catch (ValidationException vex)
+        catch (ValidationException vex)
         {
             return Result.Fail<MainPageDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
@@ -115,6 +118,56 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
         {
             return Result.Fail<MainPageDto>(
                 ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(MainPageEntity)));
+        }
+    }
+
+    private async Task SaveLocalizationsAsync(CreateMainPageDto dto, MainPageEntity entity)
+    {
+        var impactDto = dto.ImpactStatistics;
+        var impactEntity = entity.ImpactStatistics;
+
+        if (impactEntity is null || impactDto is null)
+        {
+            return;
+        }
+
+        bool hasLocalizations = false;
+
+        if (impactDto.Localization is not null)
+        {
+            await _repositoryWrapper.ImpactStatisticsLocalizationsRepository.CreateAsync(
+                new ImpactStatisticsLocalization
+                {
+                    EntityId = impactEntity.Id,
+                    LanguageId = impactDto.Localization.LanguageId,
+                    Title = impactDto.Localization.Title,
+                });
+            hasLocalizations = true;
+        }
+
+        var metricsByType = impactEntity.Metrics.ToDictionary(m => m.Type);
+
+        foreach (var metricDto in impactDto.Metrics)
+        {
+            if (metricDto.Localization is null || !metricsByType.TryGetValue(metricDto.Type, out var metricEntity))
+            {
+                continue;
+            }
+
+            await _repositoryWrapper.MetricLocalizationsRepository.CreateAsync(
+                new MetricLocalization
+                {
+                    EntityId = metricEntity.Id,
+                    LanguageId = metricDto.Localization.LanguageId,
+                    Value = metricDto.Localization.Value,
+                    Name = metricDto.Localization.Name,
+                });
+            hasLocalizations = true;
+        }
+
+        if (hasLocalizations)
+        {
+            await _repositoryWrapper.SaveChangesAsync();
         }
     }
 }

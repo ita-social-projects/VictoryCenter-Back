@@ -39,8 +39,8 @@ public class GetReportFundsExpendituresSummaryTests : BaseTestClass
                 CategoryId = incomeCategory.Id,
                 Type = ReportFundsExpendituresType.Income,
                 ReportingYear = 2025,
-                AmountUah = 1000m,
-                AmountUsd = 20m,
+                AmountUah = 1000.45m,
+                AmountUsd = 20.49m,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new ReportFundsExpendituresRecord
@@ -48,8 +48,8 @@ public class GetReportFundsExpendituresSummaryTests : BaseTestClass
                 CategoryId = expenseCategory.Id,
                 Type = ReportFundsExpendituresType.Expense,
                 ReportingYear = 2025,
-                AmountUah = 500m,
-                AmountUsd = 10m,
+                AmountUah = 500.5m,
+                AmountUsd = 10.5m,
                 CreatedAt = DateTimeOffset.UtcNow
             });
         await Fixture.DbContext.SaveChangesAsync();
@@ -62,9 +62,13 @@ public class GetReportFundsExpendituresSummaryTests : BaseTestClass
             JsonConvert.DeserializeObject<ReportFundsExpendituresSummaryDto>(responseString);
 
         Assert.NotNull(responseContent);
+
         Assert.Equal(1000m, responseContent.IncomeUahTotal);
+
         Assert.Equal(20m, responseContent.IncomeUsdTotal);
-        Assert.Equal(500m, responseContent.ExpenditureUahTotal);
-        Assert.Equal(10m, responseContent.ExpenditureUsdTotal);
+
+        Assert.Equal(501m, responseContent.ExpenditureUahTotal);
+
+        Assert.Equal(11m, responseContent.ExpenditureUsdTotal);
     }
 }

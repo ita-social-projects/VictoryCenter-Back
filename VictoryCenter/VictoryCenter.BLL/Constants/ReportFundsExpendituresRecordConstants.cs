@@ -2,12 +2,9 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ReportFundsExpendituresRecordConstants
 {
-    public static readonly int ReportingYearMinValue = 2010;
-    public static readonly int ReportingYearMaxValue = 2050;
-
     public static readonly decimal AmountMinValue = 0m;
 
-    public static readonly int AmountDigitsBeforeDecimalPoint = 11;
+    public static readonly int AmountDigitsBeforeDecimalPoint = 9;
     public static readonly int AmountDigitsAfterDecimalPoint = 2;
 
     public static readonly int AmountPrecision =
@@ -23,4 +20,6 @@ public static class ReportFundsExpendituresRecordConstants
 
     public static readonly string CategoryAlreadyHasRecord =
         "Record for this category already exists";
+
+    public static readonly int MaxNumberOfRecordsPerBulkDelete = 100;
 }

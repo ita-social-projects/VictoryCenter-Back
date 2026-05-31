@@ -30,6 +30,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<PdfSection> PdfSections { get; set; }
 
+    public DbSet<PdfSectionLocalization> PdfSectionLocalizations { get; set; }
+
     public DbSet<PdfReport> PdfReports { get; set; }
 
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
@@ -92,6 +94,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<ReportFundsExpendituresCategory> ReportFundsExpendituresCategories { get; set; }
 
+    public DbSet<ReportFundsExpendituresCategoryLocalization> ReportFundsExpendituresCategoryLocalizations { get; set; }
+
     public DbSet<ReportFundsExpendituresRecord> ReportFundsExpendituresRecords { get; set; }
 
     public DbSet<ReportProgramExpendituresRecord> ReportProgramExpendituresRecords { get; set; }
@@ -104,11 +108,23 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<ImpactStatistics> ImpactStatistics { get; set; }
 
+    public DbSet<MainPageLocalization> MainPageLocalizations { get; set; }
+
+    public DbSet<MainAboutUsLocalization> MainAboutUsLocalizations { get; set; }
+
+    public DbSet<MainPartnersLocalization> MainPartnersLocalizations { get; set; }
+
+    public DbSet<ImpactStatisticsLocalization> ImpactStatisticsLocalizations { get; set; }
+
     public DbSet<Metric> Metrics { get; set; }
+
+    public DbSet<MetricLocalization> MetricLocalizations { get; set; }
 
     public DbSet<HistorySection> HistorySections { get; set; }
 
     public DbSet<HistorySectionContent> HistorySectionContents { get; set; }
+
+    public DbSet<HistorySectionContentLocalization> HistorySectionContentLocalizations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -166,6 +166,33 @@ public static class ProgramSectionContentLocalizationValidationHelper
         }
     }
 
+    public static void RequireField(string fieldName, bool hasValue)
+    {
+        if (!hasValue)
+        {
+            throw new ValidationException(
+            [
+                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyIsRequired(fieldName))
+            ]);
+        }
+    }
+
+    public static void ForbidField(string fieldName, bool hasValue, ContentType contentType)
+    {
+        if (hasValue)
+        {
+            throw new ValidationException(
+            [
+                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyNotAllowedForContentType(fieldName, contentType))
+            ]);
+        }
+    }
+
+    public static bool HasValue(string? value)
+    {
+        return !string.IsNullOrWhiteSpace(value);
+    }
+
     private static void ValidateContentLocalizationByType(
         BaseHippotherapyProgramSectionContentLocalizationDto content,
         ContentType contentType)
@@ -221,32 +248,5 @@ public static class ProgramSectionContentLocalizationValidationHelper
                         ErrorMessagesConstants.PropertyMustBeValidEnum(nameof(contentType)))
                 ]);
         }
-    }
-
-    private static void RequireField(string fieldName, bool hasValue)
-    {
-        if (!hasValue)
-        {
-            throw new ValidationException(
-            [
-                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyIsRequired(fieldName))
-            ]);
-        }
-    }
-
-    private static void ForbidField(string fieldName, bool hasValue, ContentType contentType)
-    {
-        if (hasValue)
-        {
-            throw new ValidationException(
-            [
-                new ValidationFailure(fieldName, ErrorMessagesConstants.PropertyNotAllowedForContentType(fieldName, contentType))
-            ]);
-        }
-    }
-
-    private static bool HasValue(string? value)
-    {
-        return !string.IsNullOrWhiteSpace(value);
     }
 }

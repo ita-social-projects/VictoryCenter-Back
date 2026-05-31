@@ -20,8 +20,15 @@ internal class MetricConfig : IEntityTypeConfiguration<Metric>
             .IsRequired();
 
         entity
-            .Property(e => e.Signature)
+            .Property(e => e.Name)
             .IsRequired();
+
+        entity
+            .Property(e => e.Type)
+            .IsRequired();
+
+        entity
+            .Property(e => e.Prefix);
 
         entity
             .Property(e => e.StatisticId)

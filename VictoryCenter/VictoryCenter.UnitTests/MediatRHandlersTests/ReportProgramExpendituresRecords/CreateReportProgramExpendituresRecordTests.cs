@@ -108,7 +108,7 @@ public class CreateReportProgramExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecordForSpecifiedYear()
     {
         // Arrange
-        SetupDependencies(_category, 1, _recordEntity);
+        SetupDependencies(_category, 1, true);
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _repositoryWrapperMock.Object,
             _mapperMock.Object);
@@ -173,7 +173,7 @@ public class CreateReportProgramExpendituresRecordTests
     private void SetupDependencies(
         HippotherapyProgramCategory? category,
         int saveResult,
-        ReportProgramExpendituresRecord? existingRecordInCategory = null)
+        bool recordWithinSameCategoryWithSameYearExists = false)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -191,8 +191,8 @@ public class CreateReportProgramExpendituresRecordTests
 
         _recordsRepositoryMock
             .Setup(repository =>
-                repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()))
-            .ReturnsAsync(existingRecordInCategory);
+                repository.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
+            .ReturnsAsync(recordWithinSameCategoryWithSameYearExists);
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
 

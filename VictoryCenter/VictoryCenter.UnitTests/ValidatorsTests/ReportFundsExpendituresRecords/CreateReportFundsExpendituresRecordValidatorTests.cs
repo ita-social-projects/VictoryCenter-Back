@@ -10,11 +10,15 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.ReportFundsExpendituresRecords
 public class CreateReportFundsExpendituresRecordValidatorTests
 {
     private readonly CreateReportFundsExpendituresRecordValidator _validator;
+    private readonly int _currentYear;
 
     public CreateReportFundsExpendituresRecordValidatorTests()
     {
+        var timeProvider = TimeProvider.System;
+        _currentYear = timeProvider.GetUtcNow().Year;
         _validator = new CreateReportFundsExpendituresRecordValidator(
-            new BaseReportFundsExpendituresRecordValidator());
+            new BaseReportFundsExpendituresRecordValidator(),
+            timeProvider);
     }
 
     [Fact]
@@ -66,10 +70,7 @@ public class CreateReportFundsExpendituresRecordValidatorTests
     public void Validate_ShouldHaveError_WhenReportingYearIsLessThanMin()
     {
         // Arrange
-        var dto = GetValidDto() with
-        {
-            ReportingYear = ReportFundsExpendituresRecordConstants.ReportingYearMinValue - 1
-        };
+        var dto = GetValidDto() with { ReportingYear = _currentYear - 2 };
         var command = new CreateReportFundsExpendituresRecordCommand(dto);
 
         // Act
@@ -79,17 +80,14 @@ public class CreateReportFundsExpendituresRecordValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CreateReportFundsExpendituresRecordDto.ReportingYear)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
                 nameof(ReportFundsExpendituresRecordDto.ReportingYear),
-                ReportFundsExpendituresRecordConstants.ReportingYearMinValue));
+                _currentYear - 1));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenReportingYearIsGreaterThanMax()
     {
         // Arrange
-        var dto = GetValidDto() with
-        {
-            ReportingYear = ReportFundsExpendituresRecordConstants.ReportingYearMaxValue + 1
-        };
+        var dto = GetValidDto() with { ReportingYear = _currentYear + 2 };
         var command = new CreateReportFundsExpendituresRecordCommand(dto);
 
         // Act
@@ -99,7 +97,7 @@ public class CreateReportFundsExpendituresRecordValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.CreateReportFundsExpendituresRecordDto.ReportingYear)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeLessThanOrEqualToN(
                 nameof(ReportFundsExpendituresRecordDto.ReportingYear),
-                ReportFundsExpendituresRecordConstants.ReportingYearMaxValue));
+                _currentYear + 1));
     }
 
     [Fact]
@@ -115,12 +113,12 @@ public class CreateReportFundsExpendituresRecordValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    private static CreateReportFundsExpendituresRecordDto GetValidDto() => new()
+    private CreateReportFundsExpendituresRecordDto GetValidDto() => new()
     {
         CategoryId = 1,
         AmountUah = 100.25m,
         AmountUsd = 50.50m,
         Type = ReportFundsExpendituresType.Income,
-        ReportingYear = ReportFundsExpendituresRecordConstants.ReportingYearMinValue
+        ReportingYear = _currentYear
     };
 }

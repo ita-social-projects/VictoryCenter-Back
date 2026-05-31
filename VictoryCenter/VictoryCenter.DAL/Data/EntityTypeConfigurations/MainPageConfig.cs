@@ -45,9 +45,9 @@ internal class MainPageConfig : IEntityTypeConfiguration<MainPage>
             .OnDelete(DeleteBehavior.Cascade);
 
         entity
-            .HasMany(e => e.ImpactStatistics)
+            .HasOne(e => e.ImpactStatistics)
             .WithOne(e => e.MainPage)
-            .HasForeignKey(e => e.MainPageId)
+            .HasForeignKey<ImpactStatistics>(e => e.MainPageId)
             .OnDelete(DeleteBehavior.Cascade);
 
         entity

@@ -1,5 +1,3 @@
-using FluentValidation;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
@@ -20,16 +18,10 @@ public class CreateMainPageDtoValidator : BaseMainPageDtoValidator<CreateMainPag
                 .SetValidator(new CreateMainPartnersDtoValidator());
         });
 
-        RuleFor(x => x.ImpactStatistics)
-            .Cascade(CascadeMode.Stop)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateMainPageDto.ImpactStatistics)))
-            .Must(s => s.Count <= MainPageConstants.ImpactStatistic.MaxCount)
-            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(CreateMainPageDto.ImpactStatistics), MainPageConstants.ImpactStatistic.MaxCount));
-
-        RuleForEach(x => x.ImpactStatistics)
-            .NotNull()
-            .SetValidator(new CreateImpactStatisticDtoValidator());
+        When(x => x.ImpactStatistics is not null, () =>
+        {
+            RuleFor(x => x.ImpactStatistics!)
+                .SetValidator(new CreateImpactStatisticDtoValidator());
+        });
     }
 }

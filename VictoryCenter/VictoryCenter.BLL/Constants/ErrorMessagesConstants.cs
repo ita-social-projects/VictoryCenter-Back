@@ -1,3 +1,5 @@
+using VictoryCenter.DAL.Enums;
+
 namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
@@ -74,6 +76,20 @@ public static class ErrorMessagesConstants
         ArgumentNullException.ThrowIfNull(entityType);
 
         return $"Failed to delete {entityType.Name}";
+    }
+
+    public static string FailedToDeleteEntities(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to delete {entityType.Name} entities";
+    }
+
+    public static string FailedToDeleteEntitiesInDatabase(Type entityType)
+    {
+        ArgumentNullException.ThrowIfNull(entityType);
+
+        return $"Failed to delete {entityType.Name} entities in the database";
     }
 
     public static string FailedToDeleteEntityInDatabase(Type entityType)
@@ -157,7 +173,7 @@ public static class ErrorMessagesConstants
         return $"{property} must be a valid value";
     }
 
-    public static string PropertyNotAllowedForContentType(string property, DAL.Enums.ContentType contentType)
+    public static string PropertyNotAllowedForContentType(string property, ContentType contentType)
     {
         return $"{property} is not allowed for content type {contentType}";
     }
@@ -190,5 +206,25 @@ public static class ErrorMessagesConstants
     public static string PropertyMustBeLessThanOrEqualToN(string property, long value)
     {
         return $"{property} must be less than or equal to {value}";
+    }
+
+    public static string MetricsMustContainExactlyNItems(int count)
+    {
+        return $"Metrics must contain exactly {count} items.";
+    }
+
+    public static string MetricTypesMustBeUnique()
+    {
+        return "Each of the four metric types must appear exactly once: Partners, Programs, Raised, TherapyHours.";
+    }
+
+    public static string LocalizationOnlyAllowedForRaisedMetric()
+    {
+        return "Localization is only allowed for the metric with type Raised.";
+    }
+
+    public static string PropertyMustBeValidEmail(string property)
+    {
+        return $"{property} must be a valid email address.";
     }
 }

@@ -34,9 +34,9 @@ public class ReportFundsExpendituresRecordsRepository
             expenditureSummary.CategoriesCount);
     }
 
-    private Task<Dictionary<ReportFundsExpendituresType, TypeSummary>> BuildSummaryByTypeAsync()
+    private async Task<Dictionary<ReportFundsExpendituresType, TypeSummary>> BuildSummaryByTypeAsync()
     {
-        return DbContext.ReportFundsExpendituresRecords
+        var rawSummaries = await DbContext.ReportFundsExpendituresRecords
             .AsNoTracking()
             .GroupBy(record => record.Type)
             .Select(group => new
@@ -46,8 +46,13 @@ public class ReportFundsExpendituresRecordsRepository
                 UsdTotal = group.Sum(record => record.AmountUsd),
                 CategoriesCount = group.Select(record => record.CategoryId).Distinct().Count(),
             })
-            .ToDictionaryAsync(
-                summary => summary.Type,
-                summary => new TypeSummary(summary.UahTotal, summary.UsdTotal, summary.CategoriesCount));
+            .ToListAsync();
+
+        return rawSummaries.ToDictionary(
+            summary => summary.Type,
+            summary => new TypeSummary(
+                Math.Round(summary.UahTotal, 0, MidpointRounding.AwayFromZero),
+                Math.Round(summary.UsdTotal, 0, MidpointRounding.AwayFromZero),
+                summary.CategoriesCount));
     }
 }

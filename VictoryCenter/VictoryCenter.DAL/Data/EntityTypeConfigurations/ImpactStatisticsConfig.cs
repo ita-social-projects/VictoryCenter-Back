@@ -16,7 +16,7 @@ internal class ImpactStatisticsConfig : IEntityTypeConfiguration<ImpactStatistic
             .ValueGeneratedOnAdd();
 
         entity
-            .Property(e => e.Description)
+            .Property(e => e.Title)
             .IsRequired();
 
         entity
