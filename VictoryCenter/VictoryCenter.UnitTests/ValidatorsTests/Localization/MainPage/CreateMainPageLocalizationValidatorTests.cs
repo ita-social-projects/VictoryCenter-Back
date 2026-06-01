@@ -16,7 +16,12 @@ public class CreateMainPageLocalizationValidatorTests
         var baseValidator = new BaseMainPageLocalizationDtoValidator();
         var mainAboutUsValidator = new CreateMainAboutUsLocalizationDtoValidator(baseValidator);
         var mainPartnersValidator = new CreateMainPartnersLocalizationDtoValidator(baseValidator);
-        var dtoValidator = new CreateMainPageLocalizationDtoValidator(baseValidator, mainAboutUsValidator, mainPartnersValidator);
+        var mainDonationsValidator = new CreateMainDonationsLocalizationDtoValidator(baseValidator);
+        var dtoValidator = new CreateMainPageLocalizationDtoValidator(
+            baseValidator,
+            mainAboutUsValidator,
+            mainPartnersValidator,
+            mainDonationsValidator);
         _validator = new CreateMainPageLocalizationCommandValidator(dtoValidator);
     }
 
@@ -40,7 +45,8 @@ public class CreateMainPageLocalizationValidatorTests
             Title = null,
             Description = null,
             MainAboutUs = null,
-            MainPartners = null
+            MainPartners = null,
+            MainDonations = null
         });
 
         _validator.TestValidate(command).ShouldNotHaveAnyValidationErrors();
@@ -56,7 +62,8 @@ public class CreateMainPageLocalizationValidatorTests
             Title = new string('a', MainPageConstants.Title.MinLength),
             Description = new string('a', MainPageConstants.Description.MinLength),
             MainAboutUs = null,
-            MainPartners = null
+            MainPartners = null,
+            MainDonations = null
         });
 
         _validator.TestValidate(command).ShouldNotHaveAnyValidationErrors();
@@ -330,6 +337,87 @@ public class CreateMainPageLocalizationValidatorTests
         _validator.TestValidate(BuildCommand(dto)).ShouldNotHaveAnyValidationErrors();
     }
 
+    // ── MainDonations ────────────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_ShouldHaveError_WhenMainDonationsEntityIdIsNotPositive(long entityId)
+    {
+        var dto = GetValidDto() with
+        {
+            MainDonations = new CreateMainDonationsLocalizationDto { EntityId = entityId }
+        };
+
+        _validator.TestValidate(BuildCommand(dto))
+            .ShouldHaveValidationErrorFor("Dto.MainDonations.EntityId");
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenMainDonationsTitleIsTooShort()
+    {
+        var dto = GetValidDto() with
+        {
+            MainDonations = new CreateMainDonationsLocalizationDto
+            {
+                EntityId = 1,
+                Title = new string('a', MainPageConstants.Title.MinLength - 1)
+            }
+        };
+
+        _validator.TestValidate(BuildCommand(dto))
+            .ShouldHaveValidationErrorFor("Dto.MainDonations.Title")
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateMainDonationsLocalizationDto.Title), MainPageConstants.Title.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenMainDonationsTitleIsTooLong()
+    {
+        var dto = GetValidDto() with
+        {
+            MainDonations = new CreateMainDonationsLocalizationDto
+            {
+                EntityId = 1,
+                Title = new string('a', MainPageConstants.Title.MaxLength + 1)
+            }
+        };
+
+        _validator.TestValidate(BuildCommand(dto))
+            .ShouldHaveValidationErrorFor("Dto.MainDonations.Title")
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateMainDonationsLocalizationDto.Title), MainPageConstants.Title.MaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenMainDonationsDescriptionIsTooShort()
+    {
+        var dto = GetValidDto() with
+        {
+            MainDonations = new CreateMainDonationsLocalizationDto
+            {
+                EntityId = 1,
+                Description = new string('a', MainPageConstants.Description.MinLength - 1)
+            }
+        };
+
+        _validator.TestValidate(BuildCommand(dto))
+            .ShouldHaveValidationErrorFor("Dto.MainDonations.Description")
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateMainDonationsLocalizationDto.Description), MainPageConstants.Description.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenMainDonationsHasOnlyEntityId()
+    {
+        var dto = GetValidDto() with
+        {
+            MainDonations = new CreateMainDonationsLocalizationDto { EntityId = 1 }
+        };
+
+        _validator.TestValidate(BuildCommand(dto)).ShouldNotHaveAnyValidationErrors();
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     private static CreateMainPageLocalizationDto GetValidDto() => new()
@@ -345,6 +433,12 @@ public class CreateMainPageLocalizationValidatorTests
             Description = new string('a', MainPageConstants.Description.MinLength)
         },
         MainPartners = new CreateMainPartnersLocalizationDto
+        {
+            EntityId = 1,
+            Title = new string('a', MainPageConstants.Title.MinLength),
+            Description = new string('a', MainPageConstants.Description.MinLength)
+        },
+        MainDonations = new CreateMainDonationsLocalizationDto
         {
             EntityId = 1,
             Title = new string('a', MainPageConstants.Title.MinLength),

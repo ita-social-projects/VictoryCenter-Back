@@ -35,6 +35,11 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
             {
                 Title = "Updated partners title",
                 Description = "Updated partners description"
+            },
+            MainDonations = new UpdateMainDonationsLocalizationDto
+            {
+                Title = "Updated donations title",
+                Description = "Updated donations description"
             }
         };
 
@@ -80,6 +85,45 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task UpdateMainPageLocalization_ShouldReturnNotFound_WhenMainDonationsIsMissing()
+    {
+        var languageId = await GetExistingLanguageIdAsync();
+        var mainPage = new MainPageEntity
+        {
+            Title = "Seed MainPage without donations title",
+            Description = "Seed MainPage without donations description",
+            MainAboutUs = new MainAboutUs
+            {
+                Title = "Seed About Us title",
+                Description = "Seed About Us description"
+            },
+            MainPartners = new MainPartners
+            {
+                Title = "Seed Partners title",
+                Description = "Seed Partners description"
+            }
+        };
+
+        await Fixture.DbContext.MainPages.AddAsync(mainPage);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var dto = new UpdateMainPageLocalizationDto
+        {
+            MainDonations = new UpdateMainDonationsLocalizationDto
+            {
+                Title = "Updated donations title",
+                Description = "Updated donations description"
+            }
+        };
+
+        var response = await Fixture.HttpClient.PutAsync(
+            $"/api/MainPageLocalizations/{mainPage.Id}/{languageId}",
+            Serialize(dto));
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     private static StringContent Serialize(object obj) =>
         new(JsonConvert.SerializeObject(obj), Encoding.UTF8, "application/json");
 
@@ -90,6 +134,7 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
         var mainPage = await Fixture.DbContext.MainPages
             .Include(m => m.MainAboutUs)
             .Include(m => m.MainPartners)
+            .Include(m => m.MainDonations)
             .FirstOrDefaultAsync();
 
         if (mainPage is null)
@@ -107,6 +152,11 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
                 {
                     Title = "Seed Partners title",
                     Description = "Seed Partners description"
+                },
+                MainDonations = new MainDonations
+                {
+                    Title = "Seed Donations title",
+                    Description = "Seed Donations description"
                 }
             };
 
@@ -140,9 +190,23 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
             await Fixture.DbContext.SaveChangesAsync();
         }
 
+        if (mainPage.MainDonations is null)
+        {
+            mainPage.MainDonations = new MainDonations
+            {
+                Title = "Seed Donations title",
+                Description = "Seed Donations description",
+                MainPageId = mainPage.Id
+            };
+
+            await Fixture.DbContext.MainDonations.AddAsync(mainPage.MainDonations);
+            await Fixture.DbContext.SaveChangesAsync();
+        }
+
         await EnsureLocalizationExistsAsync(mainPage.Id, languageId);
         await EnsureAboutUsLocalizationExistsAsync(mainPage.MainAboutUs.Id, languageId);
         await EnsurePartnersLocalizationExistsAsync(mainPage.MainPartners.Id, languageId);
+        await EnsureDonationsLocalizationExistsAsync(mainPage.MainDonations.Id, languageId);
 
         return (mainPage, languageId);
     }
@@ -214,6 +278,27 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
             LanguageId = languageId,
             Title = "Seed partners localized title",
             Description = "Seed partners localized description"
+        });
+
+        await Fixture.DbContext.SaveChangesAsync();
+    }
+
+    private async Task EnsureDonationsLocalizationExistsAsync(long entityId, long languageId)
+    {
+        var existing = await Fixture.DbContext.MainDonationsLocalizations
+            .FirstOrDefaultAsync(l => l.EntityId == entityId && l.LanguageId == languageId);
+
+        if (existing is not null)
+        {
+            return;
+        }
+
+        Fixture.DbContext.MainDonationsLocalizations.Add(new MainDonationsLocalization
+        {
+            EntityId = entityId,
+            LanguageId = languageId,
+            Title = "Seed donations localized title",
+            Description = "Seed donations localized description"
         });
 
         await Fixture.DbContext.SaveChangesAsync();

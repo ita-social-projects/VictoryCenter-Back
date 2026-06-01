@@ -1,5 +1,6 @@
 using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.Queries.Public.MainPage.GetMainPage;
@@ -33,6 +34,12 @@ public class GetMainPageHandlerTests
             Id = 1,
             Title = "Main page",
             Description = "Main page description",
+            MainDonations = new DAL.Entities.MainDonations
+            {
+                Id = 2,
+                Title = "Donations title",
+                Description = "Donations description",
+            },
         };
 
         var dto = new MainPageDto
@@ -40,6 +47,12 @@ public class GetMainPageHandlerTests
             Id = 1,
             Title = "Main page",
             Description = "Main page description",
+            MainDonations = new MainDonationsDto
+            {
+                Id = 2,
+                Title = "Donations title",
+                Description = "Donations description",
+            },
         };
 
         _mainPageRepositoryMock
@@ -59,6 +72,8 @@ public class GetMainPageHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(dto.Id, result.Value.Id);
+        Assert.NotNull(result.Value.MainDonations);
+        Assert.Equal(dto.MainDonations.Title, result.Value.MainDonations.Title);
         Assert.NotNull(passedQueryOptions);
         Assert.True(passedQueryOptions!.AsNoTracking);
         Assert.NotNull(passedQueryOptions.Include);

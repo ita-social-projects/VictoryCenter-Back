@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
@@ -133,6 +134,23 @@ public class CreateMainPageDtoValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenMainDonationsIsInvalid()
+    {
+        var dto = GetValidDto() with
+        {
+            MainDonations = new CreateMainDonationsDto
+            {
+                Title = string.Empty,
+                Description = "Valid description",
+            },
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor("MainDonations.Title");
+    }
+
+    [Fact]
     public void Validate_ShouldHaveError_WhenImpactStatisticsIsInvalid()
     {
         var dto = GetValidDto() with
@@ -162,6 +180,7 @@ public class CreateMainPageDtoValidatorTests
         {
             MainAboutUs = null,
             MainPartners = null,
+            MainDonations = null,
             ImpactStatistics = null,
         };
 
@@ -184,6 +203,11 @@ public class CreateMainPageDtoValidatorTests
         {
             Title = "Partners title",
             Description = "Partners description",
+        },
+        MainDonations = new CreateMainDonationsDto
+        {
+            Title = "Donations title",
+            Description = "Donations description",
         },
         ImpactStatistics = GetValidImpactStatisticDto(),
     };

@@ -33,6 +33,8 @@ public class GetMainPageTests : BaseTestClass
         Assert.NotNull(result);
         Assert.Equal(expected.Title, result.Title);
         Assert.Equal(expected.Description, result.Description);
+        Assert.NotNull(result.MainDonations);
+        Assert.Equal(expected.MainDonations!.Title, result.MainDonations.Title);
     }
 
     [Fact]
@@ -48,9 +50,27 @@ public class GetMainPageTests : BaseTestClass
 
     private async Task<EntityMainPage> EnsureMainPageExistsAsync()
     {
-        var existing = await Fixture.DbContext.MainPages.FirstOrDefaultAsync();
+        var existing = await Fixture.DbContext.MainPages
+            .Include(m => m.MainDonations)
+            .FirstOrDefaultAsync();
+        if (existing?.MainDonations is not null)
+        {
+            return existing;
+        }
+
         if (existing is not null)
         {
+            existing.MainDonations = new MainDonations
+            {
+                Title = "Seed Donations Title",
+                Description = "Seed Donations Description",
+                MainPageId = existing.Id,
+            };
+
+            await Fixture.DbContext.MainDonations.AddAsync(existing.MainDonations);
+            await Fixture.DbContext.SaveChangesAsync();
+            Fixture.DbContext.ChangeTracker.Clear();
+
             return existing;
         }
 
@@ -61,6 +81,12 @@ public class GetMainPageTests : BaseTestClass
             Title = "Seed MainPage Title",
             Description = "Seed MainPage Description",
             ImageId = image.Id,
+            MainDonations = new MainDonations
+            {
+                Title = "Seed Donations Title",
+                Description = "Seed Donations Description",
+                ImageId = image.Id,
+            },
         };
 
         await Fixture.DbContext.MainPages.AddAsync(mainPage);
