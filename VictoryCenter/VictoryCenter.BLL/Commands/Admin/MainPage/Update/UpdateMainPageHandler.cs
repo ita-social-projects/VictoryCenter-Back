@@ -100,6 +100,8 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 .Include(e => e.Localizations).ThenInclude(l => l.Language)
                 .Include(e => e.MainAboutUs).ThenInclude(a => a!.Localizations).ThenInclude(l => l.Language)
                 .Include(e => e.MainPartners).ThenInclude(p => p!.Localizations).ThenInclude(l => l.Language)
+                .Include(e => e.MainDonations).ThenInclude(d => d!.Image)
+                .Include(e => e.MainDonations).ThenInclude(d => d!.Localizations).ThenInclude(l => l.Language)
                 .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Image)
                 .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Localizations)
                 .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Metrics).ThenInclude(m => m.Localizations),
@@ -125,6 +127,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         if (requestDto.ImpactStatistics?.ImageId.HasValue == true)
         {
             requestedImageIds.Add(requestDto.ImpactStatistics.ImageId!.Value);
+        }
+
+        if (requestDto.MainDonations?.ImageId.HasValue == true)
+        {
+            requestedImageIds.Add(requestDto.MainDonations.ImageId!.Value);
         }
 
         if (requestedImageIds.Count == 0)
@@ -178,6 +185,18 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             else
             {
                 _mapper.Map(dto.MainPartners, entity.MainPartners);
+            }
+        }
+
+        if (dto.MainDonations is not null)
+        {
+            if (entity.MainDonations is null)
+            {
+                entity.MainDonations = _mapper.Map<DAL.Entities.MainDonations>(dto.MainDonations);
+            }
+            else
+            {
+                _mapper.Map(dto.MainDonations, entity.MainDonations);
             }
         }
     }

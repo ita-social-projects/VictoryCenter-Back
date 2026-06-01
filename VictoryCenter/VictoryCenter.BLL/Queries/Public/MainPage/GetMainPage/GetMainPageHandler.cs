@@ -31,6 +31,8 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
                     .Include(e => e.Localizations).ThenInclude(l => l.Language)
                     .Include(e => e.MainAboutUs).ThenInclude(a => a!.Localizations).ThenInclude(l => l.Language)
                     .Include(e => e.MainPartners).ThenInclude(p => p!.Localizations).ThenInclude(l => l.Language)
+                    .Include(e => e.MainDonations).ThenInclude(d => d!.Image)
+                    .Include(e => e.MainDonations).ThenInclude(d => d!.Localizations).ThenInclude(l => l.Language)
                     .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Image)
                     .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Localizations)
                     .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Metrics.Where(m => !m.IsHidden).OrderBy(m => m.Priority)).ThenInclude(m => m.Localizations),

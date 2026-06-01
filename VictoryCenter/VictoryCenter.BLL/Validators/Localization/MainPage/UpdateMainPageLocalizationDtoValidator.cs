@@ -8,7 +8,8 @@ public class UpdateMainPageLocalizationDtoValidator : AbstractValidator<UpdateMa
     public UpdateMainPageLocalizationDtoValidator(
         BaseMainPageLocalizationDtoValidator baseValidator,
         UpdateMainAboutUsLocalizationDtoValidator mainAboutUsValidator,
-        UpdateMainPartnersLocalizationDtoValidator mainPartnersValidator)
+        UpdateMainPartnersLocalizationDtoValidator mainPartnersValidator,
+        UpdateMainDonationsLocalizationDtoValidator mainDonationsValidator)
     {
         Include(baseValidator);
 
@@ -19,5 +20,9 @@ public class UpdateMainPageLocalizationDtoValidator : AbstractValidator<UpdateMa
         RuleFor(x => x.MainPartners)
             .SetValidator(mainPartnersValidator!)
             .When(x => x.MainPartners != null);
+
+        RuleFor(x => x.MainDonations)
+            .SetValidator(mainDonationsValidator!)
+            .When(x => x.MainDonations != null);
     }
 }

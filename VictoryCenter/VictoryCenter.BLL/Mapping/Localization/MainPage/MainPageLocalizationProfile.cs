@@ -18,7 +18,8 @@ public class MainPageLocalizationProfile : Profile
         CreateMap<MainPageLocalization, MainPageLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language))
             .ForMember(dest => dest.MainAboutUs, opt => opt.Ignore())
-            .ForMember(dest => dest.MainPartners, opt => opt.Ignore());
+            .ForMember(dest => dest.MainPartners, opt => opt.Ignore())
+            .ForMember(dest => dest.MainDonations, opt => opt.Ignore());
 
         CreateMap<CreateMainAboutUsLocalizationDto, MainAboutUsLocalization>()
             .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
@@ -38,6 +39,16 @@ public class MainPageLocalizationProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<MainPartnersLocalization, MainPartnersLocalizationDto>()
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+
+        CreateMap<CreateMainDonationsLocalizationDto, MainDonationsLocalization>()
+            .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<UpdateMainDonationsLocalizationDto, MainDonationsLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+
+        CreateMap<MainDonationsLocalization, MainDonationsLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
     }
 }

@@ -21,6 +21,7 @@ public class CreateMainPageLocalizationHandler : IRequestHandler<CreateMainPageL
     private readonly ILocalizationService<MainPageEntity, MainPageLocalization> _mainPageLocalizationService;
     private readonly ILocalizationService<MainAboutUs, MainAboutUsLocalization> _mainAboutUsLocalizationService;
     private readonly ILocalizationService<MainPartners, MainPartnersLocalization> _mainPartnersLocalizationService;
+    private readonly ILocalizationService<MainDonations, MainDonationsLocalization> _mainDonationsLocalizationService;
 
     public CreateMainPageLocalizationHandler(
         IMapper mapper,
@@ -28,7 +29,8 @@ public class CreateMainPageLocalizationHandler : IRequestHandler<CreateMainPageL
         IRepositoryWrapper repositoryWrapper,
         ILocalizationService<MainPageEntity, MainPageLocalization> mainPageLocalizationService,
         ILocalizationService<MainAboutUs, MainAboutUsLocalization> mainAboutUsLocalizationService,
-        ILocalizationService<MainPartners, MainPartnersLocalization> mainPartnersLocalizationService)
+        ILocalizationService<MainPartners, MainPartnersLocalization> mainPartnersLocalizationService,
+        ILocalizationService<MainDonations, MainDonationsLocalization> mainDonationsLocalizationService)
     {
         _mapper = mapper;
         _validator = validator;
@@ -36,6 +38,7 @@ public class CreateMainPageLocalizationHandler : IRequestHandler<CreateMainPageL
         _mainPageLocalizationService = mainPageLocalizationService;
         _mainAboutUsLocalizationService = mainAboutUsLocalizationService;
         _mainPartnersLocalizationService = mainPartnersLocalizationService;
+        _mainDonationsLocalizationService = mainDonationsLocalizationService;
     }
 
     public async Task<Result<MainPageLocalizationDto>> Handle(CreateMainPageLocalizationCommand request, CancellationToken cancellationToken)
@@ -69,12 +72,22 @@ public class CreateMainPageLocalizationHandler : IRequestHandler<CreateMainPageL
                 mainPartnersDto = _mapper.Map<MainPartnersLocalizationDto>(createdPartners);
             }
 
+            MainDonationsLocalizationDto? mainDonationsDto = null;
+            if (dto.MainDonations is not null)
+            {
+                var mainDonationsEntity = _mapper.Map<MainDonationsLocalization>(dto.MainDonations);
+                mainDonationsEntity.LanguageId = dto.LanguageId;
+                var createdDonations = await _mainDonationsLocalizationService.CreateEntityLocalizationAsync(mainDonationsEntity);
+                mainDonationsDto = _mapper.Map<MainDonationsLocalizationDto>(createdDonations);
+            }
+
             transaction.Complete();
 
             var response = _mapper.Map<MainPageLocalizationDto>(createdMainPage) with
             {
                 MainAboutUs = mainAboutUsDto,
-                MainPartners = mainPartnersDto
+                MainPartners = mainPartnersDto,
+                MainDonations = mainDonationsDto
             };
 
             return Result.Ok(response);
