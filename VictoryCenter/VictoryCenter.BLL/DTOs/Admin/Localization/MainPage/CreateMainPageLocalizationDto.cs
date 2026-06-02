@@ -1,4 +1,5 @@
 using VictoryCenter.BLL.DTOs.Admin.Localization.Base;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 
@@ -9,4 +10,6 @@ public record CreateMainPageLocalizationDto : BaseMainPageLocalizationDto, ILoca
     public CreateMainAboutUsLocalizationDto? MainAboutUs { get; init; }
     public CreateMainPartnersLocalizationDto? MainPartners { get; init; }
     public CreateMainDonationsLocalizationDto? MainDonations { get; init; }
+    public CreateImpactStatisticLocalizationDto? ImpactStatistics { get; init; }
+    public ICollection<CreateMetricLocalizationDto> Metrics { get; init; } = [];
 }

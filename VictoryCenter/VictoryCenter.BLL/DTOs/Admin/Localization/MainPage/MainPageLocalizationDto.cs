@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 
@@ -11,4 +12,6 @@ public record MainPageLocalizationDto : BaseMainPageLocalizationDto
     public MainAboutUsLocalizationDto? MainAboutUs { get; init; }
     public MainPartnersLocalizationDto? MainPartners { get; init; }
     public MainDonationsLocalizationDto? MainDonations { get; init; }
+    public ImpactStatisticLocalizationDto? ImpactStatistics { get; init; }
+    public ICollection<MetricLocalizationDto> Metrics { get; init; } = [];
 }
