@@ -15,6 +15,7 @@ using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
@@ -567,11 +568,125 @@ public class UpdateMainPageHandlerTests
             Times.Never);
     }
 
+    [Fact]
+    public async Task Handle_ShouldMarkOnlyTitleBlockTranslationsOutdated_WhenTitleBlockSourceChanges()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        entity.Localizations =
+        [
+            new MainPageLocalization { EntityId = entity.Id, LanguageId = 2, TranslationStatus = TranslationStatus.Relevant },
+        ];
+        entity.MainAboutUs!.Localizations =
+        [
+            new MainAboutUsLocalization { EntityId = entity.MainAboutUs.Id, LanguageId = 2, TranslationStatus = TranslationStatus.Relevant },
+        ];
+
+        var updateDto = GetSourceMatchingUpdateDto(entity) with
+        {
+            Title = "Changed source title",
+        };
+        var command = new UpdateMainPageCommand(updateDto);
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, entity.Localizations.Single().TranslationStatus);
+        Assert.Equal(TranslationStatus.Relevant, entity.MainAboutUs.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldMarkOnlyChangedMetricTranslationsOutdated_WhenMetricSourceChanges()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var metric = entity.ImpactStatistics!.Metrics.Single();
+        entity.ImpactStatistics.Localizations =
+        [
+            new ImpactStatisticsLocalization
+            {
+                EntityId = entity.ImpactStatistics.Id,
+                LanguageId = 2,
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        metric.Localizations =
+        [
+            new MetricLocalization { EntityId = metric.Id, LanguageId = 2, TranslationStatus = TranslationStatus.Relevant },
+        ];
+
+        var updateDto = GetSourceMatchingUpdateDto(entity) with
+        {
+            ImpactStatistics = GetSourceMatchingUpdateDto(entity).ImpactStatistics! with
+            {
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = metric.Id,
+                        Value = metric.Value + 1,
+                        Name = metric.Name,
+                        Type = metric.Type,
+                    },
+                ],
+            },
+        };
+        var command = new UpdateMainPageCommand(updateDto);
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Relevant, entity.ImpactStatistics.Localizations.Single().TranslationStatus);
+        Assert.Equal(TranslationStatus.Outdated, metric.Localizations.Single().TranslationStatus);
+    }
+
     private UpdateMainPageHandler CreateHandler() => new(
         _repositoryWrapperMock.Object,
         _mapperMock.Object,
         _mediatorMock.Object,
         _validatorMock.Object);
+
+    private void SetupSuccessfulUpdate(DAL.Entities.MainPage entity)
+    {
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity)
+            .ReturnsAsync(entity);
+
+        _imageRepositoryMock
+            .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
+            .ReturnsAsync(
+            [
+                new Image { Id = 1 },
+                new Image { Id = 2 },
+                new Image { Id = 3 },
+                new Image { Id = 5 },
+                new Image { Id = 6 },
+                new Image { Id = 7 },
+            ]);
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
+            .Returns(new MainPageDto { Id = entity.Id });
+    }
 
     private void SetupValidationSuccess()
     {
@@ -701,6 +816,46 @@ public class UpdateMainPageHandlerTests
                     Type = MetricType.Raised,
                 },
             ],
+        },
+    };
+
+    private static UpdateMainPageDto GetSourceMatchingUpdateDto(DAL.Entities.MainPage existing) => new()
+    {
+        Title = existing.Title,
+        Description = existing.Description,
+        ImageId = existing.ImageId,
+        MainAboutUs = new UpdateMainAboutUsDto
+        {
+            Title = existing.MainAboutUs!.Title,
+            Description = existing.MainAboutUs.Description,
+        },
+        MainPartners = new UpdateMainPartnersDto
+        {
+            Title = existing.MainPartners!.Title,
+            Description = existing.MainPartners.Description,
+        },
+        MainDonations = new UpdateMainDonationsDto
+        {
+            Title = existing.MainDonations!.Title,
+            Description = existing.MainDonations.Description,
+            ImageId = existing.MainDonations.ImageId,
+        },
+        ImpactStatistics = new UpdateImpactStatisticDto
+        {
+            Id = existing.ImpactStatistics!.Id,
+            Title = existing.ImpactStatistics.Title,
+            ImageId = existing.ImpactStatistics.ImageId,
+            Metrics = existing.ImpactStatistics.Metrics
+                .Select(metric => new UpdateMetricDto
+                {
+                    Id = metric.Id,
+                    Value = metric.Value,
+                    Name = metric.Name,
+                    Type = metric.Type,
+                    Prefix = metric.Prefix,
+                    IsAutoSynced = metric.IsAutoSynced,
+                })
+                .ToList(),
         },
     };
 }

@@ -143,6 +143,8 @@ public class CreateMainPageLocalizationHandlerTests
         {
             EntityId = 1,
             LanguageId = 1,
+            Title = "Valid title",
+            Description = "Valid description here",
             MainAboutUs = null,
             MainPartners = null,
             MainDonations = null
@@ -414,9 +416,26 @@ public class CreateMainPageLocalizationHandlerTests
     {
         EntityId = 1,
         LanguageId = 1,
-        MainAboutUs = new CreateMainAboutUsLocalizationDto { EntityId = 2 },
-        MainPartners = new CreateMainPartnersLocalizationDto { EntityId = 3 },
-        MainDonations = new CreateMainDonationsLocalizationDto { EntityId = 4 }
+        Title = "Valid title",
+        Description = "Valid description here",
+        MainAboutUs = new CreateMainAboutUsLocalizationDto
+        {
+            EntityId = 2,
+            Title = "About title",
+            Description = "About description here",
+        },
+        MainPartners = new CreateMainPartnersLocalizationDto
+        {
+            EntityId = 3,
+            Title = "Partners title",
+            Description = "Partners description here",
+        },
+        MainDonations = new CreateMainDonationsLocalizationDto
+        {
+            EntityId = 4,
+            Title = "Donations title",
+            Description = "Donations description here",
+        }
     };
 
     private static CreateMainPageLocalizationCommand BuildCommand(CreateMainPageLocalizationDto dto) =>

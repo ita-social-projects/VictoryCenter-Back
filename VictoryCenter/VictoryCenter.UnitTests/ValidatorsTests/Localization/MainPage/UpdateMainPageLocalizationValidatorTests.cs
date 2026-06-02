@@ -13,132 +13,148 @@ public class UpdateMainPageLocalizationValidatorTests
     public UpdateMainPageLocalizationValidatorTests()
     {
         var baseValidator = new BaseMainPageLocalizationDtoValidator();
-        var mainAboutUsValidator = new UpdateMainAboutUsLocalizationDtoValidator(baseValidator);
-        var mainPartnersValidator = new UpdateMainPartnersLocalizationDtoValidator(baseValidator);
-        var mainDonationsValidator = new UpdateMainDonationsLocalizationDtoValidator(baseValidator);
         var dtoValidator = new UpdateMainPageLocalizationDtoValidator(
             baseValidator,
-            mainAboutUsValidator,
-            mainPartnersValidator,
-            mainDonationsValidator);
+            new UpdateMainAboutUsLocalizationDtoValidator(baseValidator),
+            new UpdateMainPartnersLocalizationDtoValidator(baseValidator),
+            new UpdateMainDonationsLocalizationDtoValidator(baseValidator));
+
         _validator = new UpdateMainPageLocalizationCommandValidator(dtoValidator);
     }
 
     [Fact]
     public void Validate_ShouldNotHaveErrors_WhenAllFieldsAreValid()
     {
-        var command = BuildCommand(GetValidDto());
-
-        _validator.TestValidate(command).ShouldNotHaveAnyValidationErrors();
+        _validator.TestValidate(BuildCommand(GetValidDto())).ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveErrors_WhenOptionalFieldsAreNull()
+    public void Validate_ShouldHaveRequiredError_WhenTitleBlockTitleIsEmpty()
     {
-        var command = BuildCommand(new UpdateMainPageLocalizationDto
-        {
-            Title = null,
-            Description = null,
-            MainAboutUs = null,
-            MainPartners = null,
-            MainDonations = null
-        });
+        var dto = GetValidDto() with { Title = " " };
 
-        _validator.TestValidate(command).ShouldNotHaveAnyValidationErrors();
+        _validator.TestValidate(BuildCommand(dto))
+            .ShouldHaveValidationErrorFor(x => x.Dto.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateMainPageLocalizationDto.Title)));
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenTitleIsTooShort()
+    public void Validate_ShouldHaveError_WhenTitleBlockTitleIsTooShort()
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.Title.MinLength - 1)
+            Title = new string('a', MainPageConstants.Localization.Title.MinLength - 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateMainPageLocalizationDto.Title), MainPageConstants.Title.MinLength));
+                nameof(UpdateMainPageLocalizationDto.Title), MainPageConstants.Localization.Title.MinLength));
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenDescriptionIsTooLong()
+    public void Validate_ShouldHaveError_WhenTitleBlockDescriptionIsTooLong()
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.Description.MaxLength + 1)
+            Description = new string('a', MainPageConstants.Localization.TitleBlockDescription.MaxLength + 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateMainPageLocalizationDto.Description), MainPageConstants.Description.MaxLength));
+                nameof(UpdateMainPageLocalizationDto.Description),
+                MainPageConstants.Localization.TitleBlockDescription.MaxLength));
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenMainAboutUsIsInvalid()
+    [Theory]
+    [InlineData(nameof(UpdateMainPageLocalizationDto.MainAboutUs))]
+    [InlineData(nameof(UpdateMainPageLocalizationDto.MainPartners))]
+    [InlineData(nameof(UpdateMainPageLocalizationDto.MainDonations))]
+    public void Validate_ShouldHaveError_WhenSectionTitleIsTooShort(string sectionName)
     {
-        var dto = GetValidDto() with
-        {
-            MainAboutUs = new UpdateMainAboutUsLocalizationDto
-            {
-                Title = new string('a', MainPageConstants.Title.MinLength - 1)
-            }
-        };
+        var dto = GetValidDtoWithInvalidSection(sectionName, title: new string('a', MainPageConstants.Localization.Title.MinLength - 1));
 
         _validator.TestValidate(BuildCommand(dto))
-            .ShouldHaveValidationErrorFor("Dto.MainAboutUs.Title");
+            .ShouldHaveValidationErrorFor($"Dto.{sectionName}.Title");
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenMainPartnersIsInvalid()
+    [Theory]
+    [InlineData(nameof(UpdateMainPageLocalizationDto.MainAboutUs))]
+    [InlineData(nameof(UpdateMainPageLocalizationDto.MainPartners))]
+    [InlineData(nameof(UpdateMainPageLocalizationDto.MainDonations))]
+    public void Validate_ShouldHaveError_WhenSectionDescriptionIsTooLong(string sectionName)
     {
-        var dto = GetValidDto() with
-        {
-            MainPartners = new UpdateMainPartnersLocalizationDto
-            {
-                Title = new string('a', MainPageConstants.Title.MinLength - 1)
-            }
-        };
+        var dto = GetValidDtoWithInvalidSection(
+            sectionName,
+            description: new string('a', MainPageConstants.Localization.SectionDescription.MaxLength + 1));
 
         _validator.TestValidate(BuildCommand(dto))
-            .ShouldHaveValidationErrorFor("Dto.MainPartners.Title");
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenMainDonationsIsInvalid()
-    {
-        var dto = GetValidDto() with
-        {
-            MainDonations = new UpdateMainDonationsLocalizationDto
-            {
-                Title = new string('a', MainPageConstants.Title.MinLength - 1)
-            }
-        };
-
-        _validator.TestValidate(BuildCommand(dto))
-            .ShouldHaveValidationErrorFor("Dto.MainDonations.Title");
+            .ShouldHaveValidationErrorFor($"Dto.{sectionName}.Description");
     }
 
     private static UpdateMainPageLocalizationDto GetValidDto() => new()
     {
-        Title = new string('a', MainPageConstants.Title.MinLength),
-        Description = new string('a', MainPageConstants.Description.MinLength),
-        MainAboutUs = new UpdateMainAboutUsLocalizationDto
+        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
+        Description = new string('a', MainPageConstants.Localization.TitleBlockDescription.MinLength),
+        MainAboutUs = GetValidAboutUs(),
+        MainPartners = GetValidPartners(),
+        MainDonations = GetValidDonations()
+    };
+
+    private static UpdateMainPageLocalizationDto GetValidDtoWithInvalidSection(
+        string sectionName,
+        string? title = null,
+        string? description = null)
+    {
+        var dto = GetValidDto();
+
+        return sectionName switch
         {
-            Title = new string('a', MainPageConstants.Title.MinLength),
-            Description = new string('a', MainPageConstants.Description.MinLength)
-        },
-        MainPartners = new UpdateMainPartnersLocalizationDto
-        {
-            Title = new string('a', MainPageConstants.Title.MinLength),
-            Description = new string('a', MainPageConstants.Description.MinLength)
-        },
-        MainDonations = new UpdateMainDonationsLocalizationDto
-        {
-            Title = new string('a', MainPageConstants.Title.MinLength),
-            Description = new string('a', MainPageConstants.Description.MinLength)
-        }
+            nameof(UpdateMainPageLocalizationDto.MainAboutUs) => dto with
+            {
+                MainAboutUs = GetValidAboutUs() with
+                {
+                    Title = title ?? GetValidAboutUs().Title,
+                    Description = description ?? GetValidAboutUs().Description
+                }
+            },
+            nameof(UpdateMainPageLocalizationDto.MainPartners) => dto with
+            {
+                MainPartners = GetValidPartners() with
+                {
+                    Title = title ?? GetValidPartners().Title,
+                    Description = description ?? GetValidPartners().Description
+                }
+            },
+            nameof(UpdateMainPageLocalizationDto.MainDonations) => dto with
+            {
+                MainDonations = GetValidDonations() with
+                {
+                    Title = title ?? GetValidDonations().Title,
+                    Description = description ?? GetValidDonations().Description
+                }
+            },
+            _ => dto
+        };
+    }
+
+    private static UpdateMainAboutUsLocalizationDto GetValidAboutUs() => new()
+    {
+        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
+        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+    };
+
+    private static UpdateMainPartnersLocalizationDto GetValidPartners() => new()
+    {
+        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
+        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+    };
+
+    private static UpdateMainDonationsLocalizationDto GetValidDonations() => new()
+    {
+        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
+        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
     };
 
     private static UpdateMainPageLocalizationCommand BuildCommand(UpdateMainPageLocalizationDto dto)
