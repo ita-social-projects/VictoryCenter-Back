@@ -5,22 +5,12 @@ using VictoryCenter.BLL.Commands.Admin.MainPage.Create;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
-using VictoryCenter.BLL.DTOs.Public.MainPage;
-using VictoryCenter.BLL.Queries.Public.MainPage.GetLocalizedMainPage;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class MainPageController : AuthorizedApiController
 {
-    [HttpGet("localized")]
-    [ProducesResponseType(typeof(LocalizedMainPageDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetLocalizedMainPage([FromQuery] long? languageId)
-    {
-        return HandleResult(await Mediator.Send(new GetLocalizedMainPageQuery(languageId)));
-    }
-
     [HttpPost]
     [ProducesResponseType(typeof(MainPageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
