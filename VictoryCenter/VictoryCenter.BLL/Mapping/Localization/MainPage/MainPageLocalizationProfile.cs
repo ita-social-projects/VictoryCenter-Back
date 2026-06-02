@@ -1,5 +1,6 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 
@@ -19,7 +20,9 @@ public class MainPageLocalizationProfile : Profile
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language))
             .ForMember(dest => dest.MainAboutUs, opt => opt.Ignore())
             .ForMember(dest => dest.MainPartners, opt => opt.Ignore())
-            .ForMember(dest => dest.MainDonations, opt => opt.Ignore());
+            .ForMember(dest => dest.MainDonations, opt => opt.Ignore())
+            .ForMember(dest => dest.ImpactStatistics, opt => opt.Ignore())
+            .ForMember(dest => dest.Metrics, opt => opt.Ignore());
 
         CreateMap<CreateMainAboutUsLocalizationDto, MainAboutUsLocalization>()
             .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
@@ -50,5 +53,23 @@ public class MainPageLocalizationProfile : Profile
 
         CreateMap<MainDonationsLocalization, MainDonationsLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+
+        CreateMap<CreateImpactStatisticLocalizationDto, ImpactStatisticsLocalization>()
+            .ForMember(dest => dest.EntityId, opt => opt.Ignore())
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<UpdateImpactStatisticLocalizationDto, ImpactStatisticsLocalization>()
+            .ForMember(dest => dest.EntityId, opt => opt.Ignore())
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+
+        CreateMap<ImpactStatisticsLocalization, ImpactStatisticLocalizationDto>();
+
+        CreateMap<CreateMetricLocalizationDto, MetricLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<UpdateMetricLocalizationDto, MetricLocalization>()
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+
+        CreateMap<MetricLocalization, MetricLocalizationDto>();
     }
 }
