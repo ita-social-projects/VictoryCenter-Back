@@ -1,11 +1,14 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.BLL.Mapping.MainPage;
@@ -98,5 +101,8 @@ public class MainPageProfile : Profile
             .ForMember(dest => dest.Statistics, opt => opt.Ignore())
             .ForMember(dest => dest.Priority, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<ImpactStatisticsLocalization, ImpactStatisticLocalizationDto>();
+        CreateMap<MetricLocalization, MetricLocalizationDto>();
     }
 }
