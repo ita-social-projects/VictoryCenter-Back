@@ -34,6 +34,6 @@ public abstract class BaseMainDonationsDtoValidator<TDto> : AbstractValidator<TD
         RuleFor(x => x.ImageId)
             .GreaterThan(0)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(BaseMainDonationsDto.ImageId)))
-            .When(x => x.ImageId.HasValue);
+            .When(x => x.ImageId is not null);
     }
 }
