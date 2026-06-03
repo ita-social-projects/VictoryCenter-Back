@@ -14,7 +14,6 @@ public class UpdateMainPageLocalizationValidatorTests
     {
         var baseValidator = new BaseMainPageLocalizationDtoValidator();
         var dtoValidator = new UpdateMainPageLocalizationDtoValidator(
-            baseValidator,
             new UpdateMainAboutUsLocalizationDtoValidator(baseValidator),
             new UpdateMainPartnersLocalizationDtoValidator(baseValidator),
             new UpdateMainDonationsLocalizationDtoValidator(baseValidator));
