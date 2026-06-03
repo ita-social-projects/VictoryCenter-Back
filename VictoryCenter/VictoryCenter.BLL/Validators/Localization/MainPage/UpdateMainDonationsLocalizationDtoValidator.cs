@@ -7,6 +7,8 @@ public class UpdateMainDonationsLocalizationDtoValidator : AbstractValidator<Upd
 {
     public UpdateMainDonationsLocalizationDtoValidator(BaseMainPageLocalizationDtoValidator baseValidator)
     {
+        ArgumentNullException.ThrowIfNull(baseValidator);
+
         Include(baseValidator);
     }
 }
