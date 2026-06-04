@@ -9,6 +9,35 @@ namespace VictoryCenter.BLL.Helpers;
 
 public class HistorySectionContentLocalizationValidationHelper
 {
+    public static void ValidateSectionContents<TContent>(
+        long sectionId,
+        IEnumerable<TContent> requestContents,
+        IEnumerable<HistorySectionContent> existingContents)
+        where TContent : IHistoryContentLocalization
+    {
+        var requestContentIds = requestContents.Select(c => c.EntityId).ToHashSet();
+
+        var missingContentIds = existingContents
+            .Where(c => c.ContentType != ContentType.Image)
+            .Select(c => c.Id)
+            .Where(id => !requestContentIds.Contains(id))
+            .ToList();
+
+        if (missingContentIds.Count > 0)
+        {
+            throw new ValidationException(
+            [
+                new ValidationFailure(
+                    "MissingContents",
+                    ErrorMessagesConstants.MissingContentsLocalization(sectionId, missingContentIds))
+            ]);
+        }
+
+        var contentTypesById = existingContents.ToDictionary(c => c.Id, c => c.ContentType);
+
+        ValidateHistoryContents(requestContents, contentTypesById);
+    }
+
     public static void ValidateHistoryContents<TContent>(
         IEnumerable<TContent> localizationContents,
         IReadOnlyDictionary<long, ContentType> contentTypesById)

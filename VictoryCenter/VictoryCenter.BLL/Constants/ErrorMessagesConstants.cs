@@ -57,6 +57,16 @@ public static class ErrorMessagesConstants
         return $"Failed to create new {entityType.Name} in the database";
     }
 
+    public static string MissingSectionsLocalization(IEnumerable<long> ids)
+    {
+        return $"Localization is missing for the following section(s) with id(s): {string.Join(", ", ids)}";
+    }
+
+    public static string MissingContentsLocalization(long sectionId, IEnumerable<long> contentIds)
+    {
+        return $"Section {sectionId} is missing localization for content(s) with id(s): {string.Join(", ", contentIds)}";
+    }
+
     public static string FailedToUpdateEntity(Type entityType)
     {
         ArgumentNullException.ThrowIfNull(entityType);
