@@ -1,6 +1,5 @@
 using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.DAL.Entities;
@@ -48,7 +47,7 @@ public class GetAllPdfReportsHandlerTests
         _mockMapper.Setup(x => x.Map<List<PdfReportDto>>(It.IsAny<IEnumerable<PdfReport>>()))
             .Returns(_testPdfReportDtos);
 
-        var query = new GetAllPdfReportsQuery(new BaseFilterDto { Offset = 0, Limit = 20 });
+        var query = new GetAllPdfReportsQuery(new PdfReportFilterDto { Offset = 0, Limit = 20 });
 
         // Act
         var result = await CreateHandler().Handle(query, CancellationToken.None);
@@ -76,7 +75,7 @@ public class GetAllPdfReportsHandlerTests
         _mockMapper.Setup(x => x.Map<List<PdfReportDto>>(It.IsAny<IEnumerable<PdfReport>>()))
             .Returns([]);
 
-        var query = new GetAllPdfReportsQuery(new BaseFilterDto { Offset = 0, Limit = 20 });
+        var query = new GetAllPdfReportsQuery(new PdfReportFilterDto { Offset = 0, Limit = 20 });
 
         // Act
         var result = await CreateHandler().Handle(query, CancellationToken.None);
@@ -100,7 +99,7 @@ public class GetAllPdfReportsHandlerTests
         _mockMapper.Setup(x => x.Map<List<PdfReportDto>>(It.IsAny<IEnumerable<PdfReport>>()))
             .Returns([_testPdfReportDtos[0]]);
 
-        var query = new GetAllPdfReportsQuery(new BaseFilterDto { Offset = 1, Limit = 1 });
+        var query = new GetAllPdfReportsQuery(new PdfReportFilterDto { Offset = 1, Limit = 1 });
 
         // Act
         var result = await CreateHandler().Handle(query, CancellationToken.None);
@@ -129,7 +128,7 @@ public class GetAllPdfReportsHandlerTests
         _mockMapper.Setup(x => x.Map<List<PdfReportDto>>(It.IsAny<IEnumerable<PdfReport>>()))
             .Returns(_testPdfReportDtos);
 
-        var query = new GetAllPdfReportsQuery(new BaseFilterDto { Offset = null, Limit = null });
+        var query = new GetAllPdfReportsQuery(new PdfReportFilterDto { Offset = null, Limit = null });
 
         // Act
         var result = await CreateHandler().Handle(query, CancellationToken.None);

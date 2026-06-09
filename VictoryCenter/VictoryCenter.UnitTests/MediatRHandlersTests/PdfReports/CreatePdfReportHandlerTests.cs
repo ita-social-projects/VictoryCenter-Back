@@ -84,7 +84,7 @@ public class CreatePdfReportHandlerTests
         _mockMapper.Setup(x => x.Map<PdfReportDto>(It.IsAny<PdfReport>()))
             .Returns(_testPdfReportDto);
 
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
@@ -106,7 +106,7 @@ public class CreatePdfReportHandlerTests
     public async Task Handle_NullFile_ShouldReturnValidationError()
     {
         // Arrange
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = null! });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = null!, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
@@ -135,7 +135,7 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
@@ -155,7 +155,7 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper.Setup(x => x.BeginTransaction())
             .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
-        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile });
+        var command = new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 });
 
         // Act
         var result = await CreateHandler().Handle(command, CancellationToken.None);
