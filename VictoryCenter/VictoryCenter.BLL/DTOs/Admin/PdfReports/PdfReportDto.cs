@@ -8,4 +8,6 @@ public record PdfReportDto
     public long FileSizeBytes { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public long Priority { get; init; }
+    public long? LanguageId { get; init; }
+    public string? LanguageCode { get; init; }
 }

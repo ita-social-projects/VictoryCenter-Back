@@ -57,6 +57,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
                 BlobName = blobName,
                 FileSizeBytes = dto.File.Length,
                 Priority = nextPriority,
+                LanguageId = dto.LanguageId,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
