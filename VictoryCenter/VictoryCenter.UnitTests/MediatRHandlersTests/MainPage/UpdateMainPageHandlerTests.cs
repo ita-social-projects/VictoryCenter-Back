@@ -2,6 +2,7 @@ using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
@@ -11,6 +12,7 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -26,6 +28,7 @@ public class UpdateMainPageHandlerTests
     private readonly Mock<IMainPageRepository> _mainPageRepositoryMock = new();
     private readonly Mock<IImageRepository> _imageRepositoryMock = new();
     private readonly Mock<IMapper> _mapperMock = new();
+    private readonly Mock<IMediator> _mediatorMock = new();
     private readonly Mock<IValidator<UpdateMainPageCommand>> _validatorMock = new();
 
     public UpdateMainPageHandlerTests()
@@ -348,9 +351,148 @@ public class UpdateMainPageHandlerTests
         Assert.Contains(entity.ImpactStatistics.Metrics, m => m.Name == "new-metric" && m.Value == 123);
     }
 
+    [Fact]
+    public async Task Handle_ShouldPublishReportFundsChangedNotification_WhenRaisedMetricIsAutoSynced()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var updateDto = GetValidUpdateDto(entity) with
+        {
+            ImpactStatistics = GetValidUpdateDto(entity).ImpactStatistics! with
+            {
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = entity.ImpactStatistics!.Metrics.First().Id,
+                        Value = 500,
+                        Name = "raised",
+                        Type = MetricType.Raised,
+                        IsAutoSynced = true,
+                    },
+                ],
+            },
+        };
+
+        var command = new UpdateMainPageCommand(updateDto);
+
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity)
+            .ReturnsAsync(entity);
+
+        _imageRepositoryMock
+            .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
+            .Verifiable();
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _mediatorMock
+            .Setup(mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
+            .Returns(new MainPageDto { Id = entity.Id });
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.True(entity.ImpactStatistics!.Metrics.Single().IsAutoSynced);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.Is<CancellationToken>(token => token == CancellationToken.None)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishReportFundsChangedNotification_WhenRaisedMetricIsNotAutoSynced()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var updateDto = GetValidUpdateDto(entity) with
+        {
+            ImpactStatistics = GetValidUpdateDto(entity).ImpactStatistics! with
+            {
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = entity.ImpactStatistics!.Metrics.First().Id,
+                        Value = 500,
+                        Name = "raised",
+                        Type = MetricType.Raised,
+                        IsAutoSynced = false,
+                    },
+                ],
+            },
+        };
+
+        var command = new UpdateMainPageCommand(updateDto);
+
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity)
+            .ReturnsAsync(entity);
+
+        _imageRepositoryMock
+            .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
+            .Verifiable();
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
+            .Returns(new MainPageDto { Id = entity.Id });
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.False(entity.ImpactStatistics!.Metrics.Single().IsAutoSynced);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
     private UpdateMainPageHandler CreateHandler() => new(
         _repositoryWrapperMock.Object,
         _mapperMock.Object,
+        _mediatorMock.Object,
         _validatorMock.Object);
 
     private void SetupValidationSuccess()

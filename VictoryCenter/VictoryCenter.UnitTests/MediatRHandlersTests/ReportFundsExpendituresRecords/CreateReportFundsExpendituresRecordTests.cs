@@ -1,10 +1,12 @@
 using AutoMapper;
+using MediatR;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -18,6 +20,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRe
 public class CreateReportFundsExpendituresRecordTests
 {
     private readonly Mock<IMapper> _mapperMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IReportFundsExpendituresCategoriesRepository> _categoriesRepositoryMock;
@@ -62,6 +65,7 @@ public class CreateReportFundsExpendituresRecordTests
     public CreateReportFundsExpendituresRecordTests()
     {
         _mapperMock = new Mock<IMapper>();
+        _mediatorMock = new Mock<IMediator>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
@@ -77,6 +81,7 @@ public class CreateReportFundsExpendituresRecordTests
         SetupDependencies(category: _category, saveResult: 1);
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -89,6 +94,11 @@ public class CreateReportFundsExpendituresRecordTests
         Assert.True(result.IsSuccess);
         Assert.Equal(_recordDto.CategoryId, result.Value.CategoryId);
         Assert.Equal(_recordDto.AmountUah, result.Value.AmountUah);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.Is<CancellationToken>(token => token == CancellationToken.None)),
+            Times.Once);
     }
 
     [Fact]
@@ -98,6 +108,7 @@ public class CreateReportFundsExpendituresRecordTests
         var invalidDto = _createDto with { CategoryId = 0 };
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -118,6 +129,7 @@ public class CreateReportFundsExpendituresRecordTests
         SetupDependencies(category: null, saveResult: 1);
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -147,6 +159,7 @@ public class CreateReportFundsExpendituresRecordTests
         SetupDependencies(category: expenseCategory, saveResult: 1);
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -167,6 +180,7 @@ public class CreateReportFundsExpendituresRecordTests
         SetupDependencies(category: _category, saveResult: 1, existingRecordInCategory: _recordEntity);
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -187,6 +201,7 @@ public class CreateReportFundsExpendituresRecordTests
         SetupDependencies(category: _category, saveResult: 0);
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -211,6 +226,7 @@ public class CreateReportFundsExpendituresRecordTests
 
         var handler = new CreateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
+            _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator);
 
@@ -249,6 +265,11 @@ public class CreateReportFundsExpendituresRecordTests
             .ReturnsAsync(existingRecordInCategory);
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+        _mediatorMock
+            .Setup(mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         _mapperMock
             .Setup(mapper => mapper.Map<ReportFundsExpendituresRecord>(It.IsAny<CreateReportFundsExpendituresRecordDto>()))
