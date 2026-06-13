@@ -24,6 +24,13 @@ namespace VictoryCenter.DAL.Migrations
                 table: "PdfReports",
                 column: "LanguageId");
 
+            migrationBuilder.Sql(@"
+                UPDATE [media].[PdfReports]
+                SET LanguageId = (SELECT Id FROM LocalizationLanguages WHERE Code = 'uk')
+                WHERE LanguageId IS NULL
+                    AND EXISTS (SELECT 1 FROM LocalizationLanguages WHERE Code = 'uk')
+            ");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_PdfReports_LocalizationLanguages_LanguageId",
                 schema: "media",
