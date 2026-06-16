@@ -18,6 +18,12 @@ public class CreateMainPageDtoValidator : BaseMainPageDtoValidator<CreateMainPag
                 .SetValidator(new CreateMainPartnersDtoValidator());
         });
 
+        When(x => x.MainDonations is not null, () =>
+        {
+            RuleFor(x => x.MainDonations!)
+                .SetValidator(new CreateMainDonationsDtoValidator());
+        });
+
         When(x => x.ImpactStatistics is not null, () =>
         {
             RuleFor(x => x.ImpactStatistics!)

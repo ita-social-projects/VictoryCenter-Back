@@ -10,4 +10,5 @@ public record MainPageLocalizationDto : BaseMainPageLocalizationDto
     public TranslationStatus TranslationStatus { get; init; }
     public MainAboutUsLocalizationDto? MainAboutUs { get; init; }
     public MainPartnersLocalizationDto? MainPartners { get; init; }
+    public MainDonationsLocalizationDto? MainDonations { get; init; }
 }

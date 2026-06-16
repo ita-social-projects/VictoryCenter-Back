@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.BLL.Notifications.ReportFunds;
@@ -67,6 +68,7 @@ public class UpdateMainPageHandlerTests
             {
                 new() { Id = 5 },
                 new() { Id = 6 },
+                new() { Id = 7 },
             });
 
         _mapperMock
@@ -74,6 +76,9 @@ public class UpdateMainPageHandlerTests
             .Verifiable();
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, existingEntity.MainPartners))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainDonations, existingEntity.MainDonations))
             .Verifiable();
 
         var expectedDto = new MainPageDto
@@ -107,6 +112,7 @@ public class UpdateMainPageHandlerTests
         Assert.Equal(command.UpdateMainPageDto.ImpactStatistics!.Metrics.Single().Value, updatedMetric.Value);
         Assert.Equal(command.UpdateMainPageDto.ImpactStatistics!.Metrics.Single().Name, updatedMetric.Name);
 
+        _mapperMock.Verify(x => x.Map(command.UpdateMainPageDto.MainDonations, existingEntity.MainDonations), Times.Once);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Once);
         _imageRepositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()), Times.Once);
         _validatorMock.Verify(
@@ -132,6 +138,67 @@ public class UpdateMainPageHandlerTests
 
         _repositoryWrapperMock.Verify(x => x.BeginTransaction(), Times.Never);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateMainDonations_WhenMainDonationsDoesNotExist()
+    {
+        // Arrange
+        var existingEntity = GetExistingMainPageEntity(1);
+        existingEntity.MainDonations = null;
+
+        var command = new UpdateMainPageCommand(GetValidUpdateDto(existingEntity));
+        var mappedDonations = new MainDonations
+        {
+            Title = command.UpdateMainPageDto.MainDonations!.Title,
+            Description = command.UpdateMainPageDto.MainDonations.Description,
+            ImageId = command.UpdateMainPageDto.MainDonations.ImageId,
+        };
+
+        SetupValidationSuccess();
+
+        _mainPageRepositoryMock
+            .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(existingEntity)
+            .ReturnsAsync(existingEntity);
+
+        _imageRepositoryMock
+            .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
+            .ReturnsAsync(new List<Image>
+            {
+                new() { Id = 5 },
+                new() { Id = 6 },
+                new() { Id = 7 },
+            });
+
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, existingEntity.MainAboutUs))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, existingEntity.MainPartners))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map<MainDonations>(command.UpdateMainPageDto.MainDonations))
+            .Returns(mappedDonations);
+
+        _repositoryWrapperMock
+            .Setup(x => x.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _mapperMock
+            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(existingEntity))
+            .Returns(new MainPageDto { Id = existingEntity.Id });
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(existingEntity.MainDonations);
+        Assert.Equal(command.UpdateMainPageDto.MainDonations!.Title, existingEntity.MainDonations!.Title);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -183,7 +250,7 @@ public class UpdateMainPageHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(
-            ErrorMessagesConstants.NotFound(new[] { 6L }, typeof(Image)),
+            ErrorMessagesConstants.NotFound(new[] { 6L, 7L }, typeof(Image)),
             result.Errors[0].Message);
 
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
@@ -212,6 +279,7 @@ public class UpdateMainPageHandlerTests
             .ReturnsAsync(new List<Image>
             {
                 new() { Id = 6 },
+                new() { Id = 7 },
             });
 
         var handler = CreateHandler();
@@ -245,6 +313,7 @@ public class UpdateMainPageHandlerTests
             {
                 new() { Id = 5 },
                 new() { Id = 6 },
+                new() { Id = 7 },
             });
 
         _repositoryWrapperMock
@@ -317,13 +386,16 @@ public class UpdateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }, new Image { Id = 7 }]);
 
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
             .Verifiable();
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainDonations, entity.MainDonations))
             .Verifiable();
         _mapperMock
             .Setup(x => x.Map<Metric>(It.IsAny<UpdateMetricDto>()))
@@ -385,13 +457,16 @@ public class UpdateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }, new Image { Id = 7 }]);
 
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
             .Verifiable();
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainDonations, entity.MainDonations))
             .Verifiable();
 
         _repositoryWrapperMock
@@ -457,13 +532,16 @@ public class UpdateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }, new Image { Id = 7 }]);
 
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
             .Verifiable();
         _mapperMock
             .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
+            .Verifiable();
+        _mapperMock
+            .Setup(x => x.Map(command.UpdateMainPageDto.MainDonations, entity.MainDonations))
             .Verifiable();
 
         _repositoryWrapperMock
@@ -527,6 +605,12 @@ public class UpdateMainPageHandlerTests
             Title = "Updated partners title",
             Description = "Updated partners description long enough",
         },
+        MainDonations = new UpdateMainDonationsDto
+        {
+            Title = "Updated donations title",
+            Description = "Updated donations description long enough",
+            ImageId = 7,
+        },
         ImpactStatistics = new UpdateImpactStatisticDto
         {
             Title = "Updated impact statistic title",
@@ -552,6 +636,12 @@ public class UpdateMainPageHandlerTests
         {
             Title = "Updated partners title",
             Description = "Updated partners description long enough",
+        },
+        MainDonations = new UpdateMainDonationsDto
+        {
+            Title = "Updated donations title",
+            Description = "Updated donations description long enough",
+            ImageId = 7,
         },
         ImpactStatistics = new UpdateImpactStatisticDto
         {
@@ -588,6 +678,13 @@ public class UpdateMainPageHandlerTests
             Id = 12,
             Title = "Old partners title",
             Description = "Old partners description",
+        },
+        MainDonations = new MainDonations
+        {
+            Id = 15,
+            Title = "Old donations title",
+            Description = "Old donations description",
+            ImageId = 3,
         },
         ImpactStatistics = new ImpactStatistics
         {

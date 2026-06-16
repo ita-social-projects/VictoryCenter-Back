@@ -1,5 +1,6 @@
 using FluentValidation;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 
@@ -19,6 +20,12 @@ public class UpdateMainPageDtoValidator : BaseMainPageDtoValidator<UpdateMainPag
         {
             RuleFor(x => x.MainPartners!)
                 .SetValidator((IValidator<UpdateMainPartnersDto?>)new UpdateMainPartnersDtoValidator());
+        });
+
+        When(x => x.MainDonations is not null, () =>
+        {
+            RuleFor(x => x.MainDonations!)
+                .SetValidator((IValidator<UpdateMainDonationsDto?>)new UpdateMainDonationsDtoValidator());
         });
 
         When(x => x.ImpactStatistics is not null, () =>

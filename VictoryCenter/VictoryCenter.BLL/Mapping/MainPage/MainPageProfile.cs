@@ -4,6 +4,7 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
@@ -36,6 +37,14 @@ public class MainPageProfile : Profile
             .ForMember(dest => dest.MainPage, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
+        CreateMap<CreateMainDonationsDto, MainDonations>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Image, opt => opt.Ignore())
+            .ForMember(dest => dest.MainPageId, opt => opt.Ignore())
+            .ForMember(dest => dest.MainPage, opt => opt.Ignore())
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
         CreateMap<CreateImpactStatisticDto, ImpactStatistics>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
@@ -55,6 +64,7 @@ public class MainPageProfile : Profile
         CreateMap<MainPageEntity, MainPageDto>();
         CreateMap<MainAboutUs, MainAboutUsDto>();
         CreateMap<MainPartners, MainPartnersDto>();
+        CreateMap<MainDonations, MainDonationsDto>();
         CreateMap<ImpactStatistics, ImpactStatisticDto>()
             .ForMember(dest => dest.Metrics, opt => opt.MapFrom(src => src.Metrics.OrderBy(m => m.Priority)));
         CreateMap<Metric, MetricDto>();
@@ -66,6 +76,14 @@ public class MainPageProfile : Profile
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<UpdateMainPartnersDto, MainPartners>()
+            .ForMember(dest => dest.Localizations, opt => opt.Ignore());
+
+        CreateMap<UpdateMainDonationsDto, MainDonations>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Image, opt => opt.Ignore())
+            .ForMember(dest => dest.MainPageId, opt => opt.Ignore())
+            .ForMember(dest => dest.MainPage, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
         CreateMap<UpdateImpactStatisticDto, ImpactStatistics>()

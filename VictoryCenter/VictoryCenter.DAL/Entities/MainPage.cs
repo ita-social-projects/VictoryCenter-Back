@@ -14,6 +14,7 @@ public class MainPage : BaseEntity, ITranslatedEntity<MainPageLocalization>
 
     public MainAboutUs? MainAboutUs { get; set; }
     public MainPartners? MainPartners { get; set; }
+    public MainDonations? MainDonations { get; set; }
     public ImpactStatistics? ImpactStatistics { get; set; }
 
     public ICollection<MainPageLocalization> Localizations { get; set; } = [];

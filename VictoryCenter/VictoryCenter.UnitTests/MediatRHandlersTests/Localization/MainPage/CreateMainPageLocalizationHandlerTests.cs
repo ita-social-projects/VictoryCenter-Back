@@ -24,6 +24,7 @@ public class CreateMainPageLocalizationHandlerTests
     private readonly Mock<ILocalizationService<MainPageEntity, MainPageLocalization>> _mockMainPageService;
     private readonly Mock<ILocalizationService<MainAboutUs, MainAboutUsLocalization>> _mockMainAboutUsService;
     private readonly Mock<ILocalizationService<MainPartners, MainPartnersLocalization>> _mockMainPartnersService;
+    private readonly Mock<ILocalizationService<MainDonations, MainDonationsLocalization>> _mockMainDonationsService;
     private readonly IValidator<CreateMainPageLocalizationCommand> _validator;
 
     private readonly MainPageLocalization _mainPageLocalization = new()
@@ -48,6 +49,14 @@ public class CreateMainPageLocalizationHandlerTests
         EntityId = 3,
         LanguageId = 1,
         Title = "Partners title",
+        TranslationStatus = TranslationStatus.Relevant
+    };
+
+    private readonly MainDonationsLocalization _mainDonationsLocalization = new()
+    {
+        EntityId = 4,
+        LanguageId = 1,
+        Title = "Donations title",
         TranslationStatus = TranslationStatus.Relevant
     };
 
@@ -76,6 +85,14 @@ public class CreateMainPageLocalizationHandlerTests
         TranslationStatus = TranslationStatus.Relevant
     };
 
+    private readonly MainDonationsLocalizationDto _mainDonationsLocalizationDto = new()
+    {
+        EntityId = 4,
+        LocalizationInfoDto = new LocalizationInfoDto { Id = 1, Code = "en" },
+        Title = "Donations title",
+        TranslationStatus = TranslationStatus.Relevant
+    };
+
     public CreateMainPageLocalizationHandlerTests()
     {
         _mockMapper = new Mock<IMapper>();
@@ -83,11 +100,17 @@ public class CreateMainPageLocalizationHandlerTests
         _mockMainPageService = new Mock<ILocalizationService<MainPageEntity, MainPageLocalization>>();
         _mockMainAboutUsService = new Mock<ILocalizationService<MainAboutUs, MainAboutUsLocalization>>();
         _mockMainPartnersService = new Mock<ILocalizationService<MainPartners, MainPartnersLocalization>>();
+        _mockMainDonationsService = new Mock<ILocalizationService<MainDonations, MainDonationsLocalization>>();
 
         var baseValidator = new BaseMainPageLocalizationDtoValidator();
         var mainAboutUsValidator = new CreateMainAboutUsLocalizationDtoValidator(baseValidator);
         var mainPartnersValidator = new CreateMainPartnersLocalizationDtoValidator(baseValidator);
-        var dtoValidator = new CreateMainPageLocalizationDtoValidator(baseValidator, mainAboutUsValidator, mainPartnersValidator);
+        var mainDonationsValidator = new CreateMainDonationsLocalizationDtoValidator(baseValidator);
+        var dtoValidator = new CreateMainPageLocalizationDtoValidator(
+            baseValidator,
+            mainAboutUsValidator,
+            mainPartnersValidator,
+            mainDonationsValidator);
         _validator = new CreateMainPageLocalizationCommandValidator(dtoValidator);
 
         _mockRepositoryWrapper
@@ -110,6 +133,7 @@ public class CreateMainPageLocalizationHandlerTests
         Assert.Equal(_mainPageLocalizationDto.EntityId, result.Value.EntityId);
         Assert.NotNull(result.Value.MainAboutUs);
         Assert.NotNull(result.Value.MainPartners);
+        Assert.NotNull(result.Value.MainDonations);
     }
 
     [Fact]
@@ -120,7 +144,8 @@ public class CreateMainPageLocalizationHandlerTests
             EntityId = 1,
             LanguageId = 1,
             MainAboutUs = null,
-            MainPartners = null
+            MainPartners = null,
+            MainDonations = null
         };
         var command = BuildCommand(dto);
 
@@ -135,9 +160,11 @@ public class CreateMainPageLocalizationHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Null(result.Value.MainAboutUs);
         Assert.Null(result.Value.MainPartners);
+        Assert.Null(result.Value.MainDonations);
 
         _mockMainAboutUsService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainAboutUsLocalization>()), Times.Never);
         _mockMainPartnersService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()), Times.Never);
+        _mockMainDonationsService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()), Times.Never);
     }
 
     [Fact]
@@ -150,14 +177,20 @@ public class CreateMainPageLocalizationHandlerTests
             .Returns(_mainPageLocalization);
         _mockMapper.Setup(m => m.Map<MainPartnersLocalization>(It.IsAny<CreateMainPartnersLocalizationDto>()))
             .Returns(_mainPartnersLocalization);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalization>(It.IsAny<CreateMainDonationsLocalizationDto>()))
+            .Returns(_mainDonationsLocalization);
         _mockMainPageService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPageLocalization>()))
             .ReturnsAsync(_mainPageLocalization);
         _mockMainPartnersService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()))
             .ReturnsAsync(_mainPartnersLocalization);
+        _mockMainDonationsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()))
+            .ReturnsAsync(_mainDonationsLocalization);
         _mockMapper.Setup(m => m.Map<MainPageLocalizationDto>(It.IsAny<MainPageLocalization>()))
             .Returns(_mainPageLocalizationDto);
         _mockMapper.Setup(m => m.Map<MainPartnersLocalizationDto>(It.IsAny<MainPartnersLocalization>()))
             .Returns(_mainPartnersLocalizationDto);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalizationDto>(It.IsAny<MainDonationsLocalization>()))
+            .Returns(_mainDonationsLocalizationDto);
 
         await CreateHandler().Handle(command, CancellationToken.None);
 
@@ -174,18 +207,54 @@ public class CreateMainPageLocalizationHandlerTests
             .Returns(_mainPageLocalization);
         _mockMapper.Setup(m => m.Map<MainAboutUsLocalization>(It.IsAny<CreateMainAboutUsLocalizationDto>()))
             .Returns(_mainAboutUsLocalization);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalization>(It.IsAny<CreateMainDonationsLocalizationDto>()))
+            .Returns(_mainDonationsLocalization);
         _mockMainPageService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPageLocalization>()))
             .ReturnsAsync(_mainPageLocalization);
         _mockMainAboutUsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainAboutUsLocalization>()))
             .ReturnsAsync(_mainAboutUsLocalization);
+        _mockMainDonationsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()))
+            .ReturnsAsync(_mainDonationsLocalization);
         _mockMapper.Setup(m => m.Map<MainPageLocalizationDto>(It.IsAny<MainPageLocalization>()))
             .Returns(_mainPageLocalizationDto);
         _mockMapper.Setup(m => m.Map<MainAboutUsLocalizationDto>(It.IsAny<MainAboutUsLocalization>()))
             .Returns(_mainAboutUsLocalizationDto);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalizationDto>(It.IsAny<MainDonationsLocalization>()))
+            .Returns(_mainDonationsLocalizationDto);
 
         await CreateHandler().Handle(command, CancellationToken.None);
 
         _mockMainPartnersService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotCallMainDonationsService_WhenMainDonationsIsNull()
+    {
+        var dto = GetValidDto() with { MainDonations = null };
+        var command = BuildCommand(dto);
+
+        _mockMapper.Setup(m => m.Map<MainPageLocalization>(It.IsAny<CreateMainPageLocalizationDto>()))
+            .Returns(_mainPageLocalization);
+        _mockMapper.Setup(m => m.Map<MainAboutUsLocalization>(It.IsAny<CreateMainAboutUsLocalizationDto>()))
+            .Returns(_mainAboutUsLocalization);
+        _mockMapper.Setup(m => m.Map<MainPartnersLocalization>(It.IsAny<CreateMainPartnersLocalizationDto>()))
+            .Returns(_mainPartnersLocalization);
+        _mockMainPageService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPageLocalization>()))
+            .ReturnsAsync(_mainPageLocalization);
+        _mockMainAboutUsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainAboutUsLocalization>()))
+            .ReturnsAsync(_mainAboutUsLocalization);
+        _mockMainPartnersService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()))
+            .ReturnsAsync(_mainPartnersLocalization);
+        _mockMapper.Setup(m => m.Map<MainPageLocalizationDto>(It.IsAny<MainPageLocalization>()))
+            .Returns(_mainPageLocalizationDto);
+        _mockMapper.Setup(m => m.Map<MainAboutUsLocalizationDto>(It.IsAny<MainAboutUsLocalization>()))
+            .Returns(_mainAboutUsLocalizationDto);
+        _mockMapper.Setup(m => m.Map<MainPartnersLocalizationDto>(It.IsAny<MainPartnersLocalization>()))
+            .Returns(_mainPartnersLocalizationDto);
+
+        await CreateHandler().Handle(command, CancellationToken.None);
+
+        _mockMainDonationsService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()), Times.Never);
     }
 
     [Fact]
@@ -197,6 +266,7 @@ public class CreateMainPageLocalizationHandlerTests
 
         var capturedAboutUs = new MainAboutUsLocalization { EntityId = 2, LanguageId = 0 };
         var capturedPartners = new MainPartnersLocalization { EntityId = 3, LanguageId = 0 };
+        var capturedDonations = new MainDonationsLocalization { EntityId = 4, LanguageId = 0 };
 
         _mockMapper.Setup(m => m.Map<MainPageLocalization>(It.IsAny<CreateMainPageLocalizationDto>()))
             .Returns(_mainPageLocalization);
@@ -204,6 +274,8 @@ public class CreateMainPageLocalizationHandlerTests
             .Returns(capturedAboutUs);
         _mockMapper.Setup(m => m.Map<MainPartnersLocalization>(It.IsAny<CreateMainPartnersLocalizationDto>()))
             .Returns(capturedPartners);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalization>(It.IsAny<CreateMainDonationsLocalizationDto>()))
+            .Returns(capturedDonations);
 
         _mockMainPageService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPageLocalization>()))
             .ReturnsAsync(_mainPageLocalization);
@@ -211,6 +283,8 @@ public class CreateMainPageLocalizationHandlerTests
             .ReturnsAsync(_mainAboutUsLocalization);
         _mockMainPartnersService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()))
             .ReturnsAsync(_mainPartnersLocalization);
+        _mockMainDonationsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()))
+            .ReturnsAsync(_mainDonationsLocalization);
 
         _mockMapper.Setup(m => m.Map<MainPageLocalizationDto>(It.IsAny<MainPageLocalization>()))
             .Returns(_mainPageLocalizationDto);
@@ -218,11 +292,14 @@ public class CreateMainPageLocalizationHandlerTests
             .Returns(_mainAboutUsLocalizationDto);
         _mockMapper.Setup(m => m.Map<MainPartnersLocalizationDto>(It.IsAny<MainPartnersLocalization>()))
             .Returns(_mainPartnersLocalizationDto);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalizationDto>(It.IsAny<MainDonationsLocalization>()))
+            .Returns(_mainDonationsLocalizationDto);
 
         await CreateHandler().Handle(command, CancellationToken.None);
 
         Assert.Equal(languageId, capturedAboutUs.LanguageId);
         Assert.Equal(languageId, capturedPartners.LanguageId);
+        Assert.Equal(languageId, capturedDonations.LanguageId);
     }
 
     // ── Failure paths ───────────────────────────────────────────────────────
@@ -300,7 +377,8 @@ public class CreateMainPageLocalizationHandlerTests
 
     private CreateMainPageLocalizationHandler CreateHandler() =>
         new(_mockMapper.Object, _validator, _mockRepositoryWrapper.Object,
-            _mockMainPageService.Object, _mockMainAboutUsService.Object, _mockMainPartnersService.Object);
+            _mockMainPageService.Object, _mockMainAboutUsService.Object, _mockMainPartnersService.Object,
+            _mockMainDonationsService.Object);
 
     private void SetupDependencies()
     {
@@ -310,6 +388,8 @@ public class CreateMainPageLocalizationHandlerTests
             .Returns(_mainAboutUsLocalization);
         _mockMapper.Setup(m => m.Map<MainPartnersLocalization>(It.IsAny<CreateMainPartnersLocalizationDto>()))
             .Returns(_mainPartnersLocalization);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalization>(It.IsAny<CreateMainDonationsLocalizationDto>()))
+            .Returns(_mainDonationsLocalization);
 
         _mockMainPageService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPageLocalization>()))
             .ReturnsAsync(_mainPageLocalization);
@@ -317,6 +397,8 @@ public class CreateMainPageLocalizationHandlerTests
             .ReturnsAsync(_mainAboutUsLocalization);
         _mockMainPartnersService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()))
             .ReturnsAsync(_mainPartnersLocalization);
+        _mockMainDonationsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()))
+            .ReturnsAsync(_mainDonationsLocalization);
 
         _mockMapper.Setup(m => m.Map<MainPageLocalizationDto>(It.IsAny<MainPageLocalization>()))
             .Returns(_mainPageLocalizationDto);
@@ -324,6 +406,8 @@ public class CreateMainPageLocalizationHandlerTests
             .Returns(_mainAboutUsLocalizationDto);
         _mockMapper.Setup(m => m.Map<MainPartnersLocalizationDto>(It.IsAny<MainPartnersLocalization>()))
             .Returns(_mainPartnersLocalizationDto);
+        _mockMapper.Setup(m => m.Map<MainDonationsLocalizationDto>(It.IsAny<MainDonationsLocalization>()))
+            .Returns(_mainDonationsLocalizationDto);
     }
 
     private static CreateMainPageLocalizationDto GetValidDto() => new()
@@ -331,7 +415,8 @@ public class CreateMainPageLocalizationHandlerTests
         EntityId = 1,
         LanguageId = 1,
         MainAboutUs = new CreateMainAboutUsLocalizationDto { EntityId = 2 },
-        MainPartners = new CreateMainPartnersLocalizationDto { EntityId = 3 }
+        MainPartners = new CreateMainPartnersLocalizationDto { EntityId = 3 },
+        MainDonations = new CreateMainDonationsLocalizationDto { EntityId = 4 }
     };
 
     private static CreateMainPageLocalizationCommand BuildCommand(CreateMainPageLocalizationDto dto) =>

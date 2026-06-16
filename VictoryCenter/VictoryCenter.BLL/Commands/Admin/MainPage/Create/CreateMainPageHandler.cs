@@ -58,6 +58,11 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
                 requestedImageIds.Add(request.CreateMainPageDto.ImpactStatistics.ImageId!.Value);
             }
 
+            if (request.CreateMainPageDto.MainDonations?.ImageId.HasValue == true)
+            {
+                requestedImageIds.Add(request.CreateMainPageDto.MainDonations.ImageId!.Value);
+            }
+
             if (requestedImageIds.Count > 0)
             {
                 var existingImageIds = (await _repositoryWrapper.ImageRepository
@@ -102,6 +107,8 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
                         .Include(e => e.Localizations).ThenInclude(l => l.Language)
                         .Include(e => e.MainAboutUs).ThenInclude(a => a!.Localizations).ThenInclude(l => l.Language)
                         .Include(e => e.MainPartners).ThenInclude(p => p!.Localizations).ThenInclude(l => l.Language)
+                        .Include(e => e.MainDonations).ThenInclude(d => d!.Image)
+                        .Include(e => e.MainDonations).ThenInclude(d => d!.Localizations).ThenInclude(l => l.Language)
                         .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Image)
                         .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
                         .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Metrics).ThenInclude(m => m.Localizations).ThenInclude(l => l.Language)

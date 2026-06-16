@@ -1,0 +1,124 @@
+using FluentValidation.TestHelper;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
+using VictoryCenter.BLL.Validators.MainPage.Dto;
+
+namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
+
+public class UpdateMainDonationsDtoValidatorTests
+{
+    private readonly UpdateMainDonationsDtoValidator _validator = new();
+
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenDataIsValid()
+    {
+        var result = _validator.TestValidate(GetValidDto());
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenImageIdIsNull()
+    {
+        var dto = GetValidDto() with { ImageId = null };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_ShouldHaveError_WhenTitleIsEmpty(string? title)
+    {
+        var dto = GetValidDto() with { Title = title! };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainDonationsDto.Title)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTitleIsTooShort()
+    {
+        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Title.MinLength - 1) };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(BaseMainDonationsDto.Title), MainPageConstants.Title.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTitleIsTooLong()
+    {
+        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Title.MaxLength + 1) };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(BaseMainDonationsDto.Title), MainPageConstants.Title.MaxLength));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_ShouldHaveError_WhenDescriptionIsEmpty(string? description)
+    {
+        var dto = GetValidDto() with { Description = description! };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainDonationsDto.Description)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescriptionIsTooShort()
+    {
+        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Description.MinLength - 1) };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(BaseMainDonationsDto.Description), MainPageConstants.Description.MinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescriptionIsTooLong()
+    {
+        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Description.MaxLength + 1) };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(BaseMainDonationsDto.Description), MainPageConstants.Description.MaxLength));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_ShouldHaveError_WhenImageIdIsNotPositive(long imageId)
+    {
+        var dto = GetValidDto() with { ImageId = imageId };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.ImageId)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(BaseMainDonationsDto.ImageId)));
+    }
+
+    private static UpdateMainDonationsDto GetValidDto() => new()
+    {
+        Title = "Donations title",
+        Description = "Donations description",
+        ImageId = 1,
+    };
+}

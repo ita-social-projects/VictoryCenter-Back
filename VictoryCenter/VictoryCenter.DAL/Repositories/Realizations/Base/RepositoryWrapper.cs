@@ -119,9 +119,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IMainPageRepository? _mainPageRepository;
     private IMainAboutUsRepository? _mainAboutUsRepository;
     private IMainPartnersRepository? _mainPartnersRepository;
+    private IMainDonationsRepository? _mainDonationsRepository;
     private IMainPageLocalizationsRepository? _mainPageLocalizationsRepository;
     private IMainAboutUsLocalizationsRepository? _mainAboutUsLocalizationsRepository;
     private IMainPartnersLocalizationsRepository? _mainPartnersLocalizationsRepository;
+    private IMainDonationsLocalizationsRepository? _mainDonationsLocalizationsRepository;
     private IImpactStatisticsRepository? _impactStatisticsRepository;
     private IImpactStatisticsLocalizationsRepository? _impactStatisticsLocalizationsRepository;
     private IMetricRepository? _metricRepository;
@@ -278,6 +280,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IMainPartnersRepository MainPartnersRepository =>
         _mainPartnersRepository ??= new MainPartnersRepository(_victoryCenterDbContext);
 
+    public IMainDonationsRepository MainDonationsRepository =>
+        _mainDonationsRepository ??= new MainDonationsRepository(_victoryCenterDbContext);
+
     public IMainPageLocalizationsRepository MainPageLocalizationsRepository =>
         _mainPageLocalizationsRepository ??= new MainPageLocalizationsRepository(_victoryCenterDbContext);
 
@@ -286,6 +291,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IMainPartnersLocalizationsRepository MainPartnersLocalizationsRepository =>
         _mainPartnersLocalizationsRepository ??= new MainPartnersLocalizationsRepository(_victoryCenterDbContext);
+
+    public IMainDonationsLocalizationsRepository MainDonationsLocalizationsRepository =>
+        _mainDonationsLocalizationsRepository ??= new MainDonationsLocalizationsRepository(_victoryCenterDbContext);
 
     public IImpactStatisticsRepository ImpactStatisticsRepository =>
         _impactStatisticsRepository ??= new ImpactStatisticsRepository(_victoryCenterDbContext);

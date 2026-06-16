@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
@@ -46,6 +47,12 @@ public class CreateMainPageTests : BaseTestClass
                 Title = "New Partners title",
                 Description = "New Partners description",
             },
+            MainDonations = new CreateMainDonationsDto
+            {
+                Title = "New Donations title",
+                Description = "New Donations description",
+                ImageId = image.Id,
+            },
             ImpactStatistics = new CreateImpactStatisticDto
             {
                 Title = "New stat",
@@ -72,6 +79,7 @@ public class CreateMainPageTests : BaseTestClass
         var createdMainPage = await Fixture.DbContext.MainPages
             .Include(m => m.MainAboutUs)
             .Include(m => m.MainPartners)
+            .Include(m => m.MainDonations)
             .Include(m => m.ImpactStatistics)
             .FirstOrDefaultAsync(m => m.Title == createDto.Title);
 
@@ -80,6 +88,8 @@ public class CreateMainPageTests : BaseTestClass
         Assert.Equal(createDto.ImageId, createdMainPage.ImageId);
         Assert.NotNull(createdMainPage.MainAboutUs);
         Assert.NotNull(createdMainPage.MainPartners);
+        Assert.NotNull(createdMainPage.MainDonations);
+        Assert.Equal(createDto.MainDonations.ImageId, createdMainPage.MainDonations.ImageId);
         Assert.NotNull(createdMainPage.ImpactStatistics);
     }
 
@@ -113,6 +123,58 @@ public class CreateMainPageTests : BaseTestClass
             Title = "Valid title",
             Description = "Valid description",
             ImageId = nonExistentImageId,
+        };
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(createDto),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateMainPage_WithInvalidMainDonations_ShouldReturnBadRequest()
+    {
+        var createDto = new CreateMainPageDto
+        {
+            Title = "Valid title",
+            Description = "Valid description",
+            MainDonations = new CreateMainDonationsDto
+            {
+                Title = string.Empty,
+                Description = "Valid donations description",
+            },
+        };
+
+        var content = new StringContent(
+            JsonSerializer.Serialize(createDto),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateMainPage_WithNonExistentMainDonationsImageId_ShouldReturnNotFound()
+    {
+        var maxImageId = await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0;
+        var nonExistentImageId = maxImageId + 1000;
+
+        var createDto = new CreateMainPageDto
+        {
+            Title = "Valid title",
+            Description = "Valid description",
+            MainDonations = new CreateMainDonationsDto
+            {
+                Title = "Valid donations title",
+                Description = "Valid donations description",
+                ImageId = nonExistentImageId,
+            },
         };
 
         var content = new StringContent(

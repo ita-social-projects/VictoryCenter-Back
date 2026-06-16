@@ -8,4 +8,5 @@ public record CreateMainPageLocalizationDto : BaseMainPageLocalizationDto, ILoca
     public long LanguageId { get; init; }
     public CreateMainAboutUsLocalizationDto? MainAboutUs { get; init; }
     public CreateMainPartnersLocalizationDto? MainPartners { get; init; }
+    public CreateMainDonationsLocalizationDto? MainDonations { get; init; }
 }
