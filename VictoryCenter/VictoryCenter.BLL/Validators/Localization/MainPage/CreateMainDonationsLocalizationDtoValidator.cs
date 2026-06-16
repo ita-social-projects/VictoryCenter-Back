@@ -14,6 +14,6 @@ public class CreateMainDonationsLocalizationDtoValidator : AbstractValidator<Cre
             .GreaterThan(0)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateMainDonationsLocalizationDto.EntityId)));
 
-        Include(baseValidator);
+        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.SectionDescription.MaxLength);
     }
 }

@@ -157,6 +157,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
     private void UpdateBaseFields(MainPageEntity entity, UpdateMainPageDto dto)
     {
+        if (IsChanged(entity.Title, dto.Title) || IsChanged(entity.Description, dto.Description))
+        {
+            SetLocalizationsToOutdated<MainPageEntity>(entity.Localizations);
+        }
+
         entity.Title = dto.Title;
         entity.Description = dto.Description;
         entity.ImageId = dto.ImageId;
@@ -172,6 +177,12 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             }
             else
             {
+                if (IsChanged(entity.MainAboutUs.Title, dto.MainAboutUs.Title) ||
+                    IsChanged(entity.MainAboutUs.Description, dto.MainAboutUs.Description))
+                {
+                    SetLocalizationsToOutdated<DAL.Entities.MainAboutUs>(entity.MainAboutUs.Localizations);
+                }
+
                 _mapper.Map(dto.MainAboutUs, entity.MainAboutUs);
             }
         }
@@ -184,6 +195,12 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             }
             else
             {
+                if (IsChanged(entity.MainPartners.Title, dto.MainPartners.Title) ||
+                    IsChanged(entity.MainPartners.Description, dto.MainPartners.Description))
+                {
+                    SetLocalizationsToOutdated<DAL.Entities.MainPartners>(entity.MainPartners.Localizations);
+                }
+
                 _mapper.Map(dto.MainPartners, entity.MainPartners);
             }
         }
@@ -196,6 +213,12 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             }
             else
             {
+                if (IsChanged(entity.MainDonations.Title, dto.MainDonations.Title) ||
+                    IsChanged(entity.MainDonations.Description, dto.MainDonations.Description))
+                {
+                    SetLocalizationsToOutdated<DAL.Entities.MainDonations>(entity.MainDonations.Localizations);
+                }
+
                 _mapper.Map(dto.MainDonations, entity.MainDonations);
             }
         }
@@ -213,6 +236,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             entity.ImpactStatistics = _mapper.Map<ImpactStatisticsEntity>(statDto);
             entity.ImpactStatistics.MainPageId = entity.Id;
             return;
+        }
+
+        if (IsChanged(entity.ImpactStatistics.Title, statDto.Title))
+        {
+            SetLocalizationsToOutdated<ImpactStatisticsEntity>(entity.ImpactStatistics.Localizations);
         }
 
         entity.ImpactStatistics.Title = statDto.Title;
@@ -247,6 +275,11 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         {
             if (metricDto.Id.HasValue && existingMetricsById.TryGetValue(metricDto.Id.Value, out var existingMetric))
             {
+                if (IsChanged(existingMetric.Name, metricDto.Name) || existingMetric.Value != metricDto.Value)
+                {
+                    SetLocalizationsToOutdated<Metric>(existingMetric.Localizations);
+                }
+
                 existingMetric.Value = metricDto.Value;
                 existingMetric.Name = metricDto.Name;
                 existingMetric.Type = metricDto.Type;
@@ -282,8 +315,14 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
             if (existingLoc is not null)
             {
+                var localizationChanged = IsChanged(existingLoc.Title, statDto.Localization.Title);
+
                 existingLoc.Title = statDto.Localization.Title;
-                existingLoc.TranslationStatus = TranslationStatus.Relevant;
+
+                if (localizationChanged)
+                {
+                    existingLoc.TranslationStatus = TranslationStatus.Relevant;
+                }
             }
             else
             {
@@ -313,9 +352,16 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
             if (existingMetricLoc is not null)
             {
+                var localizationChanged = IsChanged(existingMetricLoc.Value, metricDto.Localization.Value) ||
+                    IsChanged(existingMetricLoc.Name, metricDto.Localization.Name);
+
                 existingMetricLoc.Value = metricDto.Localization.Value;
                 existingMetricLoc.Name = metricDto.Localization.Name;
-                existingMetricLoc.TranslationStatus = TranslationStatus.Relevant;
+
+                if (localizationChanged)
+                {
+                    existingMetricLoc.TranslationStatus = TranslationStatus.Relevant;
+                }
             }
             else
             {
@@ -335,6 +381,20 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         if (hasChanges)
         {
             await _repositoryWrapper.SaveChangesAsync();
+        }
+    }
+
+    private static bool IsChanged(string? currentValue, string? newValue)
+    {
+        return !string.Equals(currentValue, newValue);
+    }
+
+    private static void SetLocalizationsToOutdated<TEntity>(IEnumerable<LocalizationBase<TEntity>> localizations)
+        where TEntity : class
+    {
+        foreach (var localization in localizations)
+        {
+            localization.TranslationStatus = TranslationStatus.Outdated;
         }
     }
 }
