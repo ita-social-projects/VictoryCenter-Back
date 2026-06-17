@@ -25,7 +25,8 @@ public class UpdateReportFundsExpendituresSettingsTests : BaseTestClass
         var updateDto = new UpdateReportFundsExpendituresSettingsDto
         {
             DisclaimerTitle = "Updated disclaimer",
-            ExchangeRate = 41.654321m
+            ExchangeRate = 41.654321m,
+            ProgramExpendituresReportingYear = 2024
         };
         var serializedDto = JsonConvert.SerializeObject(updateDto);
 
@@ -41,6 +42,7 @@ public class UpdateReportFundsExpendituresSettingsTests : BaseTestClass
         Assert.NotNull(responseContent);
         Assert.Equal(updateDto.DisclaimerTitle, responseContent.DisclaimerTitle);
         Assert.Equal(updateDto.ExchangeRate, responseContent.ExchangeRate);
+        Assert.Equal(updateDto.ProgramExpendituresReportingYear, responseContent.ProgramExpendituresReportingYear);
     }
 
     [Fact]

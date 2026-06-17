@@ -103,6 +103,21 @@ public class BaseReportFundsExpendituresSettingsValidatorTests
                 ReportFundsExpendituresSettingsConstants.ExchangeRateFormat));
     }
 
+    [Theory]
+    [InlineData(2009)]
+    [InlineData(2051)]
+    public void Validate_ShouldHaveError_WhenProgramExpendituresReportingYearIsOutOfRange(int year)
+    {
+        // Arrange
+        var dto = GetValidDto() with { ProgramExpendituresReportingYear = year };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.ProgramExpendituresReportingYear);
+    }
+
     [Fact]
     public void Validate_ShouldNotHaveErrors_WhenDataIsValid()
     {
@@ -119,6 +134,7 @@ public class BaseReportFundsExpendituresSettingsValidatorTests
     private static UpdateReportFundsExpendituresSettingsDto GetValidDto() => new()
     {
         DisclaimerTitle = "Valid disclaimer",
-        ExchangeRate = 40.123456m
+        ExchangeRate = 40.123456m,
+        ProgramExpendituresReportingYear = 2024
     };
 }

@@ -26,21 +26,24 @@ public class UpdateReportFundsExpendituresSettingsTests
     private readonly UpdateReportFundsExpendituresSettingsDto _updateDto = new()
     {
         DisclaimerTitle = "Updated disclaimer",
-        ExchangeRate = 40.123456m
+        ExchangeRate = 40.123456m,
+        ProgramExpendituresReportingYear = 2024
     };
 
     private readonly ReportFundsExpendituresSettingsEntity _settingsEntity = new()
     {
         Id = ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
         DisclaimerTitle = "Old disclaimer",
-        ExchangeRate = 38.123456m
+        ExchangeRate = 38.123456m,
+        ProgramExpendituresReportingYear = 2023
     };
 
     private readonly ReportFundsExpendituresSettingsDto _settingsDto = new()
     {
         Id = ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
         DisclaimerTitle = "Updated disclaimer",
-        ExchangeRate = 40.123456m
+        ExchangeRate = 40.123456m,
+        ProgramExpendituresReportingYear = 2024
     };
 
     public UpdateReportFundsExpendituresSettingsTests()
@@ -71,6 +74,7 @@ public class UpdateReportFundsExpendituresSettingsTests
         Assert.True(result.IsSuccess);
         Assert.Equal(_settingsDto.DisclaimerTitle, result.Value.DisclaimerTitle);
         Assert.Equal(_settingsDto.ExchangeRate, result.Value.ExchangeRate);
+        Assert.Equal(_settingsDto.ProgramExpendituresReportingYear, result.Value.ProgramExpendituresReportingYear);
     }
 
     [Theory]
@@ -196,6 +200,7 @@ public class UpdateReportFundsExpendituresSettingsTests
                 {
                     entity.DisclaimerTitle = dto.DisclaimerTitle;
                     entity.ExchangeRate = dto.ExchangeRate;
+                    entity.ProgramExpendituresReportingYear = dto.ProgramExpendituresReportingYear;
                 })
             .Returns((UpdateReportFundsExpendituresSettingsDto _, ReportFundsExpendituresSettingsEntity entity) => entity);
 
