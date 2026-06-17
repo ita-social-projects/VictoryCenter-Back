@@ -63,7 +63,8 @@ public class UpdateReportFundsExpendituresSettingsTests
         var handler = new UpdateReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validator);
+            _validator,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(
@@ -88,7 +89,8 @@ public class UpdateReportFundsExpendituresSettingsTests
         var handler = new UpdateReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validator);
+            _validator,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(
@@ -108,7 +110,8 @@ public class UpdateReportFundsExpendituresSettingsTests
         var handler = new UpdateReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validator);
+            _validator,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(
@@ -132,7 +135,8 @@ public class UpdateReportFundsExpendituresSettingsTests
         var handler = new UpdateReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validator);
+            _validator,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(
@@ -156,7 +160,8 @@ public class UpdateReportFundsExpendituresSettingsTests
         var handler = new UpdateReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
-            _validator);
+            _validator,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(

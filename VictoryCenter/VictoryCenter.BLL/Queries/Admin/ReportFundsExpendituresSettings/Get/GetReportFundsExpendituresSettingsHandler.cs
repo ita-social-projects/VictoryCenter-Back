@@ -12,20 +12,23 @@ public class GetReportFundsExpendituresSettingsHandler
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
 
     public GetReportFundsExpendituresSettingsHandler(
         IMapper mapper,
-        IRepositoryWrapper repositoryWrapper)
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<ReportFundsExpendituresSettingsDto>> Handle(
         GetReportFundsExpendituresSettingsQuery request,
         CancellationToken cancellationToken)
     {
-        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(_repositoryWrapper);
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(_repositoryWrapper, _timeProvider);
         if (settingsResult.IsFailed)
         {
             return Result.Fail<ReportFundsExpendituresSettingsDto>(settingsResult.Errors);

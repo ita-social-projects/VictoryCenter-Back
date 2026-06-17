@@ -571,7 +571,8 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var repositoryWrapper = asyncServiceScope.ServiceProvider.GetRequiredService<IRepositoryWrapper>();
-        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper);
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper, timeProvider);
 
         if (settingsResult.IsFailed)
         {
