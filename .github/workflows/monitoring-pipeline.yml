@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       network_name:
-        description: 'Existing Docker network on stage (e.g., victorycenter-back_default)'
+        description: 'Existing Docker network on stage (e.g., main-network)'
         required: false
-        default: 'victorycenter-back_default'
+        default: 'main-network'
       devops_ref:
         description: 'Git ref (branch/tag/sha) of VictoryCenter-DevOps to deploy'
         required: false
