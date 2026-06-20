@@ -44,7 +44,7 @@ public class SearchHippotherapyProgramsHandler : IRequestHandler<SearchHippother
             {
                 TermSelector = hp => hp.Name.ToLower(),
                 TermValue = dto.SearchQuery.ToLower(),
-                SearchLogic = SearchLogic.Prefix,
+                SearchLogic = SearchLogic.Contains,
             };
 
             var searchExpression = _searchService.CreateSearchExpression(searchByNameTerm);
