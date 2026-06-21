@@ -19,7 +19,7 @@ public class BaseHistorySectionContentLocalizationValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Validate_WhenTitleIsNullOrEmpty_ShouldNotHaveValidationError(string title)
+    public void Validate_WhenTitleIsNullOrEmpty_ShouldNotHaveValidationError(string? title)
     {
         // Arrange
         var model = new CreateHistorySectionContentLocalizationDto { Title = title };
@@ -83,7 +83,7 @@ public class BaseHistorySectionContentLocalizationValidatorTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Validate_WhenDescriptionIsNullOrEmpty_ShouldNotHaveValidationError(string description)
+    public void Validate_WhenDescriptionIsNullOrEmpty_ShouldNotHaveValidationError(string? description)
     {
         // Arrange
         var model = new CreateHistorySectionContentLocalizationDto { Description = description };

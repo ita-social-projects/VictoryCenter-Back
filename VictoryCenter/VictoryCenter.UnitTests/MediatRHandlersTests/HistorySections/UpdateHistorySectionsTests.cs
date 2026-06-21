@@ -48,7 +48,7 @@ public class UpdateHistorySectionsTests
         await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
 
         _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
-        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
+        _historySectionsRepository.Verify(r => r.CreateAsync(It.IsAny<HistorySection>()), Times.Once);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class UpdateHistorySectionsTests
         await sut.Handle(new UpdateHistorySectionsCommand([replacement]), CancellationToken.None);
 
         _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
-        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
+        _historySectionsRepository.Verify(r => r.CreateAsync(It.IsAny<HistorySection>()), Times.Once);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class UpdateHistorySectionsTests
 
         Assert.True(result.IsSuccess);
         _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
-        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Once);
+        _historySectionsRepository.Verify(r => r.CreateAsync(It.IsAny<HistorySection>()), Times.Once);
     }
 
     [Fact]
@@ -140,7 +140,7 @@ public class UpdateHistorySectionsTests
         _repositoryWrapper.Verify(r => r.BeginTransaction(), Times.Never);
         _repositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Never);
         _historySectionsRepository.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<HistorySection>>()), Times.Never);
-        _historySectionsRepository.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<HistorySection>>()), Times.Never);
+        _historySectionsRepository.Verify(r => r.CreateAsync(It.IsAny<HistorySection>()), Times.Never);
         _imageRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions<Image>>()), Times.Never);
     }
 

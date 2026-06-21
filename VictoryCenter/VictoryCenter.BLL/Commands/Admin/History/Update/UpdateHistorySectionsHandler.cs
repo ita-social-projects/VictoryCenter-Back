@@ -54,7 +54,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
 
             var imagesByIdResult = await ImageValidationHelper.ValidateAndGetSectionImagesAsync(
                 _repositoryWrapper,
-                incomingSections.Cast<CreateHistorySectionDto>().ToList());
+                incomingSections.ToList());
 
             if (imagesByIdResult.IsFailed)
             {
