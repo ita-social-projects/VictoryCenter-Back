@@ -29,4 +29,21 @@ public class HistoryLocalizationsController : AuthorizedApiController
     {
         return HandleResult(await Mediator.Send(new UpdateHistoryLocalizationCommand(updateHistorySectionLocalizationDtos, LanguageId)));
     }
+
+    [HttpPut("{entityId:long}/language/{languageId:long}")]
+    [ProducesResponseType(typeof(HistorySectionLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateHistorySectionLocalization(
+        [FromBody] UpdateHistorySectionLocalizationDto updateDto,
+        [FromRoute(Name = "entityId")] long EntityId,
+        [FromRoute(Name = "languageId")] long LanguageId)
+    {
+        if (EntityId != updateDto.EntityId)
+        {
+            return BadRequest(new ProblemDetails { Detail = "EntityId in route does not match EntityId in body." });
+        }
+
+        return HandleResult(await Mediator.Send(new UpdateHistorySectionLocalizationCommand(updateDto, LanguageId)));
+    }
 }

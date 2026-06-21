@@ -79,8 +79,8 @@ public class GetAllHistorySectionsTests : BaseTestClass
             Order = order,
             Contents =
             [
-                new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = title },
-                new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = description },
+                new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = title },
+                new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = description },
             ]
         };
     }
@@ -93,9 +93,9 @@ public class GetAllHistorySectionsTests : BaseTestClass
             Order = order,
             Contents =
             [
-                new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = title },
-                new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = description },
-                new CreateHistorySectionContentDto { ContentType = ContentType.Image, Order = 2, ImageId = imageId },
+                new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = title },
+                new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = description },
+                new UpdateHistorySectionContentDto { ContentType = ContentType.Image, Order = 2, ImageId = imageId },
             ]
         };
     }

@@ -215,7 +215,7 @@ public class UpdateHistorySectionsTests
     private static UpdateHistorySectionDto SectionDto(
         int order,
         HistorySectionTemplate template,
-        params CreateHistorySectionContentDto[] contents)
+        params UpdateHistorySectionContentDto[] contents)
     {
         return new UpdateHistorySectionDto
         {
@@ -225,7 +225,7 @@ public class UpdateHistorySectionsTests
         };
     }
 
-    private static CreateHistorySectionContentDto TitleDto(int order, string title)
+    private static UpdateHistorySectionContentDto TitleDto(int order, string title)
         => new()
         {
             ContentType = ContentType.Title,
@@ -233,7 +233,7 @@ public class UpdateHistorySectionsTests
             Title = title
         };
 
-    private static CreateHistorySectionContentDto DescriptionDto(int order, string description)
+    private static UpdateHistorySectionContentDto DescriptionDto(int order, string description)
         => new()
         {
             ContentType = ContentType.Description,
@@ -241,7 +241,7 @@ public class UpdateHistorySectionsTests
             Description = description
         };
 
-    private static CreateHistorySectionContentDto ImageDto(int order, long imageId)
+    private static UpdateHistorySectionContentDto ImageDto(int order, long imageId)
         => new()
         {
             ContentType = ContentType.Image,
