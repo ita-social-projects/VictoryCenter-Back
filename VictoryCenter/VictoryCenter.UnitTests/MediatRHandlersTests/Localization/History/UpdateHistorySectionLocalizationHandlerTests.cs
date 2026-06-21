@@ -81,7 +81,7 @@ public class UpdateHistorySectionLocalizationHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ExistingLocalizationsNotFound_ReturnsFailResult()
+    public async Task Handle_ExistingLocalizationsNotFound_CreatesLocalizationsAndReturnsOk()
     {
         var dto = new UpdateHistorySectionLocalizationDto
         {
@@ -101,16 +101,22 @@ public class UpdateHistorySectionLocalizationHandlerTests
         _historySectionsRepositoryMock.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HistorySection>>()))
             .ReturnsAsync(section);
 
+        var contentLocalization = new HistorySectionContentLocalization { EntityId = 10 };
         _mapperMock.Setup(m => m.Map<List<HistorySectionContentLocalization>>(It.IsAny<List<UpdateHistorySectionContentLocalizationDto>>()))
-            .Returns([new HistorySectionContentLocalization()]);
+            .Returns([contentLocalization]);
 
         _localizationsRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HistorySectionContentLocalization>>()))
             .ReturnsAsync([]);
 
+        _localizationServiceMock.Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<List<HistorySectionContentLocalization>>(), false))
+            .Returns(Task.CompletedTask);
+
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
         var result = await _sut.Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsFailed);
-        Assert.Contains(result.Errors, e => e.Message.Contains(nameof(HistorySectionContentLocalization)));
+        Assert.True(result.IsSuccess);
+        _localizationServiceMock.Verify(s => s.TrackEntityLocalizationAsync(It.IsAny<List<HistorySectionContentLocalization>>(), false), Times.Once);
     }
 
     [Fact]

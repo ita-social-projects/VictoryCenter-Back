@@ -41,23 +41,6 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var allSections = (await _repositoryWrapper.HistorySectionsRepository.GetAllAsync()).ToList();
-
-            var requestSectionIds = request.UpdateHistorySectionLocalizationDtos
-                .Select(x => x.EntityId)
-                .ToHashSet();
-
-            var missingSectionIds = allSections
-                .Select(s => s.Id)
-                .Where(id => !requestSectionIds.Contains(id))
-                .ToList();
-
-            if (missingSectionIds.Count > 0)
-            {
-                return Result.Fail<List<HistorySectionLocalizationDto>>(
-                    ErrorMessagesConstants.MissingSectionsLocalization(missingSectionIds));
-            }
-
             var allContentLocalizations = new List<HistorySectionContentLocalization>();
             var sectionById = new Dictionary<long, HistorySection>();
 
@@ -107,17 +90,26 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
                 })).ToList();
 
             var existingContentIds = existingLocalizations.Select(l => l.EntityId).ToHashSet();
-            var notFoundContentIds = allContentIds
-                .Where(id => !existingContentIds.Contains(id))
-                .ToList();
 
-            if (notFoundContentIds.Count > 0)
+            var localizationsToUpdate = allContentLocalizations.Where(l => existingContentIds.Contains(l.EntityId)).ToList();
+            var localizationsToCreate = allContentLocalizations.Where(l => !existingContentIds.Contains(l.EntityId)).ToList();
+
+            if (localizationsToUpdate.Count > 0)
             {
-                return Result.Fail<List<HistorySectionLocalizationDto>>(
-                    ErrorMessagesConstants.NotFound(notFoundContentIds, typeof(HistorySectionContentLocalization)));
+                await _contentLocalizationService.TrackEntityLocalizationAsync(localizationsToUpdate, true);
             }
 
-            await _contentLocalizationService.TrackEntityLocalizationAsync(allContentLocalizations, true);
+            if (localizationsToCreate.Count > 0)
+            {
+                var utcNow = DateTimeOffset.UtcNow;
+                foreach (var loc in localizationsToCreate)
+                {
+                    loc.CreatedAt = utcNow;
+                    loc.TranslationStatus = TranslationStatus.Relevant;
+                }
+
+                await _contentLocalizationService.TrackEntityLocalizationAsync(localizationsToCreate, false);
+            }
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {

@@ -67,8 +67,6 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
             {
                 contentLocalizations[i].EntityId = sectionDto.Contents[i].EntityId;
                 contentLocalizations[i].LanguageId = request.LanguageId;
-
-                // Important: Update status to Relevant when edited explicitly by admin
                 contentLocalizations[i].TranslationStatus = TranslationStatus.Relevant;
             }
 
@@ -85,17 +83,26 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
                 })).ToList();
 
             var existingContentIds = existingLocalizations.Select(l => l.EntityId).ToHashSet();
-            var notFoundContentIds = allContentIds
-                .Where(id => !existingContentIds.Contains(id))
-                .ToList();
 
-            if (notFoundContentIds.Count > 0)
+            var localizationsToUpdate = contentLocalizations.Where(l => existingContentIds.Contains(l.EntityId)).ToList();
+            var localizationsToCreate = contentLocalizations.Where(l => !existingContentIds.Contains(l.EntityId)).ToList();
+
+            if (localizationsToUpdate.Count > 0)
             {
-                return Result.Fail<HistorySectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(notFoundContentIds, typeof(HistorySectionContentLocalization)));
+                await _contentLocalizationService.TrackEntityLocalizationAsync(localizationsToUpdate, true);
             }
 
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, true);
+            if (localizationsToCreate.Count > 0)
+            {
+                var utcNow = DateTimeOffset.UtcNow;
+                foreach (var loc in localizationsToCreate)
+                {
+                    loc.CreatedAt = utcNow;
+                    loc.TranslationStatus = TranslationStatus.Relevant;
+                }
+
+                await _contentLocalizationService.TrackEntityLocalizationAsync(localizationsToCreate, false);
+            }
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
