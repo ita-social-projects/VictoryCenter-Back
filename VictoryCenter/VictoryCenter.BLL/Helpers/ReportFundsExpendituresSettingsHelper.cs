@@ -53,7 +53,7 @@ public static class ReportFundsExpendituresSettingsHelper
             Id = ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
             DisclaimerTitle = string.Empty,
             ExchangeRate = 1m,
-            ProgramExpendituresReportingYear = now.Year,
+            ProgramExpendituresReportingYear = Math.Clamp(now.Year, 2010, 2050),
             CreatedAt = now
         };
     }
