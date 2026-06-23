@@ -52,6 +52,38 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
                 return Result.Ok<List<HistorySectionDto>>([]);
             }
 
+            var existingSectionIds = existingSections.Select(s => s.Id).ToHashSet();
+            var unknownIds = incomingSections
+                .Where(s => s.Id > 0 && !existingSectionIds.Contains(s.Id))
+                .Select(s => s.Id)
+                .ToList();
+
+            if (unknownIds.Count > 0)
+            {
+                return Result.Fail<List<HistorySectionDto>>(
+                    ErrorMessagesConstants.NotFound(unknownIds, typeof(HistorySection)));
+            }
+
+            var contentMismatches = incomingSections
+                .SelectMany(s => s.Contents ?? [])
+                .Where(c => c.Id > 0)
+                .Where(c =>
+                {
+                    var oldContent = existingSections
+                        .SelectMany(s => s.Contents)
+                        .FirstOrDefault(oc => oc.Id == c.Id);
+
+                    return oldContent != null && oldContent.ContentType != c.ContentType;
+                })
+                .Select(c => c.Id)
+                .ToList();
+
+            if (contentMismatches.Count > 0)
+            {
+                return Result.Fail<List<HistorySectionDto>>(
+                    $"Content type mismatch for content ID(s): {string.Join(", ", contentMismatches)}");
+            }
+
             var imagesByIdResult = await ImageValidationHelper.ValidateAndGetSectionImagesAsync(
                 _repositoryWrapper,
                 incomingSections.ToList());
@@ -94,6 +126,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
         IReadOnlyDictionary<long, Image> imagesById)
     {
         var result = new List<HistorySection>();
+        var changedContentIds = new List<long>();
         var oldSectionsDict = oldSections.ToDictionary(s => s.Id);
 
         var sectionsToRemove = oldSections.Where(os => !newSections.Any(ns => ns.Id == os.Id)).ToList();
@@ -162,21 +195,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
 
                         if (textChanged)
                         {
-                            var localizations = (await _repositoryWrapper.HistorySectionContentLocalizationsRepository
-                                .GetAllAsync(new QueryOptions<HistorySectionContentLocalization>
-                                {
-                                    Filter = l => l.EntityId == existingContent.Id
-                                })).ToList();
-
-                            if (localizations.Count > 0)
-                            {
-                                foreach (var loc in localizations)
-                                {
-                                    loc.TranslationStatus = TranslationStatus.Outdated;
-                                }
-
-                                _repositoryWrapper.HistorySectionContentLocalizationsRepository.UpdateRange(localizations);
-                            }
+                            changedContentIds.Add(existingContent.Id);
                         }
                     }
                     else
@@ -203,6 +222,25 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
                 };
                 await _repositoryWrapper.HistorySectionsRepository.CreateAsync(newSection);
                 result.Add(newSection);
+            }
+        }
+
+        if (changedContentIds.Count > 0)
+        {
+            var localizations = (await _repositoryWrapper.HistorySectionContentLocalizationsRepository
+                .GetAllAsync(new QueryOptions<HistorySectionContentLocalization>
+                {
+                    Filter = l => changedContentIds.Contains(l.EntityId)
+                })).ToList();
+
+            if (localizations.Count > 0)
+            {
+                foreach (var loc in localizations)
+                {
+                    loc.TranslationStatus = TranslationStatus.Outdated;
+                }
+
+                _repositoryWrapper.HistorySectionContentLocalizationsRepository.UpdateRange(localizations);
             }
         }
 

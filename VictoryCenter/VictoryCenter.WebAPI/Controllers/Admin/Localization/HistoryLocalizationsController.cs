@@ -41,7 +41,11 @@ public class HistoryLocalizationsController : AuthorizedApiController
     {
         if (EntityId != updateDto.EntityId)
         {
-            return BadRequest(new ProblemDetails { Detail = "EntityId in route does not match EntityId in body." });
+            var problemsFactory = HttpContext.RequestServices.GetRequiredService<Microsoft.AspNetCore.Mvc.Infrastructure.ProblemDetailsFactory>();
+            return BadRequest(problemsFactory.CreateProblemDetails(
+                HttpContext,
+                statusCode: StatusCodes.Status400BadRequest,
+                detail: "EntityId in route does not match EntityId in body."));
         }
 
         return HandleResult(await Mediator.Send(new UpdateHistorySectionLocalizationCommand(updateDto, LanguageId)));

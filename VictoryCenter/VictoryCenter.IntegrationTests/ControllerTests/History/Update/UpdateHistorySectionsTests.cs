@@ -129,6 +129,67 @@ public class UpdateHistorySectionsTests : BaseTestClass
         Assert.Equal(0, sectionsCount);
     }
 
+    [Fact]
+    public async Task Update_WithUnknownSectionId_ShouldReturnNotFound()
+    {
+        var payload = new List<UpdateHistorySectionDto>
+        {
+            new()
+            {
+                Id = 999,
+                Template = HistorySectionTemplate.TextOnly,
+                Order = 0,
+                Contents =
+                [
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Title" },
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Description text" }
+                ]
+            }
+        };
+
+        var response = await PutRaw(payload);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_WithMismatchedContentType_ShouldReturnBadRequest()
+    {
+        var initialPayload = new List<UpdateHistorySectionDto>
+        {
+            CreateTextOnlySection(order: 0, title: "Initial title", description: "Initial description text"),
+        };
+
+        var initialResponse = await PutRaw(initialPayload);
+        Assert.Equal(HttpStatusCode.OK, initialResponse.StatusCode);
+
+        var sectionInDb = await Fixture.DbContext.Set<HistorySection>()
+            .Include(s => s.Contents)
+            .SingleAsync();
+
+        var titleContent = sectionInDb.Contents.Single(c => c.ContentType == ContentType.Title);
+        var descriptionContent = sectionInDb.Contents.Single(c => c.ContentType == ContentType.Description);
+
+        var invalidPayload = new List<UpdateHistorySectionDto>
+        {
+            new()
+            {
+                Id = sectionInDb.Id,
+                Template = HistorySectionTemplate.TextOnly,
+                Order = 0,
+                Contents =
+                [
+                    new UpdateHistorySectionContentDto { Id = titleContent.Id, ContentType = ContentType.Description, Order = 0, Description = "New description using title ID" },
+                    new UpdateHistorySectionContentDto { Id = descriptionContent.Id, ContentType = ContentType.Title, Order = 1, Title = "New title using description ID" },
+                ]
+            }
+        };
+
+        var response = await PutRaw(invalidPayload);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task<HttpResponseMessage> PutRaw(List<UpdateHistorySectionDto> payload)
     {
         var serialized = JsonSerializer.Serialize(payload);

@@ -8,6 +8,11 @@ public class UpdateHistorySectionLocalizationCommandValidator : AbstractValidato
 {
     public UpdateHistorySectionLocalizationCommandValidator(VictoryCenter.BLL.Validators.Localization.History.BaseHistorySectionContentLocalizationValidator contentValidator)
     {
+        RuleFor(x => x.LanguageId)
+            .GreaterThan(0)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
+                nameof(UpdateHistorySectionLocalizationCommand.LanguageId)));
+
         RuleFor(x => x.UpdateDto)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(

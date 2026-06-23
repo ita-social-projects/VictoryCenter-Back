@@ -89,6 +89,11 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
 
             if (localizationsToUpdate.Count > 0)
             {
+                foreach (var loc in localizationsToUpdate)
+                {
+                    loc.TranslationStatus = TranslationStatus.Relevant;
+                }
+
                 await _contentLocalizationService.TrackEntityLocalizationAsync(localizationsToUpdate, true);
             }
 
@@ -142,9 +147,10 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
             return Result.Fail<HistorySectionLocalizationDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(HistorySectionContentLocalization)));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(ex.Message);
+            return Result.Fail<HistorySectionLocalizationDto>(
+                ErrorMessagesConstants.FailedToUpdateEntity(typeof(HistorySectionContentLocalization)));
         }
     }
 }

@@ -123,7 +123,7 @@ public class UpdateHistorySectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(HistorySectionConstants.GetTitleLengthErrorMessage(model));
+            .WithErrorMessage(HistorySectionConstants.GetTitleLengthErrorMessage(model.Template));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class UpdateHistorySectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(HistorySectionConstants.GetDescriptionLengthErrorMessage(model));
+            .WithErrorMessage(HistorySectionConstants.GetDescriptionLengthErrorMessage(model.Template));
     }
 
     [Fact]

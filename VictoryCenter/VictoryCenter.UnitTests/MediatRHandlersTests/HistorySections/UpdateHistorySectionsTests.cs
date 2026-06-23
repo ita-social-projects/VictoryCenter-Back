@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Validators.HistorySections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.HistorySections;
 
@@ -21,6 +22,8 @@ public class UpdateHistorySectionsTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper = new();
     private readonly Mock<IHistorySectionsRepository> _historySectionsRepository = new();
+    private readonly Mock<IHistorySectionContentsRepository> _historySectionContentsRepository = new();
+    private readonly Mock<IHistorySectionContentLocalizationsRepository> _historySectionContentLocalizationsRepository = new();
     private readonly Mock<IImageRepository> _imageRepository = new();
     private readonly Mock<IValidator<UpdateHistorySectionsCommand>> _validator = new();
 
@@ -182,12 +185,182 @@ public class UpdateHistorySectionsTests
         Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains(nameof(UpdateHistorySectionsCommand.UpdateSections)));
     }
 
+    [Fact]
+    public async Task Handle_IncomingSectionIdNotExists_ReturnsError()
+    {
+        var existing = ExistingSection(
+            id: 1,
+            order: 0,
+            template: HistorySectionTemplate.TextOnly,
+            TitleContent(order: 0, title: "Title"));
+
+        var dto = new UpdateHistorySectionDto
+        {
+            Id = 999,
+            Order = 0,
+            Template = HistorySectionTemplate.TextOnly,
+            Contents = [TitleDto(order: 0, title: "Title")]
+        };
+
+        var sut = CreateSut(existingSections: [existing], saveChanges: 1);
+
+        var result = await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains("not found", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Handle_ContentTypeMismatch_ReturnsError()
+    {
+        var existing = ExistingSection(
+            id: 1,
+            order: 0,
+            template: HistorySectionTemplate.TextOnly,
+            TitleContent(order: 0, title: "Title"));
+        existing.Contents.First().Id = 1;
+
+        var dto = new UpdateHistorySectionDto
+        {
+            Id = 1,
+            Order = 0,
+            Template = HistorySectionTemplate.TextOnly,
+            Contents = new List<UpdateHistorySectionContentDto>
+            {
+                new()
+                {
+                    Id = 1,
+                    ContentType = ContentType.Description,
+                    Order = 0,
+                    Description = "Description"
+                }
+            }
+        };
+
+        var sut = CreateSut(existingSections: [existing], saveChanges: 1);
+
+        var result = await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(result.Errors.Select(e => e.Message), m => m.Contains("mismatch", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task Handle_ValidUpdate_UpdatesExistingFieldsAndReturnsSuccess()
+    {
+        var existing = ExistingSection(
+            id: 1,
+            order: 0,
+            template: HistorySectionTemplate.TextOnly,
+            TitleContent(order: 0, title: "Old Title"));
+        existing.Contents.First().Id = 1;
+
+        var dto = new UpdateHistorySectionDto
+        {
+            Id = 1,
+            Order = 0,
+            Template = HistorySectionTemplate.TextOnly,
+            Contents = new List<UpdateHistorySectionContentDto>
+            {
+                new()
+                {
+                    Id = 1,
+                    ContentType = ContentType.Title,
+                    Order = 0,
+                    Title = "New Title"
+                }
+            }
+        };
+
+        var sut = CreateSut(existingSections: [existing], saveChanges: 1);
+
+        var result = await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _historySectionsRepository.Verify(r => r.Update(It.IsAny<HistorySection>()), Times.Once);
+        _repositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.AtLeastOnce);
+    }
+
+    [Fact]
+    public async Task Handle_CreateNewSectionWithImage_ReturnsSuccess()
+    {
+        var existing = ExistingSection(
+            id: 1,
+            order: 0,
+            template: HistorySectionTemplate.TextOnly,
+            TitleContent(order: 0, title: "Title"));
+
+        var imageId = 100L;
+
+        var dto = new UpdateHistorySectionDto
+        {
+            Id = 0,
+            Order = 1,
+            Template = HistorySectionTemplate.TextOnly,
+            Contents = new List<UpdateHistorySectionContentDto>
+            {
+                new()
+                {
+                    Id = 0,
+                    ContentType = ContentType.Image,
+                    Order = 0,
+                    ImageId = imageId
+                }
+            }
+        };
+
+        var sut = CreateSut(existingSections: [existing], images: [new Image { Id = imageId }], saveChanges: 1);
+
+        var result = await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
+
+        Assert.True(result.IsSuccess, result.IsFailed ? string.Join(", ", result.Errors.Select(e => e.Message)) : "");
+        _historySectionsRepository.Verify(r => r.CreateAsync(It.IsAny<HistorySection>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_UpdateImageContent_ReturnsSuccess()
+    {
+        var existing = ExistingSection(
+            id: 1,
+            order: 0,
+            template: HistorySectionTemplate.TextOnly);
+        var oldImageId = 100L;
+        var newImageId = 101L;
+        existing.Contents.Add(new ImageHistoryContent { Id = 1, ContentType = ContentType.Image, ImageId = oldImageId });
+
+        var dto = new UpdateHistorySectionDto
+        {
+            Id = 1,
+            Order = 0,
+            Template = HistorySectionTemplate.TextOnly,
+            Contents = new List<UpdateHistorySectionContentDto>
+            {
+                new()
+                {
+                    Id = 1,
+                    ContentType = ContentType.Image,
+                    Order = 0,
+                    ImageId = newImageId
+                }
+            }
+        };
+
+        var sut = CreateSut(existingSections: [existing], images: [new Image { Id = newImageId }], saveChanges: 1);
+
+        var result = await sut.Handle(new UpdateHistorySectionsCommand([dto]), CancellationToken.None);
+
+        Assert.True(result.IsSuccess, result.IsFailed ? string.Join(", ", result.Errors.Select(e => e.Message)) : "");
+        _historySectionContentsRepository.Verify(r => r.Update(It.IsAny<ImageHistoryContent>()), Times.Once);
+    }
+
     private UpdateHistorySectionsHandler CreateSut(
         IEnumerable<HistorySection>? existingSections = null,
         IEnumerable<Image>? images = null,
         int saveChanges = 1)
     {
         _repositoryWrapper.Setup(r => r.HistorySectionsRepository).Returns(_historySectionsRepository.Object);
+        _repositoryWrapper.Setup(r => r.HistorySectionContentsRepository).Returns(_historySectionContentsRepository.Object);
+        _repositoryWrapper.Setup(r => r.HistorySectionContentLocalizationsRepository).Returns(_historySectionContentLocalizationsRepository.Object);
         _repositoryWrapper.Setup(r => r.ImageRepository).Returns(_imageRepository.Object);
         _repositoryWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveChanges);
         _repositoryWrapper.Setup(r => r.BeginTransaction())

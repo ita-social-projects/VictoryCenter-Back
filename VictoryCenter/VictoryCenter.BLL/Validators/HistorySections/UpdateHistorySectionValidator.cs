@@ -60,17 +60,17 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
     {
         if (!InRange(CountByType(contents, ContentType.Title), req.TitleCount))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetTitlesCountErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetTitlesCountErrorMessage(section.Template, CountByType(contents, ContentType.Title)));
         }
 
         if (!InRange(CountByType(contents, ContentType.Description), req.DescriptionCount))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionsCountErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionsCountErrorMessage(section.Template, CountByType(contents, ContentType.Description)));
         }
 
         if (!InRange(CountByType(contents, ContentType.Image), req.ImageCount))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetImagesCountErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetImagesCountErrorMessage(section.Template, CountByType(contents, ContentType.Image)));
         }
     }
 
@@ -122,7 +122,7 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
 
         if (titles.Any(c => !HasValidLength(c.Title, req.TitleLength)))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetTitleLengthErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetTitleLengthErrorMessage(section.Template));
         }
     }
 
@@ -142,7 +142,7 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
 
         if (descriptions.Any(c => !HasValidLength(c.Description, req.DescriptionLength)))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionLengthErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionLengthErrorMessage(section.Template));
         }
     }
 
