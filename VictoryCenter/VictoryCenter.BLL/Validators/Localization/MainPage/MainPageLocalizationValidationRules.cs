@@ -37,21 +37,21 @@ internal static class MainPageLocalizationValidationRules
             .Cascade(CascadeMode.Stop)
             .Must(value => !string.IsNullOrWhiteSpace(value))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainPageLocalizationDto.Title)))
-            .MinimumLength(MainPageConstants.Localization.Title.MinLength)
+            .MinimumLength(MainPageConstants.Localization.ValidationTitleRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainPageLocalizationDto.Title), MainPageConstants.Localization.Title.MinLength))
-            .MaximumLength(MainPageConstants.Localization.Title.MaxLength)
+                nameof(BaseMainPageLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MinLen))
+            .MaximumLength(MainPageConstants.Localization.ValidationTitleRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainPageLocalizationDto.Title), MainPageConstants.Localization.Title.MaxLength))
+                nameof(BaseMainPageLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MaxLen))
             .When(titleCondition);
 
         validator.RuleFor(x => x.Description)
             .Cascade(CascadeMode.Stop)
             .Must(value => !string.IsNullOrWhiteSpace(value))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainPageLocalizationDto.Description)))
-            .MinimumLength(MainPageConstants.Localization.SectionDescription.MinLength)
+            .MinimumLength(MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainPageLocalizationDto.Description), MainPageConstants.Localization.SectionDescription.MinLength))
+                nameof(BaseMainPageLocalizationDto.Description), MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen))
             .MaximumLength(descriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(BaseMainPageLocalizationDto.Description), descriptionMaxLength))

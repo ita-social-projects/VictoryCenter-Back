@@ -11,7 +11,7 @@ public class UpdateMainPageLocalizationDtoValidator : AbstractValidator<UpdateMa
         UpdateMainPartnersLocalizationDtoValidator mainPartnersValidator,
         UpdateMainDonationsLocalizationDtoValidator mainDonationsValidator)
     {
-        this.AddOptionalTitleAndDescriptionRules(MainPageConstants.Localization.TitleBlockDescription.MaxLength);
+        this.AddOptionalTitleAndDescriptionRules(MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MaxLen);
 
         RuleFor(x => x.MainAboutUs)
             .SetValidator(mainAboutUsValidator!)

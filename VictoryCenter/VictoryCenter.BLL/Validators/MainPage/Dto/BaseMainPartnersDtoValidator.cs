@@ -13,22 +13,22 @@ public abstract class BaseMainPartnersDtoValidator<TDto> : AbstractValidator<TDt
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainPartnersDto.Title)))
-            .MinimumLength(MainPageConstants.Title.MinLength)
+            .MinimumLength(MainPageConstants.ValidationTitleRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainPartnersDto.Title), MainPageConstants.Title.MinLength))
-            .MaximumLength(MainPageConstants.Title.MaxLength)
+                nameof(BaseMainPartnersDto.Title), MainPageConstants.ValidationTitleRules.MinLen))
+            .MaximumLength(MainPageConstants.ValidationTitleRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainPartnersDto.Title), MainPageConstants.Title.MaxLength));
+                nameof(BaseMainPartnersDto.Title), MainPageConstants.ValidationTitleRules.MaxLen));
 
         RuleFor(x => x.Description)
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainPartnersDto.Description)))
-            .MinimumLength(MainPageConstants.Description.MinLength)
+            .MinimumLength(MainPageConstants.ValidationDescriptionRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainPartnersDto.Description), MainPageConstants.Description.MinLength))
-            .MaximumLength(MainPageConstants.Description.MaxLength)
+                nameof(BaseMainPartnersDto.Description), MainPageConstants.ValidationDescriptionRules.MinLen))
+            .MaximumLength(MainPageConstants.ValidationDescriptionRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainPartnersDto.Description), MainPageConstants.Description.MaxLength));
+                nameof(BaseMainPartnersDto.Description), MainPageConstants.ValidationDescriptionRules.MaxLen));
     }
 }

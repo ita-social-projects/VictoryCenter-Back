@@ -8,6 +8,6 @@ public class BaseMainPageLocalizationDtoValidator : AbstractValidator<BaseMainPa
 {
     public BaseMainPageLocalizationDtoValidator()
     {
-        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.TitleBlockDescription.MaxLength);
+        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MaxLen);
     }
 }

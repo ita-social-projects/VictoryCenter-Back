@@ -37,54 +37,54 @@ public class UpdateMainDonationsLocalizationDtoValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenTitleIsTooShort()
     {
-        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Localization.Title.MinLength - 1) };
+        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen - 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateMainDonationsLocalizationDto.Title), MainPageConstants.Localization.Title.MinLength));
+                nameof(UpdateMainDonationsLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MinLen));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenTitleIsTooLong()
     {
-        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Localization.Title.MaxLength + 1) };
+        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MaxLen + 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateMainDonationsLocalizationDto.Title), MainPageConstants.Localization.Title.MaxLength));
+                nameof(UpdateMainDonationsLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MaxLen));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenDescriptionIsTooShort()
     {
-        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength - 1) };
+        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen - 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateMainDonationsLocalizationDto.Description), MainPageConstants.Localization.SectionDescription.MinLength));
+                nameof(UpdateMainDonationsLocalizationDto.Description), MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenDescriptionIsTooLong()
     {
-        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Localization.SectionDescription.MaxLength + 1) };
+        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen + 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateMainDonationsLocalizationDto.Description), MainPageConstants.Localization.SectionDescription.MaxLength));
+                nameof(UpdateMainDonationsLocalizationDto.Description), MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen));
     }
 
     private static UpdateMainDonationsLocalizationDto GetValidDto() => new()
     {
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength),
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen),
     };
 }

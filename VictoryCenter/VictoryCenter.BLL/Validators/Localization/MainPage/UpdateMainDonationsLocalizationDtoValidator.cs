@@ -11,6 +11,6 @@ public class UpdateMainDonationsLocalizationDtoValidator : AbstractValidator<Upd
         ArgumentNullException.ThrowIfNull(baseValidator);
 
         Include(baseValidator);
-        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.SectionDescription.MaxLength);
+        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen);
     }
 }

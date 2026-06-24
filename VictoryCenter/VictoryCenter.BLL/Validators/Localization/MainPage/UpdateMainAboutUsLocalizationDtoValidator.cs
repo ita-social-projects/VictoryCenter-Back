@@ -8,6 +8,6 @@ public class UpdateMainAboutUsLocalizationDtoValidator : AbstractValidator<Updat
 {
     public UpdateMainAboutUsLocalizationDtoValidator(BaseMainPageLocalizationDtoValidator baseValidator)
     {
-        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.SectionDescription.MaxLength);
+        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen);
     }
 }

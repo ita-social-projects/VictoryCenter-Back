@@ -12,12 +12,12 @@ public class UpdateImpactStatisticDtoValidator : AbstractValidator<UpdateImpactS
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Title)))
-            .MinimumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MinLength)
+            .MinimumLength(MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.TitleConstraints.MinLength))
-            .MaximumLength(MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength)
+                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen))
+            .MaximumLength(MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
+                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen));
 
         RuleFor(x => x.Id)
             .GreaterThan(0)
