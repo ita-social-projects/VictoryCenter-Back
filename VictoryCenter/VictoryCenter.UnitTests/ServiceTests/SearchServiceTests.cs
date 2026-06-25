@@ -184,4 +184,50 @@ public class SearchServiceTests
         // Assert
         Assert.Empty(actualResult);
     }
+
+    [Theory]
+    [InlineData("Name1")]
+    [InlineData("Suname1")]
+    [InlineData("stName1 TestSu")]
+    [InlineData("TestName1 TestSuname1")]
+    public void SearchOneTermByContains_ShouldReturnNonEmpty_WhenExists(string term)
+    {
+        // Arrange
+        List<TeamMember> expectedResult = [_teamMembers[0]];
+        var searchTerm = new SearchTerm<TeamMember>
+        {
+            SearchLogic = SearchLogic.Contains,
+            TermSelector = tm => tm.FullName,
+            TermValue = term,
+        };
+
+        // Act
+        var expression = _searchService.CreateSearchExpression(searchTerm);
+        var actualResult = _teamMembers.AsQueryable().Where(expression).ToList();
+
+        // Assert
+        Assert.Equal(expectedResult, actualResult);
+    }
+
+    [Theory]
+    [InlineData("Name12")]
+    [InlineData("Suname12")]
+    [InlineData("Random")]
+    public void SearchOneTermByContains_ShouldReturnEmpty_WhenNotExists(string term)
+    {
+        // Arrange
+        var searchTerm = new SearchTerm<TeamMember>
+        {
+            SearchLogic = SearchLogic.Contains,
+            TermSelector = tm => tm.FullName,
+            TermValue = term,
+        };
+
+        // Act
+        var expression = _searchService.CreateSearchExpression(searchTerm);
+        var actualResult = _teamMembers.AsQueryable().Where(expression).ToList();
+
+        // Assert
+        Assert.Empty(actualResult);
+    }
 }
