@@ -20,6 +20,16 @@ public class UpdateReportMediaSettingsCommandValidator : AbstractValidator<Updat
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdateChangedLivesBlockDto.Title), ChangedLivesBlockConstants.TitleMaxLength));
 
+        RuleFor(x => x.Dto.ChangedLivesBlock.TitleEn)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateChangedLivesBlockDto.TitleEn)))
+            .MinimumLength(ChangedLivesBlockConstants.TitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateChangedLivesBlockDto.TitleEn), ChangedLivesBlockConstants.TitleMinLength))
+            .MaximumLength(ChangedLivesBlockConstants.TitleMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(UpdateChangedLivesBlockDto.TitleEn), ChangedLivesBlockConstants.TitleMaxLength));
+
         RuleFor(x => x.Dto.ChangedLivesBlock.ChangedLives)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateChangedLivesBlockDto.ChangedLives)))
@@ -42,6 +52,16 @@ public class UpdateReportMediaSettingsCommandValidator : AbstractValidator<Updat
             .MaximumLength(CollectedFundsBlockConstants.TitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdateCollectedFundsBlockDto.Title), CollectedFundsBlockConstants.TitleMaxLength));
+
+        RuleFor(x => x.Dto.CollectedFundsBlock.TitleEn)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateCollectedFundsBlockDto.TitleEn)))
+            .MinimumLength(CollectedFundsBlockConstants.TitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateCollectedFundsBlockDto.TitleEn), CollectedFundsBlockConstants.TitleMinLength))
+            .MaximumLength(CollectedFundsBlockConstants.TitleMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(UpdateCollectedFundsBlockDto.TitleEn), CollectedFundsBlockConstants.TitleMaxLength));
 
         RuleFor(x => x.Dto.CollectedFundsBlock.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateCollectedFundsBlockDto.ImageId)));
