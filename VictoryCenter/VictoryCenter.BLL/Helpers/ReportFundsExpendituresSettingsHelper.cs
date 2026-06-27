@@ -10,7 +10,8 @@ namespace VictoryCenter.BLL.Helpers;
 public static class ReportFundsExpendituresSettingsHelper
 {
     public static async Task<Result<ReportFundsExpendituresSettingsEntity>> GetOrCreateSettingsAsync(
-        IRepositoryWrapper repositoryWrapper)
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider)
     {
         var settings = await repositoryWrapper.ReportFundsExpendituresSettingsRepository
             .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresSettingsEntity>
@@ -23,7 +24,7 @@ public static class ReportFundsExpendituresSettingsHelper
             return Result.Ok(settings);
         }
 
-        settings = CreateDefaultSettings();
+        settings = CreateDefaultSettings(timeProvider);
         await repositoryWrapper.ReportFundsExpendituresSettingsRepository.CreateAsync(settings);
 
         try
@@ -43,14 +44,17 @@ public static class ReportFundsExpendituresSettingsHelper
         return Result.Ok(settings);
     }
 
-    private static ReportFundsExpendituresSettingsEntity CreateDefaultSettings()
+    private static ReportFundsExpendituresSettingsEntity CreateDefaultSettings(TimeProvider timeProvider)
     {
+        var now = timeProvider.GetUtcNow();
+
         return new ReportFundsExpendituresSettingsEntity
         {
             Id = ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
             DisclaimerTitle = string.Empty,
             ExchangeRate = 1m,
-            CreatedAt = DateTimeOffset.UtcNow
+            ProgramExpendituresReportingYear = Math.Clamp(now.Year, 2010, 2050),
+            CreatedAt = now
         };
     }
 }

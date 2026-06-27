@@ -45,7 +45,8 @@ public class GetReportFundsExpendituresSettingsTests
         SetupDependencies(_settingsEntity, saveResult: 1);
         var handler = new GetReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
-            _repositoryWrapperMock.Object);
+            _repositoryWrapperMock.Object,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(new GetReportFundsExpendituresSettingsQuery(), CancellationToken.None);
@@ -63,7 +64,8 @@ public class GetReportFundsExpendituresSettingsTests
         SetupDependencies(null, saveResult: 1);
         var handler = new GetReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
-            _repositoryWrapperMock.Object);
+            _repositoryWrapperMock.Object,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(new GetReportFundsExpendituresSettingsQuery(), CancellationToken.None);
@@ -82,7 +84,8 @@ public class GetReportFundsExpendituresSettingsTests
         SetupDependencies(null, saveResult: 0);
         var handler = new GetReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
-            _repositoryWrapperMock.Object);
+            _repositoryWrapperMock.Object,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(new GetReportFundsExpendituresSettingsQuery(), CancellationToken.None);
@@ -101,7 +104,8 @@ public class GetReportFundsExpendituresSettingsTests
         SetupDependencies(null, saveResult: 1, saveException: new DbUpdateException());
         var handler = new GetReportFundsExpendituresSettingsHandler(
             _mapperMock.Object,
-            _repositoryWrapperMock.Object);
+            _repositoryWrapperMock.Object,
+            TimeProvider.System);
 
         // Act
         var result = await handler.Handle(new GetReportFundsExpendituresSettingsQuery(), CancellationToken.None);

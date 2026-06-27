@@ -1,6 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
 
 namespace VictoryCenter.BLL.Validators.ReportFundsExpendituresSettings;
 
@@ -30,5 +31,8 @@ public class BaseReportFundsExpendituresSettingsValidator : AbstractValidator<Ba
             .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
                 nameof(ReportFundsExpendituresSettingsDto.ExchangeRate),
                 ReportFundsExpendituresSettingsConstants.ExchangeRateFormat));
+
+        RuleFor(dto => dto.ProgramExpendituresReportingYear)
+            .MustBeValidReportingYear(nameof(ReportFundsExpendituresSettingsDto.ProgramExpendituresReportingYear));
     }
 }
