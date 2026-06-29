@@ -16,18 +16,18 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.History.Update;
 
-public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLocalizationCommand, Result<List<HistorySectionLocalizationDto>>>
+public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHistorySectionLocalizationCommand, Result<HistorySectionLocalizationDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
     private readonly ILocalizationService<HistorySectionContent, HistorySectionContentLocalization> _contentLocalizationService;
-    private readonly IValidator<UpdateHistoryLocalizationCommand> _validator;
+    private readonly IValidator<UpdateHistorySectionLocalizationCommand> _validator;
 
-    public UpdateHistoryLocalizationHandler(
+    public UpdateHistorySectionLocalizationHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
         ILocalizationService<HistorySectionContent, HistorySectionContentLocalization> contentLocalizationService,
-        IValidator<UpdateHistoryLocalizationCommand> validator)
+        IValidator<UpdateHistorySectionLocalizationCommand> validator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
@@ -35,51 +35,44 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
         _validator = validator;
     }
 
-    public async Task<Result<List<HistorySectionLocalizationDto>>> Handle(UpdateHistoryLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<HistorySectionLocalizationDto>> Handle(UpdateHistorySectionLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var allContentLocalizations = new List<HistorySectionContentLocalization>();
-            var sectionById = new Dictionary<long, HistorySection>();
+            var sectionDto = request.UpdateDto;
 
-            foreach (var sectionDto in request.UpdateHistorySectionLocalizationDtos)
+            var section = await _repositoryWrapper.HistorySectionsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<HistorySection>
+                {
+                    Filter = x => x.Id == sectionDto.EntityId,
+                    Include = x => x.Include(s => s.Contents)
+                });
+
+            if (section is null)
             {
-                var section = await _repositoryWrapper.HistorySectionsRepository
-                    .GetFirstOrDefaultAsync(new QueryOptions<HistorySection>
-                    {
-                        Filter = x => x.Id == sectionDto.EntityId,
-                        Include = x => x.Include(s => s.Contents)
-                    });
-
-                if (section is null)
-                {
-                    return Result.Fail<List<HistorySectionLocalizationDto>>(
-                        ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
-                }
-
-                HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
-                    section.Id,
-                    sectionDto.Contents,
-                    section.Contents);
-
-                var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(sectionDto.Contents);
-
-                for (int i = 0; i < contentLocalizations.Count; i++)
-                {
-                    contentLocalizations[i].EntityId = sectionDto.Contents[i].EntityId;
-                    contentLocalizations[i].LanguageId = request.LanguageId;
-                }
-
-                allContentLocalizations.AddRange(contentLocalizations);
-                sectionById[section.Id] = section;
+                return Result.Fail<HistorySectionLocalizationDto>(
+                    ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
             }
 
-            var allContentIds = sectionById.Values
-                .SelectMany(s => s.Contents
-                    .Where(c => c.ContentType != ContentType.Image)
-                    .Select(c => c.Id))
+            HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
+                section.Id,
+                sectionDto.Contents,
+                section.Contents);
+
+            var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(sectionDto.Contents);
+
+            for (int i = 0; i < contentLocalizations.Count; i++)
+            {
+                contentLocalizations[i].EntityId = sectionDto.Contents[i].EntityId;
+                contentLocalizations[i].LanguageId = request.LanguageId;
+                contentLocalizations[i].TranslationStatus = TranslationStatus.Relevant;
+            }
+
+            var allContentIds = section.Contents
+                .Where(c => c.ContentType != ContentType.Image)
+                .Select(c => c.Id)
                 .ToList();
 
             var existingLocalizations = (await _repositoryWrapper.HistorySectionContentLocalizationsRepository
@@ -91,8 +84,8 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
 
             var existingContentIds = existingLocalizations.Select(l => l.EntityId).ToHashSet();
 
-            var localizationsToUpdate = allContentLocalizations.Where(l => existingContentIds.Contains(l.EntityId)).ToList();
-            var localizationsToCreate = allContentLocalizations.Where(l => !existingContentIds.Contains(l.EntityId)).ToList();
+            var localizationsToUpdate = contentLocalizations.Where(l => existingContentIds.Contains(l.EntityId)).ToList();
+            var localizationsToCreate = contentLocalizations.Where(l => !existingContentIds.Contains(l.EntityId)).ToList();
 
             if (localizationsToUpdate.Count > 0)
             {
@@ -118,7 +111,7 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Fail<List<HistorySectionLocalizationDto>>(
+                return Result.Fail<HistorySectionLocalizationDto>(
                     ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(HistorySectionContentLocalization)));
             }
 
@@ -130,44 +123,33 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
                     Include = q => q.Include(l => l.Language)
                 });
 
-            var results = new List<HistorySectionLocalizationDto>();
-            foreach (var (sectionId, section) in sectionById)
+            return Result.Ok(new HistorySectionLocalizationDto
             {
-                var contentIds = section.Contents.Select(c => c.Id).ToHashSet();
-                var sectionLocalizations = updatedLocalizations
-                    .Where(l => contentIds.Contains(l.EntityId))
-                    .ToList();
-
-                results.Add(new HistorySectionLocalizationDto
-                {
-                    EntityId = sectionId,
-                    Contents = _mapper.Map<List<HistorySectionContentLocalizationDto>>(sectionLocalizations)
-                });
-            }
-
-            return Result.Ok(results);
+                EntityId = section.Id,
+                Contents = _mapper.Map<List<HistorySectionContentLocalizationDto>>(updatedLocalizations.ToList())
+            });
         }
         catch (KeyNotFoundException ex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(ex.Message);
+            return Result.Fail<HistorySectionLocalizationDto>(ex.Message);
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(
+            return Result.Fail<HistorySectionLocalizationDto>(
                 ErrorMessagesConstants.FailedToUpdateEntity(typeof(HistorySectionContentLocalization)));
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HistorySectionLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(
+            return Result.Fail<HistorySectionLocalizationDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(HistorySectionContentLocalization)));
         }
         catch (Exception)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(
+            return Result.Fail<HistorySectionLocalizationDto>(
                 ErrorMessagesConstants.FailedToUpdateEntity(typeof(HistorySectionContentLocalization)));
         }
     }

@@ -123,7 +123,7 @@ public class UpdateHistorySectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(HistorySectionConstants.GetTitleLengthErrorMessage(model));
+            .WithErrorMessage(HistorySectionConstants.GetTitleLengthErrorMessage(model.Template));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class UpdateHistorySectionValidatorTests
         var result = _validator.TestValidate(model);
 
         result.ShouldHaveValidationErrorFor(x => x.Contents)
-            .WithErrorMessage(HistorySectionConstants.GetDescriptionLengthErrorMessage(model));
+            .WithErrorMessage(HistorySectionConstants.GetDescriptionLengthErrorMessage(model.Template));
     }
 
     [Fact]
@@ -231,7 +231,7 @@ public class UpdateHistorySectionValidatorTests
         };
     }
 
-    private static CreateHistorySectionContentDto Title(int order, string title)
+    private static UpdateHistorySectionContentDto Title(int order, string title)
         => new()
         {
             ContentType = ContentType.Title,
@@ -239,7 +239,7 @@ public class UpdateHistorySectionValidatorTests
             Title = title
         };
 
-    private static CreateHistorySectionContentDto Description(int order, string description)
+    private static UpdateHistorySectionContentDto Description(int order, string description)
         => new()
         {
             ContentType = ContentType.Description,
@@ -247,7 +247,7 @@ public class UpdateHistorySectionValidatorTests
             Description = description
         };
 
-    private static CreateHistorySectionContentDto Image(int order, long imageId)
+    private static UpdateHistorySectionContentDto Image(int order, long imageId)
         => new()
         {
             ContentType = ContentType.Image,

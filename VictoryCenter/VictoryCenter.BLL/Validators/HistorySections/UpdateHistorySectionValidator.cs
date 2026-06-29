@@ -54,29 +54,29 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
     private static void ValidateCounts(
         UpdateHistorySectionDto section,
         ValidationContext<UpdateHistorySectionDto> ctx,
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         HistorySectionConstants.TemplateRequirementsConfig req,
         string prop)
     {
         if (!InRange(CountByType(contents, ContentType.Title), req.TitleCount))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetTitlesCountErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetTitlesCountErrorMessage(section.Template, CountByType(contents, ContentType.Title)));
         }
 
         if (!InRange(CountByType(contents, ContentType.Description), req.DescriptionCount))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionsCountErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionsCountErrorMessage(section.Template, CountByType(contents, ContentType.Description)));
         }
 
         if (!InRange(CountByType(contents, ContentType.Image), req.ImageCount))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetImagesCountErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetImagesCountErrorMessage(section.Template, CountByType(contents, ContentType.Image)));
         }
     }
 
     private static void ValidateUniqueness(
         ValidationContext<UpdateHistorySectionDto> ctx,
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         string prop)
     {
         if (!HasUniqueOrders(contents))
@@ -92,7 +92,7 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
 
     private static void ValidateBasicValues(
         ValidationContext<UpdateHistorySectionDto> ctx,
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         string prop)
     {
         if (contents.Any(c => !Enum.IsDefined(c.ContentType)))
@@ -109,7 +109,7 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
     private static void ValidateTitles(
         UpdateHistorySectionDto section,
         ValidationContext<UpdateHistorySectionDto> ctx,
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         HistorySectionConstants.TemplateRequirementsConfig req,
         string prop)
     {
@@ -122,14 +122,14 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
 
         if (titles.Any(c => !HasValidLength(c.Title, req.TitleLength)))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetTitleLengthErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetTitleLengthErrorMessage(section.Template));
         }
     }
 
     private static void ValidateDescriptions(
         UpdateHistorySectionDto section,
         ValidationContext<UpdateHistorySectionDto> ctx,
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         HistorySectionConstants.TemplateRequirementsConfig req,
         string prop)
     {
@@ -142,13 +142,13 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
 
         if (descriptions.Any(c => !HasValidLength(c.Description, req.DescriptionLength)))
         {
-            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionLengthErrorMessage(section));
+            ctx.AddFailure(prop, HistorySectionConstants.GetDescriptionLengthErrorMessage(section.Template));
         }
     }
 
     private static void ValidateImages(
         ValidationContext<UpdateHistorySectionDto> ctx,
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         string prop)
     {
         var images = contents.Where(c => c.ContentType == ContentType.Image).ToList();
@@ -160,14 +160,14 @@ public class UpdateHistorySectionValidator : AbstractValidator<UpdateHistorySect
     }
 
     private static int CountByType(
-        List<CreateHistorySectionContentDto> contents,
+        IReadOnlyCollection<UpdateHistorySectionContentDto> contents,
         ContentType type)
         => contents.Count(c => c.ContentType == type);
 
-    private static bool HasUniqueOrders(List<CreateHistorySectionContentDto> contents)
+    private static bool HasUniqueOrders(IReadOnlyCollection<UpdateHistorySectionContentDto> contents)
         => contents.Select(c => c.Order).Distinct().Count() == contents.Count;
 
-    private static bool HasUniqueImageIds(List<CreateHistorySectionContentDto> contents)
+    private static bool HasUniqueImageIds(IReadOnlyCollection<UpdateHistorySectionContentDto> contents)
     {
         var ids = contents
             .Where(c => c.ContentType == ContentType.Image && c.ImageId.HasValue)

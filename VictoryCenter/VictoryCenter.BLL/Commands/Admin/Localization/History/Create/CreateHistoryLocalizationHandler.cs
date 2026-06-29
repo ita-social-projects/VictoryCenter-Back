@@ -35,23 +35,6 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var allSections = (await _repositoryWrapper.HistorySectionsRepository.GetAllAsync()).ToList();
-
-            var requestSectionIds = request.CreateHistorySectionLocalizationDtos
-                .Select(x => x.EntityId)
-                .ToHashSet();
-
-            var missingSectionIds = allSections
-                .Select(s => s.Id)
-                .Where(id => !requestSectionIds.Contains(id))
-                .ToList();
-
-            if (missingSectionIds.Count > 0)
-            {
-                return Result.Fail<List<HistorySectionLocalizationDto>>(
-                    ErrorMessagesConstants.MissingSectionsLocalization(missingSectionIds));
-            }
-
             var allContentLocalizations = new List<HistorySectionContentLocalization>();
             var sectionById = new Dictionary<long, HistorySection>();
 

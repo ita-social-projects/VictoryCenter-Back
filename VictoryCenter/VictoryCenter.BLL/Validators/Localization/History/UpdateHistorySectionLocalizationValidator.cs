@@ -9,6 +9,11 @@ public class UpdateHistorySectionLocalizationValidator : AbstractValidator<Updat
 {
     public UpdateHistorySectionLocalizationValidator(BaseHistorySectionContentLocalizationValidator contentValidator)
     {
+        RuleFor(x => x.LanguageId)
+            .GreaterThan(0)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
+                nameof(UpdateHistoryLocalizationCommand.LanguageId)));
+
         RuleFor(x => x.UpdateHistorySectionLocalizationDtos)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(

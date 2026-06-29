@@ -96,20 +96,6 @@ public class UpdateHistoryLocalizatonHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFail_WhenMissingSections()
-    {
-        _repositoryWrapperMock
-            .Setup(r => r.HistorySectionsRepository.GetAllAsync(It.IsAny<QueryOptions<HistorySection>>()))
-            .ReturnsAsync(new List<HistorySection> { _section, new() { Id = 999 } });
-
-        var command = new UpdateHistoryLocalizationCommand(new List<UpdateHistorySectionLocalizationDto> { _testSectionDto }, 2);
-
-        var result = await _handler.Handle(command, CancellationToken.None);
-
-        Assert.True(result.IsFailed);
-    }
-
-    [Fact]
     public async Task Handle_ShouldReturnFail_WhenSectionNotFoundInDatabase()
     {
         _repositoryWrapperMock
@@ -160,7 +146,7 @@ public class UpdateHistoryLocalizatonHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnFail_WhenLocalizationDoesNotExistInDatabase()
+    public async Task Handle_ShouldCreateLocalizations_WhenLocalizationDoesNotExistInDatabase()
     {
         _repositoryWrapperMock
             .Setup(r => r.HistorySectionsRepository.GetAllAsync(It.IsAny<QueryOptions<HistorySection>>()))
@@ -182,11 +168,18 @@ public class UpdateHistoryLocalizatonHandlerTests
             .Setup(r => r.HistorySectionContentLocalizationsRepository.GetAllAsync(It.IsAny<QueryOptions<HistorySectionContentLocalization>>()))
             .ReturnsAsync(new List<HistorySectionContentLocalization>());
 
+        _localizationServiceMock
+            .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<HistorySectionContentLocalization>>(), false))
+            .Returns(Task.CompletedTask);
+
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
         var command = new UpdateHistoryLocalizationCommand(new List<UpdateHistorySectionLocalizationDto> { _testSectionDto }, 2);
 
         var result = await _handler.Handle(command, CancellationToken.None);
 
-        Assert.True(result.IsFailed);
+        Assert.True(result.IsSuccess);
+        _localizationServiceMock.Verify(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<HistorySectionContentLocalization>>(), false), Times.Once);
     }
 
     [Fact]
