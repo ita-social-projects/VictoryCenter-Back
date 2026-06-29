@@ -120,7 +120,8 @@ public class CreatePdfReportValidatorTests
     {
         return new CreatePdfReportCommand(new CreatePdfReportDto
         {
-            File = file!
+            File = file!,
+            LanguageId = 1
         });
     }
 }

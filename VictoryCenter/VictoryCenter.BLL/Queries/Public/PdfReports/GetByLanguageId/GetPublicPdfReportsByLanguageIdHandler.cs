@@ -8,37 +8,37 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
-namespace VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
+namespace VictoryCenter.BLL.Queries.Public.PdfReports.GetByLanguageId;
 
-public class GetAllPdfReportsHandler : IRequestHandler<GetAllPdfReportsQuery, Result<PaginationResult<PdfReportDto>>>
+public class GetPublicPdfReportsByLanguageIdHandler
+    : IRequestHandler<GetPublicPdfReportsByLanguageIdQuery, Result<PaginationResult<PdfReportDto>>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
 
-    public GetAllPdfReportsHandler(
-        IRepositoryWrapper repositoryWrapper,
-        IMapper mapper)
+    public GetPublicPdfReportsByLanguageIdHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
     }
 
-    public async Task<Result<PaginationResult<PdfReportDto>>> Handle(GetAllPdfReportsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginationResult<PdfReportDto>>> Handle(
+        GetPublicPdfReportsByLanguageIdQuery request, CancellationToken cancellationToken)
     {
-        var languageId = request.FilterDto.LanguageId;
-
         var queryOptions = new QueryOptions<PdfReport>
         {
-            Filter = languageId.HasValue ? p => p.LanguageId == languageId.Value : null,
+            Filter = p => p.LanguageId == request.LanguageId,
             Include = q => q.Include(p => p.Language),
-            Offset = request.FilterDto.Offset ?? 0,
-            Limit = request.FilterDto.Limit ?? 20,
-            OrderByASC = p => p.Priority
+            Offset = request.Filter.Offset ?? 0,
+            Limit = request.Filter.Limit ?? 20,
+            OrderByASC = p => p.Priority,
+            AsNoTracking = true
         };
 
         var countOptions = new QueryOptions<PdfReport>
         {
-            Filter = languageId.HasValue ? p => p.LanguageId == languageId.Value : null
+            Filter = p => p.LanguageId == request.LanguageId,
+            AsNoTracking = true
         };
 
         var pdfReports = await _repositoryWrapper.PdfReportRepository.GetAllAsync(queryOptions);

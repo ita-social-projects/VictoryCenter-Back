@@ -241,6 +241,7 @@ public class UpdatePdfReportTests : BaseTestClass
         var fileContent = new ByteArrayContent(pdfContent);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(fileContent, "File", fileName);
+        form.Add(new StringContent("1"), "LanguageId");
         return form;
     }
 }

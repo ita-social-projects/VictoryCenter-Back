@@ -34,5 +34,13 @@ public class PdfReportConfig : IEntityTypeConfiguration<PdfReport>
 
         entity.HasIndex(e => e.Priority)
             .IsUnique();
+
+        entity.HasOne(e => e.Language)
+            .WithMany()
+            .HasForeignKey(e => e.LanguageId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        entity.HasIndex(e => e.LanguageId);
     }
 }
