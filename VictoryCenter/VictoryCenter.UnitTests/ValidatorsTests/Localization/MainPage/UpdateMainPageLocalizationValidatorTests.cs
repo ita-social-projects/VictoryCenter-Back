@@ -42,13 +42,13 @@ public class UpdateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.Localization.Title.MinLength - 1)
+            Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen - 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateMainPageLocalizationDto.Title), MainPageConstants.Localization.Title.MinLength));
+                nameof(UpdateMainPageLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MinLen));
     }
 
     [Fact]
@@ -56,14 +56,14 @@ public class UpdateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.Localization.TitleBlockDescription.MaxLength + 1)
+            Description = new string('a', MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MaxLen + 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdateMainPageLocalizationDto.Description),
-                MainPageConstants.Localization.TitleBlockDescription.MaxLength));
+                MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MaxLen));
     }
 
     [Theory]
@@ -72,7 +72,7 @@ public class UpdateMainPageLocalizationValidatorTests
     [InlineData(nameof(UpdateMainPageLocalizationDto.MainDonations))]
     public void Validate_ShouldHaveError_WhenSectionTitleIsTooShort(string sectionName)
     {
-        var dto = GetValidDtoWithInvalidSection(sectionName, title: new string('a', MainPageConstants.Localization.Title.MinLength - 1));
+        var dto = GetValidDtoWithInvalidSection(sectionName, title: new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen - 1));
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor($"Dto.{sectionName}.Title");
@@ -86,7 +86,7 @@ public class UpdateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDtoWithInvalidSection(
             sectionName,
-            description: new string('a', MainPageConstants.Localization.SectionDescription.MaxLength + 1));
+            description: new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen + 1));
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor($"Dto.{sectionName}.Description");
@@ -94,8 +94,8 @@ public class UpdateMainPageLocalizationValidatorTests
 
     private static UpdateMainPageLocalizationDto GetValidDto() => new()
     {
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.TitleBlockDescription.MinLength),
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MinLen),
         MainAboutUs = GetValidAboutUs(),
         MainPartners = GetValidPartners(),
         MainDonations = GetValidDonations()
@@ -140,20 +140,20 @@ public class UpdateMainPageLocalizationValidatorTests
 
     private static UpdateMainAboutUsLocalizationDto GetValidAboutUs() => new()
     {
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
     };
 
     private static UpdateMainPartnersLocalizationDto GetValidPartners() => new()
     {
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
     };
 
     private static UpdateMainDonationsLocalizationDto GetValidDonations() => new()
     {
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
     };
 
     private static UpdateMainPageLocalizationCommand BuildCommand(UpdateMainPageLocalizationDto dto)

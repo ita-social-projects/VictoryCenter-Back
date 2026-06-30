@@ -78,7 +78,7 @@ public class UpdateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MinLength - 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen - 1),
         };
 
         var result = _validator.TestValidate(dto);
@@ -86,7 +86,7 @@ public class UpdateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(BaseImpactStatisticDto.Title),
-                MainPageConstants.ImpactStatistic.TitleConstraints.MinLength));
+                MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen));
     }
 
     [Fact]
@@ -94,7 +94,7 @@ public class UpdateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength + 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen + 1),
         };
 
         var result = _validator.TestValidate(dto);
@@ -102,7 +102,7 @@ public class UpdateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(BaseImpactStatisticDto.Title),
-                MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
+                MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen));
     }
 
     [Fact]

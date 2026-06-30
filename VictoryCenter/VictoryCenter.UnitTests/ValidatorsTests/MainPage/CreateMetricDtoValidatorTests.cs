@@ -47,14 +47,14 @@ public class CreateMetricDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Name = new string('a', MainPageConstants.Metric.Name.MaxLength + 1),
+            Name = new string('a', MainPageConstants.Metric.ValidationNameRules.MaxLen + 1),
         };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMetricDto.Name), MainPageConstants.Metric.Name.MaxLength));
+                nameof(BaseMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen));
     }
 
     [Fact]

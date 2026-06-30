@@ -68,13 +68,13 @@ public class CreateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.Localization.Title.MinLength - 1)
+            Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen - 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(CreateMainPageLocalizationDto.Title), MainPageConstants.Localization.Title.MinLength));
+                nameof(CreateMainPageLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MinLen));
     }
 
     [Fact]
@@ -82,13 +82,13 @@ public class CreateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Title = new string('a', MainPageConstants.Localization.Title.MaxLength + 1)
+            Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MaxLen + 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateMainPageLocalizationDto.Title), MainPageConstants.Localization.Title.MaxLength));
+                nameof(CreateMainPageLocalizationDto.Title), MainPageConstants.Localization.ValidationTitleRules.MaxLen));
     }
 
     [Fact]
@@ -106,14 +106,14 @@ public class CreateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Description = new string('a', MainPageConstants.Localization.TitleBlockDescription.MaxLength + 1)
+            Description = new string('a', MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MaxLen + 1)
         };
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor(x => x.Dto.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateMainPageLocalizationDto.Description),
-                MainPageConstants.Localization.TitleBlockDescription.MaxLength));
+                MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MaxLen));
     }
 
     [Theory]
@@ -122,7 +122,7 @@ public class CreateMainPageLocalizationValidatorTests
     [InlineData(nameof(CreateMainPageLocalizationDto.MainDonations))]
     public void Validate_ShouldHaveError_WhenSectionTitleIsTooLong(string sectionName)
     {
-        var dto = GetValidDtoWithInvalidSection(sectionName, title: new string('a', MainPageConstants.Localization.Title.MaxLength + 1));
+        var dto = GetValidDtoWithInvalidSection(sectionName, title: new string('a', MainPageConstants.Localization.ValidationTitleRules.MaxLen + 1));
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor($"Dto.{sectionName}.Title");
@@ -136,7 +136,7 @@ public class CreateMainPageLocalizationValidatorTests
     {
         var dto = GetValidDtoWithInvalidSection(
             sectionName,
-            description: new string('a', MainPageConstants.Localization.SectionDescription.MaxLength + 1));
+            description: new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen + 1));
 
         _validator.TestValidate(BuildCommand(dto))
             .ShouldHaveValidationErrorFor($"Dto.{sectionName}.Description");
@@ -146,8 +146,8 @@ public class CreateMainPageLocalizationValidatorTests
     {
         EntityId = 1,
         LanguageId = 1,
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.TitleBlockDescription.MinLength),
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationTitleBlockDescriptionRules.MinLen),
         MainAboutUs = GetValidAboutUs(),
         MainPartners = GetValidPartners(),
         MainDonations = GetValidDonations()
@@ -193,22 +193,22 @@ public class CreateMainPageLocalizationValidatorTests
     private static CreateMainAboutUsLocalizationDto GetValidAboutUs() => new()
     {
         EntityId = 2,
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
     };
 
     private static CreateMainPartnersLocalizationDto GetValidPartners() => new()
     {
         EntityId = 3,
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
     };
 
     private static CreateMainDonationsLocalizationDto GetValidDonations() => new()
     {
         EntityId = 4,
-        Title = new string('a', MainPageConstants.Localization.Title.MinLength),
-        Description = new string('a', MainPageConstants.Localization.SectionDescription.MinLength)
+        Title = new string('a', MainPageConstants.Localization.ValidationTitleRules.MinLen),
+        Description = new string('a', MainPageConstants.Localization.ValidationSectionDescriptionRules.MinLen)
     };
 
     private static CreateMainPageLocalizationCommand BuildCommand(CreateMainPageLocalizationDto dto) => new(dto);
