@@ -58,9 +58,9 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
                 return Result.Fail<PdfReportDto>("Language not found");
             }
 
+            blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
             var nextPriority = await _reorderService.GetNextDisplayOrderAsync<PdfReport>(
                 p => p.LanguageId == dto.LanguageId);
 

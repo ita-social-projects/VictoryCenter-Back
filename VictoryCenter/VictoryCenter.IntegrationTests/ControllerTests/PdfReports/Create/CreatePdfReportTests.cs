@@ -90,6 +90,7 @@ public class CreatePdfReportTests : BaseTestClass
     {
         // Arrange
         using var form = new MultipartFormDataContent();
+        form.Add(new StringContent("1"), "LanguageId");
 
         // Act
         var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);

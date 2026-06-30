@@ -16,7 +16,7 @@ public class CreatePdfReportValidator : AbstractValidator<CreatePdfReportCommand
         {
             RuleFor(x => x.CreatePdfReportDto.LanguageId)
                 .GreaterThan(0)
-                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("LanguageId"));
+                .WithMessage("LanguageId must be greater than 0.");
 
             RuleFor(x => x.CreatePdfReportDto.File)
             .NotNull()
