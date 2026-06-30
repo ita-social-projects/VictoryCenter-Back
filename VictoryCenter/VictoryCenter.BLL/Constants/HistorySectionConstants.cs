@@ -1,4 +1,3 @@
-using VictoryCenter.BLL.DTOs.Admin.HistorySection;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Constants;
@@ -68,35 +67,31 @@ public static class HistorySectionConstants
     public static TemplateRequirementsConfig GetRequirements(HistorySectionTemplate template)
         => TemplateRequirements[template];
 
-    public static string GetGroupCompositionErrorMessage(CreateHistorySectionDto section)
-        => $"Template {section.Template} has invalid group composition";
+    public static string GetGroupCompositionErrorMessage(HistorySectionTemplate template)
+        => $"Template {template} has invalid group composition";
 
-    public static string GetTitlesCountErrorMessage(CreateHistorySectionDto section)
-        => GetCountErrorMessage(section, ContentType.Title, GetRequirements(section.Template).TitleCount, "title(s)");
+    public static string GetTitlesCountErrorMessage(HistorySectionTemplate template, int actual)
+        => GetCountErrorMessage(template, GetRequirements(template).TitleCount, "title(s)", actual);
 
-    public static string GetDescriptionsCountErrorMessage(CreateHistorySectionDto section)
-        => GetCountErrorMessage(section, ContentType.Description, GetRequirements(section.Template).DescriptionCount, "description(s)");
+    public static string GetDescriptionsCountErrorMessage(HistorySectionTemplate template, int actual)
+        => GetCountErrorMessage(template, GetRequirements(template).DescriptionCount, "description(s)", actual);
 
-    public static string GetImagesCountErrorMessage(CreateHistorySectionDto section)
-        => GetCountErrorMessage(section, ContentType.Image, GetRequirements(section.Template).ImageCount, "image(s)");
+    public static string GetImagesCountErrorMessage(HistorySectionTemplate template, int actual)
+        => GetCountErrorMessage(template, GetRequirements(template).ImageCount, "image(s)", actual);
 
-    public static string GetTitleLengthErrorMessage(CreateHistorySectionDto section)
-        => GetLengthErrorMessage(GetRequirements(section.Template).TitleLength, "title");
+    public static string GetTitleLengthErrorMessage(HistorySectionTemplate template)
+        => GetLengthErrorMessage(GetRequirements(template).TitleLength, "title");
 
-    public static string GetDescriptionLengthErrorMessage(CreateHistorySectionDto section)
-        => GetLengthErrorMessage(GetRequirements(section.Template).DescriptionLength, "description");
-
-    private static int CountByType(CreateHistorySectionDto section, ContentType type)
-        => (section.Contents ?? []).Count(c => c.ContentType == type);
+    public static string GetDescriptionLengthErrorMessage(HistorySectionTemplate template)
+        => GetLengthErrorMessage(GetRequirements(template).DescriptionLength, "description");
 
     private static string GetCountErrorMessage(
-        CreateHistorySectionDto section,
-        ContentType type,
+        HistorySectionTemplate template,
         (int Min, int Max) req,
-        string label)
+        string label,
+        int actual)
     {
-        var actual = CountByType(section, type);
-        return $"Template {section.Template} requires between {req.Min} and {req.Max} {label}, but received {actual}";
+        return $"Template {template} requires between {req.Min} and {req.Max} {label}, but received {actual}";
     }
 
     private static string GetLengthErrorMessage((int Min, int Max) req, string label)

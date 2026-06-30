@@ -3,8 +3,9 @@ using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
+using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
-using VictoryCenter.BLL.Queries.Admin.PdfReports.GetByLanguage;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -19,11 +20,11 @@ public class PdfReportsController : AuthorizedApiController
         return HandleResult(await Mediator.Send(new CreatePdfReportCommand(request)));
     }
 
-    [HttpGet("by-language/{languageId}")]
-    [ProducesResponseType(typeof(List<PdfReportDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPdfReportsByLanguage(long languageId)
+    [HttpGet]
+    [ProducesResponseType(typeof(PaginationResult<PdfReportDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllPdfReports([FromQuery] PdfReportFilterDto filter)
     {
-        return HandleResult(await Mediator.Send(new GetPdfReportsByLanguageQuery(languageId)));
+        return HandleResult(await Mediator.Send(new GetAllPdfReportsQuery(filter)));
     }
 
     [HttpGet("{id}")]

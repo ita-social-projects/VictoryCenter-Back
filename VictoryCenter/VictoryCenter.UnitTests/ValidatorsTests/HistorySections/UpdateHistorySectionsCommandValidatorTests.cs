@@ -34,8 +34,8 @@ public class UpdateHistorySectionsCommandValidatorTests
                 Order = -1,
                 Contents =
                 [
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
                 ]
             }
 
@@ -58,8 +58,8 @@ public class UpdateHistorySectionsCommandValidatorTests
                 Order = 0,
                 Contents =
                 [
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
                 ]
             },
             new UpdateHistorySectionDto
@@ -68,8 +68,8 @@ public class UpdateHistorySectionsCommandValidatorTests
                 Order = 0,
                 Contents =
                 [
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Another valid title" },
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Another valid description" }
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Another valid title" },
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Another valid description" }
                 ]
             }
 
@@ -92,8 +92,8 @@ public class UpdateHistorySectionsCommandValidatorTests
                 Order = 0,
                 Contents =
                 [
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
-                    new CreateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Title, Order = 0, Title = "Valid title" },
+                    new UpdateHistorySectionContentDto { ContentType = ContentType.Description, Order = 1, Description = "Valid description" }
                 ]
             }
 

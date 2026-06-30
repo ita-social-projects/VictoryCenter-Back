@@ -121,6 +121,17 @@ public static class ImageValidationHelper
         return ValidateAndGetImagesByIdsAsync(repositoryWrapper, sectionImageIds);
     }
 
+    public static Task<Result<IReadOnlyDictionary<long, Image>>> ValidateAndGetSectionImagesAsync(
+        IRepositoryWrapper repositoryWrapper, List<UpdateHistorySectionDto>? sections)
+    {
+        var sectionImageIds = (sections ?? [])
+            .SelectMany(s => s.Contents ?? [])
+            .Where(c => c.ContentType == ContentType.Image && c.ImageId.HasValue)
+            .Select(c => c.ImageId!.Value);
+
+        return ValidateAndGetImagesByIdsAsync(repositoryWrapper, sectionImageIds);
+    }
+
     public static async Task<Result> ValidateAndAssignSectionContentImagesAsync(
         IRepositoryWrapper repositoryWrapper,
         IEnumerable<HippotherapyProgramSection> sections)

@@ -22,6 +22,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
     private readonly ILocalizationService<MainPageEntity, MainPageLocalization> _mainPageLocalizationService;
     private readonly ILocalizationService<MainAboutUs, MainAboutUsLocalization> _mainAboutUsLocalizationService;
     private readonly ILocalizationService<MainPartners, MainPartnersLocalization> _mainPartnersLocalizationService;
+    private readonly ILocalizationService<MainDonations, MainDonationsLocalization> _mainDonationsLocalizationService;
 
     public UpdateMainPageLocalizationHandler(
         IMapper mapper,
@@ -29,7 +30,8 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         IValidator<UpdateMainPageLocalizationCommand> validator,
         ILocalizationService<MainPageEntity, MainPageLocalization> mainPageLocalizationService,
         ILocalizationService<MainAboutUs, MainAboutUsLocalization> mainAboutUsLocalizationService,
-        ILocalizationService<MainPartners, MainPartnersLocalization> mainPartnersLocalizationService)
+        ILocalizationService<MainPartners, MainPartnersLocalization> mainPartnersLocalizationService,
+        ILocalizationService<MainDonations, MainDonationsLocalization> mainDonationsLocalizationService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -37,6 +39,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         _mainPageLocalizationService = mainPageLocalizationService;
         _mainAboutUsLocalizationService = mainAboutUsLocalizationService;
         _mainPartnersLocalizationService = mainPartnersLocalizationService;
+        _mainDonationsLocalizationService = mainDonationsLocalizationService;
     }
 
     public async Task<Result<MainPageLocalizationDto>> Handle(UpdateMainPageLocalizationCommand request, CancellationToken cancellationToken)
@@ -54,6 +57,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
                     Include = query => query
                         .Include(e => e.MainAboutUs)
                         .Include(e => e.MainPartners)
+                        .Include(e => e.MainDonations)
                 });
 
             if (mainPage is null)
@@ -98,12 +102,28 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
                 mainPartnersDto = _mapper.Map<MainPartnersLocalizationDto>(updatedPartners);
             }
 
+            MainDonationsLocalizationDto? mainDonationsDto = null;
+            if (dto.MainDonations is not null)
+            {
+                if (mainPage.MainDonations is null)
+                {
+                    return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+                }
+
+                var mainDonationsLocalizationEntity = _mapper.Map<MainDonationsLocalization>(dto.MainDonations);
+                mainDonationsLocalizationEntity.EntityId = mainPage.MainDonations.Id;
+                mainDonationsLocalizationEntity.LanguageId = request.LanguageId;
+                var updatedDonations = await _mainDonationsLocalizationService.UpdateEntityLocalizationAsync(mainDonationsLocalizationEntity);
+                mainDonationsDto = _mapper.Map<MainDonationsLocalizationDto>(updatedDonations);
+            }
+
             transaction.Complete();
 
             var response = _mapper.Map<MainPageLocalizationDto>(updatedMainPageLocalization) with
             {
                 MainAboutUs = mainAboutUsDto,
-                MainPartners = mainPartnersDto
+                MainPartners = mainPartnersDto,
+                MainDonations = mainDonationsDto
             };
 
             return Result.Ok(response);

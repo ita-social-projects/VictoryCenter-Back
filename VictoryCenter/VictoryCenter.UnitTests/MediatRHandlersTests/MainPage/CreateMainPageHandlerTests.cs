@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
@@ -63,7 +64,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }, new Image { Id = 7 }]);
 
         _mapperMock
             .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
@@ -171,7 +172,7 @@ public class CreateMainPageHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(
-            ErrorMessagesConstants.NotFound(new[] { 6L }, typeof(Image)),
+            ErrorMessagesConstants.NotFound(new[] { 6L, 7L }, typeof(Image)),
             result.Errors[0].Message);
 
         _mainPageRepositoryMock.Verify(x => x.CreateAsync(It.IsAny<DAL.Entities.MainPage>()), Times.Never);
@@ -186,6 +187,7 @@ public class CreateMainPageHandlerTests
         dtoWithoutImages = dtoWithoutImages with
         {
             ImageId = null,
+            MainDonations = dtoWithoutImages.MainDonations! with { ImageId = null },
             ImpactStatistics = new CreateImpactStatisticDto
             {
                 Title = "Impact statistic title",
@@ -254,7 +256,7 @@ public class CreateMainPageHandlerTests
 
         _imageRepositoryMock
             .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }]);
+            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }, new Image { Id = 7 }]);
 
         _mapperMock
             .Setup(x => x.Map<CreateMainPageDto, DAL.Entities.MainPage>(command.CreateMainPageDto))
@@ -284,7 +286,13 @@ public class CreateMainPageHandlerTests
     public async Task Handle_ShouldCreateMainPage_WhenImpactStatisticsIsNull()
     {
         // Arrange
-        var dto = GetValidCreateDto() with { ImageId = null, ImpactStatistics = null };
+        var validDto = GetValidCreateDto();
+        var dto = validDto with
+        {
+            ImageId = null,
+            MainDonations = validDto.MainDonations! with { ImageId = null },
+            ImpactStatistics = null,
+        };
         var command = new CreateMainPageCommand(dto);
         var entity = GetMainPageEntity(20);
         entity.ImpactStatistics = null;
@@ -345,6 +353,7 @@ public class CreateMainPageHandlerTests
         var dto = GetValidCreateDto() with
         {
             ImageId = null,
+            MainDonations = GetValidCreateDto().MainDonations! with { ImageId = null },
             ImpactStatistics = new CreateImpactStatisticDto
             {
                 Title = "Impact title",
@@ -480,6 +489,12 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description that is long enough",
         },
+        MainDonations = new CreateMainDonationsDto
+        {
+            Title = "Donations title",
+            Description = "Donations description that is long enough",
+            ImageId = 7,
+        },
         ImpactStatistics = new CreateImpactStatisticDto
         {
             Title = "Impact statistic title",
@@ -512,6 +527,13 @@ public class CreateMainPageHandlerTests
             Title = "Partners title",
             Description = "Partners description",
         },
+        MainDonations = new MainDonations
+        {
+            Id = 18,
+            Title = "Donations title",
+            Description = "Donations description",
+            ImageId = 7,
+        },
         ImpactStatistics = new ImpactStatistics
         {
             Id = 13,
@@ -543,6 +565,12 @@ public class CreateMainPageHandlerTests
             Id = 12,
             Title = "Partners title",
             Description = "Partners description",
+        },
+        MainDonations = new MainDonationsDto
+        {
+            Id = 18,
+            Title = "Donations title",
+            Description = "Donations description",
         },
         ImpactStatistics = new ImpactStatisticDto
         {

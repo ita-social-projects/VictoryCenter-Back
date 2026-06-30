@@ -1,7 +1,9 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Delete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
@@ -12,6 +14,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRe
 public class DeleteReportFundsExpendituresRecordTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
 
     private readonly ReportFundsExpendituresRecord _record = new()
@@ -26,6 +29,7 @@ public class DeleteReportFundsExpendituresRecordTests
     public DeleteReportFundsExpendituresRecordTests()
     {
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
+        _mediatorMock = new Mock<IMediator>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
     }
 
@@ -34,7 +38,7 @@ public class DeleteReportFundsExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(_record, saveResult: 1);
-        var handler = new DeleteReportFundsExpendituresRecordHandler(_repositoryWrapperMock.Object);
+        var handler = new DeleteReportFundsExpendituresRecordHandler(_mediatorMock.Object, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -44,6 +48,11 @@ public class DeleteReportFundsExpendituresRecordTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(_record.Id, result.Value);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.Is<CancellationToken>(token => token == CancellationToken.None)),
+            Times.Once);
     }
 
     [Fact]
@@ -51,7 +60,7 @@ public class DeleteReportFundsExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(null, saveResult: 1);
-        var handler = new DeleteReportFundsExpendituresRecordHandler(_repositoryWrapperMock.Object);
+        var handler = new DeleteReportFundsExpendituresRecordHandler(_mediatorMock.Object, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -70,7 +79,7 @@ public class DeleteReportFundsExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(_record, saveResult: 0);
-        var handler = new DeleteReportFundsExpendituresRecordHandler(_repositoryWrapperMock.Object);
+        var handler = new DeleteReportFundsExpendituresRecordHandler(_mediatorMock.Object, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -92,7 +101,7 @@ public class DeleteReportFundsExpendituresRecordTests
         _repositoryWrapperMock
             .Setup(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(new DbUpdateException("Database error"));
-        var handler = new DeleteReportFundsExpendituresRecordHandler(_repositoryWrapperMock.Object);
+        var handler = new DeleteReportFundsExpendituresRecordHandler(_mediatorMock.Object, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -117,5 +126,10 @@ public class DeleteReportFundsExpendituresRecordTests
 
         _recordsRepositoryMock.Setup(repository => repository.Delete(It.IsAny<ReportFundsExpendituresRecord>()));
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+        _mediatorMock
+            .Setup(mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
     }
 }

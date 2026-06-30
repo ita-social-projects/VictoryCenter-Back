@@ -1,8 +1,10 @@
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.BulkDelete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -14,12 +16,14 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRe
 public class BulkDeleteReportFundsExpendituresRecordTests
 {
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly IValidator<BulkDeleteReportFundsExpendituresRecordCommand> _validator;
 
     public BulkDeleteReportFundsExpendituresRecordTests()
     {
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
+        _mediatorMock = new Mock<IMediator>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _validator = new BulkDeleteReportFundsExpendituresRecordCommandValidator();
     }
@@ -34,7 +38,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         SetupDependencies(entities, 1);
 
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -42,6 +46,11 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal(ids, result.Value);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.Is<CancellationToken>(token => token == CancellationToken.None)),
+            Times.Once);
     }
 
     [Theory]
@@ -52,7 +61,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         // Arrange
         var command = new BulkDeleteReportFundsExpendituresRecordCommand(new[] { invalidId });
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -70,7 +79,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         // Arrange
         var command = new BulkDeleteReportFundsExpendituresRecordCommand(new[] { 1L, 1L });
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -89,7 +98,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         // Arrange
         var command = new BulkDeleteReportFundsExpendituresRecordCommand(Array.Empty<long>());
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -110,7 +119,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         var ids = Enumerable.Range(1, maxCount + 1).Select(i => (long)i).ToArray();
         var command = new BulkDeleteReportFundsExpendituresRecordCommand(ids);
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -135,7 +144,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         SetupDependencies(entities, 0);
 
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -157,7 +166,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
         SetupDependencies(entities, 0);
 
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -191,7 +200,7 @@ public class BulkDeleteReportFundsExpendituresRecordTests
             .ThrowsAsync(new DbUpdateException());
 
         var handler = new BulkDeleteReportFundsExpendituresRecordCommandHandler(
-            _validator, _repositoryWrapperMock.Object);
+            _mediatorMock.Object, _validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -216,5 +225,10 @@ public class BulkDeleteReportFundsExpendituresRecordTests
             repository.DeleteRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()));
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+        _mediatorMock
+            .Setup(mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
     }
 }

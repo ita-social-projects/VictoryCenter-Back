@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using Resend;
 using Slugify;
 using VictoryCenter.BLL;
+using VictoryCenter.BLL.Behaviors;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
@@ -114,7 +115,11 @@ public static class ServicesConfiguration
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
 
         services.AddMediatR(cfg =>
-            cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly));
+        {
+            cfg.RegisterServicesFromAssembly(typeof(BllAssemblyMarker).Assembly);
+
+            cfg.AddBehaviors();
+        });
 
         services.AddValidatorsFromAssemblyContaining<BllAssemblyMarker>();
 
@@ -566,7 +571,8 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var repositoryWrapper = asyncServiceScope.ServiceProvider.GetRequiredService<IRepositoryWrapper>();
-        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper);
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
+        var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper, timeProvider);
 
         if (settingsResult.IsFailed)
         {

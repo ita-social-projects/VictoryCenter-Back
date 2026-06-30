@@ -8,6 +8,7 @@ public class ReportFundsExpendituresSettings : BaseEntity, ITranslatedEntity<Rep
 {
     public string DisclaimerTitle { get; set; } = "";
     public decimal ExchangeRate { get; set; }
+    public int ProgramExpendituresReportingYear { get; set; }
 
     public ICollection<ReportFundsExpendituresSettingsLocalization> Localizations { get; set; } = [];
 }

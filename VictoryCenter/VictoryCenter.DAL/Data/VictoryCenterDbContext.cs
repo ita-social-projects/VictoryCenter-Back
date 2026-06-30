@@ -108,6 +108,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<MainPartners> MainPartners { get; set; }
 
+    public DbSet<MainDonations> MainDonations { get; set; }
+
     public DbSet<ImpactStatistics> ImpactStatistics { get; set; }
 
     public DbSet<MainPageLocalization> MainPageLocalizations { get; set; }
@@ -115,6 +117,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<MainAboutUsLocalization> MainAboutUsLocalizations { get; set; }
 
     public DbSet<MainPartnersLocalization> MainPartnersLocalizations { get; set; }
+
+    public DbSet<MainDonationsLocalization> MainDonationsLocalizations { get; set; }
 
     public DbSet<ImpactStatisticsLocalization> ImpactStatisticsLocalizations { get; set; }
 

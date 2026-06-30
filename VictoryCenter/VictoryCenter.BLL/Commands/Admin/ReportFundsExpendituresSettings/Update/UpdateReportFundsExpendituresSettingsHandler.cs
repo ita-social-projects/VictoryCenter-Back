@@ -19,16 +19,19 @@ public class UpdateReportFundsExpendituresSettingsHandler
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
     private readonly IValidator<UpdateReportFundsExpendituresSettingsCommand> _validator;
 
     public UpdateReportFundsExpendituresSettingsHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateReportFundsExpendituresSettingsCommand> validator)
+        IValidator<UpdateReportFundsExpendituresSettingsCommand> validator,
+        TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<ReportFundsExpendituresSettingsDto>> Handle(
@@ -39,7 +42,7 @@ public class UpdateReportFundsExpendituresSettingsHandler
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(_repositoryWrapper);
+            var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(_repositoryWrapper, _timeProvider);
             if (settingsResult.IsFailed)
             {
                 return Result.Fail<ReportFundsExpendituresSettingsDto>(settingsResult.Errors);

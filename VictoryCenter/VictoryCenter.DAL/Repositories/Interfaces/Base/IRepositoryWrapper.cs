@@ -90,9 +90,11 @@ public interface IRepositoryWrapper
     IMainPageRepository MainPageRepository { get; }
     IMainAboutUsRepository MainAboutUsRepository { get; }
     IMainPartnersRepository MainPartnersRepository { get; }
+    IMainDonationsRepository MainDonationsRepository { get; }
     IMainPageLocalizationsRepository MainPageLocalizationsRepository { get; }
     IMainAboutUsLocalizationsRepository MainAboutUsLocalizationsRepository { get; }
     IMainPartnersLocalizationsRepository MainPartnersLocalizationsRepository { get; }
+    IMainDonationsLocalizationsRepository MainDonationsLocalizationsRepository { get; }
     IImpactStatisticsRepository ImpactStatisticsRepository { get; }
     IImpactStatisticsLocalizationsRepository ImpactStatisticsLocalizationsRepository { get; }
     IMetricRepository MetricRepository { get; }

@@ -1,4 +1,5 @@
 using FluentValidation;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 
 namespace VictoryCenter.BLL.Validators.Localization.MainPage;
@@ -6,11 +7,11 @@ namespace VictoryCenter.BLL.Validators.Localization.MainPage;
 public class UpdateMainPageLocalizationDtoValidator : AbstractValidator<UpdateMainPageLocalizationDto>
 {
     public UpdateMainPageLocalizationDtoValidator(
-        BaseMainPageLocalizationDtoValidator baseValidator,
         UpdateMainAboutUsLocalizationDtoValidator mainAboutUsValidator,
-        UpdateMainPartnersLocalizationDtoValidator mainPartnersValidator)
+        UpdateMainPartnersLocalizationDtoValidator mainPartnersValidator,
+        UpdateMainDonationsLocalizationDtoValidator mainDonationsValidator)
     {
-        Include(baseValidator);
+        this.AddOptionalTitleAndDescriptionRules(MainPageConstants.Localization.TitleBlockDescription.MaxLength);
 
         RuleFor(x => x.MainAboutUs)
             .SetValidator(mainAboutUsValidator!)
@@ -19,5 +20,9 @@ public class UpdateMainPageLocalizationDtoValidator : AbstractValidator<UpdateMa
         RuleFor(x => x.MainPartners)
             .SetValidator(mainPartnersValidator!)
             .When(x => x.MainPartners != null);
+
+        RuleFor(x => x.MainDonations)
+            .SetValidator(mainDonationsValidator!)
+            .When(x => x.MainDonations != null);
     }
 }

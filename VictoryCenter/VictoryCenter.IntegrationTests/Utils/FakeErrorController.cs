@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 
 namespace VictoryCenter.IntegrationTests.Utils;
@@ -13,4 +15,8 @@ public class FakeErrorController : ControllerBase
     [HttpGet("ThrowException")]
     public IActionResult ThrowException()
         => throw new InvalidOperationException("Test Exception");
+
+    [HttpGet("ThrowValidationException")]
+    public IActionResult ThrowValidationException()
+        => throw new ValidationException([new ValidationFailure("Name", "Name is required")]);
 }

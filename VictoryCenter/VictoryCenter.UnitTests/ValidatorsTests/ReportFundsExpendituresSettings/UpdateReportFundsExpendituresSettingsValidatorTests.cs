@@ -81,6 +81,7 @@ public class UpdateReportFundsExpendituresSettingsValidatorTests
     private static UpdateReportFundsExpendituresSettingsDto GetValidDto() => new()
     {
         DisclaimerTitle = "Valid disclaimer",
-        ExchangeRate = 40.123456m
+        ExchangeRate = 40.123456m,
+        ProgramExpendituresReportingYear = 2024
     };
 }

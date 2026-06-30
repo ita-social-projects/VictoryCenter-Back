@@ -234,15 +234,14 @@ public class UpdatePdfReportTests : BaseTestClass
     private static MultipartFormDataContent CreatePdfFormData(
         byte[] content = null!,
         string fileName = "test-report.pdf",
-        string contentType = "application/pdf",
-        long languageId = 1)
+        string contentType = "application/pdf")
     {
         var pdfContent = content ?? new byte[] { 0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34 };
         var form = new MultipartFormDataContent();
         var fileContent = new ByteArrayContent(pdfContent);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(fileContent, "File", fileName);
-        form.Add(new StringContent(languageId.ToString()), "LanguageId");
+        form.Add(new StringContent("1"), "LanguageId");
         return form;
     }
 }

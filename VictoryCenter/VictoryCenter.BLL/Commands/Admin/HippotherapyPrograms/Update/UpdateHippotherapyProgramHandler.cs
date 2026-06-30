@@ -56,6 +56,9 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                         .ThenInclude(c => c.Language)
                         .Include(x => x.Localizations)
                         .ThenInclude(x => x.Language)
+                        .Include(x => x.Sections)
+                        .ThenInclude(s => s.Contents)
+                        .ThenInclude(c => (c as FaqQuestionProgramContent)!.FaqQuestion)
                 });
 
             if (program is null)

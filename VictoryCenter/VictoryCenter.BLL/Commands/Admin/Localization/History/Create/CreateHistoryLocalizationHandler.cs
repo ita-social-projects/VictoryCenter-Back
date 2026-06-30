@@ -15,7 +15,7 @@ using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.History.Create;
 
-public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLocalizationCommand, Result<HistorySectionLocalizationDto>>
+public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLocalizationCommand, Result<List<HistorySectionLocalizationDto>>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
@@ -29,74 +29,95 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         _validator = validator;
     }
 
-    public async Task<Result<HistorySectionLocalizationDto>> Handle(CreateHistoryLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<List<HistorySectionLocalizationDto>>> Handle(CreateHistoryLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var section = await _repositoryWrapper.HistorySectionsRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<HistorySection>
-                {
-                    Filter = x => x.Id == request.CreateHistorySectionLocalizationDto.EntityId,
-                    Include = x => x.Include(x => x.Contents)
-                });
-            if (section is null)
+
+            var allContentLocalizations = new List<HistorySectionContentLocalization>();
+            var sectionById = new Dictionary<long, HistorySection>();
+
+            foreach (var sectionDto in request.CreateHistorySectionLocalizationDtos)
             {
-                return Result.Fail<HistorySectionLocalizationDto>(ErrorMessagesConstants.NotFound(request.CreateHistorySectionLocalizationDto.EntityId, typeof(HistorySection)));
+                var section = await _repositoryWrapper.HistorySectionsRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<HistorySection>
+                    {
+                        Filter = x => x.Id == sectionDto.EntityId,
+                        Include = x => x.Include(x => x.Contents)
+                    });
+
+                if (section is null)
+                {
+                    return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
+                }
+
+                HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
+                    section.Id,
+                    sectionDto.Contents,
+                    section.Contents);
+
+                var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(sectionDto.Contents);
+                allContentLocalizations.AddRange(contentLocalizations);
+                sectionById[section.Id] = section;
             }
 
-            var contentTypesById = section.Contents.ToDictionary(c => c.Id, c => c.ContentType);
-
-            HistorySectionContentLocalizationValidationHelper.ValidateHistoryContents(
-                request.CreateHistorySectionLocalizationDto.Contents,
-                contentTypesById);
-
-            var contentDtos = request.CreateHistorySectionLocalizationDto.Contents.ToList();
-            var contentLocalizations = _mapper.Map<List<HistorySectionContentLocalization>>(contentDtos);
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, false);
+            await _contentLocalizationService.TrackEntityLocalizationAsync(allContentLocalizations, false);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                return Result.Fail<HistorySectionLocalizationDto>(ErrorMessagesConstants.
+                return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.
                 FailedToCreateEntityInDatabase(typeof(HistorySectionLocalizationDto)));
             }
+
+            var allEntityIds = allContentLocalizations.Select(c => c.EntityId).ToList();
+            var allLanguageIds = allContentLocalizations.Select(c => c.LanguageId).ToList();
 
             var createdLocalizations = await _repositoryWrapper.HistorySectionContentLocalizationsRepository
                 .GetAllAsync(new QueryOptions<HistorySectionContentLocalization>
                 {
-                    Filter = l => contentLocalizations.Select(c => c.EntityId).Contains(l.EntityId) &&
-                                  contentLocalizations.Select(c => c.LanguageId).Contains(l.LanguageId),
+                    Filter = l => allEntityIds.Contains(l.EntityId) &&
+                                  allLanguageIds.Contains(l.LanguageId),
                     Include = q => q.Include(l => l.Language)
                 });
 
-            var result = new HistorySectionLocalizationDto
+            var results = new List<HistorySectionLocalizationDto>();
+            foreach (var (sectionId, section) in sectionById)
             {
-                EntityId = section.Id,
-                Contents = _mapper.Map<List<HistorySectionContentLocalizationDto>>(createdLocalizations)
-            };
+                var contentIds = section.Contents.Select(c => c.Id).ToHashSet();
+                var sectionLocalizations = createdLocalizations
+                    .Where(l => contentIds.Contains(l.EntityId))
+                    .ToList();
 
-            return Result.Ok(result);
+                results.Add(new HistorySectionLocalizationDto
+                {
+                    EntityId = sectionId,
+                    Contents = _mapper.Map<List<HistorySectionContentLocalizationDto>>(sectionLocalizations)
+                });
+            }
+
+            return Result.Ok(results);
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(knfex.Message);
+            return Result.Fail<List<HistorySectionLocalizationDto>>(knfex.Message);
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HistorySectionLocalizationDto)));
+            return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.FailedToCreateEntity(typeof(HistorySectionLocalizationDto)));
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<List<HistorySectionLocalizationDto>>(vex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(ErrorMessagesConstants.
+            return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.
                 FailedToCreateEntityInDatabase(typeof(HistorySectionLocalizationDto)));
         }
         catch (Exception ex)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(ex.Message);
+            return Result.Fail<List<HistorySectionLocalizationDto>>(ex.Message);
         }
     }
 }

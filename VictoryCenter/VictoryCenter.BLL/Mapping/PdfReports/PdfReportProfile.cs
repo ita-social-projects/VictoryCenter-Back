@@ -9,6 +9,8 @@ public class PdfReportProfile : Profile
     public PdfReportProfile()
     {
         CreateMap<PdfReport, PdfReportDto>()
-            .ForMember(dest => dest.LanguageCode, opt => opt.MapFrom(src => src.Language.Code));
+            .ForMember(
+                dest => dest.LanguageCode,
+                opt => opt.MapFrom(src => src.Language != null ? src.Language.Code : null));
     }
 }

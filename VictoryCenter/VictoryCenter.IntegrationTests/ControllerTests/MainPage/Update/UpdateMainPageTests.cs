@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Entities;
@@ -50,12 +51,15 @@ public class UpdateMainPageTests : BaseTestClass
         var updated = await Fixture.DbContext.MainPages
             .Include(m => m.MainAboutUs)
             .Include(m => m.MainPartners)
+            .Include(m => m.MainDonations)
             .Include(m => m.ImpactStatistics)
             .SingleAsync(m => m.Id == mainPage.Id);
 
         Assert.Equal(updateDto.Title, updated.Title);
         Assert.NotNull(updated.MainAboutUs);
         Assert.NotNull(updated.MainPartners);
+        Assert.NotNull(updated.MainDonations);
+        Assert.Equal(updateDto.MainDonations!.Title, updated.MainDonations.Title);
         Assert.NotNull(updated.ImpactStatistics);
         Assert.Equal("Updated existing stat", updated.ImpactStatistics.Title);
     }
@@ -99,6 +103,34 @@ public class UpdateMainPageTests : BaseTestClass
         var response = await PutRaw(updateDto);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_InvalidMainDonations_ShouldReturnBadRequest()
+    {
+        var mainPage = await EnsureMainPageExistsAsync();
+        var image = await EnsureImageExistsAsync();
+        var existingStat = mainPage.ImpactStatistics;
+        var existingMetric = existingStat?.Metrics.FirstOrDefault();
+
+        var updateDto = CreateUpdateDto(
+            title: "Updated title",
+            mainImageId: image.Id,
+            statImageId: image.Id,
+            statId: existingStat?.Id,
+            metricId: existingMetric?.Id) with
+        {
+            MainDonations = new UpdateMainDonationsDto
+            {
+                Title = string.Empty,
+                Description = "Updated Donations description",
+                ImageId = image.Id,
+            },
+        };
+
+        var response = await PutRaw(updateDto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -167,6 +199,12 @@ public class UpdateMainPageTests : BaseTestClass
             ImageId = mainImageId,
             MainAboutUs = new UpdateMainAboutUsDto { Title = "Updated About Us title", Description = "Updated About Us description" },
             MainPartners = new UpdateMainPartnersDto { Title = "Updated Partners title", Description = "Updated Partners description" },
+            MainDonations = new UpdateMainDonationsDto
+            {
+                Title = "Updated Donations title",
+                Description = "Updated Donations description",
+                ImageId = mainImageId,
+            },
             ImpactStatistics = new UpdateImpactStatisticDto
             {
                 Id = statId,
@@ -186,6 +224,7 @@ public class UpdateMainPageTests : BaseTestClass
         var existing = await Fixture.DbContext.MainPages
             .Include(m => m.MainAboutUs)
             .Include(m => m.MainPartners)
+            .Include(m => m.MainDonations)
             .Include(m => m.ImpactStatistics)
                 .ThenInclude(s => s!.Metrics)
             .FirstOrDefaultAsync();
@@ -203,6 +242,12 @@ public class UpdateMainPageTests : BaseTestClass
             ImageId = image.Id,
             MainAboutUs = new MainAboutUs { Title = "Seed About Us", Description = "Seed Desc" },
             MainPartners = new MainPartners { Title = "Seed Partners", Description = "Seed Desc" },
+            MainDonations = new MainDonations
+            {
+                Title = "Seed Donations",
+                Description = "Seed Desc",
+                ImageId = image.Id,
+            },
             ImpactStatistics = new ImpactStatistics
             {
                 Title = "Seed Stat",
