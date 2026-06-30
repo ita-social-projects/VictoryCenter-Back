@@ -34,6 +34,7 @@ public class DeletePdfReportHandlerTests
             BlobName = "blob-name-123",
             FileSizeBytes = 1024000,
             Priority = 1,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

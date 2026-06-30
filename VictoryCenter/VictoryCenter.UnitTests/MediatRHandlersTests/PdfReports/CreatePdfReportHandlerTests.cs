@@ -11,7 +11,9 @@ using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.PdfReports;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 
@@ -34,6 +36,10 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
+        _mockRepositoryWrapper
+            .Setup(x => x.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(new LocalizationLanguage { Id = 1, Code = "uk", Name = "Ukrainian" });
 
         var mockFile = new Mock<IFormFile>();
         mockFile.Setup(f => f.ContentType).Returns("application/pdf");
@@ -48,6 +54,7 @@ public class CreatePdfReportHandlerTests
             BlobName = "abc123.pdf",
             FileSizeBytes = 1024,
             Priority = 1,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

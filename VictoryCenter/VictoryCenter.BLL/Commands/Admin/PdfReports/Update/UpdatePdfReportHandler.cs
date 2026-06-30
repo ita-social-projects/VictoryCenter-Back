@@ -42,7 +42,8 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
                 new QueryOptions<PdfReport>
                 {
                     Filter = pr => pr.Id == normalizedRequest.Id,
-                    AsNoTracking = false
+                    AsNoTracking = false,
+                    Include = pr => pr.Include(p => p.Language)
                 });
 
             if (pdfReport == null)

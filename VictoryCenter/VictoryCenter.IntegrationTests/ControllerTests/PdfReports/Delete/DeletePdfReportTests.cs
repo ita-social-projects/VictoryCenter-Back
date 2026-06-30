@@ -206,6 +206,7 @@ public class DeletePdfReportTests : BaseTestClass
             BlobName = blobName,
             FileSizeBytes = PdfSignatureBytes.Length,
             Priority = priority,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

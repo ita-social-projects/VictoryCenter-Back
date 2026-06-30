@@ -28,6 +28,7 @@ public class GetPdfReportByIdHandlerTests
             BlobName = "report-2024.pdf",
             Priority = 1,
             FileSizeBytes = 1024,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }

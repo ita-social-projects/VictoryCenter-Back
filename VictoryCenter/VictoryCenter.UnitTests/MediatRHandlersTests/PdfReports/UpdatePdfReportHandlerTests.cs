@@ -33,6 +33,7 @@ public class UpdatePdfReportHandlerTests
             BlobName = "blob-name-123.pdf",
             FileSizeBytes = 1024000,
             Priority = 1,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -142,6 +143,7 @@ public class UpdatePdfReportHandlerTests
             BlobName = "blob-name-123.pdf",
             FileSizeBytes = 1024000,
             Priority = 1,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -194,6 +196,7 @@ public class UpdatePdfReportHandlerTests
             BlobName = "blob-name-123.pdf",
             FileSizeBytes = 1024000,
             Priority = 1,
+            LanguageId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
 

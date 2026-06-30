@@ -32,7 +32,10 @@ public class PdfReportConfig : IEntityTypeConfiguration<PdfReport>
         entity.Property(e => e.CreatedAt)
             .IsRequired();
 
-        entity.HasIndex(e => e.Priority)
+        entity.Property(e => e.LanguageId)
+            .IsRequired();
+
+        entity.HasIndex(e => new { e.LanguageId, e.Priority })
             .IsUnique();
 
         entity.HasOne(e => e.Language)
