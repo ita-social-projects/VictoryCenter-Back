@@ -546,6 +546,7 @@ public static class ServicesConfiguration
             var changedLives = new ChangedLivesBlock
             {
                 Title = "Змінено життів",
+                TitleEn = "Changed lives",
                 ChangedLivesCount = 205,
                 CreatedAt = DateTimeOffset.UtcNow,
                 ImageId = null
@@ -558,6 +559,7 @@ public static class ServicesConfiguration
             var collectedFunds = new CollectedFundsBlock
             {
                 Title = "Зібрано коштів на реабілітацію",
+                TitleEn = "Collected funds for rehabilitation",
                 CreatedAt = DateTimeOffset.UtcNow,
                 ImageId = null
             };
