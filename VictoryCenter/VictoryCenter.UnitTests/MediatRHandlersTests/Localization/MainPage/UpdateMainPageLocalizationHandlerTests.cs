@@ -212,6 +212,47 @@ public class UpdateMainPageLocalizationHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldCreateLocalizations_WhenTheyDoNotExist()
+    {
+        var command = BuildCommand(GetValidDto());
+        SetupDependencies();
+
+        var mockAboutUsRepo = new Mock<IRepositoryBase<MainAboutUsLocalization>>();
+        mockAboutUsRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<MainAboutUsLocalization>>()))
+            .ReturnsAsync((MainAboutUsLocalization?)null);
+        _mockRepositoryWrapper.Setup(r => r.GetRepository<MainAboutUsLocalization>()).Returns(mockAboutUsRepo.Object);
+
+        var mockPartnersRepo = new Mock<IRepositoryBase<MainPartnersLocalization>>();
+        mockPartnersRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<MainPartnersLocalization>>()))
+            .ReturnsAsync((MainPartnersLocalization?)null);
+        _mockRepositoryWrapper.Setup(r => r.GetRepository<MainPartnersLocalization>()).Returns(mockPartnersRepo.Object);
+
+        var mockDonationsRepo = new Mock<IRepositoryBase<MainDonationsLocalization>>();
+        mockDonationsRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<MainDonationsLocalization>>()))
+            .ReturnsAsync((MainDonationsLocalization?)null);
+        _mockRepositoryWrapper.Setup(r => r.GetRepository<MainDonationsLocalization>()).Returns(mockDonationsRepo.Object);
+
+        _mockMainAboutUsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainAboutUsLocalization>()))
+            .ReturnsAsync(_mainAboutUsLocalization);
+        _mockMainPartnersService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()))
+            .ReturnsAsync(_mainPartnersLocalization);
+        _mockMainDonationsService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()))
+            .ReturnsAsync(_mainDonationsLocalization);
+
+        var result = await CreateHandler().Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        
+        _mockMainAboutUsService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainAboutUsLocalization>()), Times.Once);
+        _mockMainPartnersService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()), Times.Once);
+        _mockMainDonationsService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()), Times.Once);
+        
+        _mockMainAboutUsService.Verify(s => s.UpdateEntityLocalizationAsync(It.IsAny<MainAboutUsLocalization>()), Times.Never);
+        _mockMainPartnersService.Verify(s => s.UpdateEntityLocalizationAsync(It.IsAny<MainPartnersLocalization>()), Times.Never);
+        _mockMainDonationsService.Verify(s => s.UpdateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()), Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenMainPageAggregateNotFound()
     {
         _mockRepositoryWrapper
@@ -375,6 +416,21 @@ public class UpdateMainPageLocalizationHandlerTests
             .ReturnsAsync(_mainPartnersLocalization);
         _mockMainDonationsService.Setup(s => s.UpdateEntityLocalizationAsync(It.IsAny<MainDonationsLocalization>()))
             .ReturnsAsync(_mainDonationsLocalization);
+
+        var mockAboutUsRepo = new Mock<IRepositoryBase<MainAboutUsLocalization>>();
+        mockAboutUsRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<MainAboutUsLocalization>>()))
+            .ReturnsAsync(_mainAboutUsLocalization);
+        _mockRepositoryWrapper.Setup(r => r.GetRepository<MainAboutUsLocalization>()).Returns(mockAboutUsRepo.Object);
+
+        var mockPartnersRepo = new Mock<IRepositoryBase<MainPartnersLocalization>>();
+        mockPartnersRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<MainPartnersLocalization>>()))
+            .ReturnsAsync(_mainPartnersLocalization);
+        _mockRepositoryWrapper.Setup(r => r.GetRepository<MainPartnersLocalization>()).Returns(mockPartnersRepo.Object);
+
+        var mockDonationsRepo = new Mock<IRepositoryBase<MainDonationsLocalization>>();
+        mockDonationsRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<MainDonationsLocalization>>()))
+            .ReturnsAsync(_mainDonationsLocalization);
+        _mockRepositoryWrapper.Setup(r => r.GetRepository<MainDonationsLocalization>()).Returns(mockDonationsRepo.Object);
 
         _mockMapper.Setup(m => m.Map<MainPageLocalizationDto>(It.IsAny<MainPageLocalization>()))
             .Returns(_mainPageLocalizationDto);
