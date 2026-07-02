@@ -6,7 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.Interfaces.Localization;
+using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -72,78 +74,48 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
             mainPageLocalizationEntity.LanguageId = request.LanguageId;
             var updatedMainPageLocalization = await _mainPageLocalizationService.UpdateEntityLocalizationAsync(mainPageLocalizationEntity);
 
+            if (dto.MainAboutUs is not null && mainPage.MainAboutUs is null)
+            {
+                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+            }
+
+            if (dto.MainPartners is not null && mainPage.MainPartners is null)
+            {
+                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+            }
+
+            if (dto.MainDonations is not null && mainPage.MainDonations is null)
+            {
+                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+            }
+
             MainAboutUsLocalizationDto? mainAboutUsDto = null;
             if (dto.MainAboutUs is not null)
             {
-                if (mainPage.MainAboutUs is null)
-                {
-                    return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
-                }
-
                 var mainAboutUsLocalizationEntity = _mapper.Map<MainAboutUsLocalization>(dto.MainAboutUs);
-                mainAboutUsLocalizationEntity.EntityId = mainPage.MainAboutUs.Id;
+                mainAboutUsLocalizationEntity.EntityId = mainPage.MainAboutUs!.Id;
                 mainAboutUsLocalizationEntity.LanguageId = request.LanguageId;
-
-                var existingAboutUs = await _repositoryWrapper.GetRepository<MainAboutUsLocalization>()
-                    .GetFirstOrDefaultAsync(new QueryOptions<MainAboutUsLocalization>
-                    {
-                        Filter = l => l.EntityId == mainPage.MainAboutUs.Id && l.LanguageId == request.LanguageId
-                    });
-
-                var updatedAboutUs = existingAboutUs is null
-                    ? await _mainAboutUsLocalizationService.CreateEntityLocalizationAsync(mainAboutUsLocalizationEntity)
-                    : await _mainAboutUsLocalizationService.UpdateEntityLocalizationAsync(mainAboutUsLocalizationEntity);
-
+                var updatedAboutUs = await UpsertLocalizationAsync(mainAboutUsLocalizationEntity, _mainAboutUsLocalizationService);
                 mainAboutUsDto = _mapper.Map<MainAboutUsLocalizationDto>(updatedAboutUs);
             }
 
             MainPartnersLocalizationDto? mainPartnersDto = null;
             if (dto.MainPartners is not null)
             {
-                if (mainPage.MainPartners is null)
-                {
-                    return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
-                }
-
                 var mainPartnersLocalizationEntity = _mapper.Map<MainPartnersLocalization>(dto.MainPartners);
-                mainPartnersLocalizationEntity.EntityId = mainPage.MainPartners.Id;
+                mainPartnersLocalizationEntity.EntityId = mainPage.MainPartners!.Id;
                 mainPartnersLocalizationEntity.LanguageId = request.LanguageId;
-
-                var existingPartners = await _repositoryWrapper.GetRepository<MainPartnersLocalization>()
-                    .GetFirstOrDefaultAsync(new QueryOptions<MainPartnersLocalization>
-                    {
-                        Filter = l => l.EntityId == mainPage.MainPartners.Id && l.LanguageId == request.LanguageId
-                    });
-
-                var updatedPartners = existingPartners is null
-                    ? await _mainPartnersLocalizationService.CreateEntityLocalizationAsync(mainPartnersLocalizationEntity)
-                    : await _mainPartnersLocalizationService.UpdateEntityLocalizationAsync(mainPartnersLocalizationEntity);
-
+                var updatedPartners = await UpsertLocalizationAsync(mainPartnersLocalizationEntity, _mainPartnersLocalizationService);
                 mainPartnersDto = _mapper.Map<MainPartnersLocalizationDto>(updatedPartners);
             }
 
             MainDonationsLocalizationDto? mainDonationsDto = null;
             if (dto.MainDonations is not null)
             {
-                if (mainPage.MainDonations is null)
-                {
-                    return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
-                }
-
                 var mainDonationsLocalizationEntity = _mapper.Map<MainDonationsLocalization>(dto.MainDonations);
-                mainDonationsLocalizationEntity.EntityId = mainPage.MainDonations.Id;
+                mainDonationsLocalizationEntity.EntityId = mainPage.MainDonations!.Id;
                 mainDonationsLocalizationEntity.LanguageId = request.LanguageId;
-
-                var existingDonations = await _repositoryWrapper.GetRepository<MainDonationsLocalization>()
-                    .GetFirstOrDefaultAsync(new QueryOptions<MainDonationsLocalization>
-                    {
-                        Filter = l => l.EntityId == mainPage.MainDonations.Id && l.LanguageId == request.LanguageId
-                    });
-
-                var updatedDonations = existingDonations is null
-                    ? await _mainDonationsLocalizationService.CreateEntityLocalizationAsync(mainDonationsLocalizationEntity)
-                    : await _mainDonationsLocalizationService.UpdateEntityLocalizationAsync(mainDonationsLocalizationEntity);
-
+                var updatedDonations = await UpsertLocalizationAsync(mainDonationsLocalizationEntity, _mainDonationsLocalizationService);
                 mainDonationsDto = _mapper.Map<MainDonationsLocalizationDto>(updatedDonations);
             }
 
@@ -174,5 +146,23 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         {
             return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(MainPageLocalization)));
         }
+    }
+
+    private async Task<TLocalization> UpsertLocalizationAsync<TEntity, TLocalization>(
+        TLocalization entity,
+        ILocalizationService<TEntity, TLocalization> service)
+        where TEntity : class, ITranslatedEntity<TLocalization>, IEntity
+        where TLocalization : LocalizationBase<TEntity>
+    {
+        var existing = await _repositoryWrapper.GetRepository<TLocalization>()
+            .GetFirstOrDefaultAsync(new QueryOptions<TLocalization>
+            {
+                Filter = l => l.EntityId == entity.EntityId && l.LanguageId == entity.LanguageId,
+                AsNoTracking = true
+            });
+
+        return existing is null
+            ? await service.CreateEntityLocalizationAsync(entity)
+            : await service.UpdateEntityLocalizationAsync(entity);
     }
 }
