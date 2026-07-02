@@ -178,6 +178,7 @@ public class UpdateMainPageLocalizationHandlerTests
     {
         var dto = GetValidDto();
         var command = BuildCommand(dto);
+        SetupDependencies(true);
 
         var capturedMainPage = new MainPageLocalization();
         var capturedAboutUs = new MainAboutUsLocalization();
