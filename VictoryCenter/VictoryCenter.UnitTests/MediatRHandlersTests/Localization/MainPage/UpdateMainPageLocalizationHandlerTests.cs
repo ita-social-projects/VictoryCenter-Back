@@ -229,13 +229,13 @@ public class UpdateMainPageLocalizationHandlerTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Equal(_mainPageLocalizationDto.EntityId, result.Value.EntityId);
-        
+
         Assert.NotNull(result.Value.MainAboutUs);
         Assert.Equal(_mainAboutUsLocalizationDto.EntityId, result.Value.MainAboutUs.EntityId);
-        
+
         Assert.NotNull(result.Value.MainPartners);
         Assert.Equal(_mainPartnersLocalizationDto.EntityId, result.Value.MainPartners.EntityId);
-        
+
         Assert.NotNull(result.Value.MainDonations);
         Assert.Equal(_mainDonationsLocalizationDto.EntityId, result.Value.MainDonations.EntityId);
 
