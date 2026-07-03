@@ -1,5 +1,6 @@
 using System.Transactions;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,8 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.Localization;
+using VictoryCenter.BLL.Interfaces.MainPage;
+using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
@@ -389,10 +392,17 @@ public class UpdateMainPageLocalizationHandlerTests
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(MainPageLocalization)), result.Errors[0].Message);
     }
 
-    private UpdateMainPageLocalizationHandler CreateHandler() =>
-        new(_mockMapper.Object, _mockRepositoryWrapper.Object, _mockValidator.Object,
-            _mockMainPageService.Object, _mockMainAboutUsService.Object, _mockMainPartnersService.Object,
+    private UpdateMainPageLocalizationHandler CreateHandler()
+    {
+        var blocksUpdater = new MainPageBlocksLocalizationUpdater(
+            _mockMapper.Object,
+            _mockRepositoryWrapper.Object,
+            _mockMainAboutUsService.Object,
+            _mockMainPartnersService.Object,
             _mockMainDonationsService.Object);
+
+        return new(_mockMapper.Object, _mockRepositoryWrapper.Object, _mockValidator.Object, _mockMainPageService.Object, blocksUpdater);
+    }
 
     private void SetupDependencies(bool localizationsExist)
     {

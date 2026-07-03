@@ -181,6 +181,7 @@ public static class ServicesConfiguration
         services.AddScoped(typeof(ISearchService<>), typeof(SearchService<>));
 
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
+        services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
 
