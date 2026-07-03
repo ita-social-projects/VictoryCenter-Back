@@ -69,55 +69,18 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
 
             var dto = request.Dto;
 
+            if (!ValidateBlocksExist(dto, mainPage))
+            {
+                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+            }
+
             MainPageLocalization mainPageLocalizationEntity = _mapper.Map<MainPageLocalization>(dto);
             mainPageLocalizationEntity.EntityId = request.EntityId;
             mainPageLocalizationEntity.LanguageId = request.LanguageId;
             var updatedMainPageLocalization = await _mainPageLocalizationService.UpdateEntityLocalizationAsync(mainPageLocalizationEntity);
 
-            if (dto.MainAboutUs is not null && mainPage.MainAboutUs is null)
-            {
-                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
-            }
-
-            if (dto.MainPartners is not null && mainPage.MainPartners is null)
-            {
-                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
-            }
-
-            if (dto.MainDonations is not null && mainPage.MainDonations is null)
-            {
-                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
-            }
-
-            MainAboutUsLocalizationDto? mainAboutUsDto = null;
-            if (dto.MainAboutUs is not null)
-            {
-                var mainAboutUsLocalizationEntity = _mapper.Map<MainAboutUsLocalization>(dto.MainAboutUs);
-                mainAboutUsLocalizationEntity.EntityId = mainPage.MainAboutUs!.Id;
-                mainAboutUsLocalizationEntity.LanguageId = request.LanguageId;
-                var updatedAboutUs = await UpsertLocalizationAsync(mainAboutUsLocalizationEntity, _mainAboutUsLocalizationService);
-                mainAboutUsDto = _mapper.Map<MainAboutUsLocalizationDto>(updatedAboutUs);
-            }
-
-            MainPartnersLocalizationDto? mainPartnersDto = null;
-            if (dto.MainPartners is not null)
-            {
-                var mainPartnersLocalizationEntity = _mapper.Map<MainPartnersLocalization>(dto.MainPartners);
-                mainPartnersLocalizationEntity.EntityId = mainPage.MainPartners!.Id;
-                mainPartnersLocalizationEntity.LanguageId = request.LanguageId;
-                var updatedPartners = await UpsertLocalizationAsync(mainPartnersLocalizationEntity, _mainPartnersLocalizationService);
-                mainPartnersDto = _mapper.Map<MainPartnersLocalizationDto>(updatedPartners);
-            }
-
-            MainDonationsLocalizationDto? mainDonationsDto = null;
-            if (dto.MainDonations is not null)
-            {
-                var mainDonationsLocalizationEntity = _mapper.Map<MainDonationsLocalization>(dto.MainDonations);
-                mainDonationsLocalizationEntity.EntityId = mainPage.MainDonations!.Id;
-                mainDonationsLocalizationEntity.LanguageId = request.LanguageId;
-                var updatedDonations = await UpsertLocalizationAsync(mainDonationsLocalizationEntity, _mainDonationsLocalizationService);
-                mainDonationsDto = _mapper.Map<MainDonationsLocalizationDto>(updatedDonations);
-            }
+            var (mainAboutUsDto, mainPartnersDto, mainDonationsDto) =
+                await UpdateBlockLocalizationsAsync(dto, mainPage, request.LanguageId);
 
             transaction.Complete();
 
@@ -146,6 +109,59 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         {
             return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(MainPageLocalization)));
         }
+    }
+
+    private static bool ValidateBlocksExist(UpdateMainPageLocalizationDto dto, MainPageEntity mainPage)
+    {
+        if (dto.MainAboutUs is not null && mainPage.MainAboutUs is null)
+        {
+            return false;
+        }
+
+        if (dto.MainPartners is not null && mainPage.MainPartners is null)
+        {
+            return false;
+        }
+
+        if (dto.MainDonations is not null && mainPage.MainDonations is null)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private async Task<(MainAboutUsLocalizationDto?, MainPartnersLocalizationDto?, MainDonationsLocalizationDto?)>
+        UpdateBlockLocalizationsAsync(UpdateMainPageLocalizationDto dto, MainPageEntity mainPage, long languageId)
+    {
+        MainAboutUsLocalizationDto? mainAboutUsDto = null;
+        if (dto.MainAboutUs is not null)
+        {
+            var entity = _mapper.Map<MainAboutUsLocalization>(dto.MainAboutUs);
+            entity.EntityId = mainPage.MainAboutUs!.Id;
+            entity.LanguageId = languageId;
+            mainAboutUsDto = _mapper.Map<MainAboutUsLocalizationDto>(await UpsertLocalizationAsync(entity, _mainAboutUsLocalizationService));
+        }
+
+        MainPartnersLocalizationDto? mainPartnersDto = null;
+        if (dto.MainPartners is not null)
+        {
+            var entity = _mapper.Map<MainPartnersLocalization>(dto.MainPartners);
+            entity.EntityId = mainPage.MainPartners!.Id;
+            entity.LanguageId = languageId;
+            mainPartnersDto = _mapper.Map<MainPartnersLocalizationDto>(await UpsertLocalizationAsync(entity, _mainPartnersLocalizationService));
+        }
+
+        MainDonationsLocalizationDto? mainDonationsDto = null;
+        if (dto.MainDonations is not null)
+        {
+            var entity = _mapper.Map<MainDonationsLocalization>(dto.MainDonations);
+            entity.EntityId = mainPage.MainDonations!.Id;
+            entity.LanguageId = languageId;
+            mainDonationsDto = _mapper.Map<MainDonationsLocalizationDto>(await UpsertLocalizationAsync(entity, _mainDonationsLocalizationService));
+        }
+
+        return (mainAboutUsDto, mainPartnersDto, mainDonationsDto);
     }
 
     private async Task<TLocalization> UpsertLocalizationAsync<TEntity, TLocalization>(
