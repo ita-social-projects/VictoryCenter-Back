@@ -1,6 +1,5 @@
 using System.Transactions;
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,6 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.Localization;
-using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
