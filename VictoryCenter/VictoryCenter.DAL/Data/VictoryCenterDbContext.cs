@@ -132,6 +132,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HistorySectionContentLocalization> HistorySectionContentLocalizations { get; set; }
 
+    public DbSet<EventNewsCategory> EventNewsCategories { get; set; }
+
+    public DbSet<EventNews> EventNews { get; set; }
+
+    public DbSet<EventNewsLocalization> EventNewsLocalizations { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
