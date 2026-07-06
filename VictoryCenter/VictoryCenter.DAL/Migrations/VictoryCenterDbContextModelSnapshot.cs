@@ -1686,7 +1686,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<long>("FileSizeBytes")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("LanguageId")
+                    b.Property<long>("LanguageId")
                         .HasColumnType("bigint");
 
                     b.Property<string>("Name")
@@ -1699,9 +1699,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LanguageId");
-
-                    b.HasIndex("Priority")
+                    b.HasIndex("LanguageId", "Priority")
                         .IsUnique();
 
                     b.ToTable("PdfReports", "media");
@@ -2865,7 +2863,8 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
                         .WithMany()
                         .HasForeignKey("LanguageId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.Navigation("Language");
                 });
