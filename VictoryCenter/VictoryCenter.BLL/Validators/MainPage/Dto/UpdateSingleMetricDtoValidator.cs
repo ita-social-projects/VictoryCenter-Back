@@ -15,11 +15,13 @@ public class UpdateSingleMetricDtoValidator : AbstractValidator<UpdateSingleMetr
         RuleFor(x => x.Name)
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"))
-            .MinimumLength(VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Name", VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MinLength))
-            .MaximumLength(VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Name", VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MaxLength))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateSingleMetricDto.Name)))
+            .MinimumLength(MainPageConstants.Metric.Name.MinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.Name.MinLength))
+            .MaximumLength(MainPageConstants.Metric.Name.MaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.Name.MaxLength))
             .When(x => x.Name != null);
 
         RuleFor(x => x.Type)
