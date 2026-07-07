@@ -16,10 +16,10 @@ public class UpdateSingleMetricDtoValidator : AbstractValidator<UpdateSingleMetr
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Name"))
-            .MinimumLength(MainPageConstants.Metric.Name.MinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Name", MainPageConstants.Metric.Name.MinLength))
-            .MaximumLength(MainPageConstants.Metric.Name.MaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Name", MainPageConstants.Metric.Name.MaxLength))
+            .MinimumLength(VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters("Name", VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MinLength))
+            .MaximumLength(VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters("Name", VictoryCenter.BLL.Constants.MainPageConstants.Metric.Name.MaxLength))
             .When(x => x.Name != null);
 
         RuleFor(x => x.Type)
