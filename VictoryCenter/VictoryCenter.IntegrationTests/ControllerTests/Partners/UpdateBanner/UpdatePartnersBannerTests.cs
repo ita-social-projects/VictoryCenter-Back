@@ -28,7 +28,7 @@ public class UpdatePartnersBannerTests : BaseTestClass
         var updateDto = new UpdatePartnersPageBannerDto
         {
             Title = "Updated Banner Title",
-            Description = "This is the new and updated description.",
+            Description = "Updated banner description.",
             ImageId = newImage.Id
         };
         var serializedDto = JsonSerializer.Serialize(updateDto);
