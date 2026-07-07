@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -53,5 +54,16 @@ public class GetPublishedEventNewsTests : BaseTestClass
             .Select(e => e.PublishedAt ?? DateTimeOffset.MinValue)
             .ToList();
         Assert.Equal(publishedDates.OrderByDescending(d => d).ToList(), publishedDates);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(EventNewsConstants.PublishedTakeMaxValue + 1)]
+    public async Task GetPublishedEventNews_WhenTakeIsOutOfRange_ShouldReturnBadRequest(int take)
+    {
+        HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"/api/EventNews/published?take={take}");
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
