@@ -39,13 +39,17 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
             var reportsToReorderCount = await _repositoryWrapper.PdfReportRepository.CountAsync(
                 new QueryOptions<PdfReport>
                 {
-                    Filter = e => e.LanguageId == languageId && orderedIds.Contains(e.Id),
-                    OrderByASC = e => e.Priority
+                    Filter = e => e.LanguageId == languageId && orderedIds.Contains(e.Id)
                 });
 
             if (reportsToReorderCount == 0)
             {
                 return Result.Fail<Unit>(PdfReportConstants.PdfNotFound);
+            }
+
+            if (reportsToReorderCount != orderedIds.Count)
+            {
+                return Result.Fail<Unit>(ReorderConstants.NotAllEntitiesFoundForReorder(reportsToReorderCount, orderedIds.Count));
             }
 
             await _reorderService.SwapElementsAsync<PdfReport>(

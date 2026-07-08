@@ -60,8 +60,6 @@ public class ReorderPdfReportsTests
     {
         // Arrange
         var command = new ReorderPdfReportsCommand(new() { LanguageId = -10, OrderedIds = [2, 1] });
-        SetupRepositoryWrapper(0);
-        SetupReorderService();
 
         var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
 
@@ -73,6 +71,43 @@ public class ReorderPdfReportsTests
         Assert.True(result.IsFailed);
         Assert.Contains(
             ErrorMessagesConstants.PropertyMustBePositive(nameof(ReorderPdfReportsDto.LanguageId)),
+            result.Errors[0].Message,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Handle_NotAllPdfReportsFound_ShouldReturnFailure()
+    {
+        // Arrange
+        var command = new ReorderPdfReportsCommand(new() { LanguageId = 1, OrderedIds = [2, 1] });
+        SetupRepositoryWrapper(1);
+        SetupReorderService();
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Equal(ReorderConstants.NotAllEntitiesFoundForReorder(1, 2), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_OrderedIdsIsNull_ShouldReturnFailure()
+    {
+        // Arrange
+        var command = new ReorderPdfReportsCommand(new() { LanguageId = 1, OrderedIds = null! });
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.True(result.IsFailed);
+        Assert.Contains(
+            ErrorMessagesConstants.CollectionCannotBeEmpty(nameof(ReorderPdfReportsDto.OrderedIds)),
             result.Errors[0].Message,
             StringComparison.OrdinalIgnoreCase);
     }

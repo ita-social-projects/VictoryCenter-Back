@@ -18,11 +18,11 @@ public class ReorderPdfReportsCommandValidator : AbstractValidator<ReorderPdfRep
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
                 nameof(ReorderPdfReportsDto.OrderedIds)))
-            .Must(ids => ids.Count <= ReorderConstants.MaxElementsSwapCount)
+            .Must(ids => ids == null || ids.Count <= ReorderConstants.MaxElementsSwapCount)
             .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
                 nameof(ReorderPdfReportsDto.OrderedIds),
                 ReorderConstants.MaxElementsSwapCount))
-            .Must(ids => ids.Distinct().Count() == ids.Count)
+            .Must(ids => ids == null || ids.Distinct().Count() == ids.Count)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
                 nameof(ReorderPdfReportsDto.OrderedIds)));
 
