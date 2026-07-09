@@ -14,6 +14,6 @@ public record UpdateSingleMetricDto
     public UpdateMetricLocalizationDto? Localization { get; init; }
 
 #pragma warning disable SA1011
-    public byte[]? ExpectedVersion { get; init; } = null!
+    public byte[]? ExpectedVersion { get; init; }
 #pragma warning restore SA1011
 }
