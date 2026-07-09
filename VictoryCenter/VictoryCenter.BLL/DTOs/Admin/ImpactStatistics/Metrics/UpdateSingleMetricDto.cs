@@ -12,4 +12,8 @@ public record UpdateSingleMetricDto
     public bool? IsAutoSynced { get; init; }
 
     public UpdateMetricLocalizationDto? Localization { get; init; }
+
+#pragma warning disable SA1011
+    public byte[]? ExpectedVersion { get; init; } = null!
+#pragma warning restore SA1011
 }

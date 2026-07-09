@@ -14,7 +14,7 @@ public class UpdateSingleMetricDtoValidator : AbstractValidator<UpdateSingleMetr
 
         RuleFor(x => x.Name)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty()
+            .Must(name => !string.IsNullOrWhiteSpace(name))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateSingleMetricDto.Name)))
             .MinimumLength(MainPageConstants.Metric.Name.MinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
@@ -31,5 +31,9 @@ public class UpdateSingleMetricDtoValidator : AbstractValidator<UpdateSingleMetr
         RuleFor(x => x.Prefix)
             .IsInEnum()
             .When(x => x.Prefix.HasValue);
+
+        RuleFor(x => x.Localization)
+            .SetValidator(new UpdateMetricLocalizationDtoValidator()!)
+            .When(x => x.Localization != null);
     }
 }

@@ -17,4 +17,7 @@ public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>, IOrdera
     public bool IsHidden { get; set; }
     public long Priority { get; set; }
     public ICollection<MetricLocalization> Localizations { get; set; } = [];
+
+    [System.ComponentModel.DataAnnotations.Timestamp]
+    public byte[] RowVersion { get; set; } = null!;
 }
