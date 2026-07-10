@@ -72,7 +72,7 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
         }
         catch (ReorderException ex)
         {
-            return Result.Fail(ReorderConstants.ErrorWithReordering(ex.Message));
+            return Result.Fail<Unit>(ReorderConstants.ErrorWithReordering(ex.Message));
         }
         catch (DbUpdateException)
         {

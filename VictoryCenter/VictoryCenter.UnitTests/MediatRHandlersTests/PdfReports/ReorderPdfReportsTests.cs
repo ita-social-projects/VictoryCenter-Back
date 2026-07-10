@@ -235,15 +235,30 @@ public class ReorderPdfReportsTests
     {
         var compiled = filter.Compile();
 
-        // A report matching the language and contained in the list should return true
-        var matchingReport = new PdfReport { Id = expectedOrderedIds.First(), LanguageId = expectedLanguageId };
+        foreach (var id in expectedOrderedIds)
+        {
+            var report = new PdfReport { Id = id, LanguageId = expectedLanguageId };
+            if (!compiled(report))
+            {
+                return false;
+            }
+        }
 
-        // A report with different language should return false
-        var mismatchingLanguageReport = new PdfReport { Id = expectedOrderedIds.First(), LanguageId = expectedLanguageId + 1 };
+        foreach (var id in expectedOrderedIds)
+        {
+            var report = new PdfReport { Id = id, LanguageId = expectedLanguageId + 1 };
+            if (compiled(report))
+            {
+                return false;
+            }
+        }
 
-        // A report with different ID should return false
         var mismatchingIdReport = new PdfReport { Id = -999, LanguageId = expectedLanguageId };
+        if (compiled(mismatchingIdReport))
+        {
+            return false;
+        }
 
-        return compiled(matchingReport) && !compiled(mismatchingLanguageReport) && !compiled(mismatchingIdReport);
+        return true;
     }
 }
