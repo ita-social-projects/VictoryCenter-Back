@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -36,6 +37,12 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
             var orderedIds = request.ReorderPdfReportsDto.OrderedIds;
             var languageId = request.ReorderPdfReportsDto.LanguageId;
 
+            var languageExists = await _repositoryWrapper.LocalizationLanguagesRepository.ExistsAsync(l => l.Id == languageId);
+            if (!languageExists)
+            {
+                return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(languageId, typeof(LocalizationLanguage)));
+            }
+
             var reportsToReorderCount = await _repositoryWrapper.PdfReportRepository.CountAsync(
                 new QueryOptions<PdfReport>
                 {
@@ -57,7 +64,7 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
                 idSelector: e => e.Id,
                 groupSelector: e => e.LanguageId == languageId);
 
-            return Result.Ok();
+            return Result.Ok(Unit.Value);
         }
         catch (ValidationException ex)
         {
