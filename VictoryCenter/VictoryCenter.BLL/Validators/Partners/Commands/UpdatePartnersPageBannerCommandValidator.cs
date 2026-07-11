@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.Constants;
@@ -12,10 +13,10 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
         RuleFor(x => x.Dto.Title)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.Title)))
-            .MinimumLength(PartnerConstants.PartnersPageBannerTitleMinLength)
+            .Must(title => StripHtmlTags(title).Length >= PartnerConstants.PartnersPageBannerTitleMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMinLength))
-            .MaximumLength(PartnerConstants.PartnersPageBannerTitleMaxLength)
+            .Must(title => StripHtmlTags(title).Length <= PartnerConstants.PartnersPageBannerTitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMaxLength));
 
@@ -31,5 +32,12 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
 
         RuleFor(x => x.Dto.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdatePartnersPageBannerDto.ImageId)));
+    }
+
+    private static string StripHtmlTags(string input)
+    {
+        return string.IsNullOrEmpty(input)
+            ? input
+            : Regex.Replace(input, "<.*?>", string.Empty);
     }
 }
