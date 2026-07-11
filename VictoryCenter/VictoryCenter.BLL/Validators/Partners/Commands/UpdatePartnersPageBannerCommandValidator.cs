@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.Partners;
 
 namespace VictoryCenter.BLL.Validators.Partners.Commands;
 
-public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<UpdatePartnersPageBannerCommand>
+public partial class UpdatePartnersPageBannerCommandValidator : AbstractValidator<UpdatePartnersPageBannerCommand>
 {
     public UpdatePartnersPageBannerCommandValidator()
     {
@@ -38,6 +38,9 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
     {
         return string.IsNullOrEmpty(input)
             ? input
-            : Regex.Replace(input, "<.*?>", string.Empty);
+            : HtmlTagRegex().Replace(input, string.Empty);
     }
+
+    [GeneratedRegex("<.*?>", RegexOptions.None, matchTimeoutMilliseconds: 100)]
+    private static partial Regex HtmlTagRegex();
 }
