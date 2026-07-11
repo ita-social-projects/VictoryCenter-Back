@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+using HtmlAgilityPack;
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.Constants;
@@ -6,7 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.Partners;
 
 namespace VictoryCenter.BLL.Validators.Partners.Commands;
 
-public partial class UpdatePartnersPageBannerCommandValidator : AbstractValidator<UpdatePartnersPageBannerCommand>
+public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<UpdatePartnersPageBannerCommand>
 {
     public UpdatePartnersPageBannerCommandValidator()
     {
@@ -14,10 +14,10 @@ public partial class UpdatePartnersPageBannerCommandValidator : AbstractValidato
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.Title)))
             .Must(title => StripHtmlTags(title).Length >= PartnerConstants.PartnersPageBannerTitleMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMinLength))
             .Must(title => StripHtmlTags(title).Length <= PartnerConstants.PartnersPageBannerTitleMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMaxLength));
 
         RuleFor(x => x.Dto.Description)
@@ -36,11 +36,13 @@ public partial class UpdatePartnersPageBannerCommandValidator : AbstractValidato
 
     private static string StripHtmlTags(string input)
     {
-        return string.IsNullOrEmpty(input)
-            ? input
-            : HtmlTagRegex().Replace(input, string.Empty);
-    }
+        if (string.IsNullOrEmpty(input))
+        {
+            return string.Empty;
+        }
 
-    [GeneratedRegex("<.*?>", RegexOptions.None, matchTimeoutMilliseconds: 100)]
-    private static partial Regex HtmlTagRegex();
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(input);
+        return htmlDoc.DocumentNode.InnerText;
+    }
 }

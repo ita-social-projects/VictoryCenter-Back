@@ -131,6 +131,16 @@ public static class ErrorMessagesConstants
         return $"{property} must be greater than {value}";
     }
 
+    public static string PropertyMustHaveAMinimumVisibleLengthOfNCharacters(string property, int length)
+    {
+        return $"{property} field must have a minimum length of {length} visible characters, excluding HTML markup";
+    }
+
+    public static string PropertyMustHaveAMaximumVisibleLengthOfNCharacters(string property, int length)
+    {
+        return $"{property} field must have a maximum length of {length} visible characters, excluding HTML markup";
+    }
+
     public static string PropertyIsRequired(string property)
     {
         return $"{property} is required";
