@@ -17,12 +17,12 @@ public abstract class BaseMetricDtoValidator<TDto> : AbstractValidator<TDto>
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Name)))
-            .MinimumLength(MainPageConstants.Metric.Name.MinLength)
+            .MinimumLength(MainPageConstants.Metric.ValidationNameRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMetricDto.Name), MainPageConstants.Metric.Name.MinLength))
-            .MaximumLength(MainPageConstants.Metric.Name.MaxLength)
+                nameof(BaseMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MinLen))
+            .MaximumLength(MainPageConstants.Metric.ValidationNameRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMetricDto.Name), MainPageConstants.Metric.Name.MaxLength));
+                nameof(BaseMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen));
 
         RuleFor(x => x.Type)
             .IsInEnum()

@@ -27,12 +27,14 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
         {
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
-                Title = "Updated Funds Title",
+                Title = "Оновлені зібрані кошти",
+                TitleEn = "Updated funds",
                 ImageId = image1.Id
             },
             ChangedLivesBlock = new UpdateChangedLivesBlockDto
             {
-                Title = "Updated Lives Title",
+                Title = "Оновлені життя",
+                TitleEn = "Updated lives",
                 ChangedLives = 2500,
                 ImageId = image2.Id
             }
@@ -53,9 +55,11 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
         var changedLivesEntity = await Fixture.DbContext.ChangedLivesBlocks.FirstAsync();
 
         Assert.Equal(updateDto.CollectedFundsBlock.Title, collectedFundsEntity.Title);
+        Assert.Equal(updateDto.CollectedFundsBlock.TitleEn, collectedFundsEntity.TitleEn);
         Assert.Equal(updateDto.CollectedFundsBlock.ImageId, collectedFundsEntity.ImageId);
 
         Assert.Equal(updateDto.ChangedLivesBlock.Title, changedLivesEntity.Title);
+        Assert.Equal(updateDto.ChangedLivesBlock.TitleEn, changedLivesEntity.TitleEn);
         Assert.Equal(updateDto.ChangedLivesBlock.ChangedLives, changedLivesEntity.ChangedLivesCount);
         Assert.Equal(updateDto.ChangedLivesBlock.ImageId, changedLivesEntity.ImageId);
     }
@@ -72,12 +76,14 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
         {
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
-                Title = "Funds Title",
+                Title = "Зібрані кошти",
+                TitleEn = "Funds Title En",
                 ImageId = nonExistentImageId
             },
             ChangedLivesBlock = new UpdateChangedLivesBlockDto
             {
-                Title = "Lives Title",
+                Title = "Змінені життя",
+                TitleEn = "Lives Title En",
                 ChangedLives = 100,
                 ImageId = nonExistentImageId
             }
@@ -104,11 +110,13 @@ public class UpdateReportMediaSettingsTests : BaseTestClass
             CollectedFundsBlock = new UpdateCollectedFundsBlockDto
             {
                 Title = "",
+                TitleEn = "Valid Title",
                 ImageId = image.Id
             },
             ChangedLivesBlock = new UpdateChangedLivesBlockDto
             {
-                Title = "Valid",
+                Title = "Дійсна назва",
+                TitleEn = "Valid Title",
                 ChangedLives = 100,
                 ImageId = image.Id
             }

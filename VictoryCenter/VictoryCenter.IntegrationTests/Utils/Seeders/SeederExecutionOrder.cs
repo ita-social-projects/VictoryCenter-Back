@@ -18,4 +18,6 @@ public enum SeederExecutionOrder
     TeamCategoryLocalizations,
     ReportFundsExpendituresCategoryLocalizations,
     ReportFundsExpendituresSettingsLocalizations,
+    EventNewsCategories,
+    EventNews,
 }

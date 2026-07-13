@@ -10,6 +10,6 @@ public class PdfReport : BaseEntity, IOrderableEntity
     public string BlobName { get; set; } = null!;
     public long FileSizeBytes { get; set; }
     public long Priority { get; set; }
-    public long? LanguageId { get; set; }
-    public LocalizationLanguage? Language { get; set; }
+    public long LanguageId { get; set; }
+    public LocalizationLanguage Language { get; set; } = null!;
 }

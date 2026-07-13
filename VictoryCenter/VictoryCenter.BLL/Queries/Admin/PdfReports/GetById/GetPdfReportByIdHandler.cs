@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
@@ -27,7 +28,8 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
         var queryOptions = new QueryOptions<PdfReport>
         {
             AsNoTracking = true,
-            Filter = p => p.Id == request.Id
+            Filter = p => p.Id == request.Id,
+            Include = pr => pr.Include(p => p.Language)
         };
         var pdfReport = await _repositoryWrapper.PdfReportRepository
             .GetFirstOrDefaultAsync(queryOptions);

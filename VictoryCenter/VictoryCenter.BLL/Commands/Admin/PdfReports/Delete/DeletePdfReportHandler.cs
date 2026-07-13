@@ -39,7 +39,8 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
             new QueryOptions<PdfReport>
             {
                 Filter = pr => pr.Id == request.Id,
-                AsNoTracking = false
+                AsNoTracking = false,
+                Include = pr => pr.Include(p => p.Language)
             });
 
         if (pdfReport == null)
@@ -55,8 +56,8 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
 
             _repositoryWrapper.PdfReportRepository.Delete(pdfReport);
             await _repositoryWrapper.SaveChangesAsync();
-            await _reorderService.RenumberPriorityAsync<PdfReport>();
-
+            await _reorderService.RenumberPriorityAsync<PdfReport>(
+                p => p.LanguageId == pdfReport.LanguageId);
             transaction.Complete();
         }
         catch (DbUpdateException)

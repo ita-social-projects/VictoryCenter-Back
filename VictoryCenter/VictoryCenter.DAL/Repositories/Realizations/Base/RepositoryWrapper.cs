@@ -68,6 +68,10 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
+using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Realizations.EventNews;
+using VictoryCenter.DAL.Repositories.Realizations.EventNewsCategories;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -131,6 +135,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHistorySectionsRepository? _historySectionsRepository;
     private IHistorySectionContentsRepository? _historySectionContentsRepository;
     private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
+    private IEventNewsRepository? _eventNewsRepository;
+    private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -314,6 +320,12 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHistorySectionContentLocalizationsRepository HistorySectionContentLocalizationsRepository =>
         _historySectionContentLocalizationsRepository ??= new HistorySectionContentLocalizationsRepository(_victoryCenterDbContext);
+
+    public IEventNewsRepository EventNewsRepository =>
+        _eventNewsRepository ??= new EventNewsRepository(_victoryCenterDbContext);
+
+    public IEventNewsCategoryRepository EventNewsCategoryRepository =>
+        _eventNewsCategoryRepository ??= new EventNewsCategoryRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

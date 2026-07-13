@@ -53,13 +53,13 @@ public class UpdateSingleMetricDtoValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenNameIsTooLong()
     {
-        var dto = GetValidDto() with { Name = new string('a', MainPageConstants.Metric.Name.MaxLength + 1) };
+        var dto = GetValidDto() with { Name = new string('a', MainPageConstants.Metric.ValidationNameRules.MaxLen + 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Name)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.Name.MaxLength));
+                nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen));
     }
 
     private static UpdateSingleMetricDto GetValidDto() => new()

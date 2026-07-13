@@ -43,25 +43,25 @@ public class UpdateMainDonationsDtoValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenTitleIsTooShort()
     {
-        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Title.MinLength - 1) };
+        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.ValidationTitleRules.MinLen - 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Title), MainPageConstants.Title.MinLength));
+                nameof(BaseMainDonationsDto.Title), MainPageConstants.ValidationTitleRules.MinLen));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenTitleIsTooLong()
     {
-        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.Title.MaxLength + 1) };
+        var dto = GetValidDto() with { Title = new string('a', MainPageConstants.ValidationTitleRules.MaxLen + 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Title), MainPageConstants.Title.MaxLength));
+                nameof(BaseMainDonationsDto.Title), MainPageConstants.ValidationTitleRules.MaxLen));
     }
 
     [Theory]
@@ -81,25 +81,25 @@ public class UpdateMainDonationsDtoValidatorTests
     [Fact]
     public void Validate_ShouldHaveError_WhenDescriptionIsTooShort()
     {
-        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Description.MinLength - 1) };
+        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.ValidationDescriptionRules.MinLen - 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Description), MainPageConstants.Description.MinLength));
+                nameof(BaseMainDonationsDto.Description), MainPageConstants.ValidationDescriptionRules.MinLen));
     }
 
     [Fact]
     public void Validate_ShouldHaveError_WhenDescriptionIsTooLong()
     {
-        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.Description.MaxLength + 1) };
+        var dto = GetValidDto() with { Description = new string('a', MainPageConstants.ValidationDescriptionRules.MaxLen + 1) };
 
         var result = _validator.TestValidate(dto);
 
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Description), MainPageConstants.Description.MaxLength));
+                nameof(BaseMainDonationsDto.Description), MainPageConstants.ValidationDescriptionRules.MaxLen));
     }
 
     [Theory]

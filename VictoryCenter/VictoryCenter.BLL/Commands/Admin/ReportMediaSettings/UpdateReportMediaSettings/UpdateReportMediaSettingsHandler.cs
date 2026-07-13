@@ -65,6 +65,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                 collectedFundsEntity = new CollectedFundsBlock
                 {
                     Title = request.Dto.CollectedFundsBlock.Title,
+                    TitleEn = request.Dto.CollectedFundsBlock.TitleEn,
                     ImageId = request.Dto.CollectedFundsBlock.ImageId,
                 };
                 await collectedFundsRepository.CreateAsync(collectedFundsEntity);
@@ -72,6 +73,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
             else
             {
                 collectedFundsEntity.Title = request.Dto.CollectedFundsBlock.Title;
+                collectedFundsEntity.TitleEn = request.Dto.CollectedFundsBlock.TitleEn;
                 collectedFundsEntity.ImageId = request.Dto.CollectedFundsBlock.ImageId;
                 collectedFundsRepository.Update(collectedFundsEntity);
             }
@@ -84,6 +86,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                 changedLivesEntity = new ChangedLivesBlock
                 {
                     Title = request.Dto.ChangedLivesBlock.Title,
+                    TitleEn = request.Dto.ChangedLivesBlock.TitleEn,
                     ChangedLivesCount = request.Dto.ChangedLivesBlock.ChangedLives,
                     ImageId = request.Dto.ChangedLivesBlock.ImageId,
                 };
@@ -92,6 +95,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
             else
             {
                 changedLivesEntity.Title = request.Dto.ChangedLivesBlock.Title;
+                changedLivesEntity.TitleEn = request.Dto.ChangedLivesBlock.TitleEn;
                 changedLivesEntity.ChangedLivesCount = request.Dto.ChangedLivesBlock.ChangedLives;
                 changedLivesEntity.ImageId = request.Dto.ChangedLivesBlock.ImageId;
                 changedLivesRepository.Update(changedLivesEntity);

@@ -13,23 +13,23 @@ public abstract class BaseMainDonationsDtoValidator<TDto> : AbstractValidator<TD
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainDonationsDto.Title)))
-            .MinimumLength(MainPageConstants.Title.MinLength)
+            .MinimumLength(MainPageConstants.ValidationTitleRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Title), MainPageConstants.Title.MinLength))
-            .MaximumLength(MainPageConstants.Title.MaxLength)
+                nameof(BaseMainDonationsDto.Title), MainPageConstants.ValidationTitleRules.MinLen))
+            .MaximumLength(MainPageConstants.ValidationTitleRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Title), MainPageConstants.Title.MaxLength));
+                nameof(BaseMainDonationsDto.Title), MainPageConstants.ValidationTitleRules.MaxLen));
 
         RuleFor(x => x.Description)
             .Cascade(CascadeMode.Stop)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMainDonationsDto.Description)))
-            .MinimumLength(MainPageConstants.Description.MinLength)
+            .MinimumLength(MainPageConstants.ValidationDescriptionRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Description), MainPageConstants.Description.MinLength))
-            .MaximumLength(MainPageConstants.Description.MaxLength)
+                nameof(BaseMainDonationsDto.Description), MainPageConstants.ValidationDescriptionRules.MinLen))
+            .MaximumLength(MainPageConstants.ValidationDescriptionRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(BaseMainDonationsDto.Description), MainPageConstants.Description.MaxLength));
+                nameof(BaseMainDonationsDto.Description), MainPageConstants.ValidationDescriptionRules.MaxLen));
 
         RuleFor(x => x.ImageId)
             .GreaterThan(0)

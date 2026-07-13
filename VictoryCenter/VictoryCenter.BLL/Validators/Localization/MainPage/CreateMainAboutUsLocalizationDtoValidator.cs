@@ -12,6 +12,6 @@ public class CreateMainAboutUsLocalizationDtoValidator : AbstractValidator<Creat
             .GreaterThan(0)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateMainAboutUsLocalizationDto.EntityId)));
 
-        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.SectionDescription.MaxLength);
+        this.AddTitleAndDescriptionRules(MainPageConstants.Localization.ValidationSectionDescriptionRules.MaxLen);
     }
 }

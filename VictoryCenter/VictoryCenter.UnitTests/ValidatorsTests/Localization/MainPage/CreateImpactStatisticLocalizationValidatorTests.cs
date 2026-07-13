@@ -15,7 +15,7 @@ public class CreateImpactStatisticLocalizationValidatorTests
         var dto = new CreateImpactStatisticLocalizationDto
         {
             LanguageId = 1,
-            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MinLength),
+            Title = new string('a', MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen),
         };
 
         var result = _validator.TestValidate(dto);
@@ -31,7 +31,7 @@ public class CreateImpactStatisticLocalizationValidatorTests
         var dto = new CreateImpactStatisticLocalizationDto
         {
             LanguageId = languageId,
-            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MinLength),
+            Title = new string('a', MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen),
         };
 
         var result = _validator.TestValidate(dto);
@@ -62,7 +62,7 @@ public class CreateImpactStatisticLocalizationValidatorTests
         var dto = new CreateImpactStatisticLocalizationDto
         {
             LanguageId = 1,
-            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MinLength - 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen - 1),
         };
 
         var result = _validator.TestValidate(dto);
@@ -70,7 +70,7 @@ public class CreateImpactStatisticLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateImpactStatisticLocalizationDto.Title),
-                MainPageConstants.ImpactStatistic.TitleConstraints.MinLength));
+                MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class CreateImpactStatisticLocalizationValidatorTests
         var dto = new CreateImpactStatisticLocalizationDto
         {
             LanguageId = 1,
-            Title = new string('a', MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength + 1),
+            Title = new string('a', MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen + 1),
         };
 
         var result = _validator.TestValidate(dto);
@@ -87,6 +87,6 @@ public class CreateImpactStatisticLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateImpactStatisticLocalizationDto.Title),
-                MainPageConstants.ImpactStatistic.TitleConstraints.MaxLength));
+                MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen));
     }
 }

@@ -12,12 +12,12 @@ public class UpdateMetricLocalizationDtoValidator : AbstractValidator<UpdateMetr
             .Cascade(CascadeMode.Stop)
             .Must(name => !string.IsNullOrWhiteSpace(name))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateMetricLocalizationDto.Name)))
-            .MinimumLength(MainPageConstants.Metric.Name.MinLength)
+            .MinimumLength(MainPageConstants.Metric.ValidationNameRules.MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateMetricLocalizationDto.Name), MainPageConstants.Metric.Name.MinLength))
-            .MaximumLength(MainPageConstants.Metric.Name.MaxLength)
+                nameof(UpdateMetricLocalizationDto.Name), MainPageConstants.Metric.ValidationNameRules.MinLen))
+            .MaximumLength(MainPageConstants.Metric.ValidationNameRules.MaxLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateMetricLocalizationDto.Name), MainPageConstants.Metric.Name.MaxLength))
+                nameof(UpdateMetricLocalizationDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen))
             .When(x => x.Name != null);
     }
 }

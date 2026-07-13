@@ -2,7 +2,7 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ImageConstants
 {
-    public static readonly int MaxImageSizeInMb = 3;
+    public static readonly int MaxImageSizeInMb = 5;
     public static readonly int BytesPerMb = 1024 * 1024;
     public static readonly int MaxImageSizeInBytes = MaxImageSizeInMb * BytesPerMb;
 
