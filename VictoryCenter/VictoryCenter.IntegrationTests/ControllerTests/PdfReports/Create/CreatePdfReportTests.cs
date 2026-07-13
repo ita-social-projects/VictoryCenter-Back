@@ -121,7 +121,7 @@ public class CreatePdfReportTests : BaseTestClass
         Assert.True(response2.IsSuccessStatusCode);
         Assert.NotNull(result1);
         Assert.NotNull(result2);
-        
+
         Assert.Equal(1, result1.Priority);
         Assert.Equal(1, result2.Priority);
 
