@@ -1,3 +1,4 @@
+using HtmlAgilityPack;
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.Constants;
@@ -12,11 +13,11 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
         RuleFor(x => x.Dto.Title)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.Title)))
-            .MinimumLength(PartnerConstants.PartnersPageBannerTitleMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+            .Must(title => StripHtmlTags(title).Length >= PartnerConstants.PartnersPageBannerTitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMinLength))
-            .MaximumLength(PartnerConstants.PartnersPageBannerTitleMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+            .Must(title => StripHtmlTags(title).Length <= PartnerConstants.PartnersPageBannerTitleMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMaxLength));
 
         RuleFor(x => x.Dto.Description)
@@ -31,5 +32,17 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
 
         RuleFor(x => x.Dto.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdatePartnersPageBannerDto.ImageId)));
+    }
+
+    private static string StripHtmlTags(string input)
+    {
+        if (string.IsNullOrEmpty(input))
+        {
+            return string.Empty;
+        }
+
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(input);
+        return htmlDoc.DocumentNode.InnerText;
     }
 }

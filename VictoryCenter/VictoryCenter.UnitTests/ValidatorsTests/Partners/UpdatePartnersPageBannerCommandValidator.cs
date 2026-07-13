@@ -51,7 +51,7 @@ public class UpdatePartnersPageBannerCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Title)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                     nameof(UpdatePartnersPageBannerDto.Title),
                     PartnerConstants.PartnersPageBannerTitleMinLength));
     }
@@ -69,7 +69,7 @@ public class UpdatePartnersPageBannerCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.Dto.Title)
-              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
                     nameof(UpdatePartnersPageBannerDto.Title),
                     PartnerConstants.PartnersPageBannerTitleMaxLength));
     }
@@ -158,6 +158,22 @@ public class UpdatePartnersPageBannerCommandValidatorTests
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_TitleWithHtmlFormattingWithinVisibleLimit_ShouldNotHaveError()
+    {
+        // Arrange
+        var visibleText = new string('A', PartnerConstants.PartnersPageBannerTitleMaxLength);
+        var htmlTitle = $"<p><strong>{visibleText}</strong></p>";
+        var dto = GetValidDto() with { Title = htmlTitle };
+        var command = new UpdatePartnersPageBannerCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.Dto.Title);
     }
 
     private UpdatePartnersPageBannerDto GetValidDto()
