@@ -74,7 +74,8 @@ public class CreateMainPageTests : BaseTestClass
 
         var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var responseBody = await response.Content.ReadAsStringAsync();
+        Assert.True(HttpStatusCode.OK == response.StatusCode, $"Status code: {response.StatusCode}. Body: {responseBody}");
 
         var createdMainPage = await Fixture.DbContext.MainPages
             .Include(m => m.MainAboutUs)

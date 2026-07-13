@@ -19,5 +19,5 @@ public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>, IOrdera
     public ICollection<MetricLocalization> Localizations { get; set; } = [];
 
     [System.ComponentModel.DataAnnotations.Timestamp]
-    public byte[] RowVersion { get; set; } = null!;
+    public byte[] RowVersion { get; set; } = [];
 }

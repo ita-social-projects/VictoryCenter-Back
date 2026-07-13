@@ -108,8 +108,8 @@ public class ReorderMetricsTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 1 },
-                    new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 2 }
+                    new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 1, RowVersion = new byte[] { 1 } },
+                    new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 2, RowVersion = new byte[] { 1 } }
                 ]
             }
         };
