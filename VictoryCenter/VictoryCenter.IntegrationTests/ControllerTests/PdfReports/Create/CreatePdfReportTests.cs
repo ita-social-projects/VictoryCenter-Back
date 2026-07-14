@@ -121,7 +121,13 @@ public class CreatePdfReportTests : BaseTestClass
         Assert.True(response2.IsSuccessStatusCode);
         Assert.NotNull(result1);
         Assert.NotNull(result2);
-        Assert.True(result2.Priority > result1.Priority);
+
+        Assert.Equal(1, result1.Priority);
+        Assert.Equal(1, result2.Priority);
+
+        var firstReportInDb = await Fixture.DbContext.PdfReports.FirstOrDefaultAsync(p => p.Id == result1.Id);
+        Assert.NotNull(firstReportInDb);
+        Assert.Equal(2, firstReportInDb.Priority);
     }
 
     [Fact]

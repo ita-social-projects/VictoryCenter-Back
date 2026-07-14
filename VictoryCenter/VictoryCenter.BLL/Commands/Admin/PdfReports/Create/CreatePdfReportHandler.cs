@@ -61,15 +61,24 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
             blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
             using var transaction = _repositoryWrapper.BeginTransaction();
 
-            var nextPriority = await _reorderService.GetNextDisplayOrderAsync<PdfReport>(
-                p => p.LanguageId == dto.LanguageId);
+            var existingReports = await _repositoryWrapper.PdfReportRepository.GetAllAsync(new QueryOptions<PdfReport>
+            {
+                Filter = p => p.LanguageId == dto.LanguageId,
+                AsNoTracking = false
+            });
+
+            foreach (var report in existingReports)
+            {
+                report.Priority++;
+                _repositoryWrapper.PdfReportRepository.Update(report);
+            }
 
             var pdfReport = new PdfReport
             {
                 Name = Path.GetFileNameWithoutExtension(dto.File.FileName),
                 BlobName = blobName,
                 FileSizeBytes = dto.File.Length,
-                Priority = nextPriority,
+                Priority = 1,
                 LanguageId = dto.LanguageId,
                 CreatedAt = DateTimeOffset.UtcNow
             };
@@ -83,7 +92,6 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
 
             transaction.Complete();
             committed = true;
-
             var result = _mapper.Map<PdfReportDto>(pdfReport);
             return Result.Ok(result);
         }
