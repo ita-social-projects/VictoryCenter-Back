@@ -1,0 +1,39 @@
+using FluentValidation;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+
+namespace VictoryCenter.BLL.Validators.MainPage.Dto;
+
+public class UpdateSingleMetricDtoValidator : AbstractValidator<UpdateSingleMetricDto>
+{
+    public UpdateSingleMetricDtoValidator()
+    {
+        RuleFor(x => x.Value)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.Value.HasValue);
+
+        RuleFor(x => x.Name)
+            .Cascade(CascadeMode.Stop)
+            .Must(name => !string.IsNullOrWhiteSpace(name))
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateSingleMetricDto.Name)))
+            .MinimumLength(MainPageConstants.Metric.ValidationNameRules.MinLen)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MinLen))
+            .MaximumLength(MainPageConstants.Metric.ValidationNameRules.MaxLen)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen))
+            .When(x => x.Name != null);
+
+        RuleFor(x => x.Type)
+            .IsInEnum()
+            .When(x => x.Type.HasValue);
+
+        RuleFor(x => x.Prefix)
+            .IsInEnum()
+            .When(x => x.Prefix.HasValue);
+
+        RuleFor(x => x.Localization)
+            .SetValidator(new UpdateMetricLocalizationDtoValidator()!)
+            .When(x => x.Localization != null);
+    }
+}

@@ -13,5 +13,6 @@ public record MetricDto
     public bool IsAutoSynced { get; init; }
     public bool IsHidden { get; init; }
     public long Priority { get; init; }
+    public byte[] RowVersion { get; init; } = null!;
     public ICollection<MetricLocalizationDto> Localizations { get; init; } = [];
 }

@@ -51,5 +51,9 @@ internal class MetricConfig : IEntityTypeConfiguration<Metric>
         entity
             .Property(e => e.Priority)
             .IsRequired();
+
+        entity
+            .Property(e => e.RowVersion)
+            .IsRowVersion();
     }
 }

@@ -254,8 +254,8 @@ public class UpdateMainPageTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new Metric { Value = 100, Name = "children", Type = MetricType.Raised, IsHidden = false },
-                    new Metric { Value = 200, Name = "families", Type = MetricType.Partners, IsHidden = false }
+                    new Metric { Value = 100, Name = "children", Type = MetricType.Raised, IsHidden = false, RowVersion = new byte[] { 1 } },
+                    new Metric { Value = 200, Name = "families", Type = MetricType.Partners, IsHidden = false, RowVersion = new byte[] { 1 } }
                 ],
             },
         };
