@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Services.SlugService;
 
@@ -39,6 +40,40 @@ public class SlugService : ISlugService
             .Where(s => !string.IsNullOrWhiteSpace(s))
             .Select(s => s!)
             .Where(s => s.StartsWith(baseSlug, StringComparison.OrdinalIgnoreCase))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (existingSlugs.Count == 0)
+        {
+            return baseSlug;
+        }
+
+        while (existingSlugs.Contains(currentSlug))
+        {
+            currentSlug = $"{baseSlug}-{i}";
+            i++;
+        }
+
+        return currentSlug;
+    }
+
+    public async Task<string> GenerateUniqueEventNewsSlugAsync(long id, string title, CancellationToken cancellationToken = default)
+    {
+        var baseSlug = GenerateSlug(title);
+        var currentSlug = baseSlug;
+        var i = 1;
+
+        var eventNewsItems = await _repositoryWrapper.EventNewsRepository.GetAllAsync(
+            new QueryOptions<EventNewsEntity>
+            {
+                AsNoTracking = true,
+                Filter = eventNews => eventNews.Slug != null && eventNews.Id != id,
+            });
+
+        var existingSlugs = eventNewsItems
+            .Select(eventNews => eventNews.Slug)
+            .Where(slug => !string.IsNullOrWhiteSpace(slug))
+            .Select(slug => slug!)
+            .Where(slug => slug.StartsWith(baseSlug, StringComparison.OrdinalIgnoreCase))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (existingSlugs.Count == 0)
