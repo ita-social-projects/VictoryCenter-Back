@@ -116,6 +116,49 @@ public class CreateReportFundsExpendituresCategoryTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenNameIsReservedAndTypeIsExpense()
+    {
+        // Arrange
+        var reservedDto = _createDto with { Name = "Програмні тест 2", Type = ReportFundsExpendituresType.Expense };
+        SetupDependencies(duplicateCategoriesCount: 0, saveResult: 1);
+
+        var handler = new CreateReportFundsExpendituresCategoryHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateReportFundsExpendituresCategoryCommand(reservedDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(ReportFundsExpendituresCategoryConstants.ReservedCategoryName, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateCategory_WhenNameIsReservedButTypeIsIncome()
+    {
+        // Arrange
+        var reservedNameIncomeDto = _createDto with { Name = "Програмні тест 2", Type = ReportFundsExpendituresType.Income };
+        SetupDependencies(duplicateCategoriesCount: 0, saveResult: 1);
+
+        var handler = new CreateReportFundsExpendituresCategoryHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateReportFundsExpendituresCategoryCommand(reservedNameIncomeDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange

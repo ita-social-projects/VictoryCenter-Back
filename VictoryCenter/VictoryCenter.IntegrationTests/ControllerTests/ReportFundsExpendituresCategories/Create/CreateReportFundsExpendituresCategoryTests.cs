@@ -39,6 +39,40 @@ public class CreateReportFundsExpendituresCategoryTests : BaseTestClass
         Assert.Equal(createDto.Type, responseContent.Type);
     }
 
+    [Fact]
+    public async Task CreateCategory_ShouldNotCreateCategory_WhenNameIsReservedAndTypeIsExpense()
+    {
+        var createDto = new CreateReportFundsExpendituresCategoryDto
+        {
+            Name = "Програмні тест 2",
+            Type = ReportFundsExpendituresType.Expense
+        };
+        var serializedDto = JsonConvert.SerializeObject(createDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync(
+            "/api/ReportFundsExpendituresCategories/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateCategory_ShouldCreateCategory_WhenNameIsReservedButTypeIsIncome()
+    {
+        var createDto = new CreateReportFundsExpendituresCategoryDto
+        {
+            Name = "Програмні тест 2",
+            Type = ReportFundsExpendituresType.Income
+        };
+        var serializedDto = JsonConvert.SerializeObject(createDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync(
+            "/api/ReportFundsExpendituresCategories/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]

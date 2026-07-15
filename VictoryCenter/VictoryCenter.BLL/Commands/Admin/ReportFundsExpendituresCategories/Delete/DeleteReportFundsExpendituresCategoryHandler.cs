@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -35,6 +36,11 @@ public class DeleteReportFundsExpendituresCategoryHandler
         if (categoryToDelete.Records.Count > 0)
         {
             return Result.Fail<long>(ReportFundsExpendituresCategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyRecord);
+        }
+
+        if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(categoryToDelete.Name, categoryToDelete.Type))
+        {
+            return Result.Fail<long>(ReportFundsExpendituresCategoryConstants.CantDeleteReservedCategory);
         }
 
         _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.Delete(categoryToDelete);

@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresCategories;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -53,6 +54,20 @@ public class UpdateReportFundsExpendituresCategoryHandler
             {
                 return Result.Fail<ReportFundsExpendituresCategoryDto>(
                     ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
+            }
+
+            if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(categoryToUpdate.Name, categoryToUpdate.Type))
+            {
+                return Result.Fail<ReportFundsExpendituresCategoryDto>(
+                    ReportFundsExpendituresCategoryConstants.CantUpdateReservedCategory);
+            }
+
+            if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(
+                    request.UpdateReportFundsExpendituresCategoryDto.Name,
+                    categoryToUpdate.Type))
+            {
+                return Result.Fail<ReportFundsExpendituresCategoryDto>(
+                    ReportFundsExpendituresCategoryConstants.ReservedCategoryName);
             }
 
             if (NormalizeName(categoryToUpdate.Name) != normalizedRequestedName &&

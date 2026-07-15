@@ -50,6 +50,36 @@ public class DeleteReportFundsExpendituresCategoryTests : BaseTestClass
     }
 
     [Theory]
+    [InlineData("ПРОГРАМНІ")]
+    [InlineData("програмні тест")]
+    [InlineData("Програмні тест 2")]
+    public async Task DeleteCategory_ShouldNotDeleteCategory_WhenNameIsReservedAndTypeIsExpense(string name)
+    {
+        var category = await CreateCategoryAsync(name, ReportFundsExpendituresType.Expense);
+
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync(
+            $"/api/ReportFundsExpendituresCategories/{category.Id}");
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.NotNull(await Fixture.DbContext.ReportFundsExpendituresCategories
+            .FirstOrDefaultAsync(entity => entity.Id == category.Id));
+    }
+
+    [Fact]
+    public async Task DeleteCategory_ShouldDeleteCategory_WhenNameIsReservedButTypeIsIncome()
+    {
+        var category = await CreateCategoryAsync("Програмні тест 2", ReportFundsExpendituresType.Income);
+
+        HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync(
+            $"/api/ReportFundsExpendituresCategories/{category.Id}");
+        response.EnsureSuccessStatusCode();
+
+        Assert.Null(await Fixture.DbContext.ReportFundsExpendituresCategories
+            .FirstOrDefaultAsync(entity => entity.Id == category.Id));
+    }
+
+    [Theory]
     [InlineData(-1)]
     [InlineData(0)]
     public async Task DeleteCategory_ShouldNotDeleteCategory_NotFound(long id)
