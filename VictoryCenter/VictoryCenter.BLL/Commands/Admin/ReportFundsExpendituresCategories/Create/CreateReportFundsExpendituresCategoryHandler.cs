@@ -5,7 +5,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresCategories;
-using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -36,14 +35,6 @@ public class CreateReportFundsExpendituresCategoryHandler
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
-            if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(
-                    request.CreateReportFundsExpendituresCategoryDto.Name,
-                    request.CreateReportFundsExpendituresCategoryDto.Type))
-            {
-                return Result.Fail<ReportFundsExpendituresCategoryDto>(
-                    ReportFundsExpendituresCategoryConstants.ReservedCategoryName);
-            }
 
             var duplicateCategoriesCount = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.CountAsync(
                 new QueryOptions<ReportFundsExpendituresCategory>
