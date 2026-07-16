@@ -133,6 +133,13 @@ public class UpdateReportFundsExpendituresCategoryTests : BaseTestClass
             $"/api/ReportFundsExpendituresCategories/{category.Id}",
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        ReportFundsExpendituresCategoryDto? responseContent =
+            JsonConvert.DeserializeObject<ReportFundsExpendituresCategoryDto>(responseString);
+
+        Assert.NotNull(responseContent);
+        Assert.Equal(updateDto.Name, responseContent.Name);
     }
 
     private async Task<ReportFundsExpendituresCategory> CreateCategoryAsync(

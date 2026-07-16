@@ -74,6 +74,13 @@ public class CreateReportFundsExpendituresCategoryTests : BaseTestClass
             "/api/ReportFundsExpendituresCategories/",
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        ReportFundsExpendituresCategoryDto? responseContent =
+            JsonConvert.DeserializeObject<ReportFundsExpendituresCategoryDto>(responseString);
+
+        Assert.NotNull(responseContent);
+        Assert.Equal(createDto.Name, responseContent.Name);
     }
 
     [Theory]
