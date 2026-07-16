@@ -43,4 +43,15 @@ public class ReportFundsExpendituresCategoryValidationHelperTests
 
         Assert.False(result);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void IsReservedCategoryName_NullOrEmptyName_ReturnsFalse(string? name)
+    {
+        var result = ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(
+            name!, ReportFundsExpendituresType.Expense);
+
+        Assert.False(result);
+    }
 }

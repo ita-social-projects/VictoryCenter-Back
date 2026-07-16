@@ -7,9 +7,14 @@ public static class ReportFundsExpendituresCategoryValidationHelper
 {
     public static bool IsReservedCategoryName(string name, ReportFundsExpendituresType type)
     {
+        if (string.IsNullOrEmpty(name))
+        {
+            return false;
+        }
+
         return type == ReportFundsExpendituresType.Expense &&
             name.Contains(
-                ReportFundsExpendituresCategoryConstants.ReservedCategoryNamePrefix,
+                ReportFundsExpendituresCategoryConstants.ReservedCategoryNameFragment,
                 StringComparison.OrdinalIgnoreCase);
     }
 }
