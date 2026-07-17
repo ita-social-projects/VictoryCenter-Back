@@ -13,8 +13,8 @@ public static class ReportFundsExpendituresCategoryValidationHelper
         }
 
         return type == ReportFundsExpendituresType.Expense &&
-            name.Contains(
-                ReportFundsExpendituresCategoryConstants.ReservedCategoryNameFragment,
+            name.Trim().StartsWith(
+                ReportFundsExpendituresCategoryConstants.ReservedCategoryNamePrefix,
                 StringComparison.OrdinalIgnoreCase);
     }
 }

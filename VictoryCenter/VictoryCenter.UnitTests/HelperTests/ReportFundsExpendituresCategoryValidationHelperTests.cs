@@ -45,6 +45,17 @@ public class ReportFundsExpendituresCategoryValidationHelperTests
     }
 
     [Theory]
+    [InlineData("Непрограмні витрати")]
+    [InlineData("Витрати програмні")]
+    public void IsReservedCategoryName_ReservedWordNotAtStart_ReturnsFalse(string name)
+    {
+        var result = ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(
+            name, ReportFundsExpendituresType.Expense);
+
+        Assert.False(result);
+    }
+
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     public void IsReservedCategoryName_NullOrEmptyName_ReturnsFalse(string? name)

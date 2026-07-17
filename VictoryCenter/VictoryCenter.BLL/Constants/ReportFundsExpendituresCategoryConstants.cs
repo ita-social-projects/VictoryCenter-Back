@@ -8,7 +8,7 @@ public static class ReportFundsExpendituresCategoryConstants
     public static readonly string CantDeleteCategoryWhileAssociatedWithAnyRecord =
         "Can't delete category while associated with any funds and expenditures record";
 
-    public static readonly string ReservedCategoryNameFragment = "Програмні";
+    public static readonly string ReservedCategoryNamePrefix = "Програмні";
 
     public static readonly string CantDeleteReservedCategory = "Can't delete a reserved category";
 
