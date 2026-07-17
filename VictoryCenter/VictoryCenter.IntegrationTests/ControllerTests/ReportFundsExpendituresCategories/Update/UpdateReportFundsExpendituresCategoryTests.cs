@@ -80,6 +80,68 @@ public class UpdateReportFundsExpendituresCategoryTests : BaseTestClass
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_WhenExistingCategoryIsReserved()
+    {
+        var category = await CreateCategoryAsync("Програмні тест 2", ReportFundsExpendituresType.Expense);
+
+        var updateDto = new UpdateReportFundsExpendituresCategoryDto
+        {
+            Name = "Renamed category"
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"/api/ReportFundsExpendituresCategories/{category.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_WhenNewNameIsReserved()
+    {
+        var category = await CreateCategoryAsync("Initial expense category", ReportFundsExpendituresType.Expense);
+
+        var updateDto = new UpdateReportFundsExpendituresCategoryDto
+        {
+            Name = "Програмні тест 2"
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"/api/ReportFundsExpendituresCategories/{category.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateCategory_ShouldUpdateCategory_WhenNameIsReservedButTypeIsIncome()
+    {
+        var category = await CreateCategoryAsync("Програмні тест 2", ReportFundsExpendituresType.Income);
+
+        var updateDto = new UpdateReportFundsExpendituresCategoryDto
+        {
+            Name = "Renamed income category"
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"/api/ReportFundsExpendituresCategories/{category.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        ReportFundsExpendituresCategoryDto? responseContent =
+            JsonConvert.DeserializeObject<ReportFundsExpendituresCategoryDto>(responseString);
+
+        Assert.NotNull(responseContent);
+        Assert.Equal(updateDto.Name, responseContent.Name);
+    }
+
     private async Task<ReportFundsExpendituresCategory> CreateCategoryAsync(
         string name,
         ReportFundsExpendituresType type)

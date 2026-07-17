@@ -68,6 +68,36 @@ public class BaseReportFundsExpendituresCategoryValidatorTests
     }
 
     [Theory]
+    [InlineData("ПРОГРАМНІ")]
+    [InlineData("програмні тест")]
+    [InlineData("Програмні тест 2")]
+    public void Validate_ShouldHaveError_WhenNameIsReservedAndTypeIsExpense(string name)
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = name, Type = ReportFundsExpendituresType.Expense };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ReportFundsExpendituresCategoryConstants.ReservedCategoryName);
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenNameIsReservedButTypeIsIncome()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Name = "Програмні тест 2", Type = ReportFundsExpendituresType.Income };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.Name);
+    }
+
+    [Theory]
     [InlineData(ReportFundsExpendituresType.Income)]
     [InlineData(ReportFundsExpendituresType.Expense)]
     public void Validate_ShouldNotHaveErrors_WhenDataIsValid(ReportFundsExpendituresType type)

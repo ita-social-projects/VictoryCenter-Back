@@ -92,6 +92,55 @@ public class DeleteReportFundsExpendituresCategoryTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenCategoryIsReserved()
+    {
+        // Arrange
+        var reservedCategory = new ReportFundsExpendituresCategory
+        {
+            Id = 1,
+            Name = "Програмні тест 2",
+            Type = ReportFundsExpendituresType.Expense
+        };
+
+        SetupDependencies(reservedCategory, saveResult: 1);
+        var handler = new DeleteReportFundsExpendituresCategoryHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new DeleteReportFundsExpendituresCategoryCommand(reservedCategory.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            ReportFundsExpendituresCategoryConstants.CantDeleteReservedCategory,
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldDeleteCategory_WhenReservedNameButIncomeType()
+    {
+        // Arrange
+        var incomeCategory = new ReportFundsExpendituresCategory
+        {
+            Id = 1,
+            Name = "Програмні тест 2",
+            Type = ReportFundsExpendituresType.Income
+        };
+
+        SetupDependencies(incomeCategory, saveResult: 1);
+        var handler = new DeleteReportFundsExpendituresCategoryHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new DeleteReportFundsExpendituresCategoryCommand(incomeCategory.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
