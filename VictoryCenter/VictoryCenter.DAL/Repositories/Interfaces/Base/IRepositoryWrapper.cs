@@ -37,6 +37,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -89,6 +90,13 @@ public interface IRepositoryWrapper
     IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository { get; }
     IPublishedReportProgramExpendituresRecordsRepository PublishedReportProgramExpendituresRecordsRepository { get; }
     IPublishedReportFundsExpendituresSnapshotRepository PublishedReportFundsExpendituresSnapshotRepository { get; }
+
+    IBackupReportFundsExpendituresSettingsRepository BackupReportFundsExpendituresSettingsRepository { get; }
+    IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository { get; }
+    IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository { get; }
+    IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository { get; }
+    IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository { get; }
+    IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository { get; }
 
     ICompanyProfileRepository CompanyProfileRepository { get; }
     ICompanyProfileContactRepository CompanyProfileContactRepository { get; }

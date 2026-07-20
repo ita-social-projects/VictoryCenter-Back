@@ -78,6 +78,8 @@ using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpenditures
 using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
+using VictoryCenter.DAL.Repositories.Realizations.BackupReportFundsExpenditures;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -146,6 +148,12 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
     private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
     private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
+    private IBackupReportFundsExpendituresSettingsRepository? _backupReportFundsExpendituresSettingsRepository;
+    private IBackupReportFundsExpendituresSettingsLocalizationsRepository? _backupReportFundsExpendituresSettingsLocalizationsRepository;
+    private IBackupReportFundsExpendituresCategoriesRepository? _backupReportFundsExpendituresCategoriesRepository;
+    private IBackupReportFundsExpendituresCategoryLocalizationsRepository? _backupReportFundsExpendituresCategoryLocalizationsRepository;
+    private IBackupReportFundsExpendituresRecordsRepository? _backupReportFundsExpendituresRecordsRepository;
+    private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -347,6 +355,30 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPublishedReportFundsExpendituresSnapshotRepository PublishedReportFundsExpendituresSnapshotRepository =>
         _publishedReportFundsExpendituresSnapshotRepository ??=
             new PublishedReportFundsExpendituresSnapshotRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresSettingsRepository BackupReportFundsExpendituresSettingsRepository =>
+        _backupReportFundsExpendituresSettingsRepository ??=
+            new BackupReportFundsExpendituresSettingsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository =>
+        _backupReportFundsExpendituresSettingsLocalizationsRepository ??=
+            new BackupReportFundsExpendituresSettingsLocalizationsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository =>
+        _backupReportFundsExpendituresCategoriesRepository ??=
+            new BackupReportFundsExpendituresCategoriesRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository =>
+        _backupReportFundsExpendituresCategoryLocalizationsRepository ??=
+            new BackupReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository =>
+        _backupReportFundsExpendituresRecordsRepository ??=
+            new BackupReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository =>
+        _backupReportProgramExpendituresRecordsRepository ??=
+            new BackupReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

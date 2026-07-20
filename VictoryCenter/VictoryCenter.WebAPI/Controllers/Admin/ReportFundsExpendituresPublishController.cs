@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Commands.Admin.ReportFundsExpenditures.Cancel;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpenditures.Publish;
 using VictoryCenter.WebAPI.Controllers.Common;
 
@@ -13,5 +14,13 @@ public class ReportFundsExpendituresPublishController : AuthorizedApiController
     public async Task<IActionResult> Publish()
     {
         return HandleResult(await Mediator.Send(new PublishReportFundsExpendituresCommand()));
+    }
+
+    [HttpPost("cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Cancel()
+    {
+        return HandleResult(await Mediator.Send(new CancelReportFundsExpendituresCommand()));
     }
 }
