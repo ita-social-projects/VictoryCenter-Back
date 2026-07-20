@@ -18,7 +18,7 @@ public class MarkReportFundsChangedHandler : INotificationHandler<ReportFundsCha
     public async Task Handle(ReportFundsChangedNotification notification, CancellationToken cancellationToken)
     {
         var settingsResult = await ReportFundsExpendituresSettingsHelper
-            .GetOrCreateSettingsAsync(_repositoryWrapper, _timeProvider);
+            .GetOrCreateSettingsAsync(_repositoryWrapper, _timeProvider, asNoTracking: false);
 
         if (settingsResult.IsFailed)
         {
@@ -30,7 +30,6 @@ public class MarkReportFundsChangedHandler : INotificationHandler<ReportFundsCha
         if (!settings.HasUnpublishedChanges)
         {
             settings.HasUnpublishedChanges = true;
-            _repositoryWrapper.ReportFundsExpendituresSettingsRepository.Update(settings);
             await _repositoryWrapper.SaveChangesAsync();
         }
     }
