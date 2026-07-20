@@ -72,6 +72,12 @@ using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.EventNews;
 using VictoryCenter.DAL.Repositories.Realizations.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -137,6 +143,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
     private IEventNewsRepository? _eventNewsRepository;
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
+    private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
+    private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
+    private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -326,6 +335,18 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IEventNewsCategoryRepository EventNewsCategoryRepository =>
         _eventNewsCategoryRepository ??= new EventNewsCategoryRepository(_victoryCenterDbContext);
+
+    public IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository =>
+        _publishedReportFundsExpendituresRecordsRepository ??=
+            new PublishedReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportProgramExpendituresRecordsRepository PublishedReportProgramExpendituresRecordsRepository =>
+        _publishedReportProgramExpendituresRecordsRepository ??=
+            new PublishedReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportFundsExpendituresSnapshotRepository PublishedReportFundsExpendituresSnapshotRepository =>
+        _publishedReportFundsExpendituresSnapshotRepository ??=
+            new PublishedReportFundsExpendituresSnapshotRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

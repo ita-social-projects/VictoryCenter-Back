@@ -102,6 +102,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<ReportProgramExpendituresRecord> ReportProgramExpendituresRecords { get; set; }
 
+    public DbSet<PublishedReportFundsExpendituresRecord> PublishedReportFundsExpendituresRecords { get; set; }
+
+    public DbSet<PublishedReportProgramExpendituresRecord> PublishedReportProgramExpendituresRecords { get; set; }
+
+    public DbSet<PublishedReportFundsExpendituresSnapshot> PublishedReportFundsExpendituresSnapshots { get; set; }
+
     public DbSet<MainPage> MainPages { get; set; }
 
     public DbSet<MainAboutUs> MainAboutUs { get; set; }
