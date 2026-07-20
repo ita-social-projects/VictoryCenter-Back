@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.ReportFundsExpenditures;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -8,15 +9,18 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Queries.Public.ReportFundsExpenditures.GetPublished;
+using VictoryCenter.BLL.Interfaces.BlobStorage;
 
 public class GetPublishedReportFundsExpendituresHandler
     : IRequestHandler<GetPublishedReportFundsExpendituresQuery, Result<PublishedReportFundsExpendituresDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IBlobService _blobService;
 
-    public GetPublishedReportFundsExpendituresHandler(IRepositoryWrapper repositoryWrapper)
+    public GetPublishedReportFundsExpendituresHandler(IRepositoryWrapper repositoryWrapper, IBlobService blobService)
     {
         _repositoryWrapper = repositoryWrapper;
+        _blobService = blobService;
     }
 
     public async Task<Result<PublishedReportFundsExpendituresDto>> Handle(
@@ -29,6 +33,37 @@ public class GetPublishedReportFundsExpendituresHandler
                 AsNoTracking = true
             });
 
+        var collectedFundsBlock = await _repositoryWrapper.GetRepository<CollectedFundsBlock>()
+            .GetFirstOrDefaultAsync(new QueryOptions<CollectedFundsBlock>
+            {
+                Include = q => q.Include(c => c.Image),
+                AsNoTracking = true
+            });
+
+        var changedLivesBlock = await _repositoryWrapper.GetRepository<ChangedLivesBlock>()
+            .GetFirstOrDefaultAsync(new QueryOptions<ChangedLivesBlock>
+            {
+                Include = q => q.Include(c => c.Image),
+                AsNoTracking = true
+            });
+
+        var isEnglish = await IsEnglishLanguage(request.LanguageId);
+
+        var mediaSettings = new PublishedReportMediaSettingsDto
+        {
+            CollectedFunds = new PublishedMediaBlockDto
+            {
+                Title = Resolve(isEnglish, collectedFundsBlock?.TitleEn, collectedFundsBlock?.Title ?? ""),
+                ImageUrl = collectedFundsBlock?.Image != null ? _blobService.GetFileUrl(collectedFundsBlock.Image.BlobName, collectedFundsBlock.Image.MimeType) : null
+            },
+            ChangedLives = new PublishedMediaBlockDto
+            {
+                Title = Resolve(isEnglish, changedLivesBlock?.TitleEn, changedLivesBlock?.Title ?? ""),
+                ImageUrl = changedLivesBlock?.Image != null ? _blobService.GetFileUrl(changedLivesBlock.Image.BlobName, changedLivesBlock.Image.MimeType) : null,
+                Value = changedLivesBlock?.ChangedLivesCount
+            }
+        };
+
         if (snapshot is null)
         {
             return Result.Ok(new PublishedReportFundsExpendituresDto
@@ -36,7 +71,8 @@ public class GetPublishedReportFundsExpendituresHandler
                 Settings = new PublishedReportSettingsDto(),
                 Funding = new PublishedFundsExpendituresGroupDto(),
                 Expenses = new PublishedFundsExpendituresGroupDto(),
-                Programs = new PublishedProgramExpendituresGroupDto()
+                Programs = new PublishedProgramExpendituresGroupDto(),
+                MediaSettings = mediaSettings
             });
         }
 
@@ -51,8 +87,6 @@ public class GetPublishedReportFundsExpendituresHandler
             {
                 AsNoTracking = true
             })).ToList();
-
-        var isEnglish = await IsEnglishLanguage(request.LanguageId);
 
         var settings = new PublishedReportSettingsDto
         {
@@ -112,7 +146,8 @@ public class GetPublishedReportFundsExpendituresHandler
             Settings = settings,
             Funding = funding,
             Expenses = expenses,
-            Programs = programs
+            Programs = programs,
+            MediaSettings = mediaSettings
         });
     }
 

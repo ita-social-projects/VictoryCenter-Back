@@ -9,6 +9,8 @@ public record PublishedReportFundsExpendituresDto
     public PublishedFundsExpendituresGroupDto Expenses { get; init; } = null!;
 
     public PublishedProgramExpendituresGroupDto Programs { get; init; } = null!;
+
+    public PublishedReportMediaSettingsDto MediaSettings { get; init; } = new();
 }
 
 public record PublishedReportSettingsDto
