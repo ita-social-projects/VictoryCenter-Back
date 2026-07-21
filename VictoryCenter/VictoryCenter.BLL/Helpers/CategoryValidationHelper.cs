@@ -1,6 +1,6 @@
 using FluentResults;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -8,58 +8,33 @@ namespace VictoryCenter.BLL.Helpers;
 
 public static class CategoryValidationHelper
 {
-    public static async Task<Result<ICollection<HippotherapyProgramCategory>>> ValidateAndGetCategoriesAsync(
-        IRepositoryWrapper repositoryWrapper,
+    public static async Task<Result<ICollection<TCategory>>> ValidateAndGetCategoriesAsync<TCategory>(
+        IRepositoryBase<TCategory> categoryRepository,
         IEnumerable<long> requestedCategoryIds)
-    {
-        var requestedIdsList = requestedCategoryIds.ToList();
-
-        var retrievedCategoriesList = (await repositoryWrapper
-            .HippotherapyProgramCategoriesRepository.GetAllAsync(new QueryOptions<HippotherapyProgramCategory>
-            {
-                Filter = category => requestedIdsList.Contains(category.Id),
-                AsNoTracking = false
-            })).ToList();
-
-        if (retrievedCategoriesList.Count != requestedIdsList.Count)
-        {
-            var existingIds = retrievedCategoriesList.Select(c => c.Id).ToList();
-            var missingIds = requestedIdsList.Except(existingIds).ToList();
-
-            return Result.Fail<ICollection<HippotherapyProgramCategory>>(
-                ErrorMessagesConstants.NotFound(string.Join(", ", missingIds), typeof(HippotherapyProgramCategory)));
-        }
-
-        return Result.Ok<ICollection<HippotherapyProgramCategory>>(retrievedCategoriesList);
-    }
-
-    public static async Task<Result<ICollection<EventNewsCategory>>> ValidateAndGetEventNewsCategoriesAsync(
-        IRepositoryWrapper repositoryWrapper,
-        IEnumerable<long> requestedCategoryIds)
+        where TCategory : BaseEntity
     {
         var requestedIdsList = requestedCategoryIds.ToList();
 
         if (requestedIdsList.Count == 0)
         {
-            return Result.Ok<ICollection<EventNewsCategory>>([]);
+            return Result.Ok<ICollection<TCategory>>([]);
         }
 
-        var retrievedCategoriesList = (await repositoryWrapper
-            .EventNewsCategoryRepository.GetAllAsync(new QueryOptions<EventNewsCategory>
-            {
-                Filter = category => requestedIdsList.Contains(category.Id),
-                AsNoTracking = false
-            })).ToList();
+        var retrievedCategoriesList = (await categoryRepository.GetAllAsync(new QueryOptions<TCategory>
+        {
+            Filter = category => requestedIdsList.Contains(category.Id),
+            AsNoTracking = false
+        })).ToList();
 
         if (retrievedCategoriesList.Count != requestedIdsList.Count)
         {
             var existingIds = retrievedCategoriesList.Select(c => c.Id).ToList();
             var missingIds = requestedIdsList.Except(existingIds).ToList();
 
-            return Result.Fail<ICollection<EventNewsCategory>>(
-                ErrorMessagesConstants.NotFound(missingIds, typeof(EventNewsCategory)));
+            return Result.Fail<ICollection<TCategory>>(
+                ErrorMessagesConstants.NotFound(missingIds, typeof(TCategory)));
         }
 
-        return Result.Ok<ICollection<EventNewsCategory>>(retrievedCategoriesList);
+        return Result.Ok<ICollection<TCategory>>(retrievedCategoriesList);
     }
 }

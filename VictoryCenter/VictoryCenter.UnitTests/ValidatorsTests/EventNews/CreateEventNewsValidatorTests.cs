@@ -25,6 +25,39 @@ public class CreateEventNewsValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenDraftCollectionsAreNull()
+    {
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            CategoryIds = null!,
+            Localizations = null!
+        });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveErrors_WhenPublishedCollectionsAreNull()
+    {
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Status = Status.Published,
+            PublishedAt = DateTimeOffset.UtcNow,
+            PreviewImageId = 1,
+            CategoryIds = null!,
+            Localizations = null!
+        });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryIds);
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Localizations);
+    }
+
+    [Fact]
     public void Validate_ShouldHaveErrors_WhenPublishedRequiredFieldsAreMissing()
     {
         var command = new CreateEventNewsCommand(new CreateEventNewsDto

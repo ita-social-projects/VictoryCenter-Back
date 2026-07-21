@@ -48,7 +48,7 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
             .When(dto => dto.Status == Status.Published);
 
         RuleFor(dto => dto.CategoryIds)
-            .Must(categoryIds => categoryIds.Distinct().Count() == categoryIds.Count)
+            .Must(categoryIds => categoryIds is null || categoryIds.Distinct().Count() == categoryIds.Count)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateEventNewsDto.CategoryIds)));
 
         RuleForEach(dto => dto.CategoryIds)
@@ -68,8 +68,13 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
             .Custom(ValidateLocalizations);
     }
 
-    private static bool HaveUniqueLanguageIds(ICollection<CreateEventNewsLocalizationDto> localizations)
+    private static bool HaveUniqueLanguageIds(ICollection<CreateEventNewsLocalizationDto>? localizations)
     {
+        if (localizations is null)
+        {
+            return true;
+        }
+
         var languageIds = localizations
             .Where(localization => localization is not null && IsMeaningful(localization))
             .Select(localization => localization.LanguageId)
@@ -79,9 +84,14 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
     }
 
     private static void ValidateLocalizations(
-        ICollection<CreateEventNewsLocalizationDto> localizations,
+        ICollection<CreateEventNewsLocalizationDto>? localizations,
         ValidationContext<CreateEventNewsDto> context)
     {
+        if (localizations is null)
+        {
+            return;
+        }
+
         var isPublished = context.InstanceToValidate.Status == Status.Published;
         var index = 0;
 

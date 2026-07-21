@@ -139,7 +139,7 @@ public class UpdateHippotherapyProgramTests
         var result = await sut.Handle(Command(id: 1, dto: Dto(categoryIds: [1, 2])), CancellationToken.None);
 
         Assert.Contains(
-            ErrorMessagesConstants.NotFound(2, typeof(HippotherapyProgramCategory)),
+            ErrorMessagesConstants.NotFound([2], typeof(HippotherapyProgramCategory)),
             result.Errors.Select(e => e.Message));
     }
 

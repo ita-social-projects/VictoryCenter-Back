@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Helpers;
@@ -15,6 +16,9 @@ namespace VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 
 public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Result<EventNewsDto>>
 {
+    private const int MaxSlugSaveAttempts = 3;
+    private const string SlugIndexName = "IX_EventNews_Slug";
+
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ISlugService _slugService;
@@ -33,9 +37,12 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         CreateEventNewsCommand request,
         CancellationToken cancellationToken)
     {
-        var categoriesResult = await CategoryValidationHelper.ValidateAndGetEventNewsCategoriesAsync(
-            _repositoryWrapper,
-            request.CreateEventNewsDto.CategoryIds);
+        var categoryIds = request.CreateEventNewsDto.CategoryIds ?? [];
+        var localizationDtos = request.CreateEventNewsDto.Localizations ?? [];
+
+        var categoriesResult = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(
+            _repositoryWrapper.EventNewsCategoryRepository,
+            categoryIds);
 
         if (categoriesResult.IsFailed)
         {
@@ -60,7 +67,11 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
             return Result.Fail<EventNewsDto>(backgroundImageResult.Errors);
         }
 
-        var languagesResult = await ValidateAndGetLanguagesAsync(request.CreateEventNewsDto.Localizations);
+        var localizationsToCreate = localizationDtos
+            .Where(localization => localization is not null && !string.IsNullOrWhiteSpace(localization.Title))
+            .ToList();
+
+        var languagesResult = await ValidateAndGetLanguagesAsync(localizationsToCreate);
 
         if (languagesResult.IsFailed)
         {
@@ -74,7 +85,16 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         eventNews.BackgroundImage = backgroundImageResult.Value;
 
         AddCategories(eventNews, categoriesResult.Value);
-        AddLocalizations(eventNews, request.CreateEventNewsDto.Localizations, languagesResult.Value, now);
+        var localizationsResult = AddLocalizations(
+            eventNews,
+            localizationsToCreate,
+            languagesResult.Value,
+            now);
+
+        if (localizationsResult.IsFailed)
+        {
+            return Result.Fail<EventNewsDto>(localizationsResult.Errors);
+        }
 
         var titleForSlug = eventNews.Localizations
             .Select(localization => localization.Title)
@@ -90,7 +110,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
 
         await _repositoryWrapper.EventNewsRepository.CreateAsync(eventNews);
 
-        if (await _repositoryWrapper.SaveChangesAsync() > 0)
+        if (await SaveEventNewsAsync(eventNews, titleForSlug, cancellationToken) > 0)
         {
             return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
         }
@@ -103,7 +123,6 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
     {
         var languageIds = localizations
             .Select(localization => localization.LanguageId)
-            .Where(id => id > 0)
             .Distinct()
             .ToList();
 
@@ -137,7 +156,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         }
     }
 
-    private static void AddLocalizations(
+    private static Result AddLocalizations(
         EventNewsEntity eventNews,
         IEnumerable<CreateEventNewsLocalizationDto> localizationDtos,
         IReadOnlyDictionary<long, LocalizationLanguage> languagesById,
@@ -145,15 +164,16 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
     {
         foreach (var localizationDto in localizationDtos)
         {
-            if (string.IsNullOrWhiteSpace(localizationDto.Title))
+            if (!languagesById.TryGetValue(localizationDto.LanguageId, out var language))
             {
-                continue;
+                return Result.Fail(
+                    ErrorMessagesConstants.NotFound(localizationDto.LanguageId, typeof(LocalizationLanguage)));
             }
 
             var localization = new EventNewsLocalization
             {
                 LanguageId = localizationDto.LanguageId,
-                Language = languagesById[localizationDto.LanguageId],
+                Language = language,
                 Title = localizationDto.Title!.Trim(),
                 Description = localizationDto.Description?.Trim(),
                 CreatedAt = createdAt
@@ -161,5 +181,41 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
 
             eventNews.Localizations.Add(localization);
         }
+
+        return Result.Ok();
+    }
+
+    private async Task<int> SaveEventNewsAsync(
+        EventNewsEntity eventNews,
+        string? titleForSlug,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; attempt <= MaxSlugSaveAttempts; attempt++)
+        {
+            try
+            {
+                return await _repositoryWrapper.SaveChangesAsync();
+            }
+            catch (DbUpdateException exception) when (
+                attempt < MaxSlugSaveAttempts
+                && !string.IsNullOrWhiteSpace(titleForSlug)
+                && IsSlugUniqueConstraintException(exception))
+            {
+                eventNews.Slug = await _slugService.GenerateUniqueEventNewsSlugAsync(
+                    eventNews.Id,
+                    titleForSlug,
+                    cancellationToken);
+            }
+        }
+
+        return 0;
+    }
+
+    private static bool IsSlugUniqueConstraintException(DbUpdateException exception)
+    {
+        return exception.IsUniqueConstraintException()
+               && exception.InnerException?.Message.Contains(
+                   SlugIndexName,
+                   StringComparison.OrdinalIgnoreCase) == true;
     }
 }

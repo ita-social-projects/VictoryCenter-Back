@@ -3,6 +3,7 @@ using Slugify;
 using VictoryCenter.BLL.Services.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -83,6 +84,39 @@ public class SlugServiceTests
         var result = await service.GenerateUniqueHippotherapyProgramSlugAsync(1, "My Program");
 
         Assert.Equal("my-program-3", result);
+    }
+
+    [Fact]
+    public async Task GenerateUniqueEventNewsSlugAsync_WhenSimilarSlugsExist_ShouldReturnIncrementedSlug()
+    {
+        var slugHelperMock = new Mock<ISlugHelper>();
+        var repoWrapperMock = new Mock<IRepositoryWrapper>();
+        var eventNewsRepoMock = new Mock<IEventNewsRepository>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        repoWrapperMock.SetupGet(repository => repository.EventNewsRepository).Returns(eventNewsRepoMock.Object);
+        slugHelperMock.Setup(helper => helper.GenerateSlug("Event News")).Returns("event-news");
+        eventNewsRepoMock
+            .Setup(repository => repository.GetSlugsStartingWithAsync(
+                1,
+                "event-news",
+                cancellationTokenSource.Token))
+            .ReturnsAsync(["event-news", "event-news-1", "event-news-2"]);
+
+        var service = new SlugService(slugHelperMock.Object, repoWrapperMock.Object);
+
+        var result = await service.GenerateUniqueEventNewsSlugAsync(
+            1,
+            "Event News",
+            cancellationTokenSource.Token);
+
+        Assert.Equal("event-news-3", result);
+        eventNewsRepoMock.Verify(
+            repository => repository.GetSlugsStartingWithAsync(
+                1,
+                "event-news",
+                cancellationTokenSource.Token),
+            Times.Once);
     }
 
     [Fact]

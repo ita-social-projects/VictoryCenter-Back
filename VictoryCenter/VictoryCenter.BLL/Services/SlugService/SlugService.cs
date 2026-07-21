@@ -4,7 +4,6 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Services.SlugService;
 
@@ -62,18 +61,10 @@ public class SlugService : ISlugService
         var currentSlug = baseSlug;
         var i = 1;
 
-        var eventNewsItems = await _repositoryWrapper.EventNewsRepository.GetAllAsync(
-            new QueryOptions<EventNewsEntity>
-            {
-                AsNoTracking = true,
-                Filter = eventNews => eventNews.Slug != null && eventNews.Id != id,
-            });
-
-        var existingSlugs = eventNewsItems
-            .Select(eventNews => eventNews.Slug)
-            .Where(slug => !string.IsNullOrWhiteSpace(slug))
-            .Select(slug => slug!)
-            .Where(slug => slug.StartsWith(baseSlug, StringComparison.OrdinalIgnoreCase))
+        var existingSlugs = (await _repositoryWrapper.EventNewsRepository.GetSlugsStartingWithAsync(
+                id,
+                baseSlug,
+                cancellationToken))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (existingSlugs.Count == 0)

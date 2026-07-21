@@ -51,6 +51,21 @@ public class CreateEventNewsTests
     }
 
     [Fact]
+    public async Task Handle_ValidPublishedRequest_PassesDefaultEntityIdToSlugService()
+    {
+        var (sut, _) = CreateSut(saveChanges: 1);
+
+        await sut.Handle(Command(Dto(Status.Published)), CancellationToken.None);
+
+        _slugService.Verify(
+            service => service.GenerateUniqueEventNewsSlugAsync(
+                0,
+                "Event News Title",
+                CancellationToken.None),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_ValidDraftWithoutTitle_ReturnsSuccessWithoutSlug()
     {
         var (sut, entity) = CreateSut(saveChanges: 1);
@@ -64,6 +79,46 @@ public class CreateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Null(entity.Slug);
+        Assert.Empty(entity.Localizations);
+    }
+
+    [Fact]
+    public async Task Handle_DraftLocalizationWithoutContent_IgnoresLocalization()
+    {
+        var (sut, entity) = CreateSut(saveChanges: 1);
+
+        var result = await sut.Handle(
+            Command(new CreateEventNewsDto
+            {
+                Status = Status.Draft,
+                Localizations = [new CreateEventNewsLocalizationDto { LanguageId = 1 }]
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(entity.Localizations);
+        _repo.Verify(
+            repository => repository.LocalizationLanguagesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<LocalizationLanguage>>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_NullDraftCollections_ReturnsSuccess()
+    {
+        var (sut, entity) = CreateSut(saveChanges: 1);
+
+        var result = await sut.Handle(
+            Command(new CreateEventNewsDto
+            {
+                Status = Status.Draft,
+                CategoryIds = null!,
+                Localizations = null!
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Empty(entity.Categories);
         Assert.Empty(entity.Localizations);
     }
 
@@ -88,6 +143,18 @@ public class CreateEventNewsTests
 
         Assert.Contains(
             nameof(Image),
+            string.Join(" | ", result.Errors.Select(error => error.Message)));
+    }
+
+    [Fact]
+    public async Task Handle_MissingLocalizationLanguage_ReturnsNotFoundError()
+    {
+        var (sut, _) = CreateSut(saveChanges: 1, languages: []);
+
+        var result = await sut.Handle(Command(Dto(Status.Published)), CancellationToken.None);
+
+        Assert.Contains(
+            nameof(LocalizationLanguage),
             string.Join(" | ", result.Errors.Select(error => error.Message)));
     }
 
@@ -121,7 +188,6 @@ public class CreateEventNewsTests
     {
         var entity = new EventNewsEntity
         {
-            Id = 1,
             Categories = [],
             Localizations = []
         };
