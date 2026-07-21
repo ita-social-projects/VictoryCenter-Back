@@ -17,7 +17,6 @@ namespace VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Result<EventNewsDto>>
 {
     private const int MaxSlugSaveAttempts = 3;
-    private const string SlugIndexName = "IX_EventNews_Slug";
 
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -199,8 +198,17 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
             catch (DbUpdateException exception) when (
                 attempt < MaxSlugSaveAttempts
                 && !string.IsNullOrWhiteSpace(titleForSlug)
-                && IsSlugUniqueConstraintException(exception))
+                && exception.IsUniqueConstraintException())
             {
+                var slugAlreadyExists = !string.IsNullOrWhiteSpace(eventNews.Slug)
+                    && await _repositoryWrapper.EventNewsRepository.ExistsAsync(
+                        existingEventNews => existingEventNews.Slug == eventNews.Slug);
+
+                if (!slugAlreadyExists)
+                {
+                    throw;
+                }
+
                 eventNews.Slug = await _slugService.GenerateUniqueEventNewsSlugAsync(
                     eventNews.Id,
                     titleForSlug,
@@ -209,13 +217,5 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         }
 
         return 0;
-    }
-
-    private static bool IsSlugUniqueConstraintException(DbUpdateException exception)
-    {
-        return exception.IsUniqueConstraintException()
-               && exception.InnerException?.Message.Contains(
-                   SlugIndexName,
-                   StringComparison.OrdinalIgnoreCase) == true;
     }
 }
