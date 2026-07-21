@@ -55,6 +55,32 @@ public class SlugService : ISlugService
         return currentSlug;
     }
 
+    public async Task<string> GenerateUniqueEventNewsSlugAsync(long id, string title, CancellationToken cancellationToken = default)
+    {
+        var baseSlug = GenerateSlug(title);
+        var currentSlug = baseSlug;
+        var i = 1;
+
+        var existingSlugs = (await _repositoryWrapper.EventNewsRepository.GetSlugsStartingWithAsync(
+                id,
+                baseSlug,
+                cancellationToken))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (existingSlugs.Count == 0)
+        {
+            return baseSlug;
+        }
+
+        while (existingSlugs.Contains(currentSlug))
+        {
+            currentSlug = $"{baseSlug}-{i}";
+            i++;
+        }
+
+        return currentSlug;
+    }
+
     public Task<HippotherapyProgram?> GetHippotherapyProgramBySlugAsync(string slug, CancellationToken cancellationToken = default)
     {
         var queryOptions = new QueryOptions<HippotherapyProgram>
