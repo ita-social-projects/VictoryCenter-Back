@@ -73,6 +73,61 @@ public class CreateEventNewsTests : BaseTestClass
     }
 
     [Fact]
+    public async Task CreateDraftEventNews_ShouldIgnoreLocalizationWithoutContent()
+    {
+        var createEventNewsDto = new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            Localizations = [new CreateEventNewsLocalizationDto { LanguageId = 1 }]
+        };
+
+        var serializedDto = JsonConvert.SerializeObject(createEventNewsDto);
+        HttpResponseMessage response = await Fixture.HttpClient.PostAsync(
+            EndpointUri,
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        response.EnsureSuccessStatusCode();
+        var responseString = await response.Content.ReadAsStringAsync();
+        EventNewsDto? responseContent = JsonConvert.DeserializeObject<EventNewsDto>(responseString);
+
+        Assert.NotNull(responseContent);
+        Assert.Null(responseContent.Slug);
+        Assert.Empty(responseContent.Localizations);
+    }
+
+    [Fact]
+    public async Task CreateDraftEventNews_ShouldIncrementSlug_WhenSlugAlreadyExists()
+    {
+        var firstDto = new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            Localizations =
+            [
+                new CreateEventNewsLocalizationDto
+                {
+                    LanguageId = 1,
+                    Title = "Duplicate Slug Review Test"
+                },
+            ]
+        };
+
+        var secondDto = firstDto with { };
+        HttpResponseMessage firstResponse = await PostAsync(firstDto);
+        HttpResponseMessage secondResponse = await PostAsync(secondDto);
+
+        firstResponse.EnsureSuccessStatusCode();
+        secondResponse.EnsureSuccessStatusCode();
+        var firstContent = JsonConvert.DeserializeObject<EventNewsDto>(
+            await firstResponse.Content.ReadAsStringAsync());
+        var secondContent = JsonConvert.DeserializeObject<EventNewsDto>(
+            await secondResponse.Content.ReadAsStringAsync());
+
+        Assert.NotNull(firstContent);
+        Assert.NotNull(secondContent);
+        Assert.Equal($"{firstContent.Slug}-1", secondContent.Slug);
+    }
+
+    [Fact]
     public async Task CreatePublishedEventNews_ShouldNotCreateEventNews_WhenRequiredFieldsAreMissing()
     {
         var createEventNewsDto = new CreateEventNewsDto
@@ -145,5 +200,13 @@ public class CreateEventNewsTests : BaseTestClass
                 },
             ]
         };
+    }
+
+    private async Task<HttpResponseMessage> PostAsync(CreateEventNewsDto dto)
+    {
+        var serializedDto = JsonConvert.SerializeObject(dto);
+        return await Fixture.HttpClient.PostAsync(
+            EndpointUri,
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
     }
 }
