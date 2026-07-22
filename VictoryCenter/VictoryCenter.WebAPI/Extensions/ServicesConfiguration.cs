@@ -240,6 +240,7 @@ public static class ServicesConfiguration
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred during startup migration");
+            throw;
         }
     }
 
