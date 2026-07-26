@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.EventNewsCategories;
@@ -196,6 +197,47 @@ public class EventNewsCategoryBusinessRulesTests
             EventNewsCategoryConstants.CantDeleteCategoryWhileAssociatedWithEventNews,
             result.Errors[0].Message);
         _categoryRepository.Verify(repository => repository.Delete(It.IsAny<EventNewsCategory>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteCategory_ShouldFail_WhenCategoryIsAssignedConcurrently()
+    {
+        _categoryRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
+            .ReturnsAsync(new EventNewsCategory { Id = 10, Name = "News" });
+        _eventNewsRepository
+            .Setup(repository => repository.ExistsAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
+            .ReturnsAsync(false);
+        _wrapper.Setup(repository => repository.SaveChangesAsync())
+            .ThrowsAsync(SqlExceptionFactory.CreateDbUpdateException(547, "Foreign key constraint violation"));
+        var handler = new DeleteEventNewsCategoryHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteEventNewsCategoryCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            EventNewsCategoryConstants.CantDeleteCategoryWhileAssociatedWithEventNews,
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task DeleteCategory_ShouldPropagateUnexpectedDatabaseException()
+    {
+        _categoryRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
+            .ReturnsAsync(new EventNewsCategory { Id = 10, Name = "News" });
+        _eventNewsRepository
+            .Setup(repository => repository.ExistsAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
+            .ReturnsAsync(false);
+        _wrapper.Setup(repository => repository.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateException());
+        var handler = new DeleteEventNewsCategoryHandler(_wrapper.Object);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() => handler.Handle(
+            new DeleteEventNewsCategoryCommand(10),
+            CancellationToken.None));
     }
 
     [Fact]

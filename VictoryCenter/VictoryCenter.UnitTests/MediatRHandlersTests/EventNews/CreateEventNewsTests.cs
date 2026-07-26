@@ -1,6 +1,4 @@
-using System.Reflection;
 using AutoMapper;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
@@ -12,6 +10,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.EventNews;
@@ -185,7 +184,7 @@ public class CreateEventNewsTests
     public async Task Handle_SlugUniqueConstraintViolation_RegeneratesSlugAndRetriesSave()
     {
         var (sut, entity) = CreateSut(saveChanges: 1);
-        var exception = CreateUniqueConstraintException();
+        var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
         _repo.SetupSequence(repository => repository.SaveChangesAsync())
             .ThrowsAsync(exception)
             .ReturnsAsync(1);
@@ -216,7 +215,7 @@ public class CreateEventNewsTests
     public async Task Handle_NonSlugUniqueConstraintViolation_PropagatesWithoutRetry()
     {
         var (sut, _) = CreateSut(saveChanges: 1);
-        var exception = CreateUniqueConstraintException();
+        var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
         _repo.Setup(repository => repository.SaveChangesAsync()).ThrowsAsync(exception);
         _repo.Setup(repository => repository.EventNewsRepository.ExistsAsync(
                 It.IsAny<System.Linq.Expressions.Expression<Func<EventNewsEntity, bool>>>()))
@@ -342,65 +341,6 @@ public class CreateEventNewsTests
     }
 
     private static CreateEventNewsCommand Command(CreateEventNewsDto dto) => new(dto);
-
-    private static DbUpdateException CreateUniqueConstraintException()
-    {
-        var errorCollection = (SqlErrorCollection)Activator.CreateInstance(
-            typeof(SqlErrorCollection),
-            nonPublic: true)!;
-        var errorConstructor = typeof(SqlError)
-            .GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
-            .OrderByDescending(constructor => constructor.GetParameters().Length)
-            .First();
-        var errorArguments = errorConstructor.GetParameters()
-            .Select(parameter => CreateSqlErrorArgument(parameter, 2601))
-            .ToArray();
-        var error = (SqlError)errorConstructor.Invoke(errorArguments);
-
-        typeof(SqlErrorCollection)
-            .GetMethod("Add", BindingFlags.Instance | BindingFlags.NonPublic)!
-            .Invoke(errorCollection, [error]);
-
-        var createExceptionMethod = typeof(SqlException)
-            .GetMethods(BindingFlags.Static | BindingFlags.NonPublic)
-            .First(method => method.Name == "CreateException"
-                && method.GetParameters().Length == 2);
-        var sqlException = (SqlException)createExceptionMethod.Invoke(
-            null,
-            [errorCollection, "15.0.0"])!;
-
-        return new DbUpdateException("Unique constraint violation", sqlException);
-    }
-
-    private static object? CreateSqlErrorArgument(ParameterInfo parameter, int errorNumber)
-    {
-        if (parameter.Name is "infoNumber" or "number")
-        {
-            return errorNumber;
-        }
-
-        if (parameter.ParameterType == typeof(byte))
-        {
-            return (byte)0;
-        }
-
-        if (parameter.ParameterType == typeof(int))
-        {
-            return 0;
-        }
-
-        if (parameter.ParameterType == typeof(uint))
-        {
-            return 0u;
-        }
-
-        if (parameter.ParameterType == typeof(string))
-        {
-            return parameter.Name == "errorMessage" ? "Unique constraint violation" : string.Empty;
-        }
-
-        return null;
-    }
 
     private static CreateEventNewsDto Dto(Status status, List<long>? categoryIds = null)
     {

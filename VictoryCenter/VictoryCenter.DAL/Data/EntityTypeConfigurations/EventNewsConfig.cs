@@ -46,9 +46,18 @@ public class EventNewsConfig : IEntityTypeConfiguration<EventNews>
 
         builder.HasMany(e => e.Categories)
             .WithMany(e => e.EventsNews)
-            .UsingEntity(j =>
-            {
-                j.ToTable("EventNewsEventNewsCategories");
-            });
+            .UsingEntity<Dictionary<string, object>>(
+                "EventNewsEventNewsCategory",
+                category => category
+                    .HasOne<EventNewsCategory>()
+                    .WithMany()
+                    .HasForeignKey("CategoriesId")
+                    .OnDelete(DeleteBehavior.Restrict),
+                eventNews => eventNews
+                    .HasOne<EventNews>()
+                    .WithMany()
+                    .HasForeignKey("EventsNewsId")
+                    .OnDelete(DeleteBehavior.Cascade),
+                join => join.ToTable("EventNewsEventNewsCategories"));
     }
 }

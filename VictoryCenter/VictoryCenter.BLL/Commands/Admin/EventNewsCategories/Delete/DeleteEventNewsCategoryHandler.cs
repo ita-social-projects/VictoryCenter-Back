@@ -1,6 +1,8 @@
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -43,8 +45,15 @@ public class DeleteEventNewsCategoryHandler
 
         _repositoryWrapper.EventNewsCategoryRepository.Delete(category);
 
-        return await _repositoryWrapper.SaveChangesAsync() > 0
-            ? Result.Ok(category.Id)
-            : Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(EventNewsCategory)));
+        try
+        {
+            return await _repositoryWrapper.SaveChangesAsync() > 0
+                ? Result.Ok(category.Id)
+                : Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(EventNewsCategory)));
+        }
+        catch (DbUpdateException exception) when (exception.IsForeignKeyConstraintException())
+        {
+            return Result.Fail<long>(EventNewsCategoryConstants.CantDeleteCategoryWhileAssociatedWithEventNews);
+        }
     }
 }
