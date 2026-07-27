@@ -165,9 +165,14 @@ public class PublishReportFundsExpendituresHandler
             await _repositoryWrapper.BackupReportFundsExpendituresSettingsLocalizationsRepository
                 .CreateRangeAsync(backupSettingsLocalizations);
 
-            var backupCategories = fundsRecords
-                .Select(r => r.Category)
-                .DistinctBy(c => c.Id)
+            var allCategories = (await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
+                .GetAllAsync(new QueryOptions<ReportFundsExpendituresCategory>
+                {
+                    Include = query => query.Include(category => category.Localizations),
+                    AsNoTracking = true
+                })).ToList();
+
+            var backupCategories = allCategories
                 .Select(c => new BackupReportFundsExpendituresCategory
                 {
                     Id = c.Id,
@@ -178,9 +183,7 @@ public class PublishReportFundsExpendituresHandler
             await _repositoryWrapper.BackupReportFundsExpendituresCategoriesRepository
                 .CreateRangeAsync(backupCategories);
 
-            var backupCategoryLocalizations = fundsRecords
-                .Select(r => r.Category)
-                .DistinctBy(c => c.Id)
+            var backupCategoryLocalizations = allCategories
                 .SelectMany(c => c.Localizations.Select(l => new BackupReportFundsExpendituresCategoryLocalization
                 {
                     EntityId = l.EntityId,

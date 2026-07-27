@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportMediaSettings;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,12 +18,18 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
     private readonly IValidator<UpdateReportMediaSettingsCommand> _validator;
+    private readonly IMediator _mediator;
 
-    public UpdateReportMediaSettingsHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<UpdateReportMediaSettingsCommand> validator)
+    public UpdateReportMediaSettingsHandler(
+        IRepositoryWrapper repositoryWrapper, 
+        IMapper mapper, 
+        IValidator<UpdateReportMediaSettingsCommand> validator,
+        IMediator mediator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _mediator = mediator;
     }
 
     public async Task<Result<ReportMediaSettingsDto>> Handle(UpdateReportMediaSettingsCommand request, CancellationToken cancellationToken)
@@ -114,6 +121,8 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                 return Result.Fail<ReportMediaSettingsDto>(
                     ErrorMessagesConstants.FailedToUpdateEntity(typeof(CollectedFundsBlock)));
             }
+
+            await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
 
             if (collectedFundsEntity != null)
             {
