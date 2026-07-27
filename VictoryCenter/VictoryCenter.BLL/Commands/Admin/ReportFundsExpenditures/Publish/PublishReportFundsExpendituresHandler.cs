@@ -73,7 +73,7 @@ public class PublishReportFundsExpendituresHandler
                     AsNoTracking = true
                 })).ToList();
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
             await _repositoryWrapper.PublishedReportFundsExpendituresRecordsRepository
                 .BulkDeleteAsync(_ => true);
@@ -218,7 +218,7 @@ public class PublishReportFundsExpendituresHandler
                 .CreateRangeAsync(backupProgramRecords);
 
             await _repositoryWrapper.SaveChangesAsync();
-            transaction.Complete();
+            await transaction.CommitAsync(cancellationToken);
 
             return Result.Ok(true);
         }
@@ -229,6 +229,10 @@ public class PublishReportFundsExpendituresHandler
         catch (DbUpdateException)
         {
             return Result.Fail<bool>("Failed to publish report funds expenditures data.");
+        }
+        catch (Exception)
+        {
+            return Result.Fail<bool>("An unexpected error occurred while publishing report funds expenditures data.");
         }
     }
 

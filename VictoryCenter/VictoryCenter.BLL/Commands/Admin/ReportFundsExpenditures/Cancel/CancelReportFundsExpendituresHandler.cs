@@ -1,6 +1,7 @@
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -33,7 +34,7 @@ public class CancelReportFundsExpendituresHandler
 
             if (backupSettings is null)
             {
-                return Result.Fail<bool>("Неможливо відмінити зміни, оскільки не знайдено попередньої опублікованої версії. Будь ласка, спочатку збережіть та опублікуйте звіт.");
+                return Result.Fail<bool>(ErrorMessagesConstants.CannotCancelChangesNoBackupFound());
             }
 
             var backupSettingsLocalizations = (await _repositoryWrapper.BackupReportFundsExpendituresSettingsLocalizationsRepository
@@ -62,7 +63,7 @@ public class CancelReportFundsExpendituresHandler
                     AsNoTracking = true
                 })).ToList();
 
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
             await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
                 .BulkDeleteAsync(_ => true);
@@ -174,13 +175,17 @@ public class CancelReportFundsExpendituresHandler
 
             await _repositoryWrapper.SaveChangesAsync();
 
-            transaction.Complete();
+            await transaction.CommitAsync(cancellationToken);
 
             return Result.Ok(true);
         }
-        catch (Exception ex)
+        catch (DbUpdateException)
         {
-            return Result.Fail<bool>($"Failed to cancel report funds expenditures changes: {ex.Message} {ex.InnerException?.Message}");
+            return Result.Fail<bool>("Failed to cancel report funds expenditures changes.");
+        }
+        catch (Exception)
+        {
+            return Result.Fail<bool>("An unexpected error occurred while canceling report funds expenditures changes.");
         }
     }
 }

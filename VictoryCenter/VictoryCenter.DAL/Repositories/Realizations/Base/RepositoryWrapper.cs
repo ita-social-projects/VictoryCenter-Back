@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Transactions;
+using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
@@ -388,6 +389,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     public async Task<int> SaveChangesAsync()
     {
         return await _victoryCenterDbContext.SaveChangesAsync();
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return _victoryCenterDbContext.Database.BeginTransactionAsync(cancellationToken);
     }
 
     public TransactionScope BeginTransaction()

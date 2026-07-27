@@ -1,4 +1,5 @@
 using System.Transactions;
+using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
@@ -130,5 +131,12 @@ public interface IRepositoryWrapper
 
     Task<int> SaveChangesAsync();
 
+    /// <summary>Legacy ambient-scope transaction. Prefer <see cref="BeginTransactionAsync"/> for new code.</summary>
+    /// <returns>A <see cref="TransactionScope"/> with async flow enabled.</returns>
     TransactionScope BeginTransaction();
+
+    /// <summary>Begins an explicit EF Core database transaction on the single underlying connection, avoiding MSDTC escalation.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IDbContextTransaction"/> that must be committed or disposed.</returns>
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }
