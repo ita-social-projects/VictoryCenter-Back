@@ -21,8 +21,8 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
     private readonly IMediator _mediator;
 
     public UpdateReportMediaSettingsHandler(
-        IRepositoryWrapper repositoryWrapper, 
-        IMapper mapper, 
+        IRepositoryWrapper repositoryWrapper,
+        IMapper mapper,
         IValidator<UpdateReportMediaSettingsCommand> validator,
         IMediator mediator)
     {
