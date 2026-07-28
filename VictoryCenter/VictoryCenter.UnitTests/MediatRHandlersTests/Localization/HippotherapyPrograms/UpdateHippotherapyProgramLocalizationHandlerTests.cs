@@ -306,6 +306,10 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
             });
 
         _mockRepositoryWrapper
+            .Setup(r => r.ProgramSectionContentLocalizationsRepository.GetAllAsync(It.IsAny<QueryOptions<ProgramSectionContentLocalization>>()))
+            .ReturnsAsync(new List<ProgramSectionContentLocalization>());
+
+        _mockRepositoryWrapper
             .Setup(r => r.SaveChangesAsync())
             .ReturnsAsync(1);
 
