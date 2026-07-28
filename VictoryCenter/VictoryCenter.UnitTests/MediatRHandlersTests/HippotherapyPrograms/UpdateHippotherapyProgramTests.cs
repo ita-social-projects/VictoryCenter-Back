@@ -463,7 +463,7 @@ public class UpdateHippotherapyProgramTests
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.Equal(1, program.Sections.Count);
+        Assert.Single(program.Sections);
         Assert.Same(keptSection, program.Sections.Single());
         Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
         Assert.All(keptContent.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
@@ -723,7 +723,7 @@ public class UpdateHippotherapyProgramTests
 
     private static UpdateHippotherapyProgramDto Dto(
         string name = "Name",
-        string description = "Description",
+        string? description = "Description",
         Status status = Status.Published,
         long? backgroundImageId = 1,
         long? previewImageId = 2,

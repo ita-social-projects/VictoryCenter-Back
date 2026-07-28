@@ -10,6 +10,8 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
+using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -203,7 +205,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
     }
 
-    private static void MarkProgramLocalizationsOutdated(HippotherapyProgram program)
+    private static void MarkProgramLocalizationsOutdated(ITranslatedEntity<HippotherapyProgramLocalization> program)
     {
         foreach (var loc in program.Localizations)
         {
@@ -288,27 +290,12 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
         foreach (var newContentDto in newContents.OrderBy(c => c.Order))
         {
-            var existingContent = newContentDto.Id is > 0
-                && oldContentsById.TryGetValue(newContentDto.Id.Value, out var found)
-                && found.ContentType == newContentDto.ContentType
-                ? found
-                : null;
+            var existingContent = FindMatchingContent(newContentDto, oldContentsById);
 
             if (existingContent is not null)
             {
                 matchedOldContentIds.Add(existingContent.Id);
-
-                if (TryApplyContentFieldUpdates(existingContent, newContentDto, imagesById, out var contentChanged)
-                    && contentChanged
-                    && existingContent.ContentType != ContentType.Image)
-                {
-                    anyContentChanged = true;
-
-                    foreach (var loc in existingContent.Localizations)
-                    {
-                        loc.TranslationStatus = TranslationStatus.Outdated;
-                    }
-                }
+                ApplyExistingContentUpdate(existingContent, newContentDto, imagesById, ref anyContentChanged);
             }
             else
             {
@@ -320,6 +307,48 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             }
         }
 
+        RemoveUnmatchedContents(existingSection, matchedOldContentIds);
+    }
+
+    private static ProgramSectionContent? FindMatchingContent(
+        CreateProgramSectionContentDto newContentDto,
+        Dictionary<long, ProgramSectionContent> oldContentsById)
+    {
+        if (newContentDto.Id is > 0
+            && oldContentsById.TryGetValue(newContentDto.Id.Value, out var found)
+            && found.ContentType == newContentDto.ContentType)
+        {
+            return found;
+        }
+
+        return null;
+    }
+
+    private static void ApplyExistingContentUpdate(
+        ProgramSectionContent existingContent,
+        CreateProgramSectionContentDto newContentDto,
+        IReadOnlyDictionary<long, Image> imagesById,
+        ref bool anyContentChanged)
+    {
+        var updated = TryApplyContentFieldUpdates(existingContent, newContentDto, imagesById, out var contentChanged);
+
+        if (!updated || !contentChanged || existingContent.ContentType == ContentType.Image)
+        {
+            return;
+        }
+
+        anyContentChanged = true;
+
+        foreach (var loc in existingContent.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void RemoveUnmatchedContents(
+        HippotherapyProgramSection existingSection,
+        HashSet<long> matchedOldContentIds)
+    {
         var contentsToRemove = existingSection.Contents
             .Where(c => c.Id > 0 && !matchedOldContentIds.Contains(c.Id))
             .ToList();

@@ -28,6 +28,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
     private readonly Mock<ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization>> _mockProgramLocalizationService;
     private readonly Mock<ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization>> _mockContentLocalizationService;
     private readonly Mock<IProgramSectionContentService> _mockProgramSectionContentService;
+    private readonly Mock<TimeProvider> _mockTimeProvider;
     private readonly UpdateHippotherapyProgramLocalizationHandler _handler;
 
     private readonly UpdateHippotherapyProgramLocalizationDto _testUpdateDto = new()
@@ -100,6 +101,8 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
         _mockProgramLocalizationService = new Mock<ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization>>();
         _mockContentLocalizationService = new Mock<ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization>>();
         _mockProgramSectionContentService = new Mock<IProgramSectionContentService>();
+        _mockTimeProvider = new Mock<TimeProvider>();
+        _mockTimeProvider.Setup(x => x.GetUtcNow()).Returns(DateTimeOffset.UtcNow);
 
         _handler = new UpdateHippotherapyProgramLocalizationHandler(
             _mockMapper.Object,
@@ -107,7 +110,8 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
             _mockValidator.Object,
             _mockProgramSectionContentService.Object,
             _mockProgramLocalizationService.Object,
-            _mockContentLocalizationService.Object);
+            _mockContentLocalizationService.Object,
+            _mockTimeProvider.Object);
     }
 
     [Fact]
@@ -307,7 +311,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
 
         _mockRepositoryWrapper
             .Setup(r => r.ProgramSectionContentLocalizationsRepository.GetAllAsync(It.IsAny<QueryOptions<ProgramSectionContentLocalization>>()))
-            .ReturnsAsync(new List<ProgramSectionContentLocalization>());
+            .ReturnsAsync([]);
 
         _mockRepositoryWrapper
             .Setup(r => r.SaveChangesAsync())
