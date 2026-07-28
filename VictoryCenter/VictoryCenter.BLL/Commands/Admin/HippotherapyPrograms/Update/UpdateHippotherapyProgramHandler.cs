@@ -310,7 +310,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
     private static ProgramSectionContent? FindMatchingContent(
         CreateProgramSectionContentDto newContentDto,
-        IDictionary<long, ProgramSectionContent> oldContentsById)
+        Dictionary<long, ProgramSectionContent> oldContentsById)
     {
         if (newContentDto.Id is > 0
             && oldContentsById.TryGetValue(newContentDto.Id.Value, out var found)
@@ -345,7 +345,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
     private static void RemoveUnmatchedContents(
         HippotherapyProgramSection existingSection,
-        ICollection<long> matchedOldContentIds)
+        HashSet<long> matchedOldContentIds)
     {
         var contentsToRemove = existingSection.Contents
             .Where(c => c.Id > 0 && !matchedOldContentIds.Contains(c.Id))

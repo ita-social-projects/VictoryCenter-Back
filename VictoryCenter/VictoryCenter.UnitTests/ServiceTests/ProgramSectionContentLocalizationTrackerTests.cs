@@ -47,7 +47,7 @@ public class ProgramSectionContentLocalizationTrackerTests
         List<ProgramSectionContentLocalization>? capturedCreateBatch = null;
         _mockContentLocalizationService
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<ProgramSectionContentLocalization>>(), false))
-            .Callback<IEnumerable<ProgramSectionContentLocalization>, bool>((locs, _) => capturedCreateBatch = locs.ToList())
+            .Callback<IEnumerable<ProgramSectionContentLocalization>, bool>((locs, _) => capturedCreateBatch = [.. locs])
             .Returns(Task.CompletedTask);
 
         // Act
@@ -83,7 +83,7 @@ public class ProgramSectionContentLocalizationTrackerTests
         List<ProgramSectionContentLocalization>? capturedUpdateBatch = null;
         _mockContentLocalizationService
             .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<ProgramSectionContentLocalization>>(), true))
-            .Callback<IEnumerable<ProgramSectionContentLocalization>, bool>((locs, _) => capturedUpdateBatch = locs.ToList())
+            .Callback<IEnumerable<ProgramSectionContentLocalization>, bool>((locs, _) => capturedUpdateBatch = [.. locs])
             .Returns(Task.CompletedTask);
 
         // Act
@@ -139,7 +139,7 @@ public class ProgramSectionContentLocalizationTrackerTests
     {
         _mockMapper
             .Setup(m => m.Map<List<ProgramSectionContentLocalization>>(It.IsAny<List<UpdateHippotherapyProgramSectionContentLocalizationDto>>()))
-            .Returns(Enumerable.Range(0, count).Select(_ => new ProgramSectionContentLocalization()).ToList());
+            .Returns([.. Enumerable.Range(0, count).Select(_ => new ProgramSectionContentLocalization())]);
     }
 
     private void SetupExistingLocalizations(List<ProgramSectionContentLocalization> existing)
