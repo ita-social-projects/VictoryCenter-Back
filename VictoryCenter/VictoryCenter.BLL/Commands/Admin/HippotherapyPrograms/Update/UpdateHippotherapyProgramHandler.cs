@@ -10,8 +10,6 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
-using VictoryCenter.DAL.Entities.Interfaces;
-using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -205,7 +203,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
     }
 
-    private static void MarkProgramLocalizationsOutdated(ITranslatedEntity<HippotherapyProgramLocalization> program)
+    private static void MarkProgramLocalizationsOutdated(HippotherapyProgram program)
     {
         foreach (var loc in program.Localizations)
         {
@@ -312,7 +310,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
     private static ProgramSectionContent? FindMatchingContent(
         CreateProgramSectionContentDto newContentDto,
-        Dictionary<long, ProgramSectionContent> oldContentsById)
+        IDictionary<long, ProgramSectionContent> oldContentsById)
     {
         if (newContentDto.Id is > 0
             && oldContentsById.TryGetValue(newContentDto.Id.Value, out var found)
@@ -347,7 +345,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
     private static void RemoveUnmatchedContents(
         HippotherapyProgramSection existingSection,
-        HashSet<long> matchedOldContentIds)
+        ICollection<long> matchedOldContentIds)
     {
         var contentsToRemove = existingSection.Contents
             .Where(c => c.Id > 0 && !matchedOldContentIds.Contains(c.Id))
@@ -366,6 +364,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         out bool contentChanged)
     {
         contentChanged = false;
+        oldContent.Order = newContent.Order;
         oldContent.GroupIndex = newContent.GroupIndex;
 
         return newContent.ContentType switch

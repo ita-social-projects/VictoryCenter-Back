@@ -10,9 +10,7 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
-using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using HippotherapyProgramEntity = VictoryCenter.DAL.Entities.HippotherapyProgram;
@@ -25,8 +23,7 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
     private readonly IValidator<UpdateHippotherapyProgramLocalizationCommand> _validator;
     private readonly IProgramSectionContentService _programSectionContentService;
     private readonly ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization> _programLocalizationService;
-    private readonly ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> _contentLocalizationService;
-    private readonly TimeProvider _timeProvider;
+    private readonly IProgramSectionContentLocalizationTracker _contentLocalizationTracker;
 
     public UpdateHippotherapyProgramLocalizationHandler(
         IMapper mapper,
@@ -34,16 +31,14 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         IValidator<UpdateHippotherapyProgramLocalizationCommand> validator,
         IProgramSectionContentService programSectionContentService,
         ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization> programLocalizationService,
-        ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> contentLocalizationService,
-        TimeProvider timeProvider)
+        IProgramSectionContentLocalizationTracker contentLocalizationTracker)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _programSectionContentService = programSectionContentService;
         _programLocalizationService = programLocalizationService;
-        _contentLocalizationService = contentLocalizationService;
-        _timeProvider = timeProvider;
+        _contentLocalizationTracker = contentLocalizationTracker;
     }
 
     public async Task<Result<HippotherapyProgramLocalizationDto>> Handle(UpdateHippotherapyProgramLocalizationCommand request, CancellationToken cancellationToken)
@@ -77,7 +72,8 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
             programLocalizationEntity.LanguageId = request.LanguageId;
             await _programLocalizationService.TrackEntityLocalizationForUpdateAsync(programLocalizationEntity);
 
-            await TrackContentLocalizationsAsync(dto, request.LanguageId);
+            var contentDtos = dto.Sections.SelectMany(section => section.Contents ?? []);
+            await _contentLocalizationTracker.TrackAsync(contentDtos, request.LanguageId);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
@@ -116,51 +112,6 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         {
             return Result.Fail<HippotherapyProgramLocalizationDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(HippotherapyProgramLocalization)));
-        }
-    }
-
-    private async Task TrackContentLocalizationsAsync(UpdateHippotherapyProgramLocalizationDto dto, long languageId)
-    {
-        var contentDtos = dto.Sections
-            .SelectMany(section => section.Contents ?? [])
-            .ToList();
-
-        var contentLocalizations = _mapper.Map<List<ProgramSectionContentLocalization>>(contentDtos);
-
-        for (int i = 0; i < contentLocalizations.Count; i++)
-        {
-            contentLocalizations[i].EntityId = contentDtos[i].EntityId;
-            contentLocalizations[i].LanguageId = languageId;
-            contentLocalizations[i].TranslationStatus = TranslationStatus.Relevant;
-        }
-
-        var contentIds = contentLocalizations.Select(l => l.EntityId).ToList();
-
-        var existingContentLocalizations = (await _repositoryWrapper.ProgramSectionContentLocalizationsRepository
-            .GetAllAsync(new QueryOptions<ProgramSectionContentLocalization>
-            {
-                Filter = l => l.LanguageId == languageId && contentIds.Contains(l.EntityId)
-            })).ToList();
-
-        var existingContentIds = existingContentLocalizations.Select(l => l.EntityId).ToHashSet();
-
-        var contentLocalizationsToUpdate = contentLocalizations.Where(l => existingContentIds.Contains(l.EntityId)).ToList();
-        var contentLocalizationsToCreate = contentLocalizations.Where(l => !existingContentIds.Contains(l.EntityId)).ToList();
-
-        if (contentLocalizationsToUpdate.Count > 0)
-        {
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizationsToUpdate, true);
-        }
-
-        if (contentLocalizationsToCreate.Count > 0)
-        {
-            var utcNow = _timeProvider.GetUtcNow();
-            foreach (var loc in contentLocalizationsToCreate)
-            {
-                loc.CreatedAt = utcNow;
-            }
-
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizationsToCreate, false);
         }
     }
 }

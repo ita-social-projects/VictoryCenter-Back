@@ -470,6 +470,35 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
+    public async Task Handle_ExistingContentReordered_UpdatesOrderWithoutMarkingLocalizationsOutdated()
+    {
+        var content = new TitleProgramContent
+        {
+            Id = 1,
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Same title",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection { Id = 1, Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var program = Program(sections: [section]);
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        var dto = Dto(
+            name: program.Name,
+            description: program.Description,
+            sections: [CreateSection(0, CreateTitleContent(3, "Same title", id: 1), id: 1)]);
+        dto.Location = program.Location;
+        dto.ParticipantsCount = program.ParticipantsCount;
+        dto.MeetingsCount = program.MeetingsCount;
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.Equal(3, content.Order);
+        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+    }
+
+    [Fact]
     public async Task Handle_SameStructureAndChangedDescription_MarksContentLocalizationsOutdated()
     {
         var content = new DescriptionProgramContent
