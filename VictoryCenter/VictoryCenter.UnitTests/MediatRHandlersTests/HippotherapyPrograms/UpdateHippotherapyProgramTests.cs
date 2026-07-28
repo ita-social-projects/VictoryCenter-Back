@@ -61,7 +61,7 @@ public class UpdateHippotherapyProgramTests
     [Fact]
     public async Task Handle_ValidRequest_ReplacesSections()
     {
-        var program = Program(sections: [new HippotherapyProgramSection { Template = default, Order = 99, CreatedAt = DateTimeOffset.UtcNow, Contents = [] }]);
+        var program = Program(sections: [new HippotherapyProgramSection { Id = 1, Template = default, Order = 99, CreatedAt = DateTimeOffset.UtcNow, Contents = [] }]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
         await sut.Handle(
@@ -298,6 +298,7 @@ public class UpdateHippotherapyProgramTests
     {
         var content = new TitleProgramContent
         {
+            Id = 1,
             ContentType = ContentType.Title,
             Order = 0,
             Title = "Old title",
@@ -310,6 +311,7 @@ public class UpdateHippotherapyProgramTests
 
         var section = new HippotherapyProgramSection
         {
+            Id = 1,
             Template = default,
             Order = 0,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -319,7 +321,7 @@ public class UpdateHippotherapyProgramTests
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        var dto = Dto(sections: [CreateSection(0, CreateTitleContent(0, "New title"))]);
+        var dto = Dto(sections: [CreateSection(0, CreateTitleContent(0, "New title", id: 1), id: 1)]);
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
@@ -328,10 +330,11 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
-    public async Task Handle_SameSectionStructureAndUnchangedTitle_MarksContentLocalizationsOutdated()
+    public async Task Handle_SameSectionStructureAndUnchangedTitle_KeepsExistingContentIdentity()
     {
         var content = new TitleProgramContent
         {
+            Id = 1,
             ContentType = ContentType.Title,
             Order = 0,
             Title = "Same title",
@@ -344,6 +347,7 @@ public class UpdateHippotherapyProgramTests
 
         var section = new HippotherapyProgramSection
         {
+            Id = 1,
             Template = default,
             Order = 0,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -353,22 +357,38 @@ public class UpdateHippotherapyProgramTests
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        var dto = Dto(sections: [CreateSection(0, CreateTitleContent(0, "Same title"))]);
+        var dto = Dto(
+            name: program.Name,
+            description: program.Description,
+            sections: [CreateSection(0, CreateTitleContent(0, "Same title", id: 1), id: 1)]);
+        dto.Location = program.Location;
+        dto.ParticipantsCount = program.ParticipantsCount;
+        dto.MeetingsCount = program.MeetingsCount;
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
-        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+        Assert.Same(content, program.Sections.Single().Contents.Single());
+        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
     }
 
     [Fact]
-    public async Task Handle_DifferentSectionStructure_ClearsProgramLocalizations()
+    public async Task Handle_NewSectionAdded_MarksProgramLocalizationsOutdatedWithoutClearingThem()
     {
+        var content = new TitleProgramContent
+        {
+            Id = 1,
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Same title",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
         var section = new HippotherapyProgramSection
         {
+            Id = 1,
             Template = default,
-            Order = 99,
+            Order = 0,
             CreatedAt = DateTimeOffset.UtcNow,
-            Contents = []
+            Contents = [content]
         };
 
         var program = Program(sections: [section]);
@@ -380,15 +400,73 @@ public class UpdateHippotherapyProgramTests
 
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        await sut.Handle(
-            Command(id: 1, dto: Dto(sections:
+        var dto = Dto(
+            name: program.Name,
+            description: program.Description,
+            sections:
             [
-                CreateSection(0, CreateImageContent(0, 1)),
+                CreateSection(0, CreateTitleContent(0, "Same title", id: 1), id: 1),
                 CreateSection(1, CreateImageContent(0, 2))
-            ])),
-            CancellationToken.None);
+            ]);
+        dto.Location = program.Location;
+        dto.ParticipantsCount = program.ParticipantsCount;
+        dto.MeetingsCount = program.MeetingsCount;
 
-        Assert.Empty(program.Localizations);
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.Equal(2, program.Sections.Count);
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+        Assert.Same(content, program.Sections.First().Contents.Single());
+        Assert.All(content.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_SectionRemoved_RemovesOnlyThatSectionAndKeepsOtherLocalizations()
+    {
+        var keptContent = new TitleProgramContent
+        {
+            Id = 1,
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Kept title",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var keptSection = new HippotherapyProgramSection
+        {
+            Id = 1,
+            Template = default,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = [keptContent]
+        };
+        var removedSection = new HippotherapyProgramSection
+        {
+            Id = 2,
+            Template = default,
+            Order = 1,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = []
+        };
+
+        var program = Program(sections: [keptSection, removedSection]);
+        program.Localizations = [ProgramLocalization(1, TranslationStatus.Relevant)];
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        var dto = Dto(
+            name: program.Name,
+            description: program.Description,
+            sections: [CreateSection(0, CreateTitleContent(0, "Kept title", id: 1), id: 1)]);
+        dto.Location = program.Location;
+        dto.ParticipantsCount = program.ParticipantsCount;
+        dto.MeetingsCount = program.MeetingsCount;
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.Equal(1, program.Sections.Count);
+        Assert.Same(keptSection, program.Sections.Single());
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+        Assert.All(keptContent.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
     }
 
     [Fact]
@@ -396,16 +474,17 @@ public class UpdateHippotherapyProgramTests
     {
         var content = new DescriptionProgramContent
         {
+            Id = 1,
             ContentType = ContentType.Description,
             Order = 0,
             Description = "Old description",
             Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
         };
-        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var section = new HippotherapyProgramSection { Id = 1, Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateDescriptionContent(0, "New description"))])), CancellationToken.None);
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateDescriptionContent(0, "New description", id: 1), id: 1)])), CancellationToken.None);
 
         Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
     }
@@ -415,16 +494,17 @@ public class UpdateHippotherapyProgramTests
     {
         var content = new AuthorProgramContent
         {
+            Id = 1,
             ContentType = ContentType.Author,
             Order = 0,
             Name = "Old author",
             Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
         };
-        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var section = new HippotherapyProgramSection { Id = 1, Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateAuthorContent(0, "New author"))])), CancellationToken.None);
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateAuthorContent(0, "New author", id: 1), id: 1)])), CancellationToken.None);
 
         Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
     }
@@ -435,17 +515,18 @@ public class UpdateHippotherapyProgramTests
         var faqQuestion = new FaqQuestion { Id = 10, QuestionText = "Old question", AnswerText = "Old answer" };
         var content = new FaqQuestionProgramContent
         {
+            Id = 1,
             ContentType = ContentType.FaqQuestion,
             Order = 0,
             FaqQuestionId = 10,
             FaqQuestion = faqQuestion,
             Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
         };
-        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var section = new HippotherapyProgramSection { Id = 1, Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        var dto = Dto(sections: [CreateSection(0, CreateFaqQuestionContent(0, 10, "New question", "New answer"))]);
+        var dto = Dto(sections: [CreateSection(0, CreateFaqQuestionContent(0, 10, "New question", "New answer", id: 1), id: 1)]);
 
         await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
 
@@ -459,17 +540,18 @@ public class UpdateHippotherapyProgramTests
     {
         var content = new ImageProgramContent
         {
+            Id = 1,
             ContentType = ContentType.Image,
             Order = 0,
             ImageId = 1,
             Image = Images[0],
             Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
         };
-        var section = new HippotherapyProgramSection { Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
+        var section = new HippotherapyProgramSection { Id = 1, Template = default, Order = 0, CreatedAt = DateTimeOffset.UtcNow, Contents = [content] };
         var program = Program(sections: [section]);
         var sut = CreateSut(program: program, saveChanges: 1);
 
-        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateImageContent(0, 2))])), CancellationToken.None);
+        await sut.Handle(Command(id: 1, dto: Dto(sections: [CreateSection(0, CreateImageContent(0, 2, id: 1), id: 1)])), CancellationToken.None);
 
         Assert.Equal(2, content.ImageId);
         Assert.Equal(TranslationStatus.Outdated, content.Localizations.Single().TranslationStatus);
@@ -689,53 +771,70 @@ public class UpdateHippotherapyProgramTests
         };
     }
 
-    private static CreateProgramSectionContentDto CreateImageContent(int order, long imageId)
+    private static CreateHippotherapyProgramSectionDto CreateSection(int order, CreateProgramSectionContentDto content, long id)
+    {
+        return new CreateHippotherapyProgramSectionDto
+        {
+            Id = id,
+            Template = default,
+            Order = order,
+            Contents = [content]
+        };
+    }
+
+    private static CreateProgramSectionContentDto CreateImageContent(int order, long imageId, long? id = null)
     {
         return new CreateProgramSectionContentDto
         {
+            Id = id,
             ContentType = ContentType.Image,
             Order = order,
             ImageId = imageId
         };
     }
 
-    private static CreateProgramSectionContentDto CreateTitleContent(int order, string title)
+    private static CreateProgramSectionContentDto CreateTitleContent(int order, string title, long? id = null)
     {
         return new CreateProgramSectionContentDto
         {
+            Id = id,
             ContentType = ContentType.Title,
             Order = order,
             Title = title
         };
     }
 
-    private static CreateProgramSectionContentDto CreateDescriptionContent(int order, string description)
+    private static CreateProgramSectionContentDto CreateDescriptionContent(int order, string description, long? id = null)
     {
         return new CreateProgramSectionContentDto
         {
+            Id = id,
             ContentType = ContentType.Description,
             Order = order,
             Description = description
         };
     }
 
-    private static CreateProgramSectionContentDto CreateAuthorContent(int order, string author)
+    private static CreateProgramSectionContentDto CreateAuthorContent(int order, string author, long? id = null)
     {
         return new CreateProgramSectionContentDto
         {
+            Id = id,
             ContentType = ContentType.Author,
             Order = order,
             Author = author
         };
     }
 
-    private static CreateProgramSectionContentDto CreateFaqQuestionContent(int order, long id, string questionText, string answerText)
+    private static CreateProgramSectionContentDto CreateFaqQuestionContent(
+        int order, long faqQuestionId, string questionText, string answerText, long? id = null)
     {
         return new CreateProgramSectionContentDto
         {
+            Id = id,
             ContentType = ContentType.FaqQuestion,
             Order = order,
-            FaqQuestion = new CreateFaqSectionQuestionDto { Id = id, QuestionText = questionText, AnswerText = answerText }
+            FaqQuestion = new CreateFaqSectionQuestionDto { Id = faqQuestionId, QuestionText = questionText, AnswerText = answerText }
         };
     }
 

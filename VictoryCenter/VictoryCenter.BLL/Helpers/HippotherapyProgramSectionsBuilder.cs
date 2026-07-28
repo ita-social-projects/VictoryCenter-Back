@@ -33,34 +33,7 @@ public static class HippotherapyProgramSectionsBuilder
         return result;
     }
 
-    private static List<ProgramSectionContent> BuildContents(
-        CreateHippotherapyProgramSectionDto sectionDto,
-        IReadOnlyDictionary<long, Image> imagesById,
-        DateTimeOffset createdAt)
-    {
-        var dtoContents = sectionDto.Contents ?? [];
-        if (dtoContents.Count == 0)
-        {
-            return [];
-        }
-
-        var contents = new List<ProgramSectionContent>(dtoContents.Count);
-
-        foreach (var dto in dtoContents.OrderBy(x => x.Order))
-        {
-            var entity = CreateContent(dto, imagesById, createdAt);
-            if (entity is null)
-            {
-                continue;
-            }
-
-            contents.Add(entity);
-        }
-
-        return contents;
-    }
-
-    private static ProgramSectionContent? CreateContent(
+    public static ProgramSectionContent? CreateContent(
         CreateProgramSectionContentDto dto,
         IReadOnlyDictionary<long, Image> imagesById,
         DateTimeOffset createdAt)
@@ -159,5 +132,32 @@ public static class HippotherapyProgramSectionsBuilder
         }
 
         return null;
+    }
+
+    private static List<ProgramSectionContent> BuildContents(
+        CreateHippotherapyProgramSectionDto sectionDto,
+        IReadOnlyDictionary<long, Image> imagesById,
+        DateTimeOffset createdAt)
+    {
+        var dtoContents = sectionDto.Contents ?? [];
+        if (dtoContents.Count == 0)
+        {
+            return [];
+        }
+
+        var contents = new List<ProgramSectionContent>(dtoContents.Count);
+
+        foreach (var dto in dtoContents.OrderBy(x => x.Order))
+        {
+            var entity = CreateContent(dto, imagesById, createdAt);
+            if (entity is null)
+            {
+                continue;
+            }
+
+            contents.Add(entity);
+        }
+
+        return contents;
     }
 }

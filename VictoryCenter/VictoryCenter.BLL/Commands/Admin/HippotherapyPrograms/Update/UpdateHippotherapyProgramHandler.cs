@@ -128,16 +128,17 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             var oldSections = program.Sections.ToList();
 
-            var sectionsMatched = EnsureReplaceSameSections(
+            var sectionAdded = MergeSections(
+                program,
                 oldSections,
                 request.UpdateProgramDto.Sections,
+                now,
                 imagesByIdResult.Value,
                 out var programContentsChanged);
 
-            if (!sectionsMatched)
+            if (sectionAdded)
             {
-                ReplaceSections(program, request.UpdateProgramDto.Sections, now, imagesByIdResult.Value);
-                program.Localizations.Clear();
+                MarkProgramLocalizationsOutdated(program);
             }
 
             if (programFieldsChanged || programContentsChanged)
@@ -179,10 +180,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
     private static void SerTranslationsToOutdated(HippotherapyProgram program)
     {
-        foreach (var loc in program.Localizations)
-        {
-            loc.TranslationStatus = TranslationStatus.Outdated;
-        }
+        MarkProgramLocalizationsOutdated(program);
 
         var sections = program.Sections.ToList();
         var contentsToOutdated = sections
@@ -205,100 +203,131 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
     }
 
-    private static bool EnsureReplaceSameSections(
+    private static void MarkProgramLocalizationsOutdated(HippotherapyProgram program)
+    {
+        foreach (var loc in program.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static bool MergeSections(
+        HippotherapyProgram program,
         List<HippotherapyProgramSection> oldSections,
         List<CreateHippotherapyProgramSectionDto> newSections,
+        DateTimeOffset now,
         IReadOnlyDictionary<long, Image> imagesById,
         out bool anyContentChanged)
     {
         anyContentChanged = false;
+        var sectionAdded = false;
 
-        if (oldSections.Count != newSections.Count)
+        var oldSectionsById = oldSections
+            .Where(s => s.Id > 0)
+            .ToDictionary(s => s.Id);
+
+        var matchedOldSectionIds = new HashSet<long>();
+
+        foreach (var newSectionDto in newSections)
         {
-            return false;
-        }
+            var existingSection = newSectionDto.Id is > 0
+                && oldSectionsById.TryGetValue(newSectionDto.Id.Value, out var found)
+                ? found
+                : null;
 
-        Dictionary<int, HippotherapyProgramSection> oldSectionsMap;
-        Dictionary<int, CreateHippotherapyProgramSectionDto> newSectionsMap;
-
-        try
-        {
-            oldSectionsMap = oldSections.ToDictionary(section => section.Order);
-            newSectionsMap = newSections.ToDictionary(section => section.Order);
-        }
-        catch (ArgumentException)
-        {
-            return false;
-        }
-
-        if (oldSectionsMap.Count != newSectionsMap.Count)
-        {
-            return false;
-        }
-
-        foreach (var (sectionOrder, newSection) in newSectionsMap)
-        {
-            if (!oldSectionsMap.TryGetValue(sectionOrder, out var oldSection))
+            if (existingSection is not null)
             {
-                return false;
+                matchedOldSectionIds.Add(existingSection.Id);
+                existingSection.Template = newSectionDto.Template;
+                existingSection.Order = newSectionDto.Order;
+
+                MergeSectionContents(existingSection, newSectionDto, now, imagesById, ref anyContentChanged);
             }
-
-            if (oldSection.Template != newSection.Template)
+            else
             {
-                return false;
-            }
+                var builtSections = HippotherapyProgramSectionsBuilder.Build(
+                    [newSectionDto],
+                    now,
+                    imagesById);
 
-            var newContents = newSection.Contents ?? [];
-            var oldContents = oldSection.Contents;
-
-            Dictionary<int, CreateProgramSectionContentDto> newContentsMap;
-            Dictionary<int, ProgramSectionContent> oldContentsMap;
-
-            try
-            {
-                newContentsMap = newContents.ToDictionary(content => content.Order);
-                oldContentsMap = oldContents.ToDictionary(content => content.Order);
-            }
-            catch (ArgumentException)
-            {
-                return false;
-            }
-
-            if (newContentsMap.Count != oldContentsMap.Count)
-            {
-                return false;
-            }
-
-            foreach (var (contentOrder, newContent) in newContentsMap)
-            {
-                if (!oldContentsMap.TryGetValue(contentOrder, out var oldContent))
+                foreach (var built in builtSections)
                 {
-                    return false;
+                    program.Sections.Add(built);
                 }
 
-                if (newContent.ContentType != oldContent.ContentType)
-                {
-                    return false;
-                }
+                sectionAdded = true;
+            }
+        }
 
-                if (!TryApplyContentFieldUpdates(oldContent, newContent, imagesById, out var contentChanged))
-                {
-                    return false;
-                }
+        var sectionsToRemove = oldSections
+            .Where(s => !matchedOldSectionIds.Contains(s.Id))
+            .ToList();
 
-                if (contentChanged && oldContent.ContentType != ContentType.Image)
+        foreach (var sectionToRemove in sectionsToRemove)
+        {
+            program.Sections.Remove(sectionToRemove);
+        }
+
+        return sectionAdded;
+    }
+
+    private static void MergeSectionContents(
+        HippotherapyProgramSection existingSection,
+        CreateHippotherapyProgramSectionDto newSectionDto,
+        DateTimeOffset now,
+        IReadOnlyDictionary<long, Image> imagesById,
+        ref bool anyContentChanged)
+    {
+        var newContents = newSectionDto.Contents ?? [];
+
+        var oldContentsById = existingSection.Contents
+            .Where(c => c.Id > 0)
+            .ToDictionary(c => c.Id);
+
+        var matchedOldContentIds = new HashSet<long>();
+
+        foreach (var newContentDto in newContents.OrderBy(c => c.Order))
+        {
+            var existingContent = newContentDto.Id is > 0
+                && oldContentsById.TryGetValue(newContentDto.Id.Value, out var found)
+                && found.ContentType == newContentDto.ContentType
+                ? found
+                : null;
+
+            if (existingContent is not null)
+            {
+                matchedOldContentIds.Add(existingContent.Id);
+
+                if (TryApplyContentFieldUpdates(existingContent, newContentDto, imagesById, out var contentChanged)
+                    && contentChanged
+                    && existingContent.ContentType != ContentType.Image)
                 {
                     anyContentChanged = true;
 
-                    foreach (var loc in oldContent.Localizations)
+                    foreach (var loc in existingContent.Localizations)
                     {
                         loc.TranslationStatus = TranslationStatus.Outdated;
                     }
                 }
             }
+            else
+            {
+                var newContent = HippotherapyProgramSectionsBuilder.CreateContent(newContentDto, imagesById, now);
+                if (newContent is not null)
+                {
+                    existingSection.Contents.Add(newContent);
+                }
+            }
         }
 
-        return true;
+        var contentsToRemove = existingSection.Contents
+            .Where(c => c.Id > 0 && !matchedOldContentIds.Contains(c.Id))
+            .ToList();
+
+        foreach (var contentToRemove in contentsToRemove)
+        {
+            existingSection.Contents.Remove(contentToRemove);
+        }
     }
 
     private static bool TryApplyContentFieldUpdates(
@@ -460,25 +489,6 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             var dto = incomingById[content.FaqQuestionId];
             content.FaqQuestion!.QuestionText = dto.QuestionText.Trim();
             content.FaqQuestion!.AnswerText = dto.AnswerText.Trim();
-        }
-    }
-
-    private static void ReplaceSections(
-        HippotherapyProgram program,
-        ICollection<CreateHippotherapyProgramSectionDto>? sections,
-        DateTimeOffset createdAt,
-        IReadOnlyDictionary<long, Image> imagesById)
-    {
-        program.Sections.Clear();
-
-        var builtSections = HippotherapyProgramSectionsBuilder.Build(
-            sections,
-            createdAt,
-            imagesById);
-
-        foreach (var section in builtSections)
-        {
-            program.Sections.Add(section);
         }
     }
 }

@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using HippotherapyProgramEntity = VictoryCenter.DAL.Entities.HippotherapyProgram;
@@ -83,9 +84,37 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
             {
                 contentLocalizations[i].EntityId = contentDtos[i].EntityId;
                 contentLocalizations[i].LanguageId = request.LanguageId;
+                contentLocalizations[i].TranslationStatus = TranslationStatus.Relevant;
             }
 
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, true);
+            var contentIds = contentLocalizations.Select(l => l.EntityId).ToList();
+
+            var existingContentLocalizations = (await _repositoryWrapper.ProgramSectionContentLocalizationsRepository
+                .GetAllAsync(new QueryOptions<ProgramSectionContentLocalization>
+                {
+                    Filter = l => l.LanguageId == request.LanguageId && contentIds.Contains(l.EntityId)
+                })).ToList();
+
+            var existingContentIds = existingContentLocalizations.Select(l => l.EntityId).ToHashSet();
+
+            var contentLocalizationsToUpdate = contentLocalizations.Where(l => existingContentIds.Contains(l.EntityId)).ToList();
+            var contentLocalizationsToCreate = contentLocalizations.Where(l => !existingContentIds.Contains(l.EntityId)).ToList();
+
+            if (contentLocalizationsToUpdate.Count > 0)
+            {
+                await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizationsToUpdate, true);
+            }
+
+            if (contentLocalizationsToCreate.Count > 0)
+            {
+                var utcNow = DateTimeOffset.UtcNow;
+                foreach (var loc in contentLocalizationsToCreate)
+                {
+                    loc.CreatedAt = utcNow;
+                }
+
+                await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizationsToCreate, false);
+            }
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
