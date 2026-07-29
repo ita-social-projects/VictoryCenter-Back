@@ -242,4 +242,9 @@ public static class ErrorMessagesConstants
     {
         return $"{property} must be a valid email address.";
     }
+
+    public static string CannotCancelChangesNoBackupFound()
+    {
+        return "Cannot cancel changes because no previous published version was found. Please save and publish the report first.";
+    }
 }

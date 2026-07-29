@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -18,6 +19,7 @@ public class UpdateReportFundsExpendituresSettingsHandler
     : IRequestHandler<UpdateReportFundsExpendituresSettingsCommand, Result<ReportFundsExpendituresSettingsDto>>
 {
     private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly TimeProvider _timeProvider;
     private readonly IValidator<UpdateReportFundsExpendituresSettingsCommand> _validator;
@@ -26,12 +28,14 @@ public class UpdateReportFundsExpendituresSettingsHandler
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateReportFundsExpendituresSettingsCommand> validator,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        IMediator mediator)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _timeProvider = timeProvider;
+        _mediator = mediator;
     }
 
     public async Task<Result<ReportFundsExpendituresSettingsDto>> Handle(
@@ -76,6 +80,7 @@ public class UpdateReportFundsExpendituresSettingsHandler
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
                 return Result.Ok(_mapper.Map<ReportFundsExpendituresSettingsDto>(entityToUpdate));
             }
 

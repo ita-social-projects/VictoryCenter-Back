@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Transactions;
+using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
@@ -72,6 +73,14 @@ using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.EventNews;
 using VictoryCenter.DAL.Repositories.Realizations.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
+using VictoryCenter.DAL.Repositories.Realizations.BackupReportFundsExpenditures;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -137,6 +146,15 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
     private IEventNewsRepository? _eventNewsRepository;
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
+    private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
+    private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
+    private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
+    private IBackupReportFundsExpendituresSettingsRepository? _backupReportFundsExpendituresSettingsRepository;
+    private IBackupReportFundsExpendituresSettingsLocalizationsRepository? _backupReportFundsExpendituresSettingsLocalizationsRepository;
+    private IBackupReportFundsExpendituresCategoriesRepository? _backupReportFundsExpendituresCategoriesRepository;
+    private IBackupReportFundsExpendituresCategoryLocalizationsRepository? _backupReportFundsExpendituresCategoryLocalizationsRepository;
+    private IBackupReportFundsExpendituresRecordsRepository? _backupReportFundsExpendituresRecordsRepository;
+    private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -327,6 +345,42 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IEventNewsCategoryRepository EventNewsCategoryRepository =>
         _eventNewsCategoryRepository ??= new EventNewsCategoryRepository(_victoryCenterDbContext);
 
+    public IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository =>
+        _publishedReportFundsExpendituresRecordsRepository ??=
+            new PublishedReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportProgramExpendituresRecordsRepository PublishedReportProgramExpendituresRecordsRepository =>
+        _publishedReportProgramExpendituresRecordsRepository ??=
+            new PublishedReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportFundsExpendituresSnapshotRepository PublishedReportFundsExpendituresSnapshotRepository =>
+        _publishedReportFundsExpendituresSnapshotRepository ??=
+            new PublishedReportFundsExpendituresSnapshotRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresSettingsRepository BackupReportFundsExpendituresSettingsRepository =>
+        _backupReportFundsExpendituresSettingsRepository ??=
+            new BackupReportFundsExpendituresSettingsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository =>
+        _backupReportFundsExpendituresSettingsLocalizationsRepository ??=
+            new BackupReportFundsExpendituresSettingsLocalizationsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository =>
+        _backupReportFundsExpendituresCategoriesRepository ??=
+            new BackupReportFundsExpendituresCategoriesRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository =>
+        _backupReportFundsExpendituresCategoryLocalizationsRepository ??=
+            new BackupReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository =>
+        _backupReportFundsExpendituresRecordsRepository ??=
+            new BackupReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository =>
+        _backupReportProgramExpendituresRecordsRepository ??=
+            new BackupReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
+
     public int SaveChanges()
     {
         return _victoryCenterDbContext.SaveChanges();
@@ -335,6 +389,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     public async Task<int> SaveChangesAsync()
     {
         return await _victoryCenterDbContext.SaveChangesAsync();
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return _victoryCenterDbContext.Database.BeginTransactionAsync(cancellationToken);
     }
 
     public TransactionScope BeginTransaction()

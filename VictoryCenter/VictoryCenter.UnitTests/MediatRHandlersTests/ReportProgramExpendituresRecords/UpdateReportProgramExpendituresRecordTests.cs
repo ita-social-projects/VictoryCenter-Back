@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
+using MediatR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
 
@@ -39,6 +40,7 @@ public class UpdateReportProgramExpendituresRecordTests
     private readonly Mock<IHippotherapyProgramCategoriesRepository> _hippotherapyProgramCategoriesRepositoryMock;
     private readonly Mock<IReportProgramExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly IValidator<UpdateReportProgramExpendituresRecordCommand> _validator;
 
     public UpdateReportProgramExpendituresRecordTests()
@@ -56,6 +58,7 @@ public class UpdateReportProgramExpendituresRecordTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _hippotherapyProgramCategoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
         _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
+        _mediatorMock = new Mock<IMediator>();
         _validator = new UpdateReportProgramExpendituresRecordCommandValidator(_repositoryWrapperMock.Object);
     }
 
@@ -68,7 +71,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -88,7 +92,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -109,7 +114,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -132,7 +138,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -156,7 +163,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -179,7 +187,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -203,7 +212,8 @@ public class UpdateReportProgramExpendituresRecordTests
         var handler = new UpdateReportProgramExpendituresRecordHandler(
             _validator,
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(

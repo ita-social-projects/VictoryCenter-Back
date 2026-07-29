@@ -262,6 +262,111 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresCategory", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BackupReportFundsExpendituresCategories");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("AmountUah")
+                        .HasPrecision(13, 2)
+                        .HasColumnType("decimal(13,2)");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasPrecision(13, 2)
+                        .HasColumnType("decimal(13,2)");
+
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReportingYear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("BackupReportFundsExpendituresRecords");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresSettings", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DisclaimerTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ExchangeRate")
+                        .HasPrecision(18, 6)
+                        .HasColumnType("decimal(18,6)");
+
+                    b.Property<int>("ProgramExpendituresReportingYear")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BackupReportFundsExpendituresSettings");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportProgramExpendituresRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal>("AmountUah")
+                        .HasPrecision(13, 2)
+                        .HasColumnType("decimal(13,2)");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasPrecision(13, 2)
+                        .HasColumnType("decimal(13,2)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("HippotherapyProgramCategoryId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ReportingYear")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HippotherapyProgramCategoryId");
+
+                    b.ToTable("BackupReportProgramExpendituresRecords");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ChangedLivesBlock", b =>
                 {
                     b.Property<long>("Id")
@@ -898,6 +1003,60 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("ImpactStatistics");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.BackupReportFundsExpendituresCategoryLocalization", b =>
+                {
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LanguageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TranslationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("EntityId", "LanguageId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("BackupReportFundsExpendituresCategoryLocalizations");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.BackupReportFundsExpendituresSettingsLocalization", b =>
+                {
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LanguageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DisclaimerTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TranslationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("EntityId", "LanguageId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("BackupReportFundsExpendituresSettingsLocalizations");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.CompanyProfileContactLocalization", b =>
@@ -1853,6 +2012,111 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("PdfSections");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.PublishedReportFundsExpendituresRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("AmountUah")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CategoryNameEn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReportingYear")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SourceRecordId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PublishedReportFundsExpendituresRecords");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.PublishedReportFundsExpendituresSnapshot", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DisclaimerTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisclaimerTitleEn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("ExchangeRate")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ProgramExpendituresReportingYear")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PublishedReportFundsExpendituresSnapshots");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.PublishedReportProgramExpendituresRecord", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("AmountUah")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountUsd")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CategoryNameEn")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ReportingYear")
+                        .HasColumnType("int");
+
+                    b.Property<long>("SourceRecordId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PublishedReportProgramExpendituresRecords");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", b =>
                 {
                     b.Property<long>("Id")
@@ -1926,6 +2190,9 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<decimal>("ExchangeRate")
                         .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
+
+                    b.Property<bool>("HasUnpublishedChanges")
+                        .HasColumnType("bit");
 
                     b.Property<int>("ProgramExpendituresReportingYear")
                         .HasColumnType("int");
@@ -2414,6 +2681,28 @@ namespace VictoryCenter.DAL.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresRecord", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresCategory", "Category")
+                        .WithMany("Records")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportProgramExpendituresRecord", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.HippotherapyProgramCategory", "HippotherapyProgramCategory")
+                        .WithMany()
+                        .HasForeignKey("HippotherapyProgramCategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("HippotherapyProgramCategory");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ChangedLivesBlock", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
@@ -2576,6 +2865,44 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Image");
 
                     b.Navigation("MainPage");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.BackupReportFundsExpendituresCategoryLocalization", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresCategory", "Entity")
+                        .WithMany("Localizations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.BackupReportFundsExpendituresSettingsLocalization", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresSettings", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.CompanyProfileContactLocalization", b =>
@@ -3139,6 +3466,13 @@ namespace VictoryCenter.DAL.Migrations
                         .HasForeignKey("ImageId");
 
                     b.Navigation("Image");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.BackupReportFundsExpendituresCategory", b =>
+                {
+                    b.Navigation("Localizations");
+
+                    b.Navigation("Records");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CompanyProfile", b =>

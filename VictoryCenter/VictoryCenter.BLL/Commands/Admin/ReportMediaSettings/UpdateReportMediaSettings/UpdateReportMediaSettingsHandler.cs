@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportMediaSettings;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -17,12 +18,18 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
     private readonly IValidator<UpdateReportMediaSettingsCommand> _validator;
+    private readonly IMediator _mediator;
 
-    public UpdateReportMediaSettingsHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper, IValidator<UpdateReportMediaSettingsCommand> validator)
+    public UpdateReportMediaSettingsHandler(
+        IRepositoryWrapper repositoryWrapper,
+        IMapper mapper,
+        IValidator<UpdateReportMediaSettingsCommand> validator,
+        IMediator mediator)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
+        _mediator = mediator;
     }
 
     public async Task<Result<ReportMediaSettingsDto>> Handle(UpdateReportMediaSettingsCommand request, CancellationToken cancellationToken)
@@ -31,30 +38,38 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
-            var collectedFundsImageExists = await _repositoryWrapper.ImageRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<Image>
-                {
-                    Filter = i => i.Id == request.Dto.CollectedFundsBlock.ImageId,
-                    AsNoTracking = true
-                });
-
-            if (collectedFundsImageExists == null)
+            Image? collectedFundsImageExists = null;
+            if (request.Dto.CollectedFundsBlock.ImageId.HasValue)
             {
-                return Result.Fail<ReportMediaSettingsDto>(
-                    ErrorMessagesConstants.NotFound(request.Dto.CollectedFundsBlock.ImageId, typeof(Image)));
+                collectedFundsImageExists = await _repositoryWrapper.ImageRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<Image>
+                    {
+                        Filter = i => i.Id == request.Dto.CollectedFundsBlock.ImageId,
+                        AsNoTracking = true
+                    });
+
+                if (collectedFundsImageExists == null)
+                {
+                    return Result.Fail<ReportMediaSettingsDto>(
+                        ErrorMessagesConstants.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image)));
+                }
             }
 
-            var changedLivesImageExists = await _repositoryWrapper.ImageRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<Image>
-                {
-                    Filter = i => i.Id == request.Dto.ChangedLivesBlock.ImageId,
-                    AsNoTracking = true
-                });
-
-            if (changedLivesImageExists == null)
+            Image? changedLivesImageExists = null;
+            if (request.Dto.ChangedLivesBlock.ImageId.HasValue)
             {
-                return Result.Fail<ReportMediaSettingsDto>(
-                    ErrorMessagesConstants.NotFound(request.Dto.ChangedLivesBlock.ImageId, typeof(Image)));
+                changedLivesImageExists = await _repositoryWrapper.ImageRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<Image>
+                    {
+                        Filter = i => i.Id == request.Dto.ChangedLivesBlock.ImageId,
+                        AsNoTracking = true
+                    });
+
+                if (changedLivesImageExists == null)
+                {
+                    return Result.Fail<ReportMediaSettingsDto>(
+                        ErrorMessagesConstants.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image)));
+                }
             }
 
             var collectedFundsRepository = _repositoryWrapper.GetRepository<CollectedFundsBlock>();
@@ -107,24 +122,22 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                     ErrorMessagesConstants.FailedToUpdateEntity(typeof(CollectedFundsBlock)));
             }
 
-            var updatedCollectedFunds = await collectedFundsRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<CollectedFundsBlock>
-                {
-                    Filter = x => x.Id == collectedFundsEntity.Id,
-                    Include = q => q.Include(x => x.Image!)
-                });
+            await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
 
-            var updatedChangedLives = await changedLivesRepository.GetFirstOrDefaultAsync(
-                new QueryOptions<ChangedLivesBlock>
-                {
-                    Filter = x => x.Id == changedLivesEntity.Id,
-                    Include = q => q.Include(x => x.Image!)
-                });
+            if (collectedFundsEntity != null)
+            {
+                collectedFundsEntity.Image = collectedFundsImageExists;
+            }
+
+            if (changedLivesEntity != null)
+            {
+                changedLivesEntity.Image = changedLivesImageExists;
+            }
 
             var resultDto = new ReportMediaSettingsDto
             {
-                CollectedFundsBlock = _mapper.Map<CollectedFundsBlockDto>(updatedCollectedFunds),
-                ChangedLivesBlock = _mapper.Map<ChangedLivesBlockDto>(updatedChangedLives)
+                CollectedFundsBlock = _mapper.Map<CollectedFundsBlockDto>(collectedFundsEntity),
+                ChangedLivesBlock = _mapper.Map<ChangedLivesBlockDto>(changedLivesEntity)
             };
 
             return Result.Ok(resultDto);
