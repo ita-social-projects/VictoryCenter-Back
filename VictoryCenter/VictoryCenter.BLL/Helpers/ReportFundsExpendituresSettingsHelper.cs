@@ -11,12 +11,14 @@ public static class ReportFundsExpendituresSettingsHelper
 {
     public static async Task<Result<ReportFundsExpendituresSettingsEntity>> GetOrCreateSettingsAsync(
         IRepositoryWrapper repositoryWrapper,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        bool asNoTracking = true)
     {
         var settings = await repositoryWrapper.ReportFundsExpendituresSettingsRepository
             .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresSettingsEntity>
             {
-                Filter = entity => entity.Id == ReportFundsExpendituresSettingsConstants.SingletonSettingsId
+                Filter = entity => entity.Id == ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
+                AsNoTracking = asNoTracking
             });
 
         if (settings is not null)

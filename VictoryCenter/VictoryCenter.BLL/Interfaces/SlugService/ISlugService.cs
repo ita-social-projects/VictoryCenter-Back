@@ -8,5 +8,7 @@ public interface ISlugService
 
     Task<string> GenerateUniqueHippotherapyProgramSlugAsync(long id, string programName, CancellationToken cancellationToken = default);
 
+    Task<string> GenerateUniqueEventNewsSlugAsync(long id, string title, CancellationToken cancellationToken = default);
+
     Task<HippotherapyProgram?> GetHippotherapyProgramBySlugAsync(string slug, CancellationToken cancellationToken = default);
 }

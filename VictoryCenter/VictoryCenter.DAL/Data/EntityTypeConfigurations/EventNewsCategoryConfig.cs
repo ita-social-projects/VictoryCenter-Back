@@ -14,7 +14,11 @@ public class EventNewsCategoryConfig : IEntityTypeConfiguration<EventNewsCategor
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.Name)
-            .IsRequired();
+            .IsRequired()
+            .HasMaxLength(20);
+
+        builder.HasIndex(e => e.Name)
+            .IsUnique();
 
         builder.Property(e => e.CreatedAt)
             .IsRequired();

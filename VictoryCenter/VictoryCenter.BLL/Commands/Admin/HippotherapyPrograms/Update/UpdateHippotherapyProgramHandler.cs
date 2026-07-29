@@ -68,7 +68,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
             }
 
             var newCategoriesResult = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(
-                _repositoryWrapper,
+                _repositoryWrapper.HippotherapyProgramCategoriesRepository,
                 request.UpdateProgramDto.CategoryIds);
 
             if (newCategoriesResult.IsFailed)

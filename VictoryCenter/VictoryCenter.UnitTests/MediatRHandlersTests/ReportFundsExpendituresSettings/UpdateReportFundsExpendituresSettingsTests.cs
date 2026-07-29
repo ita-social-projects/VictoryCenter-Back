@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Options;
+using MediatR;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresSettings;
@@ -21,6 +22,7 @@ public class UpdateReportFundsExpendituresSettingsTests
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresSettingsRepository> _settingsRepositoryMock;
     private readonly Mock<IReportFundsExpendituresSettingsLocalizationsRepository> _localizationsRepositoryMock;
+    private readonly Mock<IMediator> _mediatorMock;
     private readonly IValidator<UpdateReportFundsExpendituresSettingsCommand> _validator;
 
     private readonly UpdateReportFundsExpendituresSettingsDto _updateDto = new()
@@ -52,6 +54,7 @@ public class UpdateReportFundsExpendituresSettingsTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _settingsRepositoryMock = new Mock<IReportFundsExpendituresSettingsRepository>();
         _localizationsRepositoryMock = new Mock<IReportFundsExpendituresSettingsLocalizationsRepository>();
+        _mediatorMock = new Mock<IMediator>();
         _validator = new UpdateReportFundsExpendituresSettingsValidator(new BaseReportFundsExpendituresSettingsValidator());
     }
 
@@ -64,7 +67,8 @@ public class UpdateReportFundsExpendituresSettingsTests
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
             _validator,
-            TimeProvider.System);
+            TimeProvider.System,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -90,7 +94,8 @@ public class UpdateReportFundsExpendituresSettingsTests
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
             _validator,
-            TimeProvider.System);
+            TimeProvider.System,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -111,7 +116,8 @@ public class UpdateReportFundsExpendituresSettingsTests
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
             _validator,
-            TimeProvider.System);
+            TimeProvider.System,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -136,7 +142,8 @@ public class UpdateReportFundsExpendituresSettingsTests
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
             _validator,
-            TimeProvider.System);
+            TimeProvider.System,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -161,7 +168,8 @@ public class UpdateReportFundsExpendituresSettingsTests
             _mapperMock.Object,
             _repositoryWrapperMock.Object,
             _validator,
-            TimeProvider.System);
+            TimeProvider.System,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(

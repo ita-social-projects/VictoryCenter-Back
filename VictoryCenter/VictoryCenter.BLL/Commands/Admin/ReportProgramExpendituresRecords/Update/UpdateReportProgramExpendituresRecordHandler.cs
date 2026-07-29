@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -16,17 +17,20 @@ public class UpdateReportProgramExpendituresRecordHandler
     : IRequestHandler<UpdateReportProgramExpendituresRecordCommand, Result<ReportProgramExpendituresRecordDto>>
 {
     private readonly IMapper _mapper;
+    private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateReportProgramExpendituresRecordCommand> _validator;
 
     public UpdateReportProgramExpendituresRecordHandler(
         IValidator<UpdateReportProgramExpendituresRecordCommand> validator,
         IRepositoryWrapper repositoryWrapper,
-        IMapper mapper)
+        IMapper mapper,
+        IMediator mediator)
     {
         _validator = validator;
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
+        _mediator = mediator;
     }
 
     public async Task<Result<ReportProgramExpendituresRecordDto>> Handle(
@@ -85,6 +89,8 @@ public class UpdateReportProgramExpendituresRecordHandler
                 return Result.Fail(
                     ErrorMessagesConstants.FailedToUpdateEntity(typeof(ReportProgramExpendituresRecord)));
             }
+
+            await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
         }
         catch (DbUpdateException dbUpdateException) when (dbUpdateException.IsUniqueConstraintException())
         {

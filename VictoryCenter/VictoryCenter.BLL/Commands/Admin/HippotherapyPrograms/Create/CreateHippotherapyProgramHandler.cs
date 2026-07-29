@@ -42,7 +42,7 @@ public class CreateHippotherapyProgramHandler
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var categoriesResult = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(
-                _repositoryWrapper,
+                _repositoryWrapper.HippotherapyProgramCategoriesRepository,
                 request.CreateProgramDto.CategoryIds);
 
             if (categoriesResult.IsFailed)
