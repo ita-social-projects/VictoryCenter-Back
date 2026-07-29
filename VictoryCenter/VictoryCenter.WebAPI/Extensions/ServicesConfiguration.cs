@@ -19,6 +19,7 @@ using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
+using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -37,6 +38,7 @@ using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
+using VictoryCenter.BLL.Services.Partners;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
@@ -182,6 +184,7 @@ public static class ServicesConfiguration
 
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
         services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
+        services.AddScoped<IPartnerSectionLocalizationUpdater, PartnerSectionLocalizationUpdater>();
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
 

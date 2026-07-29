@@ -293,7 +293,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("ChangedLivesBlocks");
+                    b.ToTable("ChangedLivesBlocks", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CollectedFundsBlock", b =>
@@ -324,7 +324,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("CollectedFundsBlocks");
+                    b.ToTable("CollectedFundsBlocks", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CompanyProfile", b =>
@@ -340,7 +340,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CompanyProfiles");
+                    b.ToTable("CompanyProfiles", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CompanyProfileContact", b =>
@@ -387,7 +387,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("ProfileId")
                         .IsUnique();
 
-                    b.ToTable("CompanyProfileContacts");
+                    b.ToTable("CompanyProfileContacts", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CompanyProfileRequisite", b =>
@@ -424,7 +424,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("ProfileId")
                         .IsUnique();
 
-                    b.ToTable("CompanyProfileRequisites");
+                    b.ToTable("CompanyProfileRequisites", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CompanyProfileSocialLink", b =>
@@ -454,7 +454,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("ProfileId", "SocialPlatform")
                         .IsUnique();
 
-                    b.ToTable("CompanyProfileSocialLinks");
+                    b.ToTable("CompanyProfileSocialLinks", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CorrespondentBankDetails", b =>
@@ -537,7 +537,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[Slug] IS NOT NULL");
 
-                    b.ToTable("EventNews");
+                    b.ToTable("EventNews", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.EventNewsCategory", b =>
@@ -557,7 +557,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EventNewsCategories");
+                    b.ToTable("EventNewsCategories", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
@@ -578,7 +578,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("PageId", "Priority")
                         .IsUnique();
 
-                    b.ToTable("FaqPlacements");
+                    b.ToTable("FaqPlacements", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqQuestion", b =>
@@ -605,7 +605,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("FaqQuestions");
+                    b.ToTable("FaqQuestions", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ForeignBankDetails", b =>
@@ -703,7 +703,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[Slug] IS NOT NULL");
 
-                    b.ToTable("HippotherapyPrograms");
+                    b.ToTable("HippotherapyPrograms", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramCategory", b =>
@@ -723,7 +723,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HippotherapyProgramCategories");
+                    b.ToTable("HippotherapyProgramCategories", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.ProgramSectionContent", b =>
@@ -750,7 +750,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("ProgramSectionContents");
+                    b.ToTable("ProgramSectionContents", (string)null);
 
                     b.HasDiscriminator<int>("ContentType");
 
@@ -781,7 +781,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("ProgramId");
 
-                    b.ToTable("HippotherapyProgramSections");
+                    b.ToTable("HippotherapyProgramSections", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HistoryContents.HistorySectionContent", b =>
@@ -805,7 +805,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("HistorySectionContents");
+                    b.ToTable("HistorySectionContents", (string)null);
 
                     b.HasDiscriminator<int>("ContentType");
 
@@ -831,7 +831,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("HistorySections");
+                    b.ToTable("HistorySections", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Image", b =>
@@ -893,7 +893,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("MainPageId")
                         .IsUnique();
 
-                    b.ToTable("ImpactStatistics");
+                    b.ToTable("ImpactStatistics", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.CompanyProfileContactLocalization", b =>
@@ -926,7 +926,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("CompanyProfileContactLocalizations");
+                    b.ToTable("CompanyProfileContactLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.CompanyProfileRequisiteLocalization", b =>
@@ -959,7 +959,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("CompanyProfileRequisiteLocalizations");
+                    b.ToTable("CompanyProfileRequisiteLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.EventNewsLocalization", b =>
@@ -989,7 +989,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("EventNewsLocalizations");
+                    b.ToTable("EventNewsLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.FaqQuestionLocalization", b =>
@@ -1020,7 +1020,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("FaqLocalizations");
+                    b.ToTable("FaqLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyProgramLocalization", b =>
@@ -1059,7 +1059,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("HippotherapyProgramLocalizations");
+                    b.ToTable("HippotherapyProgramLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HistorySectionContentLocalization", b =>
@@ -1090,7 +1090,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("HistorySectionContentLocalizations");
+                    b.ToTable("HistorySectionContentLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ImpactStatisticsLocalization", b =>
@@ -1116,7 +1116,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("ImpactStatisticsLocalizations");
+                    b.ToTable("ImpactStatisticsLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", b =>
@@ -1146,7 +1146,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("LocalizationLanguages");
+                    b.ToTable("LocalizationLanguages", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainAboutUsLocalization", b =>
@@ -1175,7 +1175,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("MainAboutUsLocalizations");
+                    b.ToTable("MainAboutUsLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainDonationsLocalization", b =>
@@ -1204,7 +1204,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("MainDonationsLocalizations");
+                    b.ToTable("MainDonationsLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainPageLocalization", b =>
@@ -1233,7 +1233,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("MainPageLocalizations");
+                    b.ToTable("MainPageLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MainPartnersLocalization", b =>
@@ -1262,7 +1262,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("MainPartnersLocalizations");
+                    b.ToTable("MainPartnersLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.MetricLocalization", b =>
@@ -1291,7 +1291,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("MetricLocalizations");
+                    b.ToTable("MetricLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.PdfSectionLocalization", b =>
@@ -1322,7 +1322,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("PdfSectionLocalizations");
+                    b.ToTable("PdfSectionLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ProgramSectionContentLocalization", b =>
@@ -1360,7 +1360,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("ProgramSectionContentLocalizations");
+                    b.ToTable("ProgramSectionContentLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ReportFundsExpendituresCategoryLocalization", b =>
@@ -1387,7 +1387,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("ReportFundsExpendituresCategoryLocalizations");
+                    b.ToTable("ReportFundsExpendituresCategoryLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.ReportFundsExpendituresSettingsLocalization", b =>
@@ -1415,7 +1415,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("ReportFundsExpendituresSettingsLocalizations");
+                    b.ToTable("ReportFundsExpendituresSettingsLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.TeamCategoryLocalization", b =>
@@ -1446,7 +1446,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("TeamCategoryLocalizations");
+                    b.ToTable("TeamCategoryLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.TeamMemberLocalization", b =>
@@ -1476,7 +1476,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("TeamMemberLocalizations");
+                    b.ToTable("TeamMemberLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.WhoWeAreContentLocalization", b =>
@@ -1505,7 +1505,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("LanguageId");
 
-                    b.ToTable("WhoWeAreContentLocalizations");
+                    b.ToTable("WhoWeAreContentLocalizations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.MainAboutUs", b =>
@@ -1535,7 +1535,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("MainPageId")
                         .IsUnique();
 
-                    b.ToTable("MainAboutUs");
+                    b.ToTable("MainAboutUs", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.MainDonations", b =>
@@ -1572,7 +1572,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("MainPageId")
                         .IsUnique();
 
-                    b.ToTable("MainDonations");
+                    b.ToTable("MainDonations", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.MainPage", b =>
@@ -1603,7 +1603,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("MainPages");
+                    b.ToTable("MainPages", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.MainPartners", b =>
@@ -1633,7 +1633,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("MainPageId")
                         .IsUnique();
 
-                    b.ToTable("MainPartners");
+                    b.ToTable("MainPartners", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Metric", b =>
@@ -1686,7 +1686,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("StatisticId");
 
-                    b.ToTable("Metrics");
+                    b.ToTable("Metrics", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Partner", b =>
@@ -1721,7 +1721,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("PartnersSectionId", "Priority")
                         .IsUnique();
 
-                    b.ToTable("Partners");
+                    b.ToTable("Partners", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnerSection", b =>
@@ -1751,7 +1751,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("Priority")
                         .IsUnique();
 
-                    b.ToTable("PartnersSections");
+                    b.ToTable("PartnersSections", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PartnersPageBanner", b =>
@@ -1782,7 +1782,7 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
 
-                    b.ToTable("PartnersPageBanners");
+                    b.ToTable("PartnersPageBanners", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.PdfReport", b =>
@@ -1846,7 +1846,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PdfSections");
+                    b.ToTable("PdfSections", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", b =>
@@ -1869,7 +1869,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReportFundsExpendituresCategories");
+                    b.ToTable("ReportFundsExpendituresCategories", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresRecord", b =>
@@ -1904,7 +1904,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("ReportFundsExpendituresRecords");
+                    b.ToTable("ReportFundsExpendituresRecords", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings", b =>
@@ -1928,7 +1928,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ReportFundsExpendituresSettings", t =>
+                    b.ToTable("ReportFundsExpendituresSettings", null, t =>
                         {
                             t.HasCheckConstraint("CK_ReportFundsExpendituresSettings_SingletonId", "Id = 1");
                         });
@@ -1964,7 +1964,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("HippotherapyProgramCategoryId", "ReportingYear")
                         .IsUnique();
 
-                    b.ToTable("ReportProgramExpendituresRecords");
+                    b.ToTable("ReportProgramExpendituresRecords", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.SupportOptions", b =>
@@ -2017,7 +2017,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("Name")
                         .IsUnique();
 
-                    b.ToTable("TeamCategories");
+                    b.ToTable("TeamCategories", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.TeamMember", b =>
@@ -2062,7 +2062,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("CategoryId", "Priority")
                         .IsUnique();
 
-                    b.ToTable("TeamMembers");
+                    b.ToTable("TeamMembers", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.UahBankDetails", b =>
@@ -2130,7 +2130,7 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("Title")
                         .IsUnique();
 
-                    b.ToTable("VisitorPages");
+                    b.ToTable("VisitorPages", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.WhoWeAreContents.WhoWeAreContent", b =>
@@ -2151,7 +2151,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("WhoWeAreContents");
+                    b.ToTable("WhoWeAreContents", (string)null);
 
                     b.HasDiscriminator<int>("ContentType");
 
@@ -2179,7 +2179,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WhoWeAreSections");
+                    b.ToTable("WhoWeAreSections", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyProgramContents.AuthorProgramContent", b =>
@@ -2285,7 +2285,7 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.ToTable("WhoWeAreContents", t =>
+                    b.ToTable("WhoWeAreContents", null, t =>
                         {
                             t.Property("Description")
                                 .HasColumnName("CardContent_Description");
