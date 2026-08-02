@@ -148,6 +148,7 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         }
 
         entityLocalization.TranslationStatus = TranslationStatus.Relevant;
+        entityLocalization.CreatedAt = entityToUpdate.CreatedAt;
 
         var updatedEntity = _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
 

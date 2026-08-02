@@ -28,7 +28,7 @@ public class DeletePartnerSectionLocalizationHandlerTests
         _handler = new DeletePartnerSectionLocalizationHandler(_mockRepositoryWrapper.Object, _mockSectionLocalizationService.Object);
 
         _mockRepositoryWrapper.Setup(r => r.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 
     [Fact]

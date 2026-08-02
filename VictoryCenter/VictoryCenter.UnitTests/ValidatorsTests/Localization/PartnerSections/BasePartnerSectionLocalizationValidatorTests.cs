@@ -89,6 +89,23 @@ public class BasePartnerSectionLocalizationValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenPartners_ContainNullItem()
+    {
+        var model = ValidModel() with
+        {
+            Partners =
+            [
+                null!,
+                new UpdatePartnerLocalizationItemDto { PartnerId = 1, Description = "Valid description" }
+            ]
+        };
+
+        var result = _validator.Validate(model);
+
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
     public void Validate_ShouldHaveError_WhenPartnerItem_IsInvalid()
     {
         var model = ValidModel() with

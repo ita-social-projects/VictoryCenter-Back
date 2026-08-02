@@ -45,7 +45,8 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
                 Filter = s => s.Id == request.Id,
                 Include = q => q.Include(s => s.Partners).ThenInclude(p => p.Localizations)
                     .Include(s => s.Localizations),
-                AsNoTracking = false
+                AsNoTracking = false,
+                AsSplitQuery = true
             });
 
             if (section is null)

@@ -27,7 +27,8 @@ public class BasePartnerSectionLocalizationValidator : AbstractValidator<UpdateP
         RuleFor(x => x.Partners)
             .Cascade(CascadeMode.Stop)
             .NotNull().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnerSectionLocalizationDto.Partners)))
-            .Must(partners => partners.Select(p => p.PartnerId).Distinct().Count() == partners.Count)
+            .Must(partners => partners.All(p => p is not null)
+                && partners.Select(p => p!.PartnerId).Distinct().Count() == partners.Count)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdatePartnerSectionLocalizationDto.Partners)));
 
         RuleForEach(x => x.Partners).SetValidator(partnerLocalizationItemValidator);

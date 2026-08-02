@@ -12,4 +12,5 @@ public record QueryOptions<T>
     public Expression<Func<T, object>>? OrderByASC { get; set; }
     public Expression<Func<T, object>>? OrderByDESC { get; set; }
     public bool AsNoTracking { get; set; } = true;
+    public bool AsSplitQuery { get; set; }
 }

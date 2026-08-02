@@ -67,7 +67,7 @@ public class CreatePartnerSectionLocalizationHandlerTests
             _mockMapper.Object, _validator, _mockRepositoryWrapper.Object, _mockSectionLocalizationService.Object, partnersUpdater);
 
         _mockRepositoryWrapper.Setup(r => r.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
         _mockRepositoryWrapper.Setup(r => r.PartnerSectionsRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PartnerSection>>()))
             .ReturnsAsync(_section);
     }
