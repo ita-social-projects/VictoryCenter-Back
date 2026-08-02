@@ -27,7 +27,7 @@ public class PartnerSectionLocalizationsProfile : Profile
         CreateMap<UpdatePartnerLocalizationItemDto, PartnerLocalization>()
             .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.PartnerId))
             .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
-            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<PartnerLocalization, PartnerLocalizationItemDto>()
             .ForMember(dest => dest.PartnerId, opt => opt.MapFrom(src => src.EntityId));

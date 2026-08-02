@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Validators.Localization.PartnerSections;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Localization.PartnerSections;
@@ -88,8 +89,12 @@ public class UpdatePartnerSectionLocalizationHandlerTests
         Assert.Equal(_sectionLocalizationDto.Title, result.Value.Title);
         Assert.Equal(2, result.Value.Partners.Count);
 
-        _mockPartnerLocalizationService.Verify(s => s.UpdateEntityLocalizationAsync(It.IsAny<PartnerLocalization>()), Times.Exactly(2));
-        _mockPartnerLocalizationService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<PartnerLocalization>()), Times.Never);
+        _mockPartnerLocalizationService.Verify(
+            s => s.TrackEntityLocalizationAsync(It.Is<IEnumerable<PartnerLocalization>>(l => l.Count() == 2), true),
+            Times.Once);
+        _mockPartnerLocalizationService.Verify(
+            s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<PartnerLocalization>>(), false),
+            Times.Never);
     }
 
     [Fact]
@@ -102,7 +107,9 @@ public class UpdatePartnerSectionLocalizationHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        _mockPartnerLocalizationService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<PartnerLocalization>()), Times.Exactly(2));
+        _mockPartnerLocalizationService.Verify(
+            s => s.TrackEntityLocalizationAsync(It.Is<IEnumerable<PartnerLocalization>>(l => l.Count() == 2), false),
+            Times.Once);
     }
 
     [Fact]
@@ -131,7 +138,9 @@ public class UpdatePartnerSectionLocalizationHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        _mockPartnerLocalizationService.Verify(s => s.UpdateEntityLocalizationAsync(It.IsAny<PartnerLocalization>()), Times.Never);
+        _mockPartnerLocalizationService.Verify(
+            s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<PartnerLocalization>>(), It.IsAny<bool>()),
+            Times.Never);
     }
 
     [Fact]
@@ -191,15 +200,16 @@ public class UpdatePartnerSectionLocalizationHandlerTests
         _mockMapper.Setup(m => m.Map<PartnerLocalizationItemDto>(It.IsAny<PartnerLocalization>()))
             .Returns((PartnerLocalization entity) => new PartnerLocalizationItemDto { PartnerId = entity.EntityId, Description = entity.Description });
 
-        var mockPartnerLocalizationRepo = new Mock<IRepositoryBase<PartnerLocalization>>();
-        mockPartnerLocalizationRepo.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PartnerLocalization>>()))
-            .ReturnsAsync(existingPartnerLocalization ? new PartnerLocalization { EntityId = 10, LanguageId = 2 } : null);
-        _mockRepositoryWrapper.Setup(r => r.GetRepository<PartnerLocalization>()).Returns(mockPartnerLocalizationRepo.Object);
+        var mockPartnerLocalizationRepo = new Mock<IPartnerLocalizationsRepository>();
+        mockPartnerLocalizationRepo.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<PartnerLocalization>>()))
+            .ReturnsAsync(existingPartnerLocalization
+                ? [new PartnerLocalization { EntityId = 10, LanguageId = 2 }, new PartnerLocalization { EntityId = 11, LanguageId = 2 }]
+                : []);
+        _mockRepositoryWrapper.Setup(r => r.PartnerLocalizationsRepository).Returns(mockPartnerLocalizationRepo.Object);
+        _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
-        _mockPartnerLocalizationService.Setup(s => s.CreateEntityLocalizationAsync(It.IsAny<PartnerLocalization>()))
-            .ReturnsAsync((PartnerLocalization entity) => entity);
-        _mockPartnerLocalizationService.Setup(s => s.UpdateEntityLocalizationAsync(It.IsAny<PartnerLocalization>()))
-            .ReturnsAsync((PartnerLocalization entity) => entity);
+        _mockPartnerLocalizationService.Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<PartnerLocalization>>(), It.IsAny<bool>()))
+            .Returns(Task.CompletedTask);
     }
 
     private static UpdatePartnerSectionLocalizationDto GetValidDto() => new()

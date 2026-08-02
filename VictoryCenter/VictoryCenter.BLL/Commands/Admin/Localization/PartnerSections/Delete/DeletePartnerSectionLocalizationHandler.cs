@@ -31,6 +31,8 @@ public class DeletePartnerSectionLocalizationHandler
         {
             using var transaction = _repositoryWrapper.BeginTransaction();
 
+            var (entityId, languageId) = await _sectionLocalizationService.DeleteEntityLocalizationAsync(request.EntityId, request.LanguageId);
+
             var partnerIds = (await _repositoryWrapper.PartnerRepository
                 .GetAllAsync(new QueryOptions<Partner>
                 {
@@ -44,8 +46,6 @@ public class DeletePartnerSectionLocalizationHandler
                 await _repositoryWrapper.PartnerLocalizationsRepository.BulkDeleteAsync(
                     l => l.LanguageId == request.LanguageId && partnerIds.Contains(l.EntityId));
             }
-
-            var (entityId, languageId) = await _sectionLocalizationService.DeleteEntityLocalizationAsync(request.EntityId, request.LanguageId);
 
             transaction.Complete();
 

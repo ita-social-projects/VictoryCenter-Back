@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -43,26 +44,58 @@ public class PartnerSectionLocalizationUpdater : IPartnerSectionLocalizationUpda
             return Result.Fail(ErrorMessagesConstants.NotFound(invalidPartnerIds, typeof(Partner)));
         }
 
-        var results = new List<PartnerLocalizationItemDto>();
-
-        foreach (var partnerDto in partners)
+        if (partners.Count == 0)
         {
-            var entity = _mapper.Map<PartnerLocalization>(partnerDto);
+            return Result.Ok(new List<PartnerLocalizationItemDto>());
+        }
+
+        var partnerIds = partners.Select(p => p.PartnerId).ToList();
+
+        var existingByPartnerId = (await _repositoryWrapper.PartnerLocalizationsRepository
+            .GetAllAsync(new QueryOptions<PartnerLocalization>
+            {
+                Filter = l => l.LanguageId == languageId && partnerIds.Contains(l.EntityId),
+                AsNoTracking = true
+            }))
+            .ToDictionary(l => l.EntityId);
+
+        var entities = partners.Select(dto =>
+        {
+            var entity = _mapper.Map<PartnerLocalization>(dto);
             entity.LanguageId = languageId;
 
-            var existing = await _repositoryWrapper.GetRepository<PartnerLocalization>()
-                .GetFirstOrDefaultAsync(new QueryOptions<PartnerLocalization>
-                {
-                    Filter = l => l.EntityId == entity.EntityId && l.LanguageId == languageId,
-                    AsNoTracking = true
-                });
+            if (existingByPartnerId.TryGetValue(entity.EntityId, out var existing))
+            {
+                entity.TranslationStatus = TranslationStatus.Relevant;
+                entity.CreatedAt = existing.CreatedAt;
+            }
+            else
+            {
+                entity.CreatedAt = DateTimeOffset.UtcNow;
+            }
 
-            var upserted = existing is null
-                ? await _partnerLocalizationService.CreateEntityLocalizationAsync(entity)
-                : await _partnerLocalizationService.UpdateEntityLocalizationAsync(entity);
+            return entity;
+        }).ToList();
 
-            results.Add(_mapper.Map<PartnerLocalizationItemDto>(upserted));
+        var toUpdate = entities.Where(e => existingByPartnerId.ContainsKey(e.EntityId)).ToList();
+        var toCreate = entities.Where(e => !existingByPartnerId.ContainsKey(e.EntityId)).ToList();
+
+        if (toUpdate.Count > 0)
+        {
+            await _partnerLocalizationService.TrackEntityLocalizationAsync(toUpdate, isUpdate: true);
         }
+
+        if (toCreate.Count > 0)
+        {
+            await _partnerLocalizationService.TrackEntityLocalizationAsync(toCreate, isUpdate: false);
+        }
+
+        if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+        {
+            throw new InvalidOperationException();
+        }
+
+        var results = entities.Select(e => _mapper.Map<PartnerLocalizationItemDto>(e)).ToList();
 
         return Result.Ok(results);
     }

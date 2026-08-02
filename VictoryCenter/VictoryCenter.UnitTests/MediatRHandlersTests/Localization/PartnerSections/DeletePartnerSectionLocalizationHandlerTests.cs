@@ -36,7 +36,10 @@ public class DeletePartnerSectionLocalizationHandlerTests
     {
         _mockRepositoryWrapper.Setup(r => r.PartnerRepository.GetAllAsync(It.IsAny<QueryOptions<Partner>>()))
             .ReturnsAsync([new Partner { Id = 10, PartnersSectionId = _entityId }, new Partner { Id = 11, PartnersSectionId = _entityId }]);
+
+        Expression<Func<PartnerLocalization, bool>>? capturedPredicate = null;
         _mockRepositoryWrapper.Setup(r => r.PartnerLocalizationsRepository.BulkDeleteAsync(It.IsAny<Expression<Func<PartnerLocalization, bool>>>()))
+            .Callback<Expression<Func<PartnerLocalization, bool>>>(predicate => capturedPredicate = predicate)
             .ReturnsAsync(2);
         _mockSectionLocalizationService.Setup(s => s.DeleteEntityLocalizationAsync(_entityId, _languageId))
             .ReturnsAsync((_entityId, _languageId));
@@ -47,6 +50,16 @@ public class DeletePartnerSectionLocalizationHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(_entityId, result.Value.EntityId);
         _mockRepositoryWrapper.Verify(r => r.PartnerLocalizationsRepository.BulkDeleteAsync(It.IsAny<Expression<Func<PartnerLocalization, bool>>>()), Times.Once);
+
+        Assert.NotNull(capturedPredicate);
+        var predicateFunc = capturedPredicate!.Compile();
+
+        Assert.True(predicateFunc(new PartnerLocalization { EntityId = 10, LanguageId = _languageId }));
+        Assert.True(predicateFunc(new PartnerLocalization { EntityId = 11, LanguageId = _languageId }));
+
+        Assert.False(predicateFunc(new PartnerLocalization { EntityId = 10, LanguageId = _languageId + 1 }));
+
+        Assert.False(predicateFunc(new PartnerLocalization { EntityId = 999, LanguageId = _languageId }));
     }
 
     [Fact]
@@ -67,8 +80,6 @@ public class DeletePartnerSectionLocalizationHandlerTests
     [Fact]
     public async Task Handle_ShouldFail_WhenKeyNotFoundExceptionThrown()
     {
-        _mockRepositoryWrapper.Setup(r => r.PartnerRepository.GetAllAsync(It.IsAny<QueryOptions<Partner>>()))
-            .ReturnsAsync([]);
         _mockSectionLocalizationService.Setup(s => s.DeleteEntityLocalizationAsync(_entityId, _languageId))
             .ThrowsAsync(new KeyNotFoundException("Localization not found."));
 
@@ -77,6 +88,9 @@ public class DeletePartnerSectionLocalizationHandlerTests
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Localization not found.", result.Errors.Select(e => e.Message));
+
+        _mockRepositoryWrapper.Verify(r => r.PartnerRepository.GetAllAsync(It.IsAny<QueryOptions<Partner>>()), Times.Never);
+        _mockRepositoryWrapper.Verify(r => r.PartnerLocalizationsRepository.BulkDeleteAsync(It.IsAny<Expression<Func<PartnerLocalization, bool>>>()), Times.Never);
     }
 
     [Fact]

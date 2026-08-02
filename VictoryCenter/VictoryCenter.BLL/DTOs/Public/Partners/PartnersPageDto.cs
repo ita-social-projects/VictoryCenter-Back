@@ -1,5 +1,3 @@
-using VictoryCenter.BLL.DTOs.Admin.Partners;
-
 namespace VictoryCenter.BLL.DTOs.Public.Partners;
 
 public record PartnersPageDto
