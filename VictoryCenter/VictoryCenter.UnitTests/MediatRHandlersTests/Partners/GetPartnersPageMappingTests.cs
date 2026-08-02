@@ -18,9 +18,9 @@ public class GetPartnersPageMappingTests
 {
     private static readonly Type[] PublicLocalizationDtoTypes =
     [
-        typeof(PartnerSectionLocalizationDto),
-        typeof(PartnerLocalizationDto),
-        typeof(PartnersPageBannerLocalizationDto)
+        typeof(PublicPartnerSectionLocalizationDto),
+        typeof(PublicPartnerLocalizationDto),
+        typeof(PublicPartnersPageBannerLocalizationDto)
     ];
 
     [Theory]

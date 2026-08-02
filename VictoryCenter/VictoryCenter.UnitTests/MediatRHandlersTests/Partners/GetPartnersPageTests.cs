@@ -22,7 +22,7 @@ public class GetPartnersPageTests
         Image = new Image { Id = 100 }
     };
 
-    private readonly PartnersPageBannerDto _bannerDto = new()
+    private readonly PublicPartnersPageBannerDto _bannerDto = new()
     {
         Title = "Test banner",
         Description = "Banner test description",
@@ -34,7 +34,7 @@ public class GetPartnersPageTests
         new() { Id = 10, Title = "Section 1" }
     ];
 
-    private readonly List<PartnersSectionDto> _partnerSectionDtos =
+    private readonly List<PublicPartnersSectionDto> _partnerSectionDtos =
     [
         new() { Id = 10, Title = "Section 1" }
     ];
@@ -65,8 +65,8 @@ public class GetPartnersPageTests
         Assert.Equal(_bannerDto, result.Value.Banner);
         Assert.Equal(_partnerSectionDtos, result.Value.Sections);
 
-        _mockMapper.Verify(m => m.Map<PartnersPageBannerDto>(_bannerEntity), Times.Once);
-        _mockMapper.Verify(m => m.Map<IEnumerable<PartnersSectionDto>>(_partnerSectionEntities), Times.Once);
+        _mockMapper.Verify(m => m.Map<PublicPartnersPageBannerDto>(_bannerEntity), Times.Once);
+        _mockMapper.Verify(m => m.Map<IEnumerable<PublicPartnersSectionDto>>(_partnerSectionEntities), Times.Once);
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class GetPartnersPageTests
 
         Assert.Equal(_partnerSectionDtos, result.Value.Sections);
 
-        _mockMapper.Verify(m => m.Map<PartnersPageBannerDto>(It.IsAny<PartnersPageBanner>()), Times.Never);
+        _mockMapper.Verify(m => m.Map<PublicPartnersPageBannerDto>(It.IsAny<PartnersPageBanner>()), Times.Never);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public class GetPartnersPageTests
     {
         // Arrange
         var emptySectionsList = new List<PartnerSection>();
-        var emptySectionsDtoList = new List<PartnersSectionDto>();
+        var emptySectionsDtoList = new List<PublicPartnersSectionDto>();
 
         SetupRepositoryWrapper(_bannerEntity, emptySectionsList);
         SetupMapper(_bannerDto, emptySectionsDtoList);
@@ -123,17 +123,17 @@ public class GetPartnersPageTests
         Assert.Empty(result.Value.Sections);
     }
 
-    private void SetupMapper(PartnersPageBannerDto? bannerDtoToReturn, IEnumerable<PartnersSectionDto> sectionsDtoToReturn)
+    private void SetupMapper(PublicPartnersPageBannerDto? bannerDtoToReturn, IEnumerable<PublicPartnersSectionDto> sectionsDtoToReturn)
     {
         if (bannerDtoToReturn != null)
         {
             _mockMapper
-                .Setup(mapper => mapper.Map<PartnersPageBannerDto>(It.IsAny<PartnersPageBanner>()))
+                .Setup(mapper => mapper.Map<PublicPartnersPageBannerDto>(It.IsAny<PartnersPageBanner>()))
                 .Returns(bannerDtoToReturn);
         }
 
         _mockMapper
-            .Setup(mapper => mapper.Map<IEnumerable<PartnersSectionDto>>(It.IsAny<IEnumerable<PartnerSection>>()))
+            .Setup(mapper => mapper.Map<IEnumerable<PublicPartnersSectionDto>>(It.IsAny<IEnumerable<PartnerSection>>()))
             .Returns(sectionsDtoToReturn);
     }
 

@@ -9,17 +9,17 @@ public class PublicPartnersProfile : Profile
 {
     public PublicPartnersProfile()
     {
-        CreateMap<PartnerSection, PartnersSectionDto>();
-        CreateMap<Partner, PartnerDto>();
-        CreateMap<PartnersPageBanner, PartnersPageBannerDto>();
+        CreateMap<PartnerSection, PublicPartnersSectionDto>();
+        CreateMap<Partner, PublicPartnerDto>();
+        CreateMap<PartnersPageBanner, PublicPartnersPageBannerDto>();
 
-        CreateMap<PartnerSectionLocalization, PartnerSectionLocalizationDto>()
+        CreateMap<PartnerSectionLocalization, PublicPartnerSectionLocalizationDto>()
             .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.Language));
 
-        CreateMap<PartnerLocalization, PartnerLocalizationDto>()
+        CreateMap<PartnerLocalization, PublicPartnerLocalizationDto>()
             .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.Language));
 
-        CreateMap<PartnersPageBannerLocalization, PartnersPageBannerLocalizationDto>()
+        CreateMap<PartnersPageBannerLocalization, PublicPartnersPageBannerLocalizationDto>()
             .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.Language));
     }
 }

@@ -46,11 +46,11 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
                 AsNoTracking = true
             });
 
-        PartnersPageBannerDto bannerDto;
+        PublicPartnersPageBannerDto bannerDto;
 
         if (banner == null)
         {
-            bannerDto = new PartnersPageBannerDto
+            bannerDto = new PublicPartnersPageBannerDto
             {
                 Title = string.Empty,
                 Description = string.Empty,
@@ -59,13 +59,13 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
         }
         else
         {
-            bannerDto = _mapper.Map<PartnersPageBannerDto>(banner);
+            bannerDto = _mapper.Map<PublicPartnersPageBannerDto>(banner);
         }
 
         var partnersPageDto = new PartnersPageDto
         {
             Banner = bannerDto,
-            Sections = _mapper.Map<IEnumerable<PartnersSectionDto>>(partnerSections)
+            Sections = _mapper.Map<IEnumerable<PublicPartnersSectionDto>>(partnerSections)
         };
 
         return Result.Ok(partnersPageDto);

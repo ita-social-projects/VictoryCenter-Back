@@ -2,7 +2,7 @@ using VictoryCenter.BLL.DTOs.Common;
 
 namespace VictoryCenter.BLL.DTOs.Public.Partners;
 
-public record PartnersPageBannerLocalizationDto
+public record PublicPartnerSectionLocalizationDto
 {
     public LocalizationInfoDto Language { get; init; } = null!;
     public string Title { get; init; } = null!;
