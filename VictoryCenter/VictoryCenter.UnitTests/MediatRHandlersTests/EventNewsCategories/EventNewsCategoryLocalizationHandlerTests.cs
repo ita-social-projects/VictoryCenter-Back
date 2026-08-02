@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.EventNewsCategories.Create;
 using VictoryCenter.BLL.Commands.Admin.Localization.EventNewsCategories.Delete;
@@ -258,6 +259,40 @@ public class EventNewsCategoryLocalizationHandlerTests
     }
 
     [Fact]
+    public async Task UpdateLocalization_ShouldReturnNotFound_WhenLocalizationIsDeletedConcurrently()
+    {
+        var localization = new EventNewsCategoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Name = "Old"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLocalization>>()))
+            .ReturnsAsync(localization);
+        _localizationRepository
+            .Setup(repository => repository.ExistsAsync(
+                It.IsAny<Expression<Func<EventNewsCategoryLocalization, bool>>>()))
+            .ReturnsAsync(false);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+        var handler = new UpdateEventNewsCategoryLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateEventNewsCategoryLocalizationCommand(
+                1,
+                2,
+                new UpdateEventNewsCategoryLocalizationDto { Name = "Updated" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(EventNewsCategoryLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task DeleteLocalization_ShouldDeleteExistingLocalization()
     {
         var localization = new EventNewsCategoryLocalization
@@ -281,6 +316,33 @@ public class EventNewsCategoryLocalizationHandlerTests
         Assert.Equal(1, result.Value.EntityId);
         Assert.Equal(2, result.Value.LanguageId);
         _localizationRepository.Verify(repository => repository.Delete(localization), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldReturnNotFound_WhenLocalizationIsDeletedConcurrently()
+    {
+        var localization = new EventNewsCategoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Name = "News"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+        var handler = new DeleteEventNewsCategoryLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(
+            new DeleteEventNewsCategoryLocalizationCommand(1, 2),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(EventNewsCategoryLocalization)),
+            result.Errors[0].Message);
     }
 
     [Fact]

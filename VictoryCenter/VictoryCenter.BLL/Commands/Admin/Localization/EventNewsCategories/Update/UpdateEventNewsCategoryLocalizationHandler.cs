@@ -69,6 +69,12 @@ public class UpdateEventNewsCategoryLocalizationHandler
                 return Result.Ok(_mapper.Map<AdminEventNewsCategoryLocalizationDto>(localization));
             }
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+                (request.EntityId, request.LanguageId),
+                typeof(EventNewsCategoryLocalization)));
+        }
         catch (DbUpdateException exception) when (exception.IsUniqueConstraintException())
         {
             return Result.Fail<AdminEventNewsCategoryLocalizationDto>(
