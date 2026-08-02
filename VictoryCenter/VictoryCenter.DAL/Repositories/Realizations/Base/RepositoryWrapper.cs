@@ -67,7 +67,9 @@ using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.History;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.EventNews;
@@ -137,6 +139,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
     private IEventNewsRepository? _eventNewsRepository;
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
+    private IEventNewsCategoryLocalizationsRepository? _eventNewsCategoryLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -326,6 +329,10 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IEventNewsCategoryRepository EventNewsCategoryRepository =>
         _eventNewsCategoryRepository ??= new EventNewsCategoryRepository(_victoryCenterDbContext);
+
+    public IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository =>
+        _eventNewsCategoryLocalizationsRepository ??=
+            new EventNewsCategoryLocalizationsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
