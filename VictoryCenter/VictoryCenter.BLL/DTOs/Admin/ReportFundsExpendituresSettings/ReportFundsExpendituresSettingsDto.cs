@@ -6,4 +6,5 @@ public record ReportFundsExpendituresSettingsDto
     public string DisclaimerTitle { get; init; } = null!;
     public decimal ExchangeRate { get; init; }
     public int ProgramExpendituresReportingYear { get; init; }
+    public bool HasUnpublishedChanges { get; init; }
 }

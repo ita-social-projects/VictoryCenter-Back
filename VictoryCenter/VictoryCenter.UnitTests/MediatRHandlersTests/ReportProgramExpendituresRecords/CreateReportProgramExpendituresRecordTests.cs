@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
+using MediatR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
 
@@ -52,6 +53,7 @@ public class CreateReportProgramExpendituresRecordTests
 
     private readonly Mock<IReportProgramExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
+    private readonly Mock<IMediator> _mediatorMock;
 
     public CreateReportProgramExpendituresRecordTests()
     {
@@ -59,6 +61,7 @@ public class CreateReportProgramExpendituresRecordTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
         _hippotherapyProgramCategoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
+        _mediatorMock = new Mock<IMediator>();
     }
 
     [Fact]
@@ -68,7 +71,8 @@ public class CreateReportProgramExpendituresRecordTests
         SetupDependencies(_category, 1);
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -88,7 +92,8 @@ public class CreateReportProgramExpendituresRecordTests
         SetupDependencies(null, 1);
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -111,7 +116,8 @@ public class CreateReportProgramExpendituresRecordTests
         SetupDependencies(_category, 1, true);
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -133,7 +139,8 @@ public class CreateReportProgramExpendituresRecordTests
         SetupDependencies(_category, 0);
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(
@@ -156,7 +163,8 @@ public class CreateReportProgramExpendituresRecordTests
 
         var handler = new CreateReportProgramExpendituresRecordHandler(
             _repositoryWrapperMock.Object,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _mediatorMock.Object);
 
         // Act
         var result = await handler.Handle(

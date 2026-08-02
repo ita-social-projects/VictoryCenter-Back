@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
+using MediatR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
 
@@ -38,7 +39,7 @@ public class DeleteReportProgramExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(_record, saveResult: 1);
-        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator);
+        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator, new Mock<IMediator>().Object);
 
         // Act
         var result = await handler.Handle(
@@ -54,7 +55,7 @@ public class DeleteReportProgramExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenValidationFails()
     {
         // Arrange
-        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator);
+        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator, new Mock<IMediator>().Object);
 
         // Act
         var result = await handler.Handle(
@@ -73,7 +74,7 @@ public class DeleteReportProgramExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(null, saveResult: 1);
-        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator);
+        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator, new Mock<IMediator>().Object);
 
         // Act
         var result = await handler.Handle(
@@ -92,7 +93,7 @@ public class DeleteReportProgramExpendituresRecordTests
     {
         // Arrange
         SetupDependencies(_record, saveResult: 0);
-        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator);
+        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator, new Mock<IMediator>().Object);
 
         // Act
         var result = await handler.Handle(
@@ -114,7 +115,7 @@ public class DeleteReportProgramExpendituresRecordTests
         _repositoryWrapperMock
             .Setup(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(new DbUpdateException("Database error"));
-        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator);
+        var handler = new DeleteReportProgramExpendituresRecordHandler(_repositoryWrapperMock.Object, _validator, new Mock<IMediator>().Object);
 
         // Act
         var result = await handler.Handle(

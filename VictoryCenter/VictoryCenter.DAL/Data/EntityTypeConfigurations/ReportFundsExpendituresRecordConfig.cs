@@ -4,31 +4,14 @@ using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.DAL.Data.EntityTypeConfigurations;
 
-public class ReportFundsExpendituresRecordConfig : IEntityTypeConfiguration<ReportFundsExpendituresRecord>
+public class ReportFundsExpendituresRecordConfig : BaseReportFundsExpendituresRecordConfig<ReportFundsExpendituresRecord>
 {
-    public void Configure(EntityTypeBuilder<ReportFundsExpendituresRecord> builder)
+    public override void Configure(EntityTypeBuilder<ReportFundsExpendituresRecord> builder)
     {
-        builder.HasKey(e => e.Id);
+        base.Configure(builder);
 
         builder.Property(e => e.Id)
             .ValueGeneratedOnAdd();
-
-        builder.Property(e => e.Type)
-            .IsRequired();
-
-        builder.Property(e => e.ReportingYear)
-            .IsRequired();
-
-        builder.Property(e => e.AmountUah)
-            .HasPrecision(13, 2)
-            .IsRequired();
-
-        builder.Property(e => e.AmountUsd)
-            .HasPrecision(13, 2)
-            .IsRequired();
-
-        builder.Property(e => e.CreatedAt)
-            .IsRequired();
 
         builder.HasOne(e => e.Category)
             .WithMany(e => e.Records)

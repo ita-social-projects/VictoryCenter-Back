@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportMediaSettings.UpdateReportMediaSettings;
@@ -15,6 +16,7 @@ public class UpdateReportMediaSettingsHandlerTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IValidator<UpdateReportMediaSettingsCommand>> _mockValidator;
+    private readonly Mock<IMediator> _mockMediator;
 
     private readonly UpdateReportMediaSettingsDto _updateDto = new()
     {
@@ -60,6 +62,7 @@ public class UpdateReportMediaSettingsHandlerTests
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockValidator = new Mock<IValidator<UpdateReportMediaSettingsCommand>>();
+        _mockMediator = new Mock<IMediator>();
     }
 
     [Fact]
@@ -83,7 +86,8 @@ public class UpdateReportMediaSettingsHandlerTests
         var handler = new UpdateReportMediaSettingsHandler(
             _mockRepositoryWrapper.Object,
             _mockMapper.Object,
-            _mockValidator.Object);
+            _mockValidator.Object,
+            _mockMediator.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -119,7 +123,8 @@ public class UpdateReportMediaSettingsHandlerTests
         var handler = new UpdateReportMediaSettingsHandler(
             _mockRepositoryWrapper.Object,
             _mockMapper.Object,
-            _mockValidator.Object);
+            _mockValidator.Object,
+            _mockMediator.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -153,7 +158,8 @@ public class UpdateReportMediaSettingsHandlerTests
         var handler = new UpdateReportMediaSettingsHandler(
             _mockRepositoryWrapper.Object,
             _mockMapper.Object,
-            _mockValidator.Object);
+            _mockValidator.Object,
+            _mockMediator.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -178,7 +184,8 @@ public class UpdateReportMediaSettingsHandlerTests
         var handler = new UpdateReportMediaSettingsHandler(
             _mockRepositoryWrapper.Object,
             _mockMapper.Object,
-            _mockValidator.Object);
+            _mockValidator.Object,
+            _mockMediator.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -207,7 +214,8 @@ public class UpdateReportMediaSettingsHandlerTests
         var handler = new UpdateReportMediaSettingsHandler(
             _mockRepositoryWrapper.Object,
             _mockMapper.Object,
-            _mockValidator.Object);
+            _mockValidator.Object,
+            _mockMediator.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

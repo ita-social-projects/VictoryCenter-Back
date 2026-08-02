@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -12,15 +13,18 @@ namespace VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Dele
 public class DeleteReportProgramExpendituresRecordHandler
     : IRequestHandler<DeleteReportProgramExpendituresRecordCommand, Result<long>>
 {
+    private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<DeleteReportProgramExpendituresRecordCommand> _validator;
 
     public DeleteReportProgramExpendituresRecordHandler(
         IRepositoryWrapper repositoryWrapper,
-        IValidator<DeleteReportProgramExpendituresRecordCommand> validator)
+        IValidator<DeleteReportProgramExpendituresRecordCommand> validator,
+        IMediator mediator)
     {
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _mediator = mediator;
     }
 
     public async Task<Result<long>> Handle(
@@ -53,6 +57,8 @@ public class DeleteReportProgramExpendituresRecordHandler
                 return Result.Fail(
                     ErrorMessagesConstants.FailedToDeleteEntity(typeof(ReportProgramExpendituresRecord)));
             }
+
+            await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
 
             return Result.Ok(request.ReportProgramExpendituresRecordId);
         }
