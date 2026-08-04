@@ -113,10 +113,32 @@ namespace VictoryCenter.DAL.Migrations
                 schema: "media",
                 table: "PdfReports");
 
-            migrationBuilder.DropColumn(
-                name: "LanguageId",
-                schema: "media",
-                table: "PdfReports");
+            // Restore the schema owned by the removed migration when its history row remains.
+            // Otherwise, remove the column introduced by this migration on a clean database.
+            migrationBuilder.Sql("""
+                IF EXISTS (
+                    SELECT 1
+                    FROM entity_framework.__EFMigrationsHistory
+                    WHERE MigrationId = N'20260609211541_AddLanguageIdToPdfReport'
+                )
+                BEGIN
+                    ALTER TABLE media.PdfReports
+                    ALTER COLUMN LanguageId bigint NULL;
+
+                    CREATE INDEX IX_PdfReports_LanguageId
+                    ON media.PdfReports (LanguageId);
+
+                    ALTER TABLE media.PdfReports
+                    ADD CONSTRAINT FK_PdfReports_LocalizationLanguages_LanguageId
+                    FOREIGN KEY (LanguageId)
+                    REFERENCES dbo.LocalizationLanguages (Id)
+                    ON DELETE NO ACTION;
+                END;
+                ELSE
+                BEGIN
+                    ALTER TABLE media.PdfReports DROP COLUMN LanguageId;
+                END;
+                """);
 
             migrationBuilder.CreateIndex(
                 name: "IX_PdfReports_Priority",
