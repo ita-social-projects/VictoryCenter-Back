@@ -66,7 +66,9 @@ using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.History;
@@ -109,6 +111,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPartnerRepository? _partnerRepository;
     private IPartnerSectionsRepository? _partnerSectionRepository;
     private IPartnersPageBannersRepository? _partnersPageBannersRepository;
+    private IPartnersPageBannerLocalizationsRepository? _partnersPageBannerLocalizationsRepository;
+    private IPartnerSectionLocalizationsRepository? _partnerSectionLocalizationsRepository;
+    private IPartnerLocalizationsRepository? _partnerLocalizationsRepository;
     private IPdfReportRepository? _pdfReportRepository;
     private IPdfSectionLocalizationsRepository? _pdfSectionLocalizationsRepository;
     private IPdfSectionRepository? _pdfSectionRepository;
@@ -236,6 +241,15 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??=
         new PartnersPageBannersRepository(_victoryCenterDbContext);
+
+    public IPartnersPageBannerLocalizationsRepository PartnersPageBannerLocalizationsRepository => _partnersPageBannerLocalizationsRepository ??=
+        new PartnersPageBannerLocalizationsRepository(_victoryCenterDbContext);
+
+    public IPartnerSectionLocalizationsRepository PartnerSectionLocalizationsRepository => _partnerSectionLocalizationsRepository ??=
+        new PartnerSectionLocalizationsRepository(_victoryCenterDbContext);
+
+    public IPartnerLocalizationsRepository PartnerLocalizationsRepository => _partnerLocalizationsRepository ??=
+        new PartnerLocalizationsRepository(_victoryCenterDbContext);
 
     public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository =>
         _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);

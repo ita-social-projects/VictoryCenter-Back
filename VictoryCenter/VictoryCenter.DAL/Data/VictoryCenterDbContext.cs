@@ -74,6 +74,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<PartnersPageBanner> PartnersPageBanners { get; set; }
 
+    public DbSet<PartnersPageBannerLocalization> PartnersPageBannerLocalizations { get; set; }
+
+    public DbSet<PartnerSectionLocalization> PartnerSectionLocalizations { get; set; }
+
+    public DbSet<PartnerLocalization> PartnerLocalizations { get; set; }
+
     public DbSet<ChangedLivesBlock> ChangedLivesBlocks { get; set; }
 
     public DbSet<CollectedFundsBlock> CollectedFundsBlocks { get; set; }

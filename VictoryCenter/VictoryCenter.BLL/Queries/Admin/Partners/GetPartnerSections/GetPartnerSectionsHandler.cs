@@ -29,7 +29,12 @@ public class GetPartnerSectionsHandler
             new QueryOptions<PartnerSection>
             {
                 Include = q => q.Include(s => s.Partners.OrderBy(p => p.Priority))
-                                .ThenInclude(p => p.Image!),
+                                .ThenInclude(p => p.Image!)
+                                .Include(s => s.Partners.OrderBy(p => p.Priority))
+                                .ThenInclude(p => p.Localizations)
+                                    .ThenInclude(l => l.Language)
+                                .Include(s => s.Localizations)
+                                    .ThenInclude(l => l.Language),
                 OrderByASC = s => s.Priority,
                 AsNoTracking = true
             });
