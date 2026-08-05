@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
@@ -88,10 +89,13 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 
     private static void RemoveExistingContext(IServiceCollection services)
     {
+        // EF Core registers provider configuration separately; remove it to avoid
+        // mixing SQL Server and InMemory providers.
         var descriptors = services
             .Where(d =>
                 d.ServiceType == typeof(DbContextOptions<VictoryCenterDbContext>) ||
-                d.ServiceType == typeof(VictoryCenterDbContext))
+                d.ServiceType == typeof(VictoryCenterDbContext) ||
+                d.ServiceType == typeof(IDbContextOptionsConfiguration<VictoryCenterDbContext>))
             .ToList();
 
         foreach (var descriptor in descriptors)
