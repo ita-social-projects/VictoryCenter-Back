@@ -258,6 +258,7 @@ public class EventNewsCategoryBusinessRulesTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(capturedOptions);
         Assert.True(capturedOptions.AsNoTracking);
+        Assert.NotNull(capturedOptions.Include);
         Assert.NotNull(capturedOptions.OrderByASC);
     }
 }

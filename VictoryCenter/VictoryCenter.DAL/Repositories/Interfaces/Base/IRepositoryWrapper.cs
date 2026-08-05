@@ -33,6 +33,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
@@ -123,6 +124,7 @@ public interface IRepositoryWrapper
 
     IEventNewsRepository EventNewsRepository { get; }
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
+    IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

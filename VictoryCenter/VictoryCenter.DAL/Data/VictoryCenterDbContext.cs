@@ -152,6 +152,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<EventNewsCategory> EventNewsCategories { get; set; }
 
+    public DbSet<EventNewsCategoryLocalization> EventNewsCategoryLocalizations { get; set; }
+
     public DbSet<EventNews> EventNews { get; set; }
 
     public DbSet<EventNewsLocalization> EventNewsLocalizations { get; set; }

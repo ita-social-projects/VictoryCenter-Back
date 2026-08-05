@@ -70,7 +70,7 @@ public class EventNewsCategoryManagementTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CategoryManagement_ShouldRequireAuthorization()
+    public async Task CategoryMutations_ShouldRequireAuthorization()
     {
         using var anonymousClient = Fixture.Factory.CreateClient();
 
@@ -84,11 +84,13 @@ public class EventNewsCategoryManagementTests : BaseTestClass
     }
 
     [Fact]
-    public async Task SwaggerDocument_ShouldBeGenerated_WithAdminAndPublicCategoryDtos()
+    public async Task SwaggerDocument_ShouldBeGenerated_WithCategoryLocalizationDtos()
     {
         var response = await Fixture.HttpClient.GetAsync("/swagger/v1/swagger.json");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(
+            response.IsSuccessStatusCode,
+            $"Swagger returned {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
     }
 
     [Fact]
