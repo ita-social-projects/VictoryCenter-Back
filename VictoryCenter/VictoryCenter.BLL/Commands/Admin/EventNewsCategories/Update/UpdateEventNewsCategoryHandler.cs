@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNewsCategories;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -31,6 +32,9 @@ public class UpdateEventNewsCategoryHandler
             new QueryOptions<EventNewsCategory>
             {
                 Filter = entity => entity.Id == request.Id,
+                Include = query => query
+                    .Include(entity => entity.Localizations)
+                    .ThenInclude(localization => localization.Language),
                 AsNoTracking = false
             });
 
@@ -50,6 +54,11 @@ public class UpdateEventNewsCategoryHandler
         if (string.Equals(category.Name, normalizedName, StringComparison.Ordinal))
         {
             return Result.Ok(_mapper.Map<AdminEventNewsCategoryDto>(category));
+        }
+
+        foreach (var localization in category.Localizations)
+        {
+            localization.TranslationStatus = TranslationStatus.Outdated;
         }
 
         category.Name = normalizedName;

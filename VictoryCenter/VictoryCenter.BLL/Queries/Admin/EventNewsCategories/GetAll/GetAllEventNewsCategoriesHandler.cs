@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventNewsCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -27,6 +28,9 @@ public class GetAllEventNewsCategoriesHandler
         var categories = await _repositoryWrapper.EventNewsCategoryRepository.GetAllAsync(
             new QueryOptions<EventNewsCategory>
             {
+                Include = query => query
+                    .Include(category => category.Localizations)
+                    .ThenInclude(localization => localization.Language),
                 OrderByASC = category => category.Name,
                 AsNoTracking = true
             });
