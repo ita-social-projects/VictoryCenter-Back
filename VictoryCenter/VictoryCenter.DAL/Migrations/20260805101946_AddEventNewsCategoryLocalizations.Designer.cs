@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260802163531_AddEventNewsCategoryLocalizations")]
+    [Migration("20260805101946_AddEventNewsCategoryLocalizations")]
     partial class AddEventNewsCategoryLocalizations
     {
         /// <inheritdoc />
