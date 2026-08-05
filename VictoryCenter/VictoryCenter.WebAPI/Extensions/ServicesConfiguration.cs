@@ -184,6 +184,7 @@ public static class ServicesConfiguration
         services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
+        services.AddScoped<IProgramSectionContentLocalizationTracker, ProgramSectionContentLocalizationTracker>();
 
         services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
 
@@ -208,6 +209,16 @@ public static class ServicesConfiguration
         {
             using IServiceScope localScope = app.Services.CreateScope();
             var victoryCenterDbContext = localScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+            // Integration tests use EF Core InMemory, which does not support relational migration operations.
+            if (!victoryCenterDbContext.Database.IsRelational())
+            {
+                logger.LogInformation(
+                    "Skipping startup migrations for non-relational database provider {DatabaseProvider}",
+                    victoryCenterDbContext.Database.ProviderName);
+                return;
+            }
+
             var pendingMigrations = await victoryCenterDbContext.Database.GetPendingMigrationsAsync();
             var migrations = pendingMigrations.ToList();
 
@@ -240,6 +251,9 @@ public static class ServicesConfiguration
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred during startup migration");
+
+            // Do not serve traffic when the application model is newer than the database schema.
+            throw;
         }
     }
 
