@@ -499,6 +499,109 @@ public class UpdateHippotherapyProgramTests
     }
 
     [Fact]
+    public async Task Handle_NewContentAddedToExistingSection_MarksProgramLocalizationsOutdatedWithoutTouchingExistingContent()
+    {
+        var existingContent = new TitleProgramContent
+        {
+            Id = 1,
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Same title",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection
+        {
+            Id = 1,
+            Template = default,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = [existingContent]
+        };
+
+        var program = Program(sections: [section]);
+        program.Localizations =
+        [
+            ProgramLocalization(1, TranslationStatus.Relevant),
+            ProgramLocalization(2, TranslationStatus.Relevant)
+        ];
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        var sectionWithNewContent = CreateSection(
+            0,
+            CreateTitleContent(0, "Same title", id: 1),
+            id: 1);
+        sectionWithNewContent.Contents!.Add(CreateDescriptionContent(1, "New pair description"));
+
+        var dto = Dto(
+            name: program.Name,
+            description: program.Description,
+            sections: [sectionWithNewContent]);
+        dto.Location = program.Location;
+        dto.ParticipantsCount = program.ParticipantsCount;
+        dto.MeetingsCount = program.MeetingsCount;
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.Equal(2, program.Sections.Single().Contents.Count);
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+        Assert.Same(existingContent, program.Sections.Single().Contents.Single(c => c.Id == 1));
+        Assert.All(existingContent.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_ContentRemovedFromExistingSection_DoesNotChangeProgramLocalizationsStatus()
+    {
+        var keptContent = new TitleProgramContent
+        {
+            Id = 1,
+            ContentType = ContentType.Title,
+            Order = 0,
+            Title = "Kept title",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var removedContent = new DescriptionProgramContent
+        {
+            Id = 2,
+            ContentType = ContentType.Description,
+            Order = 1,
+            Description = "Removed description",
+            Localizations = [ContentLocalization(1, TranslationStatus.Relevant)]
+        };
+        var section = new HippotherapyProgramSection
+        {
+            Id = 1,
+            Template = default,
+            Order = 0,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Contents = [keptContent, removedContent]
+        };
+
+        var program = Program(sections: [section]);
+        program.Localizations =
+        [
+            ProgramLocalization(1, TranslationStatus.Relevant),
+            ProgramLocalization(2, TranslationStatus.Relevant)
+        ];
+
+        var sut = CreateSut(program: program, saveChanges: 1);
+
+        var dto = Dto(
+            name: program.Name,
+            description: program.Description,
+            sections: [CreateSection(0, CreateTitleContent(0, "Kept title", id: 1), id: 1)]);
+        dto.Location = program.Location;
+        dto.ParticipantsCount = program.ParticipantsCount;
+        dto.MeetingsCount = program.MeetingsCount;
+
+        await sut.Handle(Command(id: 1, dto: dto), CancellationToken.None);
+
+        Assert.Single(program.Sections.Single().Contents);
+        Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+        Assert.All(keptContent.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+    }
+
+    [Fact]
     public async Task Handle_SameStructureAndChangedDescription_MarksContentLocalizationsOutdated()
     {
         var content = new DescriptionProgramContent
