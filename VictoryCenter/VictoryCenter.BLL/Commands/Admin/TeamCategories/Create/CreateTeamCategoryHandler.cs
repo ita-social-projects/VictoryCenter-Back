@@ -31,14 +31,17 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
     {
         try
         {
-            request = request with
+            if (request.CreateTeamCategoryDto is not null)
             {
-                CreateTeamCategoryDto = request.CreateTeamCategoryDto with
+                request = request with
                 {
-                    Name = request.CreateTeamCategoryDto.Name?.Trim()!,
-                    Description = request.CreateTeamCategoryDto.Description?.Trim()!
-                }
-            };
+                    CreateTeamCategoryDto = request.CreateTeamCategoryDto with
+                    {
+                        Name = request.CreateTeamCategoryDto.Name?.Trim()!,
+                        Description = request.CreateTeamCategoryDto.Description?.Trim()!
+                    }
+                };
+            }
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 

@@ -32,14 +32,17 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
     {
         try
         {
-            request = request with
+            if (request.UpdateTeamCategoryDto is not null)
             {
-                UpdateTeamCategoryDto = request.UpdateTeamCategoryDto with
+                request = request with
                 {
-                    Name = request.UpdateTeamCategoryDto.Name?.Trim()!,
-                    Description = request.UpdateTeamCategoryDto.Description?.Trim()!
-                }
-            };
+                    UpdateTeamCategoryDto = request.UpdateTeamCategoryDto with
+                    {
+                        Name = request.UpdateTeamCategoryDto.Name?.Trim()!,
+                        Description = request.UpdateTeamCategoryDto.Description?.Trim()!
+                    }
+                };
+            }
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 

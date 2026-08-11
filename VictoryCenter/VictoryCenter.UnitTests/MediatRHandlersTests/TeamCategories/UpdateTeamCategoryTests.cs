@@ -118,6 +118,19 @@ public class UpdateTeamCategoryTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenDtoIsNull()
+    {
+        SetupDependencies(_testExistingCategory);
+        var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var result = await handler.Handle(
+            new UpdateTeamCategoryCommand(null!, _testExistingCategory.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task Handle_ShouldTrimNameAndDescription_BeforeUpdating()
     {
         SetupDependencies(_testExistingCategory);

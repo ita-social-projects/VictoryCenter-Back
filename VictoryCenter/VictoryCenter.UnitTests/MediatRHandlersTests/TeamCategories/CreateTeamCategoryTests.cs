@@ -107,6 +107,18 @@ public class CreateTeamCategoryTests
     }
 
     [Fact]
+    public async Task Handle_ShouldFail_WhenDtoIsNull()
+    {
+        SetupDependencies();
+        var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        var result = await handler.Handle(new CreateTeamCategoryCommand(null!), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
     public async Task Handle_ShouldTrimNameAndDescription_BeforeCreating()
     {
         SetupDependencies();
