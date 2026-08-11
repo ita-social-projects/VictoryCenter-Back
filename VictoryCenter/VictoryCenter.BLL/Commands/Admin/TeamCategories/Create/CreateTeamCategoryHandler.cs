@@ -31,6 +31,15 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
     {
         try
         {
+            request = request with
+            {
+                CreateTeamCategoryDto = request.CreateTeamCategoryDto with
+                {
+                    Name = request.CreateTeamCategoryDto.Name?.Trim()!,
+                    Description = request.CreateTeamCategoryDto.Description?.Trim()!
+                }
+            };
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var duplicateCategory =

@@ -91,6 +91,91 @@ public class UpdateTeamCategoryTests
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task Handle_ShouldNotUpdateEntity_IncorrectDescription(string? testDescription)
+    {
+        _testUpdatedCategoryDto = _testUpdatedCategoryDto with
+        {
+            Description = testDescription!
+        };
+        _testUpdatedCategory.Description = testDescription!;
+        SetupDependencies(_testExistingCategory);
+        var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var result = await handler.Handle(
+            new UpdateTeamCategoryCommand(
+                new UpdateTeamCategoryDto
+                {
+                    Name = "Updated Name",
+                    Description = testDescription!,
+                }, _testExistingCategory.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldTrimNameAndDescription_BeforeUpdating()
+    {
+        SetupDependencies(_testExistingCategory);
+        var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var result = await handler.Handle(
+            new UpdateTeamCategoryCommand(
+                new UpdateTeamCategoryDto
+                {
+                    Name = "  Updated Name  ",
+                    Description = "  Updated Description  ",
+                },
+                _testExistingCategory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mockMapper.Verify(
+            x => x.Map(
+                It.Is<UpdateTeamCategoryDto>(dto => dto.Name == "Updated Name" && dto.Description == "Updated Description"),
+                _testExistingCategory),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotUpdateEntity_WhenNameIsTooShortOnlyAfterTrimming()
+    {
+        SetupDependencies(_testExistingCategory);
+        var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var result = await handler.Handle(
+            new UpdateTeamCategoryCommand(
+                new UpdateTeamCategoryDto
+                {
+                    Name = "  Ab  ",
+                    Description = "Updated Description",
+                }, _testExistingCategory.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotUpdateEntity_WhenDescriptionIsTooShortOnlyAfterTrimming()
+    {
+        SetupDependencies(_testExistingCategory);
+        var handler = new UpdateTeamCategoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validator);
+
+        var result = await handler.Handle(
+            new UpdateTeamCategoryCommand(
+                new UpdateTeamCategoryDto
+                {
+                    Name = "Updated Name",
+                    Description = "    Hi    ",
+                }, _testExistingCategory.Id), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
     [Fact]
     public async Task Handle_ShouldNotUpdateEntity_DuplicateName()
     {

@@ -81,6 +81,85 @@ public class CreateTeamCategoryTests
         Assert.Contains("Validation failed", result.Errors[0].Message);
     }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData(null)]
+    public async Task Handle_ShouldFail_InvalidDescription(string? description)
+    {
+        _testEntity.Description = description!;
+        _testCategoryDto = _testCategoryDto with
+        {
+            Description = description!
+        };
+        SetupDependencies();
+        var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        var result = await handler.Handle(
+            new CreateTeamCategoryCommand(new CreateTeamCategoryDto
+            {
+                Name = "Test Category",
+                Description = description!,
+            }), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldTrimNameAndDescription_BeforeCreating()
+    {
+        SetupDependencies();
+        var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        var result = await handler.Handle(
+            new CreateTeamCategoryCommand(new CreateTeamCategoryDto
+            {
+                Name = "  Test Category  ",
+                Description = "  Test Category Description  ",
+            }), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mapperMock.Verify(
+            m => m.Map<TeamCategory>(It.Is<CreateTeamCategoryDto>(dto =>
+                dto.Name == "Test Category" && dto.Description == "Test Category Description")),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenNameIsTooShortOnlyAfterTrimming()
+    {
+        SetupDependencies();
+        var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        var result = await handler.Handle(
+            new CreateTeamCategoryCommand(new CreateTeamCategoryDto
+            {
+                Name = "  Ab  ",
+                Description = "Test Category Description",
+            }), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDescriptionIsTooShortOnlyAfterTrimming()
+    {
+        SetupDependencies();
+        var handler = new CreateTeamCategoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator);
+
+        var result = await handler.Handle(
+            new CreateTeamCategoryCommand(new CreateTeamCategoryDto
+            {
+                Name = "Test Category",
+                Description = "    Hi    ",
+            }), CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
     [Fact]
     public async Task Handle_ShouldFail_DuplicateCategoryName()
     {
