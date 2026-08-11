@@ -26,6 +26,7 @@ public class GetHippotherapyProgramCategoriesHandler : IRequestHandler<GetHippot
         {
             Include = programCategory => programCategory
                 .Include(p => p.Programs)
+                .Include(p => p.Localizations).ThenInclude(l => l.Language)
         });
         var mapped = _mapper.Map<IEnumerable<HippotherapyProgramCategoryDto>>(programCategories).ToList();
 

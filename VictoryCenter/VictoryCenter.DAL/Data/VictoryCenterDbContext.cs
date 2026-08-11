@@ -36,6 +36,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
 
+    public DbSet<HippotherapyProgramCategoryLocalization> HippotherapyProgramCategoryLocalizations { get; set; }
+
     public DbSet<HippotherapyProgram> HippotherapyPrograms { get; set; }
 
     public DbSet<HippotherapyProgramSection> HippotherapyProgramSections { get; set; }
