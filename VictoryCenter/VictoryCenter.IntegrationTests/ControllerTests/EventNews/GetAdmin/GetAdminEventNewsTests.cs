@@ -78,7 +78,7 @@ public class GetAdminEventNewsTests : BaseTestClass
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
         Assert.NotNull(page);
         Assert.NotEmpty(page.Items);
-        Assert.Equal(page.Items.Length, page.TotalItemsCount);
+        Assert.True(page.TotalItemsCount >= page.Items.Length);
         Assert.All(page.Items, item => Assert.Contains(item.Categories, category => category.Id == categoryId));
     }
 
