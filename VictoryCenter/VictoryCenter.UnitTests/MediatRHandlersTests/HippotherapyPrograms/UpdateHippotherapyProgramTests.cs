@@ -547,6 +547,11 @@ public class UpdateHippotherapyProgramTests
         Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
         Assert.Same(existingContent, program.Sections.Single().Contents.Single(c => c.Id == 1));
         Assert.All(existingContent.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+
+        var addedContent = Assert.IsType<DescriptionProgramContent>(
+            program.Sections.Single().Contents.Single(c => c.Id != 1));
+        Assert.Equal("New pair description", addedContent.Description);
+        Assert.Equal(1, addedContent.Order);
     }
 
     [Fact]
@@ -599,6 +604,8 @@ public class UpdateHippotherapyProgramTests
         Assert.Single(program.Sections.Single().Contents);
         Assert.All(program.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
         Assert.All(keptContent.Localizations, l => Assert.Equal(TranslationStatus.Relevant, l.TranslationStatus));
+        Assert.Equal(0, program.Sections.Single().Contents.Single().Order);
+        Assert.Same(keptContent, program.Sections.Single().Contents.Single());
     }
 
     [Fact]

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
+using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -58,28 +60,16 @@ public class GetHippotherapyProgramLocalizationByEntityIdHandler : IRequestHandl
         return Result.Ok(programLocalizations);
     }
 
-    private async Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSections(HippotherapyProgramLocalization program, long languageId)
+    private Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSections(HippotherapyProgramLocalization program, long languageId)
     {
-        if(program is null)
+        if (program is null)
         {
             throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(nameof(HippotherapyProgramLocalization), typeof(HippotherapyProgramLocalization)));
         }
 
-        var sectionLocalizations = program.Entity
-            .Sections
-            .Select(section => new HippotherapyProgramSectionLocalizationDto
-            {
-                EntityId = section.Id,
-                Contents = section.Contents
-                    .SelectMany(content =>
-                        content.Localizations
-                            .Where(localization => localization.LanguageId == languageId)
-                            .Select(localization =>
-                                _mapper.Map<HippotherapyProgramSectionContentLocalizationDto>(localization)))
-                    .ToList(),
-            })
-            .ToList();
+        var languageInfo = _mapper.Map<LocalizationInfoDto>(program.Language);
 
-        return sectionLocalizations;
+        return Task.FromResult(
+            ProgramSectionLocalizationProjector.Project(program.Entity.Sections, languageId, languageInfo, _mapper));
     }
 }

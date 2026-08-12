@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Queries.Admin.Localization.HippotherapyPrograms.GetByEnt
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -97,6 +98,74 @@ public class GetHippotherapyProgramLocalizationsByEntityIdHandlerTests
     }
 
     [Fact]
+    public async Task Handle_ShouldIncludeEmptyOutdatedPlaceholder_ForContentWithoutLocalization()
+    {
+        var translatedContent = new TitleProgramContent
+        {
+            Id = 1,
+            Localizations = new List<ProgramSectionContentLocalization>
+            {
+                new()
+                {
+                    EntityId = 1,
+                    LanguageId = 1,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    Title = "Content 1",
+                    Language = new LocalizationLanguage { Id = 1, Name = "English", Code = "en" }
+                }
+            }
+        };
+        var newlyAddedContent = new DescriptionProgramContent
+        {
+            Id = 2,
+            Localizations = new List<ProgramSectionContentLocalization>()
+        };
+
+        var localizations = new List<HippotherapyProgramLocalization>
+        {
+            new()
+            {
+                EntityId = 1,
+                LanguageId = 1,
+                Name = "Program 1",
+                Description = "Description 1",
+                CreatedAt = DateTimeOffset.UtcNow,
+                Language = new LocalizationLanguage { Id = 1, Name = "English", Code = "en" },
+                Entity = new HippotherapyProgram
+                {
+                    Id = 1,
+                    Sections = new List<HippotherapyProgramSection>
+                    {
+                        new()
+                        {
+                            Id = 1,
+                            Contents = new List<ProgramSectionContent> { translatedContent, newlyAddedContent }
+                        }
+                    }
+                }
+            }
+        };
+
+        SetupRepositoryWrapper(localizations);
+        SetupMapper(_dtos);
+
+        var handler = new GetHippotherapyProgramLocalizationByEntityIdHandler(_mockRepositoryWrapper.Object, _mockMapper.Object);
+
+        var result = await handler.Handle(new GetHippotherapyProgramLocalizationByEntityIdQuery(1), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var contents = Assert.Single(result.Value.First().Sections).Contents;
+        Assert.Equal(2, contents.Count);
+
+        var placeholder = Assert.Single(contents, c => c.EntityId == 2);
+        Assert.Equal(TranslationStatus.Outdated, placeholder.TranslationStatus);
+        Assert.Null(placeholder.Title);
+        Assert.Null(placeholder.Description);
+        Assert.Equal(1, placeholder.LocalizationInfoDto.Id);
+        Assert.Equal("en", placeholder.LocalizationInfoDto.Code);
+    }
+
+    [Fact]
     public async Task Handle_ShouldReturnEmpty_WhenNoLocalizationsFound()
     {
         SetupRepositoryWrapper(new List<HippotherapyProgramLocalization>());
@@ -132,5 +201,9 @@ public class GetHippotherapyProgramLocalizationsByEntityIdHandlerTests
                 Title = "Content 1",
                 Description = "Content Description 1"
             });
+
+        _mockMapper.Setup(mapper =>
+                mapper.Map<LocalizationInfoDto>(It.IsAny<LocalizationLanguage>()))
+            .Returns((LocalizationLanguage src) => new LocalizationInfoDto { Id = src.Id, Code = src.Code });
     }
 }
