@@ -30,7 +30,8 @@ public class PartnerProfile : Profile
             .ForMember(dest => dest.Partners, opt => opt.Ignore());
         CreateMap<UpdatePartnersPageBannerDto, PartnersPageBanner>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description.Trim()));
 
         CreateMap<Partner, PartnerDto>();
         CreateMap<PartnerSection, PartnersSectionDto>();
