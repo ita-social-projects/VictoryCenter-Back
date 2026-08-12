@@ -78,11 +78,6 @@ public class UpdateEventNewsTests
     public async Task Handle_UnchangedRequest_ReturnsSuccessWithoutSaving()
     {
         var eventNews = ExistingEventNews();
-        foreach (var localization in eventNews.Localizations)
-        {
-            localization.TranslationStatus = TranslationStatus.Relevant;
-        }
-
         var handler = CreateHandler(eventNews);
 
         var result = await handler.Handle(
@@ -97,6 +92,23 @@ public class UpdateEventNewsTests
                 It.IsAny<string>(),
                 It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenLocalizationContentIsUnchanged_PreservesTranslationStatus()
+    {
+        var eventNews = ExistingEventNews();
+        var outdatedLocalization = eventNews.Localizations.Single(item => item.LanguageId == 1);
+        var dto = MatchingDto(eventNews) with { Resource = "https://example.com/updated" };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(
+            new UpdateEventNewsCommand(10, dto),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, outdatedLocalization.TranslationStatus);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
     }
 
     [Fact]
@@ -186,6 +198,9 @@ public class UpdateEventNewsTests
         var handler = CreateHandler(
             ExistingEventNews(),
             saveException: new DbUpdateConcurrencyException());
+        _repositoryWrapper.Setup(wrapper => wrapper.EventNewsRepository.ExistsAsync(
+                It.IsAny<EventNewsPredicate>()))
+            .ReturnsAsync(false);
 
         var result = await handler.Handle(
             new UpdateEventNewsCommand(10, PublishedDto()),
@@ -193,6 +208,22 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsFailed);
         Assert.Contains(typeof(EventNewsEntity).Name, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_WhenConcurrencyFailureIsNotCausedByEntityDeletion_PropagatesException()
+    {
+        var exception = new DbUpdateConcurrencyException();
+        var handler = CreateHandler(ExistingEventNews(), saveException: exception);
+        _repositoryWrapper.Setup(wrapper => wrapper.EventNewsRepository.ExistsAsync(
+                It.IsAny<EventNewsPredicate>()))
+            .ReturnsAsync(true);
+
+        var actualException = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => handler.Handle(
+            new UpdateEventNewsCommand(10, PublishedDto()),
+            CancellationToken.None));
+
+        Assert.Same(exception, actualException);
     }
 
     [Fact]
@@ -224,7 +255,7 @@ public class UpdateEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_NonSlugDatabaseException_PropagatesException()
+    public async Task Handle_UniqueConstraintOnNonSlugColumn_PropagatesException()
     {
         var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
         var handler = CreateHandler(ExistingEventNews(), saveException: exception);
@@ -300,7 +331,8 @@ public class UpdateEventNewsTests
         return new UpdateEventNewsHandler(
             _mapper.Object,
             _repositoryWrapper.Object,
-            _slugService.Object);
+            _slugService.Object,
+            TimeProvider.System);
     }
 
     private static IEnumerable<TEntity> ApplyFilter<TEntity>(
@@ -398,13 +430,13 @@ public class UpdateEventNewsTests
             Status = eventNews.Status,
             PreviewImageId = eventNews.PreviewImageId,
             BackgroundImageId = eventNews.BackgroundImageId,
-            CategoryIds = eventNews.Categories.Select(category => category.Id).ToList(),
-            Localizations = eventNews.Localizations.Select(localization => new CreateEventNewsLocalizationDto
+            CategoryIds = [.. eventNews.Categories.Select(category => category.Id)],
+            Localizations = [.. eventNews.Localizations.Select(localization => new CreateEventNewsLocalizationDto
             {
                 LanguageId = localization.LanguageId,
                 Title = localization.Title,
                 Description = localization.Description
-            }).ToList()
+            })]
         };
     }
 

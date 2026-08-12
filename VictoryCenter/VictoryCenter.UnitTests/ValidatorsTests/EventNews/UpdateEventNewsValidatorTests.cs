@@ -36,6 +36,16 @@ public class UpdateEventNewsValidatorTests
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenEventNewsIsNull()
+    {
+        var command = new UpdateEventNewsCommand(1, null!);
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(item => item.EventNews);
+    }
+
+    [Fact]
     public void Validate_ShouldNotHaveErrors_WhenDraftIsEmpty()
     {
         var command = new UpdateEventNewsCommand(1, new UpdateEventNewsDto { Status = Status.Draft });
