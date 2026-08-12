@@ -122,6 +122,33 @@ public class GetAdminEventNewsTests
     }
 
     [Fact]
+    public async Task GetByFilters_WhenPaginationIsNotSpecified_AppliesDefaults()
+    {
+        QueryOptions<EventNewsEntity>? listOptions = null;
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(options => listOptions = options)
+            .ReturnsAsync([]);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .ReturnsAsync(0);
+        _mapper.Setup(mapper => mapper.Map<EventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
+            .Returns([]);
+
+        var handler = new GetEventNewsByFiltersHandler(_mapper.Object, _repositoryWrapper.Object);
+
+        var result = await handler.Handle(
+            new GetEventNewsByFiltersQuery(new EventNewsFilterDto()),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(listOptions);
+        Assert.Equal(0, listOptions.Offset);
+        Assert.Equal(20, listOptions.Limit);
+    }
+
+    [Fact]
     public async Task GetByFilters_AppliesCategoryFilterToListAndCountQueries()
     {
         var matchingCategory = new EventNewsCategory { Id = 5, Name = "Events" };

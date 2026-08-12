@@ -14,6 +14,8 @@ namespace VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
 public class GetEventNewsByFiltersHandler
     : IRequestHandler<GetEventNewsByFiltersQuery, Result<PaginationResult<EventNewsDto>>>
 {
+    private const int DefaultLimit = 20;
+
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -44,7 +46,7 @@ public class GetEventNewsByFiltersHandler
                 .Include(entity => entity.Localizations)
                     .ThenInclude(localization => localization.Language),
             Offset = request.Filter.Offset ?? 0,
-            Limit = request.Filter.Limit ?? 0,
+            Limit = request.Filter.Limit ?? DefaultLimit,
             OrderByDESC = eventNews => eventNews.Id,
             AsNoTracking = true
         };

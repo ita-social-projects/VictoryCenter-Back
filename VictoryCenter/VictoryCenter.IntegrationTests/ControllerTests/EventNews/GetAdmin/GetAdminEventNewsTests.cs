@@ -50,6 +50,23 @@ public class GetAdminEventNewsTests : BaseTestClass
     }
 
     [Fact]
+    public async Task GetByFilters_WhenOffsetExceedsTotalCount_ShouldReturnEmptyPage()
+    {
+        var allItems = await Fixture.HttpClient.GetFromJsonAsync<PaginationResult<EventNewsDto>>(EndpointUri);
+        Assert.NotNull(allItems);
+        var offsetBeyondLastItem = allItems.TotalItemsCount + 1;
+
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?offset={offsetBeyondLastItem}&limit=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+        Assert.NotNull(page);
+        Assert.Empty(page.Items);
+        Assert.Equal(allItems.TotalItemsCount, page.TotalItemsCount);
+    }
+
+    [Fact]
     public async Task GetByFilters_ShouldFilterByAssignedCategory()
     {
         var allItems = await Fixture.HttpClient.GetFromJsonAsync<PaginationResult<EventNewsDto>>(EndpointUri);
