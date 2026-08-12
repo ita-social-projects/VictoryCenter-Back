@@ -221,18 +221,8 @@ public class UpdateMainPageTests : BaseTestClass
 
     private async Task<EntityMainPage> EnsureMainPageExistsAsync()
     {
-        var existing = await Fixture.DbContext.MainPages
-            .Include(m => m.MainAboutUs)
-            .Include(m => m.MainPartners)
-            .Include(m => m.MainDonations)
-            .Include(m => m.ImpactStatistics)
-                .ThenInclude(s => s!.Metrics)
-            .FirstOrDefaultAsync();
-
-        if (existing is not null && existing.ImpactStatistics?.Metrics.Count > 1)
-        {
-            return existing;
-        }
+        Fixture.DbContext.MainPages.RemoveRange(Fixture.DbContext.MainPages);
+        await Fixture.DbContext.SaveChangesAsync();
 
         var image = await EnsureImageExistsAsync();
         var mainPage = new EntityMainPage

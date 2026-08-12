@@ -56,6 +56,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
+using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -270,6 +271,7 @@ public static class ServicesConfiguration
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
+        await app.CreateInitialMainPage();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -598,6 +600,27 @@ public static class ServicesConfiguration
         {
             throw new InvalidOperationException(settingsResult.Errors[0].Message);
         }
+    }
+
+    private static async Task CreateInitialMainPage(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        if (await dbContext.MainPages.AnyAsync())
+        {
+            return;
+        }
+
+        var mainPage = new MainPageEntity
+        {
+            Title = "Коні з досвідом зцілення",
+            Description = "Коли тіло та душа відновлюються — народжується справжня сила.",
+            CreatedAt = DateTimeOffset.UtcNow,
+            ImageId = null
+        };
+
+        dbContext.MainPages.Add(mainPage);
+        await dbContext.SaveChangesAsync();
     }
 
     private static void AddOpenApi(this IServiceCollection services)

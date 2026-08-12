@@ -114,7 +114,7 @@ public class CreateMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateMainPage_WithNonExistentImageId_ShouldReturnNotFound()
+    public async Task CreateMainPage_WithNonExistentImageId_ShouldReturnBadRequest()
     {
         var maxImageId = await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0;
         var nonExistentImageId = maxImageId + 1000;
@@ -133,7 +133,7 @@ public class CreateMainPageTests : BaseTestClass
 
         var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class CreateMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateMainPage_WithNonExistentMainDonationsImageId_ShouldReturnNotFound()
+    public async Task CreateMainPage_WithNonExistentMainDonationsImageId_ShouldReturnBadRequest()
     {
         var maxImageId = await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0;
         var nonExistentImageId = maxImageId + 1000;
@@ -185,7 +185,7 @@ public class CreateMainPageTests : BaseTestClass
 
         var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     private async Task<Image> EnsureImageExistsAsync()
