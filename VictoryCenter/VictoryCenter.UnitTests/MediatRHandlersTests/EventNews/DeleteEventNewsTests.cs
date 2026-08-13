@@ -6,6 +6,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
+using EventNewsPredicate = System.Linq.Expressions.Expression<System.Func<VictoryCenter.DAL.Entities.EventNews, bool>>;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.EventNews;
 
@@ -100,6 +101,9 @@ public class DeleteEventNewsTests
         _repositoryWrapper
             .Setup(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(new DbUpdateConcurrencyException());
+        _eventNewsRepository
+            .Setup(repository => repository.ExistsAsync(It.IsAny<EventNewsPredicate>()))
+            .ReturnsAsync(false);
         var handler = new DeleteEventNewsHandler(_repositoryWrapper.Object);
 
         var result = await handler.Handle(new DeleteEventNewsCommand(eventNews.Id), CancellationToken.None);
@@ -111,7 +115,27 @@ public class DeleteEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldPropagateUnexpectedDatabaseException()
+    public async Task Handle_ShouldPropagateConcurrencyException_WhenEventNewsStillExists()
+    {
+        var eventNews = EventNews(10);
+        var exception = new DbUpdateConcurrencyException();
+        SetupEventNews(eventNews);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(exception);
+        _eventNewsRepository
+            .Setup(repository => repository.ExistsAsync(It.IsAny<EventNewsPredicate>()))
+            .ReturnsAsync(true);
+        var handler = new DeleteEventNewsHandler(_repositoryWrapper.Object);
+
+        var actualException = await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() =>
+            handler.Handle(new DeleteEventNewsCommand(eventNews.Id), CancellationToken.None));
+
+        Assert.Same(exception, actualException);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldPropagateNonConcurrencyDatabaseException()
     {
         var eventNews = EventNews(10);
         SetupEventNews(eventNews);

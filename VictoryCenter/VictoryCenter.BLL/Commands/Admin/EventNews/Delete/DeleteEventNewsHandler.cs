@@ -47,7 +47,13 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
+            if (!await _repositoryWrapper.EventNewsRepository.ExistsAsync(
+                    entity => entity.Id == request.Id))
+            {
+                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
+            }
+
+            throw;
         }
     }
 }

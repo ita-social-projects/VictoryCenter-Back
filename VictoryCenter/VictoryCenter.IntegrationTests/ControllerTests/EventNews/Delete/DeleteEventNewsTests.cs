@@ -52,10 +52,9 @@ public class DeleteEventNewsTests : BaseTestClass
         Assert.False(await Fixture.DbContext.EventNewsLocalizations
             .AsNoTracking()
             .AnyAsync(localization => localization.EntityId == eventNewsId));
-        Assert.False(await Fixture.DbContext
-            .Set<Dictionary<string, object>>("EventNewsEventNewsCategory")
+        Assert.False(await Fixture.DbContext.EventNewsCategories
             .AsNoTracking()
-            .AnyAsync(join => EF.Property<long>(join, "EventsNewsId") == eventNewsId));
+            .AnyAsync(category => category.EventsNews.Any(entity => entity.Id == eventNewsId)));
         Assert.True(await Fixture.DbContext.Images
             .AsNoTracking()
             .AnyAsync(image => image.Id == imageId));
