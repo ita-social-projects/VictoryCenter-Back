@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
@@ -18,37 +17,30 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Create;
 
 public class CreateMainPageTests : BaseTestClass
 {
-    private IDbContextTransaction? _transaction;
+    private readonly IDatabaseCleaner _dbCleaner;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public CreateMainPageTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
+        _dbCleaner = new MainPageDatabaseCleaner(fixture);
     }
 
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync();
-        _transaction = await Fixture.DbContext.Database.BeginTransactionAsync();
+        await _dbCleaner.CleanupAsync();
     }
 
     public override async Task DisposeAsync()
     {
-        if (_transaction is not null)
-        {
-            await _transaction.RollbackAsync();
-            await _transaction.DisposeAsync();
-        }
-
+        await _dbCleaner.CleanupAsync();
         await base.DisposeAsync();
     }
 
     [Fact]
     public async Task CreateMainPage_WithValidData_ShouldReturnOkAndCreateEntity()
     {
-        Fixture.DbContext.MainPages.RemoveRange(Fixture.DbContext.MainPages);
-        await Fixture.DbContext.SaveChangesAsync();
-
         var image = await EnsureImageExistsAsync();
 
         var createDto = new CreateMainPageDto
@@ -133,7 +125,7 @@ public class CreateMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateMainPage_WithNonExistentImageId_ShouldReturnBadRequest()
+    public async Task CreateMainPage_WithNonExistentImageId_ShouldReturnNotFound()
     {
         var maxImageId = await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0;
         var nonExistentImageId = maxImageId + 1000;
@@ -152,7 +144,7 @@ public class CreateMainPageTests : BaseTestClass
 
         var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     [Fact]
@@ -180,7 +172,7 @@ public class CreateMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task CreateMainPage_WithNonExistentMainDonationsImageId_ShouldReturnBadRequest()
+    public async Task CreateMainPage_WithNonExistentMainDonationsImageId_ShouldReturnNotFound()
     {
         var maxImageId = await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0;
         var nonExistentImageId = maxImageId + 1000;
@@ -204,7 +196,7 @@ public class CreateMainPageTests : BaseTestClass
 
         var response = await Fixture.HttpClient.PostAsync(_endpointUri, content);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
     private async Task<Image> EnsureImageExistsAsync()
