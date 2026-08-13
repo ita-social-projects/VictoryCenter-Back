@@ -604,8 +604,10 @@ public static class ServicesConfiguration
 
     private static async Task CreateInitialMainPage(this WebApplication app)
     {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
         if (await dbContext.MainPages.AnyAsync())
         {
             return;
@@ -620,7 +622,21 @@ public static class ServicesConfiguration
         };
 
         dbContext.MainPages.Add(mainPage);
-        await dbContext.SaveChangesAsync();
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            logger.LogInformation("MainPage was already seeded by a concurrent instance; skipping.");
+        }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        return ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx
+            && sqlEx.Errors.Cast<Microsoft.Data.SqlClient.SqlError>().Any(e => e.Number is 2601 or 2627);
     }
 
     private static void AddOpenApi(this IServiceCollection services)

@@ -50,10 +50,10 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
                 Title = string.Empty,
                 Description = string.Empty,
                 Image = null,
-                MainAboutUs = new MainAboutUsDto(),
-                MainPartners = new MainPartnersDto(),
-                MainDonations = new MainDonationsDto(),
-                ImpactStatistics = new ImpactStatisticDto(),
+                MainAboutUs = new MainAboutUsDto { Title = string.Empty, Description = string.Empty },
+                MainPartners = new MainPartnersDto { Title = string.Empty, Description = string.Empty },
+                MainDonations = new MainDonationsDto { Title = string.Empty, Description = string.Empty },
+                ImpactStatistics = new ImpactStatisticDto { Title = string.Empty },
                 Localizations = []
             };
             return Result.Ok(emptyMainPageDto);
