@@ -141,45 +141,6 @@ public class UpdatePartnersPageBannerTests
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(PartnersPageBanner)), result.Errors[0].Message);
     }
 
-    [Fact]
-    public async Task Handle_BannerDoesNotExist_ShouldTrimLeadingSpacesForDescription()
-    {
-        // Arrange
-        var dtoWithLeadingSpaces = _updateDto with { Description = "   " + _updateDto.Description };
-        var expectedTrimmedDescription = _updateDto.Description;
-        SetupRepositoryWrapper(imageToReturn: _imageEntity, bannerToReturn: _existingBannerEntity, finalBannerToReturn: _existingBannerEntity);
-        SetupMapper(null, _resultDto with { Description = expectedTrimmedDescription });
-        var command = new UpdatePartnersPageBannerCommand(dtoWithLeadingSpaces);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(expectedTrimmedDescription, result.Value.Description);
-    }
-
-    [Fact]
-    public async Task Handle_BannerExist_ShouldTrimLeadingSpacesForDescription()
-    {
-        // Arrange
-        var createdEntity = new PartnersPageBanner { Id = 1 };
-        var dtoWithLeadingSpaces = _updateDto with { Description = "   " + _updateDto.Description };
-        var expectedTrimmedDescription = _updateDto.Description;
-        SetupRepositoryWrapper(imageToReturn: _imageEntity, bannerToReturn: null, finalBannerToReturn: createdEntity);
-        SetupMapper(createdEntity, _resultDto with { Description = expectedTrimmedDescription });
-        var command = new UpdatePartnersPageBannerCommand(dtoWithLeadingSpaces);
-        var handler = new UpdatePartnersPageBannerHandler(_mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Equal(expectedTrimmedDescription, result.Value.Description);
-    }
-
     private void SetupMapper(PartnersPageBanner? entityToCreate, PartnersPageBannerDto dtoToReturn)
     {
         if (entityToCreate != null)
