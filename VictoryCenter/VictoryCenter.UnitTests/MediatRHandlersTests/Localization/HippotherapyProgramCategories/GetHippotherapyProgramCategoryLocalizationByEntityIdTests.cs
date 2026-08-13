@@ -101,6 +101,6 @@ public class GetHippotherapyProgramCategoryLocalizationByEntityIdTests
         _mockMapper
             .Setup(m => m.Map<List<HippotherapyProgramCategoryLocalizationDto>>(
                 It.IsAny<IEnumerable<HippotherapyProgramCategoryLocalization>>()))
-            .Returns(dtosToReturn.ToList());
+            .Returns([.. dtosToReturn]);
     }
 }
