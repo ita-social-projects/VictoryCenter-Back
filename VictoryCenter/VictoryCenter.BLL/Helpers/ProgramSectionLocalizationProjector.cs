@@ -15,22 +15,25 @@ public static class ProgramSectionLocalizationProjector
         LocalizationInfoDto languageInfo,
         IMapper mapper)
     {
-        return sections
-            .Select(section => new HippotherapyProgramSectionLocalizationDto
+        return
+        [
+            .. sections.Select(section => new HippotherapyProgramSectionLocalizationDto
             {
                 EntityId = section.Id,
-                Contents = section.Contents
-                    .Select(content => ProjectContent(content, languageId, languageInfo, mapper))
-                    .ToList(),
-            })
-            .ToList();
+                Contents =
+                [
+                    .. section.Contents
+                        .Select(content => ProjectContent(content, languageId, languageInfo, mapper)),
+                ],
+            }),
+        ];
     }
 
     private static HippotherapyProgramSectionContentLocalizationDto ProjectContent(
         ProgramSectionContent content,
         long languageId,
         LocalizationInfoDto languageInfo,
-        IMapper mapper)
+        IMapperBase mapper)
     {
         var localization = content.Localizations
             .FirstOrDefault(l => l.LanguageId == languageId);

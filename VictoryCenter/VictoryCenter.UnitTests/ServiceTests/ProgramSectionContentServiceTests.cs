@@ -415,8 +415,8 @@ public class ProgramSectionContentServiceTests
             ContentType = ContentType.Title,
             Order = 0,
             SectionId = 10,
-            Localizations = new List<ProgramSectionContentLocalization>
-            {
+            Localizations =
+            [
                 new()
                 {
                     EntityId = 1,
@@ -424,7 +424,8 @@ public class ProgramSectionContentServiceTests
                     Title = "Translated title",
                     TranslationStatus = TranslationStatus.Relevant
                 }
-            }
+
+            ]
         };
 
         var newlyAddedContent = new TestProgramSectionContent
@@ -433,7 +434,7 @@ public class ProgramSectionContentServiceTests
             ContentType = ContentType.Description,
             Order = 1,
             SectionId = 10,
-            Localizations = new List<ProgramSectionContentLocalization>()
+            Localizations = []
         };
 
         var section = new HippotherapyProgramSection
@@ -442,7 +443,7 @@ public class ProgramSectionContentServiceTests
             ProgramId = 1,
             Template = ProgramSectionTemplate.TextOnly,
             Order = 1,
-            Contents = new List<ProgramSectionContent> { translatedContent, newlyAddedContent }
+            Contents = [translatedContent, newlyAddedContent]
         };
 
         var programLocalization = new HippotherapyProgramLocalization
@@ -456,7 +457,7 @@ public class ProgramSectionContentServiceTests
                 Name = "Test Program",
                 Slug = "test-program",
                 Status = Status.Published,
-                Sections = new List<HippotherapyProgramSection> { section }
+                Sections = [section]
             }
         };
 

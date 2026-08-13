@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -43,7 +44,7 @@ public class GetHippotherapyProgramLocalizationByEntityIdHandler : IRequestHandl
         var list = new Dictionary<long, List<HippotherapyProgramSectionLocalizationDto>>();
         foreach (var program in programs)
         {
-            var sectionDto = await GetProgramSections(program, program.LanguageId);
+            var sectionDto = await GetProgramSectionsAsync(program, program.LanguageId);
             list.Add(program.LanguageId, sectionDto);
         }
 
@@ -60,7 +61,7 @@ public class GetHippotherapyProgramLocalizationByEntityIdHandler : IRequestHandl
         return Result.Ok(programLocalizations);
     }
 
-    private Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSections(HippotherapyProgramLocalization program, long languageId)
+    private Task<List<HippotherapyProgramSectionLocalizationDto>> GetProgramSectionsAsync(LocalizationBase<HippotherapyProgram> program, long languageId)
     {
         if (program is null)
         {

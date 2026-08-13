@@ -103,8 +103,8 @@ public class GetHippotherapyProgramLocalizationsByEntityIdHandlerTests
         var translatedContent = new TitleProgramContent
         {
             Id = 1,
-            Localizations = new List<ProgramSectionContentLocalization>
-            {
+            Localizations =
+            [
                 new()
                 {
                     EntityId = 1,
@@ -113,12 +113,13 @@ public class GetHippotherapyProgramLocalizationsByEntityIdHandlerTests
                     Title = "Content 1",
                     Language = new LocalizationLanguage { Id = 1, Name = "English", Code = "en" }
                 }
-            }
+
+            ]
         };
         var newlyAddedContent = new DescriptionProgramContent
         {
             Id = 2,
-            Localizations = new List<ProgramSectionContentLocalization>()
+            Localizations = []
         };
 
         var localizations = new List<HippotherapyProgramLocalization>
@@ -134,14 +135,15 @@ public class GetHippotherapyProgramLocalizationsByEntityIdHandlerTests
                 Entity = new HippotherapyProgram
                 {
                     Id = 1,
-                    Sections = new List<HippotherapyProgramSection>
-                    {
+                    Sections =
+                    [
                         new()
                         {
                             Id = 1,
-                            Contents = new List<ProgramSectionContent> { translatedContent, newlyAddedContent }
+                            Contents = [translatedContent, newlyAddedContent]
                         }
-                    }
+
+                    ]
                 }
             }
         };
