@@ -26,18 +26,21 @@ public class CreateMainPageTests : BaseTestClass
     {
     }
 
-    public async Task InitializeAsync()
+    public override async Task InitializeAsync()
     {
+        await base.InitializeAsync();
         _transaction = await Fixture.DbContext.Database.BeginTransactionAsync();
     }
 
-    public async Task DisposeAsync()
+    public override async Task DisposeAsync()
     {
         if (_transaction is not null)
         {
             await _transaction.RollbackAsync();
             await _transaction.DisposeAsync();
         }
+
+        await base.DisposeAsync();
     }
 
     [Fact]
