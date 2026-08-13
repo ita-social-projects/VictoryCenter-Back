@@ -15,8 +15,8 @@ public class GetHippotherapyProgramCategoryLocalizationByEntityIdTests
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly GetHippotherapyProgramCategoryLocalizationByEntityIdHandler _handler;
 
-    private readonly List<HippotherapyProgramCategoryLocalization> _entities = new()
-    {
+    private readonly List<HippotherapyProgramCategoryLocalization> _entities =
+    [
         new HippotherapyProgramCategoryLocalization
         {
             EntityId = 1,
@@ -33,10 +33,11 @@ public class GetHippotherapyProgramCategoryLocalizationByEntityIdTests
             Language = new LocalizationLanguage { Id = 3, Code = "de", CreatedAt = DateTimeOffset.UtcNow },
             CreatedAt = DateTimeOffset.UtcNow
         }
-    };
 
-    private readonly List<HippotherapyProgramCategoryLocalizationDto> _dtos = new()
-    {
+    ];
+
+    private readonly List<HippotherapyProgramCategoryLocalizationDto> _dtos =
+    [
         new HippotherapyProgramCategoryLocalizationDto
         {
             EntityId = 1,
@@ -49,7 +50,8 @@ public class GetHippotherapyProgramCategoryLocalizationByEntityIdTests
             LocalizationInfoDto = new LocalizationInfoDto { Id = 3, Code = "de" },
             Name = "German Name"
         }
-    };
+
+    ];
 
     public GetHippotherapyProgramCategoryLocalizationByEntityIdTests()
     {
@@ -76,8 +78,8 @@ public class GetHippotherapyProgramCategoryLocalizationByEntityIdTests
     [Fact]
     public async Task Handle_ShouldReturnEmptyList_WhenEntityIdDoesNotExist()
     {
-        SetupRepositoryWrapper(new List<HippotherapyProgramCategoryLocalization>());
-        SetupMapper(new List<HippotherapyProgramCategoryLocalizationDto>());
+        SetupRepositoryWrapper([]);
+        SetupMapper([]);
 
         var query = new GetHippotherapyProgramCategoryLocalizationByEntityIdQuery(999);
         var result = await _handler.Handle(query, CancellationToken.None);

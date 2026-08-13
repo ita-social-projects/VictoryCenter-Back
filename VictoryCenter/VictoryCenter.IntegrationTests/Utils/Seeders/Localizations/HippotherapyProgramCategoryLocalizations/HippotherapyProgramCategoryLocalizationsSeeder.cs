@@ -28,20 +28,20 @@ public class HippotherapyProgramCategoryLocalizationsSeeder : ISeeder
     {
         try
         {
-            _categories.AddRange(new List<HippotherapyProgramCategory>
-            {
+            _categories.AddRange(
+            [
                 new() { Name = "Localization Test Category 1", CreatedAt = DateTimeOffset.UtcNow },
                 new() { Name = "Localization Test Category 2", CreatedAt = DateTimeOffset.UtcNow },
-            });
+            ]);
 
             await _dbContext.HippotherapyProgramCategories.AddRangeAsync(_categories);
             await _dbContext.SaveChangesAsync();
 
-            _localizations.AddRange(new List<HippotherapyProgramCategoryLocalization>
-            {
+            _localizations.AddRange(
+            [
                 new() { EntityId = _categories[0].Id, LanguageId = 2, Name = "English Name 1", CreatedAt = DateTimeOffset.UtcNow },
                 new() { EntityId = _categories[1].Id, LanguageId = 2, Name = "English Name 2", CreatedAt = DateTimeOffset.UtcNow },
-            });
+            ]);
 
             await _dbContext.HippotherapyProgramCategoryLocalizations.AddRangeAsync(_localizations);
             await _dbContext.SaveChangesAsync();

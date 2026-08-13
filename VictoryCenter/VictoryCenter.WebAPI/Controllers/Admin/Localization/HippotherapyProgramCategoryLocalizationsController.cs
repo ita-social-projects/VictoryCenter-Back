@@ -11,7 +11,6 @@ public class HippotherapyProgramCategoryLocalizationsController : AuthorizedApiC
 {
     [HttpGet("{entityId:long}")]
     [ProducesResponseType(typeof(List<HippotherapyProgramCategoryLocalizationDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetHippotherapyProgramCategoryLocalizations(
         [FromRoute] long entityId)
     {

@@ -12,6 +12,5 @@ public class HippotherapyProgramCategory : BaseEntity, ITranslatedEntity<Hippoth
     public ICollection<ReportProgramExpendituresRecord> ReportProgramExpendituresRecords { get; set; } =
         new List<ReportProgramExpendituresRecord>();
 
-    public ICollection<HippotherapyProgramCategoryLocalization> Localizations { get; set; } =
-        new List<HippotherapyProgramCategoryLocalization>();
+    public ICollection<HippotherapyProgramCategoryLocalization> Localizations { get; set; } = [];
 }
