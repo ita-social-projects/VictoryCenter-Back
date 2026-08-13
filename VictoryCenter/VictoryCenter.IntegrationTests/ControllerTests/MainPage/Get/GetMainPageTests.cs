@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
@@ -13,11 +14,26 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Get;
 
 public class GetMainPageTests : BaseTestClass
 {
+    private IDbContextTransaction? _transaction;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public GetMainPageTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
+    }
+
+    public async Task InitializeAsync()
+    {
+        _transaction = await Fixture.DbContext.Database.BeginTransactionAsync();
+    }
+
+    public async Task DisposeAsync()
+    {
+        if (_transaction is not null)
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+        }
     }
 
     [Fact]
