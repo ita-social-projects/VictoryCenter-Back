@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
@@ -80,6 +81,8 @@ public interface IRepositoryWrapper
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
     IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository { get; }
+
+    IHippotherapyProgramCategoryLocalizationsRepository HippotherapyProgramCategoryLocalizationsRepository { get; }
 
     IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository { get; }
 

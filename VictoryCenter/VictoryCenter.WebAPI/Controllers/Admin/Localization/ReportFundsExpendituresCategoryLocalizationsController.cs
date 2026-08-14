@@ -12,7 +12,6 @@ public class ReportFundsExpendituresCategoryLocalizationsController : Authorized
 {
     [HttpGet("{entityId:long}")]
     [ProducesResponseType(typeof(List<ReportFundsExpendituresCategoryLocalizationDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetReportFundsExpendituresCategoryLocalizations(
         [FromRoute] long entityId)
     {

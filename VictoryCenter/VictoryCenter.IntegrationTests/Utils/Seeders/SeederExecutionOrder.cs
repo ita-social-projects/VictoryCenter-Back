@@ -18,6 +18,7 @@ public enum SeederExecutionOrder
     TeamCategoryLocalizations,
     ReportFundsExpendituresCategoryLocalizations,
     ReportFundsExpendituresSettingsLocalizations,
+    HippotherapyProgramCategoryLocalizations,
     EventNewsCategories,
     EventNews,
 }

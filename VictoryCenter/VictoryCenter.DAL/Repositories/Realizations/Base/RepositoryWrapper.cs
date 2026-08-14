@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
@@ -44,6 +45,7 @@ using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.ReportFundsExpendituresCategories;
@@ -128,6 +130,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ISupportOptionsRepository? _supportOptionsRepository;
     private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
     private IReportFundsExpendituresCategoryLocalizationsRepository? _reportFundsExpendituresCategoryLocalizationsRepository;
+    private IHippotherapyProgramCategoryLocalizationsRepository? _hippotherapyProgramCategoryLocalizationsRepository;
     private IReportFundsExpendituresSettingsLocalizationsRepository? _reportFundsExpendituresSettingsLocalizationsRepository;
     private ITeamMemberLocalizationsRepository? _teamMemberLocalizationsRepository;
     private ITeamMembersRepository? _teamMembersRepository;
@@ -257,6 +260,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository =>
         _reportFundsExpendituresCategoryLocalizationsRepository ??=
             new ReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyProgramCategoryLocalizationsRepository HippotherapyProgramCategoryLocalizationsRepository =>
+        _hippotherapyProgramCategoryLocalizationsRepository ??=
+            new HippotherapyProgramCategoryLocalizationsRepository(_victoryCenterDbContext);
 
     public IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository =>
         _reportFundsExpendituresSettingsLocalizationsRepository ??=
