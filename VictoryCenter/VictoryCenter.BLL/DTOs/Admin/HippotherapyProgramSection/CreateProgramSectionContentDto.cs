@@ -4,6 +4,8 @@ namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 
 public record CreateProgramSectionContentDto
 {
+    public long? Id { get; init; }
+
     public ContentType ContentType { get; init; }
 
     public int Order { get; init; }

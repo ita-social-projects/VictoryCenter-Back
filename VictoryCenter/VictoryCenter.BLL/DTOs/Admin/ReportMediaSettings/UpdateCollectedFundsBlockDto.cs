@@ -4,5 +4,5 @@ public record UpdateCollectedFundsBlockDto
 {
     public string Title { get; init; } = null!;
     public string TitleEn { get; init; } = null!;
-    public long ImageId { get; init; }
+    public long? ImageId { get; init; }
 }

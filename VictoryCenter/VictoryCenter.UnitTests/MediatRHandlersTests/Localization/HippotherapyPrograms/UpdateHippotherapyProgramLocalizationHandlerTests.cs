@@ -26,7 +26,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IValidator<UpdateHippotherapyProgramLocalizationCommand>> _mockValidator;
     private readonly Mock<ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization>> _mockProgramLocalizationService;
-    private readonly Mock<ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization>> _mockContentLocalizationService;
+    private readonly Mock<IProgramSectionContentLocalizationTracker> _mockContentLocalizationTracker;
     private readonly Mock<IProgramSectionContentService> _mockProgramSectionContentService;
     private readonly UpdateHippotherapyProgramLocalizationHandler _handler;
 
@@ -98,7 +98,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockValidator = new Mock<IValidator<UpdateHippotherapyProgramLocalizationCommand>>();
         _mockProgramLocalizationService = new Mock<ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization>>();
-        _mockContentLocalizationService = new Mock<ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization>>();
+        _mockContentLocalizationTracker = new Mock<IProgramSectionContentLocalizationTracker>();
         _mockProgramSectionContentService = new Mock<IProgramSectionContentService>();
 
         _handler = new UpdateHippotherapyProgramLocalizationHandler(
@@ -107,7 +107,7 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
             _mockValidator.Object,
             _mockProgramSectionContentService.Object,
             _mockProgramLocalizationService.Object,
-            _mockContentLocalizationService.Object);
+            _mockContentLocalizationTracker.Object);
     }
 
     [Fact]
@@ -321,19 +321,12 @@ public class UpdateHippotherapyProgramLocalizationHandlerTests
             .Setup(m => m.Map<LocalizationInfoDto>(It.IsAny<LocalizationLanguage>()))
             .Returns(new LocalizationInfoDto { Id = 2, Code = "en" });
 
-        _mockMapper
-            .Setup(m => m.Map<List<ProgramSectionContentLocalization>>(It.IsAny<List<UpdateHippotherapyProgramSectionContentLocalizationDto>>()))
-            .Returns(new List<ProgramSectionContentLocalization>
-            {
-                new()
-            });
-
         _mockProgramLocalizationService
             .Setup(s => s.TrackEntityLocalizationForUpdateAsync(It.IsAny<HippotherapyProgramLocalization>()))
             .Returns(Task.CompletedTask);
 
-        _mockContentLocalizationService
-            .Setup(s => s.TrackEntityLocalizationAsync(It.IsAny<IEnumerable<ProgramSectionContentLocalization>>(), It.IsAny<bool>()))
+        _mockContentLocalizationTracker
+            .Setup(t => t.TrackAsync(It.IsAny<IEnumerable<UpdateHippotherapyProgramSectionContentLocalizationDto>>(), It.IsAny<long>()))
             .Returns(Task.CompletedTask);
 
         _mockProgramSectionContentService

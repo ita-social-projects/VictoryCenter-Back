@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -42,8 +43,10 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
             var section = await _repositoryWrapper.PartnerSectionsRepository.GetFirstOrDefaultAsync(new()
             {
                 Filter = s => s.Id == request.Id,
-                Include = q => q.Include(s => s.Partners),
-                AsNoTracking = false
+                Include = q => q.Include(s => s.Partners).ThenInclude(p => p.Localizations)
+                    .Include(s => s.Localizations),
+                AsNoTracking = false,
+                AsSplitQuery = true
             });
 
             if (section is null)
@@ -75,6 +78,8 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
             // Step 5: Perform updates within a transaction
             using (var scope = _repositoryWrapper.BeginTransaction())
             {
+                SetSectionTranslationsToOutdated(request.UpdateDto, section);
+
                 _mapper.Map(request.UpdateDto, section);
 
                 var partnersDict = section.Partners.ToDictionary(p => p.Id);
@@ -193,7 +198,31 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         {
             if (partnersDict.TryGetValue(partnerDto.Id, out var existingPartner))
             {
+                SetPartnerTranslationsToOutdated(partnerDto, existingPartner);
                 _mapper.Map(partnerDto, existingPartner);
+            }
+        }
+    }
+
+    private static void SetSectionTranslationsToOutdated(UpdatePartnersSectionDto dto, PartnerSection section)
+    {
+        if (!string.Equals(dto.Title, section.Title, StringComparison.Ordinal) ||
+            !string.Equals(dto.Description, section.Description, StringComparison.Ordinal))
+        {
+            foreach (var loc in section.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
+        }
+    }
+
+    private static void SetPartnerTranslationsToOutdated(UpdatePartnerDto dto, Partner partner)
+    {
+        if (!string.Equals(dto.Description, partner.Description, StringComparison.Ordinal))
+        {
+            foreach (var loc in partner.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
             }
         }
     }

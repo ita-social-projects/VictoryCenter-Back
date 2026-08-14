@@ -19,6 +19,7 @@ using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
+using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -37,6 +38,7 @@ using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
+using VictoryCenter.BLL.Services.Partners;
 using VictoryCenter.BLL.Services.PaymentService;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
@@ -182,8 +184,10 @@ public static class ServicesConfiguration
 
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
         services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
+        services.AddScoped<IPartnerSectionLocalizationUpdater, PartnerSectionLocalizationUpdater>();
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
+        services.AddScoped<IProgramSectionContentLocalizationTracker, ProgramSectionContentLocalizationTracker>();
 
         services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
 
@@ -208,6 +212,16 @@ public static class ServicesConfiguration
         {
             using IServiceScope localScope = app.Services.CreateScope();
             var victoryCenterDbContext = localScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+            // Integration tests use EF Core InMemory, which does not support relational migration operations.
+            if (!victoryCenterDbContext.Database.IsRelational())
+            {
+                logger.LogInformation(
+                    "Skipping startup migrations for non-relational database provider {DatabaseProvider}",
+                    victoryCenterDbContext.Database.ProviderName);
+                return;
+            }
+
             var pendingMigrations = await victoryCenterDbContext.Database.GetPendingMigrationsAsync();
             var migrations = pendingMigrations.ToList();
 
@@ -240,6 +254,9 @@ public static class ServicesConfiguration
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occurred during startup migration");
+
+            // Do not serve traffic when the application model is newer than the database schema.
+            throw;
         }
     }
 

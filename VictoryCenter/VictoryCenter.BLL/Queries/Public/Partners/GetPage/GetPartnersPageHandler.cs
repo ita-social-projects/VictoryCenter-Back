@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.BLL.DTOs.Public.Partners;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -28,7 +27,12 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
             {
                 Include = q => q
                     .Include(s => s.Partners.OrderBy(p => p.Priority))
-                    .ThenInclude(p => p.Image!),
+                    .ThenInclude(p => p.Image!)
+                    .Include(s => s.Partners.OrderBy(p => p.Priority))
+                    .ThenInclude(p => p.Localizations)
+                        .ThenInclude(l => l.Language)
+                    .Include(s => s.Localizations)
+                        .ThenInclude(l => l.Language),
                 OrderByASC = s => s.Priority,
                 AsNoTracking = true
             });
@@ -36,15 +40,17 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
         var banner = await _repositoryWrapper.PartnersPageBannersRepository
             .GetFirstOrDefaultAsync(new()
             {
-                Include = q => q.Include(b => b.Image!),
+                Include = q => q.Include(b => b.Image!)
+                                .Include(b => b.Localizations)
+                                    .ThenInclude(l => l.Language),
                 AsNoTracking = true
             });
 
-        PartnersPageBannerDto bannerDto;
+        PublicPartnersPageBannerDto bannerDto;
 
         if (banner == null)
         {
-            bannerDto = new PartnersPageBannerDto
+            bannerDto = new PublicPartnersPageBannerDto
             {
                 Title = string.Empty,
                 Description = string.Empty,
@@ -53,13 +59,13 @@ public class GetPartnersPageHandler : IRequestHandler<GetPartnersPageQuery, Resu
         }
         else
         {
-            bannerDto = _mapper.Map<PartnersPageBannerDto>(banner);
+            bannerDto = _mapper.Map<PublicPartnersPageBannerDto>(banner);
         }
 
         var partnersPageDto = new PartnersPageDto
         {
             Banner = bannerDto,
-            Sections = _mapper.Map<IEnumerable<PartnersSectionDto>>(partnerSections)
+            Sections = _mapper.Map<IEnumerable<PublicPartnersSectionDto>>(partnerSections)
         };
 
         return Result.Ok(partnersPageDto);

@@ -15,4 +15,14 @@ public static class DatabaseExceptionHelper
             Number: uniqueIndexViolationErrorNumber or uniqueKeyConstraintViolationErrorNumber
         };
     }
+
+    public static bool IsForeignKeyConstraintException(this DbUpdateException exception)
+    {
+        const int foreignKeyConstraintViolationErrorNumber = 547;
+
+        return exception.InnerException is SqlException
+        {
+            Number: foreignKeyConstraintViolationErrorNumber
+        };
+    }
 }

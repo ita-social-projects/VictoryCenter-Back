@@ -55,6 +55,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
             query = ApplyTracking(query, queryOptions.AsNoTracking);
             query = ApplyInclude(query, queryOptions.Include);
             query = ApplyFilter(query, queryOptions.Filter);
+            query = ApplySplitQuery(query, queryOptions.AsSplitQuery);
         }
 
         return await query.FirstOrDefaultAsync();
@@ -207,6 +208,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         return asNoTracking ? query.AsNoTracking() : query;
     }
 
+    private static IQueryable<T> ApplySplitQuery(IQueryable<T> query, bool asSplitQuery)
+    {
+        return asSplitQuery ? query.AsSplitQuery() : query;
+    }
+
     private static IQueryable<TResult> ApplySelect<TResult>(IQueryable<T> query, Expression<Func<T, TResult>> selector)
     {
         return query.Select(selector);
@@ -219,6 +225,7 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         query = ApplyFilter(query, queryOptions.Filter);
         query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
         query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
+        query = ApplySplitQuery(query, queryOptions.AsSplitQuery);
 
         return query;
     }

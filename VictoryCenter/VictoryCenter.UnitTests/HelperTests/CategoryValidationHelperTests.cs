@@ -3,7 +3,6 @@ using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -11,17 +10,11 @@ namespace VictoryCenter.UnitTests.HelperTests;
 
 public class CategoryValidationHelperTests
 {
-    private readonly Mock<IRepositoryWrapper> _wrapperMock;
     private readonly Mock<IHippotherapyProgramCategoriesRepository> _categoryRepoMock;
 
     public CategoryValidationHelperTests()
     {
-        _wrapperMock = new Mock<IRepositoryWrapper>();
         _categoryRepoMock = new Mock<IHippotherapyProgramCategoriesRepository>();
-
-        _wrapperMock
-            .SetupGet(w => w.HippotherapyProgramCategoriesRepository)
-            .Returns(_categoryRepoMock.Object);
     }
 
     [Fact]
@@ -42,7 +35,7 @@ public class CategoryValidationHelperTests
 
         // Act
         Result<ICollection<HippotherapyProgramCategory>> result =
-            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_wrapperMock.Object, requestedIds);
+            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_categoryRepoMock.Object, requestedIds);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -71,13 +64,11 @@ public class CategoryValidationHelperTests
             .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync(foundCategories);
 
-        var expectedMessage = ErrorMessagesConstants.NotFound(
-            "2, 4",
-            typeof(HippotherapyProgramCategory));
+        var expectedMessage = ErrorMessagesConstants.NotFound([2, 4], typeof(HippotherapyProgramCategory));
 
         // Act
         Result<ICollection<HippotherapyProgramCategory>> result =
-            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_wrapperMock.Object, requestedIds);
+            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_categoryRepoMock.Object, requestedIds);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -102,13 +93,11 @@ public class CategoryValidationHelperTests
             .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
             .ReturnsAsync(emptyList);
 
-        var expectedMessage = ErrorMessagesConstants.NotFound(
-            "10, 20",
-            typeof(HippotherapyProgramCategory));
+        var expectedMessage = ErrorMessagesConstants.NotFound([10, 20], typeof(HippotherapyProgramCategory));
 
         // Act
         Result<ICollection<HippotherapyProgramCategory>> result =
-            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_wrapperMock.Object, requestedIds);
+            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_categoryRepoMock.Object, requestedIds);
 
         // Assert
         Assert.True(result.IsFailed);
@@ -122,20 +111,18 @@ public class CategoryValidationHelperTests
     {
         // Arrange
         var requestedIds = new List<long>();
-        var emptyList = new List<HippotherapyProgramCategory>();
-
-        _categoryRepoMock
-            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
-            .ReturnsAsync(emptyList);
 
         // Act
         Result<ICollection<HippotherapyProgramCategory>> result =
-            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_wrapperMock.Object, requestedIds);
+            await CategoryValidationHelper.ValidateAndGetCategoriesAsync(_categoryRepoMock.Object, requestedIds);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.NotNull(result.Value);
         Assert.Empty(result.Value);
+        _categoryRepoMock.Verify(
+            repository => repository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()),
+            Times.Never);
     }
 
     private static HippotherapyProgramCategory MakeCategory(long id, string name)

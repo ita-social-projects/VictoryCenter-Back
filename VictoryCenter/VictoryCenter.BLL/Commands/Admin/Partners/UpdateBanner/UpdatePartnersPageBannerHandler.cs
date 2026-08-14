@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -48,7 +49,11 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
             }
 
             var bannerEntity = await _repositoryWrapper.PartnersPageBannersRepository
-                .GetFirstOrDefaultAsync();
+                .GetFirstOrDefaultAsync(new QueryOptions<PartnersPageBanner>
+                {
+                    Include = q => q.Include(b => b.Localizations),
+                    AsNoTracking = false
+                });
 
             if (bannerEntity == null)
             {
@@ -58,6 +63,7 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
             }
             else
             {
+                SetTranslationsToOutdated(request.Dto, bannerEntity);
                 _mapper.Map(request.Dto, bannerEntity);
                 _repositoryWrapper.PartnersPageBannersRepository.Update(bannerEntity);
             }
@@ -68,6 +74,8 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
                 {
                     Filter = b => b.Id == bannerEntity.Id,
                     Include = q => q.Include(b => b.Image!)
+                                    .Include(b => b.Localizations)
+                                        .ThenInclude(l => l.Language)
                 });
 
                 return Result.Ok(_mapper.Map<PartnersPageBannerDto>(result));
@@ -82,6 +90,18 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
         catch (DbUpdateException)
         {
             return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(PartnersPageBanner)));
+        }
+    }
+
+    private static void SetTranslationsToOutdated(UpdatePartnersPageBannerDto dto, PartnersPageBanner entity)
+    {
+        if (!string.Equals(dto.Title, entity.Title, StringComparison.Ordinal) ||
+            !string.Equals(dto.Description, entity.Description, StringComparison.Ordinal))
+        {
+            foreach (var loc in entity.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
     }
 }

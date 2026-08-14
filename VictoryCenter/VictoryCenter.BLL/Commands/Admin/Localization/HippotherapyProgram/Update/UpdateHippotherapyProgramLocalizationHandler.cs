@@ -10,7 +10,6 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
-using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -24,7 +23,7 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
     private readonly IValidator<UpdateHippotherapyProgramLocalizationCommand> _validator;
     private readonly IProgramSectionContentService _programSectionContentService;
     private readonly ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization> _programLocalizationService;
-    private readonly ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> _contentLocalizationService;
+    private readonly IProgramSectionContentLocalizationTracker _contentLocalizationTracker;
 
     public UpdateHippotherapyProgramLocalizationHandler(
         IMapper mapper,
@@ -32,14 +31,14 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         IValidator<UpdateHippotherapyProgramLocalizationCommand> validator,
         IProgramSectionContentService programSectionContentService,
         ILocalizationService<HippotherapyProgramEntity, HippotherapyProgramLocalization> programLocalizationService,
-        ILocalizationService<ProgramSectionContent, ProgramSectionContentLocalization> contentLocalizationService)
+        IProgramSectionContentLocalizationTracker contentLocalizationTracker)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _programSectionContentService = programSectionContentService;
         _programLocalizationService = programLocalizationService;
-        _contentLocalizationService = contentLocalizationService;
+        _contentLocalizationTracker = contentLocalizationTracker;
     }
 
     public async Task<Result<HippotherapyProgramLocalizationDto>> Handle(UpdateHippotherapyProgramLocalizationCommand request, CancellationToken cancellationToken)
@@ -73,19 +72,8 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
             programLocalizationEntity.LanguageId = request.LanguageId;
             await _programLocalizationService.TrackEntityLocalizationForUpdateAsync(programLocalizationEntity);
 
-            var contentDtos = dto.Sections
-                .SelectMany(section => section.Contents ?? [])
-                .ToList();
-
-            var contentLocalizations = _mapper.Map<List<ProgramSectionContentLocalization>>(contentDtos);
-
-            for (int i = 0; i < contentLocalizations.Count; i++)
-            {
-                contentLocalizations[i].EntityId = contentDtos[i].EntityId;
-                contentLocalizations[i].LanguageId = request.LanguageId;
-            }
-
-            await _contentLocalizationService.TrackEntityLocalizationAsync(contentLocalizations, true);
+            var contentDtos = dto.Sections.SelectMany(section => section.Contents ?? []);
+            await _contentLocalizationTracker.TrackAsync(contentDtos, request.LanguageId);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {

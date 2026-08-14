@@ -37,6 +37,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
 
+    public DbSet<HippotherapyProgramCategoryLocalization> HippotherapyProgramCategoryLocalizations { get; set; }
+
     public DbSet<HippotherapyProgram> HippotherapyPrograms { get; set; }
 
     public DbSet<HippotherapyProgramSection> HippotherapyProgramSections { get; set; }
@@ -75,6 +77,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<PartnersPageBanner> PartnersPageBanners { get; set; }
 
+    public DbSet<PartnersPageBannerLocalization> PartnersPageBannerLocalizations { get; set; }
+
+    public DbSet<PartnerSectionLocalization> PartnerSectionLocalizations { get; set; }
+
+    public DbSet<PartnerLocalization> PartnerLocalizations { get; set; }
+
     public DbSet<ChangedLivesBlock> ChangedLivesBlocks { get; set; }
 
     public DbSet<CollectedFundsBlock> CollectedFundsBlocks { get; set; }
@@ -102,6 +110,24 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<ReportFundsExpendituresRecord> ReportFundsExpendituresRecords { get; set; }
 
     public DbSet<ReportProgramExpendituresRecord> ReportProgramExpendituresRecords { get; set; }
+
+    public DbSet<PublishedReportFundsExpendituresRecord> PublishedReportFundsExpendituresRecords { get; set; }
+
+    public DbSet<PublishedReportProgramExpendituresRecord> PublishedReportProgramExpendituresRecords { get; set; }
+
+    public DbSet<PublishedReportFundsExpendituresSnapshot> PublishedReportFundsExpendituresSnapshots { get; set; }
+
+    public DbSet<BackupReportFundsExpendituresSettings> BackupReportFundsExpendituresSettings { get; set; }
+
+    public DbSet<BackupReportFundsExpendituresSettingsLocalization> BackupReportFundsExpendituresSettingsLocalizations { get; set; }
+
+    public DbSet<BackupReportFundsExpendituresCategory> BackupReportFundsExpendituresCategories { get; set; }
+
+    public DbSet<BackupReportFundsExpendituresCategoryLocalization> BackupReportFundsExpendituresCategoryLocalizations { get; set; }
+
+    public DbSet<BackupReportFundsExpendituresRecord> BackupReportFundsExpendituresRecords { get; set; }
+
+    public DbSet<BackupReportProgramExpendituresRecord> BackupReportProgramExpendituresRecords { get; set; }
 
     public DbSet<MainPage> MainPages { get; set; }
 
@@ -134,6 +160,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<HistorySectionContentLocalization> HistorySectionContentLocalizations { get; set; }
 
     public DbSet<EventNewsCategory> EventNewsCategories { get; set; }
+
+    public DbSet<EventNewsCategoryLocalization> EventNewsCategoryLocalizations { get; set; }
 
     public DbSet<EventNews> EventNews { get; set; }
 

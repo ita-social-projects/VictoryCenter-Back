@@ -24,6 +24,8 @@ public class GetPartnersPageBannerHandler : IRequestHandler<GetPartnersPageBanne
             .GetFirstOrDefaultAsync(new()
             {
                 Include = q => q.Include(b => b.Image!)
+                                .Include(b => b.Localizations)
+                                    .ThenInclude(l => l.Language)
             });
 
         var bannerDto = _mapper.Map<PartnersPageBannerDto>(bannerEntity);

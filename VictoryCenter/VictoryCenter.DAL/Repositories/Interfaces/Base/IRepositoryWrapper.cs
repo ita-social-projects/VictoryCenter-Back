@@ -1,4 +1,5 @@
 using System.Transactions;
+using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
@@ -10,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
@@ -17,6 +19,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendit
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
@@ -33,8 +36,13 @@ using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -64,6 +72,9 @@ public interface IRepositoryWrapper
     IPartnerRepository PartnerRepository { get; }
     IPartnerSectionsRepository PartnerSectionsRepository { get; }
     IPartnersPageBannersRepository PartnersPageBannersRepository { get; }
+    IPartnersPageBannerLocalizationsRepository PartnersPageBannerLocalizationsRepository { get; }
+    IPartnerSectionLocalizationsRepository PartnerSectionLocalizationsRepository { get; }
+    IPartnerLocalizationsRepository PartnerLocalizationsRepository { get; }
     IHippotherapyProgramsLocalizationsRepository HippotherapyProgramsLocalizationsRepository { get; }
     IProgramSectionContentsRepository ProgramSectionContentsRepository { get; }
     IProgramSectionContentLocalizationsRepository ProgramSectionContentLocalizationsRepository { get; }
@@ -71,6 +82,8 @@ public interface IRepositoryWrapper
     ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository { get; }
 
     IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository { get; }
+
+    IHippotherapyProgramCategoryLocalizationsRepository HippotherapyProgramCategoryLocalizationsRepository { get; }
 
     IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository { get; }
 
@@ -83,6 +96,17 @@ public interface IRepositoryWrapper
     IReportFundsExpendituresSettingsRepository ReportFundsExpendituresSettingsRepository { get; }
 
     IReportProgramExpendituresRecordsRepository ReportProgramExpendituresRecordsRepository { get; }
+
+    IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository { get; }
+    IPublishedReportProgramExpendituresRecordsRepository PublishedReportProgramExpendituresRecordsRepository { get; }
+    IPublishedReportFundsExpendituresSnapshotRepository PublishedReportFundsExpendituresSnapshotRepository { get; }
+
+    IBackupReportFundsExpendituresSettingsRepository BackupReportFundsExpendituresSettingsRepository { get; }
+    IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository { get; }
+    IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository { get; }
+    IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository { get; }
+    IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository { get; }
+    IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository { get; }
 
     ICompanyProfileRepository CompanyProfileRepository { get; }
     ICompanyProfileContactRepository CompanyProfileContactRepository { get; }
@@ -108,6 +132,7 @@ public interface IRepositoryWrapper
 
     IEventNewsRepository EventNewsRepository { get; }
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
+    IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
 
     IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository { get; }
     IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository { get; }
@@ -119,5 +144,12 @@ public interface IRepositoryWrapper
 
     Task<int> SaveChangesAsync();
 
+    /// <summary>Legacy ambient-scope transaction. Prefer <see cref="BeginTransactionAsync"/> for new code.</summary>
+    /// <returns>A <see cref="TransactionScope"/> with async flow enabled.</returns>
     TransactionScope BeginTransaction();
+
+    /// <summary>Begins an explicit EF Core database transaction on the single underlying connection, avoiding MSDTC escalation.</summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IDbContextTransaction"/> that must be committed or disposed.</returns>
+    Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
 }

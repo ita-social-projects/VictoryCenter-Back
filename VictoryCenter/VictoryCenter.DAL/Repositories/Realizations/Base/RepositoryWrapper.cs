@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Transactions;
+using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
@@ -13,6 +14,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
@@ -45,6 +47,7 @@ using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.ReportFundsExpendituresCategories;
@@ -67,13 +70,25 @@ using VictoryCenter.DAL.Repositories.Realizations.VisitorPages;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Realizations.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.History;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.EventNews;
 using VictoryCenter.DAL.Repositories.Realizations.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
+using VictoryCenter.DAL.Repositories.Realizations.BackupReportFundsExpenditures;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -100,6 +115,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPartnerRepository? _partnerRepository;
     private IPartnerSectionsRepository? _partnerSectionRepository;
     private IPartnersPageBannersRepository? _partnersPageBannersRepository;
+    private IPartnersPageBannerLocalizationsRepository? _partnersPageBannerLocalizationsRepository;
+    private IPartnerSectionLocalizationsRepository? _partnerSectionLocalizationsRepository;
+    private IPartnerLocalizationsRepository? _partnerLocalizationsRepository;
     private IPdfReportRepository? _pdfReportRepository;
     private IPdfSectionLocalizationsRepository? _pdfSectionLocalizationsRepository;
     private IPdfSectionRepository? _pdfSectionRepository;
@@ -114,6 +132,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ISupportOptionsRepository? _supportOptionsRepository;
     private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
     private IReportFundsExpendituresCategoryLocalizationsRepository? _reportFundsExpendituresCategoryLocalizationsRepository;
+    private IHippotherapyProgramCategoryLocalizationsRepository? _hippotherapyProgramCategoryLocalizationsRepository;
     private IReportFundsExpendituresSettingsLocalizationsRepository? _reportFundsExpendituresSettingsLocalizationsRepository;
     private ITeamMemberLocalizationsRepository? _teamMemberLocalizationsRepository;
     private ITeamMembersRepository? _teamMembersRepository;
@@ -139,6 +158,16 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
     private IEventNewsRepository? _eventNewsRepository;
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
+    private IEventNewsCategoryLocalizationsRepository? _eventNewsCategoryLocalizationsRepository;
+    private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
+    private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
+    private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
+    private IBackupReportFundsExpendituresSettingsRepository? _backupReportFundsExpendituresSettingsRepository;
+    private IBackupReportFundsExpendituresSettingsLocalizationsRepository? _backupReportFundsExpendituresSettingsLocalizationsRepository;
+    private IBackupReportFundsExpendituresCategoriesRepository? _backupReportFundsExpendituresCategoriesRepository;
+    private IBackupReportFundsExpendituresCategoryLocalizationsRepository? _backupReportFundsExpendituresCategoryLocalizationsRepository;
+    private IBackupReportFundsExpendituresRecordsRepository? _backupReportFundsExpendituresRecordsRepository;
+    private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
 
@@ -220,12 +249,25 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IPartnersPageBannersRepository PartnersPageBannersRepository => _partnersPageBannersRepository ??=
         new PartnersPageBannersRepository(_victoryCenterDbContext);
 
+    public IPartnersPageBannerLocalizationsRepository PartnersPageBannerLocalizationsRepository => _partnersPageBannerLocalizationsRepository ??=
+        new PartnersPageBannerLocalizationsRepository(_victoryCenterDbContext);
+
+    public IPartnerSectionLocalizationsRepository PartnerSectionLocalizationsRepository => _partnerSectionLocalizationsRepository ??=
+        new PartnerSectionLocalizationsRepository(_victoryCenterDbContext);
+
+    public IPartnerLocalizationsRepository PartnerLocalizationsRepository => _partnerLocalizationsRepository ??=
+        new PartnerLocalizationsRepository(_victoryCenterDbContext);
+
     public ITeamCategoryLocalizationsRepository TeamCategoryLocalizationsRepository =>
         _teamCategoryLocalizationsRepository ??= new TeamCategoryLocalizationRepository(_victoryCenterDbContext);
 
     public IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository =>
         _reportFundsExpendituresCategoryLocalizationsRepository ??=
             new ReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyProgramCategoryLocalizationsRepository HippotherapyProgramCategoryLocalizationsRepository =>
+        _hippotherapyProgramCategoryLocalizationsRepository ??=
+            new HippotherapyProgramCategoryLocalizationsRepository(_victoryCenterDbContext);
 
     public IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository =>
         _reportFundsExpendituresSettingsLocalizationsRepository ??=
@@ -331,6 +373,46 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IEventNewsCategoryRepository EventNewsCategoryRepository =>
         _eventNewsCategoryRepository ??= new EventNewsCategoryRepository(_victoryCenterDbContext);
 
+    public IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository =>
+        _eventNewsCategoryLocalizationsRepository ??=
+            new EventNewsCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository =>
+        _publishedReportFundsExpendituresRecordsRepository ??=
+            new PublishedReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportProgramExpendituresRecordsRepository PublishedReportProgramExpendituresRecordsRepository =>
+        _publishedReportProgramExpendituresRecordsRepository ??=
+            new PublishedReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IPublishedReportFundsExpendituresSnapshotRepository PublishedReportFundsExpendituresSnapshotRepository =>
+        _publishedReportFundsExpendituresSnapshotRepository ??=
+            new PublishedReportFundsExpendituresSnapshotRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresSettingsRepository BackupReportFundsExpendituresSettingsRepository =>
+        _backupReportFundsExpendituresSettingsRepository ??=
+            new BackupReportFundsExpendituresSettingsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository =>
+        _backupReportFundsExpendituresSettingsLocalizationsRepository ??=
+            new BackupReportFundsExpendituresSettingsLocalizationsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository =>
+        _backupReportFundsExpendituresCategoriesRepository ??=
+            new BackupReportFundsExpendituresCategoriesRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository =>
+        _backupReportFundsExpendituresCategoryLocalizationsRepository ??=
+            new BackupReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository =>
+        _backupReportFundsExpendituresRecordsRepository ??=
+            new BackupReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository =>
+        _backupReportProgramExpendituresRecordsRepository ??=
+            new BackupReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
+
     public IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository =>
         _hippotherapyLandingPagesRepository ??= new HippotherapyLandingPagesRepository(_victoryCenterDbContext);
 
@@ -345,6 +427,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     public async Task<int> SaveChangesAsync()
     {
         return await _victoryCenterDbContext.SaveChangesAsync();
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        return _victoryCenterDbContext.Database.BeginTransactionAsync(cancellationToken);
     }
 
     public TransactionScope BeginTransaction()
