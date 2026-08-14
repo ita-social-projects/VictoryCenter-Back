@@ -6,6 +6,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
@@ -37,6 +38,7 @@ using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
@@ -137,6 +139,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHistorySectionContentLocalizationsRepository? _historySectionContentLocalizationsRepository;
     private IEventNewsRepository? _eventNewsRepository;
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
+    private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
+    private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -326,6 +330,12 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IEventNewsCategoryRepository EventNewsCategoryRepository =>
         _eventNewsCategoryRepository ??= new EventNewsCategoryRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository =>
+        _hippotherapyLandingPagesRepository ??= new HippotherapyLandingPagesRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository =>
+        _hippotherapyLandingPageScientificReferencesRepository ??= new HippotherapyLandingPageScientificReferencesRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {
