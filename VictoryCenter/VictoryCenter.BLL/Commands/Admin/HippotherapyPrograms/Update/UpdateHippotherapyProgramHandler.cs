@@ -136,9 +136,10 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 request.UpdateProgramDto.Sections,
                 now,
                 imagesByIdResult.Value,
-                out var programContentsChanged);
+                out var programContentsChanged,
+                out var contentAdded);
 
-            if (sectionAdded)
+            if (sectionAdded || contentAdded)
             {
                 MarkProgramLocalizationsOutdated(program);
             }
@@ -219,9 +220,11 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         List<CreateHippotherapyProgramSectionDto> newSections,
         DateTimeOffset now,
         IReadOnlyDictionary<long, Image> imagesById,
-        out bool anyContentChanged)
+        out bool anyContentChanged,
+        out bool anyContentAdded)
     {
         anyContentChanged = false;
+        anyContentAdded = false;
         var sectionAdded = false;
 
         var oldSectionsById = oldSections
@@ -243,7 +246,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 existingSection.Template = newSectionDto.Template;
                 existingSection.Order = newSectionDto.Order;
 
-                MergeSectionContents(existingSection, newSectionDto, now, imagesById, ref anyContentChanged);
+                MergeSectionContents(existingSection, newSectionDto, now, imagesById, ref anyContentChanged, ref anyContentAdded);
             }
             else
             {
@@ -278,7 +281,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         CreateHippotherapyProgramSectionDto newSectionDto,
         DateTimeOffset now,
         IReadOnlyDictionary<long, Image> imagesById,
-        ref bool anyContentChanged)
+        ref bool anyContentChanged,
+        ref bool anyContentAdded)
     {
         var newContents = newSectionDto.Contents ?? [];
 
@@ -303,6 +307,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
                 if (newContent is not null)
                 {
                     existingSection.Contents.Add(newContent);
+                    anyContentAdded = true;
                 }
             }
         }
