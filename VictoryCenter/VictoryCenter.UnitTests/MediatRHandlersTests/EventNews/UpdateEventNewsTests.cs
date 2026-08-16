@@ -255,6 +255,36 @@ public class UpdateEventNewsTests
     }
 
     [Fact]
+    public async Task Handle_WhenSlugCollisionsExhaustRetryLimit_PropagatesFinalException()
+    {
+        var eventNews = ExistingEventNews();
+        var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
+        var handler = CreateHandler(eventNews);
+        _repositoryWrapper.SetupSequence(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(exception)
+            .ThrowsAsync(exception)
+            .ThrowsAsync(exception);
+        _repositoryWrapper.Setup(wrapper => wrapper.EventNewsRepository.ExistsAsync(
+                It.IsAny<EventNewsPredicate>()))
+            .ReturnsAsync(true);
+        _slugService.SetupSequence(service => service.GenerateUniqueEventNewsSlugAsync(
+                10,
+                "Updated Event Title",
+                CancellationToken.None))
+            .ReturnsAsync("updated-event-title")
+            .ReturnsAsync("updated-event-title-1")
+            .ReturnsAsync("updated-event-title-2");
+
+        var actualException = await Assert.ThrowsAsync<DbUpdateException>(() => handler.Handle(
+            new UpdateEventNewsCommand(10, PublishedDto()),
+            CancellationToken.None));
+
+        Assert.Same(exception, actualException);
+        Assert.Equal("updated-event-title-2", eventNews.Slug);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(3));
+    }
+
+    [Fact]
     public async Task Handle_UniqueConstraintOnNonSlugColumn_PropagatesException()
     {
         var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");

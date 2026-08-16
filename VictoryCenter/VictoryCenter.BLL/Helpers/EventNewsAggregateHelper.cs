@@ -52,15 +52,14 @@ public static class EventNewsAggregateHelper
         string? titleForSlug,
         CancellationToken cancellationToken)
     {
-        for (var attempt = 1; attempt <= MaxSlugSaveAttempts; attempt++)
+        for (var attempt = 1; attempt < MaxSlugSaveAttempts; attempt++)
         {
             try
             {
                 return await repositoryWrapper.SaveChangesAsync();
             }
             catch (DbUpdateException exception) when (
-                attempt < MaxSlugSaveAttempts
-                && !string.IsNullOrWhiteSpace(titleForSlug)
+                !string.IsNullOrWhiteSpace(titleForSlug)
                 && exception.IsUniqueConstraintException())
             {
                 var slugAlreadyExists = !string.IsNullOrWhiteSpace(eventNews.Slug)
@@ -80,6 +79,6 @@ public static class EventNewsAggregateHelper
             }
         }
 
-        return 0;
+        return await repositoryWrapper.SaveChangesAsync();
     }
 }
