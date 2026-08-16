@@ -32,6 +32,18 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
     {
         try
         {
+            if (request.UpdateTeamCategoryDto is not null)
+            {
+                request = request with
+                {
+                    UpdateTeamCategoryDto = request.UpdateTeamCategoryDto with
+                    {
+                        Name = request.UpdateTeamCategoryDto.Name?.Trim()!,
+                        Description = request.UpdateTeamCategoryDto.Description?.Trim()!
+                    }
+                };
+            }
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var duplicateCategory =
