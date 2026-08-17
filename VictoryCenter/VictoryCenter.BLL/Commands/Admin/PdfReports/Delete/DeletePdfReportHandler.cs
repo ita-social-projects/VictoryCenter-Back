@@ -1,9 +1,11 @@
 using FluentResults;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -18,17 +20,20 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
     private readonly IPdfService _pdfService;
     private readonly IReorderService _reorderService;
     private readonly ILogger<DeletePdfReportHandler> _logger;
+    private readonly IHubContext<PdfReportsHub> _hubContext;
 
     public DeletePdfReportHandler(
         IRepositoryWrapper repositoryWrapper,
         IPdfService pdfService,
         IReorderService reorderService,
-        ILogger<DeletePdfReportHandler> logger)
+        ILogger<DeletePdfReportHandler> logger,
+        IHubContext<PdfReportsHub> hubContext)
     {
         _repositoryWrapper = repositoryWrapper;
         _pdfService = pdfService;
         _reorderService = reorderService;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     public async Task<Result<Unit>> Handle(
@@ -75,6 +80,7 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
             _logger.LogError(ex, "Failed to delete blob {BlobName} after deleting PdfReport with Id {PdfReportId}", blobName, request.Id);
         }
 
+        await _hubContext.Clients.All.SendAsync("PdfReportAction", pdfReport.LanguageId, cancellationToken: cancellationToken);
         return Result.Ok(Unit.Value);
     }
 }
