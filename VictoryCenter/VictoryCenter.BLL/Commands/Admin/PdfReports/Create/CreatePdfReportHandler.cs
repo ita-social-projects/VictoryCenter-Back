@@ -2,10 +2,12 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -22,19 +24,22 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
     private readonly IValidator<CreatePdfReportCommand> _validator;
     private readonly IMapper _mapper;
     private readonly IReorderService _reorderService;
+    private readonly IHubContext<PdfReportsHub> _hubContext;
 
     public CreatePdfReportHandler(
         IRepositoryWrapper repositoryWrapper,
         IPdfService pdfService,
         IValidator<CreatePdfReportCommand> validator,
         IMapper mapper,
-        IReorderService reorderService)
+        IReorderService reorderService,
+        IHubContext<PdfReportsHub> hubContext)
     {
         _repositoryWrapper = repositoryWrapper;
         _pdfService = pdfService;
         _mapper = mapper;
         _reorderService = reorderService;
         _validator = validator;
+        _hubContext = hubContext;
     }
 
     public async Task<Result<PdfReportDto>> Handle(CreatePdfReportCommand request, CancellationToken cancellationToken)
@@ -93,6 +98,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
             transaction.Complete();
             committed = true;
             var result = _mapper.Map<PdfReportDto>(pdfReport);
+            await _hubContext.Clients.All.SendAsync("PdfReportCreated", pdfReport.LanguageId, cancellationToken: cancellationToken);
             return Result.Ok(result);
         }
         catch (ValidationException vex)

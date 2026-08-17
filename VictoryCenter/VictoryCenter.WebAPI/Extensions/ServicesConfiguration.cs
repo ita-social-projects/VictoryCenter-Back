@@ -193,6 +193,8 @@ public static class ServicesConfiguration
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
+
+        services.AddSignalR();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
