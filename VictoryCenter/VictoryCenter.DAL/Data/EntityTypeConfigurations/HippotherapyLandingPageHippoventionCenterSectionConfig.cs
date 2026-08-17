@@ -31,7 +31,8 @@ internal class HippotherapyLandingPageHippoventionCenterSectionConfig : IEntityT
 
         entity.HasMany(e => e.HippoventionPros)
             .WithOne(p => p.HippoventionCenterSection)
-            .HasForeignKey(p => p.HippoventionCenterSectionId);
+            .HasForeignKey(p => p.HippoventionCenterSectionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.Property(e => e.CreatedAt)
             .IsRequired();

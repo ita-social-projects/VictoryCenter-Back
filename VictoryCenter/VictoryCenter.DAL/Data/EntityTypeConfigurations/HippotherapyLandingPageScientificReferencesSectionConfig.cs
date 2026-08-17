@@ -24,7 +24,8 @@ internal class HippotherapyLandingPageScientificReferencesSectionConfig : IEntit
 
         entity.HasMany(e => e.ScientificReferences)
             .WithOne(r => r.ScientificReferencesSection)
-            .HasForeignKey(r => r.ScientificReferencesSectionId);
+            .HasForeignKey(r => r.ScientificReferencesSectionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.Property(e => e.CreatedAt)
             .IsRequired();

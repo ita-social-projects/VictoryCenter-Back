@@ -17,12 +17,10 @@ internal class HippotherapyLandingPageScientificReferenceConfig : IEntityTypeCon
             .IsRequired();
 
         entity.Property(e => e.Name)
-            .IsRequired()
-            .HasMaxLength(150);
+            .IsRequired();
 
         entity.Property(e => e.Url)
-            .IsRequired()
-            .HasMaxLength(1000);
+            .IsRequired();
 
         entity.Property(e => e.Priority)
             .IsRequired();

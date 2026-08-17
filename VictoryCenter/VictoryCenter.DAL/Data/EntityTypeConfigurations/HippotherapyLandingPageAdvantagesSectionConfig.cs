@@ -21,7 +21,8 @@ internal class HippotherapyLandingPageAdvantagesSectionConfig : IEntityTypeConfi
 
         entity.HasMany(e => e.AdvantageCards)
             .WithOne(c => c.AdvantagesSection)
-            .HasForeignKey(c => c.AdvantagesSectionId);
+            .HasForeignKey(c => c.AdvantagesSectionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.Property(e => e.CreatedAt)
             .IsRequired();

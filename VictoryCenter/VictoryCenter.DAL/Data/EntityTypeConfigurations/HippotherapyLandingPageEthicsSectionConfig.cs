@@ -31,7 +31,8 @@ internal class HippotherapyLandingPageEthicsSectionConfig : IEntityTypeConfigura
 
         entity.HasMany(e => e.EthicsPrinciples)
             .WithOne(p => p.EthicsSection)
-            .HasForeignKey(p => p.EthicsSectionId);
+            .HasForeignKey(p => p.EthicsSectionId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         entity.Property(e => e.CreatedAt)
             .IsRequired();

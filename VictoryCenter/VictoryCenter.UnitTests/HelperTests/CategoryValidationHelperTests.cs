@@ -1,4 +1,5 @@
 using FluentResults;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
@@ -123,6 +124,25 @@ public class CategoryValidationHelperTests
         _categoryRepoMock.Verify(
             repository => repository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateAndGetCategoriesAsync_WithInclude_ForwardsIncludeToRepository()
+    {
+        var categories = new List<HippotherapyProgramCategory> { MakeCategory(1, "Category 1") };
+        QueryOptions<HippotherapyProgramCategory>? capturedOptions = null;
+        _categoryRepoMock
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .Callback<QueryOptions<HippotherapyProgramCategory>>(options => capturedOptions = options)
+            .ReturnsAsync(categories);
+
+        var result = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(
+            _categoryRepoMock.Object,
+            [1],
+            query => query.Include(category => category.Programs));
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(capturedOptions?.Include);
     }
 
     private static HippotherapyProgramCategory MakeCategory(long id, string name)

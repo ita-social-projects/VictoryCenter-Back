@@ -1,7 +1,6 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Helpers;
@@ -9,15 +8,12 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 
 public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Result<EventNewsDto>>
 {
-    private const int MaxSlugSaveAttempts = 3;
-
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ISlugService _slugService;
@@ -70,7 +66,9 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
             .Where(localization => localization is not null && !string.IsNullOrWhiteSpace(localization.Title))
             .ToList();
 
-        var languagesResult = await ValidateAndGetLanguagesAsync(localizationsToCreate);
+        var languagesResult = await EventNewsAggregateHelper.ValidateAndGetLanguagesAsync(
+            _repositoryWrapper,
+            localizationsToCreate);
 
         if (languagesResult.IsFailed)
         {
@@ -109,42 +107,17 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
 
         await _repositoryWrapper.EventNewsRepository.CreateAsync(eventNews);
 
-        if (await SaveEventNewsAsync(eventNews, titleForSlug, cancellationToken) > 0)
+        if (await EventNewsAggregateHelper.SaveWithSlugRetryAsync(
+                _repositoryWrapper,
+                _slugService,
+                eventNews,
+                titleForSlug,
+                cancellationToken) > 0)
         {
             return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
         }
 
         return Result.Fail<EventNewsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsEntity)));
-    }
-
-    private async Task<Result<IReadOnlyDictionary<long, LocalizationLanguage>>> ValidateAndGetLanguagesAsync(
-        IEnumerable<CreateEventNewsLocalizationDto> localizations)
-    {
-        var languageIds = localizations
-            .Select(localization => localization.LanguageId)
-            .Distinct()
-            .ToList();
-
-        if (languageIds.Count == 0)
-        {
-            return Result.Ok<IReadOnlyDictionary<long, LocalizationLanguage>>(
-                new Dictionary<long, LocalizationLanguage>());
-        }
-
-        var languages = (await _repositoryWrapper.LocalizationLanguagesRepository.GetAllAsync(
-            new QueryOptions<LocalizationLanguage>
-            {
-                Filter = language => languageIds.Contains(language.Id),
-                AsNoTracking = false
-            })).ToList();
-
-        var languagesById = languages.ToDictionary(language => language.Id);
-        var missingIds = languageIds.Where(id => !languagesById.ContainsKey(id)).ToList();
-
-        return missingIds.Count == 0
-            ? Result.Ok<IReadOnlyDictionary<long, LocalizationLanguage>>(languagesById)
-            : Result.Fail<IReadOnlyDictionary<long, LocalizationLanguage>>(
-                ErrorMessagesConstants.NotFound(missingIds, typeof(LocalizationLanguage)));
     }
 
     private static void AddCategories(EventNewsEntity eventNews, ICollection<EventNewsCategory> categories)
@@ -182,40 +155,5 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         }
 
         return Result.Ok();
-    }
-
-    private async Task<int> SaveEventNewsAsync(
-        EventNewsEntity eventNews,
-        string? titleForSlug,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 1; attempt <= MaxSlugSaveAttempts; attempt++)
-        {
-            try
-            {
-                return await _repositoryWrapper.SaveChangesAsync();
-            }
-            catch (DbUpdateException exception) when (
-                attempt < MaxSlugSaveAttempts
-                && !string.IsNullOrWhiteSpace(titleForSlug)
-                && exception.IsUniqueConstraintException())
-            {
-                var slugAlreadyExists = !string.IsNullOrWhiteSpace(eventNews.Slug)
-                    && await _repositoryWrapper.EventNewsRepository.ExistsAsync(
-                        existingEventNews => existingEventNews.Slug == eventNews.Slug);
-
-                if (!slugAlreadyExists)
-                {
-                    throw;
-                }
-
-                eventNews.Slug = await _slugService.GenerateUniqueEventNewsSlugAsync(
-                    eventNews.Id,
-                    titleForSlug,
-                    cancellationToken);
-            }
-        }
-
-        return 0;
     }
 }
