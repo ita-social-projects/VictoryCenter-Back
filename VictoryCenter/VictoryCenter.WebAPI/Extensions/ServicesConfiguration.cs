@@ -618,7 +618,33 @@ public static class ServicesConfiguration
             Title = "Коні з досвідом зцілення",
             Description = "Коли тіло та душа відновлюються — народжується справжня сила.",
             CreatedAt = DateTimeOffset.UtcNow,
-            ImageId = null
+            ImageId = null,
+
+            MainAboutUs = new MainAboutUs
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            MainPartners = new MainPartners
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            MainDonations = new MainDonations
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                ImageId = null,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            ImpactStatistics = new ImpactStatistics
+            {
+                Title = string.Empty,
+                ImageId = null,
+                CreatedAt = DateTimeOffset.UtcNow
+            }
         };
 
         dbContext.MainPages.Add(mainPage);
