@@ -48,6 +48,7 @@ using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
@@ -268,6 +269,7 @@ public static class ServicesConfiguration
         await app.CreateInitialWhoWeArePages();
         await app.CreateInitialPdfSection();
         await app.CreateInitialPartnersPageBanner();
+        await app.CreateInitialHippotherapyLandingPage();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
     }
@@ -552,6 +554,122 @@ public static class ServicesConfiguration
             dbContext.PartnersPageBanners.Add(banner);
             await dbContext.SaveChangesAsync();
         }
+    }
+
+    private static async Task CreateInitialHippotherapyLandingPage(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        if (await dbContext.HippotherapyLandingPages.AnyAsync())
+        {
+            return;
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        const string placeholderReferenceUrl = "https://victorycenter.online/hippotherapy";
+
+        var page = new HippotherapyLandingPage
+        {
+            CreatedAt = now,
+            IntroSection = new HippotherapyLandingPageIntroSection
+            {
+                Title = "<h3><b><i>Кінь</i></b> не питає, він <b><i>просто поруч</i></b></h3>",
+                Description = "Це про зустріч. Між людиною, яка вчиться знову довіряти, і конем, який відповідає без слів. Тут зцілення йде не з розмови, а з присутності.",
+                CreatedAt = now,
+            },
+            DescriptionSection = new HippotherapyLandingPageDescriptionSection
+            {
+                Title = "<b>Що таке іпотерапія?</b>",
+                Description = "Іпотерапія — це форма терапії з використанням коней, яка поєднує тілесну взаємодію, психологічні практики та емоційний контакт. Фокус не на верховій їзді, а на присутності в моменті.<br /><br />У програмі Victory Center коні — не «інструменти», а партнери у процесі відновлення. Їхня чутливість до стану людини допомагає учасникам/цям відчути та пізнати себе — без пояснень, без оцінки, без тиску.",
+                CreatedAt = now,
+            },
+            QuoteSection = new HippotherapyLandingPageQuoteSection
+            {
+                QuoteText = "«Я не встиг нічого сказати — а кінь уже підійшов. Як він знав?»",
+                AuthorName = "<b>Вікторія Яковенко</b>",
+                CreatedAt = now,
+            },
+            HippoventionSection = new HippotherapyLandingPageHippoventionSection
+            {
+                Title = "<b>Що таке іповенція?</b>",
+                Description = "Іповенція — це адаптований підхід, який базується на ідеї відновлення через контакт з конем і тілом, але не є терапією в класичному медичному сенсі.",
+                CreatedAt = now,
+            },
+            HippoventionCenterSection = new HippotherapyLandingPageHippoventionCenterSection
+            {
+                Title = "В центрі іповенції:",
+                Description = "Іповенція для Victory Center - це м'ягка, але глибока взаємодія, яка не обов'язково відбувається в рамках офіційної «терапії».",
+                Pros = "Сповільнення<br>Присутність в моменті<br>Безпека без примусу<br>Відкритість до власного стану та відчуттів",
+                CreatedAt = now,
+            },
+            AdvantagesSection = new HippotherapyLandingPageAdvantagesSection
+            {
+                Title = "Чому саме цей підхід?",
+                CreatedAt = now,
+                AdvantageCards =
+                [
+                    new() { Description = "Тіло пам'ятає те, що слова не можуть передати. Робота з конем — це робота на рівні нервової системи.", Priority = 1, CreatedAt = now },
+                    new() { Description = "Кінь не питає, що з тобою сталося. Але допомагає щиро відповісти на питання «як ти зараз?».", Priority = 2, CreatedAt = now },
+                    new() { Description = "Нервова система людини й коня синхронізуються — це не метафора, а фізіологічна реальність.", Priority = 3, CreatedAt = now },
+                    new() { Description = "Людина часто говорить про те, що «мусить сказати». Кінь відчуває те, що є насправді.", Priority = 4, CreatedAt = now },
+                ],
+            },
+            AnalysisSection = new HippotherapyLandingPageAnalysisSection
+            {
+                Title = "Що показує досвід / наука?",
+                Description = "Іпотерапія визнана формою допоміжної терапії при ПТСР, тривожних розладах, порушеннях регуляції емоцій. Взаємодія з конем допомагає повертатися до контролю над власним тілом, відновлювати регулювання дихання і ритму, знижувати тривожність, будувати безпечну прив'язаність до оточення.",
+                CreatedAt = now,
+            },
+            ScientificReferencesSection = new HippotherapyLandingPageScientificReferencesSection
+            {
+                Title = "Наукові дослідження",
+                Description = "Наукові дослідження, що підтверджують ефективність терапії за допомогою коней у роботі з ветеранами та людьми з посттравматичним стресовим розладом.",
+                CreatedAt = now,
+                ScientificReferences =
+                [
+                    new() { Name = "Lloyd-Richardson E., Sonatore D., Strong J. \"Integration Horses into Healing\" (EFP.L Research, 2023)", Url = placeholderReferenceUrl, Priority = 1, CreatedAt = now },
+                    new() { Name = "Li J., Sanchez-Garcia R. \"Equine-Assisted Interventions for Veterans with Posttraumatic Stress Disorder: A Systematic Review\" (2023)", Url = placeholderReferenceUrl, Priority = 2, CreatedAt = now },
+                    new() { Name = "Karol J., Naste T., Price M. and other \"Equine Facilitated Therapy for Complex Trauma (EFT-CT)\" (2017)", Url = placeholderReferenceUrl, Priority = 3, CreatedAt = now },
+                    new() { Name = "Clarke J. \"Using Equine Therapy as Mental Health Treatment\" (2024)", Url = placeholderReferenceUrl, Priority = 4, CreatedAt = now },
+                    new() { Name = "Maker H. A. \"Equine Assisted Therapy: A Unique and Effective Intervention\" (2019)", Url = placeholderReferenceUrl, Priority = 5, CreatedAt = now },
+                ],
+            },
+            AnotherQuoteSection = new HippotherapyLandingPageAnotherQuoteSection
+            {
+                QuoteText = "«Ми не говорили. Але я нарешті перестав тікати сам від себе.»",
+                AuthorName = "<b>Ветеран, учасник програми</b>",
+                CreatedAt = now,
+            },
+            ParticipantsSection = new HippotherapyLandingPageParticipantsSection
+            {
+                Title = "Кому підходять програми?",
+                CreatedAt = now,
+                ParticipantCards =
+                [
+                    new() { Description = "Люди з досвідом війни, втрати, травми, тривалого стресу (військові, ветерани/ки).", Priority = 1, CreatedAt = now },
+                    new() { Description = "Діти з гіперзбудливістю або замкненістю, тривожністю, порушенням контакту.", Priority = 2, CreatedAt = now },
+                    new() { Description = "Родини, які пережили розрив, переміщення, втрату близьких.", Priority = 3, CreatedAt = now },
+                    new() { Description = "Фахівці екстрених служб та волонтери.", Priority = 4, CreatedAt = now },
+                ],
+            },
+            EthicsSection = new HippotherapyLandingPageEthicsSection
+            {
+                Title = "Етичні принципи Victory Center",
+                Description = "Ми не змушуємо до дії, а дозволяємо кожному рухатися у власному темпі.",
+                CreatedAt = now,
+                EthicsPrinciples =
+                [
+                    new() { Text = "Дбаємо про психологічний комфорт учасників/ць: створюємо безпечний простір для взаємодії, де немає місця тиску чи засудженню.", Priority = 1, CreatedAt = now },
+                    new() { Text = "Співпрацюємо винятково з ранчо, які дбають про добробут коней та дотримуються етичних принципів поводження із тваринами.", Priority = 2, CreatedAt = now },
+                    new() { Text = "Працюємо з кваліфікованими фахівцями, які дотримуються стандартів етичної практики в терапії і соціальній роботі.", Priority = 3, CreatedAt = now },
+                    new() { Text = "Забезпечуємо повну приватність і конфіденційність особистої інформації учасників/ць.", Priority = 4, CreatedAt = now },
+                ],
+            },
+        };
+
+        dbContext.HippotherapyLandingPages.Add(page);
+        await dbContext.SaveChangesAsync();
     }
 
     private static async Task CreateInitialReportsMediaSettingsAsync(this WebApplication app)

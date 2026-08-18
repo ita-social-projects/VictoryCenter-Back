@@ -1,8 +1,6 @@
-using VictoryCenter.BLL.DTOs.Common;
-
 namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
 
-public record HippoventionCenterSectionDto
+public record UpdateHippoventionCenterSectionDto
 {
     public string Title { get; init; } = null!;
 
@@ -10,5 +8,5 @@ public record HippoventionCenterSectionDto
 
     public string Pros { get; init; } = null!;
 
-    public ImageDto? Image { get; init; }
+    public long? ImageId { get; init; }
 }

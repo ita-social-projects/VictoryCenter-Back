@@ -1,8 +1,8 @@
-using HtmlAgilityPack;
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.Partners.Commands;
 
@@ -13,10 +13,10 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
         RuleFor(x => x.Dto.Title)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdatePartnersPageBannerDto.Title)))
-            .Must(title => StripHtmlTags(title).Length >= PartnerConstants.PartnersPageBannerTitleMinLength)
+            .Must(title => HtmlContentHelper.StripHtmlTags(title).Length >= PartnerConstants.PartnersPageBannerTitleMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMinLength))
-            .Must(title => StripHtmlTags(title).Length <= PartnerConstants.PartnersPageBannerTitleMaxLength)
+            .Must(title => HtmlContentHelper.StripHtmlTags(title).Length <= PartnerConstants.PartnersPageBannerTitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
                 nameof(UpdatePartnersPageBannerDto.Title), PartnerConstants.PartnersPageBannerTitleMaxLength));
 
@@ -32,17 +32,5 @@ public class UpdatePartnersPageBannerCommandValidator : AbstractValidator<Update
 
         RuleFor(x => x.Dto.ImageId)
             .GreaterThan(0).WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdatePartnersPageBannerDto.ImageId)));
-    }
-
-    private static string StripHtmlTags(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return string.Empty;
-        }
-
-        var htmlDoc = new HtmlDocument();
-        htmlDoc.LoadHtml(input);
-        return htmlDoc.DocumentNode.InnerText;
     }
 }

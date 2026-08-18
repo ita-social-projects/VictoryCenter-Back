@@ -191,8 +191,6 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyLandingPageEthicsSection> HippotherapyLandingPageEthicsSections { get; set; }
 
-    public DbSet<HippotherapyLandingPageHippoventionPro> HippotherapyLandingPageHippoventionPros { get; set; }
-
     public DbSet<HippotherapyLandingPageEthicsPrinciple> HippotherapyLandingPageEthicsPrinciples { get; set; }
 
     public DbSet<HippotherapyLandingPageAdvantageCard> HippotherapyLandingPageAdvantageCards { get; set; }

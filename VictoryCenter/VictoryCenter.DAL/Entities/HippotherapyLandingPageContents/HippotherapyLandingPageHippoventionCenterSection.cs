@@ -14,7 +14,7 @@ public class HippotherapyLandingPageHippoventionCenterSection : BaseEntity
 
     public Image? Image { get; set; }
 
-    public ICollection<HippotherapyLandingPageHippoventionPro> HippoventionPros { get; set; } = [];
+    public string Pros { get; set; } = null!;
 
     public HippotherapyLandingPage HippotherapyLandingPage { get; set; } = null!;
 }
