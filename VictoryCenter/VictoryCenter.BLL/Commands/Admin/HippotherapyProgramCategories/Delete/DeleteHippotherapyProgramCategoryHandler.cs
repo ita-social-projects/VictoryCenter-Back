@@ -25,6 +25,7 @@ public class DeleteHippotherapyProgramCategoryHandler : IRequestHandler<DeleteHi
                 Filter = programCategory => programCategory.Id == request.Id,
                 Include = programCategory => programCategory
                     .Include(p => p.Programs)
+                    .Include(p => p.Localizations)
             });
 
         if (entityToDelete is null)
@@ -36,6 +37,11 @@ public class DeleteHippotherapyProgramCategoryHandler : IRequestHandler<DeleteHi
         if (entityToDelete.Programs.Count != 0)
         {
             return Result.Fail(HippotherapyProgramCategoryConstants.CantDeleteProgramCategoryWhileAssociatedWithAnyProgram);
+        }
+
+        if (entityToDelete.Localizations.Any())
+        {
+            _repositoryWrapper.HippotherapyProgramCategoryLocalizationsRepository.DeleteRange(entityToDelete.Localizations);
         }
 
         _repositoryWrapper.HippotherapyProgramCategoriesRepository.Delete(entityToDelete);
