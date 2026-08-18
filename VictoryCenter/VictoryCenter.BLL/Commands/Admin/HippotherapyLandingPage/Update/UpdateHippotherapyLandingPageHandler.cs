@@ -11,6 +11,7 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
+using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -96,7 +97,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     _mapper.Map(dto.HippoventionCenterSection, entity.HippoventionCenterSection);
 
                     _mapper.Map(dto.AdvantagesSection, entity.AdvantagesSection);
-                    UpdateAdvantageCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
+                    UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
 
                     _mapper.Map(dto.AnalysisSection, entity.AnalysisSection);
 
@@ -111,7 +112,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     _mapper.Map(dto.AnotherQuoteSection, entity.AnotherQuoteSection);
 
                     _mapper.Map(dto.ParticipantsSection, entity.ParticipantsSection);
-                    UpdateParticipantCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
+                    UpdateGalleryCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
 
                     TrackImageChange(entity.EthicsSection!.ImageId, dto.EthicsSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.EthicsSection, entity.EthicsSection);
@@ -179,26 +180,11 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static void UpdateAdvantageCards(
-        ICollection<HippotherapyLandingPageAdvantageCard> existing,
+    private static void UpdateGalleryCards<TCard>(
+        ICollection<TCard> existing,
         List<UpdateGalleryCardDto> incoming,
         List<long> imageIdsToDelete)
-    {
-        var existingList = existing.OrderBy(c => c.Priority).ToList();
-        for (var i = 0; i < existingList.Count && i < incoming.Count; i++)
-        {
-            var card = existingList[i];
-            var cardDto = incoming[i];
-            TrackImageChange(card.ImageId, cardDto.ImageId, imageIdsToDelete);
-            card.ImageId = cardDto.ImageId;
-            card.Description = cardDto.Description;
-        }
-    }
-
-    private static void UpdateParticipantCards(
-        ICollection<HippotherapyLandingPageParticipantCard> existing,
-        List<UpdateGalleryCardDto> incoming,
-        List<long> imageIdsToDelete)
+        where TCard : IGalleryCard
     {
         var existingList = existing.OrderBy(c => c.Priority).ToList();
         for (var i = 0; i < existingList.Count && i < incoming.Count; i++)
