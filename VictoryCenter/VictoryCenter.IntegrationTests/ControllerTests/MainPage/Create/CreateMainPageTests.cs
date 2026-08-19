@@ -17,7 +17,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Create;
 
 public class CreateMainPageTests : BaseTestClass
 {
-    private readonly IDatabaseCleaner _dbCleaner;
+    private readonly MainPageDatabaseCleaner _dbCleaner;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public CreateMainPageTests(IntegrationTestDbFixture fixture)

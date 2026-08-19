@@ -271,7 +271,7 @@ public static class ServicesConfiguration
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
-        await app.CreateInitialMainPage();
+        await app.CreateInitialMainPageAsync();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -602,11 +602,12 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialMainPage(this WebApplication app)
+    private static async Task CreateInitialMainPageAsync(this WebApplication app)
     {
         var logger = app.Services.GetRequiredService<ILogger<Program>>();
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
 
         if (await dbContext.MainPages.AnyAsync())
         {
@@ -617,33 +618,33 @@ public static class ServicesConfiguration
         {
             Title = "Коні з досвідом зцілення",
             Description = "Коли тіло та душа відновлюються — народжується справжня сила.",
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = timeProvider.GetUtcNow(),
             ImageId = null,
 
             MainAboutUs = new MainAboutUs
             {
                 Title = string.Empty,
                 Description = string.Empty,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = timeProvider.GetUtcNow()
             },
             MainPartners = new MainPartners
             {
                 Title = string.Empty,
                 Description = string.Empty,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = timeProvider.GetUtcNow()
             },
             MainDonations = new MainDonations
             {
                 Title = string.Empty,
                 Description = string.Empty,
                 ImageId = null,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = timeProvider.GetUtcNow()
             },
             ImpactStatistics = new ImpactStatistics
             {
                 Title = string.Empty,
                 ImageId = null,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = timeProvider.GetUtcNow()
             }
         };
 
@@ -655,7 +656,7 @@ public static class ServicesConfiguration
         }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
-            logger.LogInformation("MainPage was already seeded by a concurrent instance; skipping.");
+            logger.LogInformation(ex, "MainPage was already seeded by a concurrent instance; skipping.");
         }
     }
 

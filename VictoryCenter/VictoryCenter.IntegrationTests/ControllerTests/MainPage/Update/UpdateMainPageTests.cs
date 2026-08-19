@@ -19,7 +19,7 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Update;
 
 public class UpdateMainPageTests : BaseTestClass
 {
-    private readonly IDatabaseCleaner _dbCleaner;
+    private readonly MainPageDatabaseCleaner _dbCleaner;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public UpdateMainPageTests(IntegrationTestDbFixture fixture)
