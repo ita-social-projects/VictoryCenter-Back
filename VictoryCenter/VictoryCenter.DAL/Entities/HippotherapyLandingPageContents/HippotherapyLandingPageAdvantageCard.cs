@@ -1,8 +1,9 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Interfaces;
 
 namespace VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 
-public class HippotherapyLandingPageAdvantageCard : BaseEntity
+public class HippotherapyLandingPageAdvantageCard : BaseEntity, IGalleryCard
 {
     public long AdvantagesSectionId { get; set; }
 

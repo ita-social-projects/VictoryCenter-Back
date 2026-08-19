@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VictoryCenter.DAL.Data;
 
@@ -11,9 +12,11 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    partial class VictoryCenterDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260817193248_ReplaceHippoventionProsWithSingleField")]
+    partial class ReplaceHippoventionProsWithSingleField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2410,11 +2413,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<long?>("ImageId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("IsSingleton")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(1);
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2424,9 +2422,6 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("ImageId")
                         .IsUnique()
                         .HasFilter("[ImageId] IS NOT NULL");
-
-                    b.HasIndex("IsSingleton")
-                        .IsUnique();
 
                     b.ToTable("MainPages");
                 });
