@@ -75,7 +75,7 @@ jobs:
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
-      run: docker stop nginx certbot frontend backend
+      run: docker stop nginx certbot frontend backend || true
     - name: Delete additon info
       run: docker system prune -f
     - name: Set up enviroments and Deploy
@@ -137,7 +137,7 @@ jobs:
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
-      run: docker stop nginx certbot frontend backend 
+      run: docker stop nginx certbot frontend backend || true
     - name: Delete additon info
       run: docker system prune -f
     - name: Set up enviroments and Deploy
