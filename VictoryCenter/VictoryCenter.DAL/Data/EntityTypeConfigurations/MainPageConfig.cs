@@ -59,5 +59,13 @@ internal class MainPageConfig : IEntityTypeConfiguration<MainPage>
         entity
             .Property(e => e.CreatedAt)
             .IsRequired();
+
+        entity
+            .Property<int>("IsSingleton")
+            .HasDefaultValue(1);
+
+        entity
+            .HasIndex("IsSingleton")
+            .IsUnique();
     }
 }

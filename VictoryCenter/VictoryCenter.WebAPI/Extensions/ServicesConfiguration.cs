@@ -56,6 +56,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
+using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.WebAPI.Extensions;
 
@@ -270,6 +271,7 @@ public static class ServicesConfiguration
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
+        await app.CreateInitialMainPageAsync();
     }
 
     public static async Task SeedVisitorPagesAsync(this WebApplication app)
@@ -598,6 +600,70 @@ public static class ServicesConfiguration
         {
             throw new InvalidOperationException(settingsResult.Errors[0].Message);
         }
+    }
+
+    private static async Task CreateInitialMainPageAsync(this WebApplication app)
+    {
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
+
+        if (await dbContext.MainPages.AnyAsync())
+        {
+            return;
+        }
+
+        var mainPage = new MainPageEntity
+        {
+            Title = "Коні з досвідом зцілення",
+            Description = "Коли тіло та душа відновлюються — народжується справжня сила.",
+            CreatedAt = timeProvider.GetUtcNow(),
+            ImageId = null,
+
+            MainAboutUs = new MainAboutUs
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                CreatedAt = timeProvider.GetUtcNow()
+            },
+            MainPartners = new MainPartners
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                CreatedAt = timeProvider.GetUtcNow()
+            },
+            MainDonations = new MainDonations
+            {
+                Title = string.Empty,
+                Description = string.Empty,
+                ImageId = null,
+                CreatedAt = timeProvider.GetUtcNow()
+            },
+            ImpactStatistics = new ImpactStatistics
+            {
+                Title = string.Empty,
+                ImageId = null,
+                CreatedAt = timeProvider.GetUtcNow()
+            }
+        };
+
+        dbContext.MainPages.Add(mainPage);
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            logger.LogInformation(ex, "MainPage was already seeded by a concurrent instance; skipping.");
+        }
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        return ex.InnerException is Microsoft.Data.SqlClient.SqlException sqlEx
+            && sqlEx.Errors.Cast<Microsoft.Data.SqlClient.SqlError>().Any(e => e.Number is 2601 or 2627);
     }
 
     private static void AddOpenApi(this IServiceCollection services)

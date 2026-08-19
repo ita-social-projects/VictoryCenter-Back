@@ -19,11 +19,25 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Update;
 
 public class UpdateMainPageTests : BaseTestClass
 {
+    private readonly MainPageDatabaseCleaner _dbCleaner;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public UpdateMainPageTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
+        _dbCleaner = new MainPageDatabaseCleaner(fixture);
+    }
+
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+        await _dbCleaner.CleanupAsync();
+    }
+
+    public override async Task DisposeAsync()
+    {
+        await _dbCleaner.CleanupAsync();
+        await base.DisposeAsync();
     }
 
     [Fact]
@@ -221,19 +235,6 @@ public class UpdateMainPageTests : BaseTestClass
 
     private async Task<EntityMainPage> EnsureMainPageExistsAsync()
     {
-        var existing = await Fixture.DbContext.MainPages
-            .Include(m => m.MainAboutUs)
-            .Include(m => m.MainPartners)
-            .Include(m => m.MainDonations)
-            .Include(m => m.ImpactStatistics)
-                .ThenInclude(s => s!.Metrics)
-            .FirstOrDefaultAsync();
-
-        if (existing is not null && existing.ImpactStatistics?.Metrics.Count > 1)
-        {
-            return existing;
-        }
-
         var image = await EnsureImageExistsAsync();
         var mainPage = new EntityMainPage
         {
