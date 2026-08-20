@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
@@ -12,11 +13,25 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Get;
 
 public class GetMainPageTests : BaseTestClass
 {
+    private readonly MainPageDatabaseCleaner _dbCleaner;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public GetMainPageTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
+        _dbCleaner = new MainPageDatabaseCleaner(fixture);
+    }
+
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+        await _dbCleaner.CleanupAsync();
+    }
+
+    public override async Task DisposeAsync()
+    {
+        await _dbCleaner.CleanupAsync();
+        await base.DisposeAsync();
     }
 
     [Fact]
@@ -38,14 +53,18 @@ public class GetMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetMainPage_WhenDoesNotExist_ShouldReturnNotFound()
+    public async Task GetMainPage_WhenDoesNotExist_ShouldReturnOkWithEmptyDto()
     {
-        Fixture.DbContext.MainPages.RemoveRange(Fixture.DbContext.MainPages);
-        await Fixture.DbContext.SaveChangesAsync();
-
         var response = await Fixture.HttpClient.GetAsync(_endpointUri);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var result = await response.Content.ReadFromJsonAsync<MainPageDto>();
+        Assert.NotNull(result);
+        Assert.Equal(0, result.Id);
+        Assert.Equal(string.Empty, result.Title);
+        Assert.Equal(string.Empty, result.Description);
+        Assert.Empty(result.Localizations);
     }
 
     private async Task<EntityMainPage> EnsureMainPageExistsAsync()

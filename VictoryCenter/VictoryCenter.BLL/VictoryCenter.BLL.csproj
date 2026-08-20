@@ -11,7 +11,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\VictoryCenter.DAL\VictoryCenter.DAL.csproj"/>
+        <ProjectReference Include="..\VictoryCenter.DAL\VictoryCenter.DAL.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,6 +22,7 @@
         <PackageReference Include="MediatR" Version="12.5.0"/>
         <PackageReference Include="MediatR.Contracts" Version="2.0.1"/>
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.5"/>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.12"/>
         <PackageReference Include="Resend" Version="0.5.0"/>
         <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12"/>
         <PackageReference Include="Slugify.Core" Version="5.1.1"/>
@@ -29,8 +30,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="DTOs\Admin\MainAboutUs\"/>
-        <Folder Include="DTOs\Admin\MainPartners\"/>
+        <Folder Include="DTOs\Admin\MainAboutUs\" />
+        <Folder Include="DTOs\Admin\MainPartners\" />
     </ItemGroup>
 
 </Project>
