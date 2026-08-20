@@ -226,10 +226,10 @@ public class BlobService : IBlobService
     {
         return mimeType.ToLower() switch
         {
-            "image/jpeg" => "jpg",
-            "image/jpg" => "jpg",
-            "image/png" => "png",
-            "image/webp" => "webp",
+            ImageMimeTypes.Jpeg => "jpg",
+            ImageMimeTypes.Jpg => "jpg",
+            ImageMimeTypes.Png => "png",
+            ImageMimeTypes.Webp => "webp",
             _ => "jpg"
         };
     }

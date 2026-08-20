@@ -2,22 +2,25 @@ using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.Images.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
+using VictoryCenter.BLL.Interfaces.ImageValidation;
 
 namespace VictoryCenter.BLL.Validators.Images;
 
 public class CreateImageValidator : BaseImageValidator<CreateImageCommand>
 {
-    public CreateImageValidator()
+    public CreateImageValidator(IImageContentValidator imageContentValidator)
     {
         RuleFor(x => x.CreateImageDto).NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageCommand.CreateImageDto)));
         RuleFor(x => x.CreateImageDto.Base64)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.Base64)))
-            .Must(IsValidBase64).WithMessage(ImageConstants.Base64ValidationError)
-            .Must(IsValidSize).WithMessage(ImageConstants.InvalidImageSize);
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.Base64)));
 
         RuleFor(x => x.CreateImageDto.MimeType)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.MimeType)))
-            .Must(mimeType => ImageConstants.AllowedMimeTypes.Contains(mimeType, StringComparer.InvariantCultureIgnoreCase))
-            .WithMessage(ImageConstants.MimeTypeValidationError(ImageConstants.AllowedMimeTypes));
+            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.MimeType)));
+
+        AddImageContentRule(
+            command => command.CreateImageDto.Base64,
+            command => command.CreateImageDto.MimeType,
+            nameof(CreateImageCommand.CreateImageDto),
+            imageContentValidator);
     }
 }
