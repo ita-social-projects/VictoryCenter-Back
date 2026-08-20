@@ -151,4 +151,66 @@ public class BaseTeamCategoryValidatorTests
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    public static IEnumerable<object[]> NameWithSpaces()
+    {
+        var valid = new string('N', TeamCategoryConstants.MinNameLength + 1);
+        yield return new object[] { $" {valid}" };
+        yield return new object[] { $"{valid} " };
+        yield return new object[] { $" {valid} " };
+    }
+
+    [Theory]
+    [MemberData(nameof(NameWithSpaces))]
+    public void Validate_NameHasLeadingOrTrailingSpaces_ShouldHaveError(string name)
+    {
+        var dto = new CreateTeamCategoryDto { Name = name, Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Name)));
+    }
+
+    public static IEnumerable<object[]> DescriptionWithSpaces()
+    {
+        var valid = new string('D', TeamCategoryConstants.MinDescriptionLength + 1);
+        yield return new object[] { $" {valid}" };
+        yield return new object[] { $"{valid} " };
+        yield return new object[] { $" {valid} " };
+    }
+
+    [Theory]
+    [MemberData(nameof(DescriptionWithSpaces))]
+    public void Validate_DescriptionHasLeadingOrTrailingSpaces_ShouldHaveError(string description)
+    {
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = description };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Description)));
+    }
+
+    [Fact]
+    public void Validate_NameHasNoLeadingOrTrailingSpaces_ShouldNotHaveError()
+    {
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Name);
+    }
+
+    [Fact]
+    public void Validate_DescriptionHasNoLeadingOrTrailingSpaces_ShouldNotHaveError()
+    {
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Description);
+    }
 }

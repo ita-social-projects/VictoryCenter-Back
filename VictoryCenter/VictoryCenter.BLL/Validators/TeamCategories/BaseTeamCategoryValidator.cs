@@ -19,7 +19,10 @@ public class BaseTeamCategoryValidator : AbstractValidator<CreateTeamCategoryDto
             .MaximumLength(TeamCategoryConstants.MaxNameLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateTeamCategoryDto.Name),
-                TeamCategoryConstants.MaxNameLength));
+                TeamCategoryConstants.MaxNameLength))
+            .Must(name => name == name.Trim())
+            .WithMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Name)));
 
         RuleFor(dto => dto.Description)
             .NotEmpty()
@@ -32,6 +35,9 @@ public class BaseTeamCategoryValidator : AbstractValidator<CreateTeamCategoryDto
             .MaximumLength(TeamCategoryConstants.MaxDescriptionLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateTeamCategoryDto.Description),
-                TeamCategoryConstants.MaxDescriptionLength));
+                TeamCategoryConstants.MaxDescriptionLength))
+            .Must(description => description == description.Trim())
+            .WithMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Description)));
     }
 }
