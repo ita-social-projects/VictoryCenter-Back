@@ -71,9 +71,12 @@ public class DeleteHippotherapyProgramCategoryTests
         Result<long> result = await handler.Handle(new DeleteHippotherapyProgramCategoryCommand(_programCategoryWithLocalizations.Id), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        _repositoryWrapperMock.Verify(r => r.HippotherapyProgramCategoryLocalizationsRepository.DeleteRange(
+
+        _repositoryWrapperMock.Verify(
+        r => r.HippotherapyProgramCategoryLocalizationsRepository.DeleteRange(
             It.Is<IEnumerable<HippotherapyProgramCategoryLocalization>>(list =>
-                list.Any(l => l.EntityId == _programCategoryWithLocalizations.Id && l.LanguageId == 1))), Times.Once);
+                list.Any(l => l.EntityId == _programCategoryWithLocalizations.Id && l.LanguageId == 1))),
+        Times.Once);
     }
 
     [Fact]
