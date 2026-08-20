@@ -65,8 +65,13 @@ public class ImageRequestSizeLimitTests
             JsonSerializer.Serialize(dto),
             Encoding.UTF8,
             "application/json");
+        using var request = new HttpRequestMessage(HttpMethod.Post, "api/Image")
+        {
+            Content = content
+        };
+        request.Headers.ExpectContinue = true;
 
-        HttpResponseMessage response = await client.PostAsync("api/Image", content);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
