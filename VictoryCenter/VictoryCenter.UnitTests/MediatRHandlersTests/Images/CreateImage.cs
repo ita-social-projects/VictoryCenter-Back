@@ -9,9 +9,11 @@ using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.UnitTests.Utils.Images;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
@@ -23,7 +25,7 @@ public class CreateImageHandlerTests
 
     private readonly CreateImageDto _testCreateImageDto = new()
     {
-        Base64 = "dGVzdA==", // "test" in base64
+        Base64 = ImageTestData.CreateBase64("image/png"),
         MimeType = "image/png"
     };
 
@@ -46,7 +48,7 @@ public class CreateImageHandlerTests
 
     public CreateImageHandlerTests()
     {
-        _validator = new CreateImageValidator();
+        _validator = new CreateImageValidator(new ImageContentValidator());
         _mockBlobService = new Mock<IBlobService>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();

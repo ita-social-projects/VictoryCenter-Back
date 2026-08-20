@@ -7,10 +7,12 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.Images;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
@@ -24,7 +26,7 @@ public class UpdateImageHandlerTests
 
     private readonly UpdateImageDto _testUpdateImageDto = new()
     {
-        Base64 = "dGVzdA==",
+        Base64 = ImageTestData.CreateBase64("image/png"),
         MimeType = "image/png"
     };
 
@@ -55,7 +57,7 @@ public class UpdateImageHandlerTests
         _mockBlobService = new Mock<IBlobService>();
         _mockTimeProvider = new Mock<TimeProvider>();
         _mockTimeProvider.Setup(x => x.GetUtcNow()).Returns(TestNow);
-        _validator = new UpdateImageValidator();
+        _validator = new UpdateImageValidator(new ImageContentValidator());
     }
 
     [Fact]

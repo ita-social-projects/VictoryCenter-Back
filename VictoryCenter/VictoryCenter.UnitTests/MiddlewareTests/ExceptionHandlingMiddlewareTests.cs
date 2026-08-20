@@ -171,6 +171,43 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_RequestBodyTooLarge_ShouldReturn413WithoutCriticalLog()
+    {
+        var context = new DefaultHttpContext();
+        context.Response.Body = new MemoryStream();
+        var exception = new BadHttpRequestException(
+            "Request body too large.",
+            StatusCodes.Status413PayloadTooLarge);
+        var problemDetails = new ProblemDetails
+        {
+            Status = StatusCodes.Status413PayloadTooLarge,
+            Title = "Payload Too Large",
+            Detail = "The request body exceeds the allowed size."
+        };
+
+        _factoryMock
+            .Setup(f => f.CreateProblemDetails(
+                context,
+                StatusCodes.Status413PayloadTooLarge,
+                "Payload Too Large",
+                null,
+                "The request body exceeds the allowed size.",
+                null))
+            .Returns(problemDetails);
+
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw exception,
+            _loggerMock.Object,
+            _factoryMock.Object);
+
+        await middleware.InvokeAsync(context);
+
+        Assert.Equal(StatusCodes.Status413PayloadTooLarge, context.Response.StatusCode);
+        Assert.Equal("application/problem+json", context.Response.ContentType);
+        _loggerMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task InvokeAsync_MultipleValidationErrors_ShouldJoinWithSemicolon()
     {
         var context = new DefaultHttpContext();

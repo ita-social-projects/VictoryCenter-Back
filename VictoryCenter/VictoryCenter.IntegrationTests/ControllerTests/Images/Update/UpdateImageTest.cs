@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
+using VictoryCenter.IntegrationTests.Utils.Images;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Update;
 
@@ -30,7 +31,7 @@ public class UpdateImageTest : BaseTestClass
 
         var updateImageDto = new UpdateImageDto
         {
-            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+            Base64 = ImageTestData.CreateBase64("image/png"),
             MimeType = "image/png"
         };
 
@@ -58,7 +59,7 @@ public class UpdateImageTest : BaseTestClass
 
         var updateImageDto = new UpdateImageDto
         {
-            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+            Base64 = ImageTestData.CreateBase64("image/png"),
             MimeType = "image/png"
         };
 
@@ -79,7 +80,7 @@ public class UpdateImageTest : BaseTestClass
 
         var updateImageDto = new UpdateImageDto
         {
-            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==",
+            Base64 = ImageTestData.CreateBase64("image/png"),
             MimeType = "image/gif"
         };
 
@@ -120,6 +121,23 @@ public class UpdateImageTest : BaseTestClass
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
 
         Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateImage_MimeTypeDoesNotMatchContent_ShouldReturnBadRequest()
+    {
+        Image? image = await Fixture.DbContext.Images.FirstOrDefaultAsync();
+        var dto = new UpdateImageDto
+        {
+            Base64 = ImageTestData.CreateBase64("image/png"),
+            MimeType = "image/webp"
+        };
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"api/image/{image!.Id}",
+            new StringContent(JsonSerializer.Serialize(dto), Encoding.UTF8, "application/json"));
+
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
