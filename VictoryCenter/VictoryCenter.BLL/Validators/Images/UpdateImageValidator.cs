@@ -11,16 +11,19 @@ public class UpdateImageValidator : BaseImageValidator<UpdateImageCommand>
     public UpdateImageValidator(IImageContentValidator imageContentValidator)
     {
         RuleFor(x => x.UpdateImageDto).NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageCommand.UpdateImageDto)));
-        RuleFor(x => x.UpdateImageDto.Base64)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.Base64)));
+        When(x => x.UpdateImageDto is not null, () =>
+        {
+            RuleFor(x => x.UpdateImageDto.Base64)
+                .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.Base64)));
 
-        RuleFor(x => x.UpdateImageDto.MimeType)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.MimeType)));
+            RuleFor(x => x.UpdateImageDto.MimeType)
+                .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageDto.MimeType)));
 
-        AddImageContentRule(
-            command => command.UpdateImageDto.Base64,
-            command => command.UpdateImageDto.MimeType,
-            nameof(UpdateImageCommand.UpdateImageDto),
-            imageContentValidator);
+            AddImageContentRule(
+                command => command.UpdateImageDto.Base64,
+                command => command.UpdateImageDto.MimeType,
+                nameof(UpdateImageCommand.UpdateImageDto),
+                imageContentValidator);
+        });
     }
 }

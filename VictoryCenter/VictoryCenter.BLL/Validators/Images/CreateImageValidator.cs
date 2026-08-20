@@ -11,16 +11,19 @@ public class CreateImageValidator : BaseImageValidator<CreateImageCommand>
     public CreateImageValidator(IImageContentValidator imageContentValidator)
     {
         RuleFor(x => x.CreateImageDto).NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageCommand.CreateImageDto)));
-        RuleFor(x => x.CreateImageDto.Base64)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.Base64)));
+        When(x => x.CreateImageDto is not null, () =>
+        {
+            RuleFor(x => x.CreateImageDto.Base64)
+                .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.Base64)));
 
-        RuleFor(x => x.CreateImageDto.MimeType)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.MimeType)));
+            RuleFor(x => x.CreateImageDto.MimeType)
+                .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageDto.MimeType)));
 
-        AddImageContentRule(
-            command => command.CreateImageDto.Base64,
-            command => command.CreateImageDto.MimeType,
-            nameof(CreateImageCommand.CreateImageDto),
-            imageContentValidator);
+            AddImageContentRule(
+                command => command.CreateImageDto.Base64,
+                command => command.CreateImageDto.MimeType,
+                nameof(CreateImageCommand.CreateImageDto),
+                imageContentValidator);
+        });
     }
 }

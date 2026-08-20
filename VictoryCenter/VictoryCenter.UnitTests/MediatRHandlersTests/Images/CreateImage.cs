@@ -127,6 +127,27 @@ public class CreateImageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_NullDto_ShouldReturnValidationError()
+    {
+        var handler = new CreateImageHandler(
+            _mockBlobService.Object,
+            _mockRepositoryWrapper.Object,
+            _mockMapper.Object,
+            _validator);
+
+        Result<ImageDto> result = await handler.Handle(new CreateImageCommand(null!), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageCommand.CreateImageDto)),
+            result.Errors.Select(error => error.Message));
+        _mockRepositoryWrapper.Verify(repositoryWrapper => repositoryWrapper.BeginTransaction(), Times.Never);
+        _mockBlobService.Verify(
+            blobService => blobService.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
+    }
+
+    [Fact]
     public async Task Handle_SaveChangesFails_ShouldReturnFailure()
     {
         // Arrange
