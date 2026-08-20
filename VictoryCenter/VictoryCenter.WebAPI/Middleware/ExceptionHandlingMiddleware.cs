@@ -41,6 +41,20 @@ public class ExceptionHandlingMiddleware
 
             await context.Response.WriteAsJsonAsync(problemDetails);
         }
+        catch (BadHttpRequestException badRequestException)
+            when (badRequestException.StatusCode == StatusCodes.Status413PayloadTooLarge)
+        {
+            var problemDetails = _problemsFactory.CreateProblemDetails(
+                context,
+                statusCode: StatusCodes.Status413PayloadTooLarge,
+                title: "Payload Too Large",
+                detail: "The request body exceeds the allowed size.");
+
+            context.Response.ContentType = "application/problem+json";
+            context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails));
+        }
         catch (Exception exception)
         {
             _logger.LogCritical(

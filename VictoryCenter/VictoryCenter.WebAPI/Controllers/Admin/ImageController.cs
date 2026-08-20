@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.Admin.Images.Create;
 using VictoryCenter.BLL.Commands.Admin.Images.Delete;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
@@ -12,6 +13,7 @@ namespace VictoryCenter.WebAPI.Controllers.Admin;
 public class ImageController : AuthorizedApiController
 {
     [HttpPost]
+    [RequestSizeLimit(ImageConstants.MaxImageUploadRequestSizeInBytes)]
     public async Task<ActionResult> CreateImage([FromBody] CreateImageDto request)
     {
         return HandleResult(await Mediator.Send(new CreateImageCommand(request)));
@@ -30,6 +32,7 @@ public class ImageController : AuthorizedApiController
     }
 
     [HttpPut("{id}")]
+    [RequestSizeLimit(ImageConstants.MaxImageUploadRequestSizeInBytes)]
     public async Task<ActionResult> UpdateImage(long id, [FromBody] UpdateImageDto request)
     {
         return HandleResult(await Mediator.Send(new UpdateImageCommand(request, id)));
