@@ -178,6 +178,11 @@ public static class ErrorMessagesConstants
         return $"{collection} cannot contain more than {numberOfElements} elements";
     }
 
+    public static string CollectionMustContainExactlyNItems(string collection, int count)
+    {
+        return $"{collection} must contain exactly {count} items";
+    }
+
     public static string CollectionMustContainUniqueValues(string collection)
     {
         return $"{collection} must contain unique values";

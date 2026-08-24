@@ -2,8 +2,11 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
+using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
+using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
+using VictoryCenter.BLL.DTOs.Admin.MainPartners;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
@@ -41,8 +44,19 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
 
         if (mainPageEntity is null)
         {
-            return Result.Fail<MainPageDto>(
-                ErrorMessagesConstants.NotFound());
+            var emptyMainPageDto = new MainPageDto
+            {
+                Id = 0,
+                Title = string.Empty,
+                Description = string.Empty,
+                Image = null,
+                MainAboutUs = new MainAboutUsDto { Title = string.Empty, Description = string.Empty },
+                MainPartners = new MainPartnersDto { Title = string.Empty, Description = string.Empty },
+                MainDonations = new MainDonationsDto { Title = string.Empty, Description = string.Empty },
+                ImpactStatistics = new ImpactStatisticDto { Title = string.Empty },
+                Localizations = []
+            };
+            return Result.Ok(emptyMainPageDto);
         }
 
         return Result.Ok(_mapper.Map<MainPageEntity, MainPageDto>(mainPageEntity));

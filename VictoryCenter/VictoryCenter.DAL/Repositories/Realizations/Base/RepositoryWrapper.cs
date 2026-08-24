@@ -7,12 +7,14 @@ using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
@@ -38,12 +40,14 @@ using VictoryCenter.DAL.Repositories.Realizations.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Donate;
 using VictoryCenter.DAL.Repositories.Realizations.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Realizations.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Realizations.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.ReportFundsExpendituresCategories;
@@ -128,6 +132,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private ISupportOptionsRepository? _supportOptionsRepository;
     private ITeamCategoryLocalizationsRepository? _teamCategoryLocalizationsRepository;
     private IReportFundsExpendituresCategoryLocalizationsRepository? _reportFundsExpendituresCategoryLocalizationsRepository;
+    private IHippotherapyProgramCategoryLocalizationsRepository? _hippotherapyProgramCategoryLocalizationsRepository;
     private IReportFundsExpendituresSettingsLocalizationsRepository? _reportFundsExpendituresSettingsLocalizationsRepository;
     private ITeamMemberLocalizationsRepository? _teamMemberLocalizationsRepository;
     private ITeamMembersRepository? _teamMembersRepository;
@@ -163,6 +168,8 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IBackupReportFundsExpendituresCategoryLocalizationsRepository? _backupReportFundsExpendituresCategoryLocalizationsRepository;
     private IBackupReportFundsExpendituresRecordsRepository? _backupReportFundsExpendituresRecordsRepository;
     private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
+    private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
+    private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -257,6 +264,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository =>
         _reportFundsExpendituresCategoryLocalizationsRepository ??=
             new ReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyProgramCategoryLocalizationsRepository HippotherapyProgramCategoryLocalizationsRepository =>
+        _hippotherapyProgramCategoryLocalizationsRepository ??=
+            new HippotherapyProgramCategoryLocalizationsRepository(_victoryCenterDbContext);
 
     public IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository =>
         _reportFundsExpendituresSettingsLocalizationsRepository ??=
@@ -401,6 +412,12 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository =>
         _backupReportProgramExpendituresRecordsRepository ??=
             new BackupReportProgramExpendituresRecordsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository =>
+        _hippotherapyLandingPagesRepository ??= new HippotherapyLandingPagesRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository =>
+        _hippotherapyLandingPageScientificReferencesRepository ??= new HippotherapyLandingPageScientificReferencesRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

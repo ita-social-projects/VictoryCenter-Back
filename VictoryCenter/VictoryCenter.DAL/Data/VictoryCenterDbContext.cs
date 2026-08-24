@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Entities.Localization;
@@ -35,6 +36,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<PdfReport> PdfReports { get; set; }
 
     public DbSet<HippotherapyProgramCategory> HippotherapyProgramCategories { get; set; }
+
+    public DbSet<HippotherapyProgramCategoryLocalization> HippotherapyProgramCategoryLocalizations { get; set; }
 
     public DbSet<HippotherapyProgram> HippotherapyPrograms { get; set; }
 
@@ -163,6 +166,38 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<EventNews> EventNews { get; set; }
 
     public DbSet<EventNewsLocalization> EventNewsLocalizations { get; set; }
+
+    public DbSet<HippotherapyLandingPage> HippotherapyLandingPages { get; set; }
+
+    public DbSet<HippotherapyLandingPageIntroSection> HippotherapyLandingPageIntroSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageDescriptionSection> HippotherapyLandingPageDescriptionSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageQuoteSection> HippotherapyLandingPageQuoteSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageHippoventionSection> HippotherapyLandingPageHippoventionSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageHippoventionCenterSection> HippotherapyLandingPageHippoventionCenterSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageAdvantagesSection> HippotherapyLandingPageAdvantagesSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageAnalysisSection> HippotherapyLandingPageAnalysisSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageScientificReferencesSection> HippotherapyLandingPageScientificReferencesSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageAnotherQuoteSection> HippotherapyLandingPageAnotherQuoteSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageParticipantsSection> HippotherapyLandingPageParticipantsSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageEthicsSection> HippotherapyLandingPageEthicsSections { get; set; }
+
+    public DbSet<HippotherapyLandingPageEthicsPrinciple> HippotherapyLandingPageEthicsPrinciples { get; set; }
+
+    public DbSet<HippotherapyLandingPageAdvantageCard> HippotherapyLandingPageAdvantageCards { get; set; }
+
+    public DbSet<HippotherapyLandingPageParticipantCard> HippotherapyLandingPageParticipantCards { get; set; }
+
+    public DbSet<HippotherapyLandingPageScientificReference> HippotherapyLandingPageScientificReferences { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

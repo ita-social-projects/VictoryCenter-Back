@@ -1,4 +1,5 @@
 using FluentResults;
+using Microsoft.EntityFrameworkCore.Query;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -10,7 +11,8 @@ public static class CategoryValidationHelper
 {
     public static async Task<Result<ICollection<TCategory>>> ValidateAndGetCategoriesAsync<TCategory>(
         IRepositoryBase<TCategory> categoryRepository,
-        IEnumerable<long> requestedCategoryIds)
+        IEnumerable<long> requestedCategoryIds,
+        Func<IQueryable<TCategory>, IIncludableQueryable<TCategory, object>>? include = null)
         where TCategory : BaseEntity
     {
         var requestedIdsList = requestedCategoryIds.ToList();
@@ -23,6 +25,7 @@ public static class CategoryValidationHelper
         var retrievedCategoriesList = (await categoryRepository.GetAllAsync(new QueryOptions<TCategory>
         {
             Filter = category => requestedIdsList.Contains(category.Id),
+            Include = include,
             AsNoTracking = false
         })).ToList();
 

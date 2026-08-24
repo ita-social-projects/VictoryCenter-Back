@@ -4,12 +4,14 @@ using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
@@ -81,6 +83,8 @@ public interface IRepositoryWrapper
 
     IReportFundsExpendituresCategoryLocalizationsRepository ReportFundsExpendituresCategoryLocalizationsRepository { get; }
 
+    IHippotherapyProgramCategoryLocalizationsRepository HippotherapyProgramCategoryLocalizationsRepository { get; }
+
     IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository { get; }
 
     IChangedLivesBlockRepository ChangedLivesBlockRepository { get; }
@@ -129,6 +133,9 @@ public interface IRepositoryWrapper
     IEventNewsRepository EventNewsRepository { get; }
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
+
+    IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository { get; }
+    IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
