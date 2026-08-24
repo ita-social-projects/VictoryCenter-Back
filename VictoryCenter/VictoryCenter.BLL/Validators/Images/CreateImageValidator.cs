@@ -22,7 +22,6 @@ public class CreateImageValidator : BaseImageValidator<CreateImageCommand>
             AddImageContentRule(
                 command => command.CreateImageDto.Base64,
                 command => command.CreateImageDto.MimeType,
-                nameof(CreateImageCommand.CreateImageDto),
                 imageContentValidator);
         });
     }

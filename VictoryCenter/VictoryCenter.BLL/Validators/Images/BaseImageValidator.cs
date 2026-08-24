@@ -8,7 +8,6 @@ public abstract class BaseImageValidator<TImageCommand> : AbstractValidator<TIma
     protected void AddImageContentRule(
         Func<TImageCommand, string?> base64Selector,
         Func<TImageCommand, string?> mimeTypeSelector,
-        string dtoPropertyName,
         IImageContentValidator imageContentValidator)
     {
         RuleFor(command => command).Custom((command, context) =>
@@ -23,7 +22,7 @@ public abstract class BaseImageValidator<TImageCommand> : AbstractValidator<TIma
             ImageContentValidationResult result = imageContentValidator.Validate(base64, mimeType);
             foreach (ImageContentValidationFailure failure in result.Failures)
             {
-                context.AddFailure($"{dtoPropertyName}.{failure.PropertyName}", failure.ErrorMessage);
+                context.AddFailure(failure.PropertyName, failure.ErrorMessage);
             }
         });
     }
