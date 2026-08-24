@@ -1,10 +1,12 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Validators.PdfReports;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -19,11 +21,13 @@ public class UpdatePdfReportHandlerTests
     private readonly IValidator<UpdatePdfReportCommand> _validator;
     private readonly PdfReport _testPdfReport;
     private readonly PdfReportDto _testPdfReportDto;
+    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
 
     public UpdatePdfReportHandlerTests()
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
+        _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
         _validator = new UpdatePdfReportValidator();
 
         _testPdfReport = new PdfReport
@@ -434,5 +438,5 @@ public class UpdatePdfReportHandlerTests
     }
 
     private UpdatePdfReportHandler CreateHandler() =>
-        new(_mockRepositoryWrapper.Object, _validator, _mockMapper.Object);
+        new(_mockRepositoryWrapper.Object, _validator, _mockMapper.Object, _mockHubContext.Object);
 }

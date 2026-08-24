@@ -1,11 +1,13 @@
 using System.Linq.Expressions;
 using FluentValidation;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Reorder;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.PdfReports;
 using VictoryCenter.DAL.Entities;
@@ -20,12 +22,14 @@ public class ReorderPdfReportsTests
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
     private readonly Mock<IReorderService> _mockReorderService;
     private readonly IValidator<ReorderPdfReportsCommand> _validator;
+    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
 
     public ReorderPdfReportsTests()
     {
         _mockRepoWrapper = new Mock<IRepositoryWrapper>();
         _mockReorderService = new Mock<IReorderService>();
         _validator = new ReorderPdfReportsCommandValidator();
+        _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
 
         // Mock language exist check to return true by default
         _mockRepoWrapper.Setup(
@@ -46,7 +50,7 @@ public class ReorderPdfReportsTests
         SetupRepositoryWrapper(pdfIds.Length, 1, [.. pdfIds]);
         SetupReorderService();
 
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -68,7 +72,7 @@ public class ReorderPdfReportsTests
         // Arrange
         var command = new ReorderPdfReportsCommand(new() { LanguageId = -10, OrderedIds = [2, 1] });
 
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -93,7 +97,7 @@ public class ReorderPdfReportsTests
                 It.Is<Expression<Func<LocalizationLanguage, bool>>>(expr => expr.Compile()(new LocalizationLanguage { Id = 999 }))))
             .ReturnsAsync(false);
 
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -111,7 +115,7 @@ public class ReorderPdfReportsTests
         var command = new ReorderPdfReportsCommand(new() { LanguageId = 1, OrderedIds = [2, 1] });
         SetupRepositoryWrapper(1, 1, [2, 1]);
         SetupReorderService();
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -127,7 +131,7 @@ public class ReorderPdfReportsTests
     {
         // Arrange
         var command = new ReorderPdfReportsCommand(new() { LanguageId = 1, OrderedIds = null! });
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -148,7 +152,7 @@ public class ReorderPdfReportsTests
         var command = new ReorderPdfReportsCommand(new() { LanguageId = 1, OrderedIds = [2, 1] });
         SetupRepositoryWrapper(0, 1, [2, 1]);
         SetupReorderService();
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -173,7 +177,7 @@ public class ReorderPdfReportsTests
             It.IsAny<Expression<Func<PdfReport, bool>>>()))
             .ThrowsAsync(new DbUpdateException());
 
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -199,7 +203,7 @@ public class ReorderPdfReportsTests
             It.IsAny<Expression<Func<PdfReport, bool>>>()))
             .ThrowsAsync(new ReorderException(reorderErrorMessage));
 
-        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object);
+        var handler = new ReorderPdfReportsHandler(_validator, _mockRepoWrapper.Object, _mockReorderService.Object, _mockHubContext.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);

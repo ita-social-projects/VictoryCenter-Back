@@ -37,6 +37,33 @@ public class BaseTeamCategoryValidatorTests
     }
 
     [Fact]
+    public void Validate_NameIsNull_ShouldNotThrow_ShouldHaveRequiredError()
+    {
+        var dto = new CreateTeamCategoryDto { Name = null!, Description = _validDescription };
+
+        var exception = Record.Exception(() => _validator.TestValidate(dto));
+        Assert.Null(exception);
+
+        var result = _validator.TestValidate(dto);
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamCategoryDto.Name)));
+    }
+
+    [Theory]
+    [InlineData("\t")]
+    [InlineData("\n")]
+    [InlineData("\u00A0")]
+    public void Validate_NameIsNonSpaceWhitespace_ShouldHaveRequiredError(string name)
+    {
+        var dto = new CreateTeamCategoryDto { Name = name, Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamCategoryDto.Name)));
+    }
+
+    [Fact]
     public void Validate_NameIsTooShort_ShouldHaveError()
     {
         var dto = new CreateTeamCategoryDto { Name = _tooShortName, Description = _validDescription };
@@ -68,6 +95,19 @@ public class BaseTeamCategoryValidatorTests
 
         var result = _validator.TestValidate(dto);
 
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamCategoryDto.Description)));
+    }
+
+    [Fact]
+    public void Validate_DescriptionIsNull_ShouldNotThrow_ShouldHaveRequiredError()
+    {
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = null! };
+
+        var exception = Record.Exception(() => _validator.TestValidate(dto));
+        Assert.Null(exception);
+
+        var result = _validator.TestValidate(dto);
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateTeamCategoryDto.Description)));
     }
@@ -173,6 +213,33 @@ public class BaseTeamCategoryValidatorTests
                 nameof(CreateTeamCategoryDto.Name)));
     }
 
+    [Fact]
+    public void Validate_NameAtMaxLengthWithTrailingSpace_ShouldHaveSpacesError_NotLengthError()
+    {
+        var maxLengthName = new string('N', TeamCategoryConstants.MaxNameLength);
+        var dto = new CreateTeamCategoryDto { Name = maxLengthName + " ", Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Name)))
+            .Only();
+    }
+
+    [Fact]
+    public void Validate_NamePaddedWithTrimmedLengthTooShort_ShouldHaveSpacesError_NotLengthError()
+    {
+        var paddedShortName = $"  {_tooShortName}  ";
+        var dto = new CreateTeamCategoryDto { Name = paddedShortName, Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Name)));
+    }
+
     public static IEnumerable<object[]> DescriptionWithSpaces()
     {
         var valid = new string('D', TeamCategoryConstants.MinDescriptionLength + 1);
@@ -192,6 +259,20 @@ public class BaseTeamCategoryValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Description)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
                 nameof(CreateTeamCategoryDto.Description)));
+    }
+
+    [Fact]
+    public void Validate_DescriptionAtMaxLengthWithTrailingSpace_ShouldHaveSpacesError_NotLengthError()
+    {
+        var maxLengthDescription = new string('D', TeamCategoryConstants.MaxDescriptionLength);
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = maxLengthDescription + " " };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveLeadingOrTrailingSpaces(
+                nameof(CreateTeamCategoryDto.Description)))
+            .Only();
     }
 
     [Fact]

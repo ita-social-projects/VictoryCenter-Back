@@ -118,7 +118,7 @@ public static class ErrorMessagesConstants
 
     public static string PropertyMustNotHaveLeadingOrTrailingSpaces(string property)
     {
-        return $"{property} must not have leading or trailing spaces.";
+        return $"{property} must not have leading or trailing spaces";
     }
 
     public static string PropertyMustHaveAMinimumLengthOfNCharacters(string property, int length)
