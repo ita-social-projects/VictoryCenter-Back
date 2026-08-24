@@ -131,7 +131,7 @@ public class ImageContentValidatorTests
     [Fact]
     public void Validate_PixelCountExceedsLimit_ReturnsPixelCountError()
     {
-        string pngHeader = ImageTestData.CreatePngHeader(5001, 5000);
+        string pngHeader = ImageTestData.CreatePngHeader(4001, 3000);
 
         ImageContentValidationResult result = _validator.Validate(pngHeader, ImageMimeTypes.Png);
 
@@ -141,7 +141,7 @@ public class ImageContentValidatorTests
     [Fact]
     public void Validate_DecodedImageSizeExceedsLimit_ReturnsMemoryError()
     {
-        string pngHeader = ImageTestData.CreatePngHeader(5000, 5000, bitDepth: 16);
+        string pngHeader = ImageTestData.CreatePngHeader(3000, 3000, bitDepth: 16);
 
         ImageContentValidationResult result = _validator.Validate(pngHeader, ImageMimeTypes.Png);
 
