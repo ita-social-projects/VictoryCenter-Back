@@ -40,6 +40,10 @@ public class CreatePdfReportHandlerTests
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
         _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
+        var mockClientProxy = new Mock<IClientProxy>();
+        var mockClients = new Mock<IHubClients>();
+        mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+        _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
         _mockRepositoryWrapper
             .Setup(x => x.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<LocalizationLanguage>>()))

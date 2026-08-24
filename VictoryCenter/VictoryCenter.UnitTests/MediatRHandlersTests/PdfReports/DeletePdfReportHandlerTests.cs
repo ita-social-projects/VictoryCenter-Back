@@ -31,6 +31,10 @@ public class DeletePdfReportHandlerTests
         _mockReorderService = new Mock<IReorderService>();
         _mockLogger = new Mock<ILogger<DeletePdfReportHandler>>();
         _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
+        var mockClientProxy = new Mock<IClientProxy>();
+        var mockClients = new Mock<IHubClients>();
+        mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+        _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
         _existingReport = new PdfReport
         {
             Id = 1,

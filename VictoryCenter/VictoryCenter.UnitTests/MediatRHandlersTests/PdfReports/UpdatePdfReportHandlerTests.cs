@@ -28,6 +28,10 @@ public class UpdatePdfReportHandlerTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
         _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
+        var mockClientProxy = new Mock<IClientProxy>();
+        var mockClients = new Mock<IHubClients>();
+        mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
+        _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
         _validator = new UpdatePdfReportValidator();
 
         _testPdfReport = new PdfReport
