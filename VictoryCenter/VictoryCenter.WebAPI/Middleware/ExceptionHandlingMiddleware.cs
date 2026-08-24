@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace VictoryCenter.WebAPI.Middleware;
@@ -36,10 +37,9 @@ public class ExceptionHandlingMiddleware
                 statusCode: StatusCodes.Status400BadRequest,
                 detail: errorDetail);
 
-            context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
 
-            await context.Response.WriteAsJsonAsync(problemDetails);
+            await WriteProblemDetailsAsync(context, problemDetails);
         }
         catch (BadHttpRequestException badRequestException)
             when (badRequestException.StatusCode == StatusCodes.Status413PayloadTooLarge)
@@ -50,10 +50,9 @@ public class ExceptionHandlingMiddleware
                 title: "Payload Too Large",
                 detail: "The request body exceeds the allowed size.");
 
-            context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = StatusCodes.Status413PayloadTooLarge;
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(problemDetails));
+            await WriteProblemDetailsAsync(context, problemDetails);
         }
         catch (Exception exception)
         {
@@ -69,10 +68,18 @@ public class ExceptionHandlingMiddleware
                 title: "Internal Server Error",
                 detail: "An error occurred while processing your request. Please try again!");
 
-            context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = problem.Status!.Value;
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+            await WriteProblemDetailsAsync(context, problem);
         }
+    }
+
+    private static Task WriteProblemDetailsAsync(HttpContext context, ProblemDetails problemDetails)
+    {
+        return context.Response.WriteAsJsonAsync(
+            problemDetails,
+            JsonSerializerOptions.Web,
+            "application/problem+json",
+            context.RequestAborted);
     }
 }

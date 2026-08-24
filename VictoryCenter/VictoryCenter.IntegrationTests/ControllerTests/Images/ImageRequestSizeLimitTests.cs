@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -75,12 +74,10 @@ public class ImageRequestSizeLimitTests
 
         Assert.Equal(HttpStatusCode.RequestEntityTooLarge, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-        ProblemDetails? problemDetails = JsonSerializer.Deserialize<ProblemDetails>(
-            await response.Content.ReadAsStringAsync(),
-            new JsonSerializerOptions(JsonSerializerDefaults.Web));
-        Assert.NotNull(problemDetails);
-        Assert.Equal(StatusCodes.Status413PayloadTooLarge, problemDetails.Status);
-        Assert.Equal("Payload Too Large", problemDetails.Title);
+        using JsonDocument responseBody = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        Assert.Equal(StatusCodes.Status413PayloadTooLarge, responseBody.RootElement.GetProperty("status").GetInt32());
+        Assert.Equal("Payload Too Large", responseBody.RootElement.GetProperty("title").GetString());
+        Assert.False(responseBody.RootElement.TryGetProperty("Status", out _));
     }
 
     private sealed class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>

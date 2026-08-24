@@ -204,6 +204,10 @@ public class ExceptionHandlingMiddlewareTests
 
         Assert.Equal(StatusCodes.Status413PayloadTooLarge, context.Response.StatusCode);
         Assert.Equal("application/problem+json", context.Response.ContentType);
+        context.Response.Body.Position = 0;
+        using JsonDocument responseBody = await JsonDocument.ParseAsync(context.Response.Body);
+        Assert.Equal(StatusCodes.Status413PayloadTooLarge, responseBody.RootElement.GetProperty("status").GetInt32());
+        Assert.False(responseBody.RootElement.TryGetProperty("Status", out _));
         _loggerMock.VerifyNoOtherCalls();
     }
 
