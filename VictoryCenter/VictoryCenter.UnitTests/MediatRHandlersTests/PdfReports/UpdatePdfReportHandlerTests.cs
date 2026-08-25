@@ -23,7 +23,6 @@ public class UpdatePdfReportHandlerTests
     private readonly IValidator<UpdatePdfReportCommand> _validator;
     private readonly PdfReport _testPdfReport;
     private readonly PdfReportDto _testPdfReportDto;
-    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
 
     public UpdatePdfReportHandlerTests()
     {
