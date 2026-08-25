@@ -8,7 +8,7 @@ namespace VictoryCenter.UnitTests.ServiceTests;
 
 public class ImageContentValidatorTests
 {
-    private readonly IImageContentValidator _validator = new ImageContentValidator();
+    private readonly ImageContentValidator _validator = new();
 
     [Theory]
     [InlineData("image/jpeg")]

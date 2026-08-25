@@ -4,31 +4,32 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ImageConstants
 {
+    public const int BytesPerMb = 1024 * 1024;
+    public const int MaxImageUploadRequestSizeInMb = 7;
+    public const long MaxImageUploadRequestSizeInBytes = MaxImageUploadRequestSizeInMb * BytesPerMb;
+
     // The upload rules define a 5 MB encoded-file limit. The remaining limits are
     // defense-in-depth bounds for decoding untrusted content and should be reviewed
     // if the product starts accepting unusually large source images.
-    public const int MaxImageSizeInMb = 5;
-    public const int BytesPerMb = 1024 * 1024;
-    public const int MaxImageSizeInBytes = MaxImageSizeInMb * BytesPerMb;
+    public static readonly int MaxImageSizeInMb = 5;
+    public static readonly int MaxImageSizeInBytes = MaxImageSizeInMb * BytesPerMb;
 
     // Current cropper requirements are centered around 1440x800. These limits leave
     // editing headroom while keeping a common 32-bpp decode near 20 MB.
-    public const int MaxImageWidth = 5_000;
-    public const int MaxImageHeight = 5_000;
-    public const long MaxImagePixelCount = 5_000_000;
+    public static readonly int MaxImageWidth = 5_000;
+    public static readonly int MaxImageHeight = 5_000;
+    public static readonly long MaxImagePixelCount = 5_000_000;
 
     // Keep decoded pixel memory and ImageSharp's internal allocations bounded even
     // when a small compressed payload declares a very large image.
-    public const int MaxDecodedImageSizeInMb = 32;
-    public const long MaxDecodedImageSizeInBytes = MaxDecodedImageSizeInMb * BytesPerMb;
-    public const int ImageDecoderAllocationLimitInMb = 128;
-    public const int ImageDecoderPoolSizeInMb = 64;
+    public static readonly int MaxDecodedImageSizeInMb = 32;
+    public static readonly long MaxDecodedImageSizeInBytes = MaxDecodedImageSizeInMb * BytesPerMb;
+    public static readonly int ImageDecoderAllocationLimitInMb = 128;
+    public static readonly int ImageDecoderPoolSizeInMb = 64;
 
     // A 5 MB binary file expands to about 6.67 MB as Base64. Seven MB permits the
     // required JSON envelope while Kestrel rejects unexpectedly large requests early.
-    public const int MaxImageUploadRequestSizeInMb = 7;
-    public const long MaxImageUploadRequestSizeInBytes = MaxImageUploadRequestSizeInMb * BytesPerMb;
-    public const int MaxBase64Length =
+    public static readonly int MaxBase64Length =
         (MaxImageSizeInBytes + Base64SourceBlockSize - 1) / Base64SourceBlockSize * Base64EncodedBlockSize;
 
     public static readonly string Base64ValidationError = "Base64 content is invalid";
