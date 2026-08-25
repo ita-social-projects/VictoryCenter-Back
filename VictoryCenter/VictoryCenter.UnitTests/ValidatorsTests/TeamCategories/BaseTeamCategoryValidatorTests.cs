@@ -294,4 +294,79 @@ public class BaseTeamCategoryValidatorTests
 
         result.ShouldNotHaveValidationErrorFor(x => x.Description);
     }
+
+    public static IEnumerable<object[]> NameWithMultipleInternalSpaces()
+    {
+        var valid = new string('N', TeamCategoryConstants.MinNameLength);
+        yield return new object[] { $"{valid}  {valid}" };
+        yield return new object[] { $"{valid}   {valid}" };
+        yield return new object[] { $"{valid} {valid}  {valid}" };
+    }
+
+    [Theory]
+    [MemberData(nameof(NameWithMultipleInternalSpaces))]
+    public void Validate_NameHasMultipleConsecutiveInternalSpaces_ShouldHaveError(string name)
+    {
+        var dto = new CreateTeamCategoryDto { Name = name, Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveMultipleConsecutiveSpaces(
+                nameof(CreateTeamCategoryDto.Name)));
+    }
+
+    [Fact]
+    public void Validate_NameHasSingleInternalSpace_ShouldNotHaveMultipleSpacesError()
+    {
+        var part = new string('N', TeamCategoryConstants.MinNameLength);
+        var dto = new CreateTeamCategoryDto { Name = $"{part} {part}", Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Name);
+    }
+
+    [Fact]
+    public void Validate_NameHasTabBetweenWords_ShouldNotHaveMultipleSpacesError()
+    {
+        var part = new string('N', TeamCategoryConstants.MinNameLength);
+        var dto = new CreateTeamCategoryDto { Name = $"{part}\t{part}", Description = _validDescription };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Name);
+    }
+
+    public static IEnumerable<object[]> DescriptionWithMultipleInternalSpaces()
+    {
+        var valid = new string('D', TeamCategoryConstants.MinDescriptionLength);
+        yield return new object[] { $"{valid}  {valid}" };
+        yield return new object[] { $"{valid}   {valid}" };
+        yield return new object[] { $"{valid} {valid}  {valid}" };
+    }
+
+    [Theory]
+    [MemberData(nameof(DescriptionWithMultipleInternalSpaces))]
+    public void Validate_DescriptionHasMultipleConsecutiveInternalSpaces_ShouldHaveError(string description)
+    {
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = description };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustNotHaveMultipleConsecutiveSpaces(
+                nameof(CreateTeamCategoryDto.Description)));
+    }
+
+    [Fact]
+    public void Validate_DescriptionHasSingleInternalSpace_ShouldNotHaveMultipleSpacesError()
+    {
+        var part = new string('D', TeamCategoryConstants.MinDescriptionLength);
+        var dto = new CreateTeamCategoryDto { Name = _validName, Description = $"{part} {part}" };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Description);
+    }
 }

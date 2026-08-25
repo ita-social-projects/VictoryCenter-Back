@@ -75,4 +75,24 @@ public class CreateTeamCategoryTests : BaseTestClass
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData("Test  Category")]
+    [InlineData("Test   Category")]
+    [InlineData("Test Category  Extra")]
+    public async Task CreateCategory_ShouldNotCreateCategory_NameHasMultipleConsecutiveSpaces(string paddedName)
+    {
+        var createCategoryDto = new CreateTeamCategoryDto
+        {
+            Name = paddedName,
+            Description = "Test Description",
+        };
+        var serializedDto = JsonSerializer.Serialize(createCategoryDto);
+
+        var response = await Fixture.HttpClient.PostAsync("api/teamcategories", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
