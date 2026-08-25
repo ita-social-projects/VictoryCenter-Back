@@ -1,10 +1,12 @@
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
+using VictoryCenter.IntegrationTests.Utils.Images;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.Images.Create;
 
@@ -20,9 +22,7 @@ public class CreateImageTests : BaseTestClass
     {
         var createImageDto = new CreateImageDto
         {
-            Base64 =
-                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
-
+            Base64 = ImageTestData.CreateBase64("image/jpg"),
             MimeType = "image/jpg"
         };
 
@@ -49,9 +49,7 @@ public class CreateImageTests : BaseTestClass
     {
         var createImageDto = new CreateImageDto
         {
-            Base64 =
-                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
-
+            Base64 = ImageTestData.CreateBase64("image/png"),
             MimeType = mimeType!
         };
 
@@ -73,7 +71,7 @@ public class CreateImageTests : BaseTestClass
     {
         var createImageDto = new CreateImageDto
         {
-            Base64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAAWgmWQ0AAAAASUVORK5CYII=",
+            Base64 = ImageTestData.CreateBase64(mimeType),
             MimeType = mimeType
         };
 
@@ -89,13 +87,104 @@ public class CreateImageTests : BaseTestClass
         Assert.NotNull(responseContext);
         Assert.Equal(mimeType, responseContext.MimeType);
 
-        // Check that the file was created with the correct extension
         string expectedExtension = GetExtensionFromMimeType(mimeType);
         string filePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, $"{responseContext.BlobName}.{expectedExtension}");
         Assert.True(File.Exists(filePath));
 
-        // Check that the URL contains the correct extension
         Assert.Contains($".{expectedExtension}", responseContext.Url);
+    }
+
+    [Fact]
+    public async Task CreateImage_Base64EncodedText_ShouldReturnBadRequest()
+    {
+        var dto = new CreateImageDto
+        {
+            Base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("This is not an image")),
+            MimeType = "image/png"
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateImage_DataUrl_ShouldReturnBadRequest()
+    {
+        var dto = new CreateImageDto
+        {
+            Base64 = $"data:{ImageMimeTypes.Png};base64,{ImageTestData.CreateBase64(ImageMimeTypes.Png)}",
+            MimeType = ImageMimeTypes.Png
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateImage_MimeTypeDoesNotMatchContent_ShouldReturnBadRequest()
+    {
+        var dto = new CreateImageDto
+        {
+            Base64 = ImageTestData.CreateBase64("image/png"),
+            MimeType = "image/jpeg"
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateImage_CorruptedImage_ShouldReturnBadRequest()
+    {
+        byte[] png = Convert.FromBase64String(ImageTestData.CreateBase64("image/png"));
+        var dto = new CreateImageDto
+        {
+            Base64 = Convert.ToBase64String(png[.. (png.Length / 2)]),
+            MimeType = "image/png"
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateImage_DimensionsExceedLimit_ShouldReturnBadRequest()
+    {
+        var dto = new CreateImageDto
+        {
+            Base64 = ImageTestData.CreateBase64(ImageMimeTypes.Png, ImageConstants.MaxImageWidth + 1, 1),
+            MimeType = "image/png"
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateImage_Base64PayloadExceedsEncodedImageLimit_ShouldReturnBadRequest()
+    {
+        var dto = new CreateImageDto
+        {
+            Base64 = new string('A', ImageConstants.MaxBase64Length + 4),
+            MimeType = "image/png"
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private async Task<HttpResponseMessage> PostImageAsync(CreateImageDto dto)
+    {
+        string json = JsonSerializer.Serialize(dto);
+        return await Fixture.HttpClient.PostAsync(
+            "api/Image",
+            new StringContent(json, Encoding.UTF8, "application/json"));
     }
 
     private static string GetExtensionFromMimeType(string mimeType)

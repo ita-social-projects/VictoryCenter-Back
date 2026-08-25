@@ -9,9 +9,11 @@ using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.UnitTests.Utils.Images;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
@@ -23,7 +25,7 @@ public class CreateImageHandlerTests
 
     private readonly CreateImageDto _testCreateImageDto = new()
     {
-        Base64 = "dGVzdA==", // "test" in base64
+        Base64 = ImageTestData.CreateBase64("image/png"),
         MimeType = "image/png"
     };
 
@@ -46,7 +48,7 @@ public class CreateImageHandlerTests
 
     public CreateImageHandlerTests()
     {
-        _validator = new CreateImageValidator();
+        _validator = new CreateImageValidator(new ImageContentValidator());
         _mockBlobService = new Mock<IBlobService>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
@@ -122,6 +124,27 @@ public class CreateImageHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(result.Errors, e => e.Message.Contains("cannot be null") || e.Message.Contains("required"));
+    }
+
+    [Fact]
+    public async Task Handle_NullDto_ShouldReturnValidationError()
+    {
+        var handler = new CreateImageHandler(
+            _mockBlobService.Object,
+            _mockRepositoryWrapper.Object,
+            _mockMapper.Object,
+            _validator);
+
+        Result<ImageDto> result = await handler.Handle(new CreateImageCommand(null!), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyIsRequired(nameof(CreateImageCommand.CreateImageDto)),
+            result.Errors.Select(error => error.Message));
+        _mockRepositoryWrapper.Verify(repositoryWrapper => repositoryWrapper.BeginTransaction(), Times.Never);
+        _mockBlobService.Verify(
+            blobService => blobService.SaveFileInStorageAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]

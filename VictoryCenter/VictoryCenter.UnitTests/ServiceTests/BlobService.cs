@@ -141,6 +141,17 @@ public class BlobServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveFileInStorage_DataUrl_ShouldThrowInvalidBase64FormatException()
+    {
+        string dataUrl = $"data:{_mimeType};base64,{_base64}";
+
+        var exception = await Assert.ThrowsAsync<InvalidBase64FormatException>(
+            () => _blobService.SaveFileInStorageAsync(dataUrl, _fileName, _mimeType));
+
+        Assert.Equal(ImageConstants.InvalidBase64String, exception.Message);
+    }
+
+    [Fact]
     public async Task FindFileInStorage_NonExistentFile_ShouldThrowBlobNotFoundException()
     {
         var ex = await Assert.ThrowsAsync<BlobNotFoundException>(

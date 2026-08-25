@@ -11,11 +11,13 @@ using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Validators.PdfReports;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.SignalR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 
@@ -39,11 +41,7 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
-        _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
-        var mockClientProxy = new Mock<IClientProxy>();
-        var mockClients = new Mock<IHubClients>();
-        mockClients.Setup(c => c.All).Returns(mockClientProxy.Object);
-        _mockHubContext.Setup(h => h.Clients).Returns(mockClients.Object);
+        _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();
         _mockRepositoryWrapper
             .Setup(x => x.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<LocalizationLanguage>>()))
