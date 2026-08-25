@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
@@ -132,6 +133,24 @@ public class UpdateImageTest : BaseTestClass
         {
             Base64 = ImageTestData.CreateBase64("image/png"),
             MimeType = "image/webp"
+        };
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"api/image/{image!.Id}",
+            new StringContent(JsonSerializer.Serialize(dto), Encoding.UTF8, "application/json"));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateImage_DataUrl_ShouldReturnBadRequest()
+    {
+        Image? image = await Fixture.DbContext.Images.FirstOrDefaultAsync();
+        string base64 = ImageTestData.CreateBase64(ImageMimeTypes.Png);
+        var dto = new UpdateImageDto
+        {
+            Base64 = $"data:{ImageMimeTypes.Png};base64,{base64}",
+            MimeType = ImageMimeTypes.Png
         };
 
         HttpResponseMessage response = await Fixture.HttpClient.PutAsync(

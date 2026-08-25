@@ -109,6 +109,20 @@ public class CreateImageTests : BaseTestClass
     }
 
     [Fact]
+    public async Task CreateImage_DataUrl_ShouldReturnBadRequest()
+    {
+        var dto = new CreateImageDto
+        {
+            Base64 = $"data:{ImageMimeTypes.Png};base64,{ImageTestData.CreateBase64(ImageMimeTypes.Png)}",
+            MimeType = ImageMimeTypes.Png
+        };
+
+        HttpResponseMessage response = await PostImageAsync(dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task CreateImage_MimeTypeDoesNotMatchContent_ShouldReturnBadRequest()
     {
         var dto = new CreateImageDto
@@ -142,7 +156,7 @@ public class CreateImageTests : BaseTestClass
     {
         var dto = new CreateImageDto
         {
-            Base64 = ImageTestData.CreateBase64("image/png", 10001, 1),
+            Base64 = ImageTestData.CreateBase64(ImageMimeTypes.Png, ImageConstants.MaxImageWidth + 1, 1),
             MimeType = "image/png"
         };
 

@@ -11,15 +11,15 @@ public static class ImageConstants
     public const int BytesPerMb = 1024 * 1024;
     public const int MaxImageSizeInBytes = MaxImageSizeInMb * BytesPerMb;
 
-    // Current cropper requirements are centered around 1440x800. These limits still
-    // accept 4K and 4000x3000 source photos while rejecting unnecessarily large canvases.
+    // Current cropper requirements are centered around 1440x800. These limits leave
+    // editing headroom while keeping a common 32-bpp decode near 20 MB.
     public const int MaxImageWidth = 5_000;
     public const int MaxImageHeight = 5_000;
-    public const long MaxImagePixelCount = 12_000_000;
+    public const long MaxImagePixelCount = 5_000_000;
 
     // Keep decoded pixel memory and ImageSharp's internal allocations bounded even
     // when a small compressed payload declares a very large image.
-    public const int MaxDecodedImageSizeInMb = 64;
+    public const int MaxDecodedImageSizeInMb = 32;
     public const long MaxDecodedImageSizeInBytes = MaxDecodedImageSizeInMb * BytesPerMb;
     public const int ImageDecoderAllocationLimitInMb = 128;
     public const int ImageDecoderPoolSizeInMb = 64;

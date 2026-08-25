@@ -45,6 +45,16 @@ public class ImageContentValidatorTests
     }
 
     [Fact]
+    public void Validate_DataUrl_ReturnsBase64Error()
+    {
+        string dataUrl = $"data:{ImageMimeTypes.Png};base64,{ImageTestData.CreateBase64(ImageMimeTypes.Png)}";
+
+        ImageContentValidationResult result = _validator.Validate(dataUrl, ImageMimeTypes.Png);
+
+        AssertFailure(result, ImageConstants.Base64ValidationError);
+    }
+
+    [Fact]
     public void Validate_MimeTypeDoesNotMatchImage_ReturnsMismatchError()
     {
         string png = ImageTestData.CreateBase64("image/png");
@@ -131,7 +141,7 @@ public class ImageContentValidatorTests
     [Fact]
     public void Validate_PixelCountExceedsLimit_ReturnsPixelCountError()
     {
-        string pngHeader = ImageTestData.CreatePngHeader(4001, 3000);
+        string pngHeader = ImageTestData.CreatePngHeader(2501, 2000);
 
         ImageContentValidationResult result = _validator.Validate(pngHeader, ImageMimeTypes.Png);
 
@@ -141,7 +151,7 @@ public class ImageContentValidatorTests
     [Fact]
     public void Validate_DecodedImageSizeExceedsLimit_ReturnsMemoryError()
     {
-        string pngHeader = ImageTestData.CreatePngHeader(3000, 3000, bitDepth: 16);
+        string pngHeader = ImageTestData.CreatePngHeader(2200, 2200, bitDepth: 16);
 
         ImageContentValidationResult result = _validator.Validate(pngHeader, ImageMimeTypes.Png);
 

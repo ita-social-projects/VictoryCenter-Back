@@ -194,11 +194,6 @@ public class BlobService : IBlobService
 
     private static byte[] ConvertBase64ToBytes(string base64)
     {
-        if (base64.Contains(','))
-        {
-            base64 = base64.Split(',')[1];
-        }
-
         var byteCount = base64.Length * 3 / 4;
         var buffer = ArrayPool<byte>.Shared.Rent(byteCount);
         try
