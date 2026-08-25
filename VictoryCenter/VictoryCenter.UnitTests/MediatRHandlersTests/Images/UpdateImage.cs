@@ -1,5 +1,6 @@
 using System.Transactions;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
@@ -7,10 +8,12 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Validators.Images;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.Images;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
@@ -24,7 +27,7 @@ public class UpdateImageHandlerTests
 
     private readonly UpdateImageDto _testUpdateImageDto = new()
     {
-        Base64 = "dGVzdA==",
+        Base64 = ImageTestData.CreateBase64("image/png"),
         MimeType = "image/png"
     };
 
@@ -55,7 +58,7 @@ public class UpdateImageHandlerTests
         _mockBlobService = new Mock<IBlobService>();
         _mockTimeProvider = new Mock<TimeProvider>();
         _mockTimeProvider.Setup(x => x.GetUtcNow()).Returns(TestNow);
-        _validator = new UpdateImageValidator();
+        _validator = new UpdateImageValidator(new ImageContentValidator());
     }
 
     [Fact]
@@ -139,6 +142,31 @@ public class UpdateImageHandlerTests
         _mockBlobService.Verify(
             x => x.UpdateFileInStorageAsync(
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_NullDto_ShouldReturnValidationError()
+    {
+        var handler = new UpdateImageHandler(
+            _mockMapper.Object,
+            _mockRepositoryWrapper.Object,
+            _validator,
+            _mockBlobService.Object,
+            _mockTimeProvider.Object);
+
+        Result<ImageDto> result = await handler.Handle(new UpdateImageCommand(null!, 1), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageCommand.UpdateImageDto)),
+            result.Errors.Select(error => error.Message));
+        _mockRepositoryWrapper.Verify(
+            repositoryWrapper => repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()),
+            Times.Never);
+        _mockBlobService.Verify(
+            blobService => blobService.UpdateFileInStorageAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]
