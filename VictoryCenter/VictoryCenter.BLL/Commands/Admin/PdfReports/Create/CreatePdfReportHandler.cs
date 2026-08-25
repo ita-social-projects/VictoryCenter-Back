@@ -98,7 +98,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
             transaction.Complete();
             committed = true;
             var result = _mapper.Map<PdfReportDto>(pdfReport);
-            await _hubContext.Clients.All.SendAsync("PdfReportAction", pdfReport.LanguageId, cancellationToken: cancellationToken);
+            await _hubContext.Clients.All.SendAsync("PdfReportCreated", result, cancellationToken: cancellationToken);
             return Result.Ok(result);
         }
         catch (ValidationException vex)

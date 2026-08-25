@@ -71,7 +71,7 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
 
             var dto = _mapper.Map<PdfReportDto>(pdfReport);
 
-            await _hubContext.Clients.All.SendAsync("PdfReportAction", pdfReport.LanguageId, cancellationToken: cancellationToken);
+            await _hubContext.Clients.All.SendAsync("PdfReportUpdated", dto, cancellationToken: cancellationToken);
             return Result.Ok(dto);
         }
         catch (ValidationException vex)
