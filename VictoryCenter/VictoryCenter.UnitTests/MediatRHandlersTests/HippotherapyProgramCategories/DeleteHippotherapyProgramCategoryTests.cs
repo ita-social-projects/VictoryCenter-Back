@@ -6,6 +6,8 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.HippotherapyProgramCategories;
 
@@ -64,6 +66,12 @@ public class DeleteHippotherapyProgramCategoryTests
     public async Task Handle_ShouldDeleteLocalizations_WhenCategoryHasAttachedLocalizations()
     {
         SetupCategoryRetrieval(_programCategoryWithLocalizations);
+
+        // Setup the HippotherapyProgramCategoryLocalizationsRepository mock
+        _repositoryWrapperMock
+            .Setup(r => r.HippotherapyProgramCategoryLocalizationsRepository)
+            .Returns(Mock.Of<IHippotherapyProgramCategoryLocalizationsRepository>());
+
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
         var handler = new DeleteHippotherapyProgramCategoryHandler(_repositoryWrapperMock.Object);
@@ -73,10 +81,10 @@ public class DeleteHippotherapyProgramCategoryTests
         Assert.True(result.IsSuccess);
 
         _repositoryWrapperMock.Verify(
-        r => r.HippotherapyProgramCategoryLocalizationsRepository.DeleteRange(
-            It.Is<IEnumerable<HippotherapyProgramCategoryLocalization>>(list =>
-                list.Any(l => l.EntityId == _programCategoryWithLocalizations.Id && l.LanguageId == 1))),
-        Times.Once);
+            r => r.HippotherapyProgramCategoryLocalizationsRepository.DeleteRange(
+                It.Is<IEnumerable<HippotherapyProgramCategoryLocalization>>(list =>
+                    list.Any(l => l.EntityId == _programCategoryWithLocalizations.Id && l.LanguageId == 1))),
+            Times.Once);
     }
 
     [Fact]
