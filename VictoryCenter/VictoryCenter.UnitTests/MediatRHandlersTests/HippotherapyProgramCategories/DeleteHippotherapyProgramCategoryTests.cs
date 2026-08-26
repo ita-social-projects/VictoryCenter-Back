@@ -5,8 +5,8 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Options;
- using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.HippotherapyProgramCategories;
 
