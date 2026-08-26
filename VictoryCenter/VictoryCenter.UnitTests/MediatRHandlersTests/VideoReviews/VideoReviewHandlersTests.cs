@@ -16,13 +16,17 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.VideoReviews;
 
 public class VideoReviewHandlersTests
 {
+    private static readonly DateTimeOffset TestNow = new(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _wrapper = new();
     private readonly Mock<IVideoReviewsRepository> _repository = new();
+    private readonly Mock<TimeProvider> _timeProvider = new();
 
     public VideoReviewHandlersTests()
     {
         _wrapper.SetupGet(item => item.VideoReviewsRepository).Returns(_repository.Object);
+        _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
         _mapper.Setup(mapper => mapper.Map<VideoReviewDto>(It.IsAny<VideoReview>()))
             .Returns((VideoReview videoReview) => new VideoReviewDto
             {
@@ -43,7 +47,7 @@ public class VideoReviewHandlersTests
             .Callback<VideoReview>(entity => createdEntity = entity)
             .ReturnsAsync((VideoReview entity) => entity);
         _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
-        var handler = new CreateVideoReviewHandler(_mapper.Object, _wrapper.Object);
+        var handler = new CreateVideoReviewHandler(_mapper.Object, _wrapper.Object, _timeProvider.Object);
 
         var result = await handler.Handle(
             new CreateVideoReviewCommand(new CreateVideoReviewDto
@@ -57,7 +61,7 @@ public class VideoReviewHandlersTests
         Assert.NotNull(createdEntity);
         Assert.Equal("Title", createdEntity.Title);
         Assert.Equal("https://example.com/video", createdEntity.Link);
-        Assert.NotEqual(default, createdEntity.CreatedAt);
+        Assert.Equal(TestNow, createdEntity.CreatedAt);
     }
 
     [Fact]
@@ -69,7 +73,7 @@ public class VideoReviewHandlersTests
             .Setup(repository => repository.CreateAsync(It.IsAny<VideoReview>()))
             .ReturnsAsync((VideoReview entity) => entity);
         _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(0);
-        var handler = new CreateVideoReviewHandler(_mapper.Object, _wrapper.Object);
+        var handler = new CreateVideoReviewHandler(_mapper.Object, _wrapper.Object, _timeProvider.Object);
 
         var result = await handler.Handle(new CreateVideoReviewCommand(CreateDto()), CancellationToken.None);
 
@@ -86,7 +90,7 @@ public class VideoReviewHandlersTests
             .Setup(repository => repository.CreateAsync(It.IsAny<VideoReview>()))
             .ReturnsAsync((VideoReview entity) => entity);
         _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
-        var handler = new CreateVideoReviewHandler(_mapper.Object, _wrapper.Object);
+        var handler = new CreateVideoReviewHandler(_mapper.Object, _wrapper.Object, _timeProvider.Object);
 
         var result = await handler.Handle(new CreateVideoReviewCommand(CreateDto()), CancellationToken.None);
 
