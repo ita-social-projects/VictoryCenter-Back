@@ -44,13 +44,6 @@ public class CancelReportFundsExpendituresHandler
                     AsNoTracking = true
                 })).ToList();
 
-            var backupCategories = (await _repositoryWrapper.BackupReportFundsExpendituresCategoriesRepository
-                .GetAllAsync(new QueryOptions<BackupReportFundsExpendituresCategory>
-                {
-                    Include = q => q.Include(c => c.Localizations).ThenInclude(l => l.Language),
-                    AsNoTracking = true
-                })).ToList();
-
             var backupFundsRecords = (await _repositoryWrapper.BackupReportFundsExpendituresRecordsRepository
                 .GetAllAsync(new QueryOptions<BackupReportFundsExpendituresRecord>
                 {
@@ -71,53 +64,14 @@ public class CancelReportFundsExpendituresHandler
             await _repositoryWrapper.ReportProgramExpendituresRecordsRepository
                 .BulkDeleteAsync(_ => true);
 
-            await _repositoryWrapper.ReportFundsExpendituresCategoryLocalizationsRepository
-                .BulkDeleteAsync(_ => true);
-
-            await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
-                .BulkDeleteAsync(_ => true);
-
             await _repositoryWrapper.ReportFundsExpendituresSettingsLocalizationsRepository
                 .BulkDeleteAsync(_ => true);
 
             var now = _timeProvider.GetUtcNow();
 
-            var oldToNewCategoryMap = new Dictionary<long, ReportFundsExpendituresCategory>();
-
-            var restoredCategories = backupCategories.Select(bc =>
-            {
-                var newCategory = new ReportFundsExpendituresCategory
-                {
-                    Name = bc.Name,
-                    Type = bc.Type,
-                    CreatedAt = bc.CreatedAt,
-                };
-                oldToNewCategoryMap[bc.Id] = newCategory;
-                return newCategory;
-            }).ToArray();
-
-            if (restoredCategories.Any())
-            {
-                await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.CreateRangeAsync(restoredCategories);
-                await _repositoryWrapper.SaveChangesAsync();
-            }
-
-            var restoredCategoryLocalizations = backupCategories
-                .SelectMany(bc => bc.Localizations.Select(bl => new ReportFundsExpendituresCategoryLocalization
-                {
-                    EntityId = oldToNewCategoryMap[bl.EntityId].Id,
-                    LanguageId = bl.LanguageId,
-                    Name = bl.Name,
-                    TranslationStatus = bl.TranslationStatus,
-                    CreatedAt = bl.CreatedAt,
-                })).ToArray();
-
-            await _repositoryWrapper.ReportFundsExpendituresCategoryLocalizationsRepository
-                .CreateRangeAsync(restoredCategoryLocalizations);
-
             var restoredFundsRecords = backupFundsRecords.Select(br => new ReportFundsExpendituresRecord
             {
-                CategoryId = oldToNewCategoryMap[br.CategoryId].Id,
+                CategoryId = br.CategoryId,
                 Type = br.Type,
                 ReportingYear = br.ReportingYear,
                 AmountUah = br.AmountUah,
