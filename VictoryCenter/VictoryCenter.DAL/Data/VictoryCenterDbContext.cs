@@ -198,6 +198,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<HippotherapyLandingPageParticipantCard> HippotherapyLandingPageParticipantCards { get; set; }
 
     public DbSet<HippotherapyLandingPageScientificReference> HippotherapyLandingPageScientificReferences { get; set; }
+    public DbSet<FeedbackHistory> FeedbackHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
