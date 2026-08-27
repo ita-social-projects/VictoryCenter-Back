@@ -164,8 +164,6 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
     private IBackupReportFundsExpendituresSettingsRepository? _backupReportFundsExpendituresSettingsRepository;
     private IBackupReportFundsExpendituresSettingsLocalizationsRepository? _backupReportFundsExpendituresSettingsLocalizationsRepository;
-    private IBackupReportFundsExpendituresCategoriesRepository? _backupReportFundsExpendituresCategoriesRepository;
-    private IBackupReportFundsExpendituresCategoryLocalizationsRepository? _backupReportFundsExpendituresCategoryLocalizationsRepository;
     private IBackupReportFundsExpendituresRecordsRepository? _backupReportFundsExpendituresRecordsRepository;
     private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
@@ -396,14 +394,6 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository =>
         _backupReportFundsExpendituresSettingsLocalizationsRepository ??=
             new BackupReportFundsExpendituresSettingsLocalizationsRepository(_victoryCenterDbContext);
-
-    public IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository =>
-        _backupReportFundsExpendituresCategoriesRepository ??=
-            new BackupReportFundsExpendituresCategoriesRepository(_victoryCenterDbContext);
-
-    public IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository =>
-        _backupReportFundsExpendituresCategoryLocalizationsRepository ??=
-            new BackupReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
 
     public IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository =>
         _backupReportFundsExpendituresRecordsRepository ??=

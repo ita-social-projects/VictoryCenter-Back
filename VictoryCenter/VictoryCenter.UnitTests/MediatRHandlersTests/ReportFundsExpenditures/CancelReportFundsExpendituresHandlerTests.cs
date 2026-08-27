@@ -118,6 +118,13 @@ public class CancelReportFundsExpendituresHandlerTests
         _backupProgramRecordsRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<BackupReportProgramExpendituresRecord>>()))
             .ReturnsAsync(backupProgramRecords);
 
+        var liveCategories = new List<ReportFundsExpendituresCategory>
+        {
+            new() { Id = 1, Name = "Cat1" }
+        };
+        _categoriesRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
+            .ReturnsAsync(liveCategories);
+
         var handler = new CancelReportFundsExpendituresHandler(_repositoryWrapperMock.Object, _timeProvider);
 
         // Act
@@ -131,6 +138,53 @@ public class CancelReportFundsExpendituresHandlerTests
         _fundsRecordsRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<ReportFundsExpendituresRecord[]>()), Times.Once);
         _categoriesRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<ReportFundsExpendituresCategory[]>()), Times.Never);
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.AtLeastOnce);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSkipRestoredFundsRecord_WhenReferencedCategoryNoLongerExistsAmongLiveCategories()
+    {
+        // Arrange
+        var backupSettings = new BackupReportFundsExpendituresSettings { DisclaimerTitle = "Backup Title" };
+        _backupSettingsRepositoryMock.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<BackupReportFundsExpendituresSettings>>()))
+            .ReturnsAsync(backupSettings);
+
+        _backupSettingsLocalizationsRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<BackupReportFundsExpendituresSettingsLocalization>>()))
+            .ReturnsAsync(new List<BackupReportFundsExpendituresSettingsLocalization>());
+
+        var backupFundsRecords = new List<BackupReportFundsExpendituresRecord>
+        {
+            new() { CategoryId = 1, AmountUah = 100 },
+            new() { CategoryId = 2, AmountUah = 200 }
+        };
+        _backupFundsRecordsRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<BackupReportFundsExpendituresRecord>>()))
+            .ReturnsAsync(backupFundsRecords);
+
+        _backupProgramRecordsRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<BackupReportProgramExpendituresRecord>>()))
+            .ReturnsAsync(new List<BackupReportProgramExpendituresRecord>());
+
+        var liveCategories = new List<ReportFundsExpendituresCategory>
+        {
+            new() { Id = 1, Name = "Cat1" }
+        };
+        _categoriesRepositoryMock.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
+            .ReturnsAsync(liveCategories);
+
+        var createdRecords = Array.Empty<ReportFundsExpendituresRecord>();
+        _fundsRecordsRepositoryMock
+            .Setup(r => r.CreateRangeAsync(It.IsAny<ReportFundsExpendituresRecord[]>()))
+            .Callback<ReportFundsExpendituresRecord[]>(records => createdRecords = records)
+            .Returns(Task.CompletedTask);
+
+        var handler = new CancelReportFundsExpendituresHandler(_repositoryWrapperMock.Object, _timeProvider);
+
+        // Act
+        var result = await handler.Handle(new CancelReportFundsExpendituresCommand(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var restoredRecord = Assert.Single(createdRecords);
+        Assert.Equal(1, restoredRecord.CategoryId);
         _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 

@@ -56,6 +56,12 @@ public class CancelReportFundsExpendituresHandler
                     AsNoTracking = true
                 })).ToList();
 
+            var liveCategoryIds = (await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
+                .GetAllAsync(new QueryOptions<ReportFundsExpendituresCategory>
+                {
+                    AsNoTracking = true
+                })).Select(category => category.Id).ToHashSet();
+
             await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
             await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
@@ -69,15 +75,17 @@ public class CancelReportFundsExpendituresHandler
 
             var now = _timeProvider.GetUtcNow();
 
-            var restoredFundsRecords = backupFundsRecords.Select(br => new ReportFundsExpendituresRecord
-            {
-                CategoryId = br.CategoryId,
-                Type = br.Type,
-                ReportingYear = br.ReportingYear,
-                AmountUah = br.AmountUah,
-                AmountUsd = br.AmountUsd,
-                CreatedAt = br.CreatedAt,
-            }).ToArray();
+            var restoredFundsRecords = backupFundsRecords
+                .Where(br => liveCategoryIds.Contains(br.CategoryId))
+                .Select(br => new ReportFundsExpendituresRecord
+                {
+                    CategoryId = br.CategoryId,
+                    Type = br.Type,
+                    ReportingYear = br.ReportingYear,
+                    AmountUah = br.AmountUah,
+                    AmountUsd = br.AmountUsd,
+                    CreatedAt = br.CreatedAt,
+                }).ToArray();
 
             if (restoredFundsRecords.Any())
             {
