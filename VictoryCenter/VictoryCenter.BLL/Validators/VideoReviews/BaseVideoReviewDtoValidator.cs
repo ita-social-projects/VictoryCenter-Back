@@ -31,7 +31,13 @@ public class BaseVideoReviewDtoValidator : AbstractValidator<CreateVideoReviewDt
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(CreateVideoReviewDto.Link),
                 VideoReviewConstants.LinkMaxLength))
-            .Must(link => string.IsNullOrWhiteSpace(link) || Uri.TryCreate(link.Trim(), UriKind.Absolute, out _))
+            .Must(link => string.IsNullOrWhiteSpace(link) || IsHttpOrHttpsUri(link.Trim()))
             .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateVideoReviewDto.Link)));
+    }
+
+    private static bool IsHttpOrHttpsUri(string link)
+    {
+        return Uri.TryCreate(link, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
     }
 }

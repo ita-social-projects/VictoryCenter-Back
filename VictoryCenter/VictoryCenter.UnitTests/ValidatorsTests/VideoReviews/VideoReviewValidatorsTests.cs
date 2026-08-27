@@ -104,22 +104,38 @@ public class VideoReviewValidatorsTests
     }
 
     [Theory]
-    [InlineData("abc")]
-    [InlineData("/video/1")]
+    [InlineData("not a valid link at all")]
+    [InlineData("/video/12345")]
     [InlineData("www.example.com/video")]
     public void Create_ShouldHaveError_WhenLinkIsNotAnAbsoluteUri(string link)
+    {
+        Assert.True(link.Length >= VideoReviewConstants.LinkMinLength);
+        var command = new CreateVideoReviewCommand(ValidDto() with { Link = link });
+
+        var result = _createValidator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(item => item.VideoReview.Link)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateVideoReviewDto.Link)));
+    }
+
+    [Theory]
+    [InlineData("javascript:alert(document.cookie)")]
+    [InlineData("data:text/html;base64,PHNjcmlwdD4=")]
+    [InlineData("file:///etc/passwd")]
+    public void Create_ShouldHaveError_WhenLinkUsesADisallowedScheme(string link)
     {
         var command = new CreateVideoReviewCommand(ValidDto() with { Link = link });
 
         var result = _createValidator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(item => item.VideoReview.Link);
+        result.ShouldHaveValidationErrorFor(item => item.VideoReview.Link)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateVideoReviewDto.Link)));
     }
 
     [Theory]
     [InlineData("https://example.com/video")]
     [InlineData("http://example.com/video?query=1")]
-    public void Create_ShouldNotHaveError_WhenLinkIsAValidAbsoluteUri(string link)
+    public void Create_ShouldNotHaveError_WhenLinkIsAValidHttpOrHttpsUri(string link)
     {
         var command = new CreateVideoReviewCommand(ValidDto() with { Link = link });
 
