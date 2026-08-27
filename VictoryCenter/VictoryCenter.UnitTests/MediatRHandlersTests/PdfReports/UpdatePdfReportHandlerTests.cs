@@ -11,6 +11,7 @@ using VictoryCenter.BLL.Validators.PdfReports;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.SignalR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 
@@ -27,7 +28,7 @@ public class UpdatePdfReportHandlerTests
     {
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
-        _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
+        _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();
         _validator = new UpdatePdfReportValidator();
 
         _testPdfReport = new PdfReport

@@ -1,7 +1,6 @@
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.MainDonations;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.Queries.Public.MainPage.GetMainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -80,7 +79,7 @@ public class GetMainPageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenEntityNotFound()
+    public async Task Handle_ShouldReturnEmptyDto_WhenEntityNotFound()
     {
         // Arrange
         _mainPageRepositoryMock
@@ -93,7 +92,9 @@ public class GetMainPageHandlerTests
         var result = await handler.Handle(new GetMainPageQuery(), CancellationToken.None);
 
         // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors[0].Message);
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+        Assert.Equal(0, result.Value.Id);
+        Assert.Equal(string.Empty, result.Value.Title);
     }
 }

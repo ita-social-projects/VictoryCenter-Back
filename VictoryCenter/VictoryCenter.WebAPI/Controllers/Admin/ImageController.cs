@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.Admin.Images.Create;
 using VictoryCenter.BLL.Commands.Admin.Images.Delete;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
@@ -6,12 +8,16 @@ using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.Queries.Admin.Images.GetById;
 using VictoryCenter.BLL.Queries.Admin.Images.GetByName;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class ImageController : AuthorizedApiController
 {
     [HttpPost]
+    [RequestSizeLimit(ImageConstants.MaxImageUploadRequestSizeInBytes)]
+    [EnableRateLimiting(RateLimitingPolicyNameConstants.ImageUpload)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> CreateImage([FromBody] CreateImageDto request)
     {
         return HandleResult(await Mediator.Send(new CreateImageCommand(request)));
@@ -30,6 +36,9 @@ public class ImageController : AuthorizedApiController
     }
 
     [HttpPut("{id}")]
+    [RequestSizeLimit(ImageConstants.MaxImageUploadRequestSizeInBytes)]
+    [EnableRateLimiting(RateLimitingPolicyNameConstants.ImageUpload)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<ActionResult> UpdateImage(long id, [FromBody] UpdateImageDto request)
     {
         return HandleResult(await Mediator.Send(new UpdateImageCommand(request, id)));

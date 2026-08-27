@@ -29,6 +29,8 @@ public class GetPublishedProgramsHandler : IRequestHandler<GetPublishedProgramsQ
             Filter = program => program.Status == Status.Published,
             Include = program => program
                 .Include(program => program.Categories)
+                    .ThenInclude(category => category.Localizations)
+                        .ThenInclude(localization => localization.Language)
                 .Include(program => program.PreviewImage)
                 .Include(program => program.Localizations)
                     .ThenInclude(l => l.Language)

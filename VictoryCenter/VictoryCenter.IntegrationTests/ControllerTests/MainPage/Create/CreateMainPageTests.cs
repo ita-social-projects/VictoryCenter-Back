@@ -17,19 +17,30 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage.Create;
 
 public class CreateMainPageTests : BaseTestClass
 {
+    private readonly MainPageDatabaseCleaner _dbCleaner;
     private readonly Uri _endpointUri = new("/api/MainPage", UriKind.Relative);
 
     public CreateMainPageTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
+        _dbCleaner = new MainPageDatabaseCleaner(fixture);
+    }
+
+    public override async Task InitializeAsync()
+    {
+        await base.InitializeAsync();
+        await _dbCleaner.CleanupAsync();
+    }
+
+    public override async Task DisposeAsync()
+    {
+        await _dbCleaner.CleanupAsync();
+        await base.DisposeAsync();
     }
 
     [Fact]
     public async Task CreateMainPage_WithValidData_ShouldReturnOkAndCreateEntity()
     {
-        Fixture.DbContext.MainPages.RemoveRange(Fixture.DbContext.MainPages);
-        await Fixture.DbContext.SaveChangesAsync();
-
         var image = await EnsureImageExistsAsync();
 
         var createDto = new CreateMainPageDto
