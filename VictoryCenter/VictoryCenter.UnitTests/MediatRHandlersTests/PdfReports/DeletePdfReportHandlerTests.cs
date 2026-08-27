@@ -1,10 +1,12 @@
 using System.Transactions;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -19,6 +21,7 @@ public class DeletePdfReportHandlerTests
     private readonly Mock<IPdfService> _mockPdfService;
     private readonly Mock<IReorderService> _mockReorderService;
     private readonly Mock<ILogger<DeletePdfReportHandler>> _mockLogger;
+    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
     private readonly PdfReport _existingReport;
 
     public DeletePdfReportHandlerTests()
@@ -27,6 +30,7 @@ public class DeletePdfReportHandlerTests
         _mockPdfService = new Mock<IPdfService>();
         _mockReorderService = new Mock<IReorderService>();
         _mockLogger = new Mock<ILogger<DeletePdfReportHandler>>();
+        _mockHubContext = new Mock<IHubContext<PdfReportsHub>>();
         _existingReport = new PdfReport
         {
             Id = 1,
@@ -170,5 +174,5 @@ public class DeletePdfReportHandlerTests
     }
 
     private DeletePdfReportHandler CreateHandler() =>
-        new(_mockRepo.Object, _mockPdfService.Object, _mockReorderService.Object, _mockLogger.Object);
+        new(_mockRepo.Object, _mockPdfService.Object, _mockReorderService.Object, _mockLogger.Object, _mockHubContext.Object);
 }
