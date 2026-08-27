@@ -69,7 +69,7 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
                 idSelector: e => e.Id,
                 groupSelector: e => e.LanguageId == languageId);
 
-            await _hubContext.Clients.All.SendAsync("PdfReportAction", languageId, cancellationToken: cancellationToken);
+            await _hubContext.Clients.All.SendAsync("PdfReportsReordered", languageId, cancellationToken: cancellationToken);
             return Result.Ok(Unit.Value);
         }
         catch (ValidationException ex)

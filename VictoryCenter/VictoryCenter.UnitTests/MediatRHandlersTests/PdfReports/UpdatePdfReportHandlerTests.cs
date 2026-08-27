@@ -246,6 +246,7 @@ public class UpdatePdfReportHandlerTests
 
         var result = await handler.Handle(command, CancellationToken.None);
 
+        // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(
             PdfReportConstants.NameRequiredErrorMessage,
