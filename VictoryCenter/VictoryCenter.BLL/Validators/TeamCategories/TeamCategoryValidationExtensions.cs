@@ -6,7 +6,7 @@ namespace VictoryCenter.BLL.Validators.TeamCategories;
 
 internal static class TeamCategoryValidationExtensions
 {
-    private static readonly Regex MultipleSpacesRegex = new(@"\s{2,}", RegexOptions.Compiled);
+    private static readonly Regex MultipleSpacesRegex = new(@"\s{2,}", RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
 
     public static IRuleBuilderOptions<T, string> ValidTeamCategoryName<T>(
         this IRuleBuilderInitial<T, string> ruleBuilder,
