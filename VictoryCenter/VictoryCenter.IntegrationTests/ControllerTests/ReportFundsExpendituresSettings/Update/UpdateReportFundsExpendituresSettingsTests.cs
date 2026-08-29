@@ -65,6 +65,26 @@ public class UpdateReportFundsExpendituresSettingsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Update_ShouldReturnBadRequest_WhenDisclaimerTitleIsTooShortAfterTrimming()
+    {
+        await EnsureSettingsExistsAsync();
+
+        var updateDto = new UpdateReportFundsExpendituresSettingsDto
+        {
+            DisclaimerTitle = "  A  ",
+            ExchangeRate = 41.654321m,
+            ProgramExpendituresReportingYear = 2026
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            "/api/ReportFundsExpendituresSettings/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private async Task EnsureSettingsExistsAsync()
     {
         var existing = await Fixture.DbContext.ReportFundsExpendituresSettings
@@ -83,5 +103,25 @@ public class UpdateReportFundsExpendituresSettingsTests : BaseTestClass
             CreatedAt = DateTimeOffset.UtcNow
         });
         await Fixture.DbContext.SaveChangesAsync();
+    }
+
+    [Fact]
+    private async Task Update_ShouldReturnBadRequest_WhenDisclaimerTitleIsTooShortAfterTrimming()
+    {
+        await EnsureSettingsExistsAsync();
+
+        var updateDto = new UpdateReportFundsExpendituresSettingsDto
+        {
+            DisclaimerTitle = "  A  ",
+            ExchangeRate = 41.654321m,
+            ProgramExpendituresReportingYear = 2026
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            "/api/ReportFundsExpendituresSettings/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }

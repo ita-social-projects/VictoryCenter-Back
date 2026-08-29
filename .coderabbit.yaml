@@ -20,6 +20,9 @@ reviews:
   suggested_labels: true
   auto_apply_labels: false
   suggested_reviewers: true
+  pre_merge_checks:         
+    docstrings:
+      mode: "off"
   poem: true
   path_filters:
     # Build outputs and dependencies
