@@ -116,6 +116,16 @@ public static class ErrorMessagesConstants
         return $"Invalid IDs found while reordering {entityType.Name}: {string.Join(", ", ids)}";
     }
 
+    public static string PropertyMustNotHaveLeadingOrTrailingSpaces(string property)
+    {
+        return $"{property} must not have leading or trailing spaces";
+    }
+
+    public static string PropertyMustNotHaveMultipleConsecutiveSpaces(string property)
+    {
+        return $"{property} must not have multiple consecutive spaces";
+    }
+
     public static string PropertyMustHaveAMinimumLengthOfNCharacters(string property, int length)
     {
         return $"{property} field must have a minimum length of {length} characters";
