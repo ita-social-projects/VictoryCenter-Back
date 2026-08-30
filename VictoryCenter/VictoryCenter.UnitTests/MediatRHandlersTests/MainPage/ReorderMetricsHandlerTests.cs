@@ -93,7 +93,7 @@ public class ReorderMetricsHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ReorderWithHiddenMetric_ShouldPlaceHiddenAfterVisibleAndKeepVisibleOrder()
+    public async Task Handle_ReorderWithHiddenMetric_ShouldReorderIncludingHiddenMetric()
     {
         // Arrange
         var metrics = new List<Metric>
@@ -105,20 +105,21 @@ public class ReorderMetricsHandlerTests
         };
         SetupMetricRepository(metrics);
 
-        var reorderDto = new ReorderMetricsDto { OrderedIds = [4, 1, 3], StatisticId = 1L };
+        var reorderDto = new ReorderMetricsDto { OrderedIds = [4, 2, 1, 3], StatisticId = 1L };
         var command = new ReorderMetricsCommand(reorderDto);
         var handler = new ReorderMetricsHandler(_validator, _repositoryWrapperMock.Object);
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal([4L, 1L, 3L, 2L], metrics.OrderBy(m => m.Priority).Select(m => m.Id));
+        Assert.Equal([4L, 2L, 1L, 3L], metrics.OrderBy(m => m.Priority).Select(m => m.Id));
         Assert.Equal([0L, 1L, 2L, 3L], metrics.OrderBy(m => m.Priority).Select(m => m.Priority));
     }
 
     [Fact]
-    public async Task Handle_ReorderWithPriorityGaps_ShouldRenumberVisibleContiguously()
+    public async Task Handle_ReorderWithPriorityGaps_ShouldRenumberMetricsContiguously()
     {
         // Arrange
         var metrics = new List<Metric>
@@ -143,7 +144,33 @@ public class ReorderMetricsHandlerTests
     }
 
     [Fact]
-    public async Task Handle_MissingVisibleMetricId_ShouldReturnFailure()
+    public async Task Handle_HiddenMetricCanChangePositionNormally()
+    {
+        // Arrange
+        var metrics = new List<Metric>
+        {
+            new() { Id = 1, StatisticId = 1L, Priority = 0, IsHidden = false },
+            new() { Id = 2, StatisticId = 1L, Priority = 1, IsHidden = true },
+            new() { Id = 3, StatisticId = 1L, Priority = 3, IsHidden = false },
+            new() { Id = 4, StatisticId = 1L, Priority = 4, IsHidden = false }
+        };
+        SetupMetricRepository(metrics);
+
+        var reorderDto = new ReorderMetricsDto { OrderedIds = [4, 2, 1, 3], StatisticId = 1L };
+        var command = new ReorderMetricsCommand(reorderDto);
+        var handler = new ReorderMetricsHandler(_validator, _repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal([4L, 2L, 1L, 3L], metrics.OrderBy(m => m.Priority).Select(m => m.Id));
+        Assert.Equal([0L, 1L, 2L, 3L], metrics.OrderBy(m => m.Priority).Select(m => m.Priority));
+    }
+
+    [Fact]
+    public async Task Handle_MissingMetricId_ShouldReturnFailure()
     {
         // Arrange
         var metrics = new List<Metric>
@@ -155,6 +182,32 @@ public class ReorderMetricsHandlerTests
         SetupMetricRepository(metrics);
 
         var reorderDto = new ReorderMetricsDto { OrderedIds = [2, 1], StatisticId = 1L };
+        var command = new ReorderMetricsCommand(reorderDto);
+        var handler = new ReorderMetricsHandler(_validator, _repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ReorderConstants.ErrorWithReordering(ReorderConstants.NotAllEntitiesFoundForReorder(foundCount: 2, expectedCount: 3)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ForeignMetricId_ShouldReturnFailure()
+    {
+        // Arrange
+        var metrics = new List<Metric>
+        {
+            new() { Id = 1, StatisticId = 1L, Priority = 0, IsHidden = false },
+            new() { Id = 2, StatisticId = 1L, Priority = 1, IsHidden = false },
+            new() { Id = 3, StatisticId = 1L, Priority = 2, IsHidden = false }
+        };
+        SetupMetricRepository(metrics);
+
+        var reorderDto = new ReorderMetricsDto { OrderedIds = [2, 1, 999], StatisticId = 1L };
         var command = new ReorderMetricsCommand(reorderDto);
         var handler = new ReorderMetricsHandler(_validator, _repositoryWrapperMock.Object);
 

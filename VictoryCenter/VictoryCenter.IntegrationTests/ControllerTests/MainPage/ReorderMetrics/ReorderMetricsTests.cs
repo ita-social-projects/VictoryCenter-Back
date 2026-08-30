@@ -53,7 +53,7 @@ public class ReorderMetricsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task ReorderMetrics_WithHiddenMetricInTheMiddle_ShouldReorderVisibleAndMoveHiddenAfterVisible()
+    public async Task ReorderMetrics_WithHiddenMetricInTheMiddle_ShouldReorderAllMetricsIncludingHidden()
     {
         // Arrange
         var targetStatistic = await CreateImpactStatisticsAsync([
@@ -67,6 +67,7 @@ public class ReorderMetricsTests : BaseTestClass
         {
             StatisticId = targetStatistic.Id,
             OrderedIds = [targetStatistic.Metrics.Single(m => m.Name == "Metric 4").Id,
+                targetStatistic.Metrics.Single(m => m.Name == "Metric 2").Id,
                 targetStatistic.Metrics.Single(m => m.Name == "Metric 1").Id,
                 targetStatistic.Metrics.Single(m => m.Name == "Metric 3").Id]
         };
@@ -86,7 +87,7 @@ public class ReorderMetricsTests : BaseTestClass
             .ToListAsync();
 
         Assert.Equal(
-            reorderDto.OrderedIds.Concat([targetStatistic.Metrics.Single(m => m.IsHidden).Id]),
+            reorderDto.OrderedIds,
             metricsAfterReorder.Select(m => m.Id));
         Assert.Equal([0L, 1L, 2L, 3L], metricsAfterReorder.Select(m => m.Priority));
     }
@@ -108,6 +109,44 @@ public class ReorderMetricsTests : BaseTestClass
             OrderedIds = [targetStatistic.Metrics.Single(m => m.Name == "Metric 4").Id,
                 targetStatistic.Metrics.Single(m => m.Name == "Metric 1").Id,
                 targetStatistic.Metrics.Single(m => m.Name == "Metric 2").Id,
+                targetStatistic.Metrics.Single(m => m.Name == "Metric 3").Id]
+        };
+        var serializedDto = JsonSerializer.Serialize(reorderDto);
+        var content = new StringContent(serializedDto, Encoding.UTF8, "application/json");
+
+        // Act
+        var response = await Fixture.HttpClient.PutAsync(_endpointUri, content);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Fixture.DbContext.ChangeTracker.Clear();
+        var metricsAfterReorder = await Fixture.DbContext.Metrics
+            .Where(m => m.StatisticId == targetStatistic.Id)
+            .OrderBy(m => m.Priority)
+            .ToListAsync();
+
+        Assert.Equal(reorderDto.OrderedIds, metricsAfterReorder.Select(m => m.Id));
+        Assert.Equal([0L, 1L, 2L, 3L], metricsAfterReorder.Select(m => m.Priority));
+    }
+
+    [Fact]
+    public async Task ReorderMetrics_HiddenMetricCanChangePositionNormally_ShouldReturnOk()
+    {
+        // Arrange
+        var targetStatistic = await CreateImpactStatisticsAsync([
+            new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 0, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 1, IsHidden = true, RowVersion = [1] },
+            new Metric { Value = 30, Name = "Metric 3", Type = MetricType.Programs, Priority = 3, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 40, Name = "Metric 4", Type = MetricType.TherapyHours, Priority = 4, IsHidden = false, RowVersion = [1] }
+        ]);
+
+        var reorderDto = new ReorderMetricsDto
+        {
+            StatisticId = targetStatistic.Id,
+            OrderedIds = [targetStatistic.Metrics.Single(m => m.Name == "Metric 4").Id,
+                targetStatistic.Metrics.Single(m => m.Name == "Metric 2").Id,
+                targetStatistic.Metrics.Single(m => m.Name == "Metric 1").Id,
                 targetStatistic.Metrics.Single(m => m.Name == "Metric 3").Id]
         };
         var serializedDto = JsonSerializer.Serialize(reorderDto);
@@ -152,11 +191,41 @@ public class ReorderMetricsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task ReorderMetrics_WithMissingVisibleId_ShouldReturnBadRequest()
+    public async Task ReorderMetrics_WithMissingMetricId_ShouldReturnBadRequest()
     {
         // Arrange
         var targetStatistic = await EnsureImpactStatisticsExistsAsync();
         var metricIds = targetStatistic.Metrics.OrderBy(m => m.Priority).Select(m => m.Id).Take(1).ToList();
+
+        var reorderDto = new ReorderMetricsDto
+        {
+            StatisticId = targetStatistic.Id,
+            OrderedIds = metricIds
+        };
+        var serializedDto = JsonSerializer.Serialize(reorderDto);
+        var content = new StringContent(serializedDto, Encoding.UTF8, "application/json");
+
+        // Act
+        var response = await Fixture.HttpClient.PutAsync(_endpointUri, content);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ReorderMetrics_WithForeignMetricId_ShouldReturnBadRequest()
+    {
+        // Arrange
+        var targetStatistic = await EnsureImpactStatisticsExistsAsync();
+        var foreignStatistic = await CreateImpactStatisticsAsync([
+            new Metric { Value = 10, Name = "Foreign 1", Type = MetricType.Raised, Priority = 0, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 20, Name = "Foreign 2", Type = MetricType.Partners, Priority = 1, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 30, Name = "Foreign 3", Type = MetricType.Programs, Priority = 2, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 40, Name = "Foreign 4", Type = MetricType.TherapyHours, Priority = 3, IsHidden = false, RowVersion = [1] }
+        ]);
+
+        var metricIds = targetStatistic.Metrics.OrderBy(m => m.Priority).Select(m => m.Id).ToList();
+        metricIds[^1] = foreignStatistic.Metrics.First().Id;
 
         var reorderDto = new ReorderMetricsDto
         {

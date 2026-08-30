@@ -43,37 +43,23 @@ public class ReorderMetricsHandler : IRequestHandler<ReorderMetricsCommand, Resu
             .ThenBy(m => m.Id)
             .ToList();
 
-            var visibleMetrics = metrics.Where(m => !m.IsHidden).ToList();
-            var hiddenMetrics = metrics.Where(m => m.IsHidden).ToList();
-
-            var visibleIds = visibleMetrics.Select(m => m.Id).ToHashSet();
+            var metricIds = metrics.Select(m => m.Id).ToHashSet();
             var requestedIds = orderedIds.ToHashSet();
 
-            if (orderedIds.Count != visibleMetrics.Count || !requestedIds.SetEquals(visibleIds))
+            if (orderedIds.Count != metrics.Count || !requestedIds.SetEquals(metricIds))
             {
-                var matchedCount = orderedIds.Count(id => visibleIds.Contains(id));
+                var matchedCount = orderedIds.Count(id => metricIds.Contains(id));
                 throw new ReorderException(ReorderConstants.NotAllEntitiesFoundForReorder(
                     foundCount: matchedCount,
-                    expectedCount: visibleMetrics.Count));
+                    expectedCount: metrics.Count));
             }
 
-            var visibleMetricsById = visibleMetrics.ToDictionary(m => m.Id);
+            var metricsById = metrics.ToDictionary(m => m.Id);
 
             long priority = 0;
             foreach (var metricId in orderedIds)
             {
-                var metric = visibleMetricsById[metricId];
-                if (metric.Priority != priority)
-                {
-                    metric.Priority = priority;
-                    _repositoryWrapper.MetricRepository.Update(metric);
-                }
-
-                priority++;
-            }
-
-            foreach (var metric in hiddenMetrics)
-            {
+                var metric = metricsById[metricId];
                 if (metric.Priority != priority)
                 {
                     metric.Priority = priority;
