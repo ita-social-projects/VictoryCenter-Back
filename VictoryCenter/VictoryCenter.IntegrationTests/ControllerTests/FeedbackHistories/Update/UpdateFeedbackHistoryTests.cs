@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -26,7 +27,8 @@ public class UpdateFeedbackHistoryTests : BaseTestClass
         {
             Title = "Updated Valid Title Here",
             Story = "Updated story content that satisfies validation.",
-            ImageId = null
+            ImageId = null,
+            Status = Status.Published
         };
 
         var serializedDto = JsonSerializer.Serialize(updateDto);
@@ -58,7 +60,8 @@ public class UpdateFeedbackHistoryTests : BaseTestClass
         {
             Title = invalidTitle!,
             Story = "Valid story content for testing validation.",
-            ImageId = null
+            ImageId = null,
+            Status = Status.Published
         };
 
         var serializedDto = JsonSerializer.Serialize(updateDto);
@@ -80,7 +83,8 @@ public class UpdateFeedbackHistoryTests : BaseTestClass
         {
             Title = "Non Existing Entity Title",
             Story = "Story content for not found scenario.",
-            ImageId = null
+            ImageId = null,
+            Status = Status.Published
         };
 
         var serializedDto = JsonSerializer.Serialize(updateDto);
@@ -102,7 +106,8 @@ public class UpdateFeedbackHistoryTests : BaseTestClass
         {
             Title = "Updated Valid Title Here",
             Story = "Updated story content that satisfies validation.",
-            ImageId = long.MaxValue
+            ImageId = long.MaxValue,
+            Status = Status.Published
         };
 
         var serializedDto = JsonSerializer.Serialize(updateDto);
@@ -122,7 +127,8 @@ public class UpdateFeedbackHistoryTests : BaseTestClass
             Title = "Original Valid Title",
             Story = "Original story text that meets the length requirements.",
             ImageId = null,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Status = Status.Draft
         };
 
         await Fixture.DbContext.FeedbackHistories.AddAsync(entity);

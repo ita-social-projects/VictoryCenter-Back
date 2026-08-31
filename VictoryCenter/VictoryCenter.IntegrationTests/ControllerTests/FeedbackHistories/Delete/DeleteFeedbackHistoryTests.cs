@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -38,18 +39,58 @@ public class DeleteFeedbackHistoryTests : BaseTestClass
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
-    private async Task<FeedbackHistory> CreateTestFeedbackHistoryAsync()
+    [Fact]
+    public async Task DeleteFeedbackHistory_WithLinkedImage_ShouldDeleteFeedbackHistoryAndKeepImage()
+    {
+        var image = await CreateTestImageAsync();
+        var existingEntity = await CreateTestFeedbackHistoryAsync(image.Id);
+
+        var response = await Fixture.HttpClient.DeleteAsync($"{BaseUrl}/{existingEntity.Id}");
+
+        Assert.True(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Null(await Fixture.DbContext.FeedbackHistories.FirstOrDefaultAsync(e => e.Id == existingEntity.Id));
+        Assert.NotNull(await Fixture.DbContext.Images.FirstOrDefaultAsync(i => i.Id == image.Id));
+    }
+
+    [Fact]
+    public void FeedbackHistory_ImageForeignKey_ShouldBeConfiguredWithRestrictDeleteBehavior()
+    {
+        var entityType = Fixture.DbContext.Model.FindEntityType(typeof(FeedbackHistory));
+        var foreignKey = entityType?.GetForeignKeys()
+            .FirstOrDefault(fk => fk.PrincipalEntityType.ClrType == typeof(Image));
+
+        Assert.NotNull(foreignKey);
+        Assert.Equal(DeleteBehavior.Restrict, foreignKey.DeleteBehavior);
+    }
+
+    private async Task<Image> CreateTestImageAsync()
+    {
+        var image = new Image
+        {
+            BlobName = "test-image-feedback-history",
+            MimeType = "image/png",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        await Fixture.DbContext.Images.AddAsync(image);
+        await Fixture.DbContext.SaveChangesAsync();
+        return image;
+    }
+
+    private async Task<FeedbackHistory> CreateTestFeedbackHistoryAsync(long? imageId = null)
     {
         var entity = new FeedbackHistory
         {
             Title = "Title For Delete Test",
             Story = "Story content for delete test that meets all length requirements.",
-            ImageId = null,
-            CreatedAt = DateTimeOffset.UtcNow
+            ImageId = imageId,
+            CreatedAt = DateTimeOffset.UtcNow,
+            Status = Status.Draft
         };
 
         await Fixture.DbContext.FeedbackHistories.AddAsync(entity);
         await Fixture.DbContext.SaveChangesAsync();
         return entity;
     }
-}
+}

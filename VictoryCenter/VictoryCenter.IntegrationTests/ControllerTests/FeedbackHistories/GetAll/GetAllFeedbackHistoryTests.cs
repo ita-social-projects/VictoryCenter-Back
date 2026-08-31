@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -31,6 +32,7 @@ public class GetAllFeedbackHistoryTests : BaseTestClass
 
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
+        Assert.Contains(responseContent, item => item.Title == "Title For GetAll Test");
     }
 
     private async Task<FeedbackHistory> CreateTestFeedbackHistoryAsync()
@@ -40,7 +42,9 @@ public class GetAllFeedbackHistoryTests : BaseTestClass
             Title = "Title For GetAll Test",
             Story = "Story content for get all test that meets length requirements.",
             ImageId = null,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTimeOffset.UtcNow,
+            Priority = 1,
+            Status = Status.Draft
         };
 
         await Fixture.DbContext.FeedbackHistories.AddAsync(entity);
