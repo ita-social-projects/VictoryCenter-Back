@@ -2,6 +2,7 @@ using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.Validators.FeedbackHistories;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.FeedbackHistories;
 
@@ -23,7 +24,8 @@ public class BaseFeedbackHistoryValidatorTests
         var model = new CreateFeedbackHistoryDto
         {
             Title = title!,
-            Story = "Valid story text that meets the length requirements."
+            Story = "Valid story text that meets the length requirements.",
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -37,7 +39,8 @@ public class BaseFeedbackHistoryValidatorTests
         var model = new CreateFeedbackHistoryDto
         {
             Title = new string('A', FeedbackHistoryConstants.TitleMinLength - 1),
-            Story = "Valid story text that meets the length requirements."
+            Story = "Valid story text that meets the length requirements.",
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -53,7 +56,8 @@ public class BaseFeedbackHistoryValidatorTests
         var model = new CreateFeedbackHistoryDto
         {
             Title = new string('A', FeedbackHistoryConstants.TitleMaxLength + 1),
-            Story = "Valid story text that meets the length requirements."
+            Story = "Valid story text that meets the length requirements.",
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -72,7 +76,8 @@ public class BaseFeedbackHistoryValidatorTests
         var model = new CreateFeedbackHistoryDto
         {
             Title = "Valid Title Long Enough",
-            Story = story!
+            Story = story!,
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -86,7 +91,8 @@ public class BaseFeedbackHistoryValidatorTests
         var model = new CreateFeedbackHistoryDto
         {
             Title = "Valid Title Long Enough",
-            Story = new string('A', FeedbackHistoryConstants.StoryMaxLength + 1)
+            Story = new string('A', FeedbackHistoryConstants.StoryMaxLength + 1),
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -106,7 +112,8 @@ public class BaseFeedbackHistoryValidatorTests
         {
             Title = "Valid Title Long Enough",
             Story = "Valid story text.",
-            ImageId = invalidImageId
+            ImageId = invalidImageId,
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -121,7 +128,8 @@ public class BaseFeedbackHistoryValidatorTests
         {
             Title = "Valid Title Long Enough",
             Story = "Valid story text.",
-            ImageId = null
+            ImageId = null,
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);
@@ -136,7 +144,8 @@ public class BaseFeedbackHistoryValidatorTests
         {
             Title = "Valid Title Long Enough",
             Story = "Valid story text.",
-            ImageId = 10L
+            ImageId = 10,
+            Status = Status.Draft
         };
 
         var result = _validator.TestValidate(model);

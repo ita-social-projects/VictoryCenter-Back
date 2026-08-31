@@ -3,6 +3,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -14,11 +15,12 @@ public class DeleteFeedbackHistoryTests
 
     private readonly FeedbackHistory _existingFeedbackHistory = new()
     {
-        Id = 1L,
+        Id = 1,
         Title = "Story Title",
         Story = "Story content to be deleted",
         ImageId = null,
-        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30)
+        CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30),
+        Status = Status.Draft
     };
 
     public DeleteFeedbackHistoryTests()
