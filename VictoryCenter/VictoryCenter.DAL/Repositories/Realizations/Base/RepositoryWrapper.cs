@@ -44,6 +44,8 @@ using VictoryCenter.DAL.Repositories.Realizations.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Realizations.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
@@ -170,6 +172,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
+    private IFeedbackReviewsRepository? _feedbackReviewsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -418,6 +421,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository =>
         _hippotherapyLandingPageScientificReferencesRepository ??= new HippotherapyLandingPageScientificReferencesRepository(_victoryCenterDbContext);
+
+    public IFeedbackReviewsRepository FeedbackReviewsRepository =>
+        _feedbackReviewsRepository ??= new FeedbackReviewsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

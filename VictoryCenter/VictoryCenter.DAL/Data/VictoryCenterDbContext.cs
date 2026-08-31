@@ -199,6 +199,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyLandingPageScientificReference> HippotherapyLandingPageScientificReferences { get; set; }
 
+    public DbSet<FeedbackReview> FeedbackReviews { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
