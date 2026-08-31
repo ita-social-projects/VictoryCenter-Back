@@ -1,6 +1,7 @@
 using dotenv.net;
 using Microsoft.AspNetCore.HttpOverrides;
 using VictoryCenter.WebAPI.Extensions;
+using VictoryCenter.BLL.Hubs;
 
 DotEnv.Load();
 
@@ -34,6 +35,7 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
+app.MapHub<PdfReportsHub>("/hubs/reports");
 
 app.Run();
 

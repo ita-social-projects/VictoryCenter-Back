@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyProgramCategories.Create;
+using VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyProgramCategories.Delete;
 using VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyProgramCategories.Update;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramCategories;
 using VictoryCenter.BLL.Queries.Admin.Localization.HippotherapyProgramCategories.GetByEntityId;
@@ -40,5 +41,17 @@ public class HippotherapyProgramCategoryLocalizationsController : AuthorizedApiC
     {
         return HandleResult(await Mediator.Send(
             new UpdateHippotherapyProgramCategoryLocalizationCommand(updateDto, EntityId, LanguageId)));
+    }
+
+    [HttpDelete("{entityId:long}/{languageId:long}")]
+    [ProducesResponseType(typeof(DeleteHippotherapyProgramCategoryLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteHippotherapyProgramCategoryLocalization(
+        [FromRoute(Name = "entityId")] long EntityId,
+        [FromRoute(Name = "languageId")] long LanguageId)
+    {
+        return HandleResult(await Mediator.Send(
+            new DeleteHippotherapyProgramCategoryLocalizationCommand(EntityId, LanguageId)));
     }
 }

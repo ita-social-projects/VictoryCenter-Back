@@ -2,11 +2,13 @@ using System.Transactions;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Validators.PdfReports;
@@ -14,6 +16,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.SignalR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 
@@ -23,6 +26,7 @@ public class CreatePdfReportHandlerTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IReorderService> _mockReorderService;
+    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
     private readonly IValidator<CreatePdfReportCommand> _validator;
 
     private readonly IFormFile _testFile;
@@ -36,6 +40,7 @@ public class CreatePdfReportHandlerTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
+        _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();
         _mockRepositoryWrapper
             .Setup(x => x.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<LocalizationLanguage>>()))
@@ -178,5 +183,6 @@ public class CreatePdfReportHandlerTests
             _mockPdfService.Object,
             _validator,
             _mockMapper.Object,
-            _mockReorderService.Object);
+            _mockReorderService.Object,
+            _mockHubContext.Object);
 }

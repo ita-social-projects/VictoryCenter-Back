@@ -44,6 +44,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpenditur
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
 using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -138,6 +139,8 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository { get; }
     IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository { get; }
     IFeedbackHistoriesRepository FeedbackHistoriesRepository { get; }
+
+    IVideoReviewsRepository VideoReviewsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

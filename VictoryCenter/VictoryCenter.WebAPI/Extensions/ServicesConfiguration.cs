@@ -17,6 +17,7 @@ using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Captcha;
 using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
+using VictoryCenter.BLL.Interfaces.ImageValidation;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.BLL.Interfaces.Partners;
@@ -36,6 +37,7 @@ using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
 using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
+using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.BLL.Services.Partners;
@@ -171,6 +173,7 @@ public static class ServicesConfiguration
 
         services.AddSingleton<TimeProvider>(TimeProvider.System);
         services.AddSingleton<ITokenService, TokenService>();
+        services.AddSingleton<IImageContentValidator, ImageContentValidator>();
         services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages(new SlugHelperConfiguration
         {
             MaximumLength = 200,
@@ -195,6 +198,8 @@ public static class ServicesConfiguration
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
+
+        services.AddSignalR();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
