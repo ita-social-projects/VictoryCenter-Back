@@ -10,7 +10,8 @@ public class EventNewsCategoryProfile : Profile
 {
     public EventNewsCategoryProfile()
     {
-        CreateMap<EventNewsCategory, AdminEventNewsCategoryDto>();
+        CreateMap<EventNewsCategory, AdminEventNewsCategoryDto>()
+            .ForMember(destination => destination.RelatedEventNewsCount, options => options.MapFrom(source => source.EventsNews.Count));
         CreateMap<EventNewsCategoryLocalization, AdminEventNewsCategoryLocalizationDto>()
             .ForMember(destination => destination.Language, options => options.MapFrom(source => source.Language));
     }
