@@ -29,9 +29,9 @@ public class GetAllEventNewsCategoriesHandler
             new QueryOptions<EventNewsCategory>
             {
                 Include = query => query
-                 .Include(category => category.Localizations)
-                 .ThenInclude(localization => localization.Language)
-                 .Include(category => category.EventsNews),
+                    .Include(category => category.Localizations)
+                    .ThenInclude(localization => localization.Language)
+                    .Include(category => category.EventsNews),
                 OrderByASC = category => category.Name,
                 AsNoTracking = true
             });
