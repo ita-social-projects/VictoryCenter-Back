@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.Helpers;
@@ -16,17 +17,26 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateFeedbackHistoryCommand> _validator;
+    private readonly TimeProvider _timeProvider;
 
     public UpdateFeedbackHistoryHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateFeedbackHistoryCommand> validator)
+        IValidator<UpdateFeedbackHistoryCommand> validator,
+        TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _timeProvider = timeProvider;
     }
 
+    /// <summary>
+    /// Handles the update of an existing FeedbackHistory entity.
+    /// </summary>
+    /// <param name="request">The update command request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Result containing the updated FeedbackHistoryDto or errors.</returns>
     public async Task<Result<FeedbackHistoryDto>> Handle(UpdateFeedbackHistoryCommand request, CancellationToken cancellationToken)
     {
         try
@@ -56,6 +66,7 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
 
             var entityToUpdate = _mapper.Map(request.UpdateFeedbackHistoryDto, entity);
             entityToUpdate.Image = imageResult.Value;
+            entityToUpdate.UpdatedAt = _timeProvider.GetUtcNow();
 
             _repositoryWrapper.FeedbackHistoriesRepository.Update(entityToUpdate);
 
@@ -66,6 +77,10 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
             }
 
             return Result.Fail<FeedbackHistoryDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(FeedbackHistory)));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<FeedbackHistoryDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FeedbackHistory)));
         }
         catch (ValidationException ex)
         {

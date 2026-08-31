@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.Helpers;
@@ -15,17 +16,26 @@ public class CreateFeedbackHistoryHandler : IRequestHandler<CreateFeedbackHistor
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateFeedbackHistoryCommand> _validator;
+    private readonly TimeProvider _timeProvider;
 
     public CreateFeedbackHistoryHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<CreateFeedbackHistoryCommand> validator)
+        IValidator<CreateFeedbackHistoryCommand> validator,
+        TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _timeProvider = timeProvider;
     }
 
+    /// <summary>
+    /// Handles the creation of a new FeedbackHistory entity.
+    /// </summary>
+    /// <param name="request">The create command request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Result containing the created FeedbackHistoryDto or errors.</returns>
     public async Task<Result<FeedbackHistoryDto>> Handle(CreateFeedbackHistoryCommand request, CancellationToken cancellationToken)
     {
         try
@@ -42,7 +52,7 @@ public class CreateFeedbackHistoryHandler : IRequestHandler<CreateFeedbackHistor
             }
 
             var entity = _mapper.Map<FeedbackHistory>(request.CreateFeedbackHistoryDto);
-            entity.CreatedAt = DateTimeOffset.UtcNow;
+            entity.CreatedAt = _timeProvider.GetUtcNow();
             entity.Image = imageResult.Value;
 
             await _repositoryWrapper.FeedbackHistoriesRepository.CreateAsync(entity);
@@ -55,6 +65,10 @@ public class CreateFeedbackHistoryHandler : IRequestHandler<CreateFeedbackHistor
             var result = _mapper.Map<FeedbackHistoryDto>(entity);
 
             return Result.Ok(result);
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<FeedbackHistoryDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(FeedbackHistory)));
         }
         catch (ValidationException ex)
         {

@@ -1,6 +1,7 @@
 using System.Transactions;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
@@ -57,6 +58,10 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
         catch (BlobStorageException e)
         {
             return Result.Fail<long>(ErrorMessagesConstants.BlobStorageError(e.Message));
+        }
+        catch (DbUpdateException)
+        {
+            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(Image)));
         }
     }
 }
