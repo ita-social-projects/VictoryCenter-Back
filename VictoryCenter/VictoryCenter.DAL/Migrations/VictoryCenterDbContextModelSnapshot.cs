@@ -731,19 +731,28 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<long?>("ImageId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("Priority")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
                     b.Property<string>("Story")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ImageId")
-                        .IsUnique()
-                        .HasFilter("[ImageId] IS NOT NULL");
+                    b.HasIndex("ImageId");
 
                     b.ToTable("FeedbackHistories");
                 });
@@ -3497,8 +3506,8 @@ namespace VictoryCenter.DAL.Migrations
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FeedbackHistory", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "Image")
-                        .WithOne()
-                        .HasForeignKey("VictoryCenter.DAL.Entities.FeedbackHistory", "ImageId")
+                        .WithMany()
+                        .HasForeignKey("ImageId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Image");
