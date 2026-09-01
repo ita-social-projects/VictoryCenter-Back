@@ -37,27 +37,26 @@ public class DeleteFeedbackReviewHandler : IRequestHandler<DeleteFeedbackReviewC
                 return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview)));
             }
 
-            var affectedRows = 0;
-
             using var transactionScope = _repositoryWrapper.BeginTransaction();
 
             _repositoryWrapper.FeedbackReviewsRepository.Delete(reviewToDelete);
-            affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-            await _reorderService.RenumberPriorityAsync<FeedbackReview>();
-            affectedRows += await _repositoryWrapper.SaveChangesAsync();
-
-            if (affectedRows > 0)
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                transactionScope.Complete();
-                return Result.Ok(reviewToDelete.Id);
+                return Result.Fail<long>(
+                    ErrorMessagesConstants.FailedToDeleteEntity(typeof(FeedbackReview)));
             }
 
-            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(FeedbackReview)));
+            await _reorderService.RenumberPriorityAsync<FeedbackReview>();
+
+            transactionScope.Complete();
+
+            return Result.Ok(reviewToDelete.Id);
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(FeedbackReview)));
+            return Result.Fail<long>(
+                ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(FeedbackReview)));
         }
     }
 }
