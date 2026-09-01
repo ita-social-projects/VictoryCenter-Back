@@ -100,4 +100,46 @@ public class UpdateCategoryTests : BaseTestClass
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Theory]
+    [InlineData(" Test Category")]
+    [InlineData("Test Category ")]
+    [InlineData(" Test Category ")]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_NameHasLeadingOrTrailingSpace(string paddedName)
+    {
+        var existingEntity = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync();
+        var updateTeamCategoryDto = new UpdateTeamCategoryDto
+        {
+            Name = paddedName,
+            Description = "Test Description",
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
+
+        var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity!.Id}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("Test  Category")]
+    [InlineData("Test   Category")]
+    [InlineData("Test Category  Extra")]
+    public async Task UpdateCategory_ShouldNotUpdateCategory_NameHasMultipleConsecutiveSpaces(string paddedName)
+    {
+        var existingEntity = await Fixture.DbContext.TeamCategories.FirstOrDefaultAsync();
+        var updateTeamCategoryDto = new UpdateTeamCategoryDto
+        {
+            Name = paddedName,
+            Description = "Test Description",
+        };
+        var serializedDto = JsonSerializer.Serialize(updateTeamCategoryDto);
+
+        var response = await Fixture.HttpClient.PutAsync($"api/teamcategories/{existingEntity!.Id}", new StringContent(
+            serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

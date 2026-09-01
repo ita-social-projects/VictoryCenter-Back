@@ -80,7 +80,7 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
             _logger.LogError(ex, "Failed to delete blob {BlobName} after deleting PdfReport with Id {PdfReportId}", blobName, request.Id);
         }
 
-        await _hubContext.Clients.All.SendAsync("PdfReportAction", pdfReport.LanguageId, cancellationToken: cancellationToken);
+        await _hubContext.Clients.All.SendAsync("PdfReportDeleted", request.Id, cancellationToken: cancellationToken);
         return Result.Ok(Unit.Value);
     }
 }

@@ -201,6 +201,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<FeedbackReview> FeedbackReviews { get; set; }
 
+    public DbSet<VideoReview> VideoReviews { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
