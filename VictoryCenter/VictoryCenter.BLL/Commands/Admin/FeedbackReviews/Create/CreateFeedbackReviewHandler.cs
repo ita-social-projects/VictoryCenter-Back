@@ -41,14 +41,18 @@ public class CreateFeedbackReviewHandler : IRequestHandler<CreateFeedbackReviewC
 
         var feedbackReview = _mapper.Map<FeedbackReview>(normalizedDto);
         feedbackReview.CreatedAt = _timeProvider.GetUtcNow();
-        feedbackReview.Priority = await _reorderService.GetNextDisplayOrderAsync<FeedbackReview>();
-
-        await _repositoryWrapper.FeedbackReviewsRepository.CreateAsync(feedbackReview);
-
         try
         {
+            using var transactionScope = _repositoryWrapper.BeginTransaction();
+
+            feedbackReview.Priority = await _reorderService.GetNextDisplayOrderAsync<FeedbackReview>();
+
+            await _repositoryWrapper.FeedbackReviewsRepository.CreateAsync(feedbackReview);
+
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
+                transactionScope.Complete();
+
                 return Result.Ok(_mapper.Map<FeedbackReviewDto>(feedbackReview));
             }
         }

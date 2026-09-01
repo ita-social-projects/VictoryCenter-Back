@@ -29,5 +29,11 @@ public class FeedbackReviewConfig : IEntityTypeConfiguration<FeedbackReview>
 
         builder.Property(review => review.CreatedAt)
             .IsRequired();
+
+        builder.Property(review => review.Priority)
+            .IsRequired();
+
+        builder.HasIndex(review => review.Priority)
+            .IsUnique();
     }
 }
