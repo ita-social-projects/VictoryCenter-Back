@@ -1,3 +1,4 @@
+using System.Transactions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Delete;
@@ -6,12 +7,14 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.FeedbackHistories;
 
 public class DeleteFeedbackHistoryTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
+    private readonly Mock<IReorderService> _mockReorderService;
 
     private readonly FeedbackHistory _existingFeedbackHistory = new()
     {
@@ -20,12 +23,14 @@ public class DeleteFeedbackHistoryTests
         Story = "Story content to be deleted",
         ImageId = null,
         CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-30),
+        Priority = 1,
         Status = Status.Draft
     };
 
     public DeleteFeedbackHistoryTests()
     {
         _mockRepoWrapper = new Mock<IRepositoryWrapper>();
+        _mockReorderService = new Mock<IReorderService>();
     }
 
     [Theory]
@@ -36,7 +41,7 @@ public class DeleteFeedbackHistoryTests
     {
         SetupRepositoryWrapper(null);
         var command = new DeleteFeedbackHistoryCommand(historyId);
-        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -50,7 +55,7 @@ public class DeleteFeedbackHistoryTests
     {
         SetupRepositoryWrapper(_existingFeedbackHistory, 1);
         var command = new DeleteFeedbackHistoryCommand(_existingFeedbackHistory.Id);
-        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -67,7 +72,7 @@ public class DeleteFeedbackHistoryTests
     {
         SetupRepositoryWrapper(_existingFeedbackHistory, 0);
         var command = new DeleteFeedbackHistoryCommand(_existingFeedbackHistory.Id);
-        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -85,7 +90,7 @@ public class DeleteFeedbackHistoryTests
         _mockRepoWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
 
         var command = new DeleteFeedbackHistoryCommand(_existingFeedbackHistory.Id);
-        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object);
+        var handler = new DeleteFeedbackHistoryHandler(_mockRepoWrapper.Object, _mockReorderService.Object);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -101,5 +106,6 @@ public class DeleteFeedbackHistoryTests
 
         _mockRepoWrapper.Setup(r => r.SaveChangesAsync()).ReturnsAsync(saveResult);
         _mockRepoWrapper.Setup(r => r.FeedbackHistoriesRepository.Delete(It.IsAny<FeedbackHistory>()));
+        _mockRepoWrapper.Setup(r => r.BeginTransaction()).Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
     }
 }

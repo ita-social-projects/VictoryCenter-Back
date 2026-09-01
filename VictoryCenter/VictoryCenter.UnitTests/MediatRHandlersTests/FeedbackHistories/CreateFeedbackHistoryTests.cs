@@ -10,6 +10,7 @@ using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.FeedbackHistories;
 
@@ -18,6 +19,7 @@ public class CreateFeedbackHistoryTests
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IValidator<CreateFeedbackHistoryCommand>> _validatorMock;
+    private readonly Mock<IReorderService> _reorderServiceMock;
     private readonly TimeProvider _timeProvider = TimeProvider.System;
 
     private readonly CreateFeedbackHistoryDto _createFeedbackHistoryDto = new()
@@ -55,13 +57,14 @@ public class CreateFeedbackHistoryTests
         _mapperMock = new Mock<IMapper>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _validatorMock = new Mock<IValidator<CreateFeedbackHistoryCommand>>();
+        _reorderServiceMock = new Mock<IReorderService>();
     }
 
     [Fact]
     public async Task Handle_WhenCreationIsValid_ShouldReturnFeedbackHistoryDto()
     {
         SetupDependencies(_feedbackHistoryDto, _feedbackHistory, 1);
-        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _timeProvider);
+        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _reorderServiceMock.Object, _timeProvider);
 
         Result<FeedbackHistoryDto> result =
             await handler.Handle(new CreateFeedbackHistoryCommand(_createFeedbackHistoryDto), CancellationToken.None);
@@ -87,7 +90,7 @@ public class CreateFeedbackHistoryTests
             .ReturnsAsync(feedbackHistory);
         _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
-        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, mockTimeProvider.Object);
+        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _reorderServiceMock.Object, mockTimeProvider.Object);
 
         var result = await handler.Handle(new CreateFeedbackHistoryCommand(_createFeedbackHistoryDto), CancellationToken.None);
 
@@ -101,7 +104,7 @@ public class CreateFeedbackHistoryTests
         var failMessage = ErrorMessagesConstants.FailedToCreateEntity(typeof(FeedbackHistory));
         SetupDependencies(_feedbackHistoryDto, _feedbackHistory, 0);
 
-        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _timeProvider);
+        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _reorderServiceMock.Object, _timeProvider);
 
         Result<FeedbackHistoryDto> result =
             await handler.Handle(new CreateFeedbackHistoryCommand(_createFeedbackHistoryDto), CancellationToken.None);
@@ -120,7 +123,7 @@ public class CreateFeedbackHistoryTests
             .ThrowsAsync(new DbUpdateException("Database error"));
 
         var failMessage = ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(FeedbackHistory));
-        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _timeProvider);
+        var handler = new CreateFeedbackHistoryHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validatorMock.Object, _reorderServiceMock.Object, _timeProvider);
 
         Result<FeedbackHistoryDto> result =
             await handler.Handle(new CreateFeedbackHistoryCommand(_createFeedbackHistoryDto), CancellationToken.None);
