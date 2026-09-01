@@ -48,7 +48,6 @@ public class UpdateFeedbackHistoryTests
         Title = "New Title",
         Story = "New Story Text",
         ImageId = null,
-        Priority = 2,
         Status = Status.Published
     };
 

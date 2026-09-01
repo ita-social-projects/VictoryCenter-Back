@@ -27,7 +27,6 @@ public class CreateFeedbackHistoryTests
         Title = "Successful Recovery",
         Story = "Detailed feedback story text describing the experience.",
         ImageId = null,
-        Priority = 1,
         Status = Status.Draft
     };
 

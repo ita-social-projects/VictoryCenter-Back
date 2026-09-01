@@ -40,11 +40,6 @@ public class BaseFeedbackHistoryValidator : AbstractValidator<CreateFeedbackHist
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
                 nameof(CreateFeedbackHistoryDto.ImageId)));
 
-        RuleFor(dto => dto.Priority)
-            .GreaterThanOrEqualTo(0)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
-                nameof(CreateFeedbackHistoryDto.Priority), 0));
-
         RuleFor(dto => dto.Status)
             .IsInEnum()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
