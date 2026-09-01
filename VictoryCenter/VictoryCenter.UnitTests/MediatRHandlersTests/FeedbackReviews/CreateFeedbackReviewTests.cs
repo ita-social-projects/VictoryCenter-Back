@@ -1,3 +1,4 @@
+using System.Transactions;
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.FeedbackReviews.Create;
@@ -72,7 +73,7 @@ public class CreateFeedbackReviewTests
 
         await handler.Handle(Command(), CancellationToken.None);
 
-        Assert.NotEqual(default, entity.CreatedAt);
+        Assert.Equal(TestNow, entity.CreatedAt);
     }
 
     [Fact]
@@ -89,22 +90,13 @@ public class CreateFeedbackReviewTests
             result.Errors[0].Message);
     }
 
-    [Fact]
-    public async Task Handle_ValidRequest_SetsCreatedAtFromTimeProvider()
-    {
-        var entity = SetUp(saveChanges: 1, nextPriority: 0);
-        var handler = CreateHandler();
-
-        await handler.Handle(Command(), CancellationToken.None);
-
-        Assert.Equal(TestNow, entity.CreatedAt);
-    }
-
     private FeedbackReview SetUp(int saveChanges, long nextPriority)
     {
         var entity = new FeedbackReview();
 
-        _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
+        _timeProvider
+            .Setup(provider => provider.GetUtcNow())
+            .Returns(TestNow);
 
         _mapper
             .Setup(mapper => mapper.Map<FeedbackReview>(It.IsAny<CreateFeedbackReviewDto>()))
@@ -140,11 +132,19 @@ public class CreateFeedbackReviewTests
             .Setup(wrapper => wrapper.SaveChangesAsync())
             .ReturnsAsync(saveChanges);
 
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.BeginTransaction())
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+
         return entity;
     }
 
     private CreateFeedbackReviewHandler CreateHandler() =>
-        new(_mapper.Object, _repositoryWrapper.Object, _reorderService.Object, _timeProvider.Object);
+        new(
+            _mapper.Object,
+            _repositoryWrapper.Object,
+            _reorderService.Object,
+            _timeProvider.Object);
 
     private static CreateFeedbackReviewCommand Command(CreateFeedbackReviewDto? dto = null) =>
         new(dto ?? new CreateFeedbackReviewDto

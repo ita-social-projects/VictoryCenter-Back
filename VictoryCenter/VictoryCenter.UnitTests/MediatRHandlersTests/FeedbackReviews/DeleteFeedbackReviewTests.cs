@@ -25,7 +25,7 @@ public class DeleteFeedbackReviewTests
 
         _repositoryWrapper
             .Setup(wrapper => wrapper.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
 
         _reorderService
             .Setup(service => service.RenumberPriorityAsync<FeedbackReview>(null))
