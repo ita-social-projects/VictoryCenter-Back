@@ -36,23 +36,19 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
 
         try
         {
-            var affectedRows = 0;
-
             using var transactionScope = _repositoryWrapper.BeginTransaction();
 
             _repositoryWrapper.VideoReviewsRepository.Delete(entity);
-            affectedRows += await _repositoryWrapper.SaveChangesAsync();
 
-            await _reorderService.RenumberPriorityAsync<VideoReview>();
-            affectedRows += await _repositoryWrapper.SaveChangesAsync();
-
-            if (affectedRows > 0)
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                transactionScope.Complete();
-                return Result.Ok(entity.Id);
+                return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
             }
 
-            return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
+            await _reorderService.RenumberPriorityAsync<VideoReview>();
+
+            transactionScope.Complete();
+            return Result.Ok(entity.Id);
         }
         catch (DbUpdateException)
         {

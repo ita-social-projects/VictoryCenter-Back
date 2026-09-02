@@ -33,7 +33,7 @@ public class VideoReviewHandlersTests
         _wrapper.SetupGet(item => item.VideoReviewsRepository).Returns(_repository.Object);
         _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
         _wrapper.Setup(wrapper => wrapper.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
         _mapper.Setup(mapper => mapper.Map<VideoReviewDto>(It.IsAny<VideoReview>()))
             .Returns((VideoReview videoReview) => new VideoReviewDto
             {

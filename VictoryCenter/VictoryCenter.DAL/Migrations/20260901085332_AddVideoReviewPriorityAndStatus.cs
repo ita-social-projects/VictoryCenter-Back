@@ -23,6 +23,16 @@ namespace VictoryCenter.DAL.Migrations
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
+
+            migrationBuilder.Sql("""
+                UPDATE vr
+                SET vr.Priority = ranked.RowNum
+                FROM VideoReviews vr
+                INNER JOIN (
+                    SELECT Id, ROW_NUMBER() OVER (ORDER BY CreatedAt) AS RowNum
+                    FROM VideoReviews
+                ) ranked ON vr.Id = ranked.Id;
+                """);
         }
 
         /// <inheritdoc />
