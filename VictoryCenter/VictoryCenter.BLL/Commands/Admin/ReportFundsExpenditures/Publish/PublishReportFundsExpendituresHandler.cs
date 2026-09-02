@@ -133,10 +133,6 @@ public class PublishReportFundsExpendituresHandler
                 .BulkDeleteAsync(_ => true);
             await _repositoryWrapper.BackupReportProgramExpendituresRecordsRepository
                 .BulkDeleteAsync(_ => true);
-            await _repositoryWrapper.BackupReportFundsExpendituresCategoryLocalizationsRepository
-                .BulkDeleteAsync(_ => true);
-            await _repositoryWrapper.BackupReportFundsExpendituresCategoriesRepository
-                .BulkDeleteAsync(_ => true);
             await _repositoryWrapper.BackupReportFundsExpendituresSettingsLocalizationsRepository
                 .BulkDeleteAsync(_ => true);
             await _repositoryWrapper.BackupReportFundsExpendituresSettingsRepository
@@ -164,36 +160,6 @@ public class PublishReportFundsExpendituresHandler
                 }).ToArray();
             await _repositoryWrapper.BackupReportFundsExpendituresSettingsLocalizationsRepository
                 .CreateRangeAsync(backupSettingsLocalizations);
-
-            var allCategories = (await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
-                .GetAllAsync(new QueryOptions<ReportFundsExpendituresCategory>
-                {
-                    Include = query => query.Include(category => category.Localizations),
-                    AsNoTracking = true
-                })).ToList();
-
-            var backupCategories = allCategories
-                .Select(c => new BackupReportFundsExpendituresCategory
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Type = c.Type,
-                    CreatedAt = c.CreatedAt,
-                }).ToArray();
-            await _repositoryWrapper.BackupReportFundsExpendituresCategoriesRepository
-                .CreateRangeAsync(backupCategories);
-
-            var backupCategoryLocalizations = allCategories
-                .SelectMany(c => c.Localizations.Select(l => new BackupReportFundsExpendituresCategoryLocalization
-                {
-                    EntityId = l.EntityId,
-                    LanguageId = l.LanguageId,
-                    Name = l.Name,
-                    TranslationStatus = l.TranslationStatus,
-                    CreatedAt = l.CreatedAt,
-                })).ToArray();
-            await _repositoryWrapper.BackupReportFundsExpendituresCategoryLocalizationsRepository
-                .CreateRangeAsync(backupCategoryLocalizations);
 
             var backupFundsRecords = fundsRecords.Select(r => new BackupReportFundsExpendituresRecord
             {

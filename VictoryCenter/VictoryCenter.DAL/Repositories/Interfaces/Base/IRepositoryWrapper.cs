@@ -105,8 +105,6 @@ public interface IRepositoryWrapper
 
     IBackupReportFundsExpendituresSettingsRepository BackupReportFundsExpendituresSettingsRepository { get; }
     IBackupReportFundsExpendituresSettingsLocalizationsRepository BackupReportFundsExpendituresSettingsLocalizationsRepository { get; }
-    IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository { get; }
-    IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository { get; }
     IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository { get; }
     IBackupReportProgramExpendituresRecordsRepository BackupReportProgramExpendituresRecordsRepository { get; }
 
