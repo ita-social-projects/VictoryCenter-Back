@@ -33,6 +33,10 @@ public class BaseVideoReviewDtoValidator : AbstractValidator<CreateVideoReviewDt
                 VideoReviewConstants.LinkMaxLength))
             .Must(link => string.IsNullOrWhiteSpace(link) || IsHttpOrHttpsUri(link.Trim()))
             .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(nameof(CreateVideoReviewDto.Link)));
+
+        RuleFor(dto => dto.Status)
+            .IsInEnum()
+            .WithMessage(ErrorMessagesConstants.UnknownStatusValue);
     }
 
     private static bool IsHttpOrHttpsUri(string link)
