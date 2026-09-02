@@ -50,7 +50,7 @@ public class MainPageController : AuthorizedApiController
         return HandleResult(await Mediator.Send(new ReorderMetricsCommand(reorderMetricsDto)));
     }
 
-    [HttpPatch("metrics/{id:long}")]
+    [HttpPut("metrics/{id:long}")]
     [ProducesResponseType(typeof(UpdateMetricResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
