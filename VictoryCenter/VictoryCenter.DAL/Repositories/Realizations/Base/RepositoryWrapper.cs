@@ -89,6 +89,8 @@ using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendit
 using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
 using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Realizations.BackupReportFundsExpenditures;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Realizations.FeedbackHistories;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Realizations.VideoReviews;
 
@@ -172,6 +174,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
+    private IFeedbackHistoriesRepository? _feedbackHistoriesRepository;
     private IVideoReviewsRepository? _videoReviewsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
@@ -421,6 +424,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository =>
         _hippotherapyLandingPageScientificReferencesRepository ??= new HippotherapyLandingPageScientificReferencesRepository(_victoryCenterDbContext);
+
+    public IFeedbackHistoriesRepository FeedbackHistoriesRepository =>
+        _feedbackHistoriesRepository ??= new FeedbackHistoriesRepository(_victoryCenterDbContext);
 
     public IVideoReviewsRepository VideoReviewsRepository =>
         _videoReviewsRepository ??= new VideoReviewsRepository(_victoryCenterDbContext);
