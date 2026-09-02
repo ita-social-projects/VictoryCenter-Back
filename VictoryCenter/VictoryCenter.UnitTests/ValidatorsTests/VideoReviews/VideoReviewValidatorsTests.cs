@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.Validators.VideoReviews;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.VideoReviews;
 
@@ -197,9 +198,33 @@ public class VideoReviewValidatorsTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Theory]
+    [InlineData(Status.Draft)]
+    [InlineData(Status.Published)]
+    public void Create_ShouldNotHaveError_WhenStatusIsValid(Status status)
+    {
+        var command = new CreateVideoReviewCommand(ValidDto() with { Status = status });
+
+        var result = _createValidator.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor(item => item.VideoReview.Status);
+    }
+
+    [Fact]
+    public void Create_ShouldHaveError_WhenStatusIsNotAValidEnumValue()
+    {
+        var command = new CreateVideoReviewCommand(ValidDto() with { Status = (Status)999 });
+
+        var result = _createValidator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(item => item.VideoReview.Status)
+            .WithErrorMessage(ErrorMessagesConstants.UnknownStatusValue);
+    }
+
     private static CreateVideoReviewDto ValidDto() => new()
     {
         Title = "Valid title",
-        Link = "https://example.com/video"
+        Link = "https://example.com/video",
+        Status = Status.Draft
     };
 }

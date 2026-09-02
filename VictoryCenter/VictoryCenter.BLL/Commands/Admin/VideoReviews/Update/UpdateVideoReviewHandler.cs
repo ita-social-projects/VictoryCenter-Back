@@ -44,7 +44,8 @@ public class UpdateVideoReviewHandler : IRequestHandler<UpdateVideoReviewCommand
         };
 
         if (string.Equals(entity.Title, normalizedDto.Title, StringComparison.Ordinal) &&
-            string.Equals(entity.Link, normalizedDto.Link, StringComparison.Ordinal))
+            string.Equals(entity.Link, normalizedDto.Link, StringComparison.Ordinal) &&
+            entity.Status == normalizedDto.Status)
         {
             return Result.Ok(_mapper.Map<VideoReviewDto>(entity));
         }

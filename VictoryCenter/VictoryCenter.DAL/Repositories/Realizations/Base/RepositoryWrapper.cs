@@ -44,8 +44,6 @@ using VictoryCenter.DAL.Repositories.Realizations.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Realizations.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Realizations.HistorySections;
-using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
-using VictoryCenter.DAL.Repositories.Realizations.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.FaqQuestions;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.HippotherapyPrograms;
@@ -91,8 +89,13 @@ using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendit
 using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
 using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Realizations.BackupReportFundsExpenditures;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Realizations.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Realizations.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Realizations.VideoReviews;
+
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -175,6 +178,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
     private IFeedbackReviewsRepository? _feedbackReviewsRepository;
+    private IFeedbackHistoriesRepository? _feedbackHistoriesRepository;
     private IVideoReviewsRepository? _videoReviewsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
@@ -424,6 +428,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository =>
         _hippotherapyLandingPageScientificReferencesRepository ??= new HippotherapyLandingPageScientificReferencesRepository(_victoryCenterDbContext);
+
+    public IFeedbackHistoriesRepository FeedbackHistoriesRepository =>
+        _feedbackHistoriesRepository ??= new FeedbackHistoriesRepository(_victoryCenterDbContext);
 
     public IFeedbackReviewsRepository FeedbackReviewsRepository =>
         _feedbackReviewsRepository ??= new FeedbackReviewsRepository(_victoryCenterDbContext);
