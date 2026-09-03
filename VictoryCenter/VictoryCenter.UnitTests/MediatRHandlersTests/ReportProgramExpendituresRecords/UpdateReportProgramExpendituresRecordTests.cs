@@ -102,7 +102,7 @@ public class UpdateReportProgramExpendituresRecordTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        _recordsRepositoryMock.Verify(x => x.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()), Times.Once);
+        _recordsRepositoryMock.Verify(x => x.RecordWithinSameCategoryExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()), Times.Once);
         _recordsRepositoryMock.Verify(x => x.Update(It.IsAny<ReportProgramExpendituresRecord>()), Times.Once);
     }
 
@@ -174,8 +174,8 @@ public class UpdateReportProgramExpendituresRecordTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
-            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                _updateDto.HippotherapyProgramCategoryId, _recordEntity.ReportingYear),
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(
+                _updateDto.HippotherapyProgramCategoryId),
             result.Errors[0].Message);
     }
 
@@ -249,7 +249,7 @@ public class UpdateReportProgramExpendituresRecordTests
 
         _recordsRepositoryMock
             .Setup(repository =>
-                repository.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
+                repository.RecordWithinSameCategoryExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
             .ReturnsAsync(conflictExists);
 
         _recordsRepositoryMock

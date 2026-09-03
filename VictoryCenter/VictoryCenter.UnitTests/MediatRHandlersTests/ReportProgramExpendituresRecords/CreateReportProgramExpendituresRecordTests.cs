@@ -110,7 +110,7 @@ public class CreateReportProgramExpendituresRecordTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecordForSpecifiedYear()
+    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecord()
     {
         // Arrange
         SetupDependencies(_category, 1, true);
@@ -127,8 +127,8 @@ public class CreateReportProgramExpendituresRecordTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
-            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                _createDto.HippotherapyProgramCategoryId, _createDto.ReportingYear),
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(
+                _createDto.HippotherapyProgramCategoryId),
             result.Errors[0].Message);
     }
 
@@ -181,7 +181,7 @@ public class CreateReportProgramExpendituresRecordTests
     private void SetupDependencies(
         HippotherapyProgramCategory? category,
         int saveResult,
-        bool recordWithinSameCategoryWithSameYearExists = false)
+        bool recordWithinSameCategoryExists = false)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -199,8 +199,8 @@ public class CreateReportProgramExpendituresRecordTests
 
         _recordsRepositoryMock
             .Setup(repository =>
-                repository.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
-            .ReturnsAsync(recordWithinSameCategoryWithSameYearExists);
+                repository.RecordWithinSameCategoryExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
+            .ReturnsAsync(recordWithinSameCategoryExists);
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
 

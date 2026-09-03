@@ -78,7 +78,7 @@ public class UpdateReportProgramExpendituresRecordTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Update_ShouldReturnBadRequest_WhenUpdatingToCategoryThatAlreadyHasRecordForSameYear()
+    public async Task Update_ShouldReturnBadRequest_WhenUpdatingToCategoryThatAlreadyHasRecord()
     {
         var programCategory1 = new HippotherapyProgramCategory
         {
@@ -104,7 +104,7 @@ public class UpdateReportProgramExpendituresRecordTests : BaseTestClass
         var record2 = new ReportProgramExpendituresRecord
         {
             HippotherapyProgramCategoryId = programCategory2.Id,
-            ReportingYear = 2025,
+            ReportingYear = 2026,
             AmountUah = 400m,
             AmountUsd = 9m,
             CreatedAt = DateTimeOffset.UtcNow
