@@ -38,6 +38,12 @@ public class DeleteReportFundsExpendituresCategoryHandler
             return Result.Fail<long>(ReportFundsExpendituresCategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyRecord);
         }
 
+        if (await _repositoryWrapper.BackupReportFundsExpendituresRecordsRepository
+                .ExistsAsync(record => record.CategoryId == categoryToDelete.Id))
+        {
+            return Result.Fail<long>(ReportFundsExpendituresCategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyRecord);
+        }
+
         if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(categoryToDelete.Name, categoryToDelete.Type))
         {
             return Result.Fail<long>(ReportFundsExpendituresCategoryConstants.CantDeleteReservedCategory);

@@ -27,7 +27,7 @@ public class GetAllVideoReviewsHandler : IRequestHandler<GetAllVideoReviewsQuery
             new QueryOptions<VideoReview>
             {
                 Filter = videoReview => videoReview.IsArchived == request.Archived,
-                OrderByASC = videoReview => videoReview.CreatedAt,
+                OrderByASC = videoReview => videoReview.Priority,
                 AsNoTracking = true
             });
 

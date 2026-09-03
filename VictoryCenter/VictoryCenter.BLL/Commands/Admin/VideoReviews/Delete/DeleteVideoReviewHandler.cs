@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -12,11 +13,16 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly TimeProvider _timeProvider;
+    private readonly IReorderService _reorderService;
 
-    public DeleteVideoReviewHandler(IRepositoryWrapper repositoryWrapper, TimeProvider timeProvider)
+    public DeleteVideoReviewHandler(
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
         _timeProvider = timeProvider;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<long>> Handle(DeleteVideoReviewCommand request, CancellationToken cancellationToken)
@@ -38,9 +44,19 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
 
         try
         {
-            return await _repositoryWrapper.SaveChangesAsync() > 0
-                ? Result.Ok(entity.Id)
-                : Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
+            using var transactionScope = _repositoryWrapper.BeginTransaction();
+
+            _repositoryWrapper.VideoReviewsRepository.Delete(entity);
+
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            {
+                return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
+            }
+
+            await _reorderService.RenumberPriorityAsync<VideoReview>();
+
+            transactionScope.Complete();
+            return Result.Ok(entity.Id);
         }
         catch (DbUpdateException)
         {

@@ -89,6 +89,10 @@ using VictoryCenter.DAL.Repositories.Realizations.PublishedReportProgramExpendit
 using VictoryCenter.DAL.Repositories.Realizations.PublishedReportFundsExpendituresSnapshot;
 using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Realizations.BackupReportFundsExpenditures;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Realizations.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Realizations.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Realizations.VideoReviews;
 
@@ -166,12 +170,12 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
     private IBackupReportFundsExpendituresSettingsRepository? _backupReportFundsExpendituresSettingsRepository;
     private IBackupReportFundsExpendituresSettingsLocalizationsRepository? _backupReportFundsExpendituresSettingsLocalizationsRepository;
-    private IBackupReportFundsExpendituresCategoriesRepository? _backupReportFundsExpendituresCategoriesRepository;
-    private IBackupReportFundsExpendituresCategoryLocalizationsRepository? _backupReportFundsExpendituresCategoryLocalizationsRepository;
     private IBackupReportFundsExpendituresRecordsRepository? _backupReportFundsExpendituresRecordsRepository;
     private IBackupReportProgramExpendituresRecordsRepository? _backupReportProgramExpendituresRecordsRepository;
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
+    private IFeedbackReviewsRepository? _feedbackReviewsRepository;
+    private IFeedbackHistoriesRepository? _feedbackHistoriesRepository;
     private IVideoReviewsRepository? _videoReviewsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
@@ -400,14 +404,6 @@ public class RepositoryWrapper : IRepositoryWrapper
         _backupReportFundsExpendituresSettingsLocalizationsRepository ??=
             new BackupReportFundsExpendituresSettingsLocalizationsRepository(_victoryCenterDbContext);
 
-    public IBackupReportFundsExpendituresCategoriesRepository BackupReportFundsExpendituresCategoriesRepository =>
-        _backupReportFundsExpendituresCategoriesRepository ??=
-            new BackupReportFundsExpendituresCategoriesRepository(_victoryCenterDbContext);
-
-    public IBackupReportFundsExpendituresCategoryLocalizationsRepository BackupReportFundsExpendituresCategoryLocalizationsRepository =>
-        _backupReportFundsExpendituresCategoryLocalizationsRepository ??=
-            new BackupReportFundsExpendituresCategoryLocalizationsRepository(_victoryCenterDbContext);
-
     public IBackupReportFundsExpendituresRecordsRepository BackupReportFundsExpendituresRecordsRepository =>
         _backupReportFundsExpendituresRecordsRepository ??=
             new BackupReportFundsExpendituresRecordsRepository(_victoryCenterDbContext);
@@ -421,6 +417,12 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository =>
         _hippotherapyLandingPageScientificReferencesRepository ??= new HippotherapyLandingPageScientificReferencesRepository(_victoryCenterDbContext);
+
+    public IFeedbackHistoriesRepository FeedbackHistoriesRepository =>
+        _feedbackHistoriesRepository ??= new FeedbackHistoriesRepository(_victoryCenterDbContext);
+
+    public IFeedbackReviewsRepository FeedbackReviewsRepository =>
+        _feedbackReviewsRepository ??= new FeedbackReviewsRepository(_victoryCenterDbContext);
 
     public IVideoReviewsRepository VideoReviewsRepository =>
         _videoReviewsRepository ??= new VideoReviewsRepository(_victoryCenterDbContext);

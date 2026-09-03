@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -14,6 +15,7 @@ public class DeleteReportFundsExpendituresCategoryTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresCategoriesRepository> _categoriesRepositoryMock;
+    private readonly Mock<IBackupReportFundsExpendituresRecordsRepository> _backupFundsRecordsRepositoryMock;
 
     private readonly ReportFundsExpendituresCategory _category = new()
     {
@@ -26,6 +28,7 @@ public class DeleteReportFundsExpendituresCategoryTests
     {
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
+        _backupFundsRecordsRepositoryMock = new Mock<IBackupReportFundsExpendituresRecordsRepository>();
     }
 
     [Fact]
@@ -89,6 +92,30 @@ public class DeleteReportFundsExpendituresCategoryTests
         Assert.Equal(
             ReportFundsExpendituresCategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyRecord,
             result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenCategoryReferencedByBackupRecords()
+    {
+        // Arrange
+        SetupDependencies(_category, saveResult: 1);
+        _backupFundsRecordsRepositoryMock
+            .Setup(repository => repository.ExistsAsync(It.IsAny<System.Linq.Expressions.Expression<Func<BackupReportFundsExpendituresRecord, bool>>>()))
+            .ReturnsAsync(true);
+
+        var handler = new DeleteReportFundsExpendituresCategoryHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new DeleteReportFundsExpendituresCategoryCommand(_category.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Equal(
+            ReportFundsExpendituresCategoryConstants.CantDeleteCategoryWhileAssociatedWithAnyRecord,
+            result.Errors[0].Message);
+        _categoriesRepositoryMock.Verify(repository => repository.Delete(It.IsAny<ReportFundsExpendituresCategory>()), Times.Never);
     }
 
     [Fact]
@@ -185,6 +212,8 @@ public class DeleteReportFundsExpendituresCategoryTests
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresCategoriesRepository)
             .Returns(_categoriesRepositoryMock.Object);
+        _repositoryWrapperMock.SetupGet(wrapper => wrapper.BackupReportFundsExpendituresRecordsRepository)
+            .Returns(_backupFundsRecordsRepositoryMock.Object);
 
         _categoriesRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
@@ -192,6 +221,10 @@ public class DeleteReportFundsExpendituresCategoryTests
 
         _categoriesRepositoryMock
             .Setup(repository => repository.Delete(It.IsAny<ReportFundsExpendituresCategory>()));
+
+        _backupFundsRecordsRepositoryMock
+            .Setup(repository => repository.ExistsAsync(It.IsAny<System.Linq.Expressions.Expression<Func<BackupReportFundsExpendituresRecord, bool>>>()))
+            .ReturnsAsync(false);
 
         if (saveException is null)
         {

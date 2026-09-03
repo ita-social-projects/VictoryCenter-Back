@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -26,7 +27,8 @@ public class VideoReviewManagementTests : BaseTestClass
             new CreateVideoReviewDto
             {
                 Title = $"  {title}  ",
-                Link = "  https://example.com/video  "
+                Link = "  https://example.com/video  ",
+                Status = Status.Draft
             });
 
         Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
@@ -34,6 +36,8 @@ public class VideoReviewManagementTests : BaseTestClass
         Assert.NotNull(created);
         Assert.Equal(title, created.Title);
         Assert.Equal("https://example.com/video", created.Link);
+        Assert.Equal(Status.Draft, created.Status);
+        Assert.True(created.Priority >= 0);
 
         var getResponse = await Fixture.HttpClient.GetAsync("/api/VideoReviews");
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
@@ -45,13 +49,16 @@ public class VideoReviewManagementTests : BaseTestClass
             new UpdateVideoReviewDto
             {
                 Title = updatedTitle,
-                Link = "https://example.com/updated"
+                Link = "https://example.com/updated",
+                Status = Status.Published
             });
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
         var updated = await updateResponse.Content.ReadFromJsonAsync<VideoReviewDto>();
         Assert.NotNull(updated);
         Assert.Equal(updatedTitle, updated.Title);
         Assert.Equal("https://example.com/updated", updated.Link);
+        Assert.Equal(Status.Published, updated.Status);
+        Assert.Equal(created.Priority, updated.Priority);
 
         var deleteResponse = await Fixture.HttpClient.DeleteAsync($"/api/VideoReviews/{created.Id}");
         Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
@@ -80,6 +87,44 @@ public class VideoReviewManagementTests : BaseTestClass
         Assert.False(await Fixture.DbContext.VideoReviews
             .AsNoTracking()
             .AnyAsync(item => item.Id == created.Id && item.IsArchived));
+    }
+
+    [Fact]
+    public async Task VideoReviewManagement_ShouldAssignIncreasingPriorityOnCreate()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+
+        var first = await CreateVideoReviewAsync($"First{suffix}");
+        var second = await CreateVideoReviewAsync($"Second{suffix}");
+        var third = await CreateVideoReviewAsync($"Third{suffix}");
+
+        Assert.True(second.Priority > first.Priority);
+        Assert.True(third.Priority > second.Priority);
+    }
+
+    [Fact]
+    public async Task VideoReviewManagement_ShouldRenumberPriorityAfterDeletingMiddleItem()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+
+        var first = await CreateVideoReviewAsync($"First{suffix}");
+        var middle = await CreateVideoReviewAsync($"Middle{suffix}");
+        var last = await CreateVideoReviewAsync($"Last{suffix}");
+
+        Assert.Equal(first.Priority + 1, middle.Priority);
+        Assert.Equal(first.Priority + 2, last.Priority);
+
+        var deleteResponse = await Fixture.HttpClient.DeleteAsync($"/api/VideoReviews/{middle.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+        var getResponse = await Fixture.HttpClient.GetAsync("/api/VideoReviews");
+        var videoReviews = await getResponse.Content.ReadFromJsonAsync<List<VideoReviewDto>>();
+
+        var firstAfterDelete = videoReviews!.Single(item => item.Id == first.Id);
+        var lastAfterDelete = videoReviews!.Single(item => item.Id == last.Id);
+
+        Assert.Equal(firstAfterDelete.Priority + 1, lastAfterDelete.Priority);
+        Assert.DoesNotContain(videoReviews!, item => item.Id == middle.Id);
     }
 
     [Fact]
@@ -153,6 +198,21 @@ public class VideoReviewManagementTests : BaseTestClass
     }
 
     [Fact]
+    public async Task VideoReviewManagement_ShouldReturnBadRequest_ForInvalidStatus()
+    {
+        var response = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/VideoReviews",
+            new CreateVideoReviewDto
+            {
+                Title = "Valid title",
+                Link = "https://example.com/video",
+                Status = (Status)999
+            });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task VideoReviewMutations_ShouldRequireAuthorization()
     {
         using var anonymousClient = Fixture.Factory.CreateClient();
@@ -164,5 +224,22 @@ public class VideoReviewManagementTests : BaseTestClass
 
         Assert.Equal(HttpStatusCode.Unauthorized, getResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, createResponse.StatusCode);
+    }
+
+    private async Task<VideoReviewDto> CreateVideoReviewAsync(string title)
+    {
+        var response = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/VideoReviews",
+            new CreateVideoReviewDto
+            {
+                Title = title,
+                Link = "https://example.com/video"
+            });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<VideoReviewDto>();
+        Assert.NotNull(created);
+
+        return created;
     }
 }

@@ -11,7 +11,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendit
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
@@ -77,8 +76,6 @@ public class PublishReportFundsExpendituresHandlerTests
             new() { Language = new LocalizationLanguage { Code = "en" }, DisclaimerTitle = "Disclaimer EN" }
         };
 
-        var categories = new List<ReportFundsExpendituresCategory>();
-
         SetupRepository<IReportFundsExpendituresRecordsRepository, ReportFundsExpendituresRecord>(
             w => w.ReportFundsExpendituresRecordsRepository, fundsRecords);
 
@@ -87,9 +84,6 @@ public class PublishReportFundsExpendituresHandlerTests
 
         SetupRepository<IReportFundsExpendituresSettingsLocalizationsRepository, ReportFundsExpendituresSettingsLocalization>(
             w => w.ReportFundsExpendituresSettingsLocalizationsRepository, settingsLocalizations);
-
-        SetupRepository<IReportFundsExpendituresCategoriesRepository, ReportFundsExpendituresCategory>(
-            w => w.ReportFundsExpendituresCategoriesRepository, categories);
 
         var settingsRepoMock = new Mock<IReportFundsExpendituresSettingsRepository>();
         settingsRepoMock.Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<global::VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings>>()))
@@ -107,10 +101,6 @@ public class PublishReportFundsExpendituresHandlerTests
         _repositoryWrapperMock.Setup(w => w.BackupReportFundsExpendituresRecordsRepository).Returns(backupFundsRepoMock.Object);
         var backupProgramRepoMock = new Mock<IBackupReportProgramExpendituresRecordsRepository>();
         _repositoryWrapperMock.Setup(w => w.BackupReportProgramExpendituresRecordsRepository).Returns(backupProgramRepoMock.Object);
-        var backupCatLocsRepoMock = new Mock<IBackupReportFundsExpendituresCategoryLocalizationsRepository>();
-        _repositoryWrapperMock.Setup(w => w.BackupReportFundsExpendituresCategoryLocalizationsRepository).Returns(backupCatLocsRepoMock.Object);
-        var backupCatsRepoMock = new Mock<IBackupReportFundsExpendituresCategoriesRepository>();
-        _repositoryWrapperMock.Setup(w => w.BackupReportFundsExpendituresCategoriesRepository).Returns(backupCatsRepoMock.Object);
         var backupSetLocsRepoMock = new Mock<IBackupReportFundsExpendituresSettingsLocalizationsRepository>();
         _repositoryWrapperMock.Setup(w => w.BackupReportFundsExpendituresSettingsLocalizationsRepository).Returns(backupSetLocsRepoMock.Object);
         var backupSettingsRepoMock = new Mock<IBackupReportFundsExpendituresSettingsRepository>();
@@ -136,8 +126,6 @@ public class PublishReportFundsExpendituresHandlerTests
 
         backupFundsRepoMock.Verify(r => r.CreateRangeAsync(It.IsAny<BackupReportFundsExpendituresRecord[]>()), Times.Once);
         backupProgramRepoMock.Verify(r => r.CreateRangeAsync(It.IsAny<BackupReportProgramExpendituresRecord[]>()), Times.Once);
-        backupCatsRepoMock.Verify(r => r.CreateRangeAsync(It.IsAny<BackupReportFundsExpendituresCategory[]>()), Times.Once);
-        backupCatLocsRepoMock.Verify(r => r.CreateRangeAsync(It.IsAny<BackupReportFundsExpendituresCategoryLocalization[]>()), Times.Once);
         backupSettingsRepoMock.Verify(r => r.CreateAsync(It.IsAny<BackupReportFundsExpendituresSettings>()), Times.Once);
         backupSetLocsRepoMock.Verify(r => r.CreateRangeAsync(It.IsAny<BackupReportFundsExpendituresSettingsLocalization[]>()), Times.Once);
 

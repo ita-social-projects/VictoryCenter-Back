@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -14,12 +15,18 @@ public class CreateVideoReviewHandler : IRequestHandler<CreateVideoReviewCommand
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly TimeProvider _timeProvider;
+    private readonly IReorderService _reorderService;
 
-    public CreateVideoReviewHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper, TimeProvider timeProvider)
+    public CreateVideoReviewHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider,
+        IReorderService reorderService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _timeProvider = timeProvider;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<VideoReviewDto>> Handle(
@@ -34,6 +41,7 @@ public class CreateVideoReviewHandler : IRequestHandler<CreateVideoReviewCommand
 
         var entity = _mapper.Map<VideoReview>(normalizedDto);
         entity.CreatedAt = _timeProvider.GetUtcNow();
+        entity.Priority = await _reorderService.GetNextDisplayOrderAsync<VideoReview>();
 
         await _repositoryWrapper.VideoReviewsRepository.CreateAsync(entity);
 
