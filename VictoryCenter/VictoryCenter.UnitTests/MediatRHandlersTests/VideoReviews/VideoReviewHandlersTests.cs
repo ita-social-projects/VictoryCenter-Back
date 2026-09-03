@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Create;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
+using VictoryCenter.BLL.Commands.Admin.VideoReviews.Restore;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
@@ -207,7 +208,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync((VideoReview?)null);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -217,20 +218,47 @@ public class VideoReviewHandlersTests
     }
 
     [Fact]
-    public async Task Delete_ShouldRemoveEntityAndReturnItsId()
+    public async Task Delete_ShouldArchiveEntityAndReturnItsId()
     {
         var entity = new VideoReview { Id = 10, Title = "Title", Link = "https://example.com/video" };
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
         _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(10, result.Value);
-        _repository.Verify(repository => repository.Delete(entity), Times.Once);
+        Assert.True(entity.IsArchived);
+        Assert.Equal(TestNow, entity.ArchivedAt);
+        _repository.Verify(repository => repository.Delete(It.IsAny<VideoReview>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Restore_ShouldSetEntityActiveAgain()
+    {
+        var entity = new VideoReview
+        {
+            Id = 10,
+            Title = "Title",
+            Link = "https://example.com/video",
+            IsArchived = true,
+            ArchivedAt = TestNow
+        };
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(entity);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        var handler = new RestoreVideoReviewHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new RestoreVideoReviewCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10, result.Value);
+        Assert.False(entity.IsArchived);
+        Assert.Null(entity.ArchivedAt);
     }
 
     [Fact]
@@ -241,7 +269,7 @@ public class VideoReviewHandlersTests
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
         _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -252,7 +280,7 @@ public class VideoReviewHandlersTests
     }
 
     [Fact]
-    public async Task GetAll_ShouldUseReadOnlyOrderedQuery()
+    public async Task GetAll_ShouldUseReadOnlyOrderedQuery_AndExcludeArchivedRecordsByDefault()
     {
         QueryOptions<VideoReview>? capturedOptions = null;
         _repository
@@ -270,6 +298,9 @@ public class VideoReviewHandlersTests
         Assert.NotNull(capturedOptions);
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
+        Assert.NotNull(capturedOptions.Filter);
+        Assert.True(capturedOptions.Filter.Compile()(new VideoReview { IsArchived = false }));
+        Assert.False(capturedOptions.Filter.Compile()(new VideoReview { IsArchived = true }));
     }
 
     private static CreateVideoReviewDto CreateDto() => new()

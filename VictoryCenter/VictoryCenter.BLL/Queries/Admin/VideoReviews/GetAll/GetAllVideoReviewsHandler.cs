@@ -26,6 +26,7 @@ public class GetAllVideoReviewsHandler : IRequestHandler<GetAllVideoReviewsQuery
         var videoReviews = await _repositoryWrapper.VideoReviewsRepository.GetAllAsync(
             new QueryOptions<VideoReview>
             {
+                Filter = videoReview => videoReview.IsArchived == request.Archived,
                 OrderByASC = videoReview => videoReview.CreatedAt,
                 AsNoTracking = true
             });
