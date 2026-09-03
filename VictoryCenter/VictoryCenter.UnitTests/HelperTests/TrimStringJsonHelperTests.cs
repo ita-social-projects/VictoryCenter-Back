@@ -1,7 +1,8 @@
 using System.Text.Json;
 using System.Text;
 using VictoryCenter.BLL.Helpers;
-using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+
+namespace VictoryCenter.UnitTests.HelperTests;
 
 public class TrimStringJsonHelperTests
 {
@@ -47,17 +48,15 @@ public class TrimStringJsonHelperTests
     [Fact]
     public void Read_ThrowsJsonException_WhenTokenIsNotStringOrNull()
     {
-        var json = """{"DisclaimerTitle":123}""";
-        var act = () => JsonSerializer.Deserialize<UpdateReportFundsExpendituresSettingsDto>(json);
-        var exception = Assert.Throws<JsonException>(act);
+        var exception = Assert.Throws<JsonException>(() =>
+            JsonSerializer.Deserialize<string>("123", _options));
         Assert.Contains("Expected String or Null", exception.Message);
     }
 
     [Fact]
     public void Read_ReturnsEmptyString_WhenJsonValueIsNull()
     {
-        var json = """{"DisclaimerTitle":null}""";
-        var dto = JsonSerializer.Deserialize<UpdateReportFundsExpendituresSettingsDto>(json);
-        Assert.Equal(string.Empty, dto?.DisclaimerTitle);
+        var result = JsonSerializer.Deserialize<string>("null", _options);
+        Assert.Equal(string.Empty, result);
     }
 }
