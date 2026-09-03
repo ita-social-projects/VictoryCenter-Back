@@ -18,7 +18,7 @@ public class UpdateSingleMetricTests : BaseTestClass
     }
 
     [Fact]
-    public async Task PatchMetric_ValidData_ShouldReturnOkAndUpdateEntity()
+    public async Task UpdateMetric_ValidData_ShouldReturnOkAndUpdateEntity()
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var existingMetric = mainPage.ImpactStatistics!.Metrics.First();
@@ -26,11 +26,11 @@ public class UpdateSingleMetricTests : BaseTestClass
         var dto = new UpdateSingleMetricDto
         {
             Value = 999,
-            Name = "updated-patch-name",
+            Name = "updated-metric-name",
             ExpectedVersion = existingMetric.RowVersion,
         };
 
-        var response = await PatchRaw(existingMetric.Id, dto);
+        var response = await PutRaw(existingMetric.Id, dto);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -38,11 +38,11 @@ public class UpdateSingleMetricTests : BaseTestClass
         var updatedMetric = await Fixture.DbContext.Metrics.SingleAsync(m => m.Id == existingMetric.Id);
 
         Assert.Equal(999, updatedMetric.Value);
-        Assert.Equal("updated-patch-name", updatedMetric.Name);
+        Assert.Equal("updated-metric-name", updatedMetric.Name);
     }
 
     [Fact]
-    public async Task PatchMetric_Conflict_ShouldReturnBadRequest()
+    public async Task UpdateMetric_Conflict_ShouldReturnBadRequest()
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var existingMetric = mainPage.ImpactStatistics!.Metrics.First();
@@ -53,13 +53,13 @@ public class UpdateSingleMetricTests : BaseTestClass
             ExpectedVersion = [99, 99, 99, 99],
         };
 
-        var response = await PatchRaw(existingMetric.Id, dto);
+        var response = await PutRaw(existingMetric.Id, dto);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
-    public async Task PatchMetric_InvalidData_ShouldReturnBadRequest()
+    public async Task UpdateMetric_InvalidData_ShouldReturnBadRequest()
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var existingMetric = mainPage.ImpactStatistics!.Metrics.First();
@@ -69,15 +69,15 @@ public class UpdateSingleMetricTests : BaseTestClass
             Value = -5,
         };
 
-        var response = await PatchRaw(existingMetric.Id, dto);
+        var response = await PutRaw(existingMetric.Id, dto);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    private async Task<HttpResponseMessage> PatchRaw(long metricId, UpdateSingleMetricDto payload)
+    private async Task<HttpResponseMessage> PutRaw(long metricId, UpdateSingleMetricDto payload)
     {
         var serialized = JsonSerializer.Serialize(payload);
-        return await Fixture.HttpClient.PatchAsync(
+        return await Fixture.HttpClient.PutAsync(
             $"/api/MainPage/metrics/{metricId}",
             new StringContent(serialized, Encoding.UTF8, "application/json"));
     }
