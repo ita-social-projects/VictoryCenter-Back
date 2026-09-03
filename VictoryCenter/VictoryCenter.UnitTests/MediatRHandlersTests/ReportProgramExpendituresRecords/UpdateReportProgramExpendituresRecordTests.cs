@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils;
 using MediatR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
@@ -224,6 +225,33 @@ public class UpdateReportProgramExpendituresRecordTests
         Assert.False(result.IsSuccess);
         Assert.Equal(
             ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(ReportProgramExpendituresRecord)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenUniqueConstraintIsViolatedOnSave()
+    {
+        // Arrange
+        SetupDependencies(_recordEntity, 1);
+        _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(SqlExceptionFactory.CreateDbUpdateException(2601, "Unique index violation"));
+
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
+            _validator,
+            _repositoryWrapperMock.Object,
+            _mapperMock.Object,
+            _mediatorMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(
+                _updateDto.HippotherapyProgramCategoryId),
             result.Errors[0].Message);
     }
 
