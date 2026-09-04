@@ -21,6 +21,7 @@ public class WayForPayPaymentCommandHandlerTests
     private readonly PaymentRequestDto _basePaymentRequest;
     private readonly PaymentRequestDto _subscriptionPaymentRequest;
     private readonly PaymentCommand _basePaymentCommand;
+    private readonly PaymentCommand _subscriptionPaymentCommand;
 
     public WayForPayPaymentCommandHandlerTests()
     {
@@ -46,7 +47,7 @@ public class WayForPayPaymentCommandHandlerTests
         };
 
         _basePaymentCommand = new PaymentCommand(_basePaymentRequest);
-        new PaymentCommand(_subscriptionPaymentRequest);
+        _subscriptionPaymentCommand = new PaymentCommand(_subscriptionPaymentRequest);
     }
 
     [Fact]
@@ -95,13 +96,18 @@ public class WayForPayPaymentCommandHandlerTests
         var commandWithReturnUrl = new PaymentCommand(paymentRequestWithReturnUrl);
 
         HttpRequestMessage? capturedRequest = null;
+        string? capturedContent = null;
 
         _httpMessageHandlerMock.Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .Callback<HttpRequestMessage, CancellationToken>((req, _) => { capturedRequest = req; })
+            .Callback<HttpRequestMessage, CancellationToken>((req, _) =>
+            {
+                capturedRequest = req;
+                capturedContent = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            })
             .ReturnsAsync(response);
 
         var httpClient = new HttpClient(_httpMessageHandlerMock.Object);
@@ -118,8 +124,8 @@ public class WayForPayPaymentCommandHandlerTests
         Assert.NotNull(capturedRequest);
         Assert.Equal(HttpMethod.Post, capturedRequest.Method);
 
-        var contentString = await capturedRequest.Content!.ReadAsStringAsync();
-        var parsed = System.Web.HttpUtility.ParseQueryString(contentString);
+        Assert.NotNull(capturedContent);
+        var parsed = System.Web.HttpUtility.ParseQueryString(capturedContent);
 
         Assert.Equal(_options.Value.MerchantLogin, parsed["merchantAccount"]);
         Assert.Equal(_options.Value.MerchantDomainName, parsed["merchantDomainName"]);
@@ -132,6 +138,46 @@ public class WayForPayPaymentCommandHandlerTests
         Assert.Equal("100", parsed["productPrice[]"]);
         Assert.NotNull(parsed["merchantSignature"]);
         Assert.Equal(returnUrl, parsed["returnUrl"]);
+        Assert.Null(parsed["regularOn"]);
+        Assert.Null(parsed["regularAmount"]);
+        Assert.Null(parsed["regularMode"]);
+    }
+
+    [Fact]
+    public async Task Handle_SubscriptionRequest_IncludesClientManagedRecurringFields()
+    {
+        var response = new HttpResponseMessage(HttpStatusCode.Found)
+        {
+            Headers = { Location = new Uri("https://pay.test/redirect") }
+        };
+        string? capturedContent = null;
+        _httpMessageHandlerMock.Protected()
+            .Setup<Task<HttpResponseMessage>>(
+                "SendAsync",
+                ItExpr.IsAny<HttpRequestMessage>(),
+                ItExpr.IsAny<CancellationToken>())
+            .Callback<HttpRequestMessage, CancellationToken>((request, _) =>
+            {
+                capturedContent = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+            })
+            .ReturnsAsync(response);
+        var httpClient = new HttpClient(_httpMessageHandlerMock.Object);
+        _httpClientFactoryMock.Setup(factory => factory.CreateClient("Way4PayClient")).Returns(httpClient);
+        var handler = new WayForPayPaymentCommandHandler(
+            _options,
+            _httpClientFactoryMock.Object,
+            _loggerMock.Object);
+
+        var result = await handler.Handle(_subscriptionPaymentCommand, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(capturedContent);
+        var parsed = System.Web.HttpUtility.ParseQueryString(capturedContent);
+        Assert.Equal("1", parsed["regularOn"]);
+        Assert.Equal("100", parsed["regularAmount"]);
+        Assert.Equal(PaymentConstants.ClientSelectedRegularPaymentMode, parsed["regularMode"]);
+        Assert.Null(parsed["regularBehavior"]);
+        Assert.Null(parsed["regularCount"]);
     }
 
     [Fact]
@@ -148,7 +194,7 @@ public class WayForPayPaymentCommandHandlerTests
         var result = await handler.Handle(_basePaymentCommand, CancellationToken.None);
 
         Assert.True(result.IsFailed);
-        Assert.Equal("Bad Request", result.Errors[0].Message);
+        Assert.Equal(PaymentConstants.UnableToConductDonation, result.Errors[0].Message);
         _httpClientFactoryMock.Verify(x => x.CreateClient("Way4PayClient"), Times.Once);
         _httpMessageHandlerMock.Protected()
             .Verify(
@@ -179,13 +225,13 @@ public class WayForPayPaymentCommandHandlerTests
         var result = await handler.Handle(_basePaymentCommand, CancellationToken.None);
 
         Assert.True(result.IsFailed);
-        Assert.Equal(PaymentConstants.FailedToCommunicateWithPaymentGateway(exceptionMessage), result.Errors[0].Message);
+        Assert.Equal(PaymentConstants.UnableToConductDonation, result.Errors[0].Message);
 
         _loggerMock.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error occured when processing payment request")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Failed to communicate with WayForPay")),
                 httpRequestException,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);

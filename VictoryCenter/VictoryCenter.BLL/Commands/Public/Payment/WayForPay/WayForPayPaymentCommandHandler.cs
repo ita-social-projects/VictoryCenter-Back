@@ -48,14 +48,12 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
             ReturnUrl = request.PaymentRequestDto.ReturnUrl
         };
 
-        // regular payment is going to be supported in the future
-        // if (request.Request.IsSubscription)
-        // {
-        //     purchaseRequest.RegularBehavior = PaymentConstants.RegularPaymentBehaviour;
-        //     purchaseRequest.RegularAmount = request.Request.Amount;
-        //     purchaseRequest.RegularMode = PaymentConstants.RegularPaymentMode;
-        //     purchaseRequest.RegularOn = true;
-        // }
+        if (request.PaymentRequestDto.IsSubscription)
+        {
+            purchaseRequest.RegularAmount = request.PaymentRequestDto.Amount;
+            purchaseRequest.RegularMode = PaymentConstants.ClientSelectedRegularPaymentMode;
+            purchaseRequest.RegularOn = true;
+        }
 
         var keyValues = new Dictionary<string, string>
         {
@@ -71,35 +69,30 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
             ["merchantSignature"] = purchaseRequest.MerchantSignature,
         };
 
-        // regular payment is going to be supported in the future
-        // if (purchaseRequest.RegularOn.HasValue && purchaseRequest.RegularOn.Value)
-        // {
-        //     keyValues["regularOn"] = "1";
-        //     keyValues["regularAmount"] = purchaseRequest.RegularAmount?.ToString(CultureInfo.InvariantCulture) ?? purchaseRequest.Amount.ToString(CultureInfo.InvariantCulture);
-        //     keyValues["regularMode"] = purchaseRequest.RegularMode!;
-        //     keyValues["regularBehavior"] = purchaseRequest.RegularBehavior!;
-        //     keyValues["regularCount"] = PaymentConstants.RegularPaymentCount;
-        // }
+        if (purchaseRequest.RegularOn is true)
+        {
+            keyValues["regularOn"] = "1";
+            keyValues["regularAmount"] = (purchaseRequest.RegularAmount ?? purchaseRequest.Amount)
+                .ToString(CultureInfo.InvariantCulture);
+            keyValues["regularMode"] = purchaseRequest.RegularMode!;
+        }
 
         if (!string.IsNullOrWhiteSpace(purchaseRequest.ReturnUrl))
         {
             keyValues["returnUrl"] = purchaseRequest.ReturnUrl;
         }
 
-        var content = new FormUrlEncodedContent(keyValues);
-
         var client = _httpClientFactory.CreateClient("Way4PayClient");
-
-        var httpRequestMessage = new HttpRequestMessage
+        using var httpRequestMessage = new HttpRequestMessage
         {
             RequestUri = new Uri(_way4PayOptions.Value.ApiUrl),
             Method = HttpMethod.Post,
-            Content = content
+            Content = new FormUrlEncodedContent(keyValues)
         };
 
         try
         {
-            var response = await client.SendAsync(httpRequestMessage, cancellationToken);
+            using var response = await client.SendAsync(httpRequestMessage, cancellationToken);
 
             if (response.StatusCode is HttpStatusCode.Found or HttpStatusCode.SeeOther or HttpStatusCode.Moved)
             {
@@ -113,14 +106,17 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
                 }
             }
 
-            return Result.Fail(response.ReasonPhrase ?? PaymentConstants.PaymentRequestFailedWithStatus(response.StatusCode));
+            _logger.LogWarning(
+                "WayForPay payment request failed with status code {StatusCode}",
+                response.StatusCode);
+            return Result.Fail(PaymentConstants.UnableToConductDonation);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Error occured when processing payment request: {ErrorMessage}", ex.Message);
-            return Result.Fail(PaymentConstants.FailedToCommunicateWithPaymentGateway(ex.Message));
+            _logger.LogError(ex, "Failed to communicate with WayForPay while initiating a donation");
+            return Result.Fail(PaymentConstants.UnableToConductDonation);
         }
-        catch (TaskCanceledException ex)
+        catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested)
         {
             _logger.LogError(ex, PaymentConstants.PaymentRequestWasCancelledOrTimedOut);
             return Result.Fail(PaymentConstants.PaymentRequestWasCancelledOrTimedOut);
