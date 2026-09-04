@@ -20,6 +20,13 @@ public class VideoReviewConfig : IEntityTypeConfiguration<VideoReview>
         builder.Property(e => e.Link)
             .IsRequired();
 
+        builder.Property(e => e.IsArchived)
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(e => e.ArchivedAt)
+            .IsRequired(false);
+
         builder.Property(e => e.Priority)
             .IsRequired();
 

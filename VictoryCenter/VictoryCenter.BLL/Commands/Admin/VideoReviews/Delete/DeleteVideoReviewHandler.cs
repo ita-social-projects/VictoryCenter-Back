@@ -12,11 +12,16 @@ namespace VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
 public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
     private readonly IReorderService _reorderService;
 
-    public DeleteVideoReviewHandler(IRepositoryWrapper repositoryWrapper, IReorderService reorderService)
+    public DeleteVideoReviewHandler(
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
         _reorderService = reorderService;
     }
 
@@ -34,18 +39,19 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
             return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
         }
 
+        entity.IsArchived = true;
+        entity.ArchivedAt = _timeProvider.GetUtcNow();
+
         try
         {
             using var transactionScope = _repositoryWrapper.BeginTransaction();
-
-            _repositoryWrapper.VideoReviewsRepository.Delete(entity);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
                 return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
             }
 
-            await _reorderService.RenumberPriorityAsync<VideoReview>();
+            await _reorderService.RenumberPriorityAsync<VideoReview>(videoReview => !videoReview.IsArchived);
 
             transactionScope.Complete();
             return Result.Ok(entity.Id);

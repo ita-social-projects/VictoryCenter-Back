@@ -64,9 +64,29 @@ public class VideoReviewManagementTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
         var deletedId = await deleteResponse.Content.ReadFromJsonAsync<long>();
         Assert.Equal(created.Id, deletedId);
+        var archivedEntity = await Fixture.DbContext.VideoReviews
+            .AsNoTracking()
+            .SingleAsync(item => item.Id == created.Id);
+        Assert.True(archivedEntity.IsArchived);
+        Assert.NotNull(archivedEntity.ArchivedAt);
+
+        var activeResponse = await Fixture.HttpClient.GetAsync("/api/VideoReviews");
+        Assert.Equal(HttpStatusCode.OK, activeResponse.StatusCode);
+        var activeReviews = await activeResponse.Content.ReadFromJsonAsync<List<VideoReviewDto>>();
+        Assert.DoesNotContain(activeReviews!, item => item.Id == created.Id);
+
+        var archivedResponse = await Fixture.HttpClient.GetAsync("/api/VideoReviews?archived=true");
+        Assert.Equal(HttpStatusCode.OK, archivedResponse.StatusCode);
+        var archivedReviews = await archivedResponse.Content.ReadFromJsonAsync<List<VideoReviewDto>>();
+        Assert.Contains(archivedReviews!, item => item.Id == created.Id);
+
+        var restoreResponse = await Fixture.HttpClient.PostAsync($"/api/VideoReviews/{created.Id}/restore", null);
+        Assert.Equal(HttpStatusCode.OK, restoreResponse.StatusCode);
+        var restoredId = await restoreResponse.Content.ReadFromJsonAsync<long>();
+        Assert.Equal(created.Id, restoredId);
         Assert.False(await Fixture.DbContext.VideoReviews
             .AsNoTracking()
-            .AnyAsync(item => item.Id == created.Id));
+            .AnyAsync(item => item.Id == created.Id && item.IsArchived));
     }
 
     [Fact]
