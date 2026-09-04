@@ -78,11 +78,13 @@ public class VideoReviewHandlersTests
     public async Task Create_ShouldAssignPriorityFromReorderService()
     {
         VideoReview? createdEntity = null;
+        Expression<Func<VideoReview, bool>>? priorityFilter = null;
         _mapper.Setup(mapper => mapper.Map<VideoReview>(It.IsAny<CreateVideoReviewDto>()))
             .Returns(new VideoReview { Title = "Title", Link = "https://example.com/video" });
         _reorderService
             .Setup(service => service.GetNextDisplayOrderAsync<VideoReview>(
                 It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .Callback<Expression<Func<VideoReview, bool>>?>(filter => priorityFilter = filter)
             .ReturnsAsync(5);
         _repository
             .Setup(repository => repository.CreateAsync(It.IsAny<VideoReview>()))
@@ -96,6 +98,9 @@ public class VideoReviewHandlersTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(createdEntity);
         Assert.Equal(5, createdEntity.Priority);
+        Assert.NotNull(priorityFilter);
+        Assert.True(priorityFilter.Compile()(new VideoReview { IsArchived = false }));
+        Assert.False(priorityFilter.Compile()(new VideoReview { IsArchived = true }));
     }
 
     [Fact]
@@ -356,8 +361,12 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<VideoReview>(
+                It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .ReturnsAsync(3);
         _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
-        var handler = new RestoreVideoReviewHandler(_wrapper.Object);
+        var handler = new RestoreVideoReviewHandler(_wrapper.Object, _reorderService.Object);
 
         var result = await handler.Handle(new RestoreVideoReviewCommand(10), CancellationToken.None);
 
@@ -365,6 +374,7 @@ public class VideoReviewHandlersTests
         Assert.Equal(10, result.Value);
         Assert.False(entity.IsArchived);
         Assert.Null(entity.ArchivedAt);
+        Assert.Equal(3, entity.Priority);
     }
 
     [Fact]
