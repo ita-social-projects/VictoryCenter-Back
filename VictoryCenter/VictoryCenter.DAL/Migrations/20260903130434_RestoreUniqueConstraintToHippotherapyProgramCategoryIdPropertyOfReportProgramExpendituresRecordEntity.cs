@@ -14,6 +14,19 @@ namespace VictoryCenter.DAL.Migrations
                 name: "IX_ReportProgramExpendituresRecords_HippotherapyProgramCategoryId_ReportingYear",
                 table: "ReportProgramExpendituresRecords");
 
+            // A program category may now hold only a single record regardless of reporting year.
+            // Collapse any pre-existing cross-year duplicates down to the most recently created
+            // record per category so the unique index below can be created.
+            migrationBuilder.Sql("""
+                DELETE r
+                FROM dbo.ReportProgramExpendituresRecords AS r
+                WHERE r.Id < (
+                    SELECT MAX(r2.Id)
+                    FROM dbo.ReportProgramExpendituresRecords AS r2
+                    WHERE r2.HippotherapyProgramCategoryId = r.HippotherapyProgramCategoryId
+                );
+                """);
+
             migrationBuilder.CreateIndex(
                 name: "IX_ReportProgramExpendituresRecords_HippotherapyProgramCategoryId",
                 table: "ReportProgramExpendituresRecords",
