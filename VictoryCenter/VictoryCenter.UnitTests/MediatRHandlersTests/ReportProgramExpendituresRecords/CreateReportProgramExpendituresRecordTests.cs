@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils;
 using MediatR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
@@ -110,7 +111,7 @@ public class CreateReportProgramExpendituresRecordTests
     }
 
     [Fact]
-    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecordForSpecifiedYear()
+    public async Task Handle_ShouldFail_WhenCategoryAlreadyHasRecord()
     {
         // Arrange
         SetupDependencies(_category, 1, true);
@@ -127,8 +128,8 @@ public class CreateReportProgramExpendituresRecordTests
         // Assert
         Assert.True(result.IsFailed);
         Assert.Equal(
-            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                _createDto.HippotherapyProgramCategoryId, _createDto.ReportingYear),
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(
+                _createDto.HippotherapyProgramCategoryId),
             result.Errors[0].Message);
     }
 
@@ -178,10 +179,36 @@ public class CreateReportProgramExpendituresRecordTests
             result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_ShouldFail_WhenUniqueConstraintIsViolatedOnSave()
+    {
+        // Arrange
+        SetupDependencies(_category, 1);
+        _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(SqlExceptionFactory.CreateDbUpdateException(2601, "Unique index violation"));
+
+        var handler = new CreateReportProgramExpendituresRecordHandler(
+            _repositoryWrapperMock.Object,
+            _mapperMock.Object,
+            _mediatorMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new CreateReportProgramExpendituresRecordCommand(_createDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(
+                _createDto.HippotherapyProgramCategoryId),
+            result.Errors[0].Message);
+    }
+
     private void SetupDependencies(
         HippotherapyProgramCategory? category,
         int saveResult,
-        bool recordWithinSameCategoryWithSameYearExists = false)
+        bool recordWithinSameCategoryExists = false)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportProgramExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
@@ -199,8 +226,8 @@ public class CreateReportProgramExpendituresRecordTests
 
         _recordsRepositoryMock
             .Setup(repository =>
-                repository.RecordWithinSameCategoryWithSameYearExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
-            .ReturnsAsync(recordWithinSameCategoryWithSameYearExists);
+                repository.RecordWithinSameCategoryExistsAsync(It.IsAny<ReportProgramExpendituresRecord>()))
+            .ReturnsAsync(recordWithinSameCategoryExists);
 
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
 

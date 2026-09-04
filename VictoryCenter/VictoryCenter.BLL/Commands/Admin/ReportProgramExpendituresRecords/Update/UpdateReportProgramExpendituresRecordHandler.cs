@@ -66,16 +66,15 @@ public class UpdateReportProgramExpendituresRecordHandler
 
         if (recordWasMovedToDifferentCategory)
         {
-            var recordWithinSameCategoryWithSameYearExists = await _repositoryWrapper
+            var recordWithinSameCategoryExists = await _repositoryWrapper
                 .ReportProgramExpendituresRecordsRepository
-                .RecordWithinSameCategoryWithSameYearExistsAsync(recordToUpdate);
+                .RecordWithinSameCategoryExistsAsync(recordToUpdate);
 
-            if (recordWithinSameCategoryWithSameYearExists)
+            if (recordWithinSameCategoryExists)
             {
                 return Result.Fail(ReportProgramExpendituresRecordConstants
-                    .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                        recordToUpdate.HippotherapyProgramCategoryId,
-                        recordToUpdate.ReportingYear));
+                    .ProgramCategoryAlreadyHasRecord(
+                        recordToUpdate.HippotherapyProgramCategoryId));
             }
         }
 
@@ -96,9 +95,8 @@ public class UpdateReportProgramExpendituresRecordHandler
         {
             return Result.Fail<ReportProgramExpendituresRecordDto>(
                 ReportProgramExpendituresRecordConstants
-                    .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                        recordToUpdate.HippotherapyProgramCategoryId,
-                        recordToUpdate.ReportingYear));
+                    .ProgramCategoryAlreadyHasRecord(
+                        recordToUpdate.HippotherapyProgramCategoryId));
         }
         catch (DbUpdateException)
         {

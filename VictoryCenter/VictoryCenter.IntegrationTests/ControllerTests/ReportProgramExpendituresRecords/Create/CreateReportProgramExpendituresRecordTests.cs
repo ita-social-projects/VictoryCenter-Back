@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils;
@@ -44,7 +45,7 @@ public class CreateReportProgramExpendituresRecordTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Create_ShouldNotCreateRecord_WhenCategoryAlreadyHasRecord()
+    public async Task Create_ShouldNotCreateRecord_WhenCategoryAlreadyHasRecordForTheSameYear()
     {
         var programCategory = new HippotherapyProgramCategory
         {
@@ -79,5 +80,48 @@ public class CreateReportProgramExpendituresRecordTests : BaseTestClass
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Create_ShouldNotCreateRecord_WhenCategoryAlreadyHasRecordForADifferentYear()
+    {
+        var programCategory = new HippotherapyProgramCategory
+        {
+            Name = "Some program category",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.HippotherapyProgramCategories.AddAsync(programCategory);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        await Fixture.DbContext.ReportProgramExpendituresRecords.AddAsync(new ReportProgramExpendituresRecord
+        {
+            HippotherapyProgramCategoryId = programCategory.Id,
+            ReportingYear = 2025,
+            AmountUah = 300m,
+            AmountUsd = 8m,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var createDto = new CreateReportProgramExpendituresRecordDto
+        {
+            HippotherapyProgramCategoryId = programCategory.Id,
+            ReportingYear = 2026,
+            AmountUah = 200m,
+            AmountUsd = 1m
+        };
+        var serializedDto = JsonConvert.SerializeObject(createDto);
+
+        var response = await Fixture.HttpClient.PostAsync(
+            "/api/ReportProgramExpendituresRecords/",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        Assert.False(response.IsSuccessStatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var responseContent = await response.Content.ReadAsStringAsync();
+        Assert.Contains(
+            ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(programCategory.Id),
+            responseContent);
     }
 }
