@@ -29,6 +29,9 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
     {
         try
         {
+            request.Dto.Title = NormalizeText(request.Dto.Title);
+            request.Dto.Description = NormalizeText(request.Dto.Description);
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var count = await _repositoryWrapper.PdfSectionRepository.CountAsync();
