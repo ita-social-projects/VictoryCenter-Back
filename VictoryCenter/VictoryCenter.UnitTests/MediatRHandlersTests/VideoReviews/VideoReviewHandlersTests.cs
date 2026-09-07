@@ -355,6 +355,7 @@ public class VideoReviewHandlersTests
             Id = 10,
             Title = "Title",
             Link = "https://example.com/video",
+            Status = Status.Published,
             IsArchived = true,
             ArchivedAt = TestNow
         };
@@ -374,6 +375,7 @@ public class VideoReviewHandlersTests
         Assert.Equal(10, result.Value);
         Assert.False(entity.IsArchived);
         Assert.Null(entity.ArchivedAt);
+        Assert.Equal(Status.Published, entity.Status);
         Assert.Equal(3, entity.Priority);
     }
 
