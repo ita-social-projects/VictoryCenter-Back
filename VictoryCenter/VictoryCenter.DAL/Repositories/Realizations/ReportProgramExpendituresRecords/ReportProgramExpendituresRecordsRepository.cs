@@ -20,7 +20,9 @@ public class ReportProgramExpendituresRecordsRepository : RepositoryBase<ReportP
     {
         return await DbContext
             .ReportProgramExpendituresRecords
-            .AnyAsync(e => e.HippotherapyProgramCategoryId == record.HippotherapyProgramCategoryId);
+            .AnyAsync(e =>
+                e.HippotherapyProgramCategoryId == record.HippotherapyProgramCategoryId &&
+                e.Id != record.Id);
     }
 
     public async Task<(decimal TotalAmountUah, decimal TotalAmountUsd)> GetSummaryAsync()

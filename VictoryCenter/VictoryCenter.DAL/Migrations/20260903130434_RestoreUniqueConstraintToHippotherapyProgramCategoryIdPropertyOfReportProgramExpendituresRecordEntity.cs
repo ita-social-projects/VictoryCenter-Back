@@ -14,17 +14,59 @@ namespace VictoryCenter.DAL.Migrations
                 name: "IX_ReportProgramExpendituresRecords_HippotherapyProgramCategoryId_ReportingYear",
                 table: "ReportProgramExpendituresRecords");
 
-            // A program category may now hold only a single record regardless of reporting year.
-            // Collapse any pre-existing cross-year duplicates down to the most recently created
-            // record per category so the unique index below can be created.
+            // WARNING: irreversible data change. To allow one record per program category, any
+            // category with several records keeps only its most recent row (latest CreatedAt, then
+            // highest Id) and the rest are deleted after being copied to
+            // dbo.RemovedReportProgramExpendituresRecordDuplicates. The block is a no-op when there
+            // are no duplicates.
             migrationBuilder.Sql("""
-                DELETE r
-                FROM dbo.ReportProgramExpendituresRecords AS r
-                WHERE r.Id < (
-                    SELECT MAX(r2.Id)
-                    FROM dbo.ReportProgramExpendituresRecords AS r2
-                    WHERE r2.HippotherapyProgramCategoryId = r.HippotherapyProgramCategoryId
-                );
+                DECLARE @DuplicateIds TABLE (Id BIGINT PRIMARY KEY);
+
+                INSERT INTO @DuplicateIds (Id)
+                SELECT Id
+                FROM (
+                    SELECT Id,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY HippotherapyProgramCategoryId
+                               ORDER BY CreatedAt DESC, Id DESC) AS RowNumber
+                    FROM dbo.ReportProgramExpendituresRecords
+                ) AS ranked
+                WHERE ranked.RowNumber > 1;
+
+                IF EXISTS (SELECT 1 FROM @DuplicateIds)
+                BEGIN
+                    DECLARE @RemovedCount INT = (SELECT COUNT(*) FROM @DuplicateIds);
+                    DECLARE @RemovedIds NVARCHAR(MAX) =
+                        (SELECT STRING_AGG(CONVERT(NVARCHAR(20), Id), ', ') FROM @DuplicateIds);
+
+                    DROP TABLE IF EXISTS dbo.RemovedReportProgramExpendituresRecordDuplicates;
+
+                    SELECT r.*, SYSUTCDATETIME() AS RemovedAtUtc
+                    INTO dbo.RemovedReportProgramExpendituresRecordDuplicates
+                    FROM dbo.ReportProgramExpendituresRecords AS r
+                    WHERE r.Id IN (SELECT Id FROM @DuplicateIds);
+
+                    DELETE FROM dbo.ReportProgramExpendituresRecords
+                    WHERE Id IN (SELECT Id FROM @DuplicateIds);
+
+                    PRINT CONCAT(
+                        'RestoreUniqueConstraintToHippotherapyProgramCategoryId migration: removed ',
+                        @RemovedCount,
+                        ' duplicate ReportProgramExpendituresRecords row(s); backup saved to ',
+                        'dbo.RemovedReportProgramExpendituresRecordDuplicates. Removed Ids: ',
+                        @RemovedIds);
+                END;
+
+                IF EXISTS (
+                    SELECT 1
+                    FROM dbo.ReportProgramExpendituresRecords
+                    GROUP BY HippotherapyProgramCategoryId
+                    HAVING COUNT(*) > 1)
+                BEGIN
+                    THROW 50001,
+                        'Duplicate ReportProgramExpendituresRecords remain after cleanup; migration aborted.',
+                        1;
+                END;
                 """);
 
             migrationBuilder.CreateIndex(

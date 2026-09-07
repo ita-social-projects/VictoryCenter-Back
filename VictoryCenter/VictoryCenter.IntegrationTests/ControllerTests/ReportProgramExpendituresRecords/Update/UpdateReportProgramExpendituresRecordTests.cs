@@ -78,6 +78,52 @@ public class UpdateReportProgramExpendituresRecordTests : BaseTestClass
     }
 
     [Fact]
+    public async Task Update_ShouldUpdateRecord_WhenCategoryUnchanged()
+    {
+        var programCategory = new HippotherapyProgramCategory
+        {
+            Name = "Category kept on update",
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.HippotherapyProgramCategories.AddAsync(programCategory);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var record = new ReportProgramExpendituresRecord
+        {
+            HippotherapyProgramCategoryId = programCategory.Id,
+            ReportingYear = 2025,
+            AmountUah = 300m,
+            AmountUsd = 8m,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.ReportProgramExpendituresRecords.AddAsync(record);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateReportProgramExpendituresRecordDto
+        {
+            HippotherapyProgramCategoryId = programCategory.Id,
+            AmountUah = 999m,
+            AmountUsd = 42m
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        var response = await Fixture.HttpClient.PutAsync(
+            $"/api/ReportProgramExpendituresRecords/{record.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var dbRecord = await Fixture.DbContext.ReportProgramExpendituresRecords
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Id == record.Id);
+
+        Assert.NotNull(dbRecord);
+        Assert.Equal(updateDto.AmountUah, dbRecord.AmountUah);
+        Assert.Equal(updateDto.AmountUsd, dbRecord.AmountUsd);
+    }
+
+    [Fact]
     public async Task Update_ShouldReturnBadRequest_WhenUpdatingToCategoryThatAlreadyHasRecord()
     {
         var programCategory1 = new HippotherapyProgramCategory
