@@ -103,10 +103,13 @@ public class WayForPayPaymentCommandHandlerTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .Callback<HttpRequestMessage, CancellationToken>((req, _) =>
+            .Callback<HttpRequestMessage, CancellationToken>((req, cancellationToken) =>
             {
                 capturedRequest = req;
-                capturedContent = req.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                capturedContent = req.Content!
+                    .ReadAsStringAsync(cancellationToken)
+                    .GetAwaiter()
+                    .GetResult();
             })
             .ReturnsAsync(response);
 
@@ -156,9 +159,12 @@ public class WayForPayPaymentCommandHandlerTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .Callback<HttpRequestMessage, CancellationToken>((request, _) =>
+            .Callback<HttpRequestMessage, CancellationToken>((request, cancellationToken) =>
             {
-                capturedContent = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                capturedContent = request.Content!
+                    .ReadAsStringAsync(cancellationToken)
+                    .GetAwaiter()
+                    .GetResult();
             })
             .ReturnsAsync(response);
         var httpClient = new HttpClient(_httpMessageHandlerMock.Object);

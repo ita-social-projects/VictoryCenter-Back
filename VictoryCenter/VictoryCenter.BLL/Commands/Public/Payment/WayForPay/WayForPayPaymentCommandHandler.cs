@@ -29,6 +29,21 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
 
     public async Task<Result<PaymentResponseDto>> Handle(PaymentCommand request, CancellationToken cancellationToken)
     {
+        var purchaseRequest = CreatePurchaseRequest(request);
+        var keyValues = CreatePaymentRequestValues(purchaseRequest);
+        var client = _httpClientFactory.CreateClient("Way4PayClient");
+        using var httpRequestMessage = new HttpRequestMessage
+        {
+            RequestUri = new Uri(_way4PayOptions.Value.ApiUrl),
+            Method = HttpMethod.Post,
+            Content = new FormUrlEncodedContent(keyValues)
+        };
+
+        return await SendPaymentRequestAsync(client, httpRequestMessage, cancellationToken);
+    }
+
+    private WayForPayPurchaseRequest CreatePurchaseRequest(PaymentCommand request)
+    {
         var orderReference = Guid.CreateVersion7();
         var orderDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var merchantSignature = GenerateMerchantSignature(request, orderReference, orderDate);
@@ -55,6 +70,11 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
             purchaseRequest.RegularOn = true;
         }
 
+        return purchaseRequest;
+    }
+
+    private static Dictionary<string, string> CreatePaymentRequestValues(WayForPayPurchaseRequest purchaseRequest)
+    {
         var keyValues = new Dictionary<string, string>
         {
             ["merchantAccount"] = purchaseRequest.MerchantAccount,
@@ -82,14 +102,14 @@ public class WayForPayPaymentCommandHandler : IPaymentCommandHandler<PaymentComm
             keyValues["returnUrl"] = purchaseRequest.ReturnUrl;
         }
 
-        var client = _httpClientFactory.CreateClient("Way4PayClient");
-        using var httpRequestMessage = new HttpRequestMessage
-        {
-            RequestUri = new Uri(_way4PayOptions.Value.ApiUrl),
-            Method = HttpMethod.Post,
-            Content = new FormUrlEncodedContent(keyValues)
-        };
+        return keyValues;
+    }
 
+    private async Task<Result<PaymentResponseDto>> SendPaymentRequestAsync(
+        HttpClient client,
+        HttpRequestMessage httpRequestMessage,
+        CancellationToken cancellationToken)
+    {
         try
         {
             using var response = await client.SendAsync(httpRequestMessage, cancellationToken);

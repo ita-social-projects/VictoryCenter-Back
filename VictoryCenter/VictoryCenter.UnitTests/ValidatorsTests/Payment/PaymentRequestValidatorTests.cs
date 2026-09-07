@@ -113,6 +113,8 @@ public class PaymentRequestValidatorTests
     [InlineData("https://donate.example.com.evil.example/payment/result")]
     [InlineData("https://donate.example.com@evil.example/payment/result")]
     [InlineData("https://donate.example.com:444/payment/result")]
+    [InlineData("file:///tmp/payment-result")]
+    [InlineData("urn:payment:result")]
     [InlineData("not-a-url")]
     public void Validate_ReturnUrlIsNotTrusted_ShouldHaveValidationError(string returnUrl)
     {

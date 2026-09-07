@@ -37,6 +37,11 @@ public class PaymentRequestValidator : AbstractValidator<PaymentRequestDto>
             return false;
         }
 
+        return IsTrustedReturnUrl(uri, allowedHosts);
+    }
+
+    private static bool IsTrustedReturnUrl(Uri uri, IEnumerable<string> allowedHosts)
+    {
         var usesSecureDefaultPort = uri.Scheme == Uri.UriSchemeHttps && uri.IsDefaultPort;
         var usesLocalDevelopmentUrl = uri.IsLoopback
                                       && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);

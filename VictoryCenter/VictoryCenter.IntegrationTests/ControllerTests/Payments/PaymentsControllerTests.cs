@@ -51,9 +51,12 @@ public class PaymentsControllerTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .Callback<HttpRequestMessage, CancellationToken>((request, _) =>
+            .Callback<HttpRequestMessage, CancellationToken>((request, cancellationToken) =>
             {
-                capturedContent = request.Content!.ReadAsStringAsync().GetAwaiter().GetResult();
+                capturedContent = request.Content!
+                    .ReadAsStringAsync(cancellationToken)
+                    .GetAwaiter()
+                    .GetResult();
             })
             .ReturnsAsync(fakeExternalResponse);
         await using WebApplication app = await CreateApplicationAsync(handlerMock.Object);
