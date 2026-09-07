@@ -7,7 +7,7 @@ public static class ReportProgramExpendituresRecordConstants
 
     public static readonly decimal AmountMinValue = 0m;
 
-    public static readonly int AmountDigitsBeforeDecimalPoint = 11;
+    public static readonly int AmountDigitsBeforeDecimalPoint = 9;
     public static readonly int AmountDigitsAfterDecimalPoint = 2;
 
     public static readonly int AmountPrecision =
