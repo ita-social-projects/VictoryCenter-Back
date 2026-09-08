@@ -39,6 +39,11 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
             return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
         }
 
+        if (entity.IsArchived)
+        {
+            return Result.Ok(entity.Id);
+        }
+
         entity.IsArchived = true;
         entity.ArchivedAt = _timeProvider.GetUtcNow();
 

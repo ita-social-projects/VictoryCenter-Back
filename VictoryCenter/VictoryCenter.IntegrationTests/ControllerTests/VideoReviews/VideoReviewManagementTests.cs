@@ -84,9 +84,11 @@ public class VideoReviewManagementTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, restoreResponse.StatusCode);
         var restoredId = await restoreResponse.Content.ReadFromJsonAsync<long>();
         Assert.Equal(created.Id, restoredId);
-        Assert.False(await Fixture.DbContext.VideoReviews
+        var restoredEntity = await Fixture.DbContext.VideoReviews
             .AsNoTracking()
-            .AnyAsync(item => item.Id == created.Id && item.IsArchived));
+            .SingleAsync(item => item.Id == created.Id);
+        Assert.False(restoredEntity.IsArchived);
+        Assert.Null(restoredEntity.ArchivedAt);
     }
 
     [Fact]
