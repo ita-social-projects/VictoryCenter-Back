@@ -5,7 +5,7 @@ namespace VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRec
 
 public interface IReportProgramExpendituresRecordsRepository : IRepositoryBase<ReportProgramExpendituresRecord>
 {
-    Task<bool> RecordWithinSameCategoryWithSameYearExistsAsync(ReportProgramExpendituresRecord record);
+    Task<bool> RecordWithinSameCategoryExistsAsync(ReportProgramExpendituresRecord record);
 
     Task<(decimal TotalAmountUah, decimal TotalAmountUsd)> GetSummaryAsync();
 }

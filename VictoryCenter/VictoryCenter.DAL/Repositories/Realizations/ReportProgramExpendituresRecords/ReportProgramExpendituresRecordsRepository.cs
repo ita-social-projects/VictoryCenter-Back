@@ -16,13 +16,13 @@ public class ReportProgramExpendituresRecordsRepository : RepositoryBase<ReportP
     {
     }
 
-    public async Task<bool> RecordWithinSameCategoryWithSameYearExistsAsync(ReportProgramExpendituresRecord record)
+    public async Task<bool> RecordWithinSameCategoryExistsAsync(ReportProgramExpendituresRecord record)
     {
         return await DbContext
             .ReportProgramExpendituresRecords
             .AnyAsync(e =>
                 e.HippotherapyProgramCategoryId == record.HippotherapyProgramCategoryId &&
-                e.ReportingYear == record.ReportingYear);
+                e.Id != record.Id);
     }
 
     public async Task<(decimal TotalAmountUah, decimal TotalAmountUsd)> GetSummaryAsync()

@@ -53,16 +53,15 @@ public class CreateReportProgramExpendituresRecordHandler :
         var reportProgramExpendituresRecord =
             _mapper.Map<ReportProgramExpendituresRecord>(request.CreateReportProgramExpendituresRecordDto);
 
-        var recordWithinSameCategoryWithSameYearExists = await _repositoryWrapper
+        var recordWithinSameCategoryExists = await _repositoryWrapper
             .ReportProgramExpendituresRecordsRepository
-            .RecordWithinSameCategoryWithSameYearExistsAsync(reportProgramExpendituresRecord);
+            .RecordWithinSameCategoryExistsAsync(reportProgramExpendituresRecord);
 
-        if (recordWithinSameCategoryWithSameYearExists)
+        if (recordWithinSameCategoryExists)
         {
             return Result.Fail(ReportProgramExpendituresRecordConstants
-                .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                    request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
-                    request.CreateReportProgramExpendituresRecordDto.ReportingYear));
+                .ProgramCategoryAlreadyHasRecord(
+                    request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId));
         }
 
         reportProgramExpendituresRecord.CreatedAt = DateTimeOffset.UtcNow;
@@ -84,9 +83,8 @@ public class CreateReportProgramExpendituresRecordHandler :
         {
             return Result.Fail<ReportProgramExpendituresRecordDto>(
                 ReportProgramExpendituresRecordConstants
-                    .ProgramCategoryAlreadyHasRecordForSpecifiedYear(
-                        request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
-                        request.CreateReportProgramExpendituresRecordDto.ReportingYear));
+                    .ProgramCategoryAlreadyHasRecord(
+                        request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId));
         }
         catch (DbUpdateException)
         {
