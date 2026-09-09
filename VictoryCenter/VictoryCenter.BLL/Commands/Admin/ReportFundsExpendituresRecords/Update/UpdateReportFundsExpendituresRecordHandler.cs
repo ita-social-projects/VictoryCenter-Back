@@ -38,6 +38,21 @@ public class UpdateReportFundsExpendituresRecordHandler
     {
         try
         {
+            var settingsEntity = await _repositoryWrapper.ReportFundsExpendituresSettingsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings>());
+
+            if (settingsEntity is null)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage);
+            }
+
+            var settingsDto = _mapper.Map<ReportFundsExpendituresSettingsDto>(settingsEntity);
+
+            if (settingsDto.ExchangeRate <= ReportFundsExpendituresSettingsConstants.ExchangeRateMinValue)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(ReportFundsExpendituresSettingsConstants.InvalidExchangeRateErrorMessage);
+            }
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var entityToUpdate = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
@@ -89,24 +104,11 @@ public class UpdateReportFundsExpendituresRecordHandler
                 }
             }
 
-            var settingsEntity = await _repositoryWrapper.ReportFundsExpendituresSettingsRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings>());
-
-            if (settingsEntity is null)
-            {
-                return Result.Fail<ReportFundsExpendituresRecordDto>(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage);
-            }
-
-            var settingsDto = _mapper.Map<ReportFundsExpendituresSettingsDto>(settingsEntity);
-
-            if (settingsDto.ExchangeRate <= 0)
-            {
-                return Result.Fail<ReportFundsExpendituresRecordDto>(ReportFundsExpendituresSettingsConstants.InvalidExchangeRateErrorMessage);
-            }
-
             _mapper.Map(request.UpdateReportFundsExpendituresRecordDto, entityToUpdate);
 
-            entityToUpdate.AmountUsd = entityToUpdate.AmountUah / settingsDto.ExchangeRate;
+            entityToUpdate.AmountUsd = entityToUpdate.AmountUah != null
+                ? entityToUpdate.AmountUah / settingsDto.ExchangeRate
+                : 0;
 
             _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Update(entityToUpdate);
 
