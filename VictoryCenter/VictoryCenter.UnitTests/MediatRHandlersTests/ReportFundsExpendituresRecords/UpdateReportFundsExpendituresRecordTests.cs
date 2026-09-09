@@ -127,6 +127,7 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var invalidDto = _updateDto with { CategoryId = 0 };
+        SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 1);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
             _mediatorMock.Object,
