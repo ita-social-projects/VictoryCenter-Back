@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.GetById;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.BLL.Commands.Admin.FeedbackReviews.Reorder;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
@@ -57,5 +58,14 @@ public class FeedbackReviewsController : AuthorizedApiController
     public async Task<IActionResult> DeleteFeedbackReview(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteFeedbackReviewCommand(id)));
+    }
+
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ReorderFeedbackReviews([FromBody] ReorderFeedbackReviewsDto dto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderFeedbackReviewsCommand(dto)));
     }
 }
