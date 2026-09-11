@@ -2,6 +2,7 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ReportFundsExpendituresCategoryConstants
 {
+    public static readonly int ZeroCategoryId = 0;
     public static readonly int NameMaxLength = 255;
     public static readonly string DuplicateCategoryName = "Category with the same name already exists";
 
