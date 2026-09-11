@@ -27,39 +27,36 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
 
     public async Task<Result<long>> Handle(DeleteVideoReviewCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _repositoryWrapper.VideoReviewsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<VideoReview>
-            {
-                Filter = videoReview => videoReview.Id == request.Id,
-                AsNoTracking = false
-            });
-
-        if (entity is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
-        }
-
-        if (entity.IsArchived)
-        {
-            return Result.Ok(entity.Id);
-        }
-
-        entity.IsArchived = true;
-        entity.ArchivedAt = _timeProvider.GetUtcNow();
-
         try
         {
             using var transactionScope = _repositoryWrapper.BeginTransaction();
 
-            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            var archivedRows = await _repositoryWrapper.VideoReviewsRepository.ArchiveAsync(
+                request.Id,
+                _timeProvider.GetUtcNow());
+
+            if (archivedRows == 0)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
+                var entity = await _repositoryWrapper.VideoReviewsRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<VideoReview>
+                    {
+                        Filter = videoReview => videoReview.Id == request.Id,
+                        AsNoTracking = true
+                    });
+
+                if (entity is null)
+                {
+                    return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
+                }
+
+                transactionScope.Complete();
+                return Result.Ok(entity.Id);
             }
 
             await _reorderService.RenumberPriorityAsync<VideoReview>(videoReview => !videoReview.IsArchived);
 
             transactionScope.Complete();
-            return Result.Ok(entity.Id);
+            return Result.Ok(request.Id);
         }
         catch (DbUpdateException)
         {
