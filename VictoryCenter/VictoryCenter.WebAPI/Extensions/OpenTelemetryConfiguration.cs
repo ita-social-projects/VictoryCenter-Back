@@ -12,7 +12,9 @@ public static class OpenTelemetryConfiguration
 
     public static void AddOpenTelemetryTracing(this IServiceCollection services)
     {
-        ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(ServiceName, ServiceVersion);
+        ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(
+            serviceName: ServiceName,
+            serviceVersion: ServiceVersion);
 
         services.AddOpenTelemetry()
             .WithTracing(t => t
@@ -40,7 +42,9 @@ public static class OpenTelemetryConfiguration
 
     public static void AddOpenTelemetryLogging(this ILoggingBuilder logging)
     {
-        ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(ServiceName, ServiceVersion);
+        ResourceBuilder resourceBuilder = ResourceBuilder.CreateDefault().AddService(
+            serviceName: ServiceName,
+            serviceVersion: ServiceVersion);
 
         logging.AddOpenTelemetry(loggingOptions =>
         {
