@@ -1,10 +1,11 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Create;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
+using VictoryCenter.BLL.Commands.Admin.VideoReviews.Restore;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
@@ -27,13 +28,21 @@ public class VideoReviewHandlersTests
     private readonly Mock<IVideoReviewsRepository> _repository = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     public VideoReviewHandlersTests()
     {
         _wrapper.SetupGet(item => item.VideoReviewsRepository).Returns(_repository.Object);
         _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
-        _wrapper.Setup(wrapper => wrapper.BeginTransaction())
-            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        _wrapper.Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
+        _transaction
+            .Setup(transaction => transaction.CommitAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _reorderService
+            .Setup(service => service.RenumberPriorityAsync<VideoReview>(
+                It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .Returns(Task.CompletedTask);
         _mapper.Setup(mapper => mapper.Map<VideoReviewDto>(It.IsAny<VideoReview>()))
             .Returns((VideoReview videoReview) => new VideoReviewDto
             {
@@ -77,11 +86,13 @@ public class VideoReviewHandlersTests
     public async Task Create_ShouldAssignPriorityFromReorderService()
     {
         VideoReview? createdEntity = null;
+        Expression<Func<VideoReview, bool>>? priorityFilter = null;
         _mapper.Setup(mapper => mapper.Map<VideoReview>(It.IsAny<CreateVideoReviewDto>()))
             .Returns(new VideoReview { Title = "Title", Link = "https://example.com/video" });
         _reorderService
             .Setup(service => service.GetNextDisplayOrderAsync<VideoReview>(
                 It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .Callback<Expression<Func<VideoReview, bool>>?>(filter => priorityFilter = filter)
             .ReturnsAsync(5);
         _repository
             .Setup(repository => repository.CreateAsync(It.IsAny<VideoReview>()))
@@ -95,6 +106,9 @@ public class VideoReviewHandlersTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(createdEntity);
         Assert.Equal(5, createdEntity.Priority);
+        Assert.NotNull(priorityFilter);
+        Assert.True(priorityFilter.Compile()(new VideoReview { IsArchived = false }));
+        Assert.False(priorityFilter.Compile()(new VideoReview { IsArchived = true }));
     }
 
     [Fact]
@@ -313,7 +327,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync((VideoReview?)null);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -323,20 +337,83 @@ public class VideoReviewHandlersTests
     }
 
     [Fact]
-    public async Task Delete_ShouldRemoveEntityAndReturnItsId()
+    public async Task Delete_ShouldArchiveEntityAndReturnItsId()
     {
         var entity = new VideoReview { Id = 10, Title = "Title", Link = "https://example.com/video" };
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
-        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _reorderService.Object);
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .Callback<long, DateTimeOffset>((_, archivedAt) =>
+            {
+                entity.IsArchived = true;
+                entity.ArchivedAt = archivedAt;
+            })
+            .ReturnsAsync(1);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Equal(10, result.Value);
-        _repository.Verify(repository => repository.Delete(entity), Times.Once);
+        Assert.True(entity.IsArchived);
+        Assert.Equal(TestNow, entity.ArchivedAt);
+        _repository.Verify(repository => repository.Delete(It.IsAny<VideoReview>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldReturnOkWithoutRenumbering_WhenEntityIsAlreadyArchived()
+    {
+        var entity = new VideoReview { Id = 10, IsArchived = true, ArchivedAt = TestNow };
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .ReturnsAsync(0);
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(entity);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10, result.Value);
+        Assert.Equal(TestNow, entity.ArchivedAt);
+        _reorderService.Verify(
+            service => service.RenumberPriorityAsync<VideoReview>(It.IsAny<Expression<Func<VideoReview, bool>>>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Restore_ShouldSetEntityActiveAgain()
+    {
+        var entity = new VideoReview
+        {
+            Id = 10,
+            Title = "Title",
+            Link = "https://example.com/video",
+            Status = Status.Published,
+            IsArchived = true,
+            ArchivedAt = TestNow
+        };
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(entity);
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<VideoReview>(
+                It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .ReturnsAsync(3);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        var handler = new RestoreVideoReviewHandler(_wrapper.Object, _reorderService.Object);
+
+        var result = await handler.Handle(new RestoreVideoReviewCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10, result.Value);
+        Assert.False(entity.IsArchived);
+        Assert.Null(entity.ArchivedAt);
+        Assert.Equal(Status.Published, entity.Status);
+        Assert.Equal(3, entity.Priority);
     }
 
     [Fact]
@@ -346,8 +423,10 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
-        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _reorderService.Object);
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .ReturnsAsync(1);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -365,8 +444,10 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
-        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _reorderService.Object);
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .ThrowsAsync(new DbUpdateException());
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -377,7 +458,7 @@ public class VideoReviewHandlersTests
     }
 
     [Fact]
-    public async Task GetAll_ShouldUseReadOnlyOrderedQuery()
+    public async Task GetAll_ShouldUseReadOnlyOrderedQuery_AndExcludeArchivedRecordsByDefault()
     {
         QueryOptions<VideoReview>? capturedOptions = null;
         _repository
@@ -395,6 +476,9 @@ public class VideoReviewHandlersTests
         Assert.NotNull(capturedOptions);
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
+        Assert.NotNull(capturedOptions.Filter);
+        Assert.True(capturedOptions.Filter.Compile()(new VideoReview { IsArchived = false }));
+        Assert.False(capturedOptions.Filter.Compile()(new VideoReview { IsArchived = true }));
     }
 
     private static CreateVideoReviewDto CreateDto() => new()
