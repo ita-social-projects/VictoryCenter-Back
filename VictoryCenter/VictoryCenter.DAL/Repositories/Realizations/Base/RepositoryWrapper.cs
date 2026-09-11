@@ -95,6 +95,12 @@ using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Realizations.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Realizations.VideoReviews;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.VideoReviews;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.VideoReviews;
 
 namespace VictoryCenter.DAL.Repositories.Realizations.Base;
 
@@ -175,8 +181,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
     private IFeedbackReviewsRepository? _feedbackReviewsRepository;
+    private IFeedbackReviewLocalizationsRepository? _feedbackReviewLocalizationsRepository;
     private IFeedbackHistoriesRepository? _feedbackHistoriesRepository;
+    private IFeedbackHistoryLocalizationsRepository? _feedbackHistoryLocalizationsRepository;
     private IVideoReviewsRepository? _videoReviewsRepository;
+    private IVideoReviewLocalizationsRepository? _videoReviewLocalizationsRepository;
 
     public RepositoryWrapper(VictoryCenterDbContext context)
     {
@@ -421,11 +430,23 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IFeedbackHistoriesRepository FeedbackHistoriesRepository =>
         _feedbackHistoriesRepository ??= new FeedbackHistoriesRepository(_victoryCenterDbContext);
 
+    public IFeedbackHistoryLocalizationsRepository FeedbackHistoryLocalizationsRepository =>
+        _feedbackHistoryLocalizationsRepository ??=
+            new FeedbackHistoryLocalizationsRepository(_victoryCenterDbContext);
+
     public IFeedbackReviewsRepository FeedbackReviewsRepository =>
         _feedbackReviewsRepository ??= new FeedbackReviewsRepository(_victoryCenterDbContext);
 
+    public IFeedbackReviewLocalizationsRepository FeedbackReviewLocalizationsRepository =>
+        _feedbackReviewLocalizationsRepository ??=
+            new FeedbackReviewLocalizationsRepository(_victoryCenterDbContext);
+
     public IVideoReviewsRepository VideoReviewsRepository =>
         _videoReviewsRepository ??= new VideoReviewsRepository(_victoryCenterDbContext);
+
+    public IVideoReviewLocalizationsRepository VideoReviewLocalizationsRepository =>
+        _videoReviewLocalizationsRepository ??=
+            new VideoReviewLocalizationsRepository(_victoryCenterDbContext);
 
     public int SaveChanges()
     {

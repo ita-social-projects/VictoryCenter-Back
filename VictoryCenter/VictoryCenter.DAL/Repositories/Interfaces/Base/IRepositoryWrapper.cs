@@ -38,6 +38,9 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.VideoReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
@@ -136,12 +139,15 @@ public interface IRepositoryWrapper
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
 
     IFeedbackReviewsRepository FeedbackReviewsRepository { get; }
+    IFeedbackReviewLocalizationsRepository FeedbackReviewLocalizationsRepository { get; }
 
     IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository { get; }
     IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository { get; }
     IFeedbackHistoriesRepository FeedbackHistoriesRepository { get; }
+    IFeedbackHistoryLocalizationsRepository FeedbackHistoryLocalizationsRepository { get; }
 
     IVideoReviewsRepository VideoReviewsRepository { get; }
+    IVideoReviewLocalizationsRepository VideoReviewLocalizationsRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
