@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.IntegrationTests.Utils;
@@ -38,7 +39,28 @@ public class AuthControllerTests : BaseTestClass
     {
         var request = new LoginRequestDto(TestEmail, "WrongPassword!");
         var response = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, request);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Login_UnknownEmail_ReturnsSameResponseAsInvalidPassword()
+    {
+        var invalidPasswordRequest = new LoginRequestDto(TestEmail, "WrongPassword!");
+        var unknownEmailRequest = new LoginRequestDto("unknown@victorycenter.com", "WrongPassword!");
+
+        using var invalidPasswordResponse = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, invalidPasswordRequest);
+        using var unknownEmailResponse = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, unknownEmailRequest);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, invalidPasswordResponse.StatusCode);
+        Assert.Equal(invalidPasswordResponse.StatusCode, unknownEmailResponse.StatusCode);
+        var invalidPasswordProblem = await invalidPasswordResponse.Content.ReadFromJsonAsync<ProblemDetails>();
+        var unknownEmailProblem = await unknownEmailResponse.Content.ReadFromJsonAsync<ProblemDetails>();
+        Assert.Equal((int)HttpStatusCode.Unauthorized, invalidPasswordProblem!.Status);
+        Assert.Equal("Unauthorized", invalidPasswordProblem.Title);
+        Assert.Equal(AuthConstants.InvalidCredentials, invalidPasswordProblem.Detail);
+        Assert.Equal(invalidPasswordProblem!.Status, unknownEmailProblem!.Status);
+        Assert.Equal(invalidPasswordProblem.Title, unknownEmailProblem.Title);
+        Assert.Equal(invalidPasswordProblem.Detail, unknownEmailProblem.Detail);
     }
 
     [Fact]
