@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.Admin.Auth.Login;
 using VictoryCenter.BLL.Commands.Admin.Auth.Logout;
 using VictoryCenter.BLL.Commands.Admin.Auth.RefreshToken;
@@ -12,10 +13,13 @@ public class AuthController : BaseApiController
 {
     [HttpPost("login")]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponseDto))]
     public async Task<IActionResult> LoginAsync(LoginRequestDto requestDto)
     {
-        return HandleResult(await Mediator.Send(new LoginCommand(requestDto)));
+        return HandleResult(
+            await Mediator.Send(new LoginCommand(requestDto)),
+            AuthConstants.InvalidCredentials);
     }
 
     [HttpPost("refresh-token")]
