@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
@@ -8,23 +7,16 @@ using VictoryCenter.BLL.Commands.Admin.PdfReports.Reorder;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
-using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
-using Microsoft.Net.Http.Headers;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.WebAPI.Utils.ActionResults;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class PdfReportsController : AuthorizedApiController
 {
-    private readonly IMemoryCache _cache;
-
-    public PdfReportsController(IMemoryCache cache)
-    {
-        _cache = cache;
-    }
-
     [HttpPost]
     [ProducesResponseType(typeof(PdfReportDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -65,30 +57,16 @@ public class PdfReportsController : AuthorizedApiController
 
     [HttpGet("preview/{fileName}")]
     [AllowAnonymous]
-    public async Task<IActionResult> PreviewPdfReportByTicket([FromRoute] string fileName, [FromQuery] string ticket, [FromServices] IMemoryCache cache)
+    public async Task<IActionResult> PreviewPdfReportByTicket([FromRoute] string fileName, [FromQuery] string ticket)
     {
-        if (!cache.TryGetValue($"PdfTicket_{ticket}", out long pdfId))
-        {
-            return Unauthorized("Invalid or expired preview ticket.");
-        }
-
-        cache.Remove($"PdfTicket_{ticket}");
-
-        var result = await Mediator.Send(new GetPdfReportPreviewByIdQuery(pdfId));
+        var result = await Mediator.Send(new ConsumePdfPreviewTicketQuery(ticket));
 
         if (!result.IsSuccess)
         {
-            return NotFound();
+            return HandleResult(result);
         }
 
-        var contentDisposition = new ContentDispositionHeaderValue("inline")
-        {
-            FileNameStar = result.Value.FileName
-        };
-
-        Response.Headers.Add(HeaderNames.ContentDisposition, contentDisposition.ToString());
-
-        return File(result.Value.FileStream, "application/pdf");
+        return new InlineFileStreamResult(result.Value.FileStream, "application/pdf", result.Value.FileName);
     }
 
     [HttpPut("{id}")]
