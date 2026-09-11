@@ -63,9 +63,9 @@ public class PdfReportsController : AuthorizedApiController
         return HandleResult(await Mediator.Send(new GeneratePdfPreviewTicketCommand(id)));
     }
 
-    [HttpGet("preview")]
+    [HttpGet("preview/{fileName}")]
     [AllowAnonymous]
-    public async Task<IActionResult> PreviewPdfReportByTicket([FromQuery] string ticket, [FromServices] IMemoryCache cache)
+    public async Task<IActionResult> PreviewPdfReportByTicket([FromRoute] string fileName, [FromQuery] string ticket, [FromServices] IMemoryCache cache)
     {
         if (!cache.TryGetValue($"PdfTicket_{ticket}", out long pdfId))
         {
