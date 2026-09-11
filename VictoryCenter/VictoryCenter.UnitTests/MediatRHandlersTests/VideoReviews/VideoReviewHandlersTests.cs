@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
-using System.Transactions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Create;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
@@ -28,13 +28,21 @@ public class VideoReviewHandlersTests
     private readonly Mock<IVideoReviewsRepository> _repository = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     public VideoReviewHandlersTests()
     {
         _wrapper.SetupGet(item => item.VideoReviewsRepository).Returns(_repository.Object);
         _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
-        _wrapper.Setup(wrapper => wrapper.BeginTransaction())
-            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        _wrapper.Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
+        _transaction
+            .Setup(transaction => transaction.CommitAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _reorderService
+            .Setup(service => service.RenumberPriorityAsync<VideoReview>(
+                It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .Returns(Task.CompletedTask);
         _mapper.Setup(mapper => mapper.Map<VideoReviewDto>(It.IsAny<VideoReview>()))
             .Returns((VideoReview videoReview) => new VideoReviewDto
             {
