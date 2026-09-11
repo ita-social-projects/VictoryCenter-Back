@@ -357,12 +357,7 @@ public class VideoReviewHandlersTests
     [Fact]
     public async Task Delete_ShouldReturnOkWithoutRenumbering_WhenEntityIsAlreadyArchived()
     {
-        var entity = new VideoReview
-        {
-            Id = 10,
-            IsArchived = true,
-            ArchivedAt = TestNow
-        };
+        var entity = new VideoReview { Id = 10, IsArchived = true, ArchivedAt = TestNow };
         _repository
             .Setup(repository => repository.ArchiveAsync(10, TestNow))
             .ReturnsAsync(0);
@@ -375,6 +370,7 @@ public class VideoReviewHandlersTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(10, result.Value);
+        Assert.Equal(TestNow, entity.ArchivedAt);
         _reorderService.Verify(
             service => service.RenumberPriorityAsync<VideoReview>(It.IsAny<Expression<Func<VideoReview, bool>>>()),
             Times.Never);
