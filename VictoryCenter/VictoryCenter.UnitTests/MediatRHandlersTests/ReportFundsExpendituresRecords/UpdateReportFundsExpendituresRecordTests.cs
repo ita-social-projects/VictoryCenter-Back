@@ -6,6 +6,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
@@ -13,6 +14,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRecords;
@@ -24,6 +26,7 @@ public class UpdateReportFundsExpendituresRecordTests
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
     private readonly Mock<IReportFundsExpendituresCategoriesRepository> _categoriesRepositoryMock;
+    private readonly Mock<IReportFundsExpendituresSettingsRepository> _settingsRepositoryMock;
     private readonly IValidator<UpdateReportFundsExpendituresRecordCommand> _validator;
 
     private readonly ReportFundsExpendituresRecord _existingRecord = new()
@@ -60,6 +63,7 @@ public class UpdateReportFundsExpendituresRecordTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
+        _settingsRepositoryMock = new Mock<IReportFundsExpendituresSettingsRepository>();
         _validator = new UpdateReportFundsExpendituresRecordValidator(new BaseReportFundsExpendituresRecordValidator());
     }
 
@@ -123,6 +127,7 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var invalidDto = _updateDto with { CategoryId = 0 };
+        SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 1);
         var handler = new UpdateReportFundsExpendituresRecordHandler(
             _mapperMock.Object,
             _mediatorMock.Object,
@@ -318,6 +323,16 @@ public class UpdateReportFundsExpendituresRecordTests
             .Returns(_recordsRepositoryMock.Object);
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresCategoriesRepository)
             .Returns(_categoriesRepositoryMock.Object);
+        _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresSettingsRepository)
+            .Returns(_settingsRepositoryMock.Object);
+
+        _settingsRepositoryMock
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings>>()))
+            .ReturnsAsync(new VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings());
+
+        _mapperMock
+            .Setup(mapper => mapper.Map<ReportFundsExpendituresSettingsDto>(It.IsAny<VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings>()))
+            .Returns(new ReportFundsExpendituresSettingsDto { ExchangeRate = 40.0m });
 
         _recordsRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresRecord>>()))

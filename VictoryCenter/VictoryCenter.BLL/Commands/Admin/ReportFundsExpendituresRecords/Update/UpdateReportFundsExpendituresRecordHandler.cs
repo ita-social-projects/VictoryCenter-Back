@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 
@@ -37,6 +38,21 @@ public class UpdateReportFundsExpendituresRecordHandler
     {
         try
         {
+            var settingsEntity = await _repositoryWrapper.ReportFundsExpendituresSettingsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings>());
+
+            if (settingsEntity is null)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage);
+            }
+
+            var settingsDto = _mapper.Map<ReportFundsExpendituresSettingsDto>(settingsEntity);
+
+            if (settingsDto.ExchangeRate <= ReportFundsExpendituresSettingsConstants.ExchangeRateMinValue)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(ReportFundsExpendituresSettingsConstants.InvalidExchangeRateErrorMessage);
+            }
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var entityToUpdate = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
@@ -89,6 +105,11 @@ public class UpdateReportFundsExpendituresRecordHandler
             }
 
             _mapper.Map(request.UpdateReportFundsExpendituresRecordDto, entityToUpdate);
+
+            entityToUpdate.AmountUsd = entityToUpdate.AmountUah != null
+                ? entityToUpdate.AmountUah / settingsDto.ExchangeRate
+                : 0;
+
             _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
