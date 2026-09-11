@@ -1,18 +1,30 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
-using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
+using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Reorder;
+using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
+using Microsoft.Net.Http.Headers;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class PdfReportsController : AuthorizedApiController
 {
+    private readonly IMemoryCache _cache;
+
+    public PdfReportsController(IMemoryCache cache)
+    {
+        _cache = cache;
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(PdfReportDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -42,6 +54,41 @@ public class PdfReportsController : AuthorizedApiController
         }
 
         return File(result.Value, "application/pdf", fileDownloadName: null);
+    }
+
+    [HttpPost("{id}/preview-ticket")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GeneratePreviewTicket(long id)
+    {
+        return HandleResult(await Mediator.Send(new GeneratePdfPreviewTicketCommand(id)));
+    }
+
+    [HttpGet("preview")]
+    [AllowAnonymous]
+    public async Task<IActionResult> PreviewPdfReportByTicket([FromQuery] string ticket, [FromServices] IMemoryCache cache)
+    {
+        if (!cache.TryGetValue($"PdfTicket_{ticket}", out long pdfId))
+        {
+            return Unauthorized("Invalid or expired preview ticket.");
+        }
+
+        cache.Remove($"PdfTicket_{ticket}");
+
+        var result = await Mediator.Send(new GetPdfReportPreviewByIdQuery(pdfId));
+
+        if (!result.IsSuccess)
+        {
+            return NotFound();
+        }
+
+        var contentDisposition = new ContentDispositionHeaderValue("inline")
+        {
+            FileNameStar = result.Value.FileName
+        };
+
+        Response.Headers.Add(HeaderNames.ContentDisposition, contentDisposition.ToString());
+
+        return File(result.Value.FileStream, "application/pdf");
     }
 
     [HttpPut("{id}")]

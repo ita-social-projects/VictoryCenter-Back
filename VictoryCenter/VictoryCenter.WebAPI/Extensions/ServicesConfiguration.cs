@@ -200,6 +200,7 @@ public static class ServicesConfiguration
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
 
         services.AddSignalR();
+        services.AddMemoryCache();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
