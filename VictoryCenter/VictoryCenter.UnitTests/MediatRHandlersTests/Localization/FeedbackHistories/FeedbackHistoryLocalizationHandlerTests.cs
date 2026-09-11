@@ -1,7 +1,10 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.FeedbackHistories.Create;
+using VictoryCenter.BLL.Commands.Admin.Localization.FeedbackHistories.Delete;
+using VictoryCenter.BLL.Commands.Admin.Localization.FeedbackHistories.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.BLL.Queries.Admin.Localization.FeedbackHistories.GetByEntityId;
@@ -242,6 +245,196 @@ public class FeedbackHistoryLocalizationHandlerTests
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.Include);
         Assert.NotNull(capturedOptions.OrderByASC);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldTrimFieldsAndMarkTranslationRelevant()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Old title",
+            Story = "Old story",
+            TranslationStatus = TranslationStatus.Outdated
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        _mapper
+            .Setup(mapper => mapper.Map<FeedbackHistoryLocalizationDto>(localization))
+            .Returns(new FeedbackHistoryLocalizationDto
+            {
+                EntityId = 1,
+                Title = "New title",
+                Story = "New story",
+                TranslationStatus = TranslationStatus.Relevant
+            });
+        var handler = new UpdateFeedbackHistoryLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryLocalizationCommand(
+                1,
+                2,
+                new UpdateFeedbackHistoryLocalizationDto { Title = "  New title  ", Story = "  New story  " }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("New title", localization.Title);
+        Assert.Equal("New story", localization.Story);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+        _wrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldShortCircuit_WhenNothingChanged()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Same title",
+            Story = "Same story",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync(localization);
+        var handler = new UpdateFeedbackHistoryLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryLocalizationCommand(
+                1,
+                2,
+                new UpdateFeedbackHistoryLocalizationDto { Title = "Same title", Story = "Same story" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _wrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldReturnNotFound_WhenLocalizationDoesNotExist()
+    {
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync((FeedbackHistoryLocalization?)null);
+        var handler = new UpdateFeedbackHistoryLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryLocalizationCommand(
+                1,
+                2,
+                new UpdateFeedbackHistoryLocalizationDto { Title = "Title", Story = "Story" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(FeedbackHistoryLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldReturnNotFound_WhenLocalizationIsDeletedConcurrently()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Old title",
+            Story = "Old story"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+        var handler = new UpdateFeedbackHistoryLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryLocalizationCommand(
+                1,
+                2,
+                new UpdateFeedbackHistoryLocalizationDto { Title = "New title", Story = "New story" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(FeedbackHistoryLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldDeleteExistingLocalization()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Title",
+            Story = "Story"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        var handler = new DeleteFeedbackHistoryLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteFeedbackHistoryLocalizationCommand(1, 2), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value.EntityId);
+        Assert.Equal(2, result.Value.LanguageId);
+        _localizationRepository.Verify(repository => repository.Delete(localization), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldReturnNotFound_WhenLocalizationDoesNotExist()
+    {
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync((FeedbackHistoryLocalization?)null);
+        var handler = new DeleteFeedbackHistoryLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteFeedbackHistoryLocalizationCommand(1, 2), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(FeedbackHistoryLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldReturnNotFound_WhenLocalizationIsDeletedConcurrently()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Title",
+            Story = "Story"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<FeedbackHistoryLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+        var handler = new DeleteFeedbackHistoryLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteFeedbackHistoryLocalizationCommand(1, 2), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(FeedbackHistoryLocalization)),
+            result.Errors[0].Message);
     }
 
     private void SetupExistingFeedbackHistory()
