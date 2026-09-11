@@ -74,6 +74,33 @@ public class LoginRateLimitTests
             Times.Exactly(PermittedRequestsPerWindow + 1));
     }
 
+    [Fact]
+    public async Task Login_RotatingForwardedAddressesFromUntrustedProxy_ShouldNotBypassRateLimit()
+    {
+        var mediatorMock = CreateMediatorMock();
+        await using WebApplication app = await CreateApplicationAsync(
+            mediatorMock,
+            proxyAddress: "203.0.113.50");
+        using var client = CreateClient(app);
+
+        for (var requestNumber = 0; requestNumber < PermittedRequestsPerWindow; requestNumber++)
+        {
+            using var permittedResponse = await SendLoginRequestAsync(
+                client,
+                $"198.51.100.{requestNumber + 1}");
+            Assert.Equal(HttpStatusCode.OK, permittedResponse.StatusCode);
+        }
+
+        using var rejectedResponse = await SendLoginRequestAsync(client, "198.51.100.100");
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, rejectedResponse.StatusCode);
+        mediatorMock.Verify(
+            mediator => mediator.Send(
+                It.IsAny<LoginCommand>(),
+                It.IsAny<CancellationToken>()),
+            Times.Exactly(PermittedRequestsPerWindow));
+    }
+
     private static Mock<IMediator> CreateMediatorMock()
     {
         var mediatorMock = new Mock<IMediator>();
