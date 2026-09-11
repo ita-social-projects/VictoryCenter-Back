@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.BLL.Commands.Admin.VideoReviews.Reorder;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
@@ -41,5 +42,14 @@ public class VideoReviewsController : AuthorizedApiController
     public async Task<IActionResult> Delete(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteVideoReviewCommand(id)));
+    }
+
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ReorderVideoReviews([FromBody] ReorderVideoReviewsDto dto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderVideoReviewsCommand(dto)));
     }
 }
