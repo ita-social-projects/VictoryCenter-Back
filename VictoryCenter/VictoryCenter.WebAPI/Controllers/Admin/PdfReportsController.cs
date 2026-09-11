@@ -1,13 +1,17 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
-using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
+using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Reorder;
+using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.WebAPI.Utils.ActionResults;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
@@ -42,6 +46,27 @@ public class PdfReportsController : AuthorizedApiController
         }
 
         return File(result.Value, "application/pdf", fileDownloadName: null);
+    }
+
+    [HttpPost("{id}/preview-ticket")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GeneratePreviewTicket(long id)
+    {
+        return HandleResult(await Mediator.Send(new GeneratePdfPreviewTicketCommand(id)));
+    }
+
+    [HttpGet("preview/{fileName}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> PreviewPdfReportByTicket([FromRoute] string fileName, [FromQuery] string ticket)
+    {
+        var result = await Mediator.Send(new ConsumePdfPreviewTicketQuery(ticket));
+
+        if (!result.IsSuccess)
+        {
+            return HandleResult(result);
+        }
+
+        return new InlineFileStreamResult(result.Value.FileStream, "application/pdf", result.Value.FileName);
     }
 
     [HttpPut("{id}")]
