@@ -12,8 +12,6 @@ namespace VictoryCenter.BLL.Queries.Admin.FeedbackReviews.GetByFilters;
 public class GetFeedbackReviewsByFiltersHandler
     : IRequestHandler<GetFeedbackReviewsByFiltersQuery, Result<PaginationResult<FeedbackReviewDto>>>
 {
-    private const int DefaultLimit = 20;
-
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
@@ -30,7 +28,7 @@ public class GetFeedbackReviewsByFiltersHandler
         var queryOptions = new QueryOptions<FeedbackReview>
         {
             Offset = request.Filter.Offset ?? 0,
-            Limit = request.Filter.Limit ?? DefaultLimit,
+            Limit = request.Filter.Limit ?? 0,
             OrderByASC = review => review.Priority,
             AsNoTracking = true
         };
