@@ -29,8 +29,6 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
     {
         try
         {
-            await using var transaction = await _repositoryWrapper.BeginTransactionAsync();
-
             var archivedRows = await _repositoryWrapper.VideoReviewsRepository.ArchiveAsync(
                 request.Id,
                 _timeProvider.GetUtcNow());
@@ -49,13 +47,11 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
                     return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
                 }
 
-                await transaction.CommitAsync(cancellationToken);
                 return Result.Ok(entity.Id);
             }
 
             await _reorderService.RenumberPriorityAsync<VideoReview>(videoReview => !videoReview.IsArchived);
 
-            await transaction.CommitAsync(cancellationToken);
             return Result.Ok(request.Id);
         }
         catch (DbUpdateException)
