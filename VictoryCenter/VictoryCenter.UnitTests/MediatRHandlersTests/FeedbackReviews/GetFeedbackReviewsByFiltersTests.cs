@@ -50,7 +50,7 @@ public class GetFeedbackReviewsByFiltersTests
     }
 
     [Fact]
-    public async Task Handle_NoFilterProvided_UsesDefaultPagingAndOrdersByPriority()
+    public async Task Handle_NoFilterProvided_ReturnsAllRecordsOrderedByPriority()
     {
         QueryOptions<FeedbackReview>? capturedOptions = null;
 
@@ -75,7 +75,7 @@ public class GetFeedbackReviewsByFiltersTests
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
         Assert.Equal(0, capturedOptions.Offset);
-        Assert.Equal(20, capturedOptions.Limit);
+        Assert.Equal(0, capturedOptions.Limit);
     }
 
     [Fact]
