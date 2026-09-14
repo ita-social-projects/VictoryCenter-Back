@@ -7,7 +7,7 @@ public static class ReportProgramExpendituresRecordConstants
 
     public static readonly decimal AmountMinValue = 0m;
 
-    public static readonly int AmountDigitsBeforeDecimalPoint = 11;
+    public static readonly int AmountDigitsBeforeDecimalPoint = 9;
     public static readonly int AmountDigitsAfterDecimalPoint = 2;
 
     public static readonly int AmountPrecision =
@@ -22,8 +22,8 @@ public static class ReportProgramExpendituresRecordConstants
 
     public static readonly int MaxNumberOfRecordsPerBulkDelete = 100;
 
-    public static string ProgramCategoryAlreadyHasRecordForSpecifiedYear(long programCategoryId, int year)
+    public static string ProgramCategoryAlreadyHasRecord(long programCategoryId)
     {
-        return $"A record for the {programCategoryId} program category already exists for the year {year}.";
+        return $"A record for the {programCategoryId} program category already exists";
     }
 }

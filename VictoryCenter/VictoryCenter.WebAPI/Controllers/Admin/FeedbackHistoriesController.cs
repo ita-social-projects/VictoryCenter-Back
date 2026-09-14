@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Update;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.Queries.Admin.FeedbackHistories.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Reorder;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
@@ -41,5 +42,14 @@ public class FeedbackHistoriesController : AuthorizedApiController
     public async Task<IActionResult> DeleteFeedbackHistory(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteFeedbackHistoryCommand(id)));
+    }
+
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ReorderFeedbackHistories([FromBody] ReorderFeedbackHistoriesDto dto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderFeedbackHistoriesCommand(dto)));
     }
 }

@@ -2,8 +2,7 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ReportFundsExpendituresRecordConstants
 {
-    public static readonly decimal AmountMinValue = 0m;
-
+    public static readonly decimal ZeroAmount = 0m;
     public static readonly int AmountDigitsBeforeDecimalPoint = 9;
     public static readonly int AmountDigitsAfterDecimalPoint = 2;
 

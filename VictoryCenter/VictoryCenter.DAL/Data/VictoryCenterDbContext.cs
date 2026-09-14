@@ -196,9 +196,15 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<HippotherapyLandingPageScientificReference> HippotherapyLandingPageScientificReferences { get; set; }
     public DbSet<FeedbackHistory> FeedbackHistories { get; set; }
 
+    public DbSet<FeedbackHistoryLocalization> FeedbackHistoryLocalizations { get; set; }
+
     public DbSet<FeedbackReview> FeedbackReviews { get; set; }
 
+    public DbSet<FeedbackReviewLocalization> FeedbackReviewLocalizations { get; set; }
+
     public DbSet<VideoReview> VideoReviews { get; set; }
+
+    public DbSet<VideoReviewLocalization> VideoReviewLocalizations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

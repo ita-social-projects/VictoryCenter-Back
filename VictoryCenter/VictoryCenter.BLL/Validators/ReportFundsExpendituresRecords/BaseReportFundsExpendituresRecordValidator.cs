@@ -9,12 +9,20 @@ public class BaseReportFundsExpendituresRecordValidator : AbstractValidator<Base
     public BaseReportFundsExpendituresRecordValidator()
     {
         RuleFor(dto => dto.CategoryId)
-            .GreaterThan(0)
+            .GreaterThan(ReportFundsExpendituresCategoryConstants.ZeroCategoryId)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReportFundsExpendituresRecordDto.CategoryId)));
 
         RuleFor(dto => dto.AmountUah)
-            .GreaterThan(ReportFundsExpendituresRecordConstants.AmountMinValue)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReportFundsExpendituresRecordDto.AmountUah)))
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(ReportFundsExpendituresRecordDto.AmountUah)))
+            .GreaterThanOrEqualTo(ReportFundsExpendituresRecordConstants.ZeroAmount)
+            .WithMessage(ErrorMessagesConstants.SumMustNotBeNegative(
+                nameof(ReportFundsExpendituresRecordDto.AmountUah)))
+            .NotEqual(ReportFundsExpendituresRecordConstants.ZeroAmount)
+            .WithMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(ReportFundsExpendituresRecordDto.AmountUah),
+                ReportFundsExpendituresRecordConstants.ZeroAmount))
             .PrecisionScale(
                 ReportFundsExpendituresRecordConstants.AmountPrecision,
                 ReportFundsExpendituresRecordConstants.AmountScale,
@@ -24,8 +32,16 @@ public class BaseReportFundsExpendituresRecordValidator : AbstractValidator<Base
                 ReportFundsExpendituresRecordConstants.AmountFormat));
 
         RuleFor(dto => dto.AmountUsd)
-            .GreaterThan(ReportFundsExpendituresRecordConstants.AmountMinValue)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReportFundsExpendituresRecordDto.AmountUsd)))
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(ReportFundsExpendituresRecordDto.AmountUsd)))
+            .GreaterThanOrEqualTo(ReportFundsExpendituresRecordConstants.ZeroAmount)
+            .WithMessage(ErrorMessagesConstants.SumMustNotBeNegative(
+                nameof(ReportFundsExpendituresRecordDto.AmountUsd)))
+            .NotEqual(ReportFundsExpendituresRecordConstants.ZeroAmount)
+            .WithMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(ReportFundsExpendituresRecordDto.AmountUsd),
+                ReportFundsExpendituresRecordConstants.ZeroAmount))
             .PrecisionScale(
                 ReportFundsExpendituresRecordConstants.AmountPrecision,
                 ReportFundsExpendituresRecordConstants.AmountScale,

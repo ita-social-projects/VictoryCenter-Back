@@ -14,7 +14,6 @@ public class WayForPayPurchaseRequest
     required public int[] ProductCount { get; init; }
     public string? ReturnUrl { get; set; }
     public string? ServiceUrl { get; set; }
-    public string? RegularBehavior { get; set; }
     public string? RegularMode { get; set; }
     public decimal? RegularAmount { get; set; }
     public bool? RegularOn { get; set; }

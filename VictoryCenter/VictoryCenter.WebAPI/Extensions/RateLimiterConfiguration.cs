@@ -6,6 +6,7 @@ namespace VictoryCenter.WebAPI.Extensions;
 public static class RateLimiterConfiguration
 {
     private const int ImageUploadConcurrencyPermitLimit = 2;
+    private const int DonationRequestPermitLimit = 10;
 
     public static IServiceCollection AddRateLimiterConfiguration(this IServiceCollection services)
     {
@@ -31,6 +32,17 @@ public static class RateLimiterConfiguration
                         Window = TimeSpan.FromHours(24),
                     });
             });
+            options.AddPolicy(RateLimitingPolicyNameConstants.InitiateDonation, httpContext =>
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = DonationRequestPermitLimit,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                    });
+            });
         });
 
         return services;
@@ -40,5 +52,6 @@ public static class RateLimiterConfiguration
 public static class RateLimitingPolicyNameConstants
 {
     public const string SubmitContactUsForm = "submit-contact-us-form-rate-limiting-policy";
+    public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     internal const string ImageUpload = "image-upload-rate-limiting-policy";
 }

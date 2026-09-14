@@ -17,4 +17,7 @@ public class WayForPayOptions
 
     [Required]
     public string ApiUrl { get; init; } = null!;
+
+    [MinLength(1)]
+    public string[] AllowedReturnUrlHosts { get; init; } = [];
 }

@@ -1,5 +1,4 @@
 using dotenv.net;
-using Microsoft.AspNetCore.HttpOverrides;
 using VictoryCenter.WebAPI.Extensions;
 using VictoryCenter.BLL.Hubs;
 
@@ -14,6 +13,7 @@ builder.Services.AddOpenTelemetryTracing();
 builder.Logging.AddOpenTelemetryLogging();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddRateLimiterConfiguration();
+builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 
 var app = builder.Build();
 
@@ -22,12 +22,9 @@ app.MapOpenApi();
 await app.ApplyMigrationsAsync();
 await app.CreateInitialDataAsync();
 
+app.UseForwardedHeaders();
 app.UseRequestResponseLogging();
 app.UseCors();
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
 app.UseRateLimiter();
 app.MapControllers();
 app.UseHttpsRedirection();

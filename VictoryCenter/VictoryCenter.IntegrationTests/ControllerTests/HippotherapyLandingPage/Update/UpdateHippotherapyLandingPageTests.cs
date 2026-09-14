@@ -158,6 +158,33 @@ public class UpdateHippotherapyLandingPageTests : BaseTestClass
         Assert.Contains(updated.ScientificReferencesSection.ScientificReferences, r => r.Name == "Newly added reference");
     }
 
+    [Fact]
+    public async Task Update_ReplacingAnImage_ShouldReturnOkAndDeleteTheOldImage()
+    {
+        var existing = await GetSeededPageAsync();
+        var oldImage = await EnsureImageExistsAsync();
+
+        var firstResponse = await PutRaw(CreateValidUpdateDto(existing, oldImage.Id));
+        Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
+
+        var newImage = await CreateImageAsync("https://example.com/replacement-image.jpg");
+
+        Fixture.DbContext.ChangeTracker.Clear();
+        existing = await GetSeededPageAsync();
+
+        var response = await PutRaw(CreateValidUpdateDto(existing, newImage.Id));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Fixture.DbContext.ChangeTracker.Clear();
+        var updated = await Fixture.DbContext.HippotherapyLandingPages
+            .Include(p => p.IntroSection)
+            .SingleAsync(p => p.Id == existing.Id);
+
+        Assert.Equal(newImage.Id, updated.IntroSection!.ImageId);
+        Assert.False(await Fixture.DbContext.Images.AnyAsync(i => i.Id == oldImage.Id));
+    }
+
     private async Task<HttpResponseMessage> PutRaw(UpdateHippotherapyLandingPageDto payload)
     {
         var serialized = JsonSerializer.Serialize(payload);
@@ -232,6 +259,22 @@ public class UpdateHippotherapyLandingPageTests : BaseTestClass
         return await Fixture.DbContext.HippotherapyLandingPages
             .Include(p => p.ScientificReferencesSection).ThenInclude(s => s!.ScientificReferences)
             .SingleAsync();
+    }
+
+    private async Task<Image> CreateImageAsync(string url)
+    {
+        var image = new Image
+        {
+            BlobName = "replacement-image.jpg",
+            MimeType = "image/jpeg",
+            Url = url,
+            CreatedAt = DateTimeOffset.UtcNow,
+        };
+
+        await Fixture.DbContext.Images.AddAsync(image);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        return image;
     }
 
     private async Task<Image> EnsureImageExistsAsync()

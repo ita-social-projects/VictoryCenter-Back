@@ -89,4 +89,25 @@ public class CreateReportFundsExpendituresSettingsLocalizationTests : BaseTestCl
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task CreateLocalization_ShouldReturnBadRequest_WhenDisclaimerTitleIsTooShortAfterTrimming()
+    {
+    var language = await Fixture.DbContext.LocalizationLanguages.FirstOrDefaultAsync(l => l.Id == 2)
+        ?? throw new InvalidOperationException("Couldn't setup existing language");
+
+    var createDto = new CreateReportFundsExpendituresSettingsLocalizationDto
+    {
+        EntityId = ReportFundsExpendituresSettingsConstants.SingletonSettingsId,
+        LanguageId = language.Id,
+        DisclaimerTitle = " A "
+    };
+    var serializedDto = JsonConvert.SerializeObject(createDto);
+
+    var response = await Fixture.HttpClient.PostAsync(
+        "/api/ReportFundsExpendituresSettingsLocalizations/",
+        new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+
+    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

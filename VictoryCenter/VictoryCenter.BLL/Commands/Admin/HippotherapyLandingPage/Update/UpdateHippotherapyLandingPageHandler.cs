@@ -133,6 +133,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     var imagesToDelete = await _repositoryWrapper.ImageRepository.GetAllAsync(new QueryOptions<Image>
                     {
                         Filter = i => idsToActuallyDelete.Contains(i.Id),
+                        AsNoTracking = false,
                     });
                     _repositoryWrapper.ImageRepository.DeleteRange(imagesToDelete);
                     await _repositoryWrapper.SaveChangesAsync();
