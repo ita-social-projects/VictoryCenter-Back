@@ -53,7 +53,7 @@ public class VideoReviewsController : AuthorizedApiController
     {
         return HandleResult(await Mediator.Send(new RestoreVideoReviewCommand(id)));
     }
-    
+
     [HttpPut("reorder")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
