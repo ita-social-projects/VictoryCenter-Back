@@ -27,6 +27,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Captcha;
@@ -193,6 +194,8 @@ public static class ServicesConfiguration
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
         services.AddScoped<IProgramSectionContentLocalizationTracker, ProgramSectionContentLocalizationTracker>();
+
+        services.AddScoped<IUpdateReportFundsExpendituresRecordHelper, UpdateReportFundsExpendituresRecordHelper>();
 
         services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
 

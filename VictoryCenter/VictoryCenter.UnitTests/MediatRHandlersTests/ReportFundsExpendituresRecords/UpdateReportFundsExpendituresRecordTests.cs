@@ -1,17 +1,19 @@
 using AutoMapper;
-using MediatR;
+using FluentResults;
 using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -23,7 +25,7 @@ public class UpdateReportFundsExpendituresRecordTests
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
-    private readonly Mock<IReportFundsExpendituresCategoriesRepository> _categoriesRepositoryMock;
+    private readonly Mock<IUpdateReportFundsExpendituresRecordHelper> _helperMock;
     private readonly IValidator<UpdateReportFundsExpendituresRecordCommand> _validator;
 
     private readonly ReportFundsExpendituresRecord _existingRecord = new()
@@ -59,7 +61,7 @@ public class UpdateReportFundsExpendituresRecordTests
         _mediatorMock = new Mock<IMediator>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
-        _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
+        _helperMock = new Mock<IUpdateReportFundsExpendituresRecordHelper>();
         _validator = new UpdateReportFundsExpendituresRecordValidator(new BaseReportFundsExpendituresRecordValidator());
     }
 
@@ -67,12 +69,8 @@ public class UpdateReportFundsExpendituresRecordTests
     public async Task Handle_ShouldUpdateRecord_WhenCategoryIsNotChanged()
     {
         // Arrange
-        SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 1);
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -95,19 +93,8 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var changedCategoryDto = _updateDto with { CategoryId = 2 };
-        var matchingCategory = new ReportFundsExpendituresCategory
-        {
-            Id = 2,
-            Name = "Another income category",
-            Type = ReportFundsExpendituresType.Income
-        };
-
-        SetupDependencies(recordToUpdate: _existingRecord, category: matchingCategory, saveResult: 1);
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -123,11 +110,8 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var invalidDto = _updateDto with { CategoryId = 0 };
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -143,12 +127,8 @@ public class UpdateReportFundsExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenRecordNotFound()
     {
         // Arrange
-        SetupDependencies(recordToUpdate: null, category: null, saveResult: 1);
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        SetupDependencies(recordToUpdate: null, saveResult: 1);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -167,13 +147,13 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var changedCategoryDto = _updateDto with { CategoryId = 2 };
-        SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 1);
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
 
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        _helperMock
+            .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
+            .ReturnsAsync(Result.Fail(ErrorMessagesConstants.NotFound(2, typeof(ReportFundsExpendituresCategory))));
+
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -192,19 +172,13 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var changedCategoryDto = _updateDto with { CategoryId = 2 };
-        var expenseCategory = new ReportFundsExpendituresCategory
-        {
-            Id = 2,
-            Name = "Expense category",
-            Type = ReportFundsExpendituresType.Expense
-        };
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
 
-        SetupDependencies(recordToUpdate: _existingRecord, category: expenseCategory, saveResult: 1);
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        _helperMock
+            .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
+            .ReturnsAsync(Result.Fail(ReportFundsExpendituresRecordConstants.CategoryTypeMustMatchRecordType));
+
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -221,34 +195,13 @@ public class UpdateReportFundsExpendituresRecordTests
     {
         // Arrange
         var changedCategoryDto = _updateDto with { CategoryId = 2 };
-        var matchingCategory = new ReportFundsExpendituresCategory
-        {
-            Id = 2,
-            Name = "Another income category",
-            Type = ReportFundsExpendituresType.Income
-        };
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
 
-        var existingRecordInCategory = new ReportFundsExpendituresRecord
-        {
-            Id = 2,
-            CategoryId = 2,
-            Type = ReportFundsExpendituresType.Income,
-            ReportingYear = 2025,
-            AmountUah = 150m,
-            AmountUsd = 30m
-        };
+        _helperMock
+            .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
+            .ReturnsAsync(Result.Fail(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord));
 
-        SetupDependencies(
-            recordToUpdate: _existingRecord,
-            category: matchingCategory,
-            saveResult: 1,
-            existingRecordInCategory: existingRecordInCategory);
-
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -264,12 +217,8 @@ public class UpdateReportFundsExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenSaveChangesFails()
     {
         // Arrange
-        SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 0);
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 0);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -287,14 +236,10 @@ public class UpdateReportFundsExpendituresRecordTests
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionOccurs()
     {
         // Arrange
-        SetupDependencies(recordToUpdate: _existingRecord, category: null, saveResult: 1);
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
 
-        var handler = new UpdateReportFundsExpendituresRecordHandler(
-            _mapperMock.Object,
-            _mediatorMock.Object,
-            _repositoryWrapperMock.Object,
-            _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(
@@ -308,16 +253,18 @@ public class UpdateReportFundsExpendituresRecordTests
             result.Errors[0].Message);
     }
 
-    private void SetupDependencies(
-        ReportFundsExpendituresRecord? recordToUpdate,
-        ReportFundsExpendituresCategory? category,
-        int saveResult,
-        ReportFundsExpendituresRecord? existingRecordInCategory = null)
+    private void SetupDependencies(ReportFundsExpendituresRecord? recordToUpdate, int saveResult)
     {
         _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresRecordsRepository)
             .Returns(_recordsRepositoryMock.Object);
-        _repositoryWrapperMock.SetupGet(wrapper => wrapper.ReportFundsExpendituresCategoriesRepository)
-            .Returns(_categoriesRepositoryMock.Object);
+
+        _helperMock
+            .Setup(h => h.GetAndValidateSettingsAsync())
+            .ReturnsAsync(Result.Ok(new ReportFundsExpendituresSettingsDto { ExchangeRate = 40.0m }));
+
+        _helperMock
+            .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
+            .ReturnsAsync(Result.Ok());
 
         _recordsRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresRecord>>()))
@@ -330,23 +277,15 @@ public class UpdateReportFundsExpendituresRecordTests
                     records.Add(recordToUpdate);
                 }
 
-                if (existingRecordInCategory is not null)
-                {
-                    records.Add(existingRecordInCategory);
-                }
-
                 var filter = options?.Filter;
                 return filter is null
                     ? records.FirstOrDefault()
                     : records.FirstOrDefault(filter.Compile());
             });
 
-        _categoriesRepositoryMock
-            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
-            .ReturnsAsync(category);
-
         _recordsRepositoryMock.Setup(repository => repository.Update(It.IsAny<ReportFundsExpendituresRecord>()));
         _repositoryWrapperMock.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(saveResult);
+
         _mediatorMock
             .Setup(mediator => mediator.Publish(
                 It.IsAny<ReportFundsChangedNotification>(),
@@ -370,4 +309,13 @@ public class UpdateReportFundsExpendituresRecordTests
             .Setup(mapper => mapper.Map<ReportFundsExpendituresRecordDto>(It.IsAny<ReportFundsExpendituresRecord>()))
             .Returns(_recordDto);
     }
+
+    private UpdateReportFundsExpendituresRecordHandler CreateHandler() =>
+        new(
+            _mapperMock.Object,
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _helperMock.Object
+        );
 }

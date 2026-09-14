@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -19,17 +20,20 @@ public class UpdateReportFundsExpendituresRecordHandler
     private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateReportFundsExpendituresRecordCommand> _validator;
+    private readonly IUpdateReportFundsExpendituresRecordHelper _helper;
 
     public UpdateReportFundsExpendituresRecordHandler(
         IMapper mapper,
         IMediator mediator,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdateReportFundsExpendituresRecordCommand> validator)
+        IValidator<UpdateReportFundsExpendituresRecordCommand> validator,
+        IUpdateReportFundsExpendituresRecordHelper helper)
     {
         _mapper = mapper;
         _mediator = mediator;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _helper = helper;
     }
 
     public async Task<Result<ReportFundsExpendituresRecordDto>> Handle(
@@ -37,6 +41,12 @@ public class UpdateReportFundsExpendituresRecordHandler
     {
         try
         {
+            var settingsResult = await _helper.GetAndValidateSettingsAsync();
+            if (settingsResult.IsFailed)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(settingsResult.Errors);
+            }
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var entityToUpdate = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
@@ -47,59 +57,28 @@ public class UpdateReportFundsExpendituresRecordHandler
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<ReportFundsExpendituresRecordDto>(
-                    ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresRecord)));
+                return Result.Fail<ReportFundsExpendituresRecordDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresRecord)));
             }
 
-            if (entityToUpdate.CategoryId != request.UpdateReportFundsExpendituresRecordDto.CategoryId)
+            var categoryValidationResult = await _helper.ValidateCategoryChangeAsync(entityToUpdate, request.UpdateReportFundsExpendituresRecordDto.CategoryId, request.Id);
+
+            if (categoryValidationResult.IsFailed)
             {
-                var category = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
-                    .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresCategory>
-                    {
-                        Filter = entity => entity.Id == request.UpdateReportFundsExpendituresRecordDto.CategoryId
-                    });
-
-                if (category is null)
-                {
-                    return Result.Fail<ReportFundsExpendituresRecordDto>(
-                        ErrorMessagesConstants.NotFound(
-                            request.UpdateReportFundsExpendituresRecordDto.CategoryId,
-                            typeof(ReportFundsExpendituresCategory)));
-                }
-
-                if (category.Type != entityToUpdate.Type)
-                {
-                    return Result.Fail<ReportFundsExpendituresRecordDto>(
-                        ReportFundsExpendituresRecordConstants.CategoryTypeMustMatchRecordType);
-                }
-
-                var duplicateRecordInCategory = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
-                    .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresRecord>
-                    {
-                        Filter = entity =>
-                            entity.CategoryId == request.UpdateReportFundsExpendituresRecordDto.CategoryId &&
-                            entity.Id != request.Id
-                    });
-
-                if (duplicateRecordInCategory is not null)
-                {
-                    return Result.Fail<ReportFundsExpendituresRecordDto>(
-                        ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
-                }
+                return Result.Fail<ReportFundsExpendituresRecordDto>(categoryValidationResult.Errors);
             }
 
             _mapper.Map(request.UpdateReportFundsExpendituresRecordDto, entityToUpdate);
+            entityToUpdate.AmountUsd = entityToUpdate.AmountUah / settingsResult.Value.ExchangeRate;
+
             _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Update(entityToUpdate);
 
             if (await _repositoryWrapper.SaveChangesAsync() > 0)
             {
                 await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
-
                 return Result.Ok(_mapper.Map<ReportFundsExpendituresRecordDto>(entityToUpdate));
             }
 
-            return Result.Fail<ReportFundsExpendituresRecordDto>(
-                ErrorMessagesConstants.FailedToUpdateEntity(typeof(ReportFundsExpendituresRecord)));
+            return Result.Fail<ReportFundsExpendituresRecordDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(ReportFundsExpendituresRecord)));
         }
         catch (ValidationException ex)
         {
@@ -107,8 +86,7 @@ public class UpdateReportFundsExpendituresRecordHandler
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<ReportFundsExpendituresRecordDto>(
-                ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(ReportFundsExpendituresRecord)));
+            return Result.Fail<ReportFundsExpendituresRecordDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(ReportFundsExpendituresRecord)));
         }
     }
 }

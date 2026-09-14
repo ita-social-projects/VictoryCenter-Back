@@ -19,4 +19,7 @@ public static class ReportFundsExpendituresSettingsConstants
 
     public static readonly string ExchangeRateFormat =
         $"a number with up to {ExchangeRateDigitsBeforeDecimalPoint} digits before the decimal separator and up to {ExchangeRateDigitsAfterDecimalPoint} after";
+
+    public static readonly string CouldNotFindSettingsErrorMessage = "Налаштування не знайдено.";
+    public static readonly string InvalidExchangeRateErrorMessage = "Встановлено некоректний курс валют (ExchangeRate).";
 }
