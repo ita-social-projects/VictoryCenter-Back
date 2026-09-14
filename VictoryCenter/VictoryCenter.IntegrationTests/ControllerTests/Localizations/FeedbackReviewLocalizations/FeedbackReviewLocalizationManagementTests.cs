@@ -53,6 +53,76 @@ public class FeedbackReviewLocalizationManagementTests : BaseTestClass
     }
 
     [Fact]
+    public async Task UpdateLocalization_ShouldUpdateFieldsAndMarkTranslationRelevant()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackReview = await CreateFeedbackReviewAsync();
+        await CreateLocalizationAsync(feedbackReview.Id, language.Id);
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{LocalizationsUrl}/{feedbackReview.Id}/{language.Id}",
+            new UpdateFeedbackReviewLocalizationDto
+            {
+                AuthorName = "Jane Doe",
+                Text = "Updated English translation of the participant review content."
+            });
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<FeedbackReviewLocalizationDto>();
+        Assert.NotNull(updated);
+        Assert.Equal("Jane Doe", updated.AuthorName);
+        Assert.Equal(TranslationStatus.Relevant, updated.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldDeleteLocalization()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackReview = await CreateFeedbackReviewAsync();
+        await CreateLocalizationAsync(feedbackReview.Id, language.Id);
+
+        var deleteResponse = await Fixture.HttpClient.DeleteAsync(
+            $"{LocalizationsUrl}/{feedbackReview.Id}/{language.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+        var getResponse = await Fixture.HttpClient.GetAsync($"{LocalizationsUrl}/entityId/{feedbackReview.Id}");
+        var localizations = await getResponse.Content.ReadFromJsonAsync<List<FeedbackReviewLocalizationDto>>();
+        Assert.Empty(localizations!);
+    }
+
+    [Fact]
+    public async Task UpdateAndDeleteLocalization_ShouldReturnNotFound_WhenLocalizationDoesNotExist()
+    {
+        const long missingId = long.MaxValue;
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{LocalizationsUrl}/{missingId}/{missingId}",
+            new UpdateFeedbackReviewLocalizationDto
+            {
+                AuthorName = "Jane Doe",
+                Text = "Updated English translation of the participant review content."
+            });
+        var deleteResponse = await Fixture.HttpClient.DeleteAsync($"{LocalizationsUrl}/{missingId}/{missingId}");
+
+        Assert.Equal(HttpStatusCode.NotFound, updateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, deleteResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateAndDeleteLocalization_ShouldRequireAuthorization()
+    {
+        using var anonymousClient = Fixture.Factory.CreateClient();
+
+        var updateResponse = await anonymousClient.PutAsJsonAsync(
+            $"{LocalizationsUrl}/1/1",
+            new UpdateFeedbackReviewLocalizationDto { AuthorName = "Name", Text = "Text" });
+        var deleteResponse = await anonymousClient.DeleteAsync($"{LocalizationsUrl}/1/1");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task CreateLocalization_ShouldRejectDuplicateEntityLanguagePair()
     {
         var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
@@ -142,6 +212,20 @@ public class FeedbackReviewLocalizationManagementTests : BaseTestClass
             });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private async Task CreateLocalizationAsync(long entityId, long languageId)
+    {
+        var response = await Fixture.HttpClient.PostAsJsonAsync(
+            LocalizationsUrl,
+            new CreateFeedbackReviewLocalizationDto
+            {
+                EntityId = entityId,
+                LanguageId = languageId,
+                AuthorName = "John Doe",
+                Text = "An English translation of the participant review content."
+            });
+        response.EnsureSuccessStatusCode();
     }
 
     private async Task<FeedbackReviewDto> CreateFeedbackReviewAsync()

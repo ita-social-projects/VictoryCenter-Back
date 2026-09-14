@@ -1,7 +1,10 @@
 using System.Linq.Expressions;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.VideoReviews.Create;
+using VictoryCenter.BLL.Commands.Admin.Localization.VideoReviews.Delete;
+using VictoryCenter.BLL.Commands.Admin.Localization.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
 using VictoryCenter.BLL.Queries.Admin.Localization.VideoReviews.GetByEntityId;
@@ -235,6 +238,189 @@ public class VideoReviewLocalizationHandlerTests
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.Include);
         Assert.NotNull(capturedOptions.OrderByASC);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldTrimTitleAndMarkTranslationRelevant()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Old title",
+            TranslationStatus = TranslationStatus.Outdated
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        _mapper
+            .Setup(mapper => mapper.Map<VideoReviewLocalizationDto>(localization))
+            .Returns(new VideoReviewLocalizationDto
+            {
+                EntityId = 1,
+                Title = "New title",
+                TranslationStatus = TranslationStatus.Relevant
+            });
+        var handler = new UpdateVideoReviewLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewLocalizationCommand(
+                1,
+                2,
+                new UpdateVideoReviewLocalizationDto { Title = "  New title  " }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("New title", localization.Title);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+        _wrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldShortCircuit_WhenNothingChanged()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Same title",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync(localization);
+        var handler = new UpdateVideoReviewLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewLocalizationCommand(
+                1,
+                2,
+                new UpdateVideoReviewLocalizationDto { Title = "Same title" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _wrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldReturnNotFound_WhenLocalizationDoesNotExist()
+    {
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync((VideoReviewLocalization?)null);
+        var handler = new UpdateVideoReviewLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewLocalizationCommand(
+                1,
+                2,
+                new UpdateVideoReviewLocalizationDto { Title = "Title" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(VideoReviewLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task UpdateLocalization_ShouldReturnNotFound_WhenLocalizationIsDeletedConcurrently()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Old title"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+        var handler = new UpdateVideoReviewLocalizationHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewLocalizationCommand(
+                1,
+                2,
+                new UpdateVideoReviewLocalizationDto { Title = "New title" }),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(VideoReviewLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldDeleteExistingLocalization()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Title"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        var handler = new DeleteVideoReviewLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewLocalizationCommand(1, 2), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, result.Value.EntityId);
+        Assert.Equal(2, result.Value.LanguageId);
+        _localizationRepository.Verify(repository => repository.Delete(localization), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldReturnNotFound_WhenLocalizationDoesNotExist()
+    {
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync((VideoReviewLocalization?)null);
+        var handler = new DeleteVideoReviewLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewLocalizationCommand(1, 2), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(VideoReviewLocalization)),
+            result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldReturnNotFound_WhenLocalizationIsDeletedConcurrently()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "Title"
+        };
+        _localizationRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<VideoReviewLocalization>>()))
+            .ReturnsAsync(localization);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new DbUpdateConcurrencyException());
+        var handler = new DeleteVideoReviewLocalizationHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewLocalizationCommand(1, 2), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound((1L, 2L), typeof(VideoReviewLocalization)),
+            result.Errors[0].Message);
     }
 
     private void SetupExistingVideoReview()

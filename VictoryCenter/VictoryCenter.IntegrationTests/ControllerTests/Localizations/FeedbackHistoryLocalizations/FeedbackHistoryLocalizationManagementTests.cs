@@ -56,6 +56,76 @@ public class FeedbackHistoryLocalizationManagementTests : BaseTestClass
     }
 
     [Fact]
+    public async Task UpdateLocalization_ShouldUpdateFieldsAndMarkTranslationRelevant()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackHistory = await CreateFeedbackHistoryAsync();
+        await CreateLocalizationAsync(feedbackHistory.Id, language.Id);
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{LocalizationsUrl}/{feedbackHistory.Id}/{language.Id}",
+            new UpdateFeedbackHistoryLocalizationDto
+            {
+                Title = "Updated English title",
+                Story = "Updated English translation of the recovery story."
+            });
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<FeedbackHistoryLocalizationDto>();
+        Assert.NotNull(updated);
+        Assert.Equal("Updated English title", updated.Title);
+        Assert.Equal(TranslationStatus.Relevant, updated.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task DeleteLocalization_ShouldDeleteLocalization()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackHistory = await CreateFeedbackHistoryAsync();
+        await CreateLocalizationAsync(feedbackHistory.Id, language.Id);
+
+        var deleteResponse = await Fixture.HttpClient.DeleteAsync(
+            $"{LocalizationsUrl}/{feedbackHistory.Id}/{language.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+
+        var getResponse = await Fixture.HttpClient.GetAsync($"{LocalizationsUrl}/entityId/{feedbackHistory.Id}");
+        var localizations = await getResponse.Content.ReadFromJsonAsync<List<FeedbackHistoryLocalizationDto>>();
+        Assert.Empty(localizations!);
+    }
+
+    [Fact]
+    public async Task UpdateAndDeleteLocalization_ShouldReturnNotFound_WhenLocalizationDoesNotExist()
+    {
+        const long missingId = long.MaxValue;
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{LocalizationsUrl}/{missingId}/{missingId}",
+            new UpdateFeedbackHistoryLocalizationDto
+            {
+                Title = "Updated English title",
+                Story = "Updated English translation of the recovery story."
+            });
+        var deleteResponse = await Fixture.HttpClient.DeleteAsync($"{LocalizationsUrl}/{missingId}/{missingId}");
+
+        Assert.Equal(HttpStatusCode.NotFound, updateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, deleteResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateAndDeleteLocalization_ShouldRequireAuthorization()
+    {
+        using var anonymousClient = Fixture.Factory.CreateClient();
+
+        var updateResponse = await anonymousClient.PutAsJsonAsync(
+            $"{LocalizationsUrl}/1/1",
+            new UpdateFeedbackHistoryLocalizationDto { Title = "Title", Story = "Story" });
+        var deleteResponse = await anonymousClient.DeleteAsync($"{LocalizationsUrl}/1/1");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task CreateLocalization_ShouldRejectDuplicateEntityLanguagePair()
     {
         var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
@@ -145,6 +215,20 @@ public class FeedbackHistoryLocalizationManagementTests : BaseTestClass
             });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private async Task CreateLocalizationAsync(long entityId, long languageId)
+    {
+        var response = await Fixture.HttpClient.PostAsJsonAsync(
+            LocalizationsUrl,
+            new CreateFeedbackHistoryLocalizationDto
+            {
+                EntityId = entityId,
+                LanguageId = languageId,
+                Title = "English recovery story title",
+                Story = "A detailed English translation of the recovery story content."
+            });
+        response.EnsureSuccessStatusCode();
     }
 
     private async Task<FeedbackHistoryDto> CreateFeedbackHistoryAsync()
