@@ -85,6 +85,25 @@ public class GetAllFeedbackHistoriesTests
     }
 
     [Fact]
+    public async Task Handle_ShouldQueryWithLocalizationsIncluded()
+    {
+        QueryOptions<FeedbackHistory>? capturedOptions = null;
+        _mockRepoWrapper.Setup(r => r.FeedbackHistoriesRepository.GetAllAsync(It.IsAny<QueryOptions<FeedbackHistory>>()))
+            .Callback<QueryOptions<FeedbackHistory>?>(options => capturedOptions = options)
+            .ReturnsAsync([]);
+
+        _mockMapper.Setup(m => m.Map<IEnumerable<FeedbackHistoryDto>>(It.IsAny<IEnumerable<FeedbackHistory>>()))
+            .Returns([]);
+
+        var handler = new GetAllFeedbackHistoriesHandler(_mockMapper.Object, _mockRepoWrapper.Object);
+
+        await handler.Handle(new GetAllFeedbackHistoriesQuery(), CancellationToken.None);
+
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Include);
+    }
+
+    [Fact]
     public async Task Handle_WhenNoEntitiesExist_ShouldReturnEmptyList()
     {
         _mockRepoWrapper.Setup(r => r.FeedbackHistoriesRepository.GetAllAsync(It.IsAny<QueryOptions<FeedbackHistory>>()))

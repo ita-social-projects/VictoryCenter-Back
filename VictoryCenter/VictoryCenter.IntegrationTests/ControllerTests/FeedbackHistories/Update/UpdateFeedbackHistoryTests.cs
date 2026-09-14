@@ -1,7 +1,10 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -118,6 +121,74 @@ public class UpdateFeedbackHistoryTests : BaseTestClass
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateFeedbackHistory_TitleOrStoryChanged_ShouldMarkExistingTranslationOutdated()
+    {
+        var existingEntity = await CreateTestFeedbackHistoryAsync();
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/FeedbackHistoryLocalizations",
+            new CreateFeedbackHistoryLocalizationDto
+            {
+                EntityId = existingEntity.Id,
+                LanguageId = language.Id,
+                Title = "English recovery story title",
+                Story = "A detailed English translation of the recovery story content."
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        var updateDto = new UpdateFeedbackHistoryDto
+        {
+            Title = "Updated Valid Title Here",
+            Story = "Updated story content that satisfies validation.",
+            ImageId = null,
+            Status = Status.Published
+        };
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync($"{BaseUrl}/{existingEntity.Id}", updateDto);
+        updateResponse.EnsureSuccessStatusCode();
+
+        var responseDto = await updateResponse.Content.ReadFromJsonAsync<FeedbackHistoryDto>();
+        Assert.NotNull(responseDto);
+        var localization = Assert.Single(responseDto.Localizations);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task UpdateFeedbackHistory_OnlyImageOrStatusChanged_ShouldNotMarkExistingTranslationOutdated()
+    {
+        var existingEntity = await CreateTestFeedbackHistoryAsync();
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/FeedbackHistoryLocalizations",
+            new CreateFeedbackHistoryLocalizationDto
+            {
+                EntityId = existingEntity.Id,
+                LanguageId = language.Id,
+                Title = "English recovery story title",
+                Story = "A detailed English translation of the recovery story content."
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        var updateDto = new UpdateFeedbackHistoryDto
+        {
+            Title = existingEntity.Title,
+            Story = existingEntity.Story,
+            ImageId = null,
+            Status = Status.Published
+        };
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync($"{BaseUrl}/{existingEntity.Id}", updateDto);
+        updateResponse.EnsureSuccessStatusCode();
+
+        var responseDto = await updateResponse.Content.ReadFromJsonAsync<FeedbackHistoryDto>();
+        Assert.NotNull(responseDto);
+        var localization = Assert.Single(responseDto.Localizations);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
     }
 
     private async Task<FeedbackHistory> CreateTestFeedbackHistoryAsync()

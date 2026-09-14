@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -27,7 +28,8 @@ public class GetAllFeedbackHistoriesHandler : IRequestHandler<GetAllFeedbackHist
         var entities = (await _repositoryWrapper.FeedbackHistoriesRepository.GetAllAsync(new QueryOptions<FeedbackHistory>
         {
             AsNoTracking = true,
-            OrderByASC = e => e.Priority
+            OrderByASC = e => e.Priority,
+            Include = e => e.Include(x => x.Localizations).ThenInclude(l => l.Language)
         })).ToList();
 
         var imageIds = entities

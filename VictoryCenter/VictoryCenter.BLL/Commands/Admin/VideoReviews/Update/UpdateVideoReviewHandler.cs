@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -29,6 +30,7 @@ public class UpdateVideoReviewHandler : IRequestHandler<UpdateVideoReviewCommand
             new QueryOptions<VideoReview>
             {
                 Filter = videoReview => videoReview.Id == request.Id,
+                Include = e => e.Include(x => x.Localizations).ThenInclude(l => l.Language),
                 AsNoTracking = false
             });
 
@@ -48,6 +50,14 @@ public class UpdateVideoReviewHandler : IRequestHandler<UpdateVideoReviewCommand
             entity.Status == normalizedDto.Status)
         {
             return Result.Ok(_mapper.Map<VideoReviewDto>(entity));
+        }
+
+        if (!string.Equals(entity.Title, normalizedDto.Title, StringComparison.Ordinal))
+        {
+            foreach (var loc in entity.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
 
         _mapper.Map(normalizedDto, entity);
