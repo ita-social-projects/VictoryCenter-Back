@@ -262,4 +262,14 @@ public static class ErrorMessagesConstants
     {
         return "Cannot cancel changes because no previous published version was found. Please save and publish the report first.";
     }
+
+    public static string SumMustNotBeNegative(string propertyName)
+    {
+        return $"The sum of {propertyName} must not be negative.";
+    }
+
+    public static string SumNotEqualTo(string propertyName, decimal value)
+    {
+        return $"The sum of {propertyName} must not be equal to {value}.";
+    }
 }

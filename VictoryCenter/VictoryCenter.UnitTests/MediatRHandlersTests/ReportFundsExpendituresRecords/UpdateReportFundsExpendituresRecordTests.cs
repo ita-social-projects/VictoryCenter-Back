@@ -361,8 +361,8 @@ public class UpdateReportFundsExpendituresRecordTests
                 (dto, record) =>
                 {
                     record.CategoryId = dto.CategoryId;
-                    record.AmountUah = dto.AmountUah;
-                    record.AmountUsd = dto.AmountUsd;
+                    record.AmountUah = dto.AmountUah!.Value;
+                    record.AmountUsd = dto.AmountUsd!.Value;
                 })
             .Returns((UpdateReportFundsExpendituresRecordDto _, ReportFundsExpendituresRecord record) => record);
 

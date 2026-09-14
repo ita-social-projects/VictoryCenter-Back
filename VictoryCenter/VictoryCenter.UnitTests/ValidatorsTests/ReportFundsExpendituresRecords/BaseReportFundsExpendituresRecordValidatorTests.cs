@@ -31,20 +31,19 @@ public class BaseReportFundsExpendituresRecordValidatorTests
                 nameof(ReportFundsExpendituresRecordDto.CategoryId)));
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-0.01)]
-    public void Validate_ShouldHaveError_WhenAmountUahIsNotPositive(decimal amountUah)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAmountUahIsNegative()
     {
         // Arrange
-        var dto = GetValidDto() with { AmountUah = amountUah };
+        var negativeAmountUah = -100m;
+        var dto = GetValidDto() with { AmountUah = negativeAmountUah };
 
         // Act
         var result = _validator.TestValidate(dto);
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.AmountUah)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(
                 nameof(ReportFundsExpendituresRecordDto.AmountUah)));
     }
 
@@ -64,20 +63,19 @@ public class BaseReportFundsExpendituresRecordValidatorTests
                 ReportFundsExpendituresRecordConstants.AmountFormat));
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-0.01)]
-    public void Validate_ShouldHaveError_WhenAmountUsdIsNotPositive(decimal amountUsd)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAmountUsdIsNegative()
     {
         // Arrange
-        var dto = GetValidDto() with { AmountUsd = amountUsd };
+        var negativeAmountUsd = -100m;
+        var dto = GetValidDto() with { AmountUsd = negativeAmountUsd };
 
         // Act
         var result = _validator.TestValidate(dto);
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.AmountUsd)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(
                 nameof(ReportFundsExpendituresRecordDto.AmountUsd)));
     }
 
@@ -108,6 +106,72 @@ public class BaseReportFundsExpendituresRecordValidatorTests
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAmountUahIsZero()
+    {
+        // Arrange
+        var zeroAmountUah = 0m;
+        var dto = GetValidDto() with { AmountUah = zeroAmountUah };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.AmountUah)
+            .WithErrorMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(ReportFundsExpendituresRecordDto.AmountUah),
+                ReportFundsExpendituresRecordConstants.ZeroAmount));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAmountUsdIsZero()
+    {
+        // Arrange
+        var zeroAmountUsd = 0m;
+        var dto = GetValidDto() with { AmountUsd = zeroAmountUsd };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.AmountUsd)
+            .WithErrorMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(ReportFundsExpendituresRecordDto.AmountUsd),
+                ReportFundsExpendituresRecordConstants.ZeroAmount));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAmountUahIsNull()
+    {
+        // Arrange
+        var nullAmountUah = (decimal?)null;
+        var dto = GetValidDto() with { AmountUah = nullAmountUah };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.AmountUah)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(ReportFundsExpendituresRecordDto.AmountUah)));
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveError_WhenAmountUsdIsNull()
+    {
+        // Arrange
+        var nullAmountUsd = (decimal?)null;
+        var dto = GetValidDto() with { AmountUsd = nullAmountUsd };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.AmountUsd)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(ReportFundsExpendituresRecordDto.AmountUsd)));
     }
 
     private static UpdateReportFundsExpendituresRecordDto GetValidDto() => new()
