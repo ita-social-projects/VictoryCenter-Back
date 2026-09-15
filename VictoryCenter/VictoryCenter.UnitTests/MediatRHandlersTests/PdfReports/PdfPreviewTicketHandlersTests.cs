@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
+using VictoryCenter.BLL.Interfaces.PdfReports;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
 
@@ -13,11 +14,13 @@ public class PdfPreviewTicketHandlersTests
 {
     private readonly IMemoryCache _cache;
     private readonly Mock<IMediator> _mediatorMock;
+    private readonly Mock<IPdfTicketStore> _ticketStoreMock;
 
     public PdfPreviewTicketHandlersTests()
     {
         _cache = new MemoryCache(new MemoryCacheOptions());
         _mediatorMock = new Mock<IMediator>();
+        _ticketStoreMock = new Mock<IPdfTicketStore>();
     }
 
     [Fact]
@@ -45,7 +48,6 @@ public class PdfPreviewTicketHandlersTests
         // Arrange
         var ticket = "test-ticket-123";
         var expectedPdfId = 42L;
-        _cache.Set($"PdfTicket_{ticket}", expectedPdfId);
 
         var expectedDto = new PdfReportFileDto
         {
@@ -53,11 +55,16 @@ public class PdfPreviewTicketHandlersTests
             FileStream = new MemoryStream()
         };
 
+        long outId = expectedPdfId;
+        _ticketStoreMock
+            .Setup(t => t.TryConsumeTicket(ticket, out outId))
+            .Returns(true);
+
         _mediatorMock
             .Setup(m => m.Send(It.Is<GetPdfReportPreviewByIdQuery>(q => q.Id == expectedPdfId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(expectedDto));
 
-        var handler = new ConsumePdfPreviewTicketHandler(_cache, _mediatorMock.Object);
+        var handler = new ConsumePdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
         var query = new ConsumePdfPreviewTicketQuery(ticket);
 
         // Act
@@ -67,16 +74,22 @@ public class PdfPreviewTicketHandlersTests
         Assert.True(result.IsSuccess);
         Assert.Equal("Test.pdf", result.Value.FileName);
 
-        var stillInCache = _cache.TryGetValue($"PdfTicket_{ticket}", out _);
-        Assert.False(stillInCache);
+        _ticketStoreMock.Verify(t => t.TryConsumeTicket(ticket, out outId), Times.Once);
     }
 
     [Fact]
     public async Task ConsumeTicket_ShouldFail_WhenTicketIsInvalid()
     {
         // Arrange
-        var handler = new ConsumePdfPreviewTicketHandler(_cache, _mediatorMock.Object);
-        var query = new ConsumePdfPreviewTicketQuery("invalid-ticket");
+        var ticket = "invalid-ticket";
+        long outId;
+
+        _ticketStoreMock
+            .Setup(t => t.TryConsumeTicket(ticket, out outId))
+            .Returns(false);
+
+        var handler = new ConsumePdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
+        var query = new ConsumePdfPreviewTicketQuery(ticket);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

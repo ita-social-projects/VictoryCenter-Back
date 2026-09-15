@@ -1,7 +1,8 @@
 using FluentResults;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
-using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
+
+namespace VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
 
 public class GeneratePdfPreviewTicketHandler : IRequestHandler<GeneratePdfPreviewTicketCommand, Result<string>>
 {
@@ -16,7 +17,7 @@ public class GeneratePdfPreviewTicketHandler : IRequestHandler<GeneratePdfPrevie
     {
         var ticketId = Guid.NewGuid().ToString();
 
-        _cache.Set($"PdfTicket_{ticketId}", request.Id, TimeSpan.FromSeconds(30));
+        _cache.Set($"PdfTicket_{ticketId}", request.Id, TimeSpan.FromSeconds(120));
 
         return Result.Ok(ticketId);
     }

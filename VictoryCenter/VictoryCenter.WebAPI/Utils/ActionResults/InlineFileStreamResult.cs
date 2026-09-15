@@ -20,7 +20,9 @@ public class InlineFileStreamResult : FileStreamResult
             FileNameStar = _fileName
         };
 
-        context.HttpContext.Response.Headers.Add(HeaderNames.ContentDisposition, contentDisposition.ToString());
+        context.HttpContext.Response.Headers.Append(HeaderNames.ContentDisposition, contentDisposition.ToString());
+
+        context.HttpContext.Response.Headers.Append(HeaderNames.CacheControl, "private, no-store");
 
         return base.ExecuteResultAsync(context);
     }
