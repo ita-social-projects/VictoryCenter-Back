@@ -4,6 +4,8 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -65,6 +67,45 @@ public class GetMainPageTests : BaseTestClass
         Assert.Equal(string.Empty, result.Title);
         Assert.Equal(string.Empty, result.Description);
         Assert.Empty(result.Localizations);
+    }
+
+    [Fact]
+    public async Task GetMainPage_ShouldReturnLanguageCodeForStatisticAndMetricLocalizations()
+    {
+        var english = await Fixture.DbContext.LocalizationLanguages.FirstAsync(l => l.Code == "en");
+
+        var mainPage = new EntityMainPage
+        {
+            Title = "Seed MainPage Title",
+            Description = "Seed MainPage Description",
+            ImpactStatistics = new ImpactStatistics
+            {
+                Title = "Зміни, які можна виміряти",
+                Localizations = [new ImpactStatisticsLocalization { LanguageId = english.Id, Title = "Changes you can measure" }],
+                Metrics =
+                [
+                    new Metric
+                    {
+                        Name = "Партнерів",
+                        Value = 20,
+                        Type = MetricType.Partners,
+                        Priority = 1,
+                        Localizations = [new MetricLocalization { LanguageId = english.Id, Name = "Partners" }],
+                    },
+                ],
+            },
+        };
+
+        await Fixture.DbContext.MainPages.AddAsync(mainPage);
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        var response = await Fixture.HttpClient.GetAsync(_endpointUri);
+        var result = JsonSerializer.Deserialize<MainPageDto>(await response.Content.ReadAsStringAsync(), JsonOptions);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("en", result!.ImpactStatistics!.Localizations.Single().LocalizationInfoDto.Code);
+        Assert.Equal("en", result.ImpactStatistics.Metrics.Single().Localizations.Single().LocalizationInfoDto.Code);
     }
 
     private async Task<EntityMainPage> EnsureMainPageExistsAsync()
