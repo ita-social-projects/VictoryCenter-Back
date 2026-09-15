@@ -20,6 +20,7 @@ public class LoginTests
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+    private readonly Mock<ILogger<LoginCommandHandler>> _mockLogger;
 
     public LoginTests()
     {
@@ -49,7 +50,14 @@ public class LoginTests
 
         _mockTokenService = new Mock<ITokenService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _commandHandler = new LoginCommandHandler(_mockTokenService.Object, _mockUserManager.Object, new LoginCommandValidator(), _mockHttpContextAccessor.Object, jwtOptions1);
+        _mockLogger = new Mock<ILogger<LoginCommandHandler>>();
+        _commandHandler = new LoginCommandHandler(
+            _mockTokenService.Object,
+            _mockUserManager.Object,
+            new LoginCommandValidator(),
+            _mockHttpContextAccessor.Object,
+            jwtOptions1,
+            _mockLogger.Object);
     }
 
     [Fact]
@@ -94,7 +102,7 @@ public class LoginTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Admin with given email was not found", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
     }
 
@@ -109,7 +117,7 @@ public class LoginTests
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Incorrect password", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
     }

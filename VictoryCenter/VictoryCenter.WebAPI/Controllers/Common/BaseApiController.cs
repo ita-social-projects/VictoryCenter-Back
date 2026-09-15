@@ -15,7 +15,7 @@ public class BaseApiController : ControllerBase
     protected IMediator Mediator => _mediator ??=
         HttpContext.RequestServices.GetService<IMediator>()!;
 
-    protected ActionResult HandleResult<T>(Result<T> result)
+    protected ActionResult HandleResult<T>(Result<T> result, string? unauthorizedDetail = null)
     {
         var problemsFactory = HttpContext.RequestServices
             .GetRequiredService<ProblemDetailsFactory>();
@@ -38,7 +38,8 @@ public class BaseApiController : ControllerBase
         {
             var unauthorizedDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,
-                statusCode: StatusCodes.Status401Unauthorized);
+                statusCode: StatusCodes.Status401Unauthorized,
+                detail: unauthorizedDetail);
             return Unauthorized(unauthorizedDetails);
         }
 
