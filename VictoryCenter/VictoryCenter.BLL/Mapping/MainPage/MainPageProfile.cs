@@ -102,7 +102,9 @@ public class MainPageProfile : Profile
             .ForMember(dest => dest.Priority, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore());
 
-        CreateMap<ImpactStatisticsLocalization, ImpactStatisticLocalizationDto>();
-        CreateMap<MetricLocalization, MetricLocalizationDto>();
+        CreateMap<ImpactStatisticsLocalization, ImpactStatisticLocalizationDto>()
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+        CreateMap<MetricLocalization, MetricLocalizationDto>()
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
     }
 }
