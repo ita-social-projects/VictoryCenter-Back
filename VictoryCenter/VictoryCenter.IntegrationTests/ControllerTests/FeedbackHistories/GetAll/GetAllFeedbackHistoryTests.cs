@@ -1,6 +1,9 @@
 using System.Net;
+using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -33,6 +36,45 @@ public class GetAllFeedbackHistoryTests : BaseTestClass
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
         Assert.Contains(responseContent, item => item.Title == "Title For GetAll Test");
+    }
+
+    [Fact]
+    public async Task GetAllFeedbackHistories_ShouldIncludeTranslationForRecordWithLocalization()
+    {
+        var entity = await CreateTestFeedbackHistoryAsync();
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/FeedbackHistoryLocalizations",
+            new CreateFeedbackHistoryLocalizationDto
+            {
+                EntityId = entity.Id,
+                LanguageId = language.Id,
+                Title = "English recovery story title",
+                Story = "A detailed English translation of the recovery story content."
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        var response = await Fixture.HttpClient.GetAsync($"{BaseUrl}/");
+        var responseContent = await response.Content.ReadFromJsonAsync<List<FeedbackHistoryDto>>();
+
+        var item = Assert.Single(responseContent!, x => x.Id == entity.Id);
+        var localization = Assert.Single(item.Localizations);
+        Assert.Equal(language.Id, localization.Language.Id);
+        Assert.Equal("en", localization.Language.Code);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task GetAllFeedbackHistories_ShouldReturnEmptyLocalizations_WhenRecordHasNoTranslation()
+    {
+        var entity = await CreateTestFeedbackHistoryAsync();
+
+        var response = await Fixture.HttpClient.GetAsync($"{BaseUrl}/");
+        var responseContent = await response.Content.ReadFromJsonAsync<List<FeedbackHistoryDto>>();
+
+        var item = Assert.Single(responseContent!, x => x.Id == entity.Id);
+        Assert.Empty(item.Localizations);
     }
 
     private async Task<FeedbackHistory> CreateTestFeedbackHistoryAsync()

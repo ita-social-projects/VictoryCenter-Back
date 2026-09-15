@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -67,6 +68,84 @@ public class VideoReviewManagementTests : BaseTestClass
         Assert.False(await Fixture.DbContext.VideoReviews
             .AsNoTracking()
             .AnyAsync(item => item.Id == created.Id));
+    }
+
+    [Fact]
+    public async Task VideoReviewManagement_ShouldIncludeTranslationForRecordWithLocalization()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var created = await CreateVideoReviewAsync($"Title{Guid.NewGuid():N}"[..12]);
+
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/VideoReviewLocalizations",
+            new CreateVideoReviewLocalizationDto
+            {
+                EntityId = created.Id,
+                LanguageId = language.Id,
+                Title = "English video review title"
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await Fixture.HttpClient.GetAsync("/api/VideoReviews");
+        var videoReviews = await getResponse.Content.ReadFromJsonAsync<List<VideoReviewDto>>();
+
+        var item = Assert.Single(videoReviews!, x => x.Id == created.Id);
+        var localization = Assert.Single(item.Localizations);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task VideoReviewManagement_TitleChanged_ShouldMarkExistingTranslationOutdated()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var created = await CreateVideoReviewAsync($"Title{Guid.NewGuid():N}"[..12]);
+
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/VideoReviewLocalizations",
+            new CreateVideoReviewLocalizationDto
+            {
+                EntityId = created.Id,
+                LanguageId = language.Id,
+                Title = "English video review title"
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"/api/VideoReviews/{created.Id}",
+            new UpdateVideoReviewDto { Title = "Updated title", Link = created.Link });
+        updateResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await Fixture.HttpClient.GetAsync($"/api/VideoReviewLocalizations/entityId/{created.Id}");
+        var localizations = await getResponse.Content.ReadFromJsonAsync<List<VideoReviewLocalizationDto>>();
+        var localization = Assert.Single(localizations!);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task VideoReviewManagement_OnlyLinkChanged_ShouldNotMarkExistingTranslationOutdated()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var created = await CreateVideoReviewAsync($"Title{Guid.NewGuid():N}"[..12]);
+
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/VideoReviewLocalizations",
+            new CreateVideoReviewLocalizationDto
+            {
+                EntityId = created.Id,
+                LanguageId = language.Id,
+                Title = "English video review title"
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"/api/VideoReviews/{created.Id}",
+            new UpdateVideoReviewDto { Title = created.Title, Link = "https://example.com/updated-link" });
+        updateResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await Fixture.HttpClient.GetAsync($"/api/VideoReviewLocalizations/entityId/{created.Id}");
+        var localizations = await getResponse.Content.ReadFromJsonAsync<List<VideoReviewLocalizationDto>>();
+        var localization = Assert.Single(localizations!);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
     }
 
     [Fact]

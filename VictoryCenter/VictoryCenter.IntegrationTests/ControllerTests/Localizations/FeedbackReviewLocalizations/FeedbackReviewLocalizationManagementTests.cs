@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackReviews;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -120,6 +121,67 @@ public class FeedbackReviewLocalizationManagementTests : BaseTestClass
 
         Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetFeedbackReviews_ShouldIncludeTranslationForRecordWithLocalization()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackReview = await CreateFeedbackReviewAsync();
+        await CreateLocalizationAsync(feedbackReview.Id, language.Id);
+
+        var response = await Fixture.HttpClient.GetAsync(FeedbackReviewsUrl);
+        var result = await response.Content.ReadFromJsonAsync<PaginationResult<FeedbackReviewDto>>();
+
+        var item = Assert.Single(result!.Items, x => x.Id == feedbackReview.Id);
+        var localization = Assert.Single(item.Localizations);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task UpdateFeedbackReview_AuthorNameOrTextChanged_ShouldMarkExistingTranslationOutdated()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackReview = await CreateFeedbackReviewAsync();
+        await CreateLocalizationAsync(feedbackReview.Id, language.Id);
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{FeedbackReviewsUrl}/{feedbackReview.Id}",
+            new UpdateFeedbackReviewDto
+            {
+                AuthorName = "Оновлений автор",
+                Text = "Оновлений текст відгуку учасника програми.",
+                Status = Status.Published
+            });
+        updateResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await Fixture.HttpClient.GetAsync($"{LocalizationsUrl}/entityId/{feedbackReview.Id}");
+        var localizations = await getResponse.Content.ReadFromJsonAsync<List<FeedbackReviewLocalizationDto>>();
+        var localization = Assert.Single(localizations!);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task UpdateFeedbackReview_OnlyStatusChanged_ShouldNotMarkExistingTranslationOutdated()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var feedbackReview = await CreateFeedbackReviewAsync();
+        await CreateLocalizationAsync(feedbackReview.Id, language.Id);
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{FeedbackReviewsUrl}/{feedbackReview.Id}",
+            new UpdateFeedbackReviewDto
+            {
+                AuthorName = feedbackReview.AuthorName,
+                Text = feedbackReview.Text,
+                Status = Status.Published
+            });
+        updateResponse.EnsureSuccessStatusCode();
+
+        var getResponse = await Fixture.HttpClient.GetAsync($"{LocalizationsUrl}/entityId/{feedbackReview.Id}");
+        var localizations = await getResponse.Content.ReadFromJsonAsync<List<FeedbackReviewLocalizationDto>>();
+        var localization = Assert.Single(localizations!);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
     }
 
     [Fact]

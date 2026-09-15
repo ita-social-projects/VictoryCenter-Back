@@ -74,6 +74,7 @@ public class GetFeedbackReviewsByFiltersTests
         Assert.NotNull(capturedOptions);
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
+        Assert.NotNull(capturedOptions.Include);
         Assert.Equal(0, capturedOptions.Offset);
         Assert.Equal(0, capturedOptions.Limit);
     }

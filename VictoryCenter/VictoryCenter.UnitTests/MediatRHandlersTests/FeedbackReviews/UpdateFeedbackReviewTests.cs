@@ -5,6 +5,7 @@ using VictoryCenter.BLL.Commands.Admin.FeedbackReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
@@ -132,6 +133,57 @@ public class UpdateFeedbackReviewTests
         Assert.Equal(
             ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FeedbackReview)),
             result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_AuthorNameOrTextChanged_ShouldMarkExistingLocalizationsOutdated()
+    {
+        var review = Review(10);
+        var localization = new FeedbackReviewLocalization
+        {
+            EntityId = 10,
+            LanguageId = 2,
+            AuthorName = "English author",
+            Text = "English text",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        review.Localizations.Add(localization);
+        SetupReview(review, saveChanges: 1);
+        var handler = CreateHandler();
+
+        var result = await handler.Handle(Command(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_OnlyStatusChanged_ShouldNotMarkLocalizationsOutdated()
+    {
+        var review = Review(10);
+        var localization = new FeedbackReviewLocalization
+        {
+            EntityId = 10,
+            LanguageId = 2,
+            AuthorName = "English author",
+            Text = "English text",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        review.Localizations.Add(localization);
+        SetupReview(review, saveChanges: 1);
+        var handler = CreateHandler();
+
+        var result = await handler.Handle(
+            Command(10, new UpdateFeedbackReviewDto
+            {
+                AuthorName = review.AuthorName,
+                Text = review.Text,
+                Status = Status.Published
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
     }
 
     private void SetupReview(FeedbackReview? review, int saveChanges = 1)

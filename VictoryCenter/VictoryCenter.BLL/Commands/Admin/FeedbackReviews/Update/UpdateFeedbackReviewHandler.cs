@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -29,6 +30,7 @@ public class UpdateFeedbackReviewHandler : IRequestHandler<UpdateFeedbackReviewC
             new QueryOptions<FeedbackReview>
             {
                 Filter = entity => entity.Id == request.Id,
+                Include = e => e.Include(x => x.Localizations).ThenInclude(l => l.Language),
                 AsNoTracking = false
             });
 
@@ -43,6 +45,15 @@ public class UpdateFeedbackReviewHandler : IRequestHandler<UpdateFeedbackReviewC
             AuthorName = request.FeedbackReview.AuthorName.Trim(),
             Text = request.FeedbackReview.Text.Trim()
         };
+
+        if (!string.Equals(feedbackReview.AuthorName, normalizedDto.AuthorName, StringComparison.Ordinal) ||
+            !string.Equals(feedbackReview.Text, normalizedDto.Text, StringComparison.Ordinal))
+        {
+            foreach (var loc in feedbackReview.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
+        }
 
         feedbackReview.AuthorName = normalizedDto.AuthorName;
         feedbackReview.Text = normalizedDto.Text;

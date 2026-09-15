@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -27,7 +28,8 @@ public class GetAllVideoReviewsHandler : IRequestHandler<GetAllVideoReviewsQuery
             new QueryOptions<VideoReview>
             {
                 OrderByASC = videoReview => videoReview.Priority,
-                AsNoTracking = true
+                AsNoTracking = true,
+                Include = q => q.Include(x => x.Localizations).ThenInclude(l => l.Language)
             });
 
         return Result.Ok(_mapper.Map<List<VideoReviewDto>>(videoReviews));
