@@ -41,7 +41,8 @@ public class CreateVideoReviewHandler : IRequestHandler<CreateVideoReviewCommand
 
         var entity = _mapper.Map<VideoReview>(normalizedDto);
         entity.CreatedAt = _timeProvider.GetUtcNow();
-        entity.Priority = await _reorderService.GetNextDisplayOrderAsync<VideoReview>();
+        entity.Priority = await _reorderService.GetNextDisplayOrderAsync<VideoReview>(
+            videoReview => !videoReview.IsArchived);
 
         await _repositoryWrapper.VideoReviewsRepository.CreateAsync(entity);
 

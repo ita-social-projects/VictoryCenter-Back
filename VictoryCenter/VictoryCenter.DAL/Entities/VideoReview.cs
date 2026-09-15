@@ -11,6 +11,10 @@ public class VideoReview : BaseEntity, IOrderableEntity, ITranslatedEntity<Video
 
     public string Link { get; set; } = null!;
 
+    public bool IsArchived { get; set; }
+
+    public DateTimeOffset? ArchivedAt { get; set; }
+
     public long Priority { get; set; }
 
     public Status Status { get; set; }
