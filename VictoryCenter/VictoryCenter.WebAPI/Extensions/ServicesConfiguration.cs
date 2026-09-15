@@ -22,6 +22,7 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.PdfReports;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
@@ -43,6 +44,7 @@ using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.BLL.Services.Partners;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.PdfReports;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
@@ -203,6 +205,8 @@ public static class ServicesConfiguration
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
 
         services.AddSignalR();
+        services.AddMemoryCache();
+        services.AddSingleton<IPdfTicketStore, MemoryCachePdfTicketStore>();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
