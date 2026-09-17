@@ -79,8 +79,10 @@ using VictoryCenter.DAL.Repositories.Realizations.Localization.History;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Realizations.EventNews;
 using VictoryCenter.DAL.Repositories.Realizations.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Realizations.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
@@ -171,6 +173,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IEventNewsRepository? _eventNewsRepository;
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
     private IEventNewsCategoryLocalizationsRepository? _eventNewsCategoryLocalizationsRepository;
+    private IEventsIntroSectionsRepository? _eventsIntroSectionsRepository;
     private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
     private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
     private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
@@ -392,6 +395,9 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository =>
         _eventNewsCategoryLocalizationsRepository ??=
             new EventNewsCategoryLocalizationsRepository(_victoryCenterDbContext);
+
+    public IEventsIntroSectionsRepository EventsIntroSectionsRepository =>
+        _eventsIntroSectionsRepository ??= new EventsIntroSectionsRepository(_victoryCenterDbContext);
 
     public IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository =>
         _publishedReportFundsExpendituresRecordsRepository ??=
