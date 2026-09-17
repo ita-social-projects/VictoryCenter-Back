@@ -58,7 +58,8 @@ public class SearchFeedbackHistoryTests
         var result = await handler.Handle(new SearchFeedbackHistoryQuery(new SearchFeedbackHistoryDto { SearchQuery = "" }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchFeedbackHistoryDto.SearchQuery)),
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyIsRequired(nameof(SearchFeedbackHistoryDto.SearchQuery)),
             result.Errors[0].Message);
     }
 }

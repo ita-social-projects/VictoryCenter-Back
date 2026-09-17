@@ -58,7 +58,8 @@ public class SearchFeedbackReviewTests
         var result = await handler.Handle(new SearchFeedbackReviewQuery(new SearchFeedbackReviewDto { SearchQuery = "" }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.PropertyIsRequired(nameof(SearchFeedbackReviewDto.SearchQuery)),
+        Assert.Contains(
+            ErrorMessagesConstants.PropertyIsRequired(nameof(SearchFeedbackReviewDto.SearchQuery)),
             result.Errors[0].Message);
     }
 }
