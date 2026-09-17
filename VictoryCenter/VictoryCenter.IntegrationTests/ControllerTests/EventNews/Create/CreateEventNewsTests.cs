@@ -45,6 +45,8 @@ public class CreateEventNewsTests : BaseTestClass
     {
         var createEventNewsDto = new CreateEventNewsDto
         {
+            Title = "Draft Event Title",
+            Description = "Draft Event Description",
             Status = Status.Draft,
             Localizations =
             [
@@ -77,6 +79,8 @@ public class CreateEventNewsTests : BaseTestClass
     {
         var createEventNewsDto = new CreateEventNewsDto
         {
+            Title = "Draft Event Title",
+            Description = "Draft Event Description",
             Status = Status.Draft,
             Localizations = [new CreateEventNewsLocalizationDto { LanguageId = 1 }]
         };
@@ -100,6 +104,8 @@ public class CreateEventNewsTests : BaseTestClass
     {
         var firstDto = new CreateEventNewsDto
         {
+            Title = "Duplicate Slug Review Test",
+            Description = "Duplicate Slug Review Test Description",
             Status = Status.Draft,
             Localizations =
             [
@@ -150,6 +156,8 @@ public class CreateEventNewsTests : BaseTestClass
     {
         var createEventNewsDto = new CreateEventNewsDto
         {
+            Title = "Private Draft Title",
+            Description = "Private Draft Description",
             Status = Status.Draft,
             Localizations =
             [
@@ -186,7 +194,7 @@ public class CreateEventNewsTests : BaseTestClass
     {
         return new CreateEventNewsDto
         {
-            Title = title,
+            Title = "valid event title",
             Description = "Valid event description",
             Status = Status.Published,
             PublishedAt = DateTimeOffset.UtcNow,
