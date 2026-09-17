@@ -3,7 +3,9 @@ using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Create;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Delete;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Update;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.FeedbackHistories.GetAll;
+using VictoryCenter.BLL.Queries.Admin.FeedbackHistories.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Reorder;
 
@@ -16,6 +18,13 @@ public class FeedbackHistoriesController : AuthorizedApiController
     public async Task<IActionResult> GetFeedbackHistories()
     {
         return HandleResult(await Mediator.Send(new GetAllFeedbackHistoriesQuery()));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(PaginationResult<FeedbackHistoryDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SearchFeedbackHistories([FromQuery] SearchFeedbackHistoryDto searchDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchFeedbackHistoryQuery(searchDto)));
     }
 
     [HttpPost]

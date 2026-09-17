@@ -6,6 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.GetById;
+using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
 using VictoryCenter.BLL.Commands.Admin.FeedbackReviews.Reorder;
 
@@ -20,6 +21,15 @@ public class FeedbackReviewsController : AuthorizedApiController
     public async Task<IActionResult> GetByFilters([FromQuery] FeedbackReviewsFilterDto filter)
     {
         return HandleResult(await Mediator.Send(new GetFeedbackReviewsByFiltersQuery(filter)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(PaginationResult<FeedbackReviewDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SearchFeedbackReviews([FromQuery] SearchFeedbackReviewDto searchDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchFeedbackReviewQuery(searchDto)));
     }
 
     [HttpGet("{id:long}")]
