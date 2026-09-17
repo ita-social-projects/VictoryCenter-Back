@@ -49,7 +49,11 @@ public class SearchFeedbackHistoryTests
     [Fact]
     public async Task Handle_InvalidQuery_ShouldReturnValidationError()
     {
-        var handler = new SearchFeedbackHistoryHandler(new Mock<IMapper>().Object, new Mock<IRepositoryWrapper>().Object, new SearchFeedbackHistoryValidator(), new Mock<ISearchService<FeedbackHistory>>().Object);
+        var handler = new SearchFeedbackHistoryHandler(
+            new Mock<IMapper>().Object,
+            new Mock<IRepositoryWrapper>().Object,
+            new SearchFeedbackHistoryValidator(),
+            new Mock<ISearchService<FeedbackHistory>>().Object);
 
         var result = await handler.Handle(new SearchFeedbackHistoryQuery(new SearchFeedbackHistoryDto { SearchQuery = "" }), CancellationToken.None);
 

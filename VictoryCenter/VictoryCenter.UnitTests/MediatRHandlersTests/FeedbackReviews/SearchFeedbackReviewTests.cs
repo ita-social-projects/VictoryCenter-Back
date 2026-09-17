@@ -49,7 +49,11 @@ public class SearchFeedbackReviewTests
     [Fact]
     public async Task Handle_InvalidQuery_ShouldReturnValidationError()
     {
-        var handler = new SearchFeedbackReviewHandler(new Mock<IMapper>().Object, new Mock<IRepositoryWrapper>().Object, new SearchFeedbackReviewValidator(), new Mock<ISearchService<FeedbackReview>>().Object);
+        var handler = new SearchFeedbackReviewHandler(
+            new Mock<IMapper>().Object,
+            new Mock<IRepositoryWrapper>().Object,
+            new SearchFeedbackReviewValidator(),
+            new Mock<ISearchService<FeedbackReview>>().Object);
 
         var result = await handler.Handle(new SearchFeedbackReviewQuery(new SearchFeedbackReviewDto { SearchQuery = "" }), CancellationToken.None);
 
