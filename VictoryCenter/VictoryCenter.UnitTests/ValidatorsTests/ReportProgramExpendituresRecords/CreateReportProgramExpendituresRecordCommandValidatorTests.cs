@@ -86,10 +86,11 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenAmountUahIsNotPositive()
+    public void Validate_ShouldHaveError_WhenAmountUahIsNegative()
     {
         // Arrange
-        var dto = GetValidDto() with { AmountUah = 0 };
+        var negativeAmount = -1.0m;
+        var dto = GetValidDto() with { AmountUah = negativeAmount };
         var command = new CreateReportProgramExpendituresRecordCommand(dto);
 
         // Act
@@ -97,7 +98,7 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.CreateReportProgramExpendituresRecordDto.AmountUah)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(
                 nameof(ReportProgramExpendituresRecordDto.AmountUah)));
     }
 
@@ -119,10 +120,11 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenAmountUsdIsNotPositive()
+    public void Validate_ShouldHaveError_WhenAmountUsdIsNegative()
     {
         // Arrange
-        var dto = GetValidDto() with { AmountUsd = 0 };
+        var negativeAmount = -1.00m;
+        var dto = GetValidDto() with { AmountUsd = negativeAmount };
         var command = new CreateReportProgramExpendituresRecordCommand(dto);
 
         // Act
@@ -130,7 +132,7 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.CreateReportProgramExpendituresRecordDto.AmountUsd)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(
                 nameof(ReportProgramExpendituresRecordDto.AmountUsd)));
     }
 
@@ -162,6 +164,42 @@ public class CreateReportProgramExpendituresRecordCommandValidatorTests
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHoveError_WhenAmountUahIsZero()
+    {
+        // Arrange
+        var zeroAmount = 0m;
+        var dto = GetValidDto() with { AmountUah = zeroAmount };
+        var command = new CreateReportProgramExpendituresRecordCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.CreateReportProgramExpendituresRecordDto.AmountUah)
+            .WithErrorMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(ReportProgramExpendituresRecordDto.AmountUah),
+                zeroAmount));
+    }
+
+    [Fact]
+    public void Validate_ShouldHoveError_WhenAmountUsdIsZero()
+    {
+        // Arrange
+        var zeroAmount = 0m;
+        var dto = GetValidDto() with { AmountUsd = zeroAmount };
+        var command = new CreateReportProgramExpendituresRecordCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.CreateReportProgramExpendituresRecordDto.AmountUsd)
+            .WithErrorMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(ReportProgramExpendituresRecordDto.AmountUsd),
+                zeroAmount));
     }
 
     private static CreateReportProgramExpendituresRecordDto GetValidDto()

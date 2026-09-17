@@ -5,7 +5,7 @@ public static class ReportProgramExpendituresRecordConstants
     public static readonly int ReportingYearMinValue = 2010;
     public static readonly int ReportingYearMaxValue = 2050;
 
-    public static readonly decimal AmountMinValue = 0m;
+    public static readonly decimal ZeroAmount = 0m;
 
     public static readonly int AmountDigitsBeforeDecimalPoint = 9;
     public static readonly int AmountDigitsAfterDecimalPoint = 2;
