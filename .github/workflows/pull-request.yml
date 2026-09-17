@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
      - name: Check out the repo
-       uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
      - name: "Run docker build and doker push"
        run:  echo "Tag for image ${GITHUB_REF##*/}.${RUN_NUM}"    
      - name: Log in to Docker Hub
@@ -79,7 +79,7 @@ jobs:
         echo "DOCKER_TAG_FRONTEND=${{ steps.frontend_tag.outputs.frontend_tag }}"
         echo "DOCKER_TAG_BACKEND=${{ steps.backend_tag.outputs.backend_tag }}"
     - name: Checkout
-      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
@@ -140,7 +140,7 @@ jobs:
    runs-on: self-hosted
    steps:
     - name: Checkout
-      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
     - name: Stop all containers
