@@ -186,6 +186,8 @@ public class CreateEventNewsTests : BaseTestClass
     {
         return new CreateEventNewsDto
         {
+            Title = title,
+            Description = "Valid event description",
             Status = Status.Published,
             PublishedAt = DateTimeOffset.UtcNow,
             PreviewImageId = 1,
