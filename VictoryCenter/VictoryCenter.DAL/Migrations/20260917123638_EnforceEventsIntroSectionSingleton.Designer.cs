@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260917110923_EnforceEventsIntroSectionSingleton")]
+    [Migration("20260917123638_EnforceEventsIntroSectionSingleton")]
     partial class EnforceEventsIntroSectionSingleton
     {
         /// <inheritdoc />
@@ -679,7 +679,10 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("SingletonKey")
                         .IsUnique();
 
-                    b.ToTable("EventsIntroSections");
+                    b.ToTable("EventsIntroSections", t =>
+                        {
+                            t.HasCheckConstraint("CK_EventsIntroSections_SingletonKey", "[SingletonKey] = 1");
+                        });
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>

@@ -676,7 +676,10 @@ namespace VictoryCenter.DAL.Migrations
                     b.HasIndex("SingletonKey")
                         .IsUnique();
 
-                    b.ToTable("EventsIntroSections");
+                    b.ToTable("EventsIntroSections", t =>
+                        {
+                            t.HasCheckConstraint("CK_EventsIntroSections_SingletonKey", "[SingletonKey] = 1");
+                        });
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>

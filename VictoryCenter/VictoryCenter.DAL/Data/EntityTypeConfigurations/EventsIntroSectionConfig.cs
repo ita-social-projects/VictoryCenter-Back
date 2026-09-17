@@ -27,5 +27,9 @@ internal class EventsIntroSectionConfig : IEntityTypeConfiguration<EventsIntroSe
 
         entity.HasIndex("SingletonKey")
             .IsUnique();
+
+        entity.ToTable(table => table.HasCheckConstraint(
+            "CK_EventsIntroSections_SingletonKey",
+            "[SingletonKey] = 1"));
     }
 }

@@ -22,6 +22,11 @@ namespace VictoryCenter.DAL.Migrations
                 table: "EventsIntroSections",
                 column: "SingletonKey",
                 unique: true);
+
+            migrationBuilder.AddCheckConstraint(
+                name: "CK_EventsIntroSections_SingletonKey",
+                table: "EventsIntroSections",
+                sql: "[SingletonKey] = 1");
         }
 
         /// <inheritdoc />
@@ -29,6 +34,10 @@ namespace VictoryCenter.DAL.Migrations
         {
             migrationBuilder.DropIndex(
                 name: "IX_EventsIntroSections_SingletonKey",
+                table: "EventsIntroSections");
+
+            migrationBuilder.DropCheckConstraint(
+                name: "CK_EventsIntroSections_SingletonKey",
                 table: "EventsIntroSections");
 
             migrationBuilder.DropColumn(

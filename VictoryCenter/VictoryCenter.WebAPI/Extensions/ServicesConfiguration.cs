@@ -279,7 +279,7 @@ public static class ServicesConfiguration
         await app.CreateInitialPdfSection();
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialHippotherapyLandingPage();
-        await app.CreateInitialEventsIntroSection();
+        await app.CreateInitialEventsIntroSectionAsync();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
         await app.CreateInitialMainPageAsync();
@@ -311,10 +311,11 @@ public static class ServicesConfiguration
         await dbContext.SaveChangesAsync();
     }
 
-    private static async Task CreateInitialEventsIntroSection(this WebApplication app)
+    private static async Task CreateInitialEventsIntroSectionAsync(this WebApplication app)
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
 
         if (await dbContext.EventsIntroSections.AnyAsync())
         {
@@ -324,8 +325,10 @@ public static class ServicesConfiguration
         dbContext.EventsIntroSections.Add(new EventsIntroSection
         {
             EventsBlockTitle = "<p>Що відбувалось</p>",
-            PageDescription = "<p>Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків дітей у стайні до глибоких переживань ветеранів у сідлі.</p>",
-            CreatedAt = DateTimeOffset.UtcNow,
+            PageDescription = "<p>Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. "
+                              + "Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків "
+                              + "дітей у стайні до глибоких переживань ветеранів у сідлі.</p>",
+            CreatedAt = timeProvider.GetUtcNow(),
         });
 
         try

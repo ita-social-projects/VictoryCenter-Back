@@ -88,6 +88,30 @@ public class EventsPageControllerTests : BaseTestClass
     }
 
     [Fact]
+    public async Task Put_WithInvalidContent_ReturnsBadRequest()
+    {
+        // Act
+        var blankTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p> </p>" });
+        var longTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"<p>{new string('a', 101)}</p>" });
+        var blankDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = "<p> </p>" });
+        var longDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = $"<p>{new string('a', 1001)}</p>" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, blankTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, longTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, blankDescriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, longDescriptionResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task Requests_WhenSingletonIsMissing_ReturnNotFound()
     {
         // Arrange
