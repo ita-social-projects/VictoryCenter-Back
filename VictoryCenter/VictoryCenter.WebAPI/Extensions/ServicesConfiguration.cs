@@ -323,11 +323,22 @@ public static class ServicesConfiguration
 
         dbContext.EventsIntroSections.Add(new EventsIntroSection
         {
-            EventsBlockTitle = "Що відбувалось",
-            PageDescription = "Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків дітей у стайні до глибоких переживань ветеранів у сідлі.",
+            EventsBlockTitle = "<p>Що відбувалось</p>",
+            PageDescription = "<p>Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків дітей у стайні до глибоких переживань ветеранів у сідлі.</p>",
             CreatedAt = DateTimeOffset.UtcNow,
         });
-        await dbContext.SaveChangesAsync();
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            if (!await dbContext.EventsIntroSections.AnyAsync())
+            {
+                throw;
+            }
+        }
     }
 
     private static async Task CreateInitialAdminAsync(this WebApplication app)

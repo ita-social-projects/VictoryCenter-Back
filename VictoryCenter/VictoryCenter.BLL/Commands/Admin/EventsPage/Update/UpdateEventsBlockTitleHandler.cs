@@ -30,7 +30,6 @@ public class UpdateEventsBlockTitleHandler : IRequestHandler<UpdateEventsBlockTi
         }
 
         entity.EventsBlockTitle = request.Dto.EventsBlockTitle;
-        _repositoryWrapper.EventsIntroSectionsRepository.Update(entity);
         await _repositoryWrapper.SaveChangesAsync();
 
         return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));

@@ -30,7 +30,6 @@ public class UpdateEventsPageDescriptionHandler : IRequestHandler<UpdateEventsPa
         }
 
         entity.PageDescription = request.Dto.PageDescription;
-        _repositoryWrapper.EventsIntroSectionsRepository.Update(entity);
         await _repositoryWrapper.SaveChangesAsync();
 
         return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));

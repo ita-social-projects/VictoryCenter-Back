@@ -112,7 +112,7 @@ public class EventsIntroSectionHandlersTests
 
     private void VerifyTrackedUpdate(EventsIntroSection entity)
     {
-        _repositoryMock.Verify(repository => repository.Update(entity), Times.Once);
+        _repositoryMock.Verify(repository => repository.Update(entity), Times.Never);
         _repositoryWrapperMock.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
         _repositoryMock.Verify(
             repository => repository.GetFirstOrDefaultAsync(It.Is<QueryOptions<EventsIntroSection>>(options => !options.AsNoTracking)),

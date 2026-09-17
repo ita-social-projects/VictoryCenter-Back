@@ -21,5 +21,11 @@ internal class EventsIntroSectionConfig : IEntityTypeConfiguration<EventsIntroSe
 
         entity.Property(e => e.PageDescription)
             .IsRequired();
+
+        entity.Property<int>("SingletonKey")
+            .HasDefaultValue(1);
+
+        entity.HasIndex("SingletonKey")
+            .IsUnique();
     }
 }
