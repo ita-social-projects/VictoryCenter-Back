@@ -279,6 +279,7 @@ public static class ServicesConfiguration
         await app.CreateInitialPdfSection();
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialHippotherapyLandingPage();
+        await app.CreateInitialEventsIntroSection();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
         await app.CreateInitialMainPageAsync();
@@ -307,6 +308,25 @@ public static class ServicesConfiguration
         }
 
         dbContext.VisitorPages.AddRange(toAdd);
+        await dbContext.SaveChangesAsync();
+    }
+
+    private static async Task CreateInitialEventsIntroSection(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+
+        if (await dbContext.EventsIntroSections.AnyAsync())
+        {
+            return;
+        }
+
+        dbContext.EventsIntroSections.Add(new EventsIntroSection
+        {
+            EventsBlockTitle = "Що відбувалось",
+            PageDescription = "Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків дітей у стайні до глибоких переживань ветеранів у сідлі.",
+            CreatedAt = DateTimeOffset.UtcNow,
+        });
         await dbContext.SaveChangesAsync();
     }
 
