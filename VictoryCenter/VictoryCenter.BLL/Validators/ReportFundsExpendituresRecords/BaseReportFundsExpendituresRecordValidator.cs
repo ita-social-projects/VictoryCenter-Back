@@ -12,42 +12,28 @@ public class BaseReportFundsExpendituresRecordValidator : AbstractValidator<Base
             .GreaterThan(ReportFundsExpendituresCategoryConstants.ZeroCategoryId)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReportFundsExpendituresRecordDto.CategoryId)));
 
-        RuleFor(dto => dto.AmountUah)
+        RuleFor(dto => dto.Amount)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
-                nameof(ReportFundsExpendituresRecordDto.AmountUah)))
+                nameof(BaseReportFundsExpendituresRecordDto.Amount)))
             .GreaterThanOrEqualTo(ReportFundsExpendituresRecordConstants.ZeroAmount)
             .WithMessage(ErrorMessagesConstants.SumMustNotBeNegative(
-                nameof(ReportFundsExpendituresRecordDto.AmountUah)))
+                nameof(BaseReportFundsExpendituresRecordDto.Amount)))
             .NotEqual(ReportFundsExpendituresRecordConstants.ZeroAmount)
             .WithMessage(ErrorMessagesConstants.SumNotEqualTo(
-                nameof(ReportFundsExpendituresRecordDto.AmountUah),
+                nameof(BaseReportFundsExpendituresRecordDto.Amount),
                 ReportFundsExpendituresRecordConstants.ZeroAmount))
             .PrecisionScale(
                 ReportFundsExpendituresRecordConstants.AmountPrecision,
                 ReportFundsExpendituresRecordConstants.AmountScale,
                 true)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
-                nameof(ReportFundsExpendituresRecordDto.AmountUah),
+                nameof(BaseReportFundsExpendituresRecordDto.Amount),
                 ReportFundsExpendituresRecordConstants.AmountFormat));
 
-        RuleFor(dto => dto.AmountUsd)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
-                nameof(ReportFundsExpendituresRecordDto.AmountUsd)))
-            .GreaterThanOrEqualTo(ReportFundsExpendituresRecordConstants.ZeroAmount)
-            .WithMessage(ErrorMessagesConstants.SumMustNotBeNegative(
-                nameof(ReportFundsExpendituresRecordDto.AmountUsd)))
-            .NotEqual(ReportFundsExpendituresRecordConstants.ZeroAmount)
-            .WithMessage(ErrorMessagesConstants.SumNotEqualTo(
-                nameof(ReportFundsExpendituresRecordDto.AmountUsd),
-                ReportFundsExpendituresRecordConstants.ZeroAmount))
-            .PrecisionScale(
-                ReportFundsExpendituresRecordConstants.AmountPrecision,
-                ReportFundsExpendituresRecordConstants.AmountScale,
-                true)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
-                nameof(ReportFundsExpendituresRecordDto.AmountUsd),
-                ReportFundsExpendituresRecordConstants.AmountFormat));
+        RuleFor(dto => dto.Currency)
+            .IsInEnum()
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum(
+                nameof(BaseReportFundsExpendituresRecordDto.Currency)));
     }
 }

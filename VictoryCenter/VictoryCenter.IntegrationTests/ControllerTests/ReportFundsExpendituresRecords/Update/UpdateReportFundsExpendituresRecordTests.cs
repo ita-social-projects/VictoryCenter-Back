@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
@@ -43,8 +44,8 @@ public class UpdateReportFundsExpendituresRecordTests : BaseTestClass
         var updateDto = new UpdateReportFundsExpendituresRecordDto
         {
             CategoryId = category.Id,
-            AmountUah = 900m,
-            AmountUsd = 22m
+            Amount = 900m,
+            Currency = ReportFundsExpendituresCurrency.Uah
         };
         var serializedDto = JsonConvert.SerializeObject(updateDto);
 
@@ -52,6 +53,58 @@ public class UpdateReportFundsExpendituresRecordTests : BaseTestClass
             $"/api/ReportFundsExpendituresRecords/{record.Id}",
             new StringContent(serializedDto, Encoding.UTF8, "application/json"));
         response.EnsureSuccessStatusCode();
+
+        var settings = await Fixture.DbContext.ReportFundsExpendituresSettings.SingleAsync();
+        var updatedRecord = JsonConvert.DeserializeObject<ReportFundsExpendituresRecordDto>(
+            await response.Content.ReadAsStringAsync())!;
+
+        Assert.Equal(updateDto.Amount, updatedRecord.AmountUah);
+        Assert.Equal(updateDto.Amount / settings.ExchangeRate, updatedRecord.AmountUsd);
+    }
+
+    [Fact]
+    public async Task Update_ShouldRecalculateAmountUah_WhenAmountIsChangedInUsd()
+    {
+        var category = new ReportFundsExpendituresCategory
+        {
+            Name = "Income category",
+            Type = ReportFundsExpendituresType.Income,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.ReportFundsExpendituresCategories.AddAsync(category);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var record = new ReportFundsExpendituresRecord
+        {
+            CategoryId = category.Id,
+            Type = ReportFundsExpendituresType.Income,
+            ReportingYear = 2025,
+            AmountUah = 200m,
+            AmountUsd = 5m,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        await Fixture.DbContext.ReportFundsExpendituresRecords.AddAsync(record);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        var updateDto = new UpdateReportFundsExpendituresRecordDto
+        {
+            CategoryId = category.Id,
+            Amount = 22m,
+            Currency = ReportFundsExpendituresCurrency.Usd
+        };
+        var serializedDto = JsonConvert.SerializeObject(updateDto);
+
+        HttpResponseMessage response = await Fixture.HttpClient.PutAsync(
+            $"/api/ReportFundsExpendituresRecords/{record.Id}",
+            new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        response.EnsureSuccessStatusCode();
+
+        var settings = await Fixture.DbContext.ReportFundsExpendituresSettings.SingleAsync();
+        var updatedRecord = JsonConvert.DeserializeObject<ReportFundsExpendituresRecordDto>(
+            await response.Content.ReadAsStringAsync())!;
+
+        Assert.Equal(updateDto.Amount, updatedRecord.AmountUsd);
+        Assert.Equal(updateDto.Amount * settings.ExchangeRate, updatedRecord.AmountUah);
     }
 
     [Fact]
@@ -98,8 +151,8 @@ public class UpdateReportFundsExpendituresRecordTests : BaseTestClass
         var updateDto = new UpdateReportFundsExpendituresRecordDto
         {
             CategoryId = secondCategory.Id,
-            AmountUah = 800m,
-            AmountUsd = 20m
+            Amount = 800m,
+            Currency = ReportFundsExpendituresCurrency.Uah
         };
         var serializedDto = JsonConvert.SerializeObject(updateDto);
 
