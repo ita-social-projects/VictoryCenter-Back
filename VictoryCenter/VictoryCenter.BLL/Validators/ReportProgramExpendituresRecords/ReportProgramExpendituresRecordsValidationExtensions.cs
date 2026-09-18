@@ -10,9 +10,10 @@ public static class ReportProgramExpendituresRecordsValidationExtensions
         string property)
     {
         return ruleBuilder
-            .GreaterThan(ReportProgramExpendituresRecordConstants.AmountMinValue)
-            .WithMessage(
-                ErrorMessagesConstants.PropertyMustBePositive(property))
+            .GreaterThanOrEqualTo(ReportProgramExpendituresRecordConstants.ZeroAmount)
+            .WithMessage(ErrorMessagesConstants.SumMustNotBeNegative(property))
+            .NotEqual(ReportProgramExpendituresRecordConstants.ZeroAmount)
+            .WithMessage(ErrorMessagesConstants.SumNotEqualTo(property, ReportProgramExpendituresRecordConstants.ZeroAmount))
             .PrecisionScale(
                 ReportProgramExpendituresRecordConstants.AmountPrecision,
                 ReportProgramExpendituresRecordConstants.AmountScale,
