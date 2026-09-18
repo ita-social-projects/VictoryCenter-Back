@@ -1,5 +1,4 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
