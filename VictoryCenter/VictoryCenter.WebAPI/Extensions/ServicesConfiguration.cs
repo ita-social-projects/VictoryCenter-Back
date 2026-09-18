@@ -37,6 +37,7 @@ using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
 using VictoryCenter.BLL.Services.Email;
+using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Services.Localization;
@@ -135,6 +136,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+        services.AddScoped<IRaisedFundsMetricSyncService, RaisedFundsMetricSyncService>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
         services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
