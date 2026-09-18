@@ -2,19 +2,20 @@ using AutoMapper;
 using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
 
 namespace VictoryCenter.BLL.Helpers;
 
-public class UpdateReportFundsExpendituresRecordHelper : IUpdateReportFundsExpendituresRecordHelper
+public class ReportFundsExpendituresRecordHelper : IReportFundsExpendituresRecordHelper
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
 
-    public UpdateReportFundsExpendituresRecordHelper(IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public ReportFundsExpendituresRecordHelper(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
@@ -75,5 +76,12 @@ public class UpdateReportFundsExpendituresRecordHelper : IUpdateReportFundsExpen
         }
 
         return Result.Ok();
+    }
+
+    public (decimal AmountUah, decimal AmountUsd) CalculateAmounts(decimal amount, ReportFundsExpendituresCurrency currency, decimal exchangeRate)
+    {
+        return currency == ReportFundsExpendituresCurrency.Usd
+            ? (AmountUah: amount * exchangeRate, AmountUsd: amount)
+            : (AmountUah: amount, AmountUsd: amount / exchangeRate);
     }
 }

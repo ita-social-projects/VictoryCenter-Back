@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -19,17 +20,20 @@ public class CreateReportFundsExpendituresRecordHandler
     private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<CreateReportFundsExpendituresRecordCommand> _validator;
+    private readonly IReportFundsExpendituresRecordHelper _helper;
 
     public CreateReportFundsExpendituresRecordHandler(
         IMapper mapper,
         IMediator mediator,
         IRepositoryWrapper repositoryWrapper,
-        IValidator<CreateReportFundsExpendituresRecordCommand> validator)
+        IValidator<CreateReportFundsExpendituresRecordCommand> validator,
+        IReportFundsExpendituresRecordHelper helper)
     {
         _mapper = mapper;
         _mediator = mediator;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _helper = helper;
     }
 
     public async Task<Result<ReportFundsExpendituresRecordDto>> Handle(
@@ -37,6 +41,12 @@ public class CreateReportFundsExpendituresRecordHandler
     {
         try
         {
+            var settingsResult = await _helper.GetAndValidateSettingsAsync();
+            if (settingsResult.IsFailed)
+            {
+                return Result.Fail<ReportFundsExpendituresRecordDto>(settingsResult.Errors);
+            }
+
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var category = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
@@ -73,6 +83,13 @@ public class CreateReportFundsExpendituresRecordHandler
 
             var entity = _mapper.Map<ReportFundsExpendituresRecord>(request.CreateReportFundsExpendituresRecordDto);
             entity.CreatedAt = DateTimeOffset.UtcNow;
+
+            var (amountUah, amountUsd) = _helper.CalculateAmounts(
+                request.CreateReportFundsExpendituresRecordDto.Amount!.Value,
+                request.CreateReportFundsExpendituresRecordDto.Currency,
+                settingsResult.Value.ExchangeRate);
+            entity.AmountUah = amountUah;
+            entity.AmountUsd = amountUsd;
 
             await _repositoryWrapper.ReportFundsExpendituresRecordsRepository.CreateAsync(entity);
 
