@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities;
@@ -30,7 +31,8 @@ public class GetFeedbackReviewsByFiltersHandler
             Offset = request.Filter.Offset ?? 0,
             Limit = request.Filter.Limit ?? 0,
             OrderByASC = review => review.Priority,
-            AsNoTracking = true
+            AsNoTracking = true,
+            Include = q => q.Include(review => review.Localizations).ThenInclude(l => l.Language)
         };
 
         var reviews = await _repositoryWrapper.FeedbackReviewsRepository.GetAllAsync(queryOptions);
