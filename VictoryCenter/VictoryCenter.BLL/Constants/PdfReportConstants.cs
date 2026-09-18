@@ -30,4 +30,6 @@ public static class PdfReportConstants
     public static readonly string NameMinLengthErrorMessage = "Не менше 2 символів";
     public static readonly string NameMaxLengthErrorMessage = "Не більше 50 символів";
     public static readonly string NameRequiredErrorMessage = "Поле обов'язкове";
+
+    public static readonly string InvalidOrExpiredPreviewTicket = "Invalid or expired preview ticket.";
 }
