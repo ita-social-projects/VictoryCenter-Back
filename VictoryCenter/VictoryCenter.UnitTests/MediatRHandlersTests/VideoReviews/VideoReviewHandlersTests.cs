@@ -8,12 +8,14 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -26,12 +28,17 @@ public class VideoReviewHandlersTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _wrapper = new();
     private readonly Mock<IVideoReviewsRepository> _repository = new();
+    private readonly Mock<ILocalizationLanguagesRepository> _languageRepository = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly Mock<IReorderService> _reorderService = new();
 
     public VideoReviewHandlersTests()
     {
         _wrapper.SetupGet(item => item.VideoReviewsRepository).Returns(_repository.Object);
+        _wrapper.SetupGet(item => item.LocalizationLanguagesRepository).Returns(_languageRepository.Object);
+        _languageRepository
+            .Setup(repository => repository.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
         _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
         _wrapper.Setup(wrapper => wrapper.BeginTransaction())
             .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
@@ -504,6 +511,32 @@ public class VideoReviewHandlersTests
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
         Assert.NotNull(capturedOptions.Include);
+        Assert.NotNull(capturedOptions.Filter);
+    }
+
+    [Fact]
+    public async Task GetAll_ShouldApplyTranslationStatusFilter_WhenProvided()
+    {
+        QueryOptions<VideoReview>? capturedOptions = null;
+        _repository
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .Callback<QueryOptions<VideoReview>?>(options => capturedOptions = options)
+            .ReturnsAsync([]);
+        _mapper
+            .Setup(mapper => mapper.Map<List<VideoReviewDto>>(It.IsAny<IEnumerable<VideoReview>>()))
+            .Returns([]);
+        var handler = new GetAllVideoReviewsHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new GetAllVideoReviewsQuery(TranslationStatusFilter.Missing),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Filter);
+        _languageRepository.Verify(
+            repository => repository.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()),
+            Times.Once);
     }
 
     private static CreateVideoReviewDto CreateDto() => new()
