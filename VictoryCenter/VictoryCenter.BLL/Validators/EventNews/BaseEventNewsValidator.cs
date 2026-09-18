@@ -20,6 +20,32 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
                 EventNewsConstants.ResourceMaxLength))
             .When(dto => !string.IsNullOrWhiteSpace(dto.Resource));
 
+        RuleFor(dto => dto.Title)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateEventNewsDto.Title)))
+            .MinimumLength(EventNewsConstants.TitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Title), EventNewsConstants.TitleMinLength))
+            .MaximumLength(EventNewsConstants.TitleMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Title), EventNewsConstants.TitleMaxLength))
+            .When(dto => dto.Status == Status.Published);
+
+        RuleFor(dto => dto.Description)
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(CreateEventNewsDto.Description)))
+            .MinimumLength(EventNewsConstants.DescriptionMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Description),
+                EventNewsConstants.DescriptionMinLength))
+            .MaximumLength(EventNewsConstants.DescriptionMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Description),
+                EventNewsConstants.DescriptionMaxLength))
+            .When(dto => dto.Status == Status.Published);
+
         RuleFor(dto => dto.PublishedAt)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateEventNewsDto.PublishedAt)))
