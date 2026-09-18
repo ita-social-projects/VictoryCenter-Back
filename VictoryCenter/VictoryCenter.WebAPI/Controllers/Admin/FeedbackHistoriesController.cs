@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Create;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Delete;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Update;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.FeedbackHistories.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Reorder;
@@ -13,9 +14,9 @@ public class FeedbackHistoriesController : AuthorizedApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<FeedbackHistoryDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetFeedbackHistories()
+    public async Task<IActionResult> GetFeedbackHistories([FromQuery] TranslationStatusFilter? translationStatusFilter = null)
     {
-        return HandleResult(await Mediator.Send(new GetAllFeedbackHistoriesQuery()));
+        return HandleResult(await Mediator.Send(new GetAllFeedbackHistoriesQuery(translationStatusFilter)));
     }
 
     [HttpPost]

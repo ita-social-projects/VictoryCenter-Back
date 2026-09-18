@@ -139,6 +139,45 @@ public class FeedbackReviewLocalizationManagementTests : BaseTestClass
     }
 
     [Fact]
+    public async Task GetFeedbackReviews_ShouldFilterByTranslationStatusAndReportAccurateTotalCount()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var missingEntity = await CreateFeedbackReviewAsync();
+        var relevantEntity = await CreateFeedbackReviewAsync();
+        var outdatedEntity = await CreateFeedbackReviewAsync();
+
+        await CreateLocalizationAsync(relevantEntity.Id, language.Id);
+        await CreateLocalizationAsync(outdatedEntity.Id, language.Id);
+
+        var outdateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{FeedbackReviewsUrl}/{outdatedEntity.Id}",
+            new UpdateFeedbackReviewDto
+            {
+                AuthorName = "Оновлений автор",
+                Text = outdatedEntity.Text,
+                Status = Status.Published
+            });
+        outdateResponse.EnsureSuccessStatusCode();
+
+        var missingResult = await GetFilteredAsync("Missing");
+        Assert.Contains(missingResult.Items, x => x.Id == missingEntity.Id);
+        Assert.DoesNotContain(missingResult.Items, x => x.Id == relevantEntity.Id);
+        Assert.DoesNotContain(missingResult.Items, x => x.Id == outdatedEntity.Id);
+        Assert.Equal(missingResult.Items.Length, missingResult.TotalItemsCount);
+
+        var outdatedResult = await GetFilteredAsync("Outdated");
+        Assert.Contains(outdatedResult.Items, x => x.Id == outdatedEntity.Id);
+        Assert.DoesNotContain(outdatedResult.Items, x => x.Id == relevantEntity.Id);
+        Assert.DoesNotContain(outdatedResult.Items, x => x.Id == missingEntity.Id);
+        Assert.Equal(outdatedResult.Items.Length, outdatedResult.TotalItemsCount);
+
+        var allResult = await GetFilteredAsync("All");
+        Assert.Contains(allResult.Items, x => x.Id == missingEntity.Id);
+        Assert.Contains(allResult.Items, x => x.Id == relevantEntity.Id);
+        Assert.Contains(allResult.Items, x => x.Id == outdatedEntity.Id);
+    }
+
+    [Fact]
     public async Task UpdateFeedbackReview_AuthorNameOrTextChanged_ShouldMarkExistingTranslationOutdated()
     {
         var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
@@ -288,6 +327,14 @@ public class FeedbackReviewLocalizationManagementTests : BaseTestClass
                 Text = "An English translation of the participant review content."
             });
         response.EnsureSuccessStatusCode();
+    }
+
+    private async Task<PaginationResult<FeedbackReviewDto>> GetFilteredAsync(string translationStatusFilter)
+    {
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{FeedbackReviewsUrl}?TranslationStatusFilter={translationStatusFilter}");
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<PaginationResult<FeedbackReviewDto>>())!;
     }
 
     private async Task<FeedbackReviewDto> CreateFeedbackReviewAsync()

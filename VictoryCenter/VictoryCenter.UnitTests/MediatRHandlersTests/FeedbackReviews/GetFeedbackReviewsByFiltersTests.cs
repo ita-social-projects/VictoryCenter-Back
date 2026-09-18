@@ -1,11 +1,14 @@
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.GetByFilters;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.FeedbackReviews;
@@ -15,12 +18,19 @@ public class GetFeedbackReviewsByFiltersTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper = new();
     private readonly Mock<IFeedbackReviewsRepository> _repository = new();
+    private readonly Mock<ILocalizationLanguagesRepository> _languageRepository = new();
 
     public GetFeedbackReviewsByFiltersTests()
     {
         _repositoryWrapper
             .SetupGet(wrapper => wrapper.FeedbackReviewsRepository)
             .Returns(_repository.Object);
+        _repositoryWrapper
+            .SetupGet(wrapper => wrapper.LocalizationLanguagesRepository)
+            .Returns(_languageRepository.Object);
+        _languageRepository
+            .Setup(repository => repository.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
     }
 
     [Fact]
@@ -75,8 +85,76 @@ public class GetFeedbackReviewsByFiltersTests
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
         Assert.NotNull(capturedOptions.Include);
+        Assert.NotNull(capturedOptions.Filter);
         Assert.Equal(0, capturedOptions.Offset);
         Assert.Equal(0, capturedOptions.Limit);
+    }
+
+    [Fact]
+    public async Task Handle_TranslationStatusFilterProvided_AppliesFilterAndCountsLanguages()
+    {
+        QueryOptions<FeedbackReview>? capturedOptions = null;
+
+        _repository
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<FeedbackReview>>()))
+            .Callback<QueryOptions<FeedbackReview>?>(options => capturedOptions = options)
+            .ReturnsAsync([]);
+
+        _repository
+            .Setup(repository => repository.CountAsync(It.IsAny<QueryOptions<FeedbackReview>>()))
+            .ReturnsAsync(0);
+
+        _mapper
+            .Setup(mapper => mapper.Map<FeedbackReviewDto[]>(It.IsAny<IEnumerable<FeedbackReview>>()))
+            .Returns([]);
+
+        var handler = CreateHandler();
+
+        await handler.Handle(
+            new GetFeedbackReviewsByFiltersQuery(new FeedbackReviewsFilterDto
+            {
+                TranslationStatusFilter = TranslationStatusFilter.Outdated
+            }),
+            CancellationToken.None);
+
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Filter);
+        _languageRepository.Verify(
+            repository => repository.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_TranslationStatusFilterProvided_ShouldReuseFilteredQueryOptionsWhenCountingTotal()
+    {
+        QueryOptions<FeedbackReview>? capturedCountOptions = null;
+
+        _repository
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<FeedbackReview>>()))
+            .ReturnsAsync([]);
+
+        _repository
+            .Setup(repository => repository.CountAsync(It.IsAny<QueryOptions<FeedbackReview>>()))
+            .Callback<QueryOptions<FeedbackReview>?>(options => capturedCountOptions = options)
+            .ReturnsAsync(0);
+
+        _mapper
+            .Setup(mapper => mapper.Map<FeedbackReviewDto[]>(It.IsAny<IEnumerable<FeedbackReview>>()))
+            .Returns([]);
+
+        var handler = CreateHandler();
+
+        await handler.Handle(
+            new GetFeedbackReviewsByFiltersQuery(new FeedbackReviewsFilterDto
+            {
+                TranslationStatusFilter = TranslationStatusFilter.Outdated
+            }),
+            CancellationToken.None);
+
+        Assert.NotNull(capturedCountOptions);
+        Assert.NotNull(capturedCountOptions.Filter);
+        Assert.Equal(0, capturedCountOptions.Offset);
+        Assert.Equal(0, capturedCountOptions.Limit);
     }
 
     [Fact]

@@ -1,9 +1,12 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -24,12 +27,25 @@ public class GetAllVideoReviewsHandler : IRequestHandler<GetAllVideoReviewsQuery
         GetAllVideoReviewsQuery request,
         CancellationToken cancellationToken)
     {
+        var translationStatusFilter = request.TranslationStatusFilter;
+        var languageCount = await _repositoryWrapper.LocalizationLanguagesRepository.CountAsync();
+        languageCount -= 1;
+
+        Expression<Func<VideoReview, bool>> filter = vr =>
+            translationStatusFilter == null ||
+            translationStatusFilter == TranslationStatusFilter.All ||
+            (translationStatusFilter == TranslationStatusFilter.Outdated &&
+                vr.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
+            (translationStatusFilter == TranslationStatusFilter.Missing &&
+                vr.Localizations.Count < languageCount);
+
         var videoReviews = await _repositoryWrapper.VideoReviewsRepository.GetAllAsync(
             new QueryOptions<VideoReview>
             {
                 OrderByASC = videoReview => videoReview.Priority,
                 AsNoTracking = true,
-                Include = q => q.Include(x => x.Localizations).ThenInclude(l => l.Language)
+                Include = q => q.Include(x => x.Localizations).ThenInclude(l => l.Language),
+                Filter = filter
             });
 
         return Result.Ok(_mapper.Map<List<VideoReviewDto>>(videoReviews));
