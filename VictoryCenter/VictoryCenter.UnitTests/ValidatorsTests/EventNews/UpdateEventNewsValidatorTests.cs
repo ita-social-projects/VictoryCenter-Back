@@ -93,13 +93,12 @@ public class UpdateEventNewsValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenPublishedTitleExceedsMaxLength()
+    public void Validate_ShouldHaveError_WhenTitleExceedsMaxLength()
     {
         // Arrange
         var command = new UpdateEventNewsCommand(1, new UpdateEventNewsDto
         {
             Title = new string('A', EventNewsConstants.TitleMaxLength + 1),
-            Status = Status.Published,
         });
 
         // Act
@@ -112,13 +111,12 @@ public class UpdateEventNewsValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenPublishedDescriptionExceedsMaxLength()
+    public void Validate_ShouldHaveError_WhenDescriptionExceedsMaxLength()
     {
         // Arrange
         var command = new UpdateEventNewsCommand(1, new UpdateEventNewsDto
         {
             Description = new string('A', EventNewsConstants.DescriptionMaxLength + 1),
-            Status = Status.Published,
         });
 
         // Act

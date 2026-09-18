@@ -21,16 +21,23 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
             .When(dto => !string.IsNullOrWhiteSpace(dto.Resource));
 
         RuleFor(dto => dto.Title)
+            .MaximumLength(EventNewsConstants.TitleMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Title), EventNewsConstants.TitleMaxLength));
+
+        RuleFor(dto => dto.Title)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                 nameof(CreateEventNewsDto.Title)))
             .MinimumLength(EventNewsConstants.TitleMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateEventNewsDto.Title), EventNewsConstants.TitleMinLength))
-            .MaximumLength(EventNewsConstants.TitleMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateEventNewsDto.Title), EventNewsConstants.TitleMaxLength))
             .When(dto => dto.Status == Status.Published);
+
+        RuleFor(dto => dto.Description)
+            .MaximumLength(EventNewsConstants.DescriptionMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Description), EventNewsConstants.DescriptionMaxLength));
 
         RuleFor(dto => dto.Description)
             .NotEmpty()
@@ -40,10 +47,6 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(CreateEventNewsDto.Description),
                 EventNewsConstants.DescriptionMinLength))
-            .MaximumLength(EventNewsConstants.DescriptionMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(CreateEventNewsDto.Description),
-                EventNewsConstants.DescriptionMaxLength))
             .When(dto => dto.Status == Status.Published);
 
         RuleFor(dto => dto.PublishedAt)
