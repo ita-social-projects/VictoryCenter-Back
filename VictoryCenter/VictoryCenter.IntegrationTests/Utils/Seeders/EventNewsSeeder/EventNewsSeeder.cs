@@ -38,6 +38,8 @@ public class EventNewsSeeder : BaseSeeder<EventNewsEntity>
             eventNewsItems.Add(new EventNewsEntity
             {
                 Id = i + 1,
+                Title = "test title " + (i + 1),
+                Description = "test description " + (i + 1),
                 Slug = _slugHelper.GenerateSlug(title),
                 Resource = "TestResource" + (i + 1),
                 PublishedAt = DateTimeOffset.UtcNow.AddDays(-i),

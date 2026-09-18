@@ -56,6 +56,8 @@ public class EventNewsRepositoryTests : BaseTestClass
     {
         return new EventNewsEntity
         {
+            Title = "Test Event News",
+            Description = "This is a test event news description.",
             Slug = slug,
             Status = Status.Draft,
             CreatedAt = DateTimeOffset.UtcNow
