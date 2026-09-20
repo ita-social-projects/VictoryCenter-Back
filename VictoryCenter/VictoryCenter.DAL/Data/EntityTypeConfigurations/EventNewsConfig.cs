@@ -23,10 +23,10 @@ public class EventNewsConfig : IEntityTypeConfiguration<EventNews>
         builder.Property(e => e.Resource);
 
         builder.Property(e => e.Title)
-            .HasMaxLength(100);
+            .HasMaxLength(60);
 
         builder.Property(e => e.Description)
-            .HasMaxLength(200);
+            .HasMaxLength(140);
 
         builder.Property(e => e.PublishedAt);
 

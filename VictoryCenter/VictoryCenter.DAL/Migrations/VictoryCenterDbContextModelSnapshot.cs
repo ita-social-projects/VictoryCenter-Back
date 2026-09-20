@@ -591,8 +591,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(140)
+                        .HasColumnType("nvarchar(140)");
 
                     b.Property<long?>("PreviewImageId")
                         .HasColumnType("bigint");
@@ -611,8 +611,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.HasKey("Id");
 

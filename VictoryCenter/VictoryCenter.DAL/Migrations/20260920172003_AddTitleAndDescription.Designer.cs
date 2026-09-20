@@ -12,8 +12,8 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260917172917_AddEventTitleAndDescription")]
-    partial class AddEventTitleAndDescription
+    [Migration("20260920172003_AddTitleAndDescription")]
+    partial class AddTitleAndDescription
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -594,9 +594,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(140)
+                        .HasColumnType("nvarchar(140)");
 
                     b.Property<long?>("PreviewImageId")
                         .HasColumnType("bigint");
@@ -615,9 +614,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.HasKey("Id");
 
