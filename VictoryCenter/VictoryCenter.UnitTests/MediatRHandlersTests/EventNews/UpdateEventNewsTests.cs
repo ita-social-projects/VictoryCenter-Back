@@ -37,15 +37,18 @@ public class UpdateEventNewsTests
     [Fact]
     public async Task Handle_ValidRequest_UpdatesCompleteAggregate()
     {
+        // Arrange
         var eventNews = ExistingEventNews();
         var originalCreatedAt = eventNews.CreatedAt;
         var originalLocalizationCreatedAt = eventNews.Localizations.Single(item => item.LanguageId == 1).CreatedAt;
         var handler = CreateHandler(eventNews);
 
+        // Act
         var result = await handler.Handle(
             new UpdateEventNewsCommand(10, PublishedDto()),
             CancellationToken.None);
 
+        // Assert
         Assert.True(result.IsSuccess);
         Assert.Equal("https://example.com/updated", eventNews.Resource);
         Assert.Equal(Status.Published, eventNews.Status);
@@ -72,6 +75,8 @@ public class UpdateEventNewsTests
                 "Updated Event Title",
                 CancellationToken.None),
             Times.Once);
+        Assert.Equal("Updated root title", eventNews.Title);
+        Assert.Equal("Updated root description", eventNews.Description);
     }
 
     [Fact]
@@ -382,6 +387,8 @@ public class UpdateEventNewsTests
         return new EventNewsEntity
         {
             Id = 10,
+            Title = "Old root title",
+            Description = "Old root description",
             Slug = "old-event-title",
             Resource = "https://example.com/original",
             PublishedAt = null,
@@ -422,6 +429,8 @@ public class UpdateEventNewsTests
     {
         return new UpdateEventNewsDto
         {
+            Title = "Updated root title",
+            Description = "Updated root description",
             Resource = "https://example.com/updated",
             PublishedAt = DateTimeOffset.UtcNow,
             Status = Status.Published,
@@ -455,6 +464,8 @@ public class UpdateEventNewsTests
     {
         return new UpdateEventNewsDto
         {
+            Title = eventNews.Title,
+            Description = eventNews.Description,
             Resource = eventNews.Resource,
             PublishedAt = eventNews.PublishedAt,
             Status = eventNews.Status,
