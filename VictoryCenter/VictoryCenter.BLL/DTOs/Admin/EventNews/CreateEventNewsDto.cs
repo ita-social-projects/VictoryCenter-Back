@@ -26,5 +26,13 @@ public record CreateEventNewsDto
     public long? BackgroundImageId { get; init; }
     public List<long> CategoryIds { get; init; } = [];
     public List<CreateEventNewsLocalizationDto> Localizations { get; init; } = [];
-    private string NormalizeString(string value) => Regex.Replace(value.Trim(), @"\s+", " ");
+    private string NormalizeString(string value)
+    {
+        return Regex.Replace(
+            value.Trim(),
+            @"\s+",
+            " ",
+            RegexOptions.None,
+            TimeSpan.FromSeconds(1));
+    }
 }
