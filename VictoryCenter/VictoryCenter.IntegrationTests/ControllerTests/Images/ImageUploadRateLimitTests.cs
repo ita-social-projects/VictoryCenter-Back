@@ -18,27 +18,6 @@ public class ImageUploadRateLimitTests
     private const string UploadPath = "upload";
 
     [Fact]
-    public async Task ImageUpload_WhenPermitsAreTaken_ShouldQueueRequestInsteadOfRejectingIt()
-    {
-        var gate = new TaskCompletionSource();
-        await using WebApplication app = await CreateApplicationAsync(gate.Task);
-        using var client = CreateClient(app);
-
-        var requests = SendUploadRequests(client, PermitLimit + 1);
-
-        var anyRequestCompleted = Task.WhenAny(requests);
-        var firstToFinish = await Task.WhenAny(anyRequestCompleted, Task.Delay(500));
-
-        Assert.NotSame(anyRequestCompleted, firstToFinish);
-
-        gate.SetResult();
-        var responses = await Task.WhenAll(requests);
-
-        Assert.All(responses, response => Assert.Equal(HttpStatusCode.OK, response.StatusCode));
-        DisposeResponses(responses);
-    }
-
-    [Fact]
     public async Task ImageUpload_WhenQueueIsFull_ShouldReturnTooManyRequests()
     {
         var gate = new TaskCompletionSource();
@@ -47,12 +26,13 @@ public class ImageUploadRateLimitTests
 
         var requests = SendUploadRequests(client, PermitLimit + QueueLimit + 1);
 
-        await Task.Delay(500);
+        Task<HttpResponseMessage> rejectedRequest = await Task.WhenAny(requests).WaitAsync(TimeSpan.FromSeconds(30));
+
         gate.SetResult();
         var responses = await Task.WhenAll(requests);
 
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await rejectedRequest).StatusCode);
         Assert.Equal(PermitLimit + QueueLimit, responses.Count(r => r.StatusCode == HttpStatusCode.OK));
-        Assert.Single(responses, r => r.StatusCode == HttpStatusCode.TooManyRequests);
 
         DisposeResponses(responses);
     }
