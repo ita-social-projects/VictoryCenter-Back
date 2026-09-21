@@ -8,7 +8,7 @@ using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
-using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
+using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
@@ -21,11 +21,13 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRe
 
 public class UpdateReportFundsExpendituresRecordTests
 {
+    private const decimal ExchangeRate = 40.0m;
+
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IMediator> _mediatorMock;
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock;
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock;
-    private readonly Mock<IUpdateReportFundsExpendituresRecordHelper> _helperMock;
+    private readonly Mock<IReportFundsExpendituresRecordHelper> _helperMock;
     private readonly IValidator<UpdateReportFundsExpendituresRecordCommand> _validator;
 
     private readonly ReportFundsExpendituresRecord _existingRecord = new()
@@ -35,14 +37,14 @@ public class UpdateReportFundsExpendituresRecordTests
         Type = ReportFundsExpendituresType.Income,
         ReportingYear = 2025,
         AmountUah = 100.50m,
-        AmountUsd = 25.25m
+        AmountUsd = 2.5125m
     };
 
     private readonly UpdateReportFundsExpendituresRecordDto _updateDto = new()
     {
         CategoryId = 1,
-        AmountUah = 200.10m,
-        AmountUsd = 50.10m
+        Amount = 200.10m,
+        Currency = ReportFundsExpendituresCurrency.Uah
     };
 
     private readonly ReportFundsExpendituresRecordDto _recordDto = new()
@@ -52,7 +54,7 @@ public class UpdateReportFundsExpendituresRecordTests
         Type = ReportFundsExpendituresType.Income,
         ReportingYear = 2025,
         AmountUah = 200.10m,
-        AmountUsd = 50.10m
+        AmountUsd = 5.0025m
     };
 
     public UpdateReportFundsExpendituresRecordTests()
@@ -61,7 +63,7 @@ public class UpdateReportFundsExpendituresRecordTests
         _mediatorMock = new Mock<IMediator>();
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
-        _helperMock = new Mock<IUpdateReportFundsExpendituresRecordHelper>();
+        _helperMock = new Mock<IReportFundsExpendituresRecordHelper>();
         _validator = new UpdateReportFundsExpendituresRecordValidator(new BaseReportFundsExpendituresRecordValidator());
     }
 
@@ -81,11 +83,32 @@ public class UpdateReportFundsExpendituresRecordTests
         Assert.True(result.IsSuccess);
         Assert.Equal(_recordDto.AmountUah, result.Value.AmountUah);
         Assert.Equal(_recordDto.AmountUsd, result.Value.AmountUsd);
+        Assert.Equal(_updateDto.Amount, _existingRecord.AmountUah);
+        Assert.Equal(_updateDto.Amount / ExchangeRate, _existingRecord.AmountUsd);
         _mediatorMock.Verify(
             mediator => mediator.Publish(
                 It.IsAny<ReportFundsChangedNotification>(),
                 It.Is<CancellationToken>(token => token == CancellationToken.None)),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldDeriveAmountUah_WhenCurrencyIsUsd()
+    {
+        // Arrange
+        var usdDto = _updateDto with { Amount = 10m, Currency = ReportFundsExpendituresCurrency.Usd };
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportFundsExpendituresRecordCommand(usdDto, _existingRecord.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10m, _existingRecord.AmountUsd);
+        Assert.Equal(10m * ExchangeRate, _existingRecord.AmountUah);
     }
 
     [Fact]
@@ -121,6 +144,25 @@ public class UpdateReportFundsExpendituresRecordTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains("Validation failed", result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenSettingsAreInvalid()
+    {
+        // Arrange
+        SetupDependencies(recordToUpdate: _existingRecord, saveResult: 1);
+        _helperMock
+            .Setup(h => h.GetAndValidateSettingsAsync())
+            .ReturnsAsync(Result.Fail<ReportFundsExpendituresSettingsDto>("invalid settings"));
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportFundsExpendituresRecordCommand(_updateDto, _existingRecord.Id),
+            CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
     }
 
     [Fact]
@@ -260,11 +302,18 @@ public class UpdateReportFundsExpendituresRecordTests
 
         _helperMock
             .Setup(h => h.GetAndValidateSettingsAsync())
-            .ReturnsAsync(Result.Ok(new ReportFundsExpendituresSettingsDto { ExchangeRate = 40.0m }));
+            .ReturnsAsync(Result.Ok(new ReportFundsExpendituresSettingsDto { ExchangeRate = ExchangeRate }));
 
         _helperMock
             .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
             .ReturnsAsync(Result.Ok());
+
+        _helperMock
+            .Setup(h => h.CalculateAmounts(It.IsAny<decimal>(), It.IsAny<ReportFundsExpendituresCurrency>(), It.IsAny<decimal>()))
+            .Returns((decimal amount, ReportFundsExpendituresCurrency currency, decimal exchangeRate) =>
+                currency == ReportFundsExpendituresCurrency.Usd
+                    ? (AmountUah: amount * exchangeRate, AmountUsd: amount)
+                    : (AmountUah: amount, AmountUsd: amount / exchangeRate));
 
         _recordsRepositoryMock
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresRecord>>()))
@@ -300,8 +349,6 @@ public class UpdateReportFundsExpendituresRecordTests
                 (dto, record) =>
                 {
                     record.CategoryId = dto.CategoryId;
-                    record.AmountUah = dto.AmountUah!.Value;
-                    record.AmountUsd = dto.AmountUsd!.Value;
                 })
             .Returns((UpdateReportFundsExpendituresRecordDto _, ReportFundsExpendituresRecord record) => record);
 
