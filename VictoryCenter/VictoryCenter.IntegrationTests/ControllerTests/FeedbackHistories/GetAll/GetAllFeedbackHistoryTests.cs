@@ -77,6 +77,65 @@ public class GetAllFeedbackHistoryTests : BaseTestClass
         Assert.Empty(item.Localizations);
     }
 
+    [Fact]
+    public async Task GetAllFeedbackHistories_ShouldFilterByTranslationStatus()
+    {
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var missingEntity = await CreateTestFeedbackHistoryAsync();
+        var relevantEntity = await CreateTestFeedbackHistoryAsync();
+        var outdatedEntity = await CreateTestFeedbackHistoryAsync();
+
+        await CreateLocalizationAsync(relevantEntity.Id, language.Id);
+        await CreateLocalizationAsync(outdatedEntity.Id, language.Id);
+
+        var outdateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{BaseUrl}/{outdatedEntity.Id}",
+            new UpdateFeedbackHistoryDto
+            {
+                Title = "Changed title to outdate the translation",
+                Story = outdatedEntity.Story,
+                ImageId = null,
+                Status = Status.Draft
+            });
+        outdateResponse.EnsureSuccessStatusCode();
+
+        var missingItems = await GetFilteredAsync("Missing");
+        Assert.Contains(missingItems, x => x.Id == missingEntity.Id);
+        Assert.DoesNotContain(missingItems, x => x.Id == relevantEntity.Id);
+        Assert.DoesNotContain(missingItems, x => x.Id == outdatedEntity.Id);
+
+        var outdatedItems = await GetFilteredAsync("Outdated");
+        Assert.Contains(outdatedItems, x => x.Id == outdatedEntity.Id);
+        Assert.DoesNotContain(outdatedItems, x => x.Id == relevantEntity.Id);
+        Assert.DoesNotContain(outdatedItems, x => x.Id == missingEntity.Id);
+
+        var allItems = await GetFilteredAsync("All");
+        Assert.Contains(allItems, x => x.Id == missingEntity.Id);
+        Assert.Contains(allItems, x => x.Id == relevantEntity.Id);
+        Assert.Contains(allItems, x => x.Id == outdatedEntity.Id);
+    }
+
+    private async Task<List<FeedbackHistoryDto>> GetFilteredAsync(string translationStatusFilter)
+    {
+        var response = await Fixture.HttpClient.GetAsync($"{BaseUrl}/?TranslationStatusFilter={translationStatusFilter}");
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<List<FeedbackHistoryDto>>())!;
+    }
+
+    private async Task CreateLocalizationAsync(long entityId, long languageId)
+    {
+        var response = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/FeedbackHistoryLocalizations",
+            new CreateFeedbackHistoryLocalizationDto
+            {
+                EntityId = entityId,
+                LanguageId = languageId,
+                Title = "English recovery story title",
+                Story = "A detailed English translation of the recovery story content."
+            });
+        response.EnsureSuccessStatusCode();
+    }
+
     private async Task<FeedbackHistory> CreateTestFeedbackHistoryAsync()
     {
         var entity = new FeedbackHistory
