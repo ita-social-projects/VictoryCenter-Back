@@ -12,8 +12,8 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260920172003_AddTitleAndDescription")]
-    partial class AddTitleAndDescription
+    [Migration("20260921105502_AddEventTitleAndDescription")]
+    partial class AddEventTitleAndDescription
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
