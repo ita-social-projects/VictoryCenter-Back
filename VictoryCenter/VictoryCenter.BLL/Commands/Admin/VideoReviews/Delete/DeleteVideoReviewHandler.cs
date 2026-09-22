@@ -12,43 +12,47 @@ namespace VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
 public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand, Result<long>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
     private readonly IReorderService _reorderService;
 
-    public DeleteVideoReviewHandler(IRepositoryWrapper repositoryWrapper, IReorderService reorderService)
+    public DeleteVideoReviewHandler(
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider,
+        IReorderService reorderService)
     {
         _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
         _reorderService = reorderService;
     }
 
     public async Task<Result<long>> Handle(DeleteVideoReviewCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _repositoryWrapper.VideoReviewsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<VideoReview>
-            {
-                Filter = videoReview => videoReview.Id == request.Id,
-                AsNoTracking = false
-            });
-
-        if (entity is null)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
-        }
-
         try
         {
-            using var transactionScope = _repositoryWrapper.BeginTransaction();
+            var archivedRows = await _repositoryWrapper.VideoReviewsRepository.ArchiveAsync(
+                request.Id,
+                _timeProvider.GetUtcNow());
 
-            _repositoryWrapper.VideoReviewsRepository.Delete(entity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+            if (archivedRows == 0)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(VideoReview)));
+                var entity = await _repositoryWrapper.VideoReviewsRepository.GetFirstOrDefaultAsync(
+                    new QueryOptions<VideoReview>
+                    {
+                        Filter = videoReview => videoReview.Id == request.Id,
+                        AsNoTracking = true
+                    });
+
+                if (entity is null)
+                {
+                    return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
+                }
+
+                return Result.Ok(entity.Id);
             }
 
-            await _reorderService.RenumberPriorityAsync<VideoReview>();
+            await _reorderService.RenumberPriorityAsync<VideoReview>(videoReview => !videoReview.IsArchived);
 
-            transactionScope.Complete();
-            return Result.Ok(entity.Id);
+            return Result.Ok(request.Id);
         }
         catch (DbUpdateException)
         {

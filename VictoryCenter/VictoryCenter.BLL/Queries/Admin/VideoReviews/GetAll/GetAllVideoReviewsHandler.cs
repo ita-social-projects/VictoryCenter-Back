@@ -32,20 +32,21 @@ public class GetAllVideoReviewsHandler : IRequestHandler<GetAllVideoReviewsQuery
         languageCount -= 1;
 
         Expression<Func<VideoReview, bool>> filter = vr =>
-            translationStatusFilter == null ||
-            translationStatusFilter == TranslationStatusFilter.All ||
-            (translationStatusFilter == TranslationStatusFilter.Outdated &&
-                vr.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
-            (translationStatusFilter == TranslationStatusFilter.Missing &&
-                vr.Localizations.Count < languageCount);
+            vr.IsArchived == request.Archived &&
+            (translationStatusFilter == null ||
+                translationStatusFilter == TranslationStatusFilter.All ||
+                (translationStatusFilter == TranslationStatusFilter.Outdated &&
+                    vr.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
+                (translationStatusFilter == TranslationStatusFilter.Missing &&
+                    vr.Localizations.Count < languageCount));
 
         var videoReviews = await _repositoryWrapper.VideoReviewsRepository.GetAllAsync(
             new QueryOptions<VideoReview>
             {
+                Filter = filter,
                 OrderByASC = videoReview => videoReview.Priority,
                 AsNoTracking = true,
-                Include = q => q.Include(x => x.Localizations).ThenInclude(l => l.Language),
-                Filter = filter
+                Include = q => q.Include(x => x.Localizations).ThenInclude(l => l.Language)
             });
 
         return Result.Ok(_mapper.Map<List<VideoReviewDto>>(videoReviews));

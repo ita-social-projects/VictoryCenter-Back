@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Create;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
+using VictoryCenter.BLL.Commands.Admin.VideoReviews.Restore;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.Enums;
@@ -14,9 +15,11 @@ public class VideoReviewsController : AuthorizedApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(List<VideoReviewDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] TranslationStatusFilter? translationStatusFilter = null)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] bool archived = false,
+        [FromQuery] TranslationStatusFilter? translationStatusFilter = null)
     {
-        return HandleResult(await Mediator.Send(new GetAllVideoReviewsQuery(translationStatusFilter)));
+        return HandleResult(await Mediator.Send(new GetAllVideoReviewsQuery(archived, translationStatusFilter)));
     }
 
     [HttpPost]
@@ -43,6 +46,15 @@ public class VideoReviewsController : AuthorizedApiController
     public async Task<IActionResult> Delete(long id)
     {
         return HandleResult(await Mediator.Send(new DeleteVideoReviewCommand(id)));
+    }
+
+    [HttpPost("{id:long}/restore")]
+    [ProducesResponseType(typeof(long), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Restore(long id)
+    {
+        return HandleResult(await Mediator.Send(new RestoreVideoReviewCommand(id)));
     }
 
     [HttpPut("reorder")]

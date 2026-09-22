@@ -5,5 +5,7 @@ using VictoryCenter.BLL.Enums;
 
 namespace VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 
-public record GetAllVideoReviewsQuery(TranslationStatusFilter? TranslationStatusFilter = null)
+public record GetAllVideoReviewsQuery(
+    bool Archived = false,
+    TranslationStatusFilter? TranslationStatusFilter = null)
     : IRequest<Result<List<VideoReviewDto>>>;
