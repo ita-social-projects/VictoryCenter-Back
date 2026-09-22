@@ -24,7 +24,7 @@ public class RaisedFundsMetricSyncServiceTests
     private readonly Mock<IReportFundsExpendituresRecordsRepository> _reportFundsRecordsRepoMock = new();
     private readonly Mock<ILocalizationLanguagesRepository> _localizationLanguagesRepoMock = new();
     private readonly Mock<IMetricLocalizationsRepository> _metricLocalizationsRepoMock = new();
-
+    private readonly Mock<TimeProvider> _timeProviderMock = new();
     private readonly RaisedFundsMetricSyncService _service;
 
     public RaisedFundsMetricSyncServiceTests()
@@ -41,7 +41,7 @@ public class RaisedFundsMetricSyncServiceTests
             .SetupGet(x => x.MetricLocalizationsRepository)
             .Returns(_metricLocalizationsRepoMock.Object);
 
-        _service = new RaisedFundsMetricSyncService(_repositoryWrapperMock.Object);
+        _service = new RaisedFundsMetricSyncService(_repositoryWrapperMock.Object, _timeProviderMock.Object);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class RaisedFundsMetricSyncServiceTests
         Assert.True(result);
         Assert.Equal(5000, metric.Value);
         Assert.Equal("120.75", existingEnglishLoc.Value);
-        Assert.Equal(TranslationStatus.Relevant, existingEnglishLoc.TranslationStatus);
+        Assert.Equal(TranslationStatus.Outdated, existingEnglishLoc.TranslationStatus);
         _metricLocalizationsRepoMock.Verify(x => x.CreateAsync(It.IsAny<MetricLocalization>()), Times.Never);
     }
 

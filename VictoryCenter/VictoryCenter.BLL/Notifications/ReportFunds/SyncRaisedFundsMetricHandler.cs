@@ -10,8 +10,6 @@ namespace VictoryCenter.BLL.Notifications.ReportFunds;
 
 public class SyncRaisedFundsMetricHandler : INotificationHandler<ReportFundsChangedNotification>
 {
-    private const string EnglishLanguageCode = "en";
-
     private readonly IRepositoryWrapper _repositoryWrapper;
 
     private readonly IRaisedFundsMetricSyncService _syncService;

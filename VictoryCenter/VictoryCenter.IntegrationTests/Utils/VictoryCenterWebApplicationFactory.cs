@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -113,7 +114,8 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         services.AddDbContext<VictoryCenterDbContext>(options =>
         {
             options.UseInMemoryDatabase(_databaseName)
-                .UseInternalServiceProvider(efServiceProvider);
+                .UseInternalServiceProvider(efServiceProvider)
+                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
         });
     }
 

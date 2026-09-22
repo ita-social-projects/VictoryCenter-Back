@@ -261,8 +261,8 @@ public class UpdateSingleMetricTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new Metric { Value = 100, Name = "children", Type = MetricType.Raised, IsAutoSynced = false, IsHidden = false, RowVersion = new byte[] { 1, 0, 0, 0 } },
-                    new Metric { Value = 200, Name = "families", Type = MetricType.Partners, IsAutoSynced = false, IsHidden = false, RowVersion = new byte[] { 2, 0, 0, 0 } }
+                    new Metric { Value = 100, Name = "children", Type = MetricType.Raised, IsAutoSynced = false, IsHidden = false, RowVersion = [1, 0, 0, 0] },
+                    new Metric { Value = 200, Name = "families", Type = MetricType.Partners, IsAutoSynced = false, IsHidden = false, RowVersion = [2, 0, 0, 0] }
                 ],
             },
         };

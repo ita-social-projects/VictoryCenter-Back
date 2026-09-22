@@ -1,8 +1,9 @@
-using System.Transactions;
 using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ImpactStatistics.UpdateSingleMetric;
 using VictoryCenter.BLL.Constants;
@@ -15,6 +16,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Options;
@@ -23,18 +25,30 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.MainPage;
 
 public class UpdateSingleMetricHandlerTests
 {
+    private const int EnglishLanguageId = 2;
+
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
     private readonly Mock<IMetricRepository> _metricRepositoryMock = new();
+    private readonly Mock<ILocalizationLanguagesRepository> _localizationLanguagesRepositoryMock = new();
     private readonly Mock<IMetricLocalizationsRepository> _metricLocalizationsRepositoryMock = new();
     private readonly Mock<IValidator<UpdateSingleMetricCommand>> _validatorMock = new();
     private readonly Mock<IMediator> _mediatorMock = new();
     private readonly Mock<IRaisedFundsMetricSyncService> _raisedFundsSyncServiceMock = new();
+    private readonly Mock<ILogger<UpdateSingleMetricHandler>> _loggerMock = new();
 
     public UpdateSingleMetricHandlerTests()
     {
         _repositoryWrapperMock.SetupGet(x => x.MetricRepository).Returns(_metricRepositoryMock.Object);
         _repositoryWrapperMock.SetupGet(x => x.MetricLocalizationsRepository).Returns(_metricLocalizationsRepositoryMock.Object);
-        _repositoryWrapperMock.Setup(x => x.BeginTransaction()).Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        _repositoryWrapperMock.SetupGet(x => x.LocalizationLanguagesRepository).Returns(_localizationLanguagesRepositoryMock.Object); // NEW
+
+        _repositoryWrapperMock
+            .Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Mock.Of<IDbContextTransaction>());
+
+        _localizationLanguagesRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(new LocalizationLanguage { Id = EnglishLanguageId, Code = "en" });
     }
 
     [Fact]
@@ -95,10 +109,7 @@ public class UpdateSingleMetricHandlerTests
             IsAutoSynced = false,
             Value = 100,
             RowVersion = [1],
-            Localizations = new List<MetricLocalization>
-            {
-                new() { LanguageId = 2, Value = "50" }
-            }
+            Localizations = [ new() { LanguageId = 2, Value = "50" }]
         };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { IsAutoSynced = true, ExpectedVersion = [1] });
 
@@ -187,12 +198,12 @@ public class UpdateSingleMetricHandlerTests
             Name = "old",
             Type = MetricType.Partners,
             Prefix = MetricPrefix.None,
-            Localizations = new List<MetricLocalization>
-            {
+            Localizations = [
                 new() { LanguageId = LocalizationLanguageConstants.PrimaryLanguageId, TranslationStatus = TranslationStatus.Outdated },
                 new() { LanguageId = 2, TranslationStatus = TranslationStatus.Relevant }
-            }
+            ]
         };
+
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto
         {
             Name = "new",
@@ -229,10 +240,7 @@ public class UpdateSingleMetricHandlerTests
         var metric = new Metric
         {
             Id = 1,
-            Localizations = new List<MetricLocalization>
-            {
-                new() { LanguageId = 2, Name = "oldLocName", Value = "oldLocValue", TranslationStatus = TranslationStatus.Outdated }
-            }
+            Localizations = [new() { LanguageId = 2, Name = "oldLocName", Value = "oldLocValue", TranslationStatus = TranslationStatus.Outdated }]
         };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto
         {
@@ -284,10 +292,7 @@ public class UpdateSingleMetricHandlerTests
             Value = 10,
             Name = "name",
             RowVersion = [5, 5, 5],
-            Localizations = new List<MetricLocalization>
-            {
-                new() { LanguageId = 2, Value = "100" }
-            }
+            Localizations = [ new() { LanguageId = 2, Value = "100" }]
         };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { Value = 10, Name = "name" });
 
@@ -329,5 +334,6 @@ public class UpdateSingleMetricHandlerTests
         _repositoryWrapperMock.Object,
         _validatorMock.Object,
         _mediatorMock.Object,
-        _raisedFundsSyncServiceMock.Object);
+        _raisedFundsSyncServiceMock.Object,
+        _loggerMock.Object);
 }

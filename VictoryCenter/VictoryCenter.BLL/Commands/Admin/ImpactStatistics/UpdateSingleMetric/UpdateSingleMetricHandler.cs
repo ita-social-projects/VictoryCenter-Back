@@ -12,44 +12,56 @@ using VictoryCenter.DAL.Repositories.Options;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Errors;
+using Microsoft.Extensions.Logging;
+using VictoryCenter.DAL.Entities.Interfaces;
 using Metric = VictoryCenter.DAL.Entities.Metric;
 
 namespace VictoryCenter.BLL.Commands.Admin.ImpactStatistics.UpdateSingleMetric;
 
 public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricCommand, Result<UpdateMetricResult>>
 {
+    private const string EnglishLanguageCode = "en";
+
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateSingleMetricCommand> _validator;
     private readonly IMediator _mediator;
     private readonly IRaisedFundsMetricSyncService _raisedFundsSyncService;
+    private readonly ILogger<UpdateSingleMetricHandler> _logger;
 
     public UpdateSingleMetricHandler(
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateSingleMetricCommand> validator,
         IMediator mediator,
-        IRaisedFundsMetricSyncService raisedFundsSyncService)
+        IRaisedFundsMetricSyncService raisedFundsSyncService,
+        ILogger<UpdateSingleMetricHandler> logger)
     {
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _mediator = mediator;
         _raisedFundsSyncService = raisedFundsSyncService;
+        _logger = logger;
     }
 
     public async Task<Result<UpdateMetricResult>> Handle(UpdateSingleMetricCommand request, CancellationToken cancellationToken)
     {
+        var result = new UpdateMetricResult();
+        Metric? metric;
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var result = new UpdateMetricResult();
-            Metric? metric;
+            var englishLanguage = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<LocalizationLanguage>
+                {
+                    Filter = language => language.Code == EnglishLanguageCode,
+                });
 
-            using (var transaction = _repositoryWrapper.BeginTransaction())
+            await using (var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken))
             {
                 var options = new QueryOptions<Metric>
                 {
                     AsNoTracking = false,
                     Filter = m => m.Id == request.MetricId,
-                    Include = q => q.Include(x => x.Localizations)
+                    Include = q => q.Include(x => x.Localizations),
                 };
 
                 metric = await _repositoryWrapper.MetricRepository.GetFirstOrDefaultAsync(options);
@@ -151,8 +163,9 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
                             LanguageId = request.Dto.Localization.LanguageId,
                             Value = request.Dto.Localization.Value,
                             Name = request.Dto.Localization.Name,
-                            TranslationStatus = TranslationStatus.Relevant
+                            TranslationStatus = TranslationStatus.Relevant,
                         });
+
                         result.UpdatedFields.Add(nameof(request.Dto.Localization));
                         result.WasModified = true;
                     }
@@ -172,23 +185,21 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
                 {
                     result.RowVersion = metric.RowVersion;
                     result.Value = metric.Value;
-                    result.LocalizationValue = GetEnglishLocalizationValue(metric);
+                    result.LocalizationValue = GetLocalizationValue(metric, englishLanguage?.Id);
                     return Result.Ok(result);
                 }
 
                 await _repositoryWrapper.SaveChangesAsync();
-                transaction.Complete();
+                await transaction.CommitAsync(cancellationToken);
             }
 
             result.RowVersion = metric.RowVersion;
             result.Value = metric.Value;
-            result.LocalizationValue = GetEnglishLocalizationValue(metric);
+            result.LocalizationValue = GetLocalizationValue(metric, englishLanguage?.Id);
 
             if (metric.Type == MetricType.Raised && metric.IsAutoSynced)
             {
-                await _mediator.Publish(
-                    new ReportFundsChangedNotification { SkipRaisedMetricSync = true },
-                    CancellationToken.None);
+                await PublishReportFundsChangedSafelyAsync(metric.Id);
             }
 
             return Result.Ok(result);
@@ -208,8 +219,27 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
         }
     }
 
-    private static string? GetEnglishLocalizationValue(Metric metric) =>
-        metric.Localizations.FirstOrDefault(l => l.LanguageId != LocalizationLanguageConstants.PrimaryLanguageId)?.Value;
+    private static string? GetLocalizationValue(ITranslatedEntity<MetricLocalization> entity, long? englishLanguageId) =>
+        englishLanguageId is null
+            ? null
+            : entity.Localizations.FirstOrDefault(l => l.LanguageId == englishLanguageId)?.Value;
+
+    private async Task PublishReportFundsChangedSafelyAsync(long metricId)
+    {
+        try
+        {
+            await _mediator.Publish(
+                new ReportFundsChangedNotification { SkipRaisedMetricSync = true },
+                CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Metric {MetricId} was updated successfully, but ReportFundsChangedNotification failed to publish.",
+                metricId);
+        }
+    }
 
     private static void SetLocalizationsToOutdated(IEnumerable<MetricLocalization> localizations)
     {

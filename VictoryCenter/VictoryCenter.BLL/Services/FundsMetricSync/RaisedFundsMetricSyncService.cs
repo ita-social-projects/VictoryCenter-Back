@@ -17,10 +17,12 @@ public class RaisedFundsMetricSyncService : IRaisedFundsMetricSyncService
     private const string EnglishLanguageCode = "en";
 
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
 
-    public RaisedFundsMetricSyncService(IRepositoryWrapper repositoryWrapper)
+    public RaisedFundsMetricSyncService(IRepositoryWrapper repositoryWrapper, TimeProvider timeProvider)
     {
         _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
     }
 
     public async Task<bool> ApplySyncAsync(Metric raisedMetric, CancellationToken cancellationToken)
@@ -61,21 +63,24 @@ public class RaisedFundsMetricSyncService : IRaisedFundsMetricSyncService
         if (englishLocalization is null)
         {
             await _repositoryWrapper.MetricLocalizationsRepository.CreateAsync(
-                new MetricLocalization
-                {
-                    EntityId = raisedMetric.Id,
-                    LanguageId = englishLanguage.Id,
-                    Value = newUsdValue,
-                    TranslationStatus = TranslationStatus.Relevant,
-                    CreatedAt = DateTimeOffset.UtcNow
-                });
+                 new MetricLocalization
+                 {
+                     EntityId = raisedMetric.Id,
+                     LanguageId = englishLanguage.Id,
+                     Value = newUsdValue,
+                     TranslationStatus = TranslationStatus.Relevant,
+                     CreatedAt = _timeProvider.GetUtcNow(),
+                 });
+
             changed = true;
         }
         else if (englishLocalization.Value != newUsdValue)
         {
             englishLocalization.Value = newUsdValue;
-            englishLocalization.TranslationStatus = TranslationStatus.Relevant;
             changed = true;
+        }
+        else
+        {
         }
 
         return changed;
