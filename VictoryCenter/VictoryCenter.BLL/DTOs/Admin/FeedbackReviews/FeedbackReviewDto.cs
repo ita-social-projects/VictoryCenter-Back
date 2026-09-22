@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackReviews;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
@@ -10,4 +11,5 @@ public record FeedbackReviewDto
     public Status Status { get; init; }
     public long Priority { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
+    public IEnumerable<FeedbackReviewLocalizationDto> Localizations { get; init; } = [];
 }

@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Enums;
 
@@ -11,4 +12,5 @@ public record FeedbackHistoryDto
     public ImageDto? Image { get; init; }
     public long Priority { get; init; }
     public Status Status { get; init; }
+    public IEnumerable<FeedbackHistoryLocalizationDto> Localizations { get; init; } = [];
 }

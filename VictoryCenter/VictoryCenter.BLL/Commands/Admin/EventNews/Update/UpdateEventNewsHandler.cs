@@ -146,7 +146,9 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         EventNewsEntity eventNews,
         UpdateEventNewsDto dto)
     {
-        var scalarFieldsChanged = !string.Equals(eventNews.Resource, dto.Resource, StringComparison.Ordinal)
+        var scalarFieldsChanged = !string.Equals(eventNews.Title, dto.Title)
+                                  || !string.Equals(eventNews.Description, dto.Description)
+                                  || !string.Equals(eventNews.Resource, dto.Resource, StringComparison.Ordinal)
                                   || eventNews.PublishedAt != dto.PublishedAt
                                   || eventNews.Status != dto.Status;
         var imagesChanged = eventNews.PreviewImageId != dto.PreviewImageId
@@ -197,6 +199,8 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         UpdateEventNewsDto dto,
         IReadOnlyDictionary<long, Image> imagesById)
     {
+        eventNews.Title = dto.Title;
+        eventNews.Description = dto.Description;
         eventNews.Resource = dto.Resource;
         eventNews.PublishedAt = dto.PublishedAt;
         eventNews.Status = dto.Status;

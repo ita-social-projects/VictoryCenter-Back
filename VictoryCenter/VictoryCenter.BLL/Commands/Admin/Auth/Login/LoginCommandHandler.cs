@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
@@ -15,24 +16,33 @@ namespace VictoryCenter.BLL.Commands.Admin.Auth.Login;
 
 public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResponseDto>>
 {
+    private static readonly AdminUser DummyAdmin = new();
+    private static readonly PasswordHasher<AdminUser> DummyPasswordHasher = new();
+    private static readonly string DummyPasswordHash = DummyPasswordHasher.HashPassword(
+        DummyAdmin,
+        Guid.NewGuid().ToString());
+
     private readonly ITokenService _tokenService;
     private readonly UserManager<AdminUser> _userManager;
     private readonly IValidator<LoginCommand> _validator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IOptions<JwtOptions> _jwtOptions;
+    private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         ITokenService tokenService,
         UserManager<AdminUser> userManager,
         IValidator<LoginCommand> validator,
         IHttpContextAccessor httpContextAccessor,
-        IOptions<JwtOptions> jwtOptions)
+        IOptions<JwtOptions> jwtOptions,
+        ILogger<LoginCommandHandler> logger)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _validator = validator;
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions;
+        _logger = logger;
     }
 
     public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -46,13 +56,16 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var admin = await _userManager.FindByEmailAsync(request.LoginRequestDto.Email);
         if (admin is null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            PerformDummyPasswordCheck(request.LoginRequestDto.Password);
+            LogFailedLoginAttempt();
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
         if (!result)
         {
-            return Result.Fail(AuthConstants.IncorrectPassword);
+            LogFailedLoginAttempt();
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         var accessToken = _tokenService.CreateAccessToken([
@@ -78,5 +91,17 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         return !updateResult.Succeeded
             ? Result.Fail(updateResult.Errors.Select(x => x.Description))
             : Result.Ok(new AuthResponseDto(accessToken));
+    }
+
+    private void LogFailedLoginAttempt()
+    {
+        _logger.LogWarning(
+            "Admin login failed from client IP {ClientIpAddress}",
+            _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+    }
+
+    private static void PerformDummyPasswordCheck(string password)
+    {
+        _ = DummyPasswordHasher.VerifyHashedPassword(DummyAdmin, DummyPasswordHash, password);
     }
 }

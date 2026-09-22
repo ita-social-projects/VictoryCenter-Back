@@ -1,8 +1,12 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -24,10 +28,24 @@ public class GetAllFeedbackHistoriesHandler : IRequestHandler<GetAllFeedbackHist
     public async Task<Result<IEnumerable<FeedbackHistoryDto>>> Handle(
         GetAllFeedbackHistoriesQuery request, CancellationToken cancellationToken)
     {
+        var translationStatusFilter = request.TranslationStatusFilter;
+        var languageCount = await _repositoryWrapper.LocalizationLanguagesRepository.CountAsync();
+        languageCount -= 1;
+
+        Expression<Func<FeedbackHistory, bool>> filter = fh =>
+            translationStatusFilter == null ||
+            translationStatusFilter == TranslationStatusFilter.All ||
+            (translationStatusFilter == TranslationStatusFilter.Outdated &&
+                fh.Localizations.Any(l => l.TranslationStatus == TranslationStatus.Outdated)) ||
+            (translationStatusFilter == TranslationStatusFilter.Missing &&
+                fh.Localizations.Count < languageCount);
+
         var entities = (await _repositoryWrapper.FeedbackHistoriesRepository.GetAllAsync(new QueryOptions<FeedbackHistory>
         {
             AsNoTracking = true,
-            OrderByASC = e => e.Priority
+            OrderByASC = e => e.Priority,
+            Include = e => e.Include(x => x.Localizations).ThenInclude(l => l.Language),
+            Filter = filter
         })).ToList();
 
         var imageIds = entities

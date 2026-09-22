@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -158,6 +159,86 @@ public class UpdateFeedbackHistoryTests
         Assert.True(result.IsFailed);
         Assert.Null(result.ValueOrDefault);
         Assert.Equal(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(FeedbackHistory)), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_TitleOrStoryChanged_ShouldMarkExistingLocalizationsOutdated()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "English title",
+            Story = "English story",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        var existingHistory = new FeedbackHistory
+        {
+            Id = 1,
+            Title = "Old Title",
+            Story = "Old Story Text",
+            ImageId = null,
+            Priority = 1,
+            Status = Status.Draft,
+            Localizations = [localization]
+        };
+        SetupRepositoryWrapper(existingHistory, 1);
+        SetupMapper(_updatedHistory, _resultDto);
+
+        var handler = new UpdateFeedbackHistoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validatorMock.Object, _timeProvider);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryCommand(_updateDto, existingHistory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_OnlyImageOrStatusChanged_ShouldNotMarkLocalizationsOutdated()
+    {
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            Title = "English title",
+            Story = "English story",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        var existingHistory = new FeedbackHistory
+        {
+            Id = 1,
+            Title = _updateDto.Title,
+            Story = _updateDto.Story,
+            ImageId = null,
+            Priority = 1,
+            Status = Status.Draft,
+            Localizations = [localization]
+        };
+        SetupRepositoryWrapper(existingHistory, 1);
+        SetupMapper(_updatedHistory, _resultDto);
+
+        var handler = new UpdateFeedbackHistoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validatorMock.Object, _timeProvider);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryCommand(_updateDto, existingHistory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_NoExistingLocalizations_ShouldNotThrow()
+    {
+        SetupRepositoryWrapper(_existingHistory, 1);
+        SetupMapper(_updatedHistory, _resultDto);
+
+        var handler = new UpdateFeedbackHistoryHandler(_mockMapper.Object, _mockRepositoryWrapper.Object, _validatorMock.Object, _timeProvider);
+
+        var result = await handler.Handle(
+            new UpdateFeedbackHistoryCommand(_updateDto, _existingHistory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
     }
 
     private void SetupMapper(FeedbackHistory updatedEntity, FeedbackHistoryDto resultDto)

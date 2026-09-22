@@ -4,6 +4,7 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Restore;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 using VictoryCenter.WebAPI.Controllers.Common;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Reorder;
@@ -14,9 +15,11 @@ public class VideoReviewsController : AuthorizedApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(List<VideoReviewDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] bool archived = false)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] bool archived = false,
+        [FromQuery] TranslationStatusFilter? translationStatusFilter = null)
     {
-        return HandleResult(await Mediator.Send(new GetAllVideoReviewsQuery(archived)));
+        return HandleResult(await Mediator.Send(new GetAllVideoReviewsQuery(archived, translationStatusFilter)));
     }
 
     [HttpPost]

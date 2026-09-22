@@ -90,6 +90,76 @@ public class UpdateReportProgramExpendituresRecordCommandValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Fact]
+    public async Task Validate_ShouldHaveErrors_WhenAmountUahIsNegative()
+    {
+        // Arrange
+        var negativeAmount = -100.25m;
+        var dto = GetValidDto() with { AmountUah = negativeAmount };
+        var command = new UpdateReportProgramExpendituresRecordCommand(1, dto);
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Dto.AmountUah)
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(
+                nameof(UpdateReportProgramExpendituresRecordDto.AmountUah)));
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveErrors_WhenAmountUsdIsNegative()
+    {
+        // Arrange
+        var negativeAmount = -50.50m;
+        var dto = GetValidDto() with { AmountUsd = negativeAmount };
+        var command = new UpdateReportProgramExpendituresRecordCommand(1, dto);
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Dto.AmountUsd)
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(
+                nameof(UpdateReportProgramExpendituresRecordDto.AmountUsd)));
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveErrors_WhenAmountUahIsZero()
+    {
+        // Arrange
+        var zeroAmount = 0m;
+        var dto = GetValidDto() with { AmountUah = zeroAmount };
+        var command = new UpdateReportProgramExpendituresRecordCommand(1, dto);
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Dto.AmountUah)
+            .WithErrorMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(UpdateReportProgramExpendituresRecordDto.AmountUah),
+                zeroAmount));
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveErrors_WhenAmountUsdIsZero()
+    {
+        // Arrange
+        var zeroAmount = 0m;
+        var dto = GetValidDto() with { AmountUsd = zeroAmount };
+        var command = new UpdateReportProgramExpendituresRecordCommand(1, dto);
+
+        // Act
+        var result = await _validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Dto.AmountUsd)
+            .WithErrorMessage(ErrorMessagesConstants.SumNotEqualTo(
+                nameof(UpdateReportProgramExpendituresRecordDto.AmountUsd),
+                zeroAmount));
+    }
+
     private static UpdateReportProgramExpendituresRecordDto GetValidDto()
     {
         return new UpdateReportProgramExpendituresRecordDto

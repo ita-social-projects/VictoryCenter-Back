@@ -590,6 +590,10 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(140)
+                        .HasColumnType("nvarchar(140)");
+
                     b.Property<long?>("PreviewImageId")
                         .HasColumnType("bigint");
 
@@ -605,6 +609,10 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
                     b.HasKey("Id");
 
@@ -645,6 +653,41 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("EventNewsCategories");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.EventsIntroSection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("EventsBlockTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PageDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SingletonKey")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SingletonKey")
+                        .IsUnique();
+
+                    b.ToTable("EventsIntroSections", t =>
+                        {
+                            t.HasCheckConstraint("CK_EventsIntroSections_SingletonKey", "[SingletonKey] = 1");
+                        });
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>

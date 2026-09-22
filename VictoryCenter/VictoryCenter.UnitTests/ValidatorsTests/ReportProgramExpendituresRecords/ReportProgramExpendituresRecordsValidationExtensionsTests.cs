@@ -14,15 +14,19 @@ public class ReportProgramExpendituresRecordsValidationExtensionsTests
         _validator = new DummyValidator();
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-0.01)]
-    public void Validate_ShouldHaveError_WhenAmountIsNotPositive(decimal amount)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenAmountIsNegative()
     {
-        var model = new DummyModel { Amount = amount, Id = 1, Year = 2023 };
+        // Arrange
+        decimal negativeAmount = -100.50m;
+        var model = new DummyModel { Amount = negativeAmount, Id = 1, Year = 2023 };
+
+        // Act
         var result = _validator.TestValidate(model);
+
+        // Assert
         result.ShouldHaveValidationErrorFor(x => x.Amount)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(DummyModel.Amount)));
+            .WithErrorMessage(ErrorMessagesConstants.SumMustNotBeNegative(nameof(DummyModel.Amount)));
     }
 
     [Fact]

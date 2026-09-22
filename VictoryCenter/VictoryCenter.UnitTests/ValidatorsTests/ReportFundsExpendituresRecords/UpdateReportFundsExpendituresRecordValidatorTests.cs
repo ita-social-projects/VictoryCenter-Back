@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.ReportFundsExpendituresRecords;
 
@@ -46,19 +47,19 @@ public class UpdateReportFundsExpendituresRecordValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenAmountUahHasInvalidFormat()
+    public void Validate_ShouldHaveError_WhenAmountHasInvalidFormat()
     {
         // Arrange
-        var dto = GetValidDto() with { AmountUah = 1.123m };
+        var dto = GetValidDto() with { Amount = 1.123m };
         var command = new UpdateReportFundsExpendituresRecordCommand(dto, 1);
 
         // Act
         var result = _validator.TestValidate(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x.UpdateReportFundsExpendituresRecordDto.AmountUah)
+        result.ShouldHaveValidationErrorFor(x => x.UpdateReportFundsExpendituresRecordDto.Amount)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
-                nameof(ReportFundsExpendituresRecordDto.AmountUah),
+                nameof(BaseReportFundsExpendituresRecordDto.Amount),
                 ReportFundsExpendituresRecordConstants.AmountFormat));
     }
 
@@ -78,7 +79,7 @@ public class UpdateReportFundsExpendituresRecordValidatorTests
     private static UpdateReportFundsExpendituresRecordDto GetValidDto() => new()
     {
         CategoryId = 1,
-        AmountUah = 100.25m,
-        AmountUsd = 50.50m
+        Amount = 100.25m,
+        Currency = ReportFundsExpendituresCurrency.Uah
     };
 }

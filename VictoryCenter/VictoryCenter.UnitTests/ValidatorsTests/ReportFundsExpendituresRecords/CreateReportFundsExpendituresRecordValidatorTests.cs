@@ -116,8 +116,8 @@ public class CreateReportFundsExpendituresRecordValidatorTests
     private CreateReportFundsExpendituresRecordDto GetValidDto() => new()
     {
         CategoryId = 1,
-        AmountUah = 100.25m,
-        AmountUsd = 50.50m,
+        Amount = 100.25m,
+        Currency = ReportFundsExpendituresCurrency.Uah,
         Type = ReportFundsExpendituresType.Income,
         ReportingYear = _currentYear
     };
