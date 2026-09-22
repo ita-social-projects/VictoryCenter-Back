@@ -13,6 +13,8 @@ using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -311,6 +313,34 @@ public class UpdateHippotherapyLandingPageHandlerTests
         _repositoryWrapperMock.Verify(
             x => x.ImageRepository.DeleteRange(It.Is<IEnumerable<Image>>(images => images.Any(i => i.Id == ExistingImageId2))),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenIntroSectionUpdated_ShouldMarkExistingIntroLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.IntroSection!.Localizations =
+        [
+            new HippotherapyLandingPageIntroSectionLocalization
+            {
+                EntityId = existing.IntroSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.IntroSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
     }
 
     [Fact]
