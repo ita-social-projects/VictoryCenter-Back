@@ -41,7 +41,7 @@ public class SearchFeedbackReviewHandler
             var dto = request.SearchDto;
             var searchTerm = new SearchTerm<FeedbackReview>
             {
-                TermSelector = review => review.AuthorName.ToLower(),
+                TermSelector = review => (review.AuthorName ?? string.Empty).ToLower(),
                 TermValue = dto.SearchQuery.ToLower(),
                 SearchLogic = SearchLogic.Contains,
             };

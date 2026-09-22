@@ -42,7 +42,7 @@ public class SearchFeedbackHistoryHandler
             var dto = request.SearchDto;
             var searchTerm = new SearchTerm<FeedbackHistory>
             {
-                TermSelector = history => history.Title.ToLower(),
+                TermSelector = history => (history.Title ?? string.Empty).ToLower(),
                 TermValue = dto.SearchQuery.ToLower(),
                 SearchLogic = SearchLogic.Contains,
             };

@@ -22,6 +22,8 @@ public class FeedbackHistoriesController : AuthorizedApiController
 
     [HttpGet("search")]
     [ProducesResponseType(typeof(PaginationResult<FeedbackHistoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SearchFeedbackHistories([FromQuery] SearchFeedbackHistoryDto searchDto)
     {
         return HandleResult(await Mediator.Send(new SearchFeedbackHistoryQuery(searchDto)));
