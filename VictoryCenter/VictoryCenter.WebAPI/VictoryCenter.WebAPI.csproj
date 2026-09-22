@@ -13,6 +13,10 @@
         <RootNamespace>VictoryCenter.WebAPI</RootNamespace>
     </PropertyGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="VictoryCenter.IntegrationTests" />
+	</ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
         <PackageReference Include="dotenv.net" Version="3.2.1" />

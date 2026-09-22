@@ -82,7 +82,7 @@ public class ImageRequestSizeLimitTests
     }
 
     [Fact]
-    public async Task CreateImage_ConcurrentUploadLimitExceeded_ShouldReturnTooManyRequests()
+    public async Task CreateImage_ConcurrentUploadLimitReached_ShouldQueueRequestInsteadOfRejectingIt()
     {
         var twoRequestsStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var releaseRequests = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -119,25 +119,24 @@ public class ImageRequestSizeLimitTests
         Task<HttpResponseMessage> firstRequest = SendImageRequestAsync(client);
         Task<HttpResponseMessage> secondRequest = SendImageRequestAsync(client);
 
-        try
-        {
-            await twoRequestsStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
+        await twoRequestsStarted.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
-            using HttpResponseMessage rejectedResponse = await SendImageRequestAsync(client);
+        Task<HttpResponseMessage> queuedRequest = SendImageRequestAsync(client);
+        Task firstToFinish = await Task.WhenAny(queuedRequest, Task.Delay(500));
 
-            Assert.Equal(HttpStatusCode.TooManyRequests, rejectedResponse.StatusCode);
-            mediatorMock.Verify(
-                mediator => mediator.Send(
-                    It.IsAny<CreateImageCommand>(),
-                    It.IsAny<CancellationToken>()),
-                Times.Exactly(2));
-        }
-        finally
-        {
-            releaseRequests.TrySetResult(true);
-            using HttpResponseMessage firstResponse = await firstRequest;
-            using HttpResponseMessage secondResponse = await secondRequest;
-        }
+        releaseRequests.TrySetResult(true);
+
+        using HttpResponseMessage firstResponse = await firstRequest;
+        using HttpResponseMessage secondResponse = await secondRequest;
+        using HttpResponseMessage queuedResponse = await queuedRequest;
+
+        Assert.NotSame(queuedRequest, firstToFinish);
+        Assert.NotEqual(HttpStatusCode.TooManyRequests, queuedResponse.StatusCode);
+        mediatorMock.Verify(
+            mediator => mediator.Send(
+                It.IsAny<CreateImageCommand>(),
+                It.IsAny<CancellationToken>()),
+            Times.Exactly(3));
     }
 
     private static WebApplicationBuilder CreateTestApplicationBuilder()
