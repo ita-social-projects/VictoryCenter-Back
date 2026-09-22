@@ -69,5 +69,5 @@ public static class RateLimitingPolicyNameConstants
     public const string SubmitContactUsForm = "submit-contact-us-form-rate-limiting-policy";
     public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     public const string AdminLogin = "admin-login-rate-limiting-policy";
-    public const string ImageUpload = "image-upload-rate-limiting-policy";
+    internal const string ImageUpload = "image-upload-rate-limiting-policy";
 }

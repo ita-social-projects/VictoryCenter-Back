@@ -39,9 +39,7 @@ public class ImageUploadRateLimitTests
 
     private static Task<HttpResponseMessage>[] SendUploadRequests(HttpClient client, int count)
     {
-        return Enumerable.Range(0, count)
-            .Select(_ => client.GetAsync(UploadPath))
-            .ToArray();
+        return [.. Enumerable.Range(0, count).Select(_ => client.GetAsync(UploadPath))];
     }
 
     private static void DisposeResponses(IEnumerable<HttpResponseMessage> responses)
