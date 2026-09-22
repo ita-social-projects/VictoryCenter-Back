@@ -1,3 +1,4 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
 using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.VideoReviews;
@@ -13,4 +14,6 @@ public record VideoReviewDto
     public long Priority { get; init; }
 
     public Status Status { get; init; }
+
+    public IEnumerable<VideoReviewLocalizationDto> Localizations { get; init; } = [];
 }

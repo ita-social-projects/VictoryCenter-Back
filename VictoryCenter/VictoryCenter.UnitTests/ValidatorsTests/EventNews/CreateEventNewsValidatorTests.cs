@@ -137,4 +137,118 @@ public class CreateEventNewsValidatorTests
         result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryIds)
             .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateEventNewsDto.CategoryIds)));
     }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPublishedTitleIsMissing()
+    {
+        // Arrange
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Title = null,
+            Status = Status.Published,
+        });
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateEventNewsDto.Title)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPublishedDescriptionIsMissing()
+    {
+        // Arrange
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Description = null,
+            Status = Status.Published,
+        });
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateEventNewsDto.Description)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTitleExceedsMaxLength()
+    {
+        // Arrange
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Title = new string('a', EventNewsConstants.TitleMaxLength + 1),
+        });
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Title),
+                EventNewsConstants.TitleMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescriptionExceedsMaxLength()
+    {
+        // Arrange
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Description = new string('a', EventNewsConstants.DescriptionMaxLength + 1),
+        });
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Description),
+                EventNewsConstants.DescriptionMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPublishedTitleMinimumLengthIsNotMet()
+    {
+        // Arrange
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Title = new string('a', EventNewsConstants.TitleMinLength - 1),
+            Status = Status.Published,
+        });
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Title),
+                EventNewsConstants.TitleMinLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPublishedDescriptionMinimumLengthIsNotMet()
+    {
+        // Arrange
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Description = new string('a', EventNewsConstants.DescriptionMinLength - 1),
+            Status = Status.Published,
+        });
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.Description),
+                EventNewsConstants.DescriptionMinLength));
+    }
 }

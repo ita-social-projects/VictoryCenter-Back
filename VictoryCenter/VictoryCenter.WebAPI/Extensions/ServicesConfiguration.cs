@@ -22,12 +22,13 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.BLL.Interfaces.PaymentService;
+using VictoryCenter.BLL.Interfaces.PdfReports;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Interfaces.TokenService;
-using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
+using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Captcha;
@@ -43,6 +44,7 @@ using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
 using VictoryCenter.BLL.Services.Partners;
 using VictoryCenter.BLL.Services.PaymentService;
+using VictoryCenter.BLL.Services.PdfReports;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
@@ -195,7 +197,7 @@ public static class ServicesConfiguration
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
         services.AddScoped<IProgramSectionContentLocalizationTracker, ProgramSectionContentLocalizationTracker>();
 
-        services.AddScoped<IUpdateReportFundsExpendituresRecordHelper, UpdateReportFundsExpendituresRecordHelper>();
+        services.AddScoped<IReportFundsExpendituresRecordHelper, ReportFundsExpendituresRecordHelper>();
 
         services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
 
@@ -203,6 +205,8 @@ public static class ServicesConfiguration
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
 
         services.AddSignalR();
+        services.AddMemoryCache();
+        services.AddSingleton<IPdfTicketStore, MemoryCachePdfTicketStore>();
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
@@ -279,6 +283,7 @@ public static class ServicesConfiguration
         await app.CreateInitialPdfSection();
         await app.CreateInitialPartnersPageBanner();
         await app.CreateInitialHippotherapyLandingPage();
+        await app.CreateInitialEventsIntroSectionAsync();
         await app.CreateInitialReportsMediaSettingsAsync();
         await app.CreateInitialReportFundsExpendituresSettings();
         await app.CreateInitialMainPageAsync();
@@ -308,6 +313,39 @@ public static class ServicesConfiguration
 
         dbContext.VisitorPages.AddRange(toAdd);
         await dbContext.SaveChangesAsync();
+    }
+
+    private static async Task CreateInitialEventsIntroSectionAsync(this WebApplication app)
+    {
+        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
+
+        if (await dbContext.EventsIntroSections.AnyAsync())
+        {
+            return;
+        }
+
+        dbContext.EventsIntroSections.Add(new EventsIntroSection
+        {
+            EventsBlockTitle = "<p>Що відбувалось</p>",
+            PageDescription = "<p>Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. "
+                              + "Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків "
+                              + "дітей у стайні до глибоких переживань ветеранів у сідлі.</p>",
+            CreatedAt = timeProvider.GetUtcNow(),
+        });
+
+        try
+        {
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            if (!await dbContext.EventsIntroSections.AnyAsync())
+            {
+                throw;
+            }
+        }
     }
 
     private static async Task CreateInitialAdminAsync(this WebApplication app)

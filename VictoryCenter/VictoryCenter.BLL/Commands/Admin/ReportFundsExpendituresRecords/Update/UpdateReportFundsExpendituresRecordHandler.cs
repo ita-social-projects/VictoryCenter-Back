@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
-using VictoryCenter.BLL.Interfaces.UpdateReportFundsExpendituresRecordHelper;
+using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -20,14 +20,14 @@ public class UpdateReportFundsExpendituresRecordHandler
     private readonly IMediator _mediator;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateReportFundsExpendituresRecordCommand> _validator;
-    private readonly IUpdateReportFundsExpendituresRecordHelper _helper;
+    private readonly IReportFundsExpendituresRecordHelper _helper;
 
     public UpdateReportFundsExpendituresRecordHandler(
         IMapper mapper,
         IMediator mediator,
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateReportFundsExpendituresRecordCommand> validator,
-        IUpdateReportFundsExpendituresRecordHelper helper)
+        IReportFundsExpendituresRecordHelper helper)
     {
         _mapper = mapper;
         _mediator = mediator;
@@ -68,7 +68,13 @@ public class UpdateReportFundsExpendituresRecordHandler
             }
 
             _mapper.Map(request.UpdateReportFundsExpendituresRecordDto, entityToUpdate);
-            entityToUpdate.AmountUsd = entityToUpdate.AmountUah / settingsResult.Value.ExchangeRate;
+
+            var (amountUah, amountUsd) = _helper.CalculateAmounts(
+                request.UpdateReportFundsExpendituresRecordDto.Amount!.Value,
+                request.UpdateReportFundsExpendituresRecordDto.Currency,
+                settingsResult.Value.ExchangeRate);
+            entityToUpdate.AmountUah = amountUah;
+            entityToUpdate.AmountUsd = amountUsd;
 
             _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Update(entityToUpdate);
 

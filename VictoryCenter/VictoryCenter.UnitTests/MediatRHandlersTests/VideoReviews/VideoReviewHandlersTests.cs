@@ -8,11 +8,14 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Delete;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -25,12 +28,17 @@ public class VideoReviewHandlersTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _wrapper = new();
     private readonly Mock<IVideoReviewsRepository> _repository = new();
+    private readonly Mock<ILocalizationLanguagesRepository> _languageRepository = new();
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly Mock<IReorderService> _reorderService = new();
 
     public VideoReviewHandlersTests()
     {
         _wrapper.SetupGet(item => item.VideoReviewsRepository).Returns(_repository.Object);
+        _wrapper.SetupGet(item => item.LocalizationLanguagesRepository).Returns(_languageRepository.Object);
+        _languageRepository
+            .Setup(repository => repository.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(2);
         _timeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
         _wrapper.Setup(wrapper => wrapper.BeginTransaction())
             .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
@@ -284,6 +292,113 @@ public class VideoReviewHandlersTests
     }
 
     [Fact]
+    public async Task Update_TitleChanged_ShouldMarkExistingLocalizationsOutdated()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 10,
+            LanguageId = 2,
+            Title = "English title",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        var entity = new VideoReview
+        {
+            Id = 10,
+            Title = "Old title",
+            Link = "https://example.com/video",
+            Localizations = [localization]
+        };
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(entity);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        var handler = new UpdateVideoReviewHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewCommand(10, new UpdateVideoReviewDto
+            {
+                Title = "New title",
+                Link = "https://example.com/video"
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Update_OnlyLinkChanged_ShouldNotMarkLocalizationsOutdated()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 10,
+            LanguageId = 2,
+            Title = "English title",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        var entity = new VideoReview
+        {
+            Id = 10,
+            Title = "Title",
+            Link = "https://example.com/old",
+            Localizations = [localization]
+        };
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(entity);
+        _wrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        var handler = new UpdateVideoReviewHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewCommand(10, new UpdateVideoReviewDto
+            {
+                Title = "Title",
+                Link = "https://example.com/new"
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Update_NothingChanged_ShouldNotMarkLocalizationsOutdatedOrSave()
+    {
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 10,
+            LanguageId = 2,
+            Title = "English title",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        var entity = new VideoReview
+        {
+            Id = 10,
+            Title = "Title",
+            Link = "https://example.com/video",
+            Status = Status.Draft,
+            Localizations = [localization]
+        };
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(entity);
+        var handler = new UpdateVideoReviewHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new UpdateVideoReviewCommand(10, new UpdateVideoReviewDto
+            {
+                Title = "Title",
+                Link = "https://example.com/video",
+                Status = Status.Draft
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+        _wrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
     public async Task Update_ShouldFail_WhenDatabaseThrows()
     {
         var entity = new VideoReview { Id = 10, Title = "Old", Link = "https://example.com/old" };
@@ -395,6 +510,33 @@ public class VideoReviewHandlersTests
         Assert.NotNull(capturedOptions);
         Assert.True(capturedOptions.AsNoTracking);
         Assert.NotNull(capturedOptions.OrderByASC);
+        Assert.NotNull(capturedOptions.Include);
+        Assert.NotNull(capturedOptions.Filter);
+    }
+
+    [Fact]
+    public async Task GetAll_ShouldApplyTranslationStatusFilter_WhenProvided()
+    {
+        QueryOptions<VideoReview>? capturedOptions = null;
+        _repository
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .Callback<QueryOptions<VideoReview>?>(options => capturedOptions = options)
+            .ReturnsAsync([]);
+        _mapper
+            .Setup(mapper => mapper.Map<List<VideoReviewDto>>(It.IsAny<IEnumerable<VideoReview>>()))
+            .Returns([]);
+        var handler = new GetAllVideoReviewsHandler(_mapper.Object, _wrapper.Object);
+
+        var result = await handler.Handle(
+            new GetAllVideoReviewsQuery(TranslationStatusFilter.Missing),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Filter);
+        _languageRepository.Verify(
+            repository => repository.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()),
+            Times.Once);
     }
 
     private static CreateVideoReviewDto CreateDto() => new()

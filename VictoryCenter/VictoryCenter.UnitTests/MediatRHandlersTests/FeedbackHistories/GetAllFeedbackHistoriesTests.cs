@@ -3,10 +3,13 @@ using FluentResults;
 using Moq;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.FeedbackHistories.GetAll;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.FeedbackHistories;
@@ -15,6 +18,7 @@ public class GetAllFeedbackHistoriesTests
 {
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepoWrapper;
+    private readonly Mock<ILocalizationLanguagesRepository> _mockLanguageRepository;
 
     private readonly List<FeedbackHistory> _feedbackHistories = [
         new FeedbackHistory { Id = 1, Title = "Title 1", Story = "Story 1", ImageId = 10, CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-15), Status = Status.Draft },
@@ -30,6 +34,10 @@ public class GetAllFeedbackHistoriesTests
     {
         _mockMapper = new Mock<IMapper>();
         _mockRepoWrapper = new Mock<IRepositoryWrapper>();
+        _mockLanguageRepository = new Mock<ILocalizationLanguagesRepository>();
+
+        _mockRepoWrapper.SetupGet(r => r.LocalizationLanguagesRepository).Returns(_mockLanguageRepository.Object);
+        _mockLanguageRepository.Setup(r => r.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>())).ReturnsAsync(2);
     }
 
     [Fact]
@@ -82,6 +90,46 @@ public class GetAllFeedbackHistoriesTests
         Assert.True(result.IsSuccess);
         Assert.Equal(dtosWithoutImages.Count, result.Value.Count());
         _mockRepoWrapper.Verify(r => r.ImageRepository.GetAllAsync(It.IsAny<QueryOptions<Image>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldQueryWithLocalizationsIncluded()
+    {
+        QueryOptions<FeedbackHistory>? capturedOptions = null;
+        _mockRepoWrapper.Setup(r => r.FeedbackHistoriesRepository.GetAllAsync(It.IsAny<QueryOptions<FeedbackHistory>>()))
+            .Callback<QueryOptions<FeedbackHistory>?>(options => capturedOptions = options)
+            .ReturnsAsync([]);
+
+        _mockMapper.Setup(m => m.Map<IEnumerable<FeedbackHistoryDto>>(It.IsAny<IEnumerable<FeedbackHistory>>()))
+            .Returns([]);
+
+        var handler = new GetAllFeedbackHistoriesHandler(_mockMapper.Object, _mockRepoWrapper.Object);
+
+        await handler.Handle(new GetAllFeedbackHistoriesQuery(), CancellationToken.None);
+
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Include);
+        Assert.NotNull(capturedOptions.Filter);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldApplyTranslationStatusFilter_WhenProvided()
+    {
+        QueryOptions<FeedbackHistory>? capturedOptions = null;
+        _mockRepoWrapper.Setup(r => r.FeedbackHistoriesRepository.GetAllAsync(It.IsAny<QueryOptions<FeedbackHistory>>()))
+            .Callback<QueryOptions<FeedbackHistory>?>(options => capturedOptions = options)
+            .ReturnsAsync([]);
+
+        _mockMapper.Setup(m => m.Map<IEnumerable<FeedbackHistoryDto>>(It.IsAny<IEnumerable<FeedbackHistory>>()))
+            .Returns([]);
+
+        var handler = new GetAllFeedbackHistoriesHandler(_mockMapper.Object, _mockRepoWrapper.Object);
+
+        await handler.Handle(new GetAllFeedbackHistoriesQuery(TranslationStatusFilter.Missing), CancellationToken.None);
+
+        Assert.NotNull(capturedOptions);
+        Assert.NotNull(capturedOptions.Filter);
+        _mockLanguageRepository.Verify(r => r.CountAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()), Times.Once);
     }
 
     [Fact]

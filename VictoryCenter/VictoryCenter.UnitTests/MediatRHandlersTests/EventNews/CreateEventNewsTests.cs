@@ -346,6 +346,8 @@ public class CreateEventNewsTests
     {
         return new CreateEventNewsDto
         {
+            Title = "Event root title",
+            Description = "Valid event root description",
             Status = status,
             PublishedAt = DateTimeOffset.UtcNow,
             PreviewImageId = 1,

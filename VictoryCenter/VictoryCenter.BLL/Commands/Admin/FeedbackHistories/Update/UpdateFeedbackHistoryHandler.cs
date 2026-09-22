@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -55,7 +56,8 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
             var entity = await _repositoryWrapper.FeedbackHistoriesRepository
                 .GetFirstOrDefaultAsync(new QueryOptions<FeedbackHistory>
                 {
-                    Filter = x => x.Id == request.Id
+                    Filter = x => x.Id == request.Id,
+                    Include = e => e.Include(x => x.Localizations).ThenInclude(l => l.Language)
                 });
 
             if (entity == null)
@@ -63,6 +65,8 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
                 return Result.Fail<FeedbackHistoryDto>(ErrorMessagesConstants
                     .NotFound(request.Id, typeof(FeedbackHistory)));
             }
+
+            SetTranslationsToOutdated(request.UpdateFeedbackHistoryDto, entity);
 
             var entityToUpdate = _mapper.Map(request.UpdateFeedbackHistoryDto, entity);
             entityToUpdate.Image = imageResult.Value;
@@ -85,6 +89,18 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
         catch (ValidationException ex)
         {
             return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+        }
+    }
+
+    private static void SetTranslationsToOutdated(UpdateFeedbackHistoryDto dto, FeedbackHistory entity)
+    {
+        if (!string.Equals(dto.Title, entity.Title, StringComparison.Ordinal) ||
+            !string.Equals(dto.Story, entity.Story, StringComparison.Ordinal))
+        {
+            foreach (var loc in entity.Localizations)
+            {
+                loc.TranslationStatus = TranslationStatus.Outdated;
+            }
         }
     }
 }

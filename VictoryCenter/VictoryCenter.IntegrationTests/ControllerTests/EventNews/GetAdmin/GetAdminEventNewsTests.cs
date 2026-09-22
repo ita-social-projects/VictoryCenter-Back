@@ -124,6 +124,8 @@ public class GetAdminEventNewsTests : BaseTestClass
             EndpointUri,
             new CreateEventNewsDto
             {
+                Title = "Admin event title",
+                Description = "Admin event description",
                 Resource = "https://example.com/admin-event",
                 PublishedAt = DateTimeOffset.UtcNow,
                 Status = Status.Published,

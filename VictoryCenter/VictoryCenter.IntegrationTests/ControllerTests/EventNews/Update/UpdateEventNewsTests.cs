@@ -183,6 +183,8 @@ public class UpdateEventNewsTests : BaseTestClass
     {
         return new UpdateEventNewsDto
         {
+            Title = "Integration Update",
+            Description = "Details about the latest integration update",
             Resource = "https://example.com/integration-update",
             PublishedAt = DateTimeOffset.UtcNow,
             Status = Status.Published,
