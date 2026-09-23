@@ -1,9 +1,11 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Queries.Admin.FeedbackReviews.Search;
+using VictoryCenter.BLL.Services.Search.Helpers;
 using VictoryCenter.BLL.Validators.FeedbackReviews;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -23,6 +25,20 @@ public class SearchFeedbackReviewTests
         var searchService = new Mock<ISearchService<FeedbackReview>>();
         var entity = new FeedbackReview { Id = 1, AuthorName = "Anastasiia", Text = "Great" };
         var dto = new FeedbackReviewDto { Id = 1, AuthorName = "Anastasiia", Text = "Great" };
+
+        Expression<Func<FeedbackReview, bool>> authorExpression =
+            review => review.AuthorName != null &&
+                      review.AuthorName.Contains("Ana");
+
+        Expression<Func<FeedbackReview, bool>> textExpression =
+            review => review.Text != null &&
+                      review.Text.Contains("Ana");
+
+        searchService
+            .SetupSequence(x => x.CreateSearchExpression(
+                It.IsAny<SearchTerm<FeedbackReview>>()))
+            .Returns(authorExpression)
+            .Returns(textExpression);
 
         repository.SetupGet(x => x.FeedbackReviewsRepository).Returns(reviewRepository.Object);
         reviewRepository.Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<FeedbackReview>>()))
