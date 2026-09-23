@@ -40,18 +40,32 @@ public class SearchFeedbackHistoryHandler
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var dto = request.SearchDto;
-            var searchTerm = new SearchTerm<FeedbackHistory>
+            var query = dto.SearchQuery.ToLower();
+
+            var titleExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackHistory>
             {
                 TermSelector = history => (history.Title ?? string.Empty).ToLower(),
-                TermValue = dto.SearchQuery.ToLower(),
+                TermValue = query,
                 SearchLogic = SearchLogic.Contains,
-            };
-            var searchExpression = _searchService.CreateSearchExpression(searchTerm);
+            });
+
+            var storyExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackHistory>
+            {
+                TermSelector = history => (history.Story ?? string.Empty).ToLower(),
+                TermValue = query,
+                SearchLogic = SearchLogic.Contains,
+            });
+
+            var searchExpression = titleExpression.Or(storyExpression);
 
             var histories = await _repositoryWrapper.FeedbackHistoriesRepository.GetAllAsync(new QueryOptions<FeedbackHistory>
             {
-                Include = query => query.Include(history => history.Image!),
+                Include = query => query
+                    .Include(history => history.Image!)
+                    .Include(history => history.Localizations)
+                        .ThenInclude(localization => localization.Language),
                 Filter = searchExpression,
+                OrderByASC = history => history.Priority,
                 Offset = dto.Offset is > 0 ? (int)dto.Offset : 0,
                 Limit = dto.Limit is > 0 ? (int)dto.Limit : 0,
             });

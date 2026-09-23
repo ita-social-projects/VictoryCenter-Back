@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.Search;
@@ -39,19 +40,31 @@ public class SearchFeedbackReviewHandler
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
             var dto = request.SearchDto;
-            var searchTerm = new SearchTerm<FeedbackReview>
+            var query = dto.SearchQuery.ToLower();
+
+            var authorNameExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackReview>
             {
                 TermSelector = review => (review.AuthorName ?? string.Empty).ToLower(),
-                TermValue = dto.SearchQuery.ToLower(),
+                TermValue = query,
                 SearchLogic = SearchLogic.Contains,
-            };
-            var searchExpression = _searchService.CreateSearchExpression(searchTerm);
+            });
+
+            var textExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackReview>
+            {
+                TermSelector = review => (review.Text ?? string.Empty).ToLower(),
+                TermValue = query,
+                SearchLogic = SearchLogic.Contains,
+            });
+
+            var searchExpression = authorNameExpression.Or(textExpression);
 
             var reviews = await _repositoryWrapper.FeedbackReviewsRepository.GetAllAsync(new QueryOptions<FeedbackReview>
             {
                 Filter = searchExpression,
+                OrderByASC = review => review.Priority,
                 Offset = dto.Offset is > 0 ? (int)dto.Offset : 0,
                 Limit = dto.Limit is > 0 ? (int)dto.Limit : 0,
+                Include = query => query.Include(review => review.Localizations).ThenInclude(localization => localization.Language),
             });
             var reviewDtos = _mapper.Map<List<FeedbackReviewDto>>(reviews);
             var count = await _repositoryWrapper.FeedbackReviewsRepository.CountAsync(
