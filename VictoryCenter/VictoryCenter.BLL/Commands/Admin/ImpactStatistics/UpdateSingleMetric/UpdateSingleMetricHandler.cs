@@ -74,7 +74,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
                 if (request.Dto.ExpectedVersion != null &&
                     (metric.RowVersion == null || !metric.RowVersion.SequenceEqual(request.Dto.ExpectedVersion)))
                 {
-                    return Result.Fail<UpdateMetricResult>("Metric was modified by another user. Please refresh and try again.");
+                    return Result.Fail<UpdateMetricResult>(new ConcurrencyConflictError(ErrorMessagesConstants.ConcurrencyConflict()));
                 }
 
                 bool propertiesChanged = false;
@@ -210,8 +210,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<UpdateMetricResult>(new ConcurrencyConflictError(
-                "Metric was modified by another user. Please refresh and try again."));
+            return Result.Fail<UpdateMetricResult>(new ConcurrencyConflictError(ErrorMessagesConstants.ConcurrencyConflict()));
         }
         catch (Exception ex)
         {

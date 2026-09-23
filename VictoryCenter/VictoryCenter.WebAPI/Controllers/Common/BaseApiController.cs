@@ -51,6 +51,16 @@ public class BaseApiController : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, internalDetails);
         }
 
+        if (result.HasError<ConcurrencyConflictError>())
+        {
+            var conflictDetail = string.Join("; ", result.Errors.OfType<ConcurrencyConflictError>().Select(e => e.Message));
+            var conflictDetails = problemsFactory.CreateProblemDetails(
+                HttpContext,
+                statusCode: StatusCodes.Status409Conflict,
+                detail: conflictDetail);
+            return Conflict(conflictDetails);
+        }
+
         var errorDetail = string.Join("; ", result.Errors.Select(e => e.Message));
         var badRequestDetails = problemsFactory.CreateProblemDetails(
             HttpContext,

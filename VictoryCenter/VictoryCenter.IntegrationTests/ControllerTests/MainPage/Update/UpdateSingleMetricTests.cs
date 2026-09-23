@@ -44,7 +44,7 @@ public class UpdateSingleMetricTests : BaseTestClass
     }
 
     [Fact]
-    public async Task UpdateMetric_Conflict_ShouldReturnBadRequest()
+    public async Task UpdateMetric_Conflict_ShouldReturnConflict()
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var existingMetric = mainPage.ImpactStatistics!.Metrics.First();
@@ -57,7 +57,7 @@ public class UpdateSingleMetricTests : BaseTestClass
 
         var response = await PutRaw(existingMetric.Id, dto);
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [Fact]
