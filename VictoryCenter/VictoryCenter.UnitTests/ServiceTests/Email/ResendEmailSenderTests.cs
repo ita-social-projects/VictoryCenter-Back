@@ -30,6 +30,8 @@ public class ResendEmailSenderTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(sentMessage);
         Assert.Equal(email.From, sentMessage.From);
+        Assert.Equal(email.To, sentMessage.To.Select(address => address.Email));
+        Assert.Equal(email.ReplyTo, sentMessage.ReplyTo?.Select(address => address.Email));
         Assert.Equal(email.Subject, sentMessage.Subject);
         Assert.Equal(email.TextBody, sentMessage.TextBody);
         Assert.Equal(email.HtmlBody, sentMessage.HtmlBody);
