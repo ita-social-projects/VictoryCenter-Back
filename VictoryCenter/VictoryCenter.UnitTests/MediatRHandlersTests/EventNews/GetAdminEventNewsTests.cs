@@ -187,6 +187,41 @@ public class GetAdminEventNewsTests
     }
 
     [Fact]
+    public async Task GetByFilters_AppliesStatusFilterToListAndCountQueries()
+    {
+        // Arrange
+        var matchingItem = new EventNewsEntity { Id = 1, Status = Status.Published };
+        var otherItem = new EventNewsEntity { Id = 2, Status = Status.Draft };
+        QueryOptions<EventNewsEntity>? listOptions = null;
+        QueryOptions<EventNewsEntity>? countOptions = null;
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(options => listOptions = options)
+            .ReturnsAsync([matchingItem]);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(options => countOptions = options)
+            .ReturnsAsync(1);
+        _mapper.Setup(mapper => mapper.Map<EventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
+            .Returns([new EventNewsDto { Id = 1 }]);
+        var handler = new GetEventNewsByFiltersHandler(_mapper.Object, _repositoryWrapper.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new GetEventNewsByFiltersQuery(new EventNewsFilterDto { Status = Status.Published }),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(listOptions?.Filter);
+        Assert.NotNull(countOptions?.Filter);
+        Assert.True(listOptions.Filter.Compile()(matchingItem));
+        Assert.False(listOptions.Filter.Compile()(otherItem));
+        Assert.True(countOptions.Filter.Compile()(matchingItem));
+        Assert.False(countOptions.Filter.Compile()(otherItem));
+    }
+
+    [Fact]
     public async Task GetByFilters_WhenNoItemsMatch_ReturnsEmptyPage()
     {
         _repositoryWrapper

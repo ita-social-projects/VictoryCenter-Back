@@ -3,6 +3,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
 using VictoryCenter.BLL.Validators.EventNews;
+using Status = VictoryCenter.DAL.Enums.Status;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.EventNews;
 
@@ -13,7 +14,7 @@ public class GetEventNewsByFiltersQueryValidatorTests
     [Fact]
     public void Validate_WhenFilterValuesAreValid_HasNoErrors()
     {
-        var query = Query(offset: 0, limit: 20, categoryId: 1);
+        var query = Query(status: Status.Draft, offset: 0, limit: 20, categoryId: 1);
 
         var result = _validator.TestValidate(query);
 
@@ -59,7 +60,22 @@ public class GetEventNewsByFiltersQueryValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
     }
 
+    [Fact]
+    public void Validate_WhenStatusIsInvalid_HasExpectedError()
+    {
+        // Arrange
+        var invalidStatus = (Status)999; // Assuming 999 is not a valid value for the Status enum.
+
+        // Act
+        var result = _validator.TestValidate(Query(status: invalidStatus));
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(query => query.Filter.Status)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("Status"));
+    }
+
     private static GetEventNewsByFiltersQuery Query(
+        Status? status = null,
         int? offset = null,
         int? limit = null,
         long? categoryId = null)
@@ -67,6 +83,7 @@ public class GetEventNewsByFiltersQueryValidatorTests
         return new GetEventNewsByFiltersQuery(
             new EventNewsFilterDto
             {
+                Status = status,
                 Offset = offset,
                 Limit = limit,
                 CategoryId = categoryId
