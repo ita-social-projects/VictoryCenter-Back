@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -91,24 +92,80 @@ public class EventsPageControllerTests : BaseTestClass
     public async Task Put_WithInvalidContent_ReturnsBadRequest()
     {
         // Act
-        var blankTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+        var emptyTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/events-block-title",
             new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p> </p>" });
+        var shortTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"<p>{new string('a', EventsPageConstants.EventsBlockTitleMinLength - 1)}</p>" });
         var longTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/events-block-title",
-            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"<p>{new string('a', 101)}</p>" });
-        var blankDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"<p>{new string('a', EventsPageConstants.EventsBlockTitleMaxLength + 1)}</p>" });
+        var emptyDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/description",
             new UpdateEventsPageDescriptionDto { PageDescription = "<p> </p>" });
+        var shortDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = $"<p>{new string('a', EventsPageConstants.PageDescriptionMinLength - 1)}</p>" });
         var longDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/description",
-            new UpdateEventsPageDescriptionDto { PageDescription = $"<p>{new string('a', 1001)}</p>" });
+            new UpdateEventsPageDescriptionDto { PageDescription = $"<p>{new string('a', EventsPageConstants.PageDescriptionMaxLength + 1)}</p>" });
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, blankTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, emptyTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, shortTitleResponse.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, longTitleResponse.StatusCode);
-        Assert.Equal(HttpStatusCode.BadRequest, blankDescriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, emptyDescriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, shortDescriptionResponse.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, longDescriptionResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_WithBoundaryLengthContent_ReturnsOk()
+    {
+        // Act
+        var minTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"<p>{new string('a', EventsPageConstants.EventsBlockTitleMinLength)}</p>" });
+        var maxTitleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"<p>{new string('a', EventsPageConstants.EventsBlockTitleMaxLength)}</p>" });
+        var minDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = $"<p>{new string('a', EventsPageConstants.PageDescriptionMinLength)}</p>" });
+        var maxDescriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = $"<p>{new string('a', EventsPageConstants.PageDescriptionMaxLength)}</p>" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, minTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, maxTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, minDescriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, maxDescriptionResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_WithLeadingAndTrailingWhitespace_TrimsValuesBeforeSaving()
+    {
+        // Arrange
+        const string description = "<p>Valid description</p>";
+        const string title = "<p>Valid title</p>";
+
+        // Act
+        var descriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = $"   {description}   " });
+        var titleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"   {title}   " });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, descriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, titleResponse.StatusCode);
+        Fixture.DbContext.ChangeTracker.Clear();
+        var section = await Fixture.DbContext.EventsIntroSections.SingleAsync();
+        Assert.Equal(description, section.PageDescription);
+        Assert.Equal(title, section.EventsBlockTitle);
     }
 
     [Fact]
@@ -123,10 +180,10 @@ public class EventsPageControllerTests : BaseTestClass
         var getResponse = await Fixture.HttpClient.GetAsync(Endpoint);
         var descriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/description",
-            new UpdateEventsPageDescriptionDto { PageDescription = "<p>Missing</p>" });
+            new UpdateEventsPageDescriptionDto { PageDescription = "<p>Missing section</p>" });
         var titleResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/events-block-title",
-            new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p>Missing</p>" });
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p>Missing section</p>" });
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);

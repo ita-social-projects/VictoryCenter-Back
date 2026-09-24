@@ -29,7 +29,7 @@ public class UpdateEventsBlockTitleHandler : IRequestHandler<UpdateEventsBlockTi
             return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
         }
 
-        entity.EventsBlockTitle = request.Dto.EventsBlockTitle;
+        entity.EventsBlockTitle = request.Dto.EventsBlockTitle.Trim();
         await _repositoryWrapper.SaveChangesAsync();
 
         return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));

@@ -29,7 +29,7 @@ public class UpdateEventsPageDescriptionHandler : IRequestHandler<UpdateEventsPa
             return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
         }
 
-        entity.PageDescription = request.Dto.PageDescription;
+        entity.PageDescription = request.Dto.PageDescription.Trim();
         await _repositoryWrapper.SaveChangesAsync();
 
         return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));

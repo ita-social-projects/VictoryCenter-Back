@@ -12,8 +12,11 @@ public class UpdateEventsPageDescriptionDtoValidator : AbstractValidator<UpdateE
         RuleFor(x => x.PageDescription)
             .Must(value => !string.IsNullOrWhiteSpace(HtmlContentHelper.StripHtmlTags(value)))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEventsPageDescriptionDto.PageDescription)))
-            .Must(value => HtmlContentHelper.StripHtmlTags(value).Length <= 1000)
+            .Must(value => HtmlContentHelper.StripHtmlTags(value).Trim().Length >= EventsPageConstants.PageDescriptionMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
+                nameof(UpdateEventsPageDescriptionDto.PageDescription), EventsPageConstants.PageDescriptionMinLength))
+            .Must(value => HtmlContentHelper.StripHtmlTags(value).Trim().Length <= EventsPageConstants.PageDescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
-                nameof(UpdateEventsPageDescriptionDto.PageDescription), 1000));
+                nameof(UpdateEventsPageDescriptionDto.PageDescription), EventsPageConstants.PageDescriptionMaxLength));
     }
 }

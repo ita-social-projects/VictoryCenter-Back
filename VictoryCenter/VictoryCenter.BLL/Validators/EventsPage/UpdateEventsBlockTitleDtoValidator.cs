@@ -12,8 +12,11 @@ public class UpdateEventsBlockTitleDtoValidator : AbstractValidator<UpdateEvents
         RuleFor(x => x.EventsBlockTitle)
             .Must(value => !string.IsNullOrWhiteSpace(HtmlContentHelper.StripHtmlTags(value)))
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEventsBlockTitleDto.EventsBlockTitle)))
-            .Must(value => HtmlContentHelper.StripHtmlTags(value).Length <= 100)
+            .Must(value => HtmlContentHelper.StripHtmlTags(value).Trim().Length >= EventsPageConstants.EventsBlockTitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
+                nameof(UpdateEventsBlockTitleDto.EventsBlockTitle), EventsPageConstants.EventsBlockTitleMinLength))
+            .Must(value => HtmlContentHelper.StripHtmlTags(value).Trim().Length <= EventsPageConstants.EventsBlockTitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
-                nameof(UpdateEventsBlockTitleDto.EventsBlockTitle), 100));
+                nameof(UpdateEventsBlockTitleDto.EventsBlockTitle), EventsPageConstants.EventsBlockTitleMaxLength));
     }
 }
