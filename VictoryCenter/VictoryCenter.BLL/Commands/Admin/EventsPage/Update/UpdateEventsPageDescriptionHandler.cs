@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -29,7 +30,7 @@ public class UpdateEventsPageDescriptionHandler : IRequestHandler<UpdateEventsPa
             return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
         }
 
-        entity.PageDescription = request.Dto.PageDescription.Trim();
+        entity.PageDescription = HtmlContentHelper.NormalizeHtmlContent(request.Dto.PageDescription);
         await _repositoryWrapper.SaveChangesAsync();
 
         return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));

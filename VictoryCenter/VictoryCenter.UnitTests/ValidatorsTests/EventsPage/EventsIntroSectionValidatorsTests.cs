@@ -178,4 +178,56 @@ public class EventsIntroSectionValidatorsTests
 
         result.ShouldNotHaveAnyValidationErrors();
     }
+
+    [Theory]
+    [InlineData("abcde&amp;")]
+    [InlineData("<p>abcde&amp;</p>")]
+    public void Description_WhenHtmlEntityMakesVisibleTextTooShort_HasValidationError(string pageDescription)
+    {
+        var result = new UpdateEventsPageDescriptionDtoValidator().TestValidate(new UpdateEventsPageDescriptionDto
+        {
+            PageDescription = pageDescription,
+        });
+
+        result.ShouldHaveValidationErrorFor(x => x.PageDescription)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
+                nameof(UpdateEventsPageDescriptionDto.PageDescription), EventsPageConstants.PageDescriptionMinLength));
+    }
+
+    [Theory]
+    [InlineData("abcde&amp;")]
+    [InlineData("<p>abcde&amp;</p>")]
+    public void Title_WhenHtmlEntityMakesVisibleTextTooShort_HasValidationError(string eventsBlockTitle)
+    {
+        var result = new UpdateEventsBlockTitleDtoValidator().TestValidate(new UpdateEventsBlockTitleDto
+        {
+            EventsBlockTitle = eventsBlockTitle,
+        });
+
+        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
+                nameof(UpdateEventsBlockTitleDto.EventsBlockTitle), EventsPageConstants.EventsBlockTitleMinLength));
+    }
+
+    [Fact]
+    public void Description_WhenHtmlEntityMakesVisibleTextAtMaximum_HasNoValidationError()
+    {
+        var result = new UpdateEventsPageDescriptionDtoValidator().TestValidate(new UpdateEventsPageDescriptionDto
+        {
+            PageDescription = $"{new string('A', EventsPageConstants.PageDescriptionMaxLength - 1)}&amp;",
+        });
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Title_WhenHtmlEntityMakesVisibleTextAtMaximum_HasNoValidationError()
+    {
+        var result = new UpdateEventsBlockTitleDtoValidator().TestValidate(new UpdateEventsBlockTitleDto
+        {
+            EventsBlockTitle = $"{new string('A', EventsPageConstants.EventsBlockTitleMaxLength - 1)}&amp;",
+        });
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
 }

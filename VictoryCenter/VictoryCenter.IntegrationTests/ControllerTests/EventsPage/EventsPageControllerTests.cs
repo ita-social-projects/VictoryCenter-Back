@@ -149,15 +149,15 @@ public class EventsPageControllerTests : BaseTestClass
     {
         // Arrange
         const string description = "<p>Valid description</p>";
-        const string title = "<p>Valid title</p>";
+        const string title = "<p><strong>Valid title</strong></p>";
 
         // Act
         var descriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/description",
-            new UpdateEventsPageDescriptionDto { PageDescription = $"   {description}   " });
+            new UpdateEventsPageDescriptionDto { PageDescription = "<p>   Valid description   </p>" });
         var titleResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/events-block-title",
-            new UpdateEventsBlockTitleDto { EventsBlockTitle = $"   {title}   " });
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p><strong>   Valid title   </strong></p>" });
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, descriptionResponse.StatusCode);
@@ -166,6 +166,28 @@ public class EventsPageControllerTests : BaseTestClass
         var section = await Fixture.DbContext.EventsIntroSections.SingleAsync();
         Assert.Equal(description, section.PageDescription);
         Assert.Equal(title, section.EventsBlockTitle);
+    }
+
+    [Fact]
+    public async Task Put_WithHtmlEntitiesAtVisibleTextLimit_ReturnsOk()
+    {
+        // Act
+        var descriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto
+            {
+                PageDescription = $"{new string('a', EventsPageConstants.PageDescriptionMaxLength - 1)}&amp;",
+            });
+        var titleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto
+            {
+                EventsBlockTitle = $"{new string('a', EventsPageConstants.EventsBlockTitleMaxLength - 1)}&amp;",
+            });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, descriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, titleResponse.StatusCode);
     }
 
     [Fact]

@@ -62,4 +62,29 @@ public class HtmlContentHelperTests
         // Assert
         Assert.Equal("Line oneLine twoLine three", result);
     }
+
+    [Fact]
+    public void GetVisibleText_TextWithHtmlEntity_ShouldDecodeEntity()
+    {
+        // Act
+        var result = HtmlContentHelper.GetVisibleText("<p>abcde&amp;</p>");
+
+        // Assert
+        Assert.Equal("abcde&", result);
+    }
+
+    [Theory]
+    [InlineData("   Valid text   ", "Valid text")]
+    [InlineData("<p>   Valid text   </p>", "<p>Valid text</p>")]
+    [InlineData("<p><strong>   Valid text   </strong></p>", "<p><strong>Valid text</strong></p>")]
+    [InlineData("<p>   Valid&amp;text   </p>", "<p>Valid&amp;text</p>")]
+    [InlineData("<p>Valid  text</p>", "<p>Valid  text</p>")]
+    public void NormalizeHtmlContent_TextWithWhitespace_ShouldTrimOnlyVisibleTextEdges(string input, string expected)
+    {
+        // Act
+        var result = HtmlContentHelper.NormalizeHtmlContent(input);
+
+        // Assert
+        Assert.Equal(expected, result);
+    }
 }
