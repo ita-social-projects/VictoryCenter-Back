@@ -8,11 +8,6 @@ public class GetEventNewsByFiltersQueryValidator : AbstractValidator<GetEventNew
 {
     public GetEventNewsByFiltersQueryValidator()
     {
-        RuleFor(query => query.Filter.Status)
-            .IsInEnum()
-            .When(query => query.Filter.Status.HasValue)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("Status"));
-
         RuleFor(query => query.Filter.Offset)
             .GreaterThanOrEqualTo(0)
             .When(query => query.Filter.Offset.HasValue)
@@ -27,5 +22,10 @@ public class GetEventNewsByFiltersQueryValidator : AbstractValidator<GetEventNew
             .GreaterThan(0)
             .When(query => query.Filter.CategoryId.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
+
+        RuleFor(query => query.Filter.Status)
+            .IsInEnum()
+            .When(query => query.Filter.Status.HasValue)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("Status"));
     }
 }
