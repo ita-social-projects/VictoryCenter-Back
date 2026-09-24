@@ -20,5 +20,13 @@ public class ReportFundsExpendituresRecordsProfile : Profile
             .ForMember(dest => dest.Category, opt => opt.Ignore())
             .ForMember(dest => dest.AmountUah, opt => opt.Ignore())
             .ForMember(dest => dest.AmountUsd, opt => opt.Ignore());
+        CreateMap<BatchUpdateReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+            .ForMember(dest => dest.Type, opt => opt.Ignore())
+            .ForMember(dest => dest.ReportingYear, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.AmountUah, opt => opt.Ignore())
+            .ForMember(dest => dest.AmountUsd, opt => opt.Ignore());
     }
 }

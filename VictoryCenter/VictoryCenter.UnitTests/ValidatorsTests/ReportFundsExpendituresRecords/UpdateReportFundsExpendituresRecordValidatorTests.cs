@@ -13,8 +13,8 @@ public class UpdateReportFundsExpendituresRecordValidatorTests
 
     public UpdateReportFundsExpendituresRecordValidatorTests()
     {
-        _validator = new UpdateReportFundsExpendituresRecordValidator(
-            new BaseReportFundsExpendituresRecordValidator());
+        var recordDtoValidator = new UpdateReportFundsExpendituresRecordDtoValidator(new BaseReportFundsExpendituresRecordValidator());
+        _validator = new UpdateReportFundsExpendituresRecordValidator(recordDtoValidator);
     }
 
     [Fact]

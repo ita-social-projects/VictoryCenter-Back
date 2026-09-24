@@ -64,7 +64,8 @@ public class UpdateReportFundsExpendituresRecordTests
         _repositoryWrapperMock = new Mock<IRepositoryWrapper>();
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _helperMock = new Mock<IReportFundsExpendituresRecordHelper>();
-        _validator = new UpdateReportFundsExpendituresRecordValidator(new BaseReportFundsExpendituresRecordValidator());
+        var recordDtoValidator = new UpdateReportFundsExpendituresRecordDtoValidator(new BaseReportFundsExpendituresRecordValidator());
+        _validator = new UpdateReportFundsExpendituresRecordValidator(recordDtoValidator);
     }
 
     [Fact]
