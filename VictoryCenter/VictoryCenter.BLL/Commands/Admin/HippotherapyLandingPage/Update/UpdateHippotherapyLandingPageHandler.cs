@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -85,6 +86,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                 {
                     TrackImageChange(entity.IntroSection!.ImageId, dto.IntroSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.IntroSection, entity.IntroSection);
+                    MarkIntroSectionLocalizationsOutdated(entity.IntroSection);
 
                     _mapper.Map(dto.DescriptionSection, entity.DescriptionSection);
 
@@ -161,6 +163,14 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         {
             return Result.Fail<HippotherapyLandingPageDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(DAL.Entities.HippotherapyLandingPage)));
+        }
+    }
+
+    private static void MarkIntroSectionLocalizationsOutdated(HippotherapyLandingPageIntroSection introSection)
+    {
+        foreach (var loc in introSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
         }
     }
 
