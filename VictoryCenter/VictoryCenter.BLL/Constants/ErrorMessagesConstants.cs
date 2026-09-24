@@ -272,4 +272,7 @@ public static class ErrorMessagesConstants
     {
         return $"The sum of {propertyName} must not be equal to {value}.";
     }
+
+    public static string ConcurrencyConflict() =>
+   "Metric was modified by another user. Please refresh and try again.";
 }
