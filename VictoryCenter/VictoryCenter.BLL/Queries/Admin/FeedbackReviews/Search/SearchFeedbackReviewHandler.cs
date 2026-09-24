@@ -42,23 +42,22 @@ public class SearchFeedbackReviewHandler
             var dto = request.SearchDto;
             var query = dto.SearchQuery.ToLower();
 
-            var authorNameExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackReview>
-            {
-                TermSelector = review => (review.AuthorName ?? string.Empty).ToLower(),
-                TermValue = query,
-                SearchLogic = SearchLogic.Contains,
-            });
+            var searchExpression = _searchService.CreateSearchExpression(
+                CombineLogic.Or,
+                new SearchTerm<FeedbackReview>
+                {
+                    TermSelector = review => (review.AuthorName ?? string.Empty).ToLower(),
+                    TermValue = query,
+                    SearchLogic = SearchLogic.Contains,
+                },
+                new SearchTerm<FeedbackReview>
+                {
+                    TermSelector = review => (review.Text ?? string.Empty).ToLower(),
+                    TermValue = query,
+                    SearchLogic = SearchLogic.Contains,
+                });
 
-            var textExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackReview>
-            {
-                TermSelector = review => (review.Text ?? string.Empty).ToLower(),
-                TermValue = query,
-                SearchLogic = SearchLogic.Contains,
-            });
-
-            var searchExpression = authorNameExpression.Or(textExpression);
-
-            var reviews = await _repositoryWrapper.FeedbackReviewsRepository.GetAllAsync(new QueryOptions<FeedbackReview>
+            var reviewsTask = _repositoryWrapper.FeedbackReviewsRepository.GetAllAsync(new QueryOptions<FeedbackReview>
             {
                 Filter = searchExpression,
                 OrderByASC = review => review.Priority,
@@ -66,9 +65,16 @@ public class SearchFeedbackReviewHandler
                 Limit = dto.Limit is > 0 ? (int)dto.Limit : 0,
                 Include = query => query.Include(review => review.Localizations).ThenInclude(localization => localization.Language),
             });
-            var reviewDtos = _mapper.Map<List<FeedbackReviewDto>>(reviews);
-            var count = await _repositoryWrapper.FeedbackReviewsRepository.CountAsync(
+
+            var countTask = _repositoryWrapper.FeedbackReviewsRepository.CountAsync(
                 new QueryOptions<FeedbackReview> { Filter = searchExpression });
+
+            await Task.WhenAll(reviewsTask, countTask);
+
+            var reviews = await reviewsTask;
+            var count = await countTask;
+
+            var reviewDtos = _mapper.Map<List<FeedbackReviewDto>>(reviews);
 
             return Result.Ok(new PaginationResult<FeedbackReviewDto>(reviewDtos.ToArray(), count));
         }

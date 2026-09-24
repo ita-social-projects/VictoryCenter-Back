@@ -42,23 +42,22 @@ public class SearchFeedbackHistoryHandler
             var dto = request.SearchDto;
             var query = dto.SearchQuery.ToLower();
 
-            var titleExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackHistory>
-            {
-                TermSelector = history => (history.Title ?? string.Empty).ToLower(),
-                TermValue = query,
-                SearchLogic = SearchLogic.Contains,
-            });
+            var searchExpression = _searchService.CreateSearchExpression(
+                CombineLogic.Or,
+                new SearchTerm<FeedbackHistory>
+                {
+                    TermSelector = history => (history.Title ?? string.Empty).ToLower(),
+                    TermValue = query,
+                    SearchLogic = SearchLogic.Contains,
+                },
+                new SearchTerm<FeedbackHistory>
+                {
+                    TermSelector = history => (history.Story ?? string.Empty).ToLower(),
+                    TermValue = query,
+                    SearchLogic = SearchLogic.Contains,
+                });
 
-            var storyExpression = _searchService.CreateSearchExpression(new SearchTerm<FeedbackHistory>
-            {
-                TermSelector = history => (history.Story ?? string.Empty).ToLower(),
-                TermValue = query,
-                SearchLogic = SearchLogic.Contains,
-            });
-
-            var searchExpression = titleExpression.Or(storyExpression);
-
-            var histories = await _repositoryWrapper.FeedbackHistoriesRepository.GetAllAsync(new QueryOptions<FeedbackHistory>
+            var historiesTask = _repositoryWrapper.FeedbackHistoriesRepository.GetAllAsync(new QueryOptions<FeedbackHistory>
             {
                 Include = query => query
                     .Include(history => history.Image!)
@@ -69,9 +68,16 @@ public class SearchFeedbackHistoryHandler
                 Offset = dto.Offset is > 0 ? (int)dto.Offset : 0,
                 Limit = dto.Limit is > 0 ? (int)dto.Limit : 0,
             });
-            var historyDtos = _mapper.Map<List<FeedbackHistoryDto>>(histories);
-            var count = await _repositoryWrapper.FeedbackHistoriesRepository.CountAsync(
+
+            var countTask = _repositoryWrapper.FeedbackHistoriesRepository.CountAsync(
                 new QueryOptions<FeedbackHistory> { Filter = searchExpression });
+
+            await Task.WhenAll(historiesTask, countTask);
+
+            var histories = await historiesTask;
+            var count = await countTask;
+
+            var historyDtos = _mapper.Map<List<FeedbackHistoryDto>>(histories);
 
             return Result.Ok(new PaginationResult<FeedbackHistoryDto>(historyDtos.ToArray(), count));
         }

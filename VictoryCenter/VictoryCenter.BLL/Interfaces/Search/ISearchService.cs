@@ -13,6 +13,7 @@ public interface ISearchService<T>
     /// <summary>
     /// Builds an expression that represents a combination of search terms used to filter entities.
     /// </summary>
+    /// <param name="combineLogic">The logic used to combine multiple search terms.</param>
     /// <param name="searchTerms">
     /// One or more <see cref="SearchTerm{T}"/> instances that define which properties to search,
     /// the values to match, and the logic to use (e.g., exact match or prefix match).
@@ -22,5 +23,14 @@ public interface ISearchService<T>
     /// An expression of type <see cref="Expression{Func{T, bool}}"/> that can be used for filtering.
     /// Returns an expression that always evaluates to true if no valid terms are provided.
     /// </returns>
+    Expression<Func<T, bool>> CreateSearchExpression(
+        CombineLogic combineLogic,
+        params SearchTerm<T>[] searchTerms);
+
+    /// <summary>
+    /// Builds an expression using AND logic to combine search terms.
+    /// </summary>
+    /// <param name="searchTerms">The search terms to combine.</param>
+    /// <returns>An expression that combines the search terms using AND logic.</returns>
     Expression<Func<T, bool>> CreateSearchExpression(params SearchTerm<T>[] searchTerms);
 }
