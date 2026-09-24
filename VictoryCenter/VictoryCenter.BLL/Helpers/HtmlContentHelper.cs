@@ -32,11 +32,6 @@ public static class HtmlContentHelper
         var htmlDoc = new HtmlDocument();
         htmlDoc.LoadHtml(input);
 
-        if (htmlDoc.DocumentNode.SelectNodes("//*") == null)
-        {
-            return input.Trim();
-        }
-
         var textNodes = htmlDoc.DocumentNode.SelectNodes("//text()")?.OfType<HtmlTextNode>().ToList();
         if (textNodes == null || textNodes.Count == 0)
         {

@@ -78,6 +78,7 @@ public class HtmlContentHelperTests
     [InlineData("<p>   Valid text   </p>", "<p>Valid text</p>")]
     [InlineData("<p><strong>   Valid text   </strong></p>", "<p><strong>Valid text</strong></p>")]
     [InlineData("<p>   Valid&amp;text   </p>", "<p>Valid&amp;text</p>")]
+    [InlineData("&nbsp;Valid text&nbsp;", "Valid text")]
     [InlineData("<p>Valid  text</p>", "<p>Valid  text</p>")]
     public void NormalizeHtmlContent_TextWithWhitespace_ShouldTrimOnlyVisibleTextEdges(string input, string expected)
     {
