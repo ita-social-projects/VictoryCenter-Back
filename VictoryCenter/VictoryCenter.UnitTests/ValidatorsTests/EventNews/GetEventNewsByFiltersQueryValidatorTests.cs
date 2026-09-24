@@ -64,7 +64,7 @@ public class GetEventNewsByFiltersQueryValidatorTests
     public void Validate_WhenStatusIsInvalid_HasExpectedError()
     {
         // Arrange
-        var invalidStatus = (Status)999; // Assuming 999 is not a valid value for the Status enum.
+        var invalidStatus = Enum.GetValues<Status>().Max() + 1;
 
         // Act
         var result = _validator.TestValidate(Query(status: invalidStatus));
