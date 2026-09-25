@@ -46,7 +46,7 @@ public class BatchUpdateReportFundsExpendituresRecordDtoValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    private BatchUpdateReportFundsExpendituresRecordDto GetValidDto() => new()
+    private static BatchUpdateReportFundsExpendituresRecordDto GetValidDto() => new()
     {
         CategoryId = 1,
         Amount = 100.25m,

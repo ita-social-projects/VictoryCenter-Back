@@ -63,8 +63,8 @@ public static class ReportRecordsValidationExtensions
     {
         return ruleBuilder.Must(e =>
         {
-            var enumerable = e as long[] ?? e.ToArray();
-            return enumerable.Count() == enumerable.Distinct().Count();
+            var enumerable = e as long[] ?? [.. e];
+            return enumerable.Length == enumerable.Distinct().Count();
         })
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(collection));
     }

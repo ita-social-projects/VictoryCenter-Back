@@ -81,9 +81,9 @@ public class BatchSaveReportFundsExpendituresRecordTests
 
         _batchDto = new BatchSaveReportFundsExpendituresRecordsDto
         {
-            RecordsToCreate = new List<CreateReportFundsExpendituresRecordDto> { _createDto },
-            RecordsToUpdate = new List<BatchUpdateReportFundsExpendituresRecordDto> { _updateDto },
-            RecordIdsToDelete = new List<long> { _deleteRecordId }
+            RecordsToCreate = [_createDto],
+            RecordsToUpdate = [_updateDto],
+            RecordIdsToDelete = [_deleteRecordId]
         };
     }
 
@@ -320,7 +320,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
             _categoryForUpdate
         };
 
-        SetupDependencies(existingRecords, existingCategories, new List<ReportFundsExpendituresRecord>());
+        SetupDependencies(existingRecords, existingCategories, []);
 
         _repositoryWrapperMock
             .Setup(w => w.SaveChangesAsync())
@@ -341,7 +341,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(result.Errors, e =>
-            e.Message == ErrorMessagesConstants.FailedToSaveEntitiesInDatabase(typeof(ReportFundsExpendituresRecord)));
+            e.Message == ErrorMessagesConstants.FailedToSaveEntitiesInDatabase(nameof(ReportFundsExpendituresRecord)));
 
         _mediatorMock.Verify(m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -352,15 +352,15 @@ public class BatchSaveReportFundsExpendituresRecordTests
         // Arrange
         var invalidBatchDto = new BatchSaveReportFundsExpendituresRecordsDto
         {
-            RecordsToCreate = new List<CreateReportFundsExpendituresRecordDto>
-            {
+            RecordsToCreate =
+            [
                 new() { CategoryId = 1, Type = ReportFundsExpendituresType.Income, Amount = 100 }
-            },
-            RecordsToUpdate = new List<BatchUpdateReportFundsExpendituresRecordDto>
-            {
+            ],
+            RecordsToUpdate =
+            [
                 new() { Id = 2, CategoryId = 1, Amount = 200 }
-            },
-            RecordIdsToDelete = new List<long>()
+            ],
+            RecordIdsToDelete = []
         };
 
         var handler = new BatchSaveReportFundsExpendituresRecordHandler(

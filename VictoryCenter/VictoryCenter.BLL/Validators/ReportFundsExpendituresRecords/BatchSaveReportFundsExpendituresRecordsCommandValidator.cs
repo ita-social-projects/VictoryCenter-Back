@@ -21,40 +21,61 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidator
 
         When(command => command.BatchSaveReportFundsExpendituresRecordsDto != null, () =>
         {
-            RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto)
-                .Must(dto => dto.RecordsToCreate.Count > 0
-                    || dto.RecordsToUpdate.Count > 0
-                    || dto.RecordIdsToDelete.Count > 0)
-                .WithMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord())
-                .Must(dto => !dto.RecordsToUpdate
-                    .Select(r => r.Id)
-                    .Intersect(dto.RecordIdsToDelete)
-                    .Any())
-                .WithMessage(ErrorMessagesConstants.CollectionsCannotContainIntersectingIds(
-                    nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate),
+            RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)
+                .NotNull()
+                .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                    nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)));
+
+            RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)
+                .NotNull()
+                .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
+                    nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)));
+
+            RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
+                .NotNull()
+                .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                     nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)));
 
-            RuleForEach(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)
-                .SetValidator(createDtoValidator);
-
-            RuleForEach(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)
-                .SetValidator(updateDtoValidator);
-
-            RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate.Select(u => u.Id))
-                .MustHaveUniqueIds(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate));
-
-            RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate
-                    .Select(u => u.CategoryId)
-                    .Concat(command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate.Select(c => c.CategoryId)))
-                .MustHaveUniqueIds(nameof(ReportFundsExpendituresRecord.CategoryId));
-
-            When(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete.Count > 0, () =>
+            When(
+                command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate != null &&
+                            command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate != null &&
+                            command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete != null, () =>
             {
-                RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
-                    .MustBeValidBulkDeleteIds(
-                        nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete),
-                        nameof(ReportFundsExpendituresRecord.Id),
-                        ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete);
+                RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto)
+                    .Must(dto => dto.RecordsToCreate.Count > 0
+                        || dto.RecordsToUpdate.Count > 0
+                        || dto.RecordIdsToDelete.Count > 0)
+                    .WithMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord)
+                    .Must(dto => !dto.RecordsToUpdate
+                        .Select(r => r.Id)
+                        .Intersect(dto.RecordIdsToDelete)
+                        .Any())
+                    .WithMessage(ErrorMessagesConstants.CollectionsCannotContainIntersectingIds(
+                        nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate),
+                        nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)));
+
+                RuleForEach(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)
+                    .SetValidator(createDtoValidator);
+
+                RuleForEach(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)
+                    .SetValidator(updateDtoValidator);
+
+                RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate.Select(u => u.Id))
+                    .MustHaveUniqueIds(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate));
+
+                RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate
+                        .Select(u => u.CategoryId)
+                        .Concat(command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate.Select(c => c.CategoryId)))
+                    .MustHaveUniqueIds(nameof(ReportFundsExpendituresRecord.CategoryId));
+
+                When(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete.Count > 0, () =>
+                {
+                    RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
+                        .MustBeValidBulkDeleteIds(
+                            nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete),
+                            nameof(ReportFundsExpendituresRecord.Id),
+                            ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete);
+                });
             });
         });
     }

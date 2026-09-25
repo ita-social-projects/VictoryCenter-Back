@@ -37,6 +37,36 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto);
     }
 
+    [Theory]
+    [InlineData(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate))]
+    [InlineData(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate))]
+    [InlineData(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete))]
+    public void Validate_ShouldHaveError_WhenAnyBatchCollectionIsNull(string nullCollectionName)
+    {
+        // Arrange
+        var dto = new BatchSaveReportFundsExpendituresRecordsDto
+        {
+            RecordsToCreate = nullCollectionName == nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)
+                ? null!
+                : [],
+            RecordsToUpdate = nullCollectionName == nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)
+                ? null!
+                : [],
+            RecordIdsToDelete = nullCollectionName == nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
+                ? null!
+                : []
+        };
+
+        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor($"BatchSaveReportFundsExpendituresRecordsDto.{nullCollectionName}")
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nullCollectionName));
+    }
+
     [Fact]
     public void Validate_ShouldHaveError_WhenRecordsToUpdateHaveDuplicateIds()
     {
@@ -159,7 +189,7 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
-            .WithErrorMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord());
+            .WithErrorMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord);
     }
 
     [Fact]

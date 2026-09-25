@@ -4,6 +4,8 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
 {
+    public const string BatchOperationMustContainAtLeastOneRecord = "Batch operation must contain at least one record to create, update, or delete.";
+
     public static readonly string UnknownStatusValue = "Unknown status value";
     public static readonly string OnlyDigitsExpression = "^[0-9]+$";
 
@@ -263,21 +265,14 @@ public static class ErrorMessagesConstants
         return "Cannot cancel changes because no previous published version was found. Please save and publish the report first.";
     }
 
-    public static string BatchOperationMustContainAtLeastOneRecord()
-    {
-        return "Batch operation must contain at least one record to create, update, or delete.";
-    }
-
     public static string CollectionsCannotContainIntersectingIds(string firstCollection, string secondCollection)
     {
         return $"{firstCollection} and {secondCollection} cannot contain intersecting id(s).";
     }
 
-    public static string FailedToSaveEntitiesInDatabase(Type entityType)
+    public static string FailedToSaveEntitiesInDatabase(string entityName)
     {
-        ArgumentNullException.ThrowIfNull(entityType);
-
-        return $"Failed to save {entityType.Name} entities in the database";
+        return $"Failed to save {entityName} entities in the database";
     }
 
     public static string SumMustNotBeNegative(string propertyName)
