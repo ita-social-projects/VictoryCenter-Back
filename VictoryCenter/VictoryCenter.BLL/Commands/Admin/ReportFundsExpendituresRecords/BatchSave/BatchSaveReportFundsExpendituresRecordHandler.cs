@@ -112,7 +112,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private async Task<Result<Unit>> ValidateCategoryRulesAsync(
         BatchSaveReportFundsExpendituresRecordsDto dto,
-        Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
+        IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
         var recordsToValidate = dto.RecordsToCreate
                 .Select(c => (c.CategoryId, c.Type))
@@ -156,7 +156,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
     }
 
     private static Result<Unit> ValidateExistingRecords(
-        IEnumerable<long> targetIds, Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
+        IEnumerable<long> targetIds, IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
         var nonExistingRecordIds = targetIds
             .Where(id => !existingRecordsDict.ContainsKey(id))
@@ -174,7 +174,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private static Result<Unit> EvaluateCategoryRules(
         IEnumerable<(long CategoryId, ReportFundsExpendituresType Type)> recordsToValidate,
-        Dictionary<long, ReportFundsExpendituresCategory> categoriesDict,
+        IDictionary<long, ReportFundsExpendituresCategory> categoriesDict,
         IEnumerable<ReportFundsExpendituresRecord> duplicateRecordsInCategory)
     {
         var nonExistingCategoryIds = recordsToValidate
@@ -211,7 +211,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private void HandleDeletions(
         BatchSaveReportFundsExpendituresRecordsDto dto,
-        Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
+        IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
         if (dto.RecordIdsToDelete.Count == 0)
         {
@@ -227,7 +227,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private void HandleUpdates(
         BatchSaveReportFundsExpendituresRecordsDto dto,
-        Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict,
+        IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict,
         decimal exchangeRate)
     {
         if (dto.RecordsToUpdate.Count == 0)
