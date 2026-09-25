@@ -344,6 +344,34 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenDescriptionSectionUpdated_ShouldMarkExistingDescriptionLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.DescriptionSection!.Localizations =
+        [
+            new HippotherapyLandingPageDescriptionSectionLocalization
+            {
+                EntityId = existing.DescriptionSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.DescriptionSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
     public async Task Handle_WhenReorderExceptionOccurs_ShouldReturnReorderFailResult()
     {
         // Arrange
