@@ -6,6 +6,8 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
+using VictoryCenter.BLL.Queries.Admin.VideoReviews.Search;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.WebAPI.Controllers.Common;
 using VictoryCenter.BLL.Commands.Admin.VideoReviews.Reorder;
 
@@ -20,6 +22,15 @@ public class VideoReviewsController : AuthorizedApiController
         [FromQuery] TranslationStatusFilter? translationStatusFilter = null)
     {
         return HandleResult(await Mediator.Send(new GetAllVideoReviewsQuery(archived, translationStatusFilter)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(PaginationResult<VideoReviewDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Search([FromQuery] SearchVideoReviewDto searchDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchVideoReviewQuery(searchDto)));
     }
 
     [HttpPost]

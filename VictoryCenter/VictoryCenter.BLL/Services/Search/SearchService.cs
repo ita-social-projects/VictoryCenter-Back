@@ -8,7 +8,9 @@ public class SearchService<T> : ISearchService<T>
     where T : class
 {
     // Generic method to create any search expressions
-    public Expression<Func<T, bool>> CreateSearchExpression(params SearchTerm<T>[] searchTerms)
+    public Expression<Func<T, bool>> CreateSearchExpression(
+        CombineLogic combineLogic,
+        params SearchTerm<T>[] searchTerms)
     {
         // Represents the value e in e => e.Name
         var parameter = Expression.Parameter(typeof(T), "e");
@@ -43,10 +45,24 @@ public class SearchService<T> : ISearchService<T>
                 _ => throw new NotSupportedException($"Unsupported search logic: {term.SearchLogic}"),
             };
 
-            // TODO: implement OR/AND logic
-            combined = combined == null ? body : Expression.AndAlso(combined, body);
+            if (combined == null)
+            {
+                combined = body;
+            }
+            else
+            {
+                combined = combineLogic switch
+                {
+                    CombineLogic.And => Expression.AndAlso(combined, body),
+                    CombineLogic.Or => Expression.OrElse(combined, body),
+                    _ => throw new NotSupportedException($"Unsupported combine logic: {combineLogic}")
+                };
+            }
         }
 
         return combined == null ? (e) => true : Expression.Lambda<Func<T, bool>>(combined, parameter);
     }
+
+    public Expression<Func<T, bool>> CreateSearchExpression(params SearchTerm<T>[] searchTerms)
+        => CreateSearchExpression(CombineLogic.And, searchTerms);
 }
