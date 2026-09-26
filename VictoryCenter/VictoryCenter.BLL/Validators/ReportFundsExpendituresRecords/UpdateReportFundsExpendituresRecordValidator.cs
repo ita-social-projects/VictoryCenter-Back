@@ -7,10 +7,10 @@ public class UpdateReportFundsExpendituresRecordValidator
     : AbstractValidator<UpdateReportFundsExpendituresRecordCommand>
 {
     public UpdateReportFundsExpendituresRecordValidator(
-        BaseReportFundsExpendituresRecordValidator baseRecordValidator)
+        UpdateReportFundsExpendituresRecordDtoValidator recordDtoValidator)
     {
         RuleFor(command => command.UpdateReportFundsExpendituresRecordDto)
             .NotNull()
-            .SetValidator(baseRecordValidator);
+            .SetValidator(recordDtoValidator);
     }
 }

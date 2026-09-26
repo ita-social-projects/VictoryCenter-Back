@@ -4,6 +4,8 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
 {
+    public static readonly string BatchOperationMustContainAtLeastOneRecord = "Batch operation must contain at least one record to create, update, or delete.";
+
     public static readonly string UnknownStatusValue = "Unknown status value";
     public static readonly string OnlyDigitsExpression = "^[0-9]+$";
 
@@ -261,6 +263,11 @@ public static class ErrorMessagesConstants
     public static string CannotCancelChangesNoBackupFound()
     {
         return "Cannot cancel changes because no previous published version was found. Please save and publish the report first.";
+    }
+
+    public static string FailedToSaveEntitiesInDatabase(string entityName)
+    {
+        return $"Failed to save {entityName} entities in the database";
     }
 
     public static string SumMustNotBeNegative(string propertyName)

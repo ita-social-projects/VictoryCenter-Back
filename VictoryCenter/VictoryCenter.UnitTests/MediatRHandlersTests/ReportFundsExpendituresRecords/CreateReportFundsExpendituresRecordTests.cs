@@ -73,9 +73,10 @@ public class CreateReportFundsExpendituresRecordTests
         _recordsRepositoryMock = new Mock<IReportFundsExpendituresRecordsRepository>();
         _categoriesRepositoryMock = new Mock<IReportFundsExpendituresCategoriesRepository>();
         _helperMock = new Mock<IReportFundsExpendituresRecordHelper>();
-        _validator = new CreateReportFundsExpendituresRecordValidator(
+        var recordDtoValidator = new CreateReportFundsExpendituresRecordDtoValidator(
             new BaseReportFundsExpendituresRecordValidator(),
             TimeProvider.System);
+        _validator = new CreateReportFundsExpendituresRecordValidator(recordDtoValidator);
     }
 
     [Fact]

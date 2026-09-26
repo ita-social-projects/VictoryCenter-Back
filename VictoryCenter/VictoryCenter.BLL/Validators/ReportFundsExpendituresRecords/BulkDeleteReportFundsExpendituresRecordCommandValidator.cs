@@ -1,6 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.BulkDelete;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
@@ -10,20 +11,10 @@ public class BulkDeleteReportFundsExpendituresRecordCommandValidator
 {
     public BulkDeleteReportFundsExpendituresRecordCommandValidator()
     {
-        RuleForEach(e => e.Ids)
-            .GreaterThan(0)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReportFundsExpendituresRecord.Id)));
-
         RuleFor(e => e.Ids)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
-                nameof(BulkDeleteReportFundsExpendituresRecordCommand.Ids)))
-            .Must(e => e.Count() <= ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete)
-            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+            .MustBeValidBulkDeleteIds(
                 nameof(BulkDeleteReportFundsExpendituresRecordCommand.Ids),
-                ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete))
-            .Must(e => e.Distinct().Count() == e.Count())
-            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
-                nameof(BulkDeleteReportFundsExpendituresRecordCommand.Ids)));
+                nameof(ReportFundsExpendituresRecord.Id),
+                ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete);
     }
 }
