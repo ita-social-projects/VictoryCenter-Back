@@ -208,7 +208,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
 
         Assert.Contains(result.Errors, e => e.Message == expectedErrorMessage);
 
-        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -255,7 +255,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
         Assert.False(result.IsSuccess);
         Assert.Contains(result.Errors, e => e.Message == ReportFundsExpendituresRecordConstants.CategoryTypeMustMatchRecordType);
 
-        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -299,7 +299,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
         Assert.False(result.IsSuccess);
         Assert.Contains(result.Errors, e => e.Message == ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
 
-        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }

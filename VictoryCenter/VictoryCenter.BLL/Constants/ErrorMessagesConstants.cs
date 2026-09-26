@@ -265,11 +265,6 @@ public static class ErrorMessagesConstants
         return "Cannot cancel changes because no previous published version was found. Please save and publish the report first.";
     }
 
-    public static string CollectionsCannotContainIntersectingIds(string firstCollection, string secondCollection)
-    {
-        return $"{firstCollection} and {secondCollection} cannot contain intersecting id(s).";
-    }
-
     public static string FailedToSaveEntitiesInDatabase(string entityName)
     {
         return $"Failed to save {entityName} entities in the database";

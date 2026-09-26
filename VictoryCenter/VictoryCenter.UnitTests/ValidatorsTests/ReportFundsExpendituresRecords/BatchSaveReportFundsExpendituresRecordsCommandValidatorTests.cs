@@ -210,6 +210,8 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
             RecordIdsToDelete = [intersectingId, 4, 5]
         };
 
+        List<long> conflictingIds = [intersectingId];
+
         var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
 
         // Act
@@ -217,8 +219,7 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionsCannotContainIntersectingIds(
-                nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate),
-                nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)));
+            .WithErrorMessage(ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(
+                conflictingIds, typeof(ReportFundsExpendituresRecord)));
     }
 }

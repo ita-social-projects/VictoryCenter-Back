@@ -79,13 +79,13 @@ public class BatchSaveReportFundsExpendituresRecordHandler
                 return existingRecordsValidationResult;
             }
 
+            await using var scope = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
+
             var categoriesValidationResult = await ValidateCategoryRulesAsync(dto, existingRecordsDict);
             if (categoriesValidationResult.IsFailed)
             {
                 return categoriesValidationResult;
             }
-
-            await using var scope = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
             decimal exchangeRate = settingsResult.Value.ExchangeRate;
 
@@ -112,7 +112,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private async Task<Result<Unit>> ValidateCategoryRulesAsync(
         BatchSaveReportFundsExpendituresRecordsDto dto,
-        IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
+        Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
         var recordsToValidate = dto.RecordsToCreate
                 .Select(c => (c.CategoryId, c.Type))
@@ -156,7 +156,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
     }
 
     private static Result<Unit> ValidateExistingRecords(
-        IEnumerable<long> targetIds, IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
+        IEnumerable<long> targetIds, Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
         var nonExistingRecordIds = targetIds
             .Where(id => !existingRecordsDict.ContainsKey(id))
@@ -174,7 +174,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private static Result<Unit> EvaluateCategoryRules(
         IEnumerable<(long CategoryId, ReportFundsExpendituresType Type)> recordsToValidate,
-        IDictionary<long, ReportFundsExpendituresCategory> categoriesDict,
+        Dictionary<long, ReportFundsExpendituresCategory> categoriesDict,
         IEnumerable<ReportFundsExpendituresRecord> duplicateRecordsInCategory)
     {
         var nonExistingCategoryIds = recordsToValidate
@@ -211,7 +211,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private void HandleDeletions(
         BatchSaveReportFundsExpendituresRecordsDto dto,
-        IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
+        Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
         if (dto.RecordIdsToDelete.Count == 0)
         {
@@ -227,7 +227,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
     private void HandleUpdates(
         BatchSaveReportFundsExpendituresRecordsDto dto,
-        IDictionary<long, ReportFundsExpendituresRecord> existingRecordsDict,
+        Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict,
         decimal exchangeRate)
     {
         if (dto.RecordsToUpdate.Count == 0)

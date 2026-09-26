@@ -46,14 +46,21 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidator
                         || dto.RecordsToUpdate.Count > 0
                         || dto.RecordIdsToDelete.Count > 0)
                     .WithMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord)
-                    .Must(dto => !dto.RecordsToUpdate
-                        .Select(r => r.Id)
-                        .Intersect(dto.RecordIdsToDelete)
-                        .Any())
-                    .WithMessage(ErrorMessagesConstants.CollectionsCannotContainIntersectingIds(
-                        nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate),
-                        nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)));
+                    .Custom((dto, context) =>
+                    {
+                        var conflictingIds = dto.RecordsToUpdate
+                            .Select(r => r.Id)
+                            .Intersect(dto.RecordIdsToDelete)
+                            .ToList();
 
+                        if (conflictingIds.Count > 0)
+                        {
+                            var errorMessage = ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(
+                                conflictingIds, typeof(ReportFundsExpendituresRecord));
+
+                            context.AddFailure(errorMessage);
+                        }
+                    });
                 RuleForEach(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)
                     .SetValidator(createDtoValidator);
 
