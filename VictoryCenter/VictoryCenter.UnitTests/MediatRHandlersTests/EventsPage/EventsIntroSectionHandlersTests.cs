@@ -103,6 +103,44 @@ public class EventsIntroSectionHandlersTests
         VerifyTrackedUpdate(entity);
     }
 
+    [Fact]
+    public async Task ToggleTitle_Handle_TogglesTitleVisibility()
+    {
+        // Arrange
+        var entity = CreateEntity();
+        var originalVisibility = entity.IsEventsBlockTitleHidden;
+        SetupTrackedEntity(entity);
+        _mapperMock.Setup(mapper => mapper.Map<EventsIntroSectionDto>(entity)).Returns(CreateDto(entity));
+        var handler = new ToggleEventsBlockTitleVisibilityHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new ToggleEventsBlockTitleVisibilityCommand(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(!originalVisibility, entity.IsEventsBlockTitleHidden);
+        VerifyTrackedUpdate(entity);
+    }
+
+    [Fact]
+    public async Task ToggleDescription_Handle_TogglesDescriptionVisibility()
+    {
+        // Arrange
+        var entity = CreateEntity();
+        var originalVisibility = entity.IsPageDescriptionHidden;
+        SetupTrackedEntity(entity);
+        _mapperMock.Setup(mapper => mapper.Map<EventsIntroSectionDto>(entity)).Returns(CreateDto(entity));
+        var handler = new ToggleEventsPageDescriptionVisibilityHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new ToggleEventsPageDescriptionVisibilityCommand(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(!originalVisibility, entity.IsPageDescriptionHidden);
+        VerifyTrackedUpdate(entity);
+    }
+
     private void SetupTrackedEntity(EventsIntroSection entity)
     {
         _repositoryMock
@@ -124,6 +162,8 @@ public class EventsIntroSectionHandlersTests
         Id = 1,
         EventsBlockTitle = "<p>Original title</p>",
         PageDescription = "<p>Original description</p>",
+        IsEventsBlockTitleHidden = false,
+        IsPageDescriptionHidden = false,
         CreatedAt = DateTimeOffset.UtcNow,
     };
 
@@ -131,5 +171,7 @@ public class EventsIntroSectionHandlersTests
     {
         EventsBlockTitle = entity.EventsBlockTitle,
         PageDescription = entity.PageDescription,
+        IsEventsBlockTitleHidden = entity.IsEventsBlockTitleHidden,
+        IsPageDescriptionHidden = entity.IsPageDescriptionHidden,
     };
 }
