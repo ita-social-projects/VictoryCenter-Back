@@ -94,7 +94,10 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     _mapper.Map(dto.QuoteSection, entity.QuoteSection);
 
                     _mapper.Map(dto.HippoventionSection, entity.HippoventionSection);
-                    MarkHippoventionSectionLocalizationsOutdated(entity.HippoventionSection!);
+                    if (entity.HippoventionSection is not null)
+                    {
+                        MarkHippoventionSectionLocalizationsOutdated(entity.HippoventionSection);
+                    }
 
                     TrackImageChange(entity.HippoventionCenterSection!.ImageId, dto.HippoventionCenterSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.HippoventionCenterSection, entity.HippoventionCenterSection);

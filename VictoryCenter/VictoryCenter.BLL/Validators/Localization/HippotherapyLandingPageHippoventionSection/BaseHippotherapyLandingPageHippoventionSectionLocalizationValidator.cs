@@ -2,6 +2,7 @@ using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageHippoventionSection;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.Localization.HippotherapyLandingPageHippoventionSection;
 
@@ -14,12 +15,12 @@ public class BaseHippotherapyLandingPageHippoventionSectionLocalizationValidator
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                 nameof(UpdateHippotherapyLandingPageHippoventionSectionLocalizationDto.Title)))
-            .MinimumLength(HippotherapyLandingPageHippoventionSectionLocalizationConstants.TitleMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length >= HippotherapyLandingPageHippoventionSectionLocalizationConstants.TitleMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                 nameof(UpdateHippotherapyLandingPageHippoventionSectionLocalizationDto.Title),
                 HippotherapyLandingPageHippoventionSectionLocalizationConstants.TitleMinLength))
-            .MaximumLength(HippotherapyLandingPageHippoventionSectionLocalizationConstants.TitleMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length <= HippotherapyLandingPageHippoventionSectionLocalizationConstants.TitleMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
                 nameof(UpdateHippotherapyLandingPageHippoventionSectionLocalizationDto.Title),
                 HippotherapyLandingPageHippoventionSectionLocalizationConstants.TitleMaxLength));
 
@@ -27,12 +28,12 @@ public class BaseHippotherapyLandingPageHippoventionSectionLocalizationValidator
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                 nameof(UpdateHippotherapyLandingPageHippoventionSectionLocalizationDto.Description)))
-            .MinimumLength(HippotherapyLandingPageHippoventionSectionLocalizationConstants.DescriptionMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length >= HippotherapyLandingPageHippoventionSectionLocalizationConstants.DescriptionMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                 nameof(UpdateHippotherapyLandingPageHippoventionSectionLocalizationDto.Description),
                 HippotherapyLandingPageHippoventionSectionLocalizationConstants.DescriptionMinLength))
-            .MaximumLength(HippotherapyLandingPageHippoventionSectionLocalizationConstants.DescriptionMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length <= HippotherapyLandingPageHippoventionSectionLocalizationConstants.DescriptionMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
                 nameof(UpdateHippotherapyLandingPageHippoventionSectionLocalizationDto.Description),
                 HippotherapyLandingPageHippoventionSectionLocalizationConstants.DescriptionMaxLength));
     }

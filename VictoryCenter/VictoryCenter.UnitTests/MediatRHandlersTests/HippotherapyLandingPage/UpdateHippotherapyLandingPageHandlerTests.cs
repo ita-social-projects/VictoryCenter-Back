@@ -372,6 +372,24 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenExistingHippoventionSectionIsNull_ShouldNotThrowAndUpdatePage()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        existing.HippoventionSection = null;
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _repositoryWrapperMock.Verify(x => x.HippotherapyLandingPagesRepository.Update(existing), Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_WhenReorderExceptionOccurs_ShouldReturnReorderFailResult()
     {
         // Arrange
