@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.WebAPI.Factories;
 
 namespace VictoryCenter.UnitTests.MiddlewareTests;
@@ -111,5 +114,97 @@ public class CustomProblemDetailsFactoryTests
 
         Assert.Contains("Error A occurred", validationPD.Errors["FieldA"]);
         Assert.Contains("Error B occurred", validationPD.Errors["FieldB"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_NonNumericAmount_ReturnsOnlyDigitsErrorWithoutBodyRequired()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("dto", "The dto field is required.");
+        ms.AddModelError(
+            "$.amount",
+            "The JSON value could not be converted to System.Decimal. Path: $.amount | LineNumber: 2 | BytePositionInLine: 20.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        var error = Assert.Single(validationPD.Errors);
+        Assert.Equal("UpdateTestDto.Amount", error.Key);
+        Assert.Equal(new[] { ErrorMessagesConstants.PropertyMustContainOnlyDigits("Amount") }, error.Value);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_NonNumericTypeConversionError_ReturnsInvalidFormatError()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError(
+            "$.reportingDate",
+            "The JSON value could not be converted to System.DateTime. Path: $.reportingDate | LineNumber: 2 | BytePositionInLine: 25.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustBeInAValidFormat("ReportingDate") },
+            validationPD.Errors["UpdateTestDto.ReportingDate"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_EmptyErrorMessage_KeepsFrameworkFallbackMessage()
+    {
+        // Arrange
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("FieldA", string.Empty);
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.All(validationPD.Errors["FieldA"], message => Assert.False(string.IsNullOrEmpty(message)));
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_RootJsonError_ReturnsBodyLevelError()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("dto", "The dto field is required.");
+        ms.AddModelError("$", "'a' is an invalid start of a value. Path: $ | LineNumber: 0 | BytePositionInLine: 0.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        var error = Assert.Single(validationPD.Errors);
+        Assert.Equal("UpdateTestDto", error.Key);
+        Assert.Equal(new[] { ErrorMessagesConstants.PropertyMustBeInAValidFormat("UpdateTestDto") }, error.Value);
+    }
+
+    private void SetBodyParameter(string name)
+    {
+        var actionDescriptor = new ControllerActionDescriptor
+        {
+            Parameters =
+            [
+                new ParameterDescriptor
+                {
+                    Name = name,
+                    ParameterType = typeof(UpdateTestDto),
+                    BindingInfo = new BindingInfo { BindingSource = BindingSource.Body },
+                },
+            ],
+        };
+        _httpContext.SetEndpoint(new Endpoint(null, new EndpointMetadataCollection(actionDescriptor), "test"));
+    }
+
+    private sealed class UpdateTestDto
+    {
     }
 }
