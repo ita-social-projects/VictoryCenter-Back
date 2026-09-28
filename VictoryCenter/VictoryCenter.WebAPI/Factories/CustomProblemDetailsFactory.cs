@@ -102,7 +102,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
 
             var propertyName = ToPropertyName(jsonPath);
             var key = bodyName is null ? propertyName : $"{bodyName}.{propertyName}";
-            errors[key] = rawMessages.Select(message => GetFriendlyMessage(message, propertyName)).Distinct().ToArray();
+            errors[key] = [.. rawMessages.Select(message => GetFriendlyMessage(message, propertyName)).Distinct()];
         }
     }
 
@@ -114,7 +114,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
                 .Select(segment => char.ToUpperInvariant(segment[0]) + segment[1..]));
 
     private static string GetFriendlyMessage(string rawMessage, string propertyName) =>
-        NumericTypeNames.Any(type => rawMessage.Contains(type, StringComparison.Ordinal))
+        Array.Exists(NumericTypeNames, type => rawMessage.Contains(type, StringComparison.Ordinal))
             ? ErrorMessagesConstants.PropertyMustContainOnlyDigits(propertyName)
             : ErrorMessagesConstants.PropertyMustBeInAValidFormat(propertyName);
 
