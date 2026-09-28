@@ -102,7 +102,10 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
 
                     _mapper.Map(dto.AnalysisSection, entity.AnalysisSection);
-                    MarkAnalysisSectionLocalizationsOutdated(entity.AnalysisSection!);
+                    if (entity.AnalysisSection is not null)
+                    {
+                        MarkAnalysisSectionLocalizationsOutdated(entity.AnalysisSection);
+                    }
 
                     _mapper.Map(dto.ScientificReferencesSection, entity.ScientificReferencesSection);
                     var referencesResult = UpdateScientificReferences(entity.ScientificReferencesSection!, dto.ScientificReferencesSection);
