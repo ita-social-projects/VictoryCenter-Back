@@ -148,7 +148,9 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     {
         var scalarFieldsChanged = !string.Equals(eventNews.Title, dto.Title)
                                   || !string.Equals(eventNews.Description, dto.Description)
+                                  || !string.Equals(eventNews.AdditionalDescription, dto.AdditionalDescription)
                                   || !string.Equals(eventNews.Resource, dto.Resource, StringComparison.Ordinal)
+                                  || !string.Equals(eventNews.ResourceEn, dto.ResourceEn, StringComparison.Ordinal)
                                   || eventNews.PublishedAt != dto.PublishedAt
                                   || eventNews.Status != dto.Status;
         var imagesChanged = eventNews.PreviewImageId != dto.PreviewImageId
@@ -188,6 +190,10 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                                     || !string.Equals(
                                         current.Description,
                                         NormalizeOptional(dto.Description),
+                                        StringComparison.Ordinal)
+                                    || !string.Equals(
+                                        current.AdditionalDescription,
+                                        NormalizeOptional(dto.AdditionalDescription),
                                         StringComparison.Ordinal);
         }
 
@@ -201,7 +207,9 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     {
         eventNews.Title = dto.Title;
         eventNews.Description = dto.Description;
+        eventNews.AdditionalDescription = dto.AdditionalDescription;
         eventNews.Resource = dto.Resource;
+        eventNews.ResourceEn = dto.ResourceEn;
         eventNews.PublishedAt = dto.PublishedAt;
         eventNews.Status = dto.Status;
         eventNews.PreviewImageId = dto.PreviewImageId;
@@ -249,14 +257,17 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             {
                 var title = localizationDto.Title!.Trim();
                 var description = NormalizeOptional(localizationDto.Description);
+                var additionalDescription = NormalizeOptional(localizationDto.AdditionalDescription);
                 if (string.Equals(localization.Title, title, StringComparison.Ordinal)
-                    && string.Equals(localization.Description, description, StringComparison.Ordinal))
+                    && string.Equals(localization.Description, description, StringComparison.Ordinal)
+                    && string.Equals(localization.AdditionalDescription, additionalDescription, StringComparison.Ordinal))
                 {
                     continue;
                 }
 
                 localization.Title = title;
                 localization.Description = description;
+                localization.AdditionalDescription = additionalDescription;
                 localization.TranslationStatus = TranslationStatus.Relevant;
                 continue;
             }
@@ -267,6 +278,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                 Language = languagesById[localizationDto.LanguageId],
                 Title = localizationDto.Title!.Trim(),
                 Description = NormalizeOptional(localizationDto.Description),
+                AdditionalDescription = NormalizeOptional(localizationDto.AdditionalDescription),
                 TranslationStatus = TranslationStatus.Relevant,
                 CreatedAt = now
             });

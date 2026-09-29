@@ -148,6 +148,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
                 Language = language,
                 Title = localizationDto.Title!.Trim(),
                 Description = localizationDto.Description?.Trim(),
+                AdditionalDescription = localizationDto.AdditionalDescription?.Trim(),
                 CreatedAt = createdAt
             };
 
