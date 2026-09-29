@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.UnitTests.Utils;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 using EventNewsPredicate = System.Linq.Expressions.Expression<System.Func<VictoryCenter.DAL.Entities.EventNews, bool>>;
 
@@ -68,7 +69,7 @@ public class UpdateEventNewsTests
         var newLocalization = eventNews.Localizations.Single(item => item.LanguageId == 3);
         Assert.Equal("German Event Title", newLocalization.Title);
         Assert.NotEqual(default, newLocalization.CreatedAt);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
         _slugService.Verify(
             service => service.GenerateUniqueEventNewsSlugAsync(
                 10,
@@ -239,6 +240,7 @@ public class UpdateEventNewsTests
         var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
         _repositoryWrapper.SetupSequence(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(exception)
+            .ReturnsAsync(1)
             .ReturnsAsync(1);
         _repositoryWrapper.Setup(wrapper => wrapper.EventNewsRepository.ExistsAsync(
                 It.IsAny<EventNewsPredicate>()))
@@ -256,7 +258,7 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("updated-event-title-1", eventNews.Slug);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(3));
     }
 
     [Fact]
@@ -306,6 +308,49 @@ public class UpdateEventNewsTests
         _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_WhenCategoryIsAdded_AssignsNextPriority()
+    {
+        // Arrange
+        var eventNews = ExistingEventNews();
+        var handler = CreateHandler(eventNews);
+        var categoryLinks = new List<EventNewsCategoryLink>
+        {
+            new() { EventsNewsId = 20, CategoriesId = 2, Priority = 0 },
+            new() { EventsNewsId = 30, CategoriesId = 2, Priority = 2 },
+        };
+        var newLink = new EventNewsCategoryLink
+        {
+            EventsNewsId = 10,
+            CategoriesId = 2,
+        };
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
+            .ReturnsAsync((QueryOptions<EventNewsCategoryLink> options) =>
+            {
+                var source = options.AsNoTracking
+                    ? categoryLinks
+                    : [newLink];
+
+                return ApplyFilter(source, options);
+            });
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateEventNewsCommand(10, PublishedDto()),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(3, newLink.Priority);
+        _repositoryWrapper.Verify(
+            wrapper => wrapper.EventNewsEventNewsCategoriesRepository.Update(newLink),
+            Times.Once);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
+    }
+
     private UpdateEventNewsHandler CreateHandler(
         EventNewsEntity? eventNews,
         IReadOnlyCollection<EventNewsCategory>? categories = null,
@@ -337,6 +382,10 @@ public class UpdateEventNewsTests
             .Setup(wrapper => wrapper.LocalizationLanguagesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<LocalizationLanguage>>()))
             .ReturnsAsync((QueryOptions<LocalizationLanguage> options) => ApplyFilter(languages, options));
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
+            .ReturnsAsync([]);
 
         if (saveException is not null)
         {
