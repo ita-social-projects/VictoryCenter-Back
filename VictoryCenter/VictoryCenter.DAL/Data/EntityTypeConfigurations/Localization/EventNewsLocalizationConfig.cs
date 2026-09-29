@@ -14,5 +14,7 @@ public class EventNewsLocalizationConfig : EntityLocalizationConfig<EventNewsLoc
             .IsRequired();
 
         entity.Property(e => e.Description);
+
+        entity.Property(e => e.AdditionalDescription);
     }
 }
