@@ -52,6 +52,22 @@ public class CreateEventNewsTests
     }
 
     [Fact]
+    public async Task Handle_LocalizationWithAdditionalDescription_SavesTrimmedValue()
+    {
+        var (sut, entity) = CreateSut(saveChanges: 1);
+        var baseDto = Dto(Status.Published);
+        var dto = baseDto with
+        {
+            Localizations = [baseDto.Localizations.Single() with { AdditionalDescription = "  Online  " }],
+        };
+
+        var result = await sut.Handle(Command(dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Online", entity.Localizations.Single().AdditionalDescription);
+    }
+
+    [Fact]
     public async Task Handle_ValidPublishedRequest_PassesDefaultEntityIdToSlugService()
     {
         var (sut, _) = CreateSut(saveChanges: 1);

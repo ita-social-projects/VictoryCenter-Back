@@ -251,4 +251,80 @@ public class CreateEventNewsValidatorTests
                 nameof(CreateEventNewsDto.Description),
                 EventNewsConstants.DescriptionMinLength));
     }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(EventNewsConstants.AdditionalDescriptionMaxLength + 1)]
+    public void Validate_ShouldHaveError_WhenAdditionalDescriptionLengthIsOutOfRange(int length)
+    {
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            AdditionalDescription = new string('a', length),
+        });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.AdditionalDescription);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenEnglishResourceIsTooLong()
+    {
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            ResourceEn = new string('a', EventNewsConstants.ResourceMaxLength + 1),
+        });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.ResourceEn)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.ResourceEn),
+                EventNewsConstants.ResourceMaxLength));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenLocalizationAdditionalDescriptionIsTooLong()
+    {
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            Localizations =
+            [
+                new CreateEventNewsLocalizationDto
+                {
+                    LanguageId = 1,
+                    Title = "Event News Title",
+                    AdditionalDescription = new string('a', EventNewsConstants.AdditionalDescriptionMaxLength + 1),
+                },
+            ]
+        });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("CreateEventNewsDto.Localizations[0].AdditionalDescription");
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenLocalizationHasOnlyAdditionalDescription()
+    {
+        var command = new CreateEventNewsCommand(new CreateEventNewsDto
+        {
+            Status = Status.Draft,
+            Localizations =
+            [
+                new CreateEventNewsLocalizationDto
+                {
+                    LanguageId = 1,
+                    AdditionalDescription = "Online",
+                },
+            ]
+        });
+
+        var result = _validator.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("CreateEventNewsDto.Localizations[0].Title");
+    }
 }
