@@ -12,6 +12,7 @@ public record EventNewsDto
     public string? Resource { get; init; }
     public DateTimeOffset? PublishedAt { get; init; }
     public Status Status { get; init; }
+    public long Priority { get; set; }
     public ImageDto? PreviewImage { get; init; }
     public ImageDto? BackgroundImage { get; init; }
     public List<EventNewsCategoryShortDto> Categories { get; init; } = [];

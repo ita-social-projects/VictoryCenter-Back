@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Update;
@@ -86,6 +87,10 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             categoryIds,
             localizationDtos);
 
+        var oldCategoryIds = eventNews.Categories
+            .Select(category => category.Id)
+            .ToHashSet();
+
         if (!hasChanges)
         {
             return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
@@ -107,7 +112,17 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
 
         await UpdateSlugAsync(eventNews, titleForSlug, titlesChanged, cancellationToken);
 
-        return await SaveAsync(eventNews, titleForSlug, cancellationToken);
+        var result = await SaveAsync(eventNews, titleForSlug, cancellationToken);
+
+        if (result.IsSuccess && categoriesChanged)
+        {
+            await UpdateCategoryPrioritiesAsync(
+                eventNews.Id,
+                oldCategoryIds,
+                categoriesResult.Value);
+        }
+
+        return result;
     }
 
     private async Task<EventNewsEntity?> GetEventNewsAsync(long id)
@@ -341,6 +356,55 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             eventNews.Id,
             titleForSlug,
             cancellationToken);
+    }
+
+    private async Task UpdateCategoryPrioritiesAsync(
+    long eventNewsId,
+    IReadOnlySet<long> oldCategoryIds,
+    IEnumerable<EventNewsCategory> newCategories)
+    {
+        var newCategoryIds = newCategories
+            .Select(c => c.Id)
+            .ToHashSet();
+
+        var addedCategoryIds = newCategoryIds
+            .Where(id => !oldCategoryIds.Contains(id))
+            .ToList();
+
+        foreach (var categoryId in addedCategoryIds)
+        {
+            var allLinksForCategory = await _repositoryWrapper
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = l => l.CategoriesId == categoryId,
+                    AsNoTracking = true
+                });
+
+            var nextPriority = allLinksForCategory.Any()
+                ? allLinksForCategory.Max(l => l.Priority) + 1
+                : 0;
+
+            var newLink = await _repositoryWrapper
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = l =>
+                        l.EventsNewsId == eventNewsId &&
+                        l.CategoriesId == categoryId,
+                    AsNoTracking = false
+                });
+
+            if (newLink.Any())
+            {
+                var link = newLink.First();
+                link.Priority = nextPriority;
+
+                _repositoryWrapper.EventNewsEventNewsCategoriesRepository.Update(link);
+            }
+
+            await _repositoryWrapper.SaveChangesAsync();
+        }
     }
 
     private async Task<Result<EventNewsDto>> SaveAsync(

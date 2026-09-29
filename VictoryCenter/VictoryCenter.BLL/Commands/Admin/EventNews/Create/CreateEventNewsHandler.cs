@@ -8,6 +8,8 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Create;
@@ -114,6 +116,8 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
                 titleForSlug,
                 cancellationToken) > 0)
         {
+            await UpdateCategoryPriorityLinksAsync(eventNews.Id, categoriesResult.Value);
+
             return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
         }
 
@@ -155,5 +159,42 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         }
 
         return Result.Ok();
+    }
+
+    private async Task UpdateCategoryPriorityLinksAsync(
+        long eventNewsId,
+        ICollection<EventNewsCategory> categories)
+    {
+        foreach (var category in categories)
+        {
+            var allLinksForCategory = await _repositoryWrapper
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = l => l.CategoriesId == category.Id,
+                    AsNoTracking = true
+                });
+
+            var nextPriority = allLinksForCategory.Any()
+                ? allLinksForCategory.Max(l => l.Priority) + 1
+                : 0;
+
+            var linkToUpdate = await _repositoryWrapper
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = l => l.EventsNewsId == eventNewsId && l.CategoriesId == category.Id,
+                    AsNoTracking = false
+                });
+
+            if (linkToUpdate.Any())
+            {
+                var link = linkToUpdate.First();
+                link.Priority = nextPriority;
+                _repositoryWrapper.EventNewsEventNewsCategoriesRepository.Update(link);
+            }
+        }
+
+        await _repositoryWrapper.SaveChangesAsync();
     }
 }

@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
@@ -33,25 +34,16 @@ public class GetEventNewsByFiltersHandler
         Expression<Func<EventNewsEntity, bool>> filter = eventNews =>
             !categoryId.HasValue || eventNews.Categories.Any(category => category.Id == categoryId.Value);
 
-        var queryOptions = new QueryOptions<EventNewsEntity>
+        var prioritiesFilter = new QueryOptions<EventNewsCategoryLink>
         {
-            Filter = filter,
-            Include = eventNews => eventNews
-                .AsSplitQuery()
-                .Include(entity => entity.PreviewImage)
-                .Include(entity => entity.BackgroundImage)
-                .Include(entity => entity.Categories)
-                    .ThenInclude(category => category.Localizations)
-                        .ThenInclude(localization => localization.Language)
-                .Include(entity => entity.Localizations)
-                    .ThenInclude(localization => localization.Language),
-            Offset = request.Filter.Offset ?? 0,
-            Limit = request.Filter.Limit ?? DefaultLimit,
-            OrderByDESC = eventNews => eventNews.Id,
+            Filter = priority => !categoryId.HasValue || priority.CategoriesId == categoryId.Value,
             AsNoTracking = true
         };
 
-        var eventNews = await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
+        var allPriorities = await _repositoryWrapper
+            .EventNewsEventNewsCategoriesRepository
+            .GetAllAsync(prioritiesFilter);
+
         var totalCount = await _repositoryWrapper.EventNewsRepository.CountAsync(
             new QueryOptions<EventNewsEntity>
             {
@@ -59,8 +51,58 @@ public class GetEventNewsByFiltersHandler
                 AsNoTracking = true
             });
 
+        var offset = request.Filter.Offset ?? 0;
+        var limit = request.Filter.Limit ?? DefaultLimit;
+
+        var eventNewsIds = allPriorities
+            .OrderBy(p => p.Priority)
+            .Skip(offset)
+            .Take(limit)
+            .Select(p => p.EventsNewsId)
+            .ToList();
+
+        var queryOptions = SetupEventNewsQueryOptions(eventNewsIds);
+
+        var eventNews = await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
+
         var items = _mapper.Map<EventNewsDto[]>(eventNews);
 
-        return Result.Ok(new PaginationResult<EventNewsDto>(items, totalCount));
+        var priorityLookup = allPriorities
+            .ToDictionary(p => (p.EventsNewsId, p.CategoriesId), p => p.Priority);
+
+        foreach (var item in items)
+        {
+            var priorityKey = (item.Id, categoryId ?? 0L);
+            if (priorityLookup.TryGetValue(priorityKey, out var priority))
+            {
+                item.Priority = priority;
+            }
+        }
+
+        var sortedItems = items
+            .OrderBy(item => allPriorities
+                .FirstOrDefault(p => p.EventsNewsId == item.Id && p.CategoriesId == (categoryId ?? 0L))
+                ?.Priority ?? 0)
+            .ToArray();
+
+        return Result.Ok(new PaginationResult<EventNewsDto>(sortedItems, totalCount));
+    }
+
+    private static QueryOptions<EventNewsEntity> SetupEventNewsQueryOptions(List<long> eventNewsIds)
+    {
+        return new QueryOptions<EventNewsEntity>
+        {
+            Filter = eventNews => eventNewsIds.Contains(eventNews.Id),
+            Include = eventNews => eventNews
+                        .AsSplitQuery()
+                        .Include(entity => entity.PreviewImage)
+                        .Include(entity => entity.BackgroundImage)
+                        .Include(entity => entity.Categories)
+                            .ThenInclude(category => category.Localizations)
+                                .ThenInclude(localization => localization.Language)
+                        .Include(entity => entity.Localizations)
+                            .ThenInclude(localization => localization.Language),
+            AsNoTracking = true
+        };
     }
 }

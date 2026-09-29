@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Delete;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Update;
+using VictoryCenter.BLL.Commands.Admin.EventNews.Reorder;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
@@ -54,5 +55,12 @@ public class EventNewsController : AuthorizedApiController
     public async Task<IActionResult> UpdateEventNews(long id, [FromBody] UpdateEventNewsDto updateEventNewsDto)
     {
         return HandleResult(await Mediator.Send(new UpdateEventNewsCommand(id, updateEventNewsDto)));
+    }
+
+    [HttpPut("reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> ReorderEventNews([FromBody]ReorderEventNewsDto reorderEventNewsDto)
+    {
+        return HandleResult(await Mediator.Send(new ReorderEventNewsCommand(reorderEventNewsDto)));
     }
 }
