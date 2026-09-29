@@ -150,6 +150,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IReportFundsExpendituresCategoryLocalizationsRepository? _reportFundsExpendituresCategoryLocalizationsRepository;
     private IHippotherapyProgramCategoryLocalizationsRepository? _hippotherapyProgramCategoryLocalizationsRepository;
     private IHippotherapyLandingPageIntroSectionLocalizationsRepository? _hippotherapyLandingPageIntroSectionLocalizationsRepository;
+    private IHippotherapyLandingPageDescriptionSectionLocalizationsRepository? _hippotherapyLandingPageDescriptionSectionLocalizationsRepository;
     private IReportFundsExpendituresSettingsLocalizationsRepository? _reportFundsExpendituresSettingsLocalizationsRepository;
     private ITeamMemberLocalizationsRepository? _teamMemberLocalizationsRepository;
     private ITeamMembersRepository? _teamMembersRepository;
@@ -187,6 +188,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyLandingPagesRepository? _hippotherapyLandingPagesRepository;
     private IHippotherapyLandingPageScientificReferencesRepository? _hippotherapyLandingPageScientificReferencesRepository;
     private IHippotherapyLandingPageIntroSectionsRepository? _hippotherapyLandingPageIntroSectionsRepository;
+    private IHippotherapyLandingPageDescriptionSectionsRepository? _hippotherapyLandingPageDescriptionSectionsRepository;
     private IFeedbackReviewsRepository? _feedbackReviewsRepository;
     private IFeedbackReviewLocalizationsRepository? _feedbackReviewLocalizationsRepository;
     private IFeedbackHistoriesRepository? _feedbackHistoriesRepository;
@@ -295,6 +297,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IHippotherapyLandingPageIntroSectionLocalizationsRepository HippotherapyLandingPageIntroSectionLocalizationsRepository =>
         _hippotherapyLandingPageIntroSectionLocalizationsRepository ??=
             new HippotherapyLandingPageIntroSectionLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageDescriptionSectionLocalizationsRepository HippotherapyLandingPageDescriptionSectionLocalizationsRepository =>
+        _hippotherapyLandingPageDescriptionSectionLocalizationsRepository ??=
+            new HippotherapyLandingPageDescriptionSectionLocalizationsRepository(_victoryCenterDbContext);
 
     public IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository =>
         _reportFundsExpendituresSettingsLocalizationsRepository ??=
@@ -443,6 +449,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHippotherapyLandingPageIntroSectionsRepository HippotherapyLandingPageIntroSectionsRepository =>
         _hippotherapyLandingPageIntroSectionsRepository ??= new HippotherapyLandingPageIntroSectionsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageDescriptionSectionsRepository HippotherapyLandingPageDescriptionSectionsRepository =>
+        _hippotherapyLandingPageDescriptionSectionsRepository ??= new HippotherapyLandingPageDescriptionSectionsRepository(_victoryCenterDbContext);
 
     public IFeedbackHistoriesRepository FeedbackHistoriesRepository =>
         _feedbackHistoriesRepository ??= new FeedbackHistoriesRepository(_victoryCenterDbContext);
