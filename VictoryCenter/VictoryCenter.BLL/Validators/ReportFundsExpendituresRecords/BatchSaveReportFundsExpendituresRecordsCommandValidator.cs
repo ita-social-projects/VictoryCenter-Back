@@ -46,6 +46,13 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidator
                         || dto.RecordsToUpdate.Count > 0
                         || dto.RecordIdsToDelete.Count > 0)
                     .WithMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord)
+                    .Must(dto =>
+                        dto.RecordsToCreate.Count +
+                        dto.RecordsToUpdate.Count +
+                        dto.RecordIdsToDelete.Count <= ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation)
+                    .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                        ErrorMessagesConstants.BatchOperationTotalRecordsName,
+                        ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation))
                     .Custom((dto, context) =>
                     {
                         var conflictingIds = dto.RecordsToUpdate
@@ -78,10 +85,9 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidator
                 When(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete.Count > 0, () =>
                 {
                     RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
-                        .MustBeValidBulkDeleteIds(
+                        .MustContainValidIds(
                             nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete),
-                            nameof(ReportFundsExpendituresRecord.Id),
-                            ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete);
+                            nameof(ReportFundsExpendituresRecord.Id));
                 });
             });
         });

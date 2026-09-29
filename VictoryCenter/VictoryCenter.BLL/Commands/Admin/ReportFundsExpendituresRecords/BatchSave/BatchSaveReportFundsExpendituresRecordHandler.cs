@@ -138,15 +138,10 @@ public class BatchSaveReportFundsExpendituresRecordHandler
             }))
             .ToDictionary(c => c.Id);
 
-        var touchedRecordIds = dto.RecordIdsToDelete
-            .Concat(dto.RecordsToUpdate.Select(u => u.Id))
-            .ToList();
-
         var duplicateRecordsInCategory = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
             .GetAllAsync(new QueryOptions<ReportFundsExpendituresRecord>
             {
-                Filter = entity => categoryIdsToValidate.Contains(entity.CategoryId) &&
-                                   !touchedRecordIds.Contains(entity.Id)
+                Filter = entity => categoryIdsToValidate.Contains(entity.CategoryId)
             });
 
         return EvaluateCategoryRules(

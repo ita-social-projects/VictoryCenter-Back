@@ -87,4 +87,18 @@ public static class ReportRecordsValidationExtensions
         return ruleBuilder.ForEach(idRule =>
             idRule.MustBeValidId(property));
     }
+
+    public static IRuleBuilderOptions<T, IEnumerable<long>> MustContainValidIds<T>(
+        this IRuleBuilder<T, IEnumerable<long>> ruleBuilder,
+        string collection,
+        string property)
+    {
+        ruleBuilder
+            .NotEmpty()
+            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(collection))
+            .MustHaveUniqueIds(collection);
+
+        return ruleBuilder.ForEach(idRule =>
+            idRule.MustBeValidId(property));
+    }
 }

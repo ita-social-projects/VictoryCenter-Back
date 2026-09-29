@@ -109,29 +109,6 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
                 nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)));
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenRecordIdsToDeleteExceedLimit()
-    {
-        // Arrange
-        var limit = ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBulkDelete;
-        var excessiveIds = Enumerable.Range(1, limit + 1).Select(i => (long)i).ToList();
-
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordIdsToDelete = excessiveIds
-        };
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete),
-                limit));
-    }
-
     [Theory]
     [InlineData(0)]
     [InlineData(-1)]
@@ -221,5 +198,30 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
             .WithErrorMessage(ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(
                 conflictingIds, typeof(ReportFundsExpendituresRecord)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenCombinedRecordsTotalExceedsLimit()
+    {
+        // Arrange
+        var maxLimit = ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation;
+
+        var dto = new BatchSaveReportFundsExpendituresRecordsDto
+        {
+            RecordsToCreate = [.. Enumerable.Range(1, maxLimit).Select(_ => new CreateReportFundsExpendituresRecordDto())],
+            RecordsToUpdate = [new BatchUpdateReportFundsExpendituresRecordDto()],
+            RecordIdsToDelete = []
+        };
+
+        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                ErrorMessagesConstants.BatchOperationTotalRecordsName,
+                maxLimit));
     }
 }

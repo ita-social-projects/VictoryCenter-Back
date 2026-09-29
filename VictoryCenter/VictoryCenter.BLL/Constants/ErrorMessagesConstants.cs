@@ -5,6 +5,7 @@ namespace VictoryCenter.BLL.Constants;
 public static class ErrorMessagesConstants
 {
     public static readonly string BatchOperationMustContainAtLeastOneRecord = "Batch operation must contain at least one record to create, update, or delete.";
+    public static readonly string BatchOperationTotalRecordsName = "Batch operation (total records)";
 
     public static readonly string UnknownStatusValue = "Unknown status value";
     public static readonly string OnlyDigitsExpression = "^[0-9]+$";
