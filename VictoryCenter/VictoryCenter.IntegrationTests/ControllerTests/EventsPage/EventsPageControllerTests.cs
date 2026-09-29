@@ -68,6 +68,35 @@ public class EventsPageControllerTests : BaseTestClass
     }
 
     [Fact]
+    public async Task Post_AuthorizedRequests_ToggleVisibility()
+    {
+        // Arrange
+        var original = await Fixture.DbContext.EventsIntroSections.SingleAsync();
+        var originalTitleVisibility = original.IsEventsBlockTitleHidden;
+        var originalDescriptionVisibility = original.IsPageDescriptionHidden;
+
+        // Act
+        var titleResponse = await Fixture.HttpClient.PostAsync($"{Endpoint}/events-block-title/toggle-visibility", null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, titleResponse.StatusCode);
+        Fixture.DbContext.ChangeTracker.Clear();
+        var afterTitleToggle = await Fixture.DbContext.EventsIntroSections.SingleAsync();
+        Assert.Equal(!originalTitleVisibility, afterTitleToggle.IsEventsBlockTitleHidden);
+        Assert.Equal(originalDescriptionVisibility, afterTitleToggle.IsPageDescriptionHidden);
+
+        // Act
+        var descriptionResponse = await Fixture.HttpClient.PostAsync($"{Endpoint}/description/toggle-visibility", null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, descriptionResponse.StatusCode);
+        Fixture.DbContext.ChangeTracker.Clear();
+        var afterDescriptionToggle = await Fixture.DbContext.EventsIntroSections.SingleAsync();
+        Assert.Equal(!originalTitleVisibility, afterDescriptionToggle.IsEventsBlockTitleHidden);
+        Assert.Equal(!originalDescriptionVisibility, afterDescriptionToggle.IsPageDescriptionHidden);
+    }
+
+    [Fact]
     public async Task Requests_WithoutAuthorization_ReturnUnauthorized()
     {
         // Arrange
@@ -81,11 +110,15 @@ public class EventsPageControllerTests : BaseTestClass
         var titleResponse = await anonymousClient.PutAsJsonAsync(
             $"{Endpoint}/events-block-title",
             new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p>Unauthorized</p>" });
+        var toggleTitleResponse = await anonymousClient.PostAsync($"{Endpoint}/events-block-title/toggle-visibility", null);
+        var toggleDescResponse = await anonymousClient.PostAsync($"{Endpoint}/description/toggle-visibility", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, getResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, descriptionResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, titleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, toggleTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, toggleDescResponse.StatusCode);
     }
 
     [Fact]
@@ -206,10 +239,14 @@ public class EventsPageControllerTests : BaseTestClass
         var titleResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/events-block-title",
             new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p>Missing section</p>" });
+        var toggleTitleResponse = await Fixture.HttpClient.PostAsync($"{Endpoint}/events-block-title/toggle-visibility", null);
+        var toggleDescResponse = await Fixture.HttpClient.PostAsync($"{Endpoint}/description/toggle-visibility", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, descriptionResponse.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, titleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, toggleTitleResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, toggleDescResponse.StatusCode);
     }
 }

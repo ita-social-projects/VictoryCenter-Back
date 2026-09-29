@@ -1,7 +1,7 @@
 using AutoMapper;
 using Moq;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.Admin.EventsPage.Update;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.Queries.Admin.EventsPage.Get;
 using VictoryCenter.DAL.Entities;
@@ -139,6 +139,40 @@ public class EventsIntroSectionHandlersTests
         Assert.True(result.IsSuccess);
         Assert.Equal(!originalVisibility, entity.IsPageDescriptionHidden);
         VerifyTrackedUpdate(entity);
+    }
+
+    [Fact]
+    public async Task ToggleTitle_Handle_WhenSectionDoesNotExist_ReturnsNotFound()
+    {
+        // Arrange
+        _repositoryMock
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventsIntroSection>>()))
+            .ReturnsAsync((EventsIntroSection?)null);
+        var handler = new ToggleEventsBlockTitleVisibilityHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new ToggleEventsBlockTitleVisibilityCommand(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors.Single().Message);
+    }
+
+    [Fact]
+    public async Task ToggleDescription_Handle_WhenSectionDoesNotExist_ReturnsNotFound()
+    {
+        // Arrange
+        _repositoryMock
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventsIntroSection>>()))
+            .ReturnsAsync((EventsIntroSection?)null);
+        var handler = new ToggleEventsPageDescriptionVisibilityHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new ToggleEventsPageDescriptionVisibilityCommand(), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors.Single().Message);
     }
 
     private void SetupTrackedEntity(EventsIntroSection entity)
