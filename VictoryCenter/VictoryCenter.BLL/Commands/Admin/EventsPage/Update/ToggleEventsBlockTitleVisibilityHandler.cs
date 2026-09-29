@@ -13,6 +13,7 @@ public class ToggleEventsBlockTitleVisibilityHandler : IRequestHandler<ToggleEve
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
+    private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public ToggleEventsBlockTitleVisibilityHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
@@ -22,17 +23,25 @@ public class ToggleEventsBlockTitleVisibilityHandler : IRequestHandler<ToggleEve
 
     public async Task<Result<EventsIntroSectionDto>> Handle(ToggleEventsBlockTitleVisibilityCommand request, CancellationToken cancellationToken)
     {
-        var entity = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<EventsIntroSection> { AsNoTracking = false });
-
-        if (entity == null)
+        await _semaphore.WaitAsync(cancellationToken);
+        try
         {
-            return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
+            var entity = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync(
+                new QueryOptions<EventsIntroSection> { AsNoTracking = false });
+
+            if (entity == null)
+            {
+                return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
+            }
+
+            entity.IsEventsBlockTitleHidden = !entity.IsEventsBlockTitleHidden;
+            await _repositoryWrapper.SaveChangesAsync();
+
+            return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));
         }
-
-        entity.IsEventsBlockTitleHidden = !entity.IsEventsBlockTitleHidden;
-        await _repositoryWrapper.SaveChangesAsync();
-
-        return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 }

@@ -29,13 +29,13 @@ public class EventsPageController : AuthorizedApiController
     public async Task<IActionResult> UpdateEventsBlockTitle([FromBody] UpdateEventsBlockTitleDto dto)
         => HandleResult(await Mediator.Send(new UpdateEventsBlockTitleCommand(dto)));
 
-    [HttpPut("events-block-title/toggle-visibility")]
+    [HttpPost("events-block-title/toggle-visibility")]
     [ProducesResponseType(typeof(EventsIntroSectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleEventsBlockTitleVisibility()
         => HandleResult(await Mediator.Send(new ToggleEventsBlockTitleVisibilityCommand()));
 
-    [HttpPut("description/toggle-visibility")]
+    [HttpPost("description/toggle-visibility")]
     [ProducesResponseType(typeof(EventsIntroSectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleDescriptionVisibility()
