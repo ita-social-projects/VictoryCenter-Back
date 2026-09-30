@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -40,20 +41,61 @@ public class GetPublishedEventNewsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetPublishedEventNews_ShouldReturnItemsSortedByPublishedAtDescending()
+    public async Task GetPublishedEventNews_ShouldOrderItemsByPriority()
     {
-        HttpResponseMessage response = await Fixture.HttpClient.GetAsync("/api/EventNews/published/");
-        response.EnsureSuccessStatusCode();
-        var responseString = await response.Content.ReadAsStringAsync();
-        List<PublishedEventNewsDto>? responseContent =
-            JsonConvert.DeserializeObject<List<PublishedEventNewsDto>>(responseString);
-        Assert.NotNull(responseContent);
-        Assert.NotEmpty(responseContent);
-
-        var publishedDates = responseContent
-            .Select(e => e.PublishedAt ?? DateTimeOffset.MinValue)
+        // Arrange
+        var publishedEventIds = Fixture.DbContext.EventNews
+            .Where(eventNews => eventNews.Status == Status.Published)
+            .Select(eventNews => eventNews.Id)
+            .Take(3)
             .ToList();
-        Assert.Equal(publishedDates.OrderByDescending(d => d).ToList(), publishedDates);
+
+        Assert.Equal(3, publishedEventIds.Count);
+
+        var links = Fixture.DbContext.EventNewsEventNewsCategories
+            .Where(link => publishedEventIds.Contains(link.EventsNewsId))
+            .ToList();
+
+        foreach (var link in links.Where(link => link.EventsNewsId == publishedEventIds[0]))
+        {
+            link.Priority = 2;
+        }
+
+        foreach (var link in links.Where(link => link.EventsNewsId == publishedEventIds[1]))
+        {
+            link.Priority = 0;
+        }
+
+        foreach (var link in links.Where(link => link.EventsNewsId == publishedEventIds[2]))
+        {
+            link.Priority = 1;
+        }
+
+        await Fixture.DbContext.SaveChangesAsync();
+
+        // Act
+        var response = await Fixture.HttpClient.GetAsync("/api/EventNews/published/");
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var responseString = await response.Content.ReadAsStringAsync();
+
+        var responseContent =
+            JsonConvert.DeserializeObject<List<PublishedEventNewsDto>>(responseString);
+
+        Assert.NotNull(responseContent);
+
+        var testedIds = publishedEventIds.ToHashSet();
+
+        var testedItems = responseContent
+            .Where(item => testedIds.Contains(item.Id))
+            .Select(item => item.Id)
+            .ToList();
+
+        Assert.Equal(
+            [publishedEventIds[1], publishedEventIds[2], publishedEventIds[0]],
+            testedItems);
     }
 
     [Theory]

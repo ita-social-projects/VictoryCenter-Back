@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
 using VictoryCenter.BLL.DTOs.Common;
@@ -199,5 +200,57 @@ public class GetAdminEventNewsTests : BaseTestClass
         var response = await anonymousClient.GetAsync(endpoint);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetByFilters_WhenCategorySpecified_ShouldOrderItemsByPriority()
+    {
+        // Arrange
+        var categoryId = await Fixture.DbContext.EventNewsEventNewsCategories
+            .GroupBy(link => link.CategoriesId)
+            .Where(group => group.Count() >= 3)
+            .Select(group => group.Key)
+            .FirstAsync();
+
+        var links = await Fixture.DbContext.EventNewsEventNewsCategories
+            .Where(link => link.CategoriesId == categoryId)
+            .Take(3)
+            .ToArrayAsync();
+
+        links[0].Priority = 2;
+        links[1].Priority = 0;
+        links[2].Priority = 1;
+
+        await Fixture.DbContext.SaveChangesAsync();
+
+        // Act
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?categoryId={categoryId}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var page = await response.Content
+            .ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+
+        Assert.NotNull(page);
+
+        var testedIds = links
+            .Select(link => link.EventsNewsId)
+            .ToHashSet();
+
+        var testedItems = page.Items
+            .Where(item => testedIds.Contains(item.Id))
+            .ToArray();
+
+        Assert.Equal(3, testedItems.Length);
+
+        Assert.Equal(
+            [links[1].EventsNewsId, links[2].EventsNewsId, links[0].EventsNewsId],
+            testedItems.Select(item => item.Id));
+
+        Assert.Equal(
+            [0, 1, 2],
+            testedItems.Select(item => item.Priority));
     }
 }
