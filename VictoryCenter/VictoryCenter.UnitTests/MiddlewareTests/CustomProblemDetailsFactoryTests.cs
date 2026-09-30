@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -137,7 +138,24 @@ public class CustomProblemDetailsFactoryTests
     }
 
     [Fact]
-    public void CreateValidationProblemDetails_NonNumericTypeConversionError_ReturnsInvalidFormatError()
+    public void CreateValidationProblemDetails_FrameworkMessagesDisabled_StillDetectsNumericProperty()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$.amount", "The input was not valid.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustContainOnlyDigits("Amount") },
+            validationPD.Errors["UpdateTestDto.Amount"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_NonNumericProperty_ReturnsInvalidFormatError()
     {
         // Arrange
         SetBodyParameter("dto");
@@ -156,17 +174,90 @@ public class CustomProblemDetailsFactoryTests
     }
 
     [Fact]
-    public void CreateValidationProblemDetails_EmptyErrorMessage_KeepsFrameworkFallbackMessage()
+    public void CreateValidationProblemDetails_NumericCollection_ReturnsInvalidFormatError()
     {
         // Arrange
+        SetBodyParameter("dto");
         var ms = new ModelStateDictionary();
-        ms.AddModelError("FieldA", string.Empty);
+        ms.AddModelError(
+            "$.ids",
+            "The JSON value could not be converted to System.Collections.Generic.List`1[System.Int32]. Path: $.ids | LineNumber: 2 | BytePositionInLine: 15.");
 
         // Act
         var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
 
         // Assert
-        Assert.All(validationPD.Errors["FieldA"], message => Assert.False(string.IsNullOrEmpty(message)));
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustBeInAValidFormat("Ids") },
+            validationPD.Errors["UpdateTestDto.Ids"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_CollectionElement_ReturnsOnlyDigitsError()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$.ids[0]", "The input was not valid.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustContainOnlyDigits("Ids[0]") },
+            validationPD.Errors["UpdateTestDto.Ids[0]"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_JsonPropertyNameAttribute_ResolvesPropertyType()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$.sum", "The input was not valid.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustContainOnlyDigits("Sum") },
+            validationPD.Errors["UpdateTestDto.Sum"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_NestedProperty_ResolvesPropertyType()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$.details.count", "The input was not valid.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustContainOnlyDigits("Details.Count") },
+            validationPD.Errors["UpdateTestDto.Details.Count"]);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_UnknownProperty_ReturnsInvalidFormatError()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$.unknown", "The input was not valid.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustBeInAValidFormat("Unknown") },
+            validationPD.Errors["UpdateTestDto.Unknown"]);
     }
 
     [Fact]
@@ -185,6 +276,40 @@ public class CustomProblemDetailsFactoryTests
         var error = Assert.Single(validationPD.Errors);
         Assert.Equal("UpdateTestDto", error.Key);
         Assert.Equal(new[] { ErrorMessagesConstants.PropertyMustBeInAValidFormat("UpdateTestDto") }, error.Value);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_EmptyJsonPathSegment_ReturnsBodyLevelErrorWithoutException()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$.", "The input was not valid.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        var error = Assert.Single(validationPD.Errors);
+        Assert.Equal("UpdateTestDto", error.Key);
+    }
+
+    [Fact]
+    public void CreateValidationProblemDetails_SeveralRootErrors_MergesMessagesUnderOneKey()
+    {
+        // Arrange
+        SetBodyParameter("dto");
+        var ms = new ModelStateDictionary();
+        ms.AddModelError("$", "Root error.");
+        ms.AddModelError("$[0]", "Array root error.");
+
+        // Act
+        var validationPD = _factory.CreateValidationProblemDetails(_httpContext, ms);
+
+        // Assert
+        var error = Assert.Single(validationPD.Errors);
+        Assert.Equal("UpdateTestDto", error.Key);
+        Assert.Single(error.Value);
     }
 
     private void SetBodyParameter(string name)
@@ -206,5 +331,20 @@ public class CustomProblemDetailsFactoryTests
 
     private sealed class UpdateTestDto
     {
+        public decimal? Amount { get; set; }
+
+        public DateTime ReportingDate { get; set; }
+
+        public List<int> Ids { get; set; } = [];
+
+        [JsonPropertyName("sum")]
+        public decimal Total { get; set; }
+
+        public NestedTestDto Details { get; set; } = new();
+    }
+
+    private sealed class NestedTestDto
+    {
+        public int Count { get; set; }
     }
 }
