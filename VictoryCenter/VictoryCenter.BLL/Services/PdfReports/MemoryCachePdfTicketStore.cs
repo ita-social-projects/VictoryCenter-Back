@@ -14,20 +14,10 @@ public class MemoryCachePdfTicketStore : IPdfTicketStore
         _cache = cache;
     }
 
-    public bool TryConsumeTicket(string ticketId, out long pdfId)
+    public bool TryGetTicket(string ticketId, out long pdfId)
     {
         var key = $"PdfTicket_{ticketId}";
 
-        lock (_lock)
-        {
-            if (_cache.TryGetValue(key, out pdfId))
-            {
-                _cache.Remove(key);
-                return true;
-            }
-        }
-
-        pdfId = default;
-        return false;
+        return _cache.TryGetValue(key, out pdfId);
     }
 }

@@ -28,7 +28,7 @@ public class ConsumePdfPreviewTicketHandlerTests
         long dummyPdfId = 0;
 
         _mockTicketStore
-            .Setup(x => x.TryConsumeTicket(request.Ticket, out dummyPdfId))
+            .Setup(x => x.TryGetTicket(request.Ticket, out dummyPdfId))
             .Returns(false);
 
         // Act
@@ -53,7 +53,7 @@ public class ConsumePdfPreviewTicketHandlerTests
         long expectedPdfId = 42;
 
         _mockTicketStore
-            .Setup(x => x.TryConsumeTicket(request.Ticket, out expectedPdfId))
+            .Setup(x => x.TryGetTicket(request.Ticket, out expectedPdfId))
             .Returns(true);
 
         var expectedFileDto = new PdfReportFileDto { FileName = "report.pdf" };
