@@ -363,16 +363,11 @@ public static class ServicesConfiguration
 
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
-            var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
             var admin = new AdminUser()
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
-                CreatedAt = DateTimeOffset.UtcNow,
-                RefreshTokenValidTo = DateTimeOffset.UtcNow.AddDays(30),
-
-                // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
-                RefreshToken = tokenService.CreateRefreshToken([])
+                CreatedAt = DateTimeOffset.UtcNow
             };
 
             var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD")

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Auth.RefreshToken;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
@@ -66,7 +67,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Refresh token is not present", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
     }
 
     [Fact]
@@ -85,7 +86,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Refresh token is not present", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
     }
 
     [Fact]
@@ -106,7 +107,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Invalid Token", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
     }
 
@@ -128,7 +129,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Invalid Token", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
     }
 
@@ -155,7 +156,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Admin with given email was not found", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
         _mockUserManager.Verify(x => x.FindByEmailAsync("test@email.com"), Times.Once);
     }
@@ -187,7 +188,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Refresh token is invalid", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
         _mockUserManager.Verify(x => x.FindByEmailAsync("test@email.com"), Times.Once);
     }
@@ -219,7 +220,7 @@ public class RefreshTokenTests
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Refresh token is invalid", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("expired_access_token"), Times.Once);
         _mockUserManager.Verify(x => x.FindByEmailAsync("test@email.com"), Times.Once);
     }
@@ -251,9 +252,11 @@ public class RefreshTokenTests
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
 
         _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("refresh_token")).Returns(claimsPrincipal);
+        _mockTokenService.Setup(x => x.VerifyRefreshTokenHash("refresh_token", "refresh_token")).Returns(true);
         _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
+        _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");
         _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Success);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
 
@@ -261,7 +264,7 @@ public class RefreshTokenTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("new_access_token", result.Value.AccessToken);
-        Assert.Equal("new_refresh_token", admin.RefreshToken);
+        Assert.Equal("new_refresh_token_hash", admin.RefreshToken);
         Assert.True(admin.RefreshTokenValidTo > FixedTestTime);
         mockResponseCookies.Verify(
             c => c.Append(
@@ -272,11 +275,12 @@ public class RefreshTokenTests
         _mockUserManager.Verify(x => x.FindByEmailAsync("test@email.com"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
+        _mockTokenService.Verify(x => x.HashRefreshToken("new_refresh_token"), Times.Once);
         _mockUserManager.Verify(x => x.GetClaimsAsync(admin), Times.Once);
     }
 
     [Fact]
-    public async Task Handle_GivenValidRefreshToken_ReturnsFailure()
+    public async Task Handle_GivenConcurrentRefresh_ReturnsUnauthorizedWithoutIssuingCookie()
     {
         var cmd = new RefreshTokenCommand();
         var admin = new AdminUser
@@ -302,21 +306,37 @@ public class RefreshTokenTests
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
 
         _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("refresh_token")).Returns(claimsPrincipal);
+        _mockTokenService.Setup(x => x.VerifyRefreshTokenHash("refresh_token", "refresh_token")).Returns(true);
         _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
-        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed" }));
+        _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");
+        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(
+            new IdentityError
+            {
+                Code = new IdentityErrorDescriber().ConcurrencyFailure().Code,
+                Description = "Concurrency failure"
+            }));
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
 
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Equal("Failed", result.Errors[0].Message);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockTokenService.Verify(x => x.GetClaimsFromExpiredToken("refresh_token"), Times.Once);
         _mockUserManager.Verify(x => x.FindByEmailAsync("test@email.com"), Times.Once);
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
+        _mockTokenService.Verify(x => x.HashRefreshToken("new_refresh_token"), Times.Once);
         _mockUserManager.Verify(x => x.GetClaimsAsync(admin), Times.Once);
+        mockResponseCookies.Verify(
+            c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()),
+            Times.Never);
+        mockResponseCookies.Verify(
+            c => c.Delete(
+                AuthConstants.RefreshTokenCookieName,
+                It.Is<CookieOptions>(options => options.Path == AuthConstants.RefreshTokenCookiePath)),
+            Times.Once);
     }
 }
 

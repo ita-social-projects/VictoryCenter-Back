@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using FluentResults;
 using Microsoft.Extensions.Configuration;
@@ -59,6 +60,7 @@ public class TokenService : ITokenService
             ..claims,
             new Claim(JwtRegisteredClaimNames.Iss, _jwtOptions.Value.Issuer),
             new Claim(JwtRegisteredClaimNames.Iat, EpochTime.GetIntDate(issuedAt).ToString(), ClaimValueTypes.Integer64),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         ];
 
         var token = new JwtSecurityToken(
@@ -70,6 +72,35 @@ public class TokenService : ITokenService
             signingCredentials: new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.RefreshTokenSecretKey)), SecurityAlgorithms.HmacSha256));
 
         return _jwtSecurityTokenHandler.WriteToken(token);
+    }
+
+    public string HashRefreshToken(string refreshToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
+
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken)));
+    }
+
+    public bool VerifyRefreshTokenHash(string refreshToken, string? storedHash)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken) || string.IsNullOrWhiteSpace(storedHash))
+        {
+            return false;
+        }
+
+        byte[] storedHashBytes;
+        try
+        {
+            storedHashBytes = Convert.FromHexString(storedHash);
+        }
+        catch (FormatException)
+        {
+            // Existing plaintext refresh tokens are intentionally invalid after deployment.
+            return false;
+        }
+
+        var providedHashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
+        return CryptographicOperations.FixedTimeEquals(providedHashBytes, storedHashBytes);
     }
 
     public Result<ClaimsPrincipal> GetClaimsFromExpiredToken(string refreshToken)
@@ -94,12 +125,18 @@ public class TokenService : ITokenService
         }
         catch (ArgumentException e)
         {
-            _logger.LogError(e, "An error occured in the {ServiceName}: {ErrorMessage}", nameof(TokenService), e.Message);
+            _logger.LogWarning(
+                "Refresh token validation failed in {ServiceName} with {ExceptionType}",
+                nameof(TokenService),
+                e.GetType().Name);
             return Result.Fail(AuthConstants.InvalidToken);
         }
         catch (SecurityTokenException e)
         {
-            _logger.LogError(e, "An error occured in the {ServiceName}: {ErrorMessage}", nameof(TokenService), e.Message);
+            _logger.LogWarning(
+                "Refresh token validation failed in {ServiceName} with {ExceptionType}",
+                nameof(TokenService),
+                e.GetType().Name);
             return Result.Fail(AuthConstants.InvalidTokenSignature);
         }
     }

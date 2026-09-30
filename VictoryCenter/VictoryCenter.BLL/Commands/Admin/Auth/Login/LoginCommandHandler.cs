@@ -74,23 +74,17 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         ]);
         var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)]);
         var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
-        _httpContextAccessor.HttpContext?.Response.Cookies.Append(AuthConstants.RefreshTokenCookieName, refreshToken, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = refreshTokenExpires,
-            Path = AuthConstants.RefreshTokenCookiePath
-        });
-
-        admin.RefreshToken = refreshToken;
+        admin.RefreshToken = _tokenService.HashRefreshToken(refreshToken);
         admin.RefreshTokenValidTo = refreshTokenExpires;
 
         var updateResult = await _userManager.UpdateAsync(admin);
+        if (!updateResult.Succeeded)
+        {
+            return Result.Fail(updateResult.Errors.Select(x => x.Description));
+        }
 
-        return !updateResult.Succeeded
-            ? Result.Fail(updateResult.Errors.Select(x => x.Description))
-            : Result.Ok(new AuthResponseDto(accessToken));
+        AppendRefreshTokenCookie(refreshToken, refreshTokenExpires);
+        return Result.Ok(new AuthResponseDto(accessToken));
     }
 
     private void LogFailedLoginAttempt()
@@ -103,5 +97,21 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private static void PerformDummyPasswordCheck(string password)
     {
         _ = DummyPasswordHasher.VerifyHashedPassword(DummyAdmin, DummyPasswordHash, password);
+    }
+
+    private void AppendRefreshTokenCookie(string refreshToken, DateTimeOffset expires)
+    {
+        var response = _httpContextAccessor.HttpContext?.Response;
+        response?.Cookies.Append(
+            AuthConstants.RefreshTokenCookieName,
+            refreshToken,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = expires,
+                Path = AuthConstants.RefreshTokenCookiePath
+            });
     }
 }
