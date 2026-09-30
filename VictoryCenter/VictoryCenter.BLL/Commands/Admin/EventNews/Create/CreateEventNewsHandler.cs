@@ -4,6 +4,7 @@ using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -19,15 +20,18 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ISlugService _slugService;
+    private readonly IReorderService _reorderService;
 
     public CreateEventNewsHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        ISlugService slugService)
+        ISlugService slugService,
+        IReorderService reorderService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _slugService = slugService;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<EventNewsDto>> Handle(
@@ -167,31 +171,29 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
     {
         foreach (var category in categories)
         {
-            var allLinksForCategory = await _repositoryWrapper
+            var nextPriority = await _reorderService
+                .GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                    link => link.CategoriesId == category.Id);
+
+            var links = await _repositoryWrapper
                 .EventNewsEventNewsCategoriesRepository
                 .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
                 {
-                    Filter = l => l.CategoriesId == category.Id,
-                    AsNoTracking = true
-                });
-
-            var nextPriority = allLinksForCategory.Any()
-                ? allLinksForCategory.Max(l => l.Priority) + 1
-                : 0;
-
-            var linkToUpdate = await _repositoryWrapper
-                .EventNewsEventNewsCategoriesRepository
-                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
-                {
-                    Filter = l => l.EventsNewsId == eventNewsId && l.CategoriesId == category.Id,
+                    Filter = link =>
+                        link.EventsNewsId == eventNewsId &&
+                        link.CategoriesId == category.Id,
                     AsNoTracking = false
                 });
 
-            if (linkToUpdate.Any())
+            var link = links.FirstOrDefault();
+
+            if (link is not null)
             {
-                var link = linkToUpdate.First();
                 link.Priority = nextPriority;
-                _repositoryWrapper.EventNewsEventNewsCategoriesRepository.Update(link);
+
+                _repositoryWrapper
+                    .EventNewsEventNewsCategoriesRepository
+                    .Update(link);
             }
         }
 

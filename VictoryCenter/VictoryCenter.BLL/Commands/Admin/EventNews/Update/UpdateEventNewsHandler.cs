@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -21,17 +22,20 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ISlugService _slugService;
+    private readonly IReorderService _reorderService;
     private readonly TimeProvider _timeProvider;
 
     public UpdateEventNewsHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
         ISlugService slugService,
+        IReorderService reorderService,
         TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _slugService = slugService;
+        _reorderService = reorderService;
         _timeProvider = timeProvider;
     }
 
@@ -359,51 +363,57 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     }
 
     private async Task UpdateCategoryPrioritiesAsync(
-    long eventNewsId,
-    IReadOnlySet<long> oldCategoryIds,
-    IEnumerable<EventNewsCategory> newCategories)
+        long eventNewsId,
+        IReadOnlySet<long> oldCategoryIds,
+        IEnumerable<EventNewsCategory> newCategories)
     {
         var newCategoryIds = newCategories
-            .Select(c => c.Id)
+            .Select(category => category.Id)
             .ToHashSet();
 
         var addedCategoryIds = newCategoryIds
             .Where(id => !oldCategoryIds.Contains(id))
             .ToList();
 
+        var removedCategoryIds = oldCategoryIds
+            .Where(id => !newCategoryIds.Contains(id))
+            .ToList();
+
         foreach (var categoryId in addedCategoryIds)
         {
-            var allLinksForCategory = await _repositoryWrapper
+            var nextPriority = await _reorderService
+                .GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                    link => link.CategoriesId == categoryId);
+
+            var links = await _repositoryWrapper
                 .EventNewsEventNewsCategoriesRepository
                 .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
                 {
-                    Filter = l => l.CategoriesId == categoryId,
-                    AsNoTracking = true
-                });
-
-            var nextPriority = allLinksForCategory.Any()
-                ? allLinksForCategory.Max(l => l.Priority) + 1
-                : 0;
-
-            var newLink = await _repositoryWrapper
-                .EventNewsEventNewsCategoriesRepository
-                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
-                {
-                    Filter = l =>
-                        l.EventsNewsId == eventNewsId &&
-                        l.CategoriesId == categoryId,
+                    Filter = link =>
+                        link.EventsNewsId == eventNewsId &&
+                        link.CategoriesId == categoryId,
                     AsNoTracking = false
                 });
 
-            if (newLink.Any())
+            var link = links.FirstOrDefault();
+
+            if (link is not null)
             {
-                var link = newLink.First();
                 link.Priority = nextPriority;
 
-                _repositoryWrapper.EventNewsEventNewsCategoriesRepository.Update(link);
+                _repositoryWrapper
+                    .EventNewsEventNewsCategoriesRepository
+                    .Update(link);
             }
+        }
 
-            await _repositoryWrapper.SaveChangesAsync();
+        await _repositoryWrapper.SaveChangesAsync();
+
+        foreach (var categoryId in removedCategoryIds)
+        {
+            await _reorderService
+                .RenumberPriorityAsync<EventNewsCategoryLink>(
+                    link => link.CategoriesId == categoryId);
         }
     }
 
