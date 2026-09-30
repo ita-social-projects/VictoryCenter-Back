@@ -30,7 +30,7 @@ public class GetPublishedFeedbackHistoriesTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var histories = await response.Content.ReadFromJsonAsync<List<PublishedFeedbackHistoryDto>>();
         Assert.NotNull(histories);
-        Assert.Equal(new[] { first.Id, second.Id }, histories.Select(history => history.Id));
+        Assert.Equal([first.Id, second.Id], histories.Select(history => history.Id));
         Assert.DoesNotContain(histories, history => history.Id == draft.Id);
     }
 

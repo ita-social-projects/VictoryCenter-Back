@@ -32,7 +32,7 @@ public class GetPublishedVideoReviewsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var videos = await response.Content.ReadFromJsonAsync<List<PublishedVideoReviewDto>>();
         Assert.NotNull(videos);
-        Assert.Equal(new[] { first.Id, second.Id }, videos.Select(video => video.Id));
+        Assert.Equal([first.Id, second.Id], videos.Select(video => video.Id));
         Assert.DoesNotContain(videos, video => video.Id == draft.Id);
         Assert.DoesNotContain(videos, video => video.Id == archived.Id);
         Assert.Equal(first.Link, videos[0].Link);

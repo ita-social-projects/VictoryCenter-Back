@@ -30,7 +30,7 @@ public class GetPublishedFeedbackReviewsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var reviews = await response.Content.ReadFromJsonAsync<List<PublishedFeedbackReviewDto>>();
         Assert.NotNull(reviews);
-        Assert.Equal(new[] { first.Id, second.Id }, reviews.Select(review => review.Id));
+        Assert.Equal([first.Id, second.Id], reviews.Select(review => review.Id));
         Assert.DoesNotContain(reviews, review => review.Id == draft.Id);
         Assert.Equal("First author", reviews[0].AuthorName);
         Assert.Equal(first.Text, reviews[0].Text);
