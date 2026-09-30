@@ -354,6 +354,7 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
                                 ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
         if (!initialAdminEmail.Contains('@'))
@@ -367,7 +368,7 @@ public static class ServicesConfiguration
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = timeProvider.GetUtcNow()
             };
 
             var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD")

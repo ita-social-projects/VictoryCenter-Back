@@ -20,13 +20,20 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     private readonly UserManager<AdminUser> _userManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IOptions<JwtOptions> _jwtOptions;
+    private readonly TimeProvider _timeProvider;
 
-    public RefreshTokenCommandHandler(ITokenService tokenService, UserManager<AdminUser> userManager, IHttpContextAccessor httpContextAccessor, IOptions<JwtOptions> jwtOptions)
+    public RefreshTokenCommandHandler(
+        ITokenService tokenService,
+        UserManager<AdminUser> userManager,
+        IHttpContextAccessor httpContextAccessor,
+        IOptions<JwtOptions> jwtOptions,
+        TimeProvider timeProvider)
     {
         _tokenService = tokenService;
         _userManager = userManager;
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
@@ -58,7 +65,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
-        if (admin.RefreshTokenValidTo <= DateTimeOffset.UtcNow
+        if (admin.RefreshTokenValidTo <= _timeProvider.GetUtcNow()
             || !_tokenService.VerifyRefreshTokenHash(refreshToken, admin.RefreshToken))
         {
             DeleteRefreshTokenCookie();
@@ -70,7 +77,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             email
         ]);
         var newRefreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, admin.Email!)]);
-        var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
+        var refreshTokenExpires = _timeProvider.GetUtcNow().Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
         admin.RefreshToken = _tokenService.HashRefreshToken(newRefreshToken);
         admin.RefreshTokenValidTo = refreshTokenExpires;
 

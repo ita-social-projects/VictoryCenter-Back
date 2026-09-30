@@ -15,7 +15,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
 
 public class RefreshTokenTests
 {
-    private static readonly DateTimeOffset FixedTestTime = DateTimeOffset.UtcNow;
+    private static readonly DateTimeOffset FixedTestTime = new(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
     private readonly RefreshTokenCommandHandler _handler;
     private readonly Mock<ITokenService> _mockTokenService;
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;
@@ -48,8 +48,15 @@ public class RefreshTokenTests
         var mockJwtOptions = new Mock<IOptions<JwtOptions>>();
         mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
         IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
+        var timeProvider = new Mock<TimeProvider>();
+        timeProvider.Setup(x => x.GetUtcNow()).Returns(FixedTestTime);
 
-        _handler = new RefreshTokenCommandHandler(_mockTokenService.Object, _mockUserManager.Object, _mockHttpContextAccessor.Object, jwtOptions1);
+        _handler = new RefreshTokenCommandHandler(
+            _mockTokenService.Object,
+            _mockUserManager.Object,
+            _mockHttpContextAccessor.Object,
+            jwtOptions1,
+            timeProvider.Object);
     }
 
     [Fact]

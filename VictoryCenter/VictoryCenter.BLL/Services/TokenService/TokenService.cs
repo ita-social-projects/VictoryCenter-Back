@@ -126,17 +126,17 @@ public class TokenService : ITokenService
         catch (ArgumentException e)
         {
             _logger.LogWarning(
-                "Refresh token validation failed in {ServiceName} with {ExceptionType}",
-                nameof(TokenService),
-                e.GetType().Name);
+                e,
+                "Refresh token validation failed in {ServiceName}",
+                nameof(TokenService));
             return Result.Fail(AuthConstants.InvalidToken);
         }
         catch (SecurityTokenException e)
         {
             _logger.LogWarning(
-                "Refresh token validation failed in {ServiceName} with {ExceptionType}",
-                nameof(TokenService),
-                e.GetType().Name);
+                e,
+                "Refresh token validation failed in {ServiceName}",
+                nameof(TokenService));
             return Result.Fail(AuthConstants.InvalidTokenSignature);
         }
     }
