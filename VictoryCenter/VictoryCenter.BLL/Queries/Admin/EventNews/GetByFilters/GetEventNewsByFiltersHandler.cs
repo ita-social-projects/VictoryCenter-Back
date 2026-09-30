@@ -56,9 +56,10 @@ public class GetEventNewsByFiltersHandler
 
         var eventNewsIds = allPriorities
             .OrderBy(p => p.Priority)
+            .Select(p => p.EventsNewsId)
+            .Distinct()
             .Skip(offset)
             .Take(limit)
-            .Select(p => p.EventsNewsId)
             .ToList();
 
         var queryOptions = SetupEventNewsQueryOptions(eventNewsIds);

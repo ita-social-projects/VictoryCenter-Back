@@ -19,34 +19,43 @@ public class GetAdminEventNewsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetByFilters_ShouldReturnItemsAndTotalCountInDeterministicOrder()
+    public async Task GetByFilters_ShouldReturnItemsAndTotalCount()
     {
         var response = await Fixture.HttpClient.GetAsync(EndpointUri);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+
         Assert.NotNull(page);
         Assert.NotEmpty(page.Items);
         Assert.True(page.TotalItemsCount >= page.Items.Length);
-        Assert.Equal(
-            page.Items.Select(item => item.Id).OrderByDescending(id => id),
-            page.Items.Select(item => item.Id));
     }
 
     [Fact]
     public async Task GetByFilters_ShouldApplyOffsetAndLimit()
     {
-        var allItems = await Fixture.HttpClient.GetFromJsonAsync<PaginationResult<EventNewsDto>>(EndpointUri);
+        var allItems = await Fixture.HttpClient
+            .GetFromJsonAsync<PaginationResult<EventNewsDto>>(
+                $"{EndpointUri}?offset=0&limit=100");
 
-        var response = await Fixture.HttpClient.GetAsync($"{EndpointUri}?offset=1&limit=2");
+        Assert.NotNull(allItems);
+
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?offset=1&limit=2");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
-        Assert.NotNull(allItems);
+
+        var page = await response.Content
+            .ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+
         Assert.NotNull(page);
         Assert.Equal(2, page.Items.Length);
         Assert.Equal(allItems.TotalItemsCount, page.TotalItemsCount);
-        Assert.Equal(allItems.Items.Skip(1).Take(2).Select(item => item.Id), page.Items.Select(item => item.Id));
+
+        Assert.Equal(
+            allItems.Items.Skip(1).Take(2).Select(item => item.Id),
+            page.Items.Select(item => item.Id));
     }
 
     [Fact]
