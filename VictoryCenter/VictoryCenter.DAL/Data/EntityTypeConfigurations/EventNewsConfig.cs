@@ -69,17 +69,14 @@ public class EventNewsConfig : IEntityTypeConfiguration<EventNews>
 
                     join.HasKey(ec => new
                     {
-                        ec.EventsNewsId,
-                        ec.CategoriesId
-                    });
-                    join.Property(ec => ec.Priority)
-                        .IsRequired();
-                    join.HasIndex(ec => new
-                    {
                         ec.CategoriesId,
                         ec.EventsNewsId
-                    })
-                    .IsUnique();
+                    });
+
+                    join.Property(ec => ec.Priority)
+                        .IsRequired();
+
+                    join.HasIndex(ec => ec.EventsNewsId);
                 });
     }
 }
