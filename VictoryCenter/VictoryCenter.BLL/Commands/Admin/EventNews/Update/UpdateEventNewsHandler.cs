@@ -148,7 +148,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     {
         var scalarFieldsChanged = !string.Equals(eventNews.Title, dto.Title)
                                   || !string.Equals(eventNews.Description, dto.Description)
-                                  || !string.Equals(eventNews.AdditionalDescription, dto.AdditionalDescription)
+                                  || !string.Equals(eventNews.AdditionalDescription, dto.AdditionalDescription, StringComparison.Ordinal)
                                   || !string.Equals(eventNews.Resource, dto.Resource, StringComparison.Ordinal)
                                   || !string.Equals(eventNews.ResourceEn, dto.ResourceEn, StringComparison.Ordinal)
                                   || eventNews.PublishedAt != dto.PublishedAt

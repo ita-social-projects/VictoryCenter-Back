@@ -15,6 +15,7 @@ public class EventNewsLocalizationConfig : EntityLocalizationConfig<EventNewsLoc
 
         entity.Property(e => e.Description);
 
-        entity.Property(e => e.AdditionalDescription);
+        entity.Property(e => e.AdditionalDescription)
+            .HasMaxLength(20);
     }
 }

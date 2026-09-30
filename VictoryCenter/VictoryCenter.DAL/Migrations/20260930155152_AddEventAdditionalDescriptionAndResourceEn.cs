@@ -13,7 +13,8 @@ namespace VictoryCenter.DAL.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "AdditionalDescription",
                 table: "EventNewsLocalizations",
-                type: "nvarchar(max)",
+                type: "nvarchar(20)",
+                maxLength: 20,
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(

@@ -12,7 +12,7 @@ using VictoryCenter.DAL.Data;
 namespace VictoryCenter.DAL.Migrations
 {
     [DbContext(typeof(VictoryCenterDbContext))]
-    [Migration("20260929100625_AddEventAdditionalDescriptionAndResourceEn")]
+    [Migration("20260930155152_AddEventAdditionalDescriptionAndResourceEn")]
     partial class AddEventAdditionalDescriptionAndResourceEn
     {
         /// <inheritdoc />
@@ -1751,7 +1751,8 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("AdditionalDescription")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
