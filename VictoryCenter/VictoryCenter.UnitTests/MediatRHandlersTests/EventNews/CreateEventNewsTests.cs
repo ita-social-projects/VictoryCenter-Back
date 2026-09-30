@@ -1,9 +1,11 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -21,6 +23,7 @@ public class CreateEventNewsTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repo = new();
     private readonly Mock<ISlugService> _slugService = new();
+    private readonly Mock<IReorderService> _reorderService = new();
 
     private static readonly List<EventNewsCategory> Categories =
     [
@@ -295,8 +298,9 @@ public class CreateEventNewsTests
             throwOnSave);
 
         SetUpSlugService();
+        SetUpReorderService();
 
-        return (new CreateEventNewsHandler(_mapper.Object, _repo.Object, _slugService.Object), entity);
+        return (new CreateEventNewsHandler(_mapper.Object, _repo.Object, _slugService.Object, _reorderService.Object), entity);
     }
 
     private void SetUpMapper(EventNewsEntity entity)
@@ -396,6 +400,16 @@ public class CreateEventNewsTests
         _slugService
             .Setup(service => service.GenerateUniqueEventNewsSlugAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("event-news-title");
+    }
+
+    private void SetUpReorderService()
+    {
+        _reorderService.Reset();
+
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ReturnsAsync(1);
     }
 
     private static CreateEventNewsCommand Command(CreateEventNewsDto dto) => new(dto);

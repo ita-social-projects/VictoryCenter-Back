@@ -1,9 +1,11 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -22,6 +24,7 @@ public class UpdateEventNewsTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper = new();
     private readonly Mock<ISlugService> _slugService = new();
+    private readonly Mock<IReorderService> _reorderService = new();
 
     [Fact]
     public async Task Handle_WhenEntityDoesNotExist_ReturnsNotFound()
@@ -366,6 +369,7 @@ public class UpdateEventNewsTests
         _repositoryWrapper.Reset();
         _mapper.Reset();
         _slugService.Reset();
+        _reorderService.Reset();
 
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.GetFirstOrDefaultAsync(
@@ -411,11 +415,16 @@ public class UpdateEventNewsTests
                 PublishedAt = entity.PublishedAt,
                 Status = entity.Status
             });
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ReturnsAsync(3);
 
         return new UpdateEventNewsHandler(
             _mapper.Object,
             _repositoryWrapper.Object,
             _slugService.Object,
+            _reorderService.Object,
             TimeProvider.System);
     }
 
