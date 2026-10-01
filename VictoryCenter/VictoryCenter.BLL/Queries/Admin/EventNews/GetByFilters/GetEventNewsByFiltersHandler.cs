@@ -30,8 +30,13 @@ public class GetEventNewsByFiltersHandler
         CancellationToken cancellationToken)
     {
         var categoryId = request.Filter.CategoryId;
+        var status = request.Filter.Status;
+
         Expression<Func<EventNewsEntity, bool>> filter = eventNews =>
-            !categoryId.HasValue || eventNews.Categories.Any(category => category.Id == categoryId.Value);
+            (!categoryId.HasValue ||
+                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
+            (!status.HasValue ||
+                eventNews.Status == status.Value);
 
         var queryOptions = new QueryOptions<EventNewsEntity>
         {

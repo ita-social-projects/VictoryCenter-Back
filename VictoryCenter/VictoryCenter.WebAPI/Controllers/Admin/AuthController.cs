@@ -11,6 +11,7 @@ using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
+[Route("api/auth")]
 public class AuthController : BaseApiController
 {
     [HttpPost("login")]
@@ -27,11 +28,13 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("refresh-token")]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponseDto))]
     public async Task<IActionResult> RefreshTokenAsync()
     {
-        return HandleResult(await Mediator.Send(new RefreshTokenCommand()));
+        return HandleResult(
+            await Mediator.Send(new RefreshTokenCommand()),
+            AuthConstants.RefreshTokenIsInvalid);
     }
 
     [Authorize]

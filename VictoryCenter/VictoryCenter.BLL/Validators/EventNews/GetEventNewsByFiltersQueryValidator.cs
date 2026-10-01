@@ -22,5 +22,10 @@ public class GetEventNewsByFiltersQueryValidator : AbstractValidator<GetEventNew
             .GreaterThan(0)
             .When(query => query.Filter.CategoryId.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive("CategoryId"));
+
+        RuleFor(query => query.Filter.Status)
+            .IsInEnum()
+            .When(query => query.Filter.Status.HasValue)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("Status"));
     }
 }

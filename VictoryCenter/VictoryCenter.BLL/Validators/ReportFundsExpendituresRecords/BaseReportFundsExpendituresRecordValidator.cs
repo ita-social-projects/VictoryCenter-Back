@@ -1,6 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
 
@@ -9,27 +10,15 @@ public class BaseReportFundsExpendituresRecordValidator : AbstractValidator<Base
     public BaseReportFundsExpendituresRecordValidator()
     {
         RuleFor(dto => dto.CategoryId)
-            .GreaterThan(ReportFundsExpendituresCategoryConstants.ZeroCategoryId)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(ReportFundsExpendituresRecordDto.CategoryId)));
+            .MustBeValidId(nameof(ReportFundsExpendituresRecordDto.CategoryId));
 
         RuleFor(dto => dto.Amount)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
-                nameof(BaseReportFundsExpendituresRecordDto.Amount)))
-            .GreaterThanOrEqualTo(ReportFundsExpendituresRecordConstants.ZeroAmount)
-            .WithMessage(ErrorMessagesConstants.SumMustNotBeNegative(
-                nameof(BaseReportFundsExpendituresRecordDto.Amount)))
-            .NotEqual(ReportFundsExpendituresRecordConstants.ZeroAmount)
-            .WithMessage(ErrorMessagesConstants.SumNotEqualTo(
+            .MustBeValidAmountOfMoney(
                 nameof(BaseReportFundsExpendituresRecordDto.Amount),
-                ReportFundsExpendituresRecordConstants.ZeroAmount))
-            .PrecisionScale(
+                ReportFundsExpendituresRecordConstants.ZeroAmount,
                 ReportFundsExpendituresRecordConstants.AmountPrecision,
                 ReportFundsExpendituresRecordConstants.AmountScale,
-                true)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBeInAValidFormat(
-                nameof(BaseReportFundsExpendituresRecordDto.Amount),
-                ReportFundsExpendituresRecordConstants.AmountFormat));
+                ReportFundsExpendituresRecordConstants.AmountFormat);
 
         RuleFor(dto => dto.Currency)
             .IsInEnum()

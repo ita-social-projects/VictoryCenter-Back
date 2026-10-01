@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Options;
@@ -56,8 +58,17 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
                 detail: detail ?? GetDefaultDetail(code),
                 instance: instance);
 
+        JsonBindingErrorFormatter.Format(validationProblemDetails.Errors, GetBodyParameter(httpContext));
+
         return validationProblemDetails;
     }
+
+    private static ParameterDescriptor? GetBodyParameter(HttpContext httpContext) =>
+        httpContext.GetEndpoint()?
+            .Metadata
+            .GetMetadata<ControllerActionDescriptor>()?
+            .Parameters
+            .FirstOrDefault(parameter => parameter.BindingInfo?.BindingSource == BindingSource.Body);
 
     private static string GetDefaultTitle(int statusCode) =>
         statusCode switch
