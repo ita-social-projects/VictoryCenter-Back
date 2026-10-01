@@ -65,7 +65,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
-        if (admin.RefreshTokenValidTo <= _timeProvider.GetUtcNow()
+        if (admin.RefreshTokenValidTo is null
+            || admin.RefreshTokenValidTo <= _timeProvider.GetUtcNow()
             || !_tokenService.VerifyRefreshTokenHash(refreshToken, admin.RefreshToken))
         {
             DeleteRefreshTokenCookie();
