@@ -111,21 +111,35 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
                 cancellationToken);
         }
 
-        await _repositoryWrapper.EventNewsRepository.CreateAsync(eventNews);
+        await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
-        if (await EventNewsAggregateHelper.SaveWithSlugRetryAsync(
-                _repositoryWrapper,
-                _slugService,
-                eventNews,
-                titleForSlug,
-                cancellationToken) > 0)
+        try
         {
-            await UpdateCategoryPriorityLinksAsync(eventNews.Id, categoriesResult.Value);
+            await _repositoryWrapper.EventNewsRepository.CreateAsync(eventNews);
 
-            return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
+            if (await EventNewsAggregateHelper.SaveWithSlugRetryAsync(
+                    _repositoryWrapper,
+                    _slugService,
+                    eventNews,
+                    titleForSlug,
+                    cancellationToken) > 0)
+            {
+                await UpdateCategoryPriorityLinksAsync(eventNews.Id, categoriesResult.Value);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
+            }
+
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result.Fail<EventNewsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsEntity)));
         }
-
-        return Result.Fail<EventNewsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsEntity)));
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private static void AddCategories(EventNewsEntity eventNews, ICollection<EventNewsCategory> categories)

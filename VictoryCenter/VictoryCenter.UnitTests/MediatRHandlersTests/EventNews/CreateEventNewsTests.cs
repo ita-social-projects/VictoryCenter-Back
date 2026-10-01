@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 using VictoryCenter.BLL.Constants;
@@ -24,6 +25,7 @@ public class CreateEventNewsTests
     private readonly Mock<IRepositoryWrapper> _repo = new();
     private readonly Mock<ISlugService> _slugService = new();
     private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     private static readonly List<EventNewsCategory> Categories =
     [
@@ -273,6 +275,33 @@ public class CreateEventNewsTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_WhenPriorityUpdateFails_RollsBackTransaction()
+    {
+        // Arrange
+        var exception = new DbUpdateException("Priority update failed");
+        var (sut, _) = CreateSut(saveChanges: 1);
+
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ThrowsAsync(exception);
+
+        // Act, Assert
+        var actualException = await Assert.ThrowsAsync<DbUpdateException>(() =>
+            sut.Handle(Command(Dto(Status.Published)), CancellationToken.None));
+
+        Assert.Same(exception, actualException);
+
+        _transaction.Verify(
+            transaction => transaction.RollbackAsync(CancellationToken.None),
+            Times.Once);
+
+        _transaction.Verify(
+            transaction => transaction.CommitAsync(CancellationToken.None),
+            Times.Never);
+    }
+
     private (CreateEventNewsHandler sut, EventNewsEntity entity) CreateSut(
         int saveChanges,
         List<EventNewsCategory>? categories = null,
@@ -344,6 +373,7 @@ public class CreateEventNewsTests
         bool throwOnSave)
     {
         _repo.Reset();
+        _transaction.Reset();
 
         _repo
             .Setup(repo => repo.EventNewsCategoryRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
@@ -383,6 +413,10 @@ public class CreateEventNewsTests
                     ? []
                     : [.. categoryLinks.Where(predicate)];
             });
+
+        _repo
+            .Setup(repo => repo.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
 
         if (throwOnSave)
         {
