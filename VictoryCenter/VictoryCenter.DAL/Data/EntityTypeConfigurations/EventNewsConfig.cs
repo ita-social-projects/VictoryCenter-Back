@@ -77,6 +77,13 @@ public class EventNewsConfig : IEntityTypeConfiguration<EventNews>
                         .IsRequired();
 
                     join.HasIndex(ec => ec.EventsNewsId);
+
+                    join.HasIndex(ec => new
+                    {
+                        ec.CategoriesId,
+                        ec.Priority
+                    })
+                    .IsUnique();
                 });
     }
 }
