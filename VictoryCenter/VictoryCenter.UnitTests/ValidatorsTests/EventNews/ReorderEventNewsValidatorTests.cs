@@ -30,7 +30,7 @@ public class ReorderEventNewsValidatorTests
     {
         // Arrange
         var command = CreateCommand(
-            categoryId: EventNewsConstants.ZeroCategoryId,
+            categoryId: 0,
             ids: [1]);
 
         // Act

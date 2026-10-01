@@ -10,7 +10,7 @@ public class ReorderEventNewsValidator : AbstractValidator<ReorderEventNewsComma
     public ReorderEventNewsValidator()
     {
         RuleFor(c => c.Dto.CategoryId)
-            .GreaterThan(EventNewsConstants.ZeroCategoryId)
+            .GreaterThan(0)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
                 nameof(ReorderEventNewsDto.CategoryId)));
 
@@ -18,7 +18,7 @@ public class ReorderEventNewsValidator : AbstractValidator<ReorderEventNewsComma
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                 nameof(ReorderEventNewsDto.Ids)))
-            .Must(ids => ids.Count > EventNewsConstants.ZeroCount)
+            .Must(ids => ids.Count > 0)
             .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
                 nameof(ReorderEventNewsDto.Ids)))
             .Must(ids => ids.Count <= ReorderConstants.MaxElementsSwapCount)
@@ -28,7 +28,7 @@ public class ReorderEventNewsValidator : AbstractValidator<ReorderEventNewsComma
                 nameof(ReorderEventNewsDto.Ids)));
 
         RuleForEach(c => c.Dto.Ids)
-            .GreaterThan(EventNewsConstants.ZeroCategoryId)
+            .GreaterThan(0)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(
                 $"Each {nameof(ReorderEventNewsDto.Ids)} element."));
     }

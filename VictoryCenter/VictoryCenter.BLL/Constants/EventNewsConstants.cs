@@ -9,6 +9,4 @@ public static class EventNewsConstants
     public const int DescriptionMinLength = 5;
     public const int DescriptionMaxLength = 140;
     public const int ResourceMaxLength = 150;
-    public const int ZeroCategoryId = 0;
-    public const int ZeroCount = 0;
 }
