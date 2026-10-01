@@ -34,7 +34,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         }
 
         admin.RefreshToken = null;
-        admin.RefreshTokenValidTo = DateTimeOffset.MinValue;
+        admin.RefreshTokenValidTo = null;
 
         var updateAdmin = await _userManager.UpdateAsync(admin);
 
@@ -43,7 +43,15 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
             return Result.Fail(AuthConstants.NotUpdated);
         }
 
-        _httpContextAccessor.HttpContext!.Response.Cookies.Delete(AuthConstants.RefreshTokenCookieName);
+        _httpContextAccessor.HttpContext!.Response.Cookies.Delete(
+            AuthConstants.RefreshTokenCookieName,
+            new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Path = AuthConstants.RefreshTokenCookiePath
+            });
         return Result.Ok(Unit.Value);
     }
 }

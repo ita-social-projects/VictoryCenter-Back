@@ -95,6 +95,8 @@ public interface IRepositoryWrapper
 
     IHippotherapyLandingPageIntroSectionLocalizationsRepository HippotherapyLandingPageIntroSectionLocalizationsRepository { get; }
 
+    IHippotherapyLandingPageDescriptionSectionLocalizationsRepository HippotherapyLandingPageDescriptionSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageHippoventionSectionLocalizationsRepository HippotherapyLandingPageHippoventionSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAnalysisSectionLocalizationsRepository HippotherapyLandingPageAnalysisSectionLocalizationsRepository { get; }
 
     IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository { get; }
@@ -151,6 +153,8 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository { get; }
     IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository { get; }
     IHippotherapyLandingPageIntroSectionsRepository HippotherapyLandingPageIntroSectionsRepository { get; }
+    IHippotherapyLandingPageDescriptionSectionsRepository HippotherapyLandingPageDescriptionSectionsRepository { get; }
+    IHippotherapyLandingPageHippoventionSectionsRepository HippotherapyLandingPageHippoventionSectionsRepository { get; }
     IHippotherapyLandingPageAnalysisSectionsRepository HippotherapyLandingPageAnalysisSectionsRepository { get; }
     IFeedbackHistoriesRepository FeedbackHistoriesRepository { get; }
     IFeedbackHistoryLocalizationsRepository FeedbackHistoryLocalizationsRepository { get; }

@@ -1,5 +1,6 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
+using VictoryCenter.BLL.DTOs.Public.FeedbackReviews;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Mapping.FeedbackReviews;
@@ -9,6 +10,7 @@ public class FeedbackReviewsProfile : Profile
     public FeedbackReviewsProfile()
     {
         CreateMap<FeedbackReview, FeedbackReviewDto>();
+        CreateMap<FeedbackReview, PublishedFeedbackReviewDto>();
 
         CreateMap<CreateFeedbackReviewDto, FeedbackReview>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())

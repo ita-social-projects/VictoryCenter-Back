@@ -11,9 +11,9 @@ public static class HippotherapyLandingPageIncludeHelper
         return query
             .Include(e => e.IntroSection).ThenInclude(s => s!.Image)
             .Include(e => e.IntroSection).ThenInclude(s => s!.Localizations)
-            .Include(e => e.DescriptionSection)
+            .Include(e => e.DescriptionSection).ThenInclude(s => s!.Localizations)
             .Include(e => e.QuoteSection).ThenInclude(s => s!.Image)
-            .Include(e => e.HippoventionSection)
+            .Include(e => e.HippoventionSection).ThenInclude(s => s!.Localizations)
             .Include(e => e.HippoventionCenterSection).ThenInclude(s => s!.Image)
             .Include(e => e.AdvantagesSection).ThenInclude(s => s!.AdvantageCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Image)
             .Include(e => e.AnalysisSection).ThenInclude(s => s!.Localizations)

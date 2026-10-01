@@ -1,0 +1,9 @@
+using FluentResults;
+using MediatR;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageHippoventionSection;
+
+namespace VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyLandingPageHippoventionSection.Create;
+
+public record CreateHippotherapyLandingPageHippoventionSectionLocalizationCommand(
+    CreateHippotherapyLandingPageHippoventionSectionLocalizationDto CreateHippotherapyLandingPageHippoventionSectionLocalizationDto)
+    : IRequest<Result<HippotherapyLandingPageHippoventionSectionLocalizationDto>>;

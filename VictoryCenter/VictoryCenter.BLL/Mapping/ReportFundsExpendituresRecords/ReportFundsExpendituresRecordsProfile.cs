@@ -12,7 +12,7 @@ public class ReportFundsExpendituresRecordsProfile : Profile
         CreateMap<CreateReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>()
             .ForMember(dest => dest.AmountUah, opt => opt.Ignore())
             .ForMember(dest => dest.AmountUsd, opt => opt.Ignore());
-        CreateMap<UpdateReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>()
+        CreateMap<BaseReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Type, opt => opt.Ignore())
@@ -20,5 +20,9 @@ public class ReportFundsExpendituresRecordsProfile : Profile
             .ForMember(dest => dest.Category, opt => opt.Ignore())
             .ForMember(dest => dest.AmountUah, opt => opt.Ignore())
             .ForMember(dest => dest.AmountUsd, opt => opt.Ignore());
+        CreateMap<UpdateReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>()
+            .IncludeBase<BaseReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>();
+        CreateMap<BatchUpdateReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>()
+            .IncludeBase<BaseReportFundsExpendituresRecordDto, ReportFundsExpendituresRecord>();
     }
 }
