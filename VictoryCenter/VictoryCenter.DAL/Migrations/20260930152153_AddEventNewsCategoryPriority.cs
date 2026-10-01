@@ -26,7 +26,7 @@ namespace VictoryCenter.DAL.Migrations
                         CategoriesId,
                         ROW_NUMBER() OVER (
                             PARTITION BY CategoriesId
-                            ORDER BY EventsNewsId
+                            ORDER BY EventsNewsId DESC
                         ) AS Priority
                     FROM EventNewsEventNewsCategories
                 )
