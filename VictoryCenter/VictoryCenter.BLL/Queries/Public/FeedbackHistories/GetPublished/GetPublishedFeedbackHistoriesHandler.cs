@@ -31,7 +31,10 @@ public class GetPublishedFeedbackHistoriesHandler
             {
                 Filter = history => history.Status == Status.Published,
                 OrderByASC = history => history.Priority,
-                Include = query => query.Include(history => history.Image!),
+                Include = query => query
+                    .Include(history => history.Image!)
+                    .Include(history => history.Localizations)
+                        .ThenInclude(localization => localization.Language),
                 AsNoTracking = true
             });
 

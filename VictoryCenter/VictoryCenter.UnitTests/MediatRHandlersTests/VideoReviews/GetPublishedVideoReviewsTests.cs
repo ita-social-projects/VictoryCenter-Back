@@ -1,8 +1,10 @@
 using AutoMapper;
 using Moq;
+using VictoryCenter.BLL;
 using VictoryCenter.BLL.DTOs.Public.VideoReviews;
 using VictoryCenter.BLL.Queries.Public.VideoReviews.GetPublished;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
@@ -44,6 +46,7 @@ public class GetPublishedVideoReviewsTests
         Assert.False(filter(new VideoReview { Status = Status.Published, IsArchived = true }));
         Assert.False(filter(new VideoReview { Status = Status.Draft, IsArchived = false }));
         Assert.NotNull(capturedOptions.OrderByASC);
+        Assert.NotNull(capturedOptions.Include);
         Assert.True(capturedOptions.AsNoTracking);
     }
 
@@ -63,6 +66,42 @@ public class GetPublishedVideoReviewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(dtos, result.Value);
+    }
+
+    [Fact]
+    public async Task Handle_WithRealMapper_ShouldMapLocalizations()
+    {
+        var language = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" };
+        var localization = new VideoReviewLocalization
+        {
+            EntityId = 1,
+            LanguageId = language.Id,
+            Language = language,
+            Title = "Caption",
+            TranslationStatus = TranslationStatus.Relevant
+        };
+        var entity = new VideoReview
+        {
+            Id = 1,
+            Title = "Підпис",
+            Link = "https://example.com/video",
+            Status = Status.Published,
+            Localizations = [localization]
+        };
+        _repository
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync([entity]);
+        var mapper = new MapperConfiguration(cfg => cfg.AddMaps(typeof(BllAssemblyMarker).Assembly)).CreateMapper();
+
+        var result = await new GetPublishedVideoReviewsHandler(mapper, _repositoryWrapper.Object)
+            .Handle(new GetPublishedVideoReviewsQuery(), CancellationToken.None);
+
+        var videoReview = Assert.Single(result.Value);
+        Assert.Equal("Підпис", videoReview.Title);
+        var localizationDto = Assert.Single(videoReview.Localizations);
+        Assert.Equal("en", localizationDto.Language.Code);
+        Assert.Equal("Caption", localizationDto.Title);
+        Assert.Equal(TranslationStatus.Relevant, localizationDto.TranslationStatus);
     }
 
     [Fact]

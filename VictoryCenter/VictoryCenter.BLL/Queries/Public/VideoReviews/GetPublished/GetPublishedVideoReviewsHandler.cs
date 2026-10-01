@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.VideoReviews;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -30,6 +31,9 @@ public class GetPublishedVideoReviewsHandler
             {
                 Filter = videoReview => videoReview.Status == Status.Published && !videoReview.IsArchived,
                 OrderByASC = videoReview => videoReview.Priority,
+                Include = query => query
+                    .Include(videoReview => videoReview.Localizations)
+                        .ThenInclude(localization => localization.Language),
                 AsNoTracking = true
             });
 

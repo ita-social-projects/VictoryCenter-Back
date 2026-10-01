@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackReviews;
 using VictoryCenter.BLL.DTOs.Public.FeedbackReviews;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -34,6 +36,35 @@ public class GetPublishedFeedbackReviewsTests : BaseTestClass
         Assert.DoesNotContain(reviews, review => review.Id == draft.Id);
         Assert.Equal("First author", reviews[0].AuthorName);
         Assert.Equal(first.Text, reviews[0].Text);
+        Assert.All(reviews, review => Assert.Empty(review.Localizations));
+    }
+
+    [Fact]
+    public async Task GetPublished_TranslationAddedThroughAdminApi_ShouldReturnTranslation()
+    {
+        var review = await AddReviewAsync("Published author", Status.Published, priority: 1);
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/FeedbackReviewLocalizations",
+            new CreateFeedbackReviewLocalizationDto
+            {
+                EntityId = review.Id,
+                LanguageId = language.Id,
+                AuthorName = "English author",
+                Text = "English review text."
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        using var anonymousClient = Fixture.Factory.CreateClient();
+        var reviews = await anonymousClient.GetFromJsonAsync<List<PublishedFeedbackReviewDto>>(PublishedUrl);
+
+        var result = Assert.Single(reviews!);
+        Assert.Equal("Published author", result.AuthorName);
+        var localization = Assert.Single(result.Localizations);
+        Assert.Equal("en", localization.Language.Code);
+        Assert.Equal("English author", localization.AuthorName);
+        Assert.Equal("English review text.", localization.Text);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
     }
 
     [Fact]
