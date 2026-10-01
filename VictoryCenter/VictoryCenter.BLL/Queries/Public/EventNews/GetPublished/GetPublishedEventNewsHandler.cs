@@ -31,11 +31,14 @@ public class GetPublishedEventNewsHandler
             Filter = eventNews => eventNews.Status == Status.Published,
             Include = eventNews => eventNews
                 .Include(e => e.Categories)
+                    .ThenInclude(category => category.Localizations)
+                        .ThenInclude(localization => localization.Language)
                 .Include(e => e.PreviewImage)
                 .Include(e => e.Localizations)
                     .ThenInclude(l => l.Language),
             OrderByDESC = eventNews => eventNews.PublishedAt,
             Limit = request.Take ?? 0,
+            AsSplitQuery = true,
         };
 
         IEnumerable<EventNewsEntity> publishedEventNews =
