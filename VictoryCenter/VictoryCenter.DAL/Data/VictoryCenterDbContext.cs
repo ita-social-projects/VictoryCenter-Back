@@ -173,6 +173,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyLandingPageDescriptionSectionLocalization> HippotherapyLandingPageDescriptionSectionLocalizations { get; set; }
 
+    public DbSet<HippotherapyLandingPageHippoventionSectionLocalization> HippotherapyLandingPageHippoventionSectionLocalizations { get; set; }
+
     public DbSet<HippotherapyLandingPageDescriptionSection> HippotherapyLandingPageDescriptionSections { get; set; }
 
     public DbSet<HippotherapyLandingPageQuoteSection> HippotherapyLandingPageQuoteSections { get; set; }
