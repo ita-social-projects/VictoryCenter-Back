@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
-using VictoryCenter.DAL.Entities;
 using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
+using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Reorder;
 
@@ -43,7 +43,7 @@ public class ReorderEventNewsHandler(
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(TeamMember)));
+            return Result.Fail<Unit>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(EventNewsEntity)));
         }
     }
 }
