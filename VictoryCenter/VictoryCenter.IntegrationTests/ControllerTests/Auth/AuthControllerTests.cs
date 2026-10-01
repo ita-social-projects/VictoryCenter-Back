@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.IntegrationTests.Utils;
@@ -32,6 +33,12 @@ public class AuthControllerTests : BaseTestClass
         Assert.False(string.IsNullOrEmpty(authResponse!.AccessToken));
         var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
         Assert.False(string.IsNullOrEmpty(setCookie));
+
+        var issuedRefreshToken = setCookie!.Split(';')[0].Split('=', 2)[1];
+        Fixture.DbContext.ChangeTracker.Clear();
+        var admin = await Fixture.DbContext.Users.SingleAsync(user => user.Email == TestEmail);
+        Assert.NotEqual(issuedRefreshToken, admin.RefreshToken);
+        Assert.Matches("^[A-F0-9]{64}$", admin.RefreshToken!);
     }
 
     [Fact]
@@ -86,13 +93,81 @@ public class AuthControllerTests : BaseTestClass
     }
 
     [Fact]
+    public async Task RefreshToken_AfterLogin_AutomaticallySendsPathScopedCookie()
+    {
+        using var client = Fixture.Factory.CreateClient(new()
+        {
+            BaseAddress = new Uri("https://localhost"),
+            HandleCookies = true
+        });
+
+        using var loginResponse = await client.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        using var refreshResponse = await client.PostAsync(RefreshTokenPath, content: null);
+
+        refreshResponse.EnsureSuccessStatusCode();
+        var authResponse = await refreshResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        Assert.False(string.IsNullOrEmpty(authResponse!.AccessToken));
+    }
+
+    [Fact]
     public async Task RefreshToken_InvalidRefreshToken_ReturnsUnauthorized()
     {
         var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
         request.Headers.Add("Cookie", $"{AuthConstants.RefreshTokenCookieName}=invalidRefreshToken");
 
         var response = await Fixture.HttpClient.SendAsync(request);
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ReusedRotatedToken_ReturnsUnauthorized()
+    {
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+        var originalCookie = GetRefreshTokenCookie(loginResponse);
+
+        using var firstRefreshRequest = CreateRefreshRequest(originalCookie);
+        using var firstRefreshResponse = await Fixture.HttpClient.SendAsync(firstRefreshRequest);
+        firstRefreshResponse.EnsureSuccessStatusCode();
+        var rotatedCookie = GetRefreshTokenCookie(firstRefreshResponse);
+
+        using var replayRequest = CreateRefreshRequest(originalCookie);
+        using var replayResponse = await Fixture.HttpClient.SendAsync(replayRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
+
+        using var rotatedTokenRequest = CreateRefreshRequest(rotatedCookie);
+        using var rotatedTokenResponse = await Fixture.HttpClient.SendAsync(rotatedTokenRequest);
+        rotatedTokenResponse.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task Login_FromSecondDevice_InvalidatesFirstDeviceRefreshToken()
+    {
+        var firstLoginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        firstLoginResponse.EnsureSuccessStatusCode();
+        var firstDeviceCookie = GetRefreshTokenCookie(firstLoginResponse);
+
+        var secondLoginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        secondLoginResponse.EnsureSuccessStatusCode();
+        var secondDeviceCookie = GetRefreshTokenCookie(secondLoginResponse);
+
+        using var firstDeviceRefreshRequest = CreateRefreshRequest(firstDeviceCookie);
+        using var firstDeviceRefreshResponse = await Fixture.HttpClient.SendAsync(firstDeviceRefreshRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, firstDeviceRefreshResponse.StatusCode);
+
+        using var secondDeviceRefreshRequest = CreateRefreshRequest(secondDeviceCookie);
+        using var secondDeviceRefreshResponse = await Fixture.HttpClient.SendAsync(secondDeviceRefreshRequest);
+        secondDeviceRefreshResponse.EnsureSuccessStatusCode();
     }
 
     [Fact]
@@ -132,5 +207,19 @@ public class AuthControllerTests : BaseTestClass
         var logoutResponse = await Fixture.HttpClient.SendAsync(logoutRequest);
 
         Assert.Equal(HttpStatusCode.Unauthorized, logoutResponse.StatusCode);
+    }
+
+    private static string GetRefreshTokenCookie(HttpResponseMessage response)
+    {
+        var setCookieHeaders = response.Headers.GetValues("Set-Cookie");
+        return setCookieHeaders.Single(header => header.StartsWith($"{AuthConstants.RefreshTokenCookieName}="))
+            .Split(';')[0];
+    }
+
+    private static HttpRequestMessage CreateRefreshRequest(string refreshTokenCookie)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
+        request.Headers.Add("Cookie", refreshTokenCookie);
+        return request;
     }
 }
