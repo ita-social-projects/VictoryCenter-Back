@@ -137,7 +137,10 @@ public class GetPublishedEventNewsTests
         _mockRepositoryWrapper.Verify(
             x => x.EventNewsRepository.GetAllAsync(
                 It.Is<QueryOptions<EventNewsEntity>>(o =>
-                    o.Limit == take && o.OrderByDESC != null && o.AsSplitQuery)),
+                    o.Limit == take &&
+                    o.OrderByDESC != null &&
+                    o.ThenByDESC != null &&
+                    o.AsSplitQuery)),
             Times.Once);
     }
 

@@ -37,6 +37,7 @@ public class GetPublishedEventNewsHandler
                 .Include(e => e.Localizations)
                     .ThenInclude(l => l.Language),
             OrderByDESC = eventNews => eventNews.PublishedAt,
+            ThenByDESC = eventNews => eventNews.Id,
             Limit = request.Take ?? 0,
             AsSplitQuery = true,
         };
