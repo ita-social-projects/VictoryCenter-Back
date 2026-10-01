@@ -100,33 +100,52 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
         }
 
-        ApplyChanges(
-            eventNews,
-            dto,
-            imagesResult.Value,
-            categoriesResult.Value,
-            localizationDtos,
-            languagesResult.Value,
-            categoriesChanged,
-            localizationsChanged);
+        await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
-        var titleForSlug = localizationDtos
-            .Select(localization => localization.Title?.Trim())
-            .FirstOrDefault(title => !string.IsNullOrWhiteSpace(title));
-
-        await UpdateSlugAsync(eventNews, titleForSlug, titlesChanged, cancellationToken);
-
-        var result = await SaveAsync(eventNews, titleForSlug, cancellationToken);
-
-        if (result.IsSuccess && categoriesChanged)
+        try
         {
-            await UpdateCategoryPrioritiesAsync(
-                eventNews.Id,
-                oldCategoryIds,
-                categoriesResult.Value);
-        }
+            ApplyChanges(
+                eventNews,
+                dto,
+                imagesResult.Value,
+                categoriesResult.Value,
+                localizationDtos,
+                languagesResult.Value,
+                categoriesChanged,
+                localizationsChanged);
 
-        return result;
+            var titleForSlug = localizationDtos
+                .Select(localization => localization.Title?.Trim())
+                .FirstOrDefault(title => !string.IsNullOrWhiteSpace(title));
+
+            await UpdateSlugAsync(eventNews, titleForSlug, titlesChanged, cancellationToken);
+
+            var result = await SaveAsync(eventNews, titleForSlug, cancellationToken);
+
+            if (result.IsFailed)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+
+                return result;
+            }
+
+            if (categoriesChanged)
+            {
+                await UpdateCategoryPrioritiesAsync(
+                    eventNews.Id,
+                    oldCategoryIds,
+                    categoriesResult.Value);
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private async Task<EventNewsEntity?> GetEventNewsAsync(long id)

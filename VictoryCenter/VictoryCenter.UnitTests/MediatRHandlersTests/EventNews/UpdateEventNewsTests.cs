@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Update;
 using VictoryCenter.BLL.Constants;
@@ -25,6 +26,7 @@ public class UpdateEventNewsTests
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper = new();
     private readonly Mock<ISlugService> _slugService = new();
     private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     [Fact]
     public async Task Handle_WhenEntityDoesNotExist_ReturnsNotFound()
@@ -354,6 +356,36 @@ public class UpdateEventNewsTests
         _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
     }
 
+    [Fact]
+    public async Task Handle_WhenPriorityUpdateFails_RollsBackTransaction()
+    {
+        // Arrange
+        var eventNews = ExistingEventNews();
+        var exception = new DbUpdateException("Priority update failed");
+        var handler = CreateHandler(eventNews);
+
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ThrowsAsync(exception);
+
+        // Act, Assert
+        var actualException = await Assert.ThrowsAsync<DbUpdateException>(() =>
+            handler.Handle(
+                new UpdateEventNewsCommand(10, PublishedDto()),
+                CancellationToken.None));
+
+        Assert.Same(exception, actualException);
+
+        _transaction.Verify(
+            transaction => transaction.RollbackAsync(CancellationToken.None),
+            Times.Once);
+
+        _transaction.Verify(
+            transaction => transaction.CommitAsync(CancellationToken.None),
+            Times.Never);
+    }
+
     private UpdateEventNewsHandler CreateHandler(
         EventNewsEntity? eventNews,
         IReadOnlyCollection<EventNewsCategory>? categories = null,
@@ -370,6 +402,7 @@ public class UpdateEventNewsTests
         _mapper.Reset();
         _slugService.Reset();
         _reorderService.Reset();
+        _transaction.Reset();
 
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.GetFirstOrDefaultAsync(
@@ -390,6 +423,9 @@ public class UpdateEventNewsTests
             .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
             .ReturnsAsync([]);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
 
         if (saveException is not null)
         {
