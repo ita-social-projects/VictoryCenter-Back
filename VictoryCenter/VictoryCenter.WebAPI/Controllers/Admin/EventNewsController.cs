@@ -59,7 +59,9 @@ public class EventNewsController : AuthorizedApiController
 
     [HttpPut("reorder")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> ReorderEventNews([FromBody]ReorderEventNewsDto reorderEventNewsDto)
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ReorderEventNews([FromBody] ReorderEventNewsDto reorderEventNewsDto)
     {
         return HandleResult(await Mediator.Send(new ReorderEventNewsCommand(reorderEventNewsDto)));
     }
