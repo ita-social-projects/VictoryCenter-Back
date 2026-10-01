@@ -47,12 +47,16 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
             .Select(category => category.Id)
             .ToList();
 
+        await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
+
         _repositoryWrapper.EventNewsRepository.Delete(eventNews);
 
         try
         {
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
+                await transaction.RollbackAsync(cancellationToken);
+
                 return Result.Fail<long>(
                     ErrorMessagesConstants.FailedToDeleteEntity(typeof(EventNewsEntity)));
             }
@@ -64,16 +68,25 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
                         link => link.CategoriesId == categoryId);
             }
 
+            await transaction.CommitAsync(cancellationToken);
+
             return Result.Ok(eventNews.Id);
         }
         catch (DbUpdateConcurrencyException)
         {
+            await transaction.RollbackAsync(cancellationToken);
+
             if (!await _repositoryWrapper.EventNewsRepository.ExistsAsync(
                     entity => entity.Id == request.Id))
             {
                 return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
             }
 
+            throw;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
             throw;
         }
     }

@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Delete;
 using VictoryCenter.BLL.Constants;
@@ -18,12 +19,17 @@ public class DeleteEventNewsTests
     private readonly Mock<IEventNewsRepository> _eventNewsRepository = new();
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper = new();
     private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     public DeleteEventNewsTests()
     {
         _repositoryWrapper
             .SetupGet(wrapper => wrapper.EventNewsRepository)
             .Returns(_eventNewsRepository.Object);
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
     }
 
     [Fact]
@@ -193,6 +199,49 @@ public class DeleteEventNewsTests
                         CategoriesId = 2
                     }))),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldRollbackTransaction_WhenRenumberPriorityFails()
+    {
+        // Arrange
+        var eventNews = EventNews(10);
+        eventNews.Categories.Add(new EventNewsCategory { Id = 1 });
+
+        SetupEventNews(eventNews);
+
+        var transaction = new Mock<IDbContextTransaction>();
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(transaction.Object);
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.SaveChangesAsync())
+            .ReturnsAsync(1);
+
+        _reorderService
+            .Setup(service => service.RenumberPriorityAsync<EventNewsEventNewsCategories>(
+                It.IsAny<Expression<Func<EventNewsEventNewsCategories, bool>>>()))
+            .ThrowsAsync(new DbUpdateException("Reorder failed"));
+
+        var handler = new DeleteEventNewsHandler(
+            _repositoryWrapper.Object,
+            _reorderService.Object);
+
+        // Act, Assert
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            handler.Handle(
+                new DeleteEventNewsCommand(eventNews.Id),
+                CancellationToken.None));
+
+        transaction.Verify(
+            value => value.RollbackAsync(CancellationToken.None),
+            Times.Once);
+
+        transaction.Verify(
+            value => value.CommitAsync(CancellationToken.None),
+            Times.Never);
     }
 
     private void SetupEventNews(EventNewsEntity? eventNews)
