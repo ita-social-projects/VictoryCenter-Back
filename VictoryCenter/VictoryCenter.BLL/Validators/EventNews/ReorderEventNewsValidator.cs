@@ -18,9 +18,9 @@ public class ReorderEventNewsValidator : AbstractValidator<ReorderEventNewsComma
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
                 nameof(ReorderEventNewsDto.Ids)))
-            .Must(ids => ids.Count > 0)
-            .WithMessage(ErrorMessagesConstants.CollectionCannotBeEmpty(
-                nameof(ReorderEventNewsDto.Ids)))
+            .Must(ids => ids.Count > 1)
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainLessThan(
+                nameof(ReorderEventNewsDto.Ids), 2))
             .Must(ids => ids.Count <= ReorderConstants.MaxElementsSwapCount)
             .WithMessage(c => ReorderConstants.ExceededMaxElementsSwapCount(c.Dto.Ids.Count))
             .Must(ids => ids.Distinct().Count() == ids.Count)

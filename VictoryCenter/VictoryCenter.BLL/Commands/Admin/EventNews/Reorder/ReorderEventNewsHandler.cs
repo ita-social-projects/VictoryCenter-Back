@@ -5,6 +5,10 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
@@ -12,7 +16,8 @@ namespace VictoryCenter.BLL.Commands.Admin.EventNews.Reorder;
 
 public class ReorderEventNewsHandler(
     IReorderService reorderService,
-    IValidator<ReorderEventNewsCommand> validator)
+    IValidator<ReorderEventNewsCommand> validator,
+    IRepositoryWrapper repository)
     : IRequestHandler<ReorderEventNewsCommand, Result<Unit>>
 {
     public async Task<Result<Unit>> Handle(
@@ -25,6 +30,18 @@ public class ReorderEventNewsHandler(
 
             var orderedIds = request.Dto.Ids;
             var categoryId = request.Dto.CategoryId;
+
+            var existingLinks = await repository
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = e => e.CategoriesId == categoryId && orderedIds.Contains(e.EventsNewsId)
+                });
+
+            if (existingLinks is null)
+            {
+                return Result.Fail(ErrorMessagesConstants.NotFound(categoryId, typeof(EventNewsCategoryLink)));
+            }
 
             await reorderService.SwapElementsAsync<EventNewsCategoryLink>(
                 orderedIds,

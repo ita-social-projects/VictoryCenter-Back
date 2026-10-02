@@ -198,6 +198,11 @@ public static class ErrorMessagesConstants
         return $"{collectionName} cannot contain null elements";
     }
 
+    public static string CollectionCannotContainLessThan(string collection, long numberOfElements)
+    {
+        return $"{collection} cannot contain less than {numberOfElements} elements";
+    }
+
     public static string PropertyMustHaveALengthOfNCharacters(string property, int length)
     {
         return $"{property} must have a length of {length} characters";

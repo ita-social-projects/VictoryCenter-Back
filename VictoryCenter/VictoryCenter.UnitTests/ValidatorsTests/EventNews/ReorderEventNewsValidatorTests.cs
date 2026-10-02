@@ -93,8 +93,26 @@ public class ReorderEventNewsValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(c => c.Dto.Ids)
             .WithErrorMessage(
-                ErrorMessagesConstants.CollectionCannotBeEmpty(
-                    nameof(ReorderEventNewsDto.Ids)));
+                ErrorMessagesConstants.CollectionCannotContainLessThan(
+                    nameof(ReorderEventNewsDto.Ids), 2));
+    }
+
+    [Fact]
+    public void Validate_IdsSingleElement_ShouldHaveValidationError()
+    {
+        // Arrange
+        var command = CreateCommand(
+            categoryId: 1,
+            ids: [999]);
+
+        // Act
+        var result = _validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(c => c.Dto.Ids)
+            .WithErrorMessage(
+                ErrorMessagesConstants.CollectionCannotContainLessThan(
+                    nameof(ReorderEventNewsDto.Ids), 2));
     }
 
     [Fact]
