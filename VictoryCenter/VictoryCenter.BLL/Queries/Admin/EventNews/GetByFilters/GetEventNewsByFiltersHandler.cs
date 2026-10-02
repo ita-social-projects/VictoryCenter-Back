@@ -68,18 +68,6 @@ public class GetEventNewsByFiltersHandler
 
         var items = _mapper.Map<EventNewsDto[]>(eventNews);
 
-        var priorityLookup = allPriorities
-            .ToDictionary(p => (p.EventsNewsId, p.CategoriesId), p => p.Priority);
-
-        foreach (var item in items)
-        {
-            var priorityKey = (item.Id, categoryId ?? 0L);
-            if (priorityLookup.TryGetValue(priorityKey, out var priority))
-            {
-                item.Priority = priority;
-            }
-        }
-
         var sortedItems = items
             .OrderBy(item => allPriorities
                 .FirstOrDefault(p => p.EventsNewsId == item.Id && p.CategoriesId == (categoryId ?? 0L))

@@ -373,6 +373,5 @@ public class GetAdminEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal([2, 3, 1], result.Value.Items.Select(item => item.Id));
-        Assert.Equal([0, 1, 2], result.Value.Items.Select(item => item.Priority));
     }
 }

@@ -113,12 +113,24 @@ public class GetPublishedEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnEventNewsSortedByPriority()
+    public async Task Handle_ShouldReturnEventNewsSortedByPublishedAt()
     {
         var items = new List<EventNewsEntity>
         {
-            new() { Id = 1, Resource = "NV", Status = Status.Published },
-            new() { Id = 2, Resource = "Канал Дім", Status = Status.Published }
+            new()
+            {
+                Id = 1,
+                Resource = "NV",
+                Status = Status.Published,
+                PublishedAt = DateTimeOffset.UtcNow.AddDays(-1)
+            },
+            new()
+            {
+                Id = 2,
+                Resource = "Канал Дім",
+                Status = Status.Published,
+                PublishedAt = DateTimeOffset.UtcNow
+            }
         };
 
         _mapperMock
@@ -133,25 +145,6 @@ public class GetPublishedEventNewsTests
         _mockRepositoryWrapper
             .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .ReturnsAsync(items);
-
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsEventNewsCategoriesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
-            .ReturnsAsync(
-            [
-                new EventNewsCategoryLink
-            {
-                EventsNewsId = 1,
-                CategoriesId = 1,
-                Priority = 1
-            },
-            new EventNewsCategoryLink
-            {
-                EventsNewsId = 2,
-                CategoriesId = 1,
-                Priority = 0
-            },
-            ]);
 
         var handler = new GetPublishedEventNewsHandler(
             _mapperMock.Object,
