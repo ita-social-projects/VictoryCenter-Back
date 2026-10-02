@@ -7,6 +7,7 @@ public record CreateEventNewsDto
 {
     private string? _title;
     private string? _description;
+    private string? _additionalDescription;
     public string? Title
     {
         get { return _title; }
@@ -19,7 +20,14 @@ public record CreateEventNewsDto
         init { _description = value != null ? NormalizeString(value) : null; }
     }
 
+    public string? AdditionalDescription
+    {
+        get { return _additionalDescription; }
+        init { _additionalDescription = value != null ? NormalizeString(value) : null; }
+    }
+
     public string? Resource { get; init; }
+    public string? ResourceEn { get; init; }
     public DateTimeOffset? PublishedAt { get; init; }
     public Status Status { get; init; }
     public long? PreviewImageId { get; init; }
