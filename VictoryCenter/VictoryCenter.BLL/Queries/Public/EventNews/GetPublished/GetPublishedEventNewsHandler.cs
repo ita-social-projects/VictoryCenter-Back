@@ -16,7 +16,9 @@ public class GetPublishedEventNewsHandler
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetPublishedEventNewsHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetPublishedEventNewsHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -26,22 +28,24 @@ public class GetPublishedEventNewsHandler
         GetPublishedEventNewsQuery request,
         CancellationToken cancellationToken)
     {
-        var queryOptions = new QueryOptions<EventNewsEntity>
-        {
-            Filter = eventNews => eventNews.Status == Status.Published,
-            Include = eventNews => eventNews
-                .Include(e => e.Categories)
-                .Include(e => e.PreviewImage)
-                .Include(e => e.Localizations)
-                    .ThenInclude(l => l.Language),
-            OrderByDESC = eventNews => eventNews.PublishedAt,
-            Limit = request.Take ?? 0,
-        };
+        var publishedEventNews = await _repositoryWrapper.EventNewsRepository
+            .GetAllAsync(new QueryOptions<EventNewsEntity>
+            {
+                Filter = eventNews => eventNews.Status == Status.Published,
+                Include = eventNews => eventNews
+                    .Include(e => e.Categories)
+                    .Include(e => e.PreviewImage)
+                    .Include(e => e.Localizations)
+                        .ThenInclude(localization => localization.Language),
+                AsNoTracking = true
+            });
 
-        IEnumerable<EventNewsEntity> publishedEventNews =
-            await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
+        var sortedEventNews = publishedEventNews
+            .OrderByDescending(eventNews => eventNews.PublishedAt ?? DateTimeOffset.MinValue)
+            .Take(request.Take ?? publishedEventNews.Count())
+            .ToList();
 
-        var result = _mapper.Map<IEnumerable<PublishedEventNewsDto>>(publishedEventNews).ToList();
+        var result = _mapper.Map<List<PublishedEventNewsDto>>(sortedEventNews);
 
         return Result.Ok(result);
     }

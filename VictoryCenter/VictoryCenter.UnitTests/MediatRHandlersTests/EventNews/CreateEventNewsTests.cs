@@ -1,9 +1,12 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -11,6 +14,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.UnitTests.Utils;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.EventNews;
@@ -20,6 +24,8 @@ public class CreateEventNewsTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repo = new();
     private readonly Mock<ISlugService> _slugService = new();
+    private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     private static readonly List<EventNewsCategory> Categories =
     [
@@ -36,6 +42,16 @@ public class CreateEventNewsTests
     [
         new() { Id = 1, Code = "uk", Name = "Ukrainian" },
         new() { Id = 2, Code = "en", Name = "English" }
+    ];
+
+    private static readonly List<EventNewsCategoryLink> CategoryLinks =
+    [
+        new()
+        {
+            EventsNewsId = 0,
+            CategoriesId = 1,
+            Priority = 0
+        },
     ];
 
     [Fact]
@@ -203,6 +219,7 @@ public class CreateEventNewsTests
         var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
         _repo.SetupSequence(repository => repository.SaveChangesAsync())
             .ThrowsAsync(exception)
+            .ReturnsAsync(1)
             .ReturnsAsync(1);
         _repo.Setup(repository => repository.EventNewsRepository.ExistsAsync(
                 It.IsAny<System.Linq.Expressions.Expression<Func<EventNewsEntity, bool>>>()))
@@ -218,7 +235,7 @@ public class CreateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("event-news-title-1", entity.Slug);
-        _repo.Verify(repository => repository.SaveChangesAsync(), Times.Exactly(2));
+        _repo.Verify(repository => repository.SaveChangesAsync(), Times.Exactly(3));
         _slugService.Verify(
             service => service.GenerateUniqueEventNewsSlugAsync(
                 0,
@@ -250,11 +267,63 @@ public class CreateEventNewsTests
             Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_ValidPublishedRequest_UpdatesCategoryPriority()
+    {
+        // Arrange
+        var categoryLink = new EventNewsCategoryLink
+        {
+            EventsNewsId = 0,
+            CategoriesId = 1,
+            Priority = 0
+        };
+
+        var (sut, _) = CreateSut(saveChanges: 1, categoryLinks: [categoryLink]);
+
+        // Act
+        await sut.Handle(Command(Dto(Status.Published)), CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, categoryLink.Priority);
+
+        _repo.Verify(
+            repository => repository.EventNewsEventNewsCategoriesRepository.Update(categoryLink),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenPriorityUpdateFails_RollsBackTransaction()
+    {
+        // Arrange
+        var exception = new DbUpdateException("Priority update failed");
+        var (sut, _) = CreateSut(saveChanges: 1);
+
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ThrowsAsync(exception);
+
+        // Act, Assert
+        var actualException = await Assert.ThrowsAsync<DbUpdateException>(() =>
+            sut.Handle(Command(Dto(Status.Published)), CancellationToken.None));
+
+        Assert.Same(exception, actualException);
+
+        _transaction.Verify(
+            transaction => transaction.RollbackAsync(CancellationToken.None),
+            Times.Once);
+
+        _transaction.Verify(
+            transaction => transaction.CommitAsync(CancellationToken.None),
+            Times.Never);
+    }
+
     private (CreateEventNewsHandler sut, EventNewsEntity entity) CreateSut(
         int saveChanges,
         List<EventNewsCategory>? categories = null,
         List<Image>? images = null,
         List<LocalizationLanguage>? languages = null,
+        List<EventNewsCategoryLink>? categoryLinks = null,
         bool throwOnSave = false)
     {
         var entity = new EventNewsEntity
@@ -264,10 +333,19 @@ public class CreateEventNewsTests
         };
 
         SetUpMapper(entity);
-        SetUpRepositories(saveChanges, categories ?? Categories, images ?? Images, languages ?? Languages, throwOnSave);
-        SetUpSlugService();
 
-        return (new CreateEventNewsHandler(_mapper.Object, _repo.Object, _slugService.Object), entity);
+        SetUpRepositories(
+            saveChanges,
+            categories ?? Categories,
+            images ?? Images,
+            languages ?? Languages,
+            categoryLinks ?? CategoryLinks,
+            throwOnSave);
+
+        SetUpSlugService();
+        SetUpReorderService();
+
+        return (new CreateEventNewsHandler(_mapper.Object, _repo.Object, _slugService.Object, _reorderService.Object), entity);
     }
 
     private void SetUpMapper(EventNewsEntity entity)
@@ -307,9 +385,11 @@ public class CreateEventNewsTests
         List<EventNewsCategory> categories,
         List<Image> images,
         List<LocalizationLanguage> languages,
+        List<EventNewsCategoryLink> categoryLinks,
         bool throwOnSave)
     {
         _repo.Reset();
+        _transaction.Reset();
 
         _repo
             .Setup(repo => repo.EventNewsCategoryRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
@@ -338,6 +418,22 @@ public class CreateEventNewsTests
         _repo
             .Setup(repo => repo.EventNewsRepository.CreateAsync(It.IsAny<EventNewsEntity>()));
 
+        _repo
+            .Setup(repo => repo.EventNewsEventNewsCategoriesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
+            .ReturnsAsync((QueryOptions<EventNewsCategoryLink> options) =>
+            {
+                var predicate = options.Filter?.Compile();
+
+                return predicate is null
+                    ? []
+                    : [.. categoryLinks.Where(predicate)];
+            });
+
+        _repo
+            .Setup(repo => repo.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
+
         if (throwOnSave)
         {
             _repo.Setup(repo => repo.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
@@ -354,6 +450,16 @@ public class CreateEventNewsTests
         _slugService
             .Setup(service => service.GenerateUniqueEventNewsSlugAsync(It.IsAny<long>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("event-news-title");
+    }
+
+    private void SetUpReorderService()
+    {
+        _reorderService.Reset();
+
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ReturnsAsync(1);
     }
 
     private static CreateEventNewsCommand Command(CreateEventNewsDto dto) => new(dto);
