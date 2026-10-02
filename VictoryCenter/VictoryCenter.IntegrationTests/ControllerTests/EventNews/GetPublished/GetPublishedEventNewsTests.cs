@@ -41,35 +41,24 @@ public class GetPublishedEventNewsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetPublishedEventNews_ShouldOrderItemsByPriority()
+    public async Task GetPublishedEventNews_ShouldOrderItemsByPublishedAtDescending()
     {
         // Arrange
-        var publishedEventIds = Fixture.DbContext.EventNews
+        var publishedEvents = Fixture.DbContext.EventNews
             .Where(eventNews => eventNews.Status == Status.Published)
-            .Select(eventNews => eventNews.Id)
             .Take(3)
             .ToList();
 
-        Assert.Equal(3, publishedEventIds.Count);
+        Assert.Equal(3, publishedEvents.Count);
 
-        var links = Fixture.DbContext.EventNewsEventNewsCategories
-            .Where(link => publishedEventIds.Contains(link.EventsNewsId))
-            .ToList();
+        publishedEvents[0].PublishedAt = new DateTimeOffset(
+            2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
 
-        foreach (var link in links.Where(link => link.EventsNewsId == publishedEventIds[0]))
-        {
-            link.Priority = 2;
-        }
+        publishedEvents[1].PublishedAt = new DateTimeOffset(
+            2026, 3, 1, 12, 0, 0, TimeSpan.Zero);
 
-        foreach (var link in links.Where(link => link.EventsNewsId == publishedEventIds[1]))
-        {
-            link.Priority = 0;
-        }
-
-        foreach (var link in links.Where(link => link.EventsNewsId == publishedEventIds[2]))
-        {
-            link.Priority = 1;
-        }
+        publishedEvents[2].PublishedAt = new DateTimeOffset(
+            2026, 2, 1, 12, 0, 0, TimeSpan.Zero);
 
         await Fixture.DbContext.SaveChangesAsync();
 
@@ -86,7 +75,9 @@ public class GetPublishedEventNewsTests : BaseTestClass
 
         Assert.NotNull(responseContent);
 
-        var testedIds = publishedEventIds.ToHashSet();
+        var testedIds = publishedEvents
+            .Select(eventNews => eventNews.Id)
+            .ToHashSet();
 
         var testedItems = responseContent
             .Where(item => testedIds.Contains(item.Id))
@@ -94,7 +85,11 @@ public class GetPublishedEventNewsTests : BaseTestClass
             .ToList();
 
         Assert.Equal(
-            [publishedEventIds[1], publishedEventIds[2], publishedEventIds[0]],
+            [
+                publishedEvents[1].Id,
+                publishedEvents[2].Id,
+                publishedEvents[0].Id
+            ],
             testedItems);
     }
 

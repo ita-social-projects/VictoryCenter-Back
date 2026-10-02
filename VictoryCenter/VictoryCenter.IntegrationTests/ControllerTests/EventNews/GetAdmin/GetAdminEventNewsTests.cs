@@ -248,9 +248,5 @@ public class GetAdminEventNewsTests : BaseTestClass
         Assert.Equal(
             [links[1].EventsNewsId, links[2].EventsNewsId, links[0].EventsNewsId],
             testedItems.Select(item => item.Id));
-
-        Assert.Equal(
-            [0, 1, 2],
-            testedItems.Select(item => item.Priority));
     }
 }
