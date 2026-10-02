@@ -247,10 +247,23 @@ public class GetAdminEventNewsTests
     public async Task GetByFilters_AppliesStatusFilterToListAndCountQueries()
     {
         // Arrange
-        var matchingItem = new EventNewsEntity { Id = 1, Status = Status.Published };
-        var otherItem = new EventNewsEntity { Id = 2, Status = Status.Draft };
+        var matchingItem = new EventNewsEntity
+        {
+            Id = 1,
+            Status = Status.Published,
+            Categories = new List<EventNewsCategory>(),
+            Localizations = new List<EventNewsLocalization>()
+        };
+        var otherItem = new EventNewsEntity
+        {
+            Id = 2,
+            Status = Status.Draft,
+            Categories = new List<EventNewsCategory>(),
+            Localizations = new List<EventNewsLocalization>()
+        };
         QueryOptions<EventNewsEntity>? listOptions = null;
         QueryOptions<EventNewsEntity>? countOptions = null;
+
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .Callback<QueryOptions<EventNewsEntity>>(options => listOptions = options)
@@ -259,8 +272,21 @@ public class GetAdminEventNewsTests
             .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .Callback<QueryOptions<EventNewsEntity>>(options => countOptions = options)
             .ReturnsAsync(1);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
+            .ReturnsAsync(
+            [
+                new EventNewsCategoryLink
+                {
+                    EventsNewsId = 1,
+                    CategoriesId = 0,
+                    Priority = 0
+                },
+            ]);
         _mapper.Setup(mapper => mapper.Map<EventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
             .Returns([new EventNewsDto { Id = 1 }]);
+
         var handler = new GetEventNewsByFiltersHandler(_mapper.Object, _repositoryWrapper.Object);
 
         // Act
