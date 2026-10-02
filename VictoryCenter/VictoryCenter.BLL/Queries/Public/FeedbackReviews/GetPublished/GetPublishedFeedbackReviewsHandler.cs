@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.FeedbackReviews;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -30,6 +31,9 @@ public class GetPublishedFeedbackReviewsHandler
             {
                 Filter = review => review.Status == Status.Published,
                 OrderByASC = review => review.Priority,
+                Include = query => query
+                    .Include(review => review.Localizations)
+                        .ThenInclude(localization => localization.Language),
                 AsNoTracking = true
             });
 

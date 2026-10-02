@@ -1,7 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.BLL.DTOs.Public.FeedbackHistories;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -32,6 +36,53 @@ public class GetPublishedFeedbackHistoriesTests : BaseTestClass
         Assert.NotNull(histories);
         Assert.Equal([first.Id, second.Id], histories.Select(history => history.Id));
         Assert.DoesNotContain(histories, history => history.Id == draft.Id);
+        Assert.All(histories, history => Assert.Empty(history.Localizations));
+    }
+
+    [Fact]
+    public async Task GetPublished_TranslationAddedThroughAdminApi_ShouldReturnTranslation()
+    {
+        var history = await AddHistoryAsync("Published story title", Status.Published, priority: 1);
+        var language = await GetEnglishLanguageAsync();
+        await CreateLocalizationAsync(history.Id, language.Id);
+
+        using var anonymousClient = Fixture.Factory.CreateClient();
+        var histories = await anonymousClient.GetFromJsonAsync<List<PublishedFeedbackHistoryDto>>(PublishedUrl);
+
+        var result = Assert.Single(histories!);
+        Assert.Equal("Published story title", result.Title);
+        var localization = Assert.Single(result.Localizations);
+        Assert.Equal("en", localization.Language.Code);
+        Assert.Equal("English story title", localization.Title);
+        Assert.Equal("English story content.", localization.Story);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task GetPublished_UkrainianTextEditedAfterTranslation_ShouldStillReturnOutdatedTranslation()
+    {
+        var history = await AddHistoryAsync("Published story title", Status.Published, priority: 1);
+        var language = await GetEnglishLanguageAsync();
+        await CreateLocalizationAsync(history.Id, language.Id);
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"/api/FeedbackHistories/{history.Id}",
+            new UpdateFeedbackHistoryDto
+            {
+                Title = "Edited story title",
+                Story = history.Story,
+                ImageId = null,
+                Status = Status.Published
+            });
+        updateResponse.EnsureSuccessStatusCode();
+
+        using var anonymousClient = Fixture.Factory.CreateClient();
+        var histories = await anonymousClient.GetFromJsonAsync<List<PublishedFeedbackHistoryDto>>(PublishedUrl);
+
+        var result = Assert.Single(histories!);
+        Assert.Equal("Edited story title", result.Title);
+        var localization = Assert.Single(result.Localizations);
+        Assert.Equal("English story title", localization.Title);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
     }
 
     [Fact]
@@ -74,6 +125,23 @@ public class GetPublishedFeedbackHistoriesTests : BaseTestClass
         var response = await anonymousClient.GetAsync("/api/FeedbackHistories");
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private async Task<LocalizationLanguage> GetEnglishLanguageAsync() =>
+        await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+
+    private async Task CreateLocalizationAsync(long entityId, long languageId)
+    {
+        var response = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/FeedbackHistoryLocalizations",
+            new CreateFeedbackHistoryLocalizationDto
+            {
+                EntityId = entityId,
+                LanguageId = languageId,
+                Title = "English story title",
+                Story = "English story content."
+            });
+        response.EnsureSuccessStatusCode();
     }
 
     private async Task<FeedbackHistory> AddHistoryAsync(

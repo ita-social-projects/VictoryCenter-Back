@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.DTOs.Public.VideoReviews;
 using VictoryCenter.DAL.Entities;
@@ -36,6 +38,33 @@ public class GetPublishedVideoReviewsTests : BaseTestClass
         Assert.DoesNotContain(videos, video => video.Id == draft.Id);
         Assert.DoesNotContain(videos, video => video.Id == archived.Id);
         Assert.Equal(first.Link, videos[0].Link);
+        Assert.All(videos, video => Assert.Empty(video.Localizations));
+    }
+
+    [Fact]
+    public async Task GetPublished_TranslationAddedThroughAdminApi_ShouldReturnTranslation()
+    {
+        var video = await AddVideoReviewAsync("Published video", Status.Published, priority: 1);
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync(l => l.Code == "en");
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/VideoReviewLocalizations",
+            new CreateVideoReviewLocalizationDto
+            {
+                EntityId = video.Id,
+                LanguageId = language.Id,
+                Title = "English caption"
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        using var anonymousClient = Fixture.Factory.CreateClient();
+        var videos = await anonymousClient.GetFromJsonAsync<List<PublishedVideoReviewDto>>(PublishedUrl);
+
+        var result = Assert.Single(videos!);
+        Assert.Equal("Published video", result.Title);
+        var localization = Assert.Single(result.Localizations);
+        Assert.Equal("en", localization.Language.Code);
+        Assert.Equal("English caption", localization.Title);
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
     }
 
     [Fact]
