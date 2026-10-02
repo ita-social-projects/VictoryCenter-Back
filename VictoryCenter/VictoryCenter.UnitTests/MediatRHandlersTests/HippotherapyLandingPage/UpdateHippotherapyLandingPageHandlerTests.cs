@@ -13,6 +13,8 @@ using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -311,6 +313,172 @@ public class UpdateHippotherapyLandingPageHandlerTests
         _repositoryWrapperMock.Verify(
             x => x.ImageRepository.DeleteRange(It.Is<IEnumerable<Image>>(images => images.Any(i => i.Id == ExistingImageId2))),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenIntroSectionUpdated_ShouldMarkExistingIntroLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.IntroSection!.Localizations =
+        [
+            new HippotherapyLandingPageIntroSectionLocalization
+            {
+                EntityId = existing.IntroSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.IntroSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenDescriptionSectionUpdated_ShouldMarkExistingDescriptionLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.DescriptionSection!.Localizations =
+        [
+            new HippotherapyLandingPageDescriptionSectionLocalization
+            {
+                EntityId = existing.DescriptionSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.DescriptionSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenExistingDescriptionSectionIsNull_ShouldNotThrowAndUpdatePage()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        existing.DescriptionSection = null;
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _repositoryWrapperMock.Verify(x => x.HippotherapyLandingPagesRepository.Update(existing), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenHippoventionSectionUpdated_ShouldMarkExistingHippoventionLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.HippoventionSection!.Localizations =
+        [
+            new HippotherapyLandingPageHippoventionSectionLocalization
+            {
+                EntityId = existing.HippoventionSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.HippoventionSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenExistingHippoventionSectionIsNull_ShouldNotThrowAndUpdatePage()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        existing.HippoventionSection = null;
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _repositoryWrapperMock.Verify(x => x.HippotherapyLandingPagesRepository.Update(existing), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenAnalysisSectionUpdated_ShouldMarkExistingAnalysisLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.AnalysisSection!.Localizations =
+        [
+            new HippotherapyLandingPageAnalysisSectionLocalization
+            {
+                EntityId = existing.AnalysisSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.AnalysisSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenExistingAnalysisSectionIsNull_ShouldNotThrowAndUpdatePage()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        existing.AnalysisSection = null;
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _repositoryWrapperMock.Verify(x => x.HippotherapyLandingPagesRepository.Update(existing), Times.Once);
     }
 
     [Fact]

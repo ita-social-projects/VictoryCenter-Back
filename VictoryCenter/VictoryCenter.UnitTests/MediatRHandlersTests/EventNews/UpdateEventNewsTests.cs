@@ -123,6 +123,45 @@ public class UpdateEventNewsTests
     }
 
     [Fact]
+    public async Task Handle_WhenOnlyAdditionalDescriptionAndEnglishLinkChange_SavesThem()
+    {
+        var eventNews = ExistingEventNews();
+        var dto = MatchingDto(eventNews) with
+        {
+            AdditionalDescription = "Київ, 18:00",
+            ResourceEn = "https://example.com/en",
+        };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Київ, 18:00", eventNews.AdditionalDescription);
+        Assert.Equal("https://example.com/en", eventNews.ResourceEn);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOnlyLocalizationAdditionalDescriptionChanges_UpdatesLocalization()
+    {
+        var eventNews = ExistingEventNews();
+        var matchingDto = MatchingDto(eventNews);
+        var dto = matchingDto with
+        {
+            Localizations = [.. matchingDto.Localizations.Select(localization => localization.LanguageId == 2
+                ? localization with { AdditionalDescription = "  Online  " }
+                : localization)],
+        };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Online", eventNews.Localizations.Single(item => item.LanguageId == 2).AdditionalDescription);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_DraftWithoutContent_RemovesAssociationsAndSlug()
     {
         var eventNews = ExistingEventNews();
@@ -560,7 +599,9 @@ public class UpdateEventNewsTests
         {
             Title = eventNews.Title,
             Description = eventNews.Description,
+            AdditionalDescription = eventNews.AdditionalDescription,
             Resource = eventNews.Resource,
+            ResourceEn = eventNews.ResourceEn,
             PublishedAt = eventNews.PublishedAt,
             Status = eventNews.Status,
             PreviewImageId = eventNews.PreviewImageId,
@@ -570,7 +611,8 @@ public class UpdateEventNewsTests
             {
                 LanguageId = localization.LanguageId,
                 Title = localization.Title,
-                Description = localization.Description
+                Description = localization.Description,
+                AdditionalDescription = localization.AdditionalDescription
             })]
         };
     }

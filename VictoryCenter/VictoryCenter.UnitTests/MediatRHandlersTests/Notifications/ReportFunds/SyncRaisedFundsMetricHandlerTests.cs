@@ -1,13 +1,10 @@
 using Moq;
 using VictoryCenter.BLL.Notifications.ReportFunds;
+using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
-using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Notifications.ReportFunds;
@@ -15,83 +12,43 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Notifications.ReportFunds
 public class SyncRaisedFundsMetricHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
-    private readonly Mock<IReportFundsExpendituresRecordsRepository> _recordsRepositoryMock = new();
     private readonly Mock<IMetricRepository> _metricRepositoryMock = new();
-    private readonly Mock<ILocalizationLanguagesRepository> _languagesRepositoryMock = new();
-    private readonly Mock<IMetricLocalizationsRepository> _metricLocalizationsRepositoryMock = new();
+    private readonly Mock<IRaisedFundsMetricSyncService> _syncServiceMock = new();
 
     public SyncRaisedFundsMetricHandlerTests()
     {
         _repositoryWrapperMock
-            .SetupGet(wrapper => wrapper.ReportFundsExpendituresRecordsRepository)
-            .Returns(_recordsRepositoryMock.Object);
-        _repositoryWrapperMock
             .SetupGet(wrapper => wrapper.MetricRepository)
             .Returns(_metricRepositoryMock.Object);
-        _repositoryWrapperMock
-            .SetupGet(wrapper => wrapper.LocalizationLanguagesRepository)
-            .Returns(_languagesRepositoryMock.Object);
-        _repositoryWrapperMock
-            .SetupGet(wrapper => wrapper.MetricLocalizationsRepository)
-            .Returns(_metricLocalizationsRepositoryMock.Object);
 
         _repositoryWrapperMock
             .Setup(wrapper => wrapper.SaveChangesAsync())
             .ReturnsAsync(1);
-        _metricLocalizationsRepositoryMock
-            .Setup(repository => repository.CreateAsync(It.IsAny<MetricLocalization>()))
-            .ReturnsAsync((MetricLocalization localization) => localization);
     }
 
     [Fact]
-    public async Task Handle_ShouldUpdateRaisedMetricAndExistingEnglishLocalization_WhenAutoSynced()
+    public async Task Handle_ShouldReturnImmediately_WhenSkipRaisedMetricSyncIsTrue()
     {
-        // Arrange
-        var englishLanguage = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" };
-        var metric = new Metric
-        {
-            Id = 10,
-            Type = MetricType.Raised,
-            IsAutoSynced = true,
-            Value = 1,
-            Name = "raised",
-            Localizations =
-            [
-                new MetricLocalization
-                {
-                    EntityId = 10,
-                    LanguageId = englishLanguage.Id,
-                    Language = englishLanguage,
-                    Value = "old",
-                    TranslationStatus = TranslationStatus.Outdated,
-                },
-            ],
-        };
-
-        SetupSummary(123.5m, 45.6m);
-        SetupRaisedMetric(metric);
-        SetupLanguages([englishLanguage]);
-
+        var notification = new ReportFundsChangedNotification { SkipRaisedMetricSync = true };
         var handler = CreateHandler();
 
-        // Act
-        await handler.Handle(new ReportFundsChangedNotification(), CancellationToken.None);
+        await handler.Handle(notification, CancellationToken.None);
 
-        // Assert
-        Assert.Equal(124, metric.Value);
+        _metricRepositoryMock.Verify(
+            repo => repo.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>()),
+            Times.Never);
 
-        var englishLocalization = metric.Localizations.Single();
-        Assert.Equal("45.6", englishLocalization.Value);
-        Assert.Equal(TranslationStatus.Relevant, englishLocalization.TranslationStatus);
+        _syncServiceMock.Verify(
+            service => service.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()),
+            Times.Never);
 
-        _repositoryWrapperMock.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
-        _metricLocalizationsRepositoryMock.Verify(
-            repository => repository.CreateAsync(It.IsAny<MetricLocalization>()),
+        _repositoryWrapperMock.Verify(
+            wrapper => wrapper.SaveChangesAsync(),
             Times.Never);
     }
 
     [Fact]
-    public async Task Handle_ShouldSaveMetricValue_WhenEnglishLanguageDoesNotExist()
+    public async Task Handle_ShouldFindMetric_ApplySync_AndSaveChanges_WhenSkipRaisedMetricSyncIsFalseAndChangesOccur()
     {
         // Arrange
         var metric = new Metric
@@ -99,133 +56,92 @@ public class SyncRaisedFundsMetricHandlerTests
             Id = 10,
             Type = MetricType.Raised,
             IsAutoSynced = true,
-            Value = 1,
-            Name = "raised",
-            Localizations = [],
+            Value = 100
         };
 
-        SetupSummary(321.4m, 75.2m);
-        SetupRaisedMetric(metric);
-        SetupLanguages([]);
+        SetupRaisedMetricInDb(metric);
 
+        _syncServiceMock
+            .Setup(service => service.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var notification = new ReportFundsChangedNotification { SkipRaisedMetricSync = false };
         var handler = CreateHandler();
 
         // Act
-        await handler.Handle(new ReportFundsChangedNotification(), CancellationToken.None);
+        await handler.Handle(notification, CancellationToken.None);
 
         // Assert
-        Assert.Equal(321, metric.Value);
-        _repositoryWrapperMock.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
-        _metricLocalizationsRepositoryMock.Verify(
-            repository => repository.CreateAsync(It.IsAny<MetricLocalization>()),
-            Times.Never);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldCreateEnglishLocalization_WhenItDoesNotExist()
-    {
-        // Arrange
-        var englishLanguage = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" };
-        var metric = new Metric
-        {
-            Id = 10,
-            Type = MetricType.Raised,
-            IsAutoSynced = true,
-            Value = 1,
-            Name = "raised",
-            Localizations = [],
-        };
-
-        SetupSummary(99.5m, 78.9m);
-        SetupRaisedMetric(metric);
-        SetupLanguages([
-            new LocalizationLanguage { Id = 1, Code = "uk", Name = "Ukrainian" },
-            englishLanguage,
-        ]);
-
-        var handler = CreateHandler();
-
-        // Act
-        await handler.Handle(new ReportFundsChangedNotification(), CancellationToken.None);
-
-        // Assert
-        Assert.Equal(100, metric.Value);
-        _metricLocalizationsRepositoryMock.Verify(
-            repository => repository.CreateAsync(It.Is<MetricLocalization>(localization =>
-                localization.EntityId == metric.Id
-                && localization.LanguageId == englishLanguage.Id
-                && localization.Value == "78.9")),
+        _metricRepositoryMock.Verify(
+            repo => repo.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>()),
             Times.Once);
-        _repositoryWrapperMock.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+
+        _syncServiceMock.Verify(
+            service => service.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryWrapperMock.Verify(
+            wrapper => wrapper.SaveChangesAsync(),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ShouldDoNothing_WhenRaisedMetricIsNotAutoSynced()
+    public async Task Handle_ShouldNotSaveChanges_WhenSyncServiceReportsNoChanges()
     {
-        // Arrange
         var metric = new Metric
         {
             Id = 10,
             Type = MetricType.Raised,
-            IsAutoSynced = false,
-            Value = 1,
-            Name = "raised",
-            Localizations = [],
+            IsAutoSynced = true,
+            Value = 5000
         };
 
-        SetupSummary(123.5m, 45.6m);
-        SetupRaisedMetric(metric);
+        SetupRaisedMetricInDb(metric);
 
+        _syncServiceMock
+            .Setup(service => service.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var notification = new ReportFundsChangedNotification { SkipRaisedMetricSync = false };
         var handler = CreateHandler();
 
-        // Act
-        await handler.Handle(new ReportFundsChangedNotification(), CancellationToken.None);
+        await handler.Handle(notification, CancellationToken.None);
 
-        // Assert
-        Assert.Equal(1, metric.Value);
-        _languagesRepositoryMock.Verify(
-            repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()),
+        _syncServiceMock.Verify(
+            service => service.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+
+        _repositoryWrapperMock.Verify(
+            wrapper => wrapper.SaveChangesAsync(),
             Times.Never);
-        _repositoryWrapperMock.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Never);
     }
 
-    private SyncRaisedFundsMetricHandler CreateHandler() => new(_repositoryWrapperMock.Object);
-
-    private void SetupSummary(decimal incomeUahTotal, decimal incomeUsdTotal)
+    [Fact]
+    public async Task Handle_ShouldDoNothing_WhenRaisedMetricNotFoundInDb()
     {
-        _recordsRepositoryMock
-            .Setup(repository => repository.GetSummaryAsync())
-            .ReturnsAsync((incomeUahTotal, incomeUsdTotal, 0, 0, 0, 0));
+        SetupRaisedMetricInDb(null);
+
+        var notification = new ReportFundsChangedNotification { SkipRaisedMetricSync = false };
+        var handler = CreateHandler();
+
+        await handler.Handle(notification, CancellationToken.None);
+
+        _syncServiceMock.Verify(
+            service => service.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+
+        _repositoryWrapperMock.Verify(
+            wrapper => wrapper.SaveChangesAsync(),
+            Times.Never);
     }
 
-    private void SetupRaisedMetric(Metric? metric)
+    private SyncRaisedFundsMetricHandler CreateHandler() =>
+        new(_repositoryWrapperMock.Object, _syncServiceMock.Object);
+
+    private void SetupRaisedMetricInDb(Metric? metric)
     {
         _metricRepositoryMock
-            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>>()))
-            .ReturnsAsync((QueryOptions<Metric>? options) =>
-            {
-                if (metric is null)
-                {
-                    return null;
-                }
-
-                var filter = options?.Filter;
-                return filter is null || filter.Compile()(metric)
-                    ? metric
-                    : null;
-            });
-    }
-
-    private void SetupLanguages(IEnumerable<LocalizationLanguage> languages)
-    {
-        _languagesRepositoryMock
-            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
-            .ReturnsAsync((QueryOptions<LocalizationLanguage>? options) =>
-            {
-                var filter = options?.Filter;
-                return filter is null
-                    ? languages.FirstOrDefault()
-                    : languages.FirstOrDefault(filter.Compile());
-            });
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>()))
+            .ReturnsAsync((QueryOptions<Metric>? _) => metric);
     }
 }

@@ -8,8 +8,10 @@ public record EventNewsDto
     public long Id { get; init; }
     public string? Title { get; init; }
     public string? Description { get; init; }
+    public string? AdditionalDescription { get; init; }
     public string? Slug { get; init; }
     public string? Resource { get; init; }
+    public string? ResourceEn { get; init; }
     public DateTimeOffset? PublishedAt { get; init; }
     public Status Status { get; init; }
     public ImageDto? PreviewImage { get; init; }

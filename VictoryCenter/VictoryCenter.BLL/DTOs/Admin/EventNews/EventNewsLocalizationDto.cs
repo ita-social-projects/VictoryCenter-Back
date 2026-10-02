@@ -9,4 +9,5 @@ public record EventNewsLocalizationDto
     public TranslationStatus TranslationStatus { get; init; }
     public string Title { get; init; } = null!;
     public string? Description { get; init; }
+    public string? AdditionalDescription { get; init; }
 }

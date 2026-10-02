@@ -17,5 +17,8 @@ public class ReportFundsExpendituresRecordConfig : BaseReportFundsExpendituresRe
             .WithMany(e => e.Records)
             .HasForeignKey(e => e.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(e => e.CategoryId)
+            .IsUnique();
     }
 }

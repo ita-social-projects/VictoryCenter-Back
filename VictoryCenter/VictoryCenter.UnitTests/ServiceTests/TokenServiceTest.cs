@@ -87,6 +87,46 @@ public class TokenServiceTest
     }
 
     [Fact]
+    public void CreateRefreshToken_CalledTwice_CreatesUniqueTokens()
+    {
+        var firstRefreshToken = _tokenService.CreateRefreshToken([]);
+        var secondRefreshToken = _tokenService.CreateRefreshToken([]);
+
+        Assert.NotEqual(firstRefreshToken, secondRefreshToken);
+    }
+
+    [Fact]
+    public void HashRefreshToken_GivenToken_ReturnsSha256Hash()
+    {
+        const string refreshToken = "refresh_token";
+
+        var hash = _tokenService.HashRefreshToken(refreshToken);
+
+        Assert.Equal(64, hash.Length);
+        Assert.NotEqual(refreshToken, hash);
+        Assert.True(_tokenService.VerifyRefreshTokenHash(refreshToken, hash));
+    }
+
+    [Theory]
+    [InlineData("different_token")]
+    [InlineData("")]
+    [InlineData(null)]
+    public void VerifyRefreshTokenHash_GivenNonMatchingOrMissingHash_ReturnsFalse(string? storedHash)
+    {
+        var isValid = _tokenService.VerifyRefreshTokenHash("refresh_token", storedHash);
+
+        Assert.False(isValid);
+    }
+
+    [Fact]
+    public void VerifyRefreshTokenHash_GivenLegacyPlaintextToken_ReturnsFalse()
+    {
+        var isValid = _tokenService.VerifyRefreshTokenHash("refresh_token", "refresh_token");
+
+        Assert.False(isValid);
+    }
+
+    [Fact]
     public void GetClaimsFromExpiredToken_GivenExpiredAccessToken_ReturnsPrincipalWithClaims()
     {
         var expiredToken = CreateExpiredToken();

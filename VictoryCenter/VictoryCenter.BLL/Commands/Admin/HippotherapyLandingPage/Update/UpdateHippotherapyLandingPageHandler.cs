@@ -12,6 +12,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -85,13 +86,22 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                 {
                     TrackImageChange(entity.IntroSection!.ImageId, dto.IntroSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.IntroSection, entity.IntroSection);
+                    MarkIntroSectionLocalizationsOutdated(entity.IntroSection);
 
                     _mapper.Map(dto.DescriptionSection, entity.DescriptionSection);
+                    if (entity.DescriptionSection is not null)
+                    {
+                        MarkDescriptionSectionLocalizationsOutdated(entity.DescriptionSection);
+                    }
 
                     TrackImageChange(entity.QuoteSection!.ImageId, dto.QuoteSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.QuoteSection, entity.QuoteSection);
 
                     _mapper.Map(dto.HippoventionSection, entity.HippoventionSection);
+                    if (entity.HippoventionSection is not null)
+                    {
+                        MarkHippoventionSectionLocalizationsOutdated(entity.HippoventionSection);
+                    }
 
                     TrackImageChange(entity.HippoventionCenterSection!.ImageId, dto.HippoventionCenterSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.HippoventionCenterSection, entity.HippoventionCenterSection);
@@ -100,6 +110,10 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
 
                     _mapper.Map(dto.AnalysisSection, entity.AnalysisSection);
+                    if (entity.AnalysisSection is not null)
+                    {
+                        MarkAnalysisSectionLocalizationsOutdated(entity.AnalysisSection);
+                    }
 
                     _mapper.Map(dto.ScientificReferencesSection, entity.ScientificReferencesSection);
                     var referencesResult = UpdateScientificReferences(entity.ScientificReferencesSection!, dto.ScientificReferencesSection);
@@ -161,6 +175,38 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         {
             return Result.Fail<HippotherapyLandingPageDto>(
                 ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(DAL.Entities.HippotherapyLandingPage)));
+        }
+    }
+
+    private static void MarkIntroSectionLocalizationsOutdated(HippotherapyLandingPageIntroSection introSection)
+    {
+        foreach (var loc in introSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkDescriptionSectionLocalizationsOutdated(HippotherapyLandingPageDescriptionSection descriptionSection)
+    {
+        foreach (var loc in descriptionSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkHippoventionSectionLocalizationsOutdated(HippotherapyLandingPageHippoventionSection hippoventionSection)
+    {
+        foreach (var loc in hippoventionSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkAnalysisSectionLocalizationsOutdated(HippotherapyLandingPageAnalysisSection analysisSection)
+    {
+        foreach (var loc in analysisSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
         }
     }
 

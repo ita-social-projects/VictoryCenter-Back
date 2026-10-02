@@ -171,6 +171,14 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<HippotherapyLandingPageIntroSection> HippotherapyLandingPageIntroSections { get; set; }
 
+    public DbSet<HippotherapyLandingPageIntroSectionLocalization> HippotherapyLandingPageIntroSectionLocalizations { get; set; }
+
+    public DbSet<HippotherapyLandingPageDescriptionSectionLocalization> HippotherapyLandingPageDescriptionSectionLocalizations { get; set; }
+
+    public DbSet<HippotherapyLandingPageHippoventionSectionLocalization> HippotherapyLandingPageHippoventionSectionLocalizations { get; set; }
+
+    public DbSet<HippotherapyLandingPageAnalysisSectionLocalization> HippotherapyLandingPageAnalysisSectionLocalizations { get; set; }
+
     public DbSet<HippotherapyLandingPageDescriptionSection> HippotherapyLandingPageDescriptionSections { get; set; }
 
     public DbSet<HippotherapyLandingPageQuoteSection> HippotherapyLandingPageQuoteSections { get; set; }

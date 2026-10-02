@@ -1,37 +1,54 @@
-using System.Transactions;
 using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ImpactStatistics.UpdateSingleMetric;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.Notifications.ReportFunds;
+using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.MainPage;
 
 public class UpdateSingleMetricHandlerTests
 {
+    private const int EnglishLanguageId = 2;
+
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
     private readonly Mock<IMetricRepository> _metricRepositoryMock = new();
+    private readonly Mock<ILocalizationLanguagesRepository> _localizationLanguagesRepositoryMock = new();
     private readonly Mock<IMetricLocalizationsRepository> _metricLocalizationsRepositoryMock = new();
     private readonly Mock<IValidator<UpdateSingleMetricCommand>> _validatorMock = new();
     private readonly Mock<IMediator> _mediatorMock = new();
+    private readonly Mock<IRaisedFundsMetricSyncService> _raisedFundsSyncServiceMock = new();
+    private readonly Mock<ILogger<UpdateSingleMetricHandler>> _loggerMock = new();
 
     public UpdateSingleMetricHandlerTests()
     {
         _repositoryWrapperMock.SetupGet(x => x.MetricRepository).Returns(_metricRepositoryMock.Object);
         _repositoryWrapperMock.SetupGet(x => x.MetricLocalizationsRepository).Returns(_metricLocalizationsRepositoryMock.Object);
-        _repositoryWrapperMock.Setup(x => x.BeginTransaction()).Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        _repositoryWrapperMock.SetupGet(x => x.LocalizationLanguagesRepository).Returns(_localizationLanguagesRepositoryMock.Object); // NEW
+
+        _repositoryWrapperMock
+            .Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Mock.Of<IDbContextTransaction>());
+
+        _localizationLanguagesRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>()))
+            .ReturnsAsync(new LocalizationLanguage { Id = EnglishLanguageId, Code = "en" });
     }
 
     [Fact]
@@ -49,6 +66,8 @@ public class UpdateSingleMetricHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(20, metric.Value);
+        Assert.Equal([1], result.Value.RowVersion);
+        Assert.Equal(20, result.Value.Value);
         Assert.Contains(nameof(UpdateSingleMetricDto.Value), result.Value.UpdatedFields);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Once);
     }
@@ -81,14 +100,25 @@ public class UpdateSingleMetricHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldPublishNotification_WhenRaisedMetricIsAutoSynced()
+    public async Task Handle_ShouldApplySync_AndPublishNotificationWithSkipTrue_WhenRaisedMetricIsAutoSynced()
     {
-        var metric = new Metric { Id = 1, Type = MetricType.Raised, IsAutoSynced = false, RowVersion = [1] };
+        var metric = new Metric
+        {
+            Id = 1,
+            Type = MetricType.Raised,
+            IsAutoSynced = false,
+            Value = 100,
+            RowVersion = [1],
+            Localizations = [ new() { LanguageId = 2, Value = "50" }]
+        };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { IsAutoSynced = true, ExpectedVersion = [1] });
 
         SetupValidationSuccess();
         _metricRepositoryMock.Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>())).ReturnsAsync(metric);
         _repositoryWrapperMock.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+        _raisedFundsSyncServiceMock.Setup(x => x.ApplySyncAsync(metric, It.IsAny<CancellationToken>()))
+            .Callback<Metric, CancellationToken>((m, _) => { m.Value = 5000; })
+            .ReturnsAsync(true);
         _mediatorMock.Setup(x => x.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
         var handler = CreateHandler();
@@ -96,7 +126,33 @@ public class UpdateSingleMetricHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.True(metric.IsAutoSynced);
-        _mediatorMock.Verify(x => x.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Once);
+        Assert.Equal(5000, result.Value.Value);
+        Assert.Contains("AutoSyncedValues", result.Value.UpdatedFields);
+
+        _raisedFundsSyncServiceMock.Verify(x => x.ApplySyncAsync(metric, It.IsAny<CancellationToken>()), Times.Once);
+
+        _mediatorMock.Verify(
+            x => x.Publish(
+            It.Is<ReportFundsChangedNotification>(n => n.SkipRaisedMetricSync == true),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotCallSync_NorPublishNotification_WhenIsAutoSyncedIsFalse()
+    {
+        var metric = new Metric { Id = 1, Type = MetricType.Raised, IsAutoSynced = false, Value = 100, RowVersion = [1] };
+        var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { Value = 200, IsAutoSynced = false, ExpectedVersion = [1] });
+
+        SetupValidationSuccess();
+        _metricRepositoryMock.Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>())).ReturnsAsync(metric);
+        _repositoryWrapperMock.Setup(x => x.SaveChangesAsync()).ReturnsAsync(1);
+
+        var handler = CreateHandler();
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _raisedFundsSyncServiceMock.Verify(x => x.ApplySyncAsync(It.IsAny<Metric>(), It.IsAny<CancellationToken>()), Times.Never);
+        _mediatorMock.Verify(x => x.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
@@ -107,6 +163,24 @@ public class UpdateSingleMetricHandlerTests
 
         SetupValidationSuccess();
         _metricRepositoryMock.Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>())).ReturnsAsync(metric);
+
+        var handler = CreateHandler();
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Metric was modified by another user. Please refresh and try again.", result.Errors[0].Message);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenDbUpdateConcurrencyExceptionOccurs()
+    {
+        var metric = new Metric { Id = 1, Value = 10, RowVersion = [1] };
+        var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { Value = 20, ExpectedVersion = [1] });
+
+        SetupValidationSuccess();
+        _metricRepositoryMock.Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Metric>?>())).ReturnsAsync(metric);
+        _repositoryWrapperMock.Setup(x => x.SaveChangesAsync()).ThrowsAsync(new DbUpdateConcurrencyException());
 
         var handler = CreateHandler();
         var result = await handler.Handle(command, CancellationToken.None);
@@ -124,12 +198,12 @@ public class UpdateSingleMetricHandlerTests
             Name = "old",
             Type = MetricType.Partners,
             Prefix = MetricPrefix.None,
-            Localizations = new List<MetricLocalization>
-            {
+            Localizations = [
                 new() { LanguageId = LocalizationLanguageConstants.PrimaryLanguageId, TranslationStatus = TranslationStatus.Outdated },
                 new() { LanguageId = 2, TranslationStatus = TranslationStatus.Relevant }
-            }
+            ]
         };
+
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto
         {
             Name = "new",
@@ -166,10 +240,7 @@ public class UpdateSingleMetricHandlerTests
         var metric = new Metric
         {
             Id = 1,
-            Localizations = new List<MetricLocalization>
-            {
-                new() { LanguageId = 2, Name = "oldLocName", Value = "oldLocValue", TranslationStatus = TranslationStatus.Outdated }
-            }
+            Localizations = [new() { LanguageId = 2, Name = "oldLocName", Value = "oldLocValue", TranslationStatus = TranslationStatus.Outdated }]
         };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto
         {
@@ -213,9 +284,16 @@ public class UpdateSingleMetricHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldReturnOk_WhenNothingModified()
+    public async Task Handle_ShouldReturnOkWithRowVersion_WhenNothingModified()
     {
-        var metric = new Metric { Id = 1, Value = 10, Name = "name" };
+        var metric = new Metric
+        {
+            Id = 1,
+            Value = 10,
+            Name = "name",
+            RowVersion = [5, 5, 5],
+            Localizations = [ new() { LanguageId = 2, Value = "100" }]
+        };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { Value = 10, Name = "name" });
 
         SetupValidationSuccess();
@@ -226,6 +304,9 @@ public class UpdateSingleMetricHandlerTests
 
         Assert.True(result.IsSuccess);
         Assert.False(result.Value.WasModified);
+        Assert.Equal([5, 5, 5], result.Value.RowVersion);
+        Assert.Equal(10, result.Value.Value);
+        Assert.Equal("100", result.Value.LocalizationValue);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
     }
 
@@ -252,5 +333,7 @@ public class UpdateSingleMetricHandlerTests
     private UpdateSingleMetricHandler CreateHandler() => new(
         _repositoryWrapperMock.Object,
         _validatorMock.Object,
-        _mediatorMock.Object);
+        _mediatorMock.Object,
+        _raisedFundsSyncServiceMock.Object,
+        _loggerMock.Object);
 }

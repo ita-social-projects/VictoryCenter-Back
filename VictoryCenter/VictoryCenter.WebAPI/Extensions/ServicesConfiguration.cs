@@ -38,6 +38,7 @@ using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
 using VictoryCenter.BLL.Services.Email;
+using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Services.Localization;
@@ -137,6 +138,7 @@ public static class ServicesConfiguration
 
         services.AddScoped<IWhoWeAreContentFactory, WhoWeAreContentFactory>();
         services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+        services.AddScoped<IRaisedFundsMetricSyncService, RaisedFundsMetricSyncService>();
         services.AddSingleton<ProblemDetailsFactory, CustomProblemDetailsFactory>();
         services.AddScoped<StrictJsonValidationFilter>();
         services.ConfigureBlob(configuration);
@@ -352,6 +354,7 @@ public static class ServicesConfiguration
     {
         await using var asyncServiceScope = app.Services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
+        var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
                                 ?? throw new InvalidOperationException("INITIAL_ADMIN_EMAIL environment variable is required");
         if (!initialAdminEmail.Contains('@'))
@@ -361,16 +364,11 @@ public static class ServicesConfiguration
 
         if (await userManager.FindByEmailAsync(initialAdminEmail) is null)
         {
-            var tokenService = asyncServiceScope.ServiceProvider.GetRequiredService<ITokenService>();
             var admin = new AdminUser()
             {
                 UserName = initialAdminEmail,
                 Email = initialAdminEmail,
-                CreatedAt = DateTimeOffset.UtcNow,
-                RefreshTokenValidTo = DateTimeOffset.UtcNow.AddDays(30),
-
-                // just for initial admin during development, in future create separate endpoint/tool for creating admins with proper token operations
-                RefreshToken = tokenService.CreateRefreshToken([])
+                CreatedAt = timeProvider.GetUtcNow()
             };
 
             var initialUserPassword = Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD")
