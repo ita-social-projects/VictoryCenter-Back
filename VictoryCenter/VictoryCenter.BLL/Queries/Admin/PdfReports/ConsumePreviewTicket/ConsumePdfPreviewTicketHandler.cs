@@ -20,7 +20,7 @@ public class ConsumePdfPreviewTicketHandler : IRequestHandler<ConsumePdfPreviewT
 
     public async Task<Result<PdfReportFileDto>> Handle(ConsumePdfPreviewTicketQuery request, CancellationToken cancellationToken)
     {
-        if (!_ticketStore.TryConsumeTicket(request.Ticket, out long pdfId))
+        if (!_ticketStore.TryGetTicket(request.Ticket, out long pdfId))
         {
             return Result.Fail<PdfReportFileDto>(PdfReportConstants.InvalidOrExpiredPreviewTicket);
         }

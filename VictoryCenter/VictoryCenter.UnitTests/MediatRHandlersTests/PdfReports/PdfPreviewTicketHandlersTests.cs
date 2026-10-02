@@ -43,7 +43,7 @@ public class PdfPreviewTicketHandlersTests
     }
 
     [Fact]
-    public async Task ConsumeTicket_ShouldReturnFileDto_AndBurnTicket()
+    public async Task ConsumeTicket_ShouldReturnFileDto_WhenTicketIsValid()
     {
         // Arrange
         var ticket = "test-ticket-123";
@@ -57,7 +57,7 @@ public class PdfPreviewTicketHandlersTests
 
         long outId = expectedPdfId;
         _ticketStoreMock
-            .Setup(t => t.TryConsumeTicket(ticket, out outId))
+            .Setup(t => t.TryGetTicket(ticket, out outId))
             .Returns(true);
 
         _mediatorMock
@@ -74,7 +74,7 @@ public class PdfPreviewTicketHandlersTests
         Assert.True(result.IsSuccess);
         Assert.Equal("Test.pdf", result.Value.FileName);
 
-        _ticketStoreMock.Verify(t => t.TryConsumeTicket(ticket, out outId), Times.Once);
+        _ticketStoreMock.Verify(t => t.TryGetTicket(ticket, out outId), Times.Once);
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class PdfPreviewTicketHandlersTests
         long outId;
 
         _ticketStoreMock
-            .Setup(t => t.TryConsumeTicket(ticket, out outId))
+            .Setup(t => t.TryGetTicket(ticket, out outId))
             .Returns(false);
 
         var handler = new ConsumePdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
