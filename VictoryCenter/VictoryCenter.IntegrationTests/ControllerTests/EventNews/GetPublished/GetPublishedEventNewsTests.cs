@@ -1,6 +1,9 @@
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -25,6 +28,41 @@ public class GetPublishedEventNewsTests : BaseTestClass
         Assert.NotEmpty(responseContent);
         Assert.All(responseContent, item => Assert.NotNull(item.Localizations));
         Assert.All(responseContent, item => Assert.NotNull(item.Categories));
+    }
+
+    [Fact]
+    public async Task GetPublishedEventNews_ShouldReturnCategoryBaseNameAndLocalizations()
+    {
+        var eventNews = await Fixture.DbContext.EventNews
+            .Include(item => item.Categories)
+            .FirstAsync(item => item.Status == VictoryCenter.DAL.Enums.Status.Published);
+        var category = eventNews.Categories.First();
+        var language = await Fixture.DbContext.LocalizationLanguages
+            .FirstAsync(item => item.Code == "en");
+        const string localizedName = "Localized category name";
+
+        Fixture.DbContext.EventNewsCategoryLocalizations.Add(new EventNewsCategoryLocalization
+        {
+            EntityId = category.Id,
+            LanguageId = language.Id,
+            Name = localizedName,
+            CreatedAt = DateTimeOffset.UtcNow
+        });
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        var response = await Fixture.HttpClient.GetAsync("/api/EventNews/published/");
+
+        response.EnsureSuccessStatusCode();
+        var items = await response.Content.ReadFromJsonAsync<List<PublishedEventNewsDto>>();
+        var returnedEvent = Assert.Single(items!, item => item.Id == eventNews.Id);
+        var returnedCategory = Assert.Single(returnedEvent.Categories, item => item.Id == category.Id);
+        Assert.Equal(category.Name, returnedCategory.Name);
+        var localization = Assert.Single(
+            returnedCategory.Localizations,
+            item => item.Language.Code == language.Code);
+        Assert.Equal(language.Code, localization.Language.Code);
+        Assert.Equal(localizedName, localization.Name);
     }
 
     [Fact]

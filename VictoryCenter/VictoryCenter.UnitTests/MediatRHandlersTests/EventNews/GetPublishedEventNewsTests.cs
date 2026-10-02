@@ -2,7 +2,11 @@ using AutoMapper;
 using FluentResults;
 using Moq;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.BLL.Mapping.EventNews;
+using VictoryCenter.BLL.Mapping.Localization.Languages;
 using VictoryCenter.BLL.Queries.Public.EventNews.GetPublished;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -41,6 +45,48 @@ public class GetPublishedEventNewsTests
     {
         _mapperMock = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+    }
+
+    [Fact]
+    public void Mapping_MapsCategoryBaseNameAndLocalizations()
+    {
+        var language = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" };
+        var entity = new EventNewsEntity
+        {
+            Id = 1,
+            Categories =
+            [
+                new EventNewsCategory
+                {
+                    Id = 10,
+                    Name = "Base category name",
+                    Localizations =
+                    [
+                        new EventNewsCategoryLocalization
+                        {
+                            EntityId = 10,
+                            LanguageId = language.Id,
+                            Language = language,
+                            Name = "Localized category name"
+                        },
+                    ]
+                },
+            ]
+        };
+        var configuration = new MapperConfiguration(config =>
+        {
+            config.AddProfile<EventNewsProfile>();
+            config.AddProfile<LocalizationsLanguageProfile>();
+        });
+        var mapper = configuration.CreateMapper();
+
+        var result = mapper.Map<PublishedEventNewsDto>(entity);
+
+        var category = Assert.Single(result.Categories);
+        Assert.Equal("Base category name", category.Name);
+        var localization = Assert.Single(category.Localizations);
+        Assert.Equal("Localized category name", localization.Name);
+        Assert.Equal("en", localization.Language.Code);
     }
 
     [Fact]
@@ -90,7 +136,11 @@ public class GetPublishedEventNewsTests
         Assert.True(result.IsSuccess);
         _mockRepositoryWrapper.Verify(
             x => x.EventNewsRepository.GetAllAsync(
-                It.Is<QueryOptions<EventNewsEntity>>(o => o.Limit == take && o.OrderByDESC != null)),
+                It.Is<QueryOptions<EventNewsEntity>>(o =>
+                    o.Limit == take &&
+                    o.OrderByDESC != null &&
+                    o.ThenByDESC != null &&
+                    o.AsSplitQuery)),
             Times.Once);
     }
 
