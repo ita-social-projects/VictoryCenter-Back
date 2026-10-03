@@ -22,6 +22,12 @@ internal class EventsIntroSectionConfig : IEntityTypeConfiguration<EventsIntroSe
         entity.Property(e => e.PageDescription)
             .IsRequired();
 
+        entity.Property(e => e.IsEventsBlockTitleHidden)
+            .HasDefaultValue(false);
+
+        entity.Property(e => e.IsPageDescriptionHidden)
+            .HasDefaultValue(false);
+
         entity.Property<int>("SingletonKey")
             .HasDefaultValue(1);
 
