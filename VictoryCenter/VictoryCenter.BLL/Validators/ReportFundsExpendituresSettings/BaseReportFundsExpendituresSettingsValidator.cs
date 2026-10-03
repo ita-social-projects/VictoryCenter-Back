@@ -1,7 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
-using VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.ReportFundsExpendituresSettings;
 
@@ -33,6 +33,9 @@ public class BaseReportFundsExpendituresSettingsValidator : AbstractValidator<Ba
                 ReportFundsExpendituresSettingsConstants.ExchangeRateFormat));
 
         RuleFor(dto => dto.ProgramExpendituresReportingYear)
-            .MustBeValidReportingYear(nameof(ReportFundsExpendituresSettingsDto.ProgramExpendituresReportingYear));
+            .MustBeValidReportingYear(
+                nameof(ReportFundsExpendituresSettingsDto.ProgramExpendituresReportingYear),
+                ReportProgramExpendituresRecordConstants.ReportingYearMinValue,
+                ReportProgramExpendituresRecordConstants.ReportingYearMaxValue);
     }
 }
