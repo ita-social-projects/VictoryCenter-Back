@@ -173,16 +173,19 @@ public class RepositoryBase<T> : IRepositoryBase<T>
     private static IQueryable<T> ApplyOrdering(
         IQueryable<T> query,
         Expression<Func<T, object>>? orderByASC,
-        Expression<Func<T, object>>? orderByDESC)
+        Expression<Func<T, object>>? orderByDESC,
+        Expression<Func<T, object>>? thenByDESC)
     {
         if (orderByASC != null)
         {
-            return query.OrderBy(orderByASC);
+            var orderedQuery = query.OrderBy(orderByASC);
+            return thenByDESC is not null ? orderedQuery.ThenByDescending(thenByDESC) : orderedQuery;
         }
 
         if (orderByDESC != null)
         {
-            return query.OrderByDescending(orderByDESC);
+            var orderedQuery = query.OrderByDescending(orderByDESC);
+            return thenByDESC is not null ? orderedQuery.ThenByDescending(thenByDESC) : orderedQuery;
         }
 
         return query;
@@ -223,7 +226,11 @@ public class RepositoryBase<T> : IRepositoryBase<T>
         query = ApplyTracking(query, queryOptions.AsNoTracking);
         query = ApplyInclude(query, queryOptions.Include);
         query = ApplyFilter(query, queryOptions.Filter);
-        query = ApplyOrdering(query, queryOptions.OrderByASC, queryOptions.OrderByDESC);
+        query = ApplyOrdering(
+            query,
+            queryOptions.OrderByASC,
+            queryOptions.OrderByDESC,
+            queryOptions.ThenByDESC);
         query = ApplyPagination(query, queryOptions.Offset, queryOptions.Limit);
         query = ApplySplitQuery(query, queryOptions.AsSplitQuery);
 

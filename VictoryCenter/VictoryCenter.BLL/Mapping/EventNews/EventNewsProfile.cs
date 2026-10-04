@@ -28,6 +28,9 @@ public class EventNewsProfile : Profile
         CreateMap<EventNewsCategory, PublicEventNewsCategoryDto>();
         CreateMap<EventNewsCategory, AdminEventNewsCategoryDto>();
 
+        CreateMap<EventNewsCategoryLocalization, EventNewsCategoryLocalizationDto>()
+            .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.Language));
+
         CreateMap<EventNewsLocalization, PublishedEventNewsLocalizationDto>()
             .ForMember(dest => dest.Language, opt => opt.MapFrom(src => src.Language));
 

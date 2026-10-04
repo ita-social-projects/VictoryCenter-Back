@@ -4,4 +4,5 @@ public record EventNewsCategoryDto
 {
     public long Id { get; init; }
     public string Name { get; init; } = null!;
+    public List<EventNewsCategoryLocalizationDto> Localizations { get; init; } = [];
 }

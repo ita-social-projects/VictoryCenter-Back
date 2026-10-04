@@ -28,24 +28,26 @@ public class GetPublishedEventNewsHandler
         GetPublishedEventNewsQuery request,
         CancellationToken cancellationToken)
     {
-        var publishedEventNews = await _repositoryWrapper.EventNewsRepository
-            .GetAllAsync(new QueryOptions<EventNewsEntity>
-            {
-                Filter = eventNews => eventNews.Status == Status.Published,
-                Include = eventNews => eventNews
-                    .Include(e => e.Categories)
-                    .Include(e => e.PreviewImage)
-                    .Include(e => e.Localizations)
-                        .ThenInclude(localization => localization.Language),
-                AsNoTracking = true
-            });
+        var queryOptions = new QueryOptions<EventNewsEntity>
+        {
+            Filter = eventNews => eventNews.Status == Status.Published,
+            Include = eventNews => eventNews
+                .Include(e => e.Categories)
+                    .ThenInclude(category => category.Localizations)
+                        .ThenInclude(localization => localization.Language)
+                .Include(e => e.PreviewImage)
+                .Include(e => e.Localizations)
+                    .ThenInclude(l => l.Language),
+            OrderByDESC = eventNews => eventNews.PublishedAt,
+            ThenByDESC = eventNews => eventNews.Id,
+            Limit = request.Take ?? 0,
+            AsSplitQuery = true,
+        };
 
-        var sortedEventNews = publishedEventNews
-            .OrderByDescending(eventNews => eventNews.PublishedAt ?? DateTimeOffset.MinValue)
-            .Take(request.Take ?? publishedEventNews.Count())
-            .ToList();
+        IEnumerable<EventNewsEntity> publishedEventNews =
+            await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
 
-        var result = _mapper.Map<List<PublishedEventNewsDto>>(sortedEventNews);
+        var result = _mapper.Map<List<PublishedEventNewsDto>>(publishedEventNews);
 
         return Result.Ok(result);
     }

@@ -2,11 +2,14 @@ using AutoMapper;
 using FluentResults;
 using Moq;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.BLL.Mapping.EventNews;
+using VictoryCenter.BLL.Mapping.Localization.Languages;
 using VictoryCenter.BLL.Queries.Public.EventNews.GetPublished;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.EventNews;
@@ -36,6 +39,48 @@ public class GetPublishedEventNewsTests
     {
         _mapperMock = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+    }
+
+    [Fact]
+    public void Mapping_MapsCategoryBaseNameAndLocalizations()
+    {
+        var language = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" };
+        var entity = new EventNewsEntity
+        {
+            Id = 1,
+            Categories =
+            [
+                new EventNewsCategory
+                {
+                    Id = 10,
+                    Name = "Base category name",
+                    Localizations =
+                    [
+                        new EventNewsCategoryLocalization
+                        {
+                            EntityId = 10,
+                            LanguageId = language.Id,
+                            Language = language,
+                            Name = "Localized category name"
+                        },
+                    ]
+                },
+            ]
+        };
+        var configuration = new MapperConfiguration(config =>
+        {
+            config.AddProfile<EventNewsProfile>();
+            config.AddProfile<LocalizationsLanguageProfile>();
+        });
+        var mapper = configuration.CreateMapper();
+
+        var result = mapper.Map<PublishedEventNewsDto>(entity);
+
+        var category = Assert.Single(result.Categories);
+        Assert.Equal("Base category name", category.Name);
+        var localization = Assert.Single(category.Localizations);
+        Assert.Equal("Localized category name", localization.Name);
+        Assert.Equal("en", localization.Language.Code);
     }
 
     [Fact]
@@ -72,90 +117,25 @@ public class GetPublishedEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_WhenTakeIsProvided_ShouldLimitResult()
+    public async Task Handle_WhenTakeIsProvided_ShouldPassLimitAndOrderingToQueryOptions()
     {
-        var items = new List<EventNewsEntity>
-        {
-            new() { Id = 1, Resource = "NV", Status = Status.Published },
-            new() { Id = 2, Resource = "Канал Дім", Status = Status.Published },
-        };
+        const int take = 4;
+        SetUpDependencies(_eventNewsEntities);
 
-        _mapperMock
-    .Setup(x => x.Map<List<PublishedEventNewsDto>>(
-        It.IsAny<IEnumerable<EventNewsEntity>>()))
-    .Returns((IEnumerable<EventNewsEntity> source) =>
-        source.Select(x => new PublishedEventNewsDto
-        {
-            Id = x.Id,
-            Resource = x.Resource
-        }).ToList());
+        var handler = new GetPublishedEventNewsHandler(_mapperMock.Object, _mockRepositoryWrapper.Object);
 
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
-            .ReturnsAsync(items);
-
-        _mockRepositoryWrapper
-    .Setup(x => x.EventNewsEventNewsCategoriesRepository.GetAllAsync(
-        It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
-    .ReturnsAsync(new List<EventNewsCategoryLink>());
-
-        var handler = new GetPublishedEventNewsHandler(
-            _mapperMock.Object,
-            _mockRepositoryWrapper.Object);
-
-        var result = await handler.Handle(
-            new GetPublishedEventNewsQuery(1),
-            CancellationToken.None);
+        Result<List<PublishedEventNewsDto>> result =
+            await handler.Handle(new GetPublishedEventNewsQuery(take), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Single(result.Value);
-        Assert.Equal(1, result.Value[0].Id);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldReturnEventNewsSortedByPublishedAt()
-    {
-        var items = new List<EventNewsEntity>
-        {
-            new()
-            {
-                Id = 1,
-                Resource = "NV",
-                Status = Status.Published,
-                PublishedAt = DateTimeOffset.UtcNow.AddDays(-1)
-            },
-            new()
-            {
-                Id = 2,
-                Resource = "Канал Дім",
-                Status = Status.Published,
-                PublishedAt = DateTimeOffset.UtcNow
-            }
-        };
-
-        _mapperMock
-            .Setup(x => x.Map<List<PublishedEventNewsDto>>(It.IsAny<IEnumerable<EventNewsEntity>>()))
-            .Returns((IEnumerable<EventNewsEntity> source) =>
-                source.Select(x => new PublishedEventNewsDto
-                {
-                    Id = x.Id,
-                    Resource = x.Resource
-                }).ToList());
-
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
-            .ReturnsAsync(items);
-
-        var handler = new GetPublishedEventNewsHandler(
-            _mapperMock.Object,
-            _mockRepositoryWrapper.Object);
-
-        var result = await handler.Handle(
-            new GetPublishedEventNewsQuery(),
-            CancellationToken.None);
-
-        Assert.True(result.IsSuccess);
-        Assert.Equal([2, 1], result.Value.Select(item => item.Id));
+        _mockRepositoryWrapper.Verify(
+            x => x.EventNewsRepository.GetAllAsync(
+                It.Is<QueryOptions<EventNewsEntity>>(o =>
+                    o.Limit == take &&
+                    o.OrderByDESC != null &&
+                    o.ThenByDESC != null &&
+                    o.AsSplitQuery)),
+            Times.Once);
     }
 
     private void SetUpDependencies(IEnumerable<EventNewsEntity> items)
@@ -173,10 +153,5 @@ public class GetPublishedEventNewsTests
         _mockRepositoryWrapper
             .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .ReturnsAsync(items);
-
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsEventNewsCategoriesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
-            .ReturnsAsync(new List<EventNewsCategoryLink>());
     }
 }
