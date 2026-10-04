@@ -117,4 +117,40 @@ public class DeleteEventNewsTests : BaseTestClass
             .AsNoTracking()
             .AnyAsync(entity => entity.Id == 1));
     }
+
+    [Fact]
+    public async Task DeleteEventNews_ShouldRenumberCategoryPriorities()
+    {
+        // Arrange
+        const long eventNewsId = 1;
+
+        var categoryIds = await Fixture.DbContext.EventNewsEventNewsCategories
+            .Where(link => link.EventsNewsId == eventNewsId)
+            .Select(link => link.CategoriesId)
+            .ToListAsync();
+
+        Assert.NotEmpty(categoryIds);
+
+        // Act
+        var response = await Fixture.HttpClient.DeleteAsync($"{EndpointUri}/{eventNewsId}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        foreach (var categoryId in categoryIds)
+        {
+            var priorities = await Fixture.DbContext.EventNewsEventNewsCategories
+                .AsNoTracking()
+                .Where(link => link.CategoriesId == categoryId)
+                .OrderBy(link => link.Priority)
+                .Select(link => link.Priority)
+                .ToListAsync();
+
+            Assert.Equal(
+                Enumerable.Range(1, priorities.Count).Select(priority => (long)priority),
+                priorities);
+        }
+    }
 }

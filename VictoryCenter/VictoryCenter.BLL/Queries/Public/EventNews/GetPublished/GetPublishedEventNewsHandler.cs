@@ -16,7 +16,9 @@ public class GetPublishedEventNewsHandler
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetPublishedEventNewsHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetPublishedEventNewsHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -45,7 +47,7 @@ public class GetPublishedEventNewsHandler
         IEnumerable<EventNewsEntity> publishedEventNews =
             await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
 
-        var result = _mapper.Map<IEnumerable<PublishedEventNewsDto>>(publishedEventNews).ToList();
+        var result = _mapper.Map<List<PublishedEventNewsDto>>(publishedEventNews);
 
         return Result.Ok(result);
     }

@@ -5,12 +5,14 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Update;
@@ -20,17 +22,20 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ISlugService _slugService;
+    private readonly IReorderService _reorderService;
     private readonly TimeProvider _timeProvider;
 
     public UpdateEventNewsHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
         ISlugService slugService,
+        IReorderService reorderService,
         TimeProvider timeProvider)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _slugService = slugService;
+        _reorderService = reorderService;
         _timeProvider = timeProvider;
     }
 
@@ -86,28 +91,61 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             categoryIds,
             localizationDtos);
 
+        var oldCategoryIds = eventNews.Categories
+            .Select(category => category.Id)
+            .ToHashSet();
+
         if (!hasChanges)
         {
             return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
         }
 
-        ApplyChanges(
-            eventNews,
-            dto,
-            imagesResult.Value,
-            categoriesResult.Value,
-            localizationDtos,
-            languagesResult.Value,
-            categoriesChanged,
-            localizationsChanged);
+        await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
-        var titleForSlug = localizationDtos
-            .Select(localization => localization.Title?.Trim())
-            .FirstOrDefault(title => !string.IsNullOrWhiteSpace(title));
+        try
+        {
+            ApplyChanges(
+                eventNews,
+                dto,
+                imagesResult.Value,
+                categoriesResult.Value,
+                localizationDtos,
+                languagesResult.Value,
+                categoriesChanged,
+                localizationsChanged);
 
-        await UpdateSlugAsync(eventNews, titleForSlug, titlesChanged, cancellationToken);
+            var titleForSlug = localizationDtos
+                .Select(localization => localization.Title?.Trim())
+                .FirstOrDefault(title => !string.IsNullOrWhiteSpace(title));
 
-        return await SaveAsync(eventNews, titleForSlug, cancellationToken);
+            await UpdateSlugAsync(eventNews, titleForSlug, titlesChanged, cancellationToken);
+
+            var result = await SaveAsync(eventNews, titleForSlug, cancellationToken);
+
+            if (result.IsFailed)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+
+                return result;
+            }
+
+            if (categoriesChanged)
+            {
+                await UpdateCategoryPrioritiesAsync(
+                    eventNews.Id,
+                    oldCategoryIds,
+                    categoriesResult.Value);
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+
+            return result;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private async Task<EventNewsEntity?> GetEventNewsAsync(long id)
@@ -148,7 +186,9 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     {
         var scalarFieldsChanged = !string.Equals(eventNews.Title, dto.Title)
                                   || !string.Equals(eventNews.Description, dto.Description)
+                                  || !string.Equals(eventNews.AdditionalDescription, dto.AdditionalDescription, StringComparison.Ordinal)
                                   || !string.Equals(eventNews.Resource, dto.Resource, StringComparison.Ordinal)
+                                  || !string.Equals(eventNews.ResourceEn, dto.ResourceEn, StringComparison.Ordinal)
                                   || eventNews.PublishedAt != dto.PublishedAt
                                   || eventNews.Status != dto.Status;
         var imagesChanged = eventNews.PreviewImageId != dto.PreviewImageId
@@ -188,6 +228,10 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                                     || !string.Equals(
                                         current.Description,
                                         NormalizeOptional(dto.Description),
+                                        StringComparison.Ordinal)
+                                    || !string.Equals(
+                                        current.AdditionalDescription,
+                                        NormalizeOptional(dto.AdditionalDescription),
                                         StringComparison.Ordinal);
         }
 
@@ -201,7 +245,9 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     {
         eventNews.Title = dto.Title;
         eventNews.Description = dto.Description;
+        eventNews.AdditionalDescription = dto.AdditionalDescription;
         eventNews.Resource = dto.Resource;
+        eventNews.ResourceEn = dto.ResourceEn;
         eventNews.PublishedAt = dto.PublishedAt;
         eventNews.Status = dto.Status;
         eventNews.PreviewImageId = dto.PreviewImageId;
@@ -249,14 +295,17 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             {
                 var title = localizationDto.Title!.Trim();
                 var description = NormalizeOptional(localizationDto.Description);
+                var additionalDescription = NormalizeOptional(localizationDto.AdditionalDescription);
                 if (string.Equals(localization.Title, title, StringComparison.Ordinal)
-                    && string.Equals(localization.Description, description, StringComparison.Ordinal))
+                    && string.Equals(localization.Description, description, StringComparison.Ordinal)
+                    && string.Equals(localization.AdditionalDescription, additionalDescription, StringComparison.Ordinal))
                 {
                     continue;
                 }
 
                 localization.Title = title;
                 localization.Description = description;
+                localization.AdditionalDescription = additionalDescription;
                 localization.TranslationStatus = TranslationStatus.Relevant;
                 continue;
             }
@@ -267,6 +316,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                 Language = languagesById[localizationDto.LanguageId],
                 Title = localizationDto.Title!.Trim(),
                 Description = NormalizeOptional(localizationDto.Description),
+                AdditionalDescription = NormalizeOptional(localizationDto.AdditionalDescription),
                 TranslationStatus = TranslationStatus.Relevant,
                 CreatedAt = now
             });
@@ -341,6 +391,61 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             eventNews.Id,
             titleForSlug,
             cancellationToken);
+    }
+
+    private async Task UpdateCategoryPrioritiesAsync(
+        long eventNewsId,
+        IReadOnlySet<long> oldCategoryIds,
+        IEnumerable<EventNewsCategory> newCategories)
+    {
+        var newCategoryIds = newCategories
+            .Select(category => category.Id)
+            .ToHashSet();
+
+        var addedCategoryIds = newCategoryIds
+            .Where(id => !oldCategoryIds.Contains(id))
+            .ToList();
+
+        var removedCategoryIds = oldCategoryIds
+            .Where(id => !newCategoryIds.Contains(id))
+            .ToList();
+
+        foreach (var categoryId in addedCategoryIds)
+        {
+            var nextPriority = await _reorderService
+                .GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                    link => link.CategoriesId == categoryId);
+
+            var links = await _repositoryWrapper
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = link =>
+                        link.EventsNewsId == eventNewsId &&
+                        link.CategoriesId == categoryId,
+                    AsNoTracking = false
+                });
+
+            var link = links.FirstOrDefault();
+
+            if (link is not null)
+            {
+                link.Priority = nextPriority;
+
+                _repositoryWrapper
+                    .EventNewsEventNewsCategoriesRepository
+                    .Update(link);
+            }
+        }
+
+        await _repositoryWrapper.SaveChangesAsync();
+
+        foreach (var categoryId in removedCategoryIds)
+        {
+            await _reorderService
+                .RenumberPriorityAsync<EventNewsCategoryLink>(
+                    link => link.CategoriesId == categoryId);
+        }
     }
 
     private async Task<Result<EventNewsDto>> SaveAsync(

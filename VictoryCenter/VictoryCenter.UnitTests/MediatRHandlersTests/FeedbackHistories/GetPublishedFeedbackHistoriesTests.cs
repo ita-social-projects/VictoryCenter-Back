@@ -1,8 +1,10 @@
 using AutoMapper;
 using Moq;
+using VictoryCenter.BLL;
 using VictoryCenter.BLL.DTOs.Public.FeedbackHistories;
 using VictoryCenter.BLL.Queries.Public.FeedbackHistories.GetPublished;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
@@ -63,6 +65,44 @@ public class GetPublishedFeedbackHistoriesTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(dtos, result.Value);
+    }
+
+    [Fact]
+    public async Task Handle_WithRealMapper_ShouldMapLocalizations()
+    {
+        var language = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" };
+        var localization = new FeedbackHistoryLocalization
+        {
+            EntityId = 1,
+            LanguageId = language.Id,
+            Language = language,
+            Title = "Title",
+            Story = "Story",
+            TranslationStatus = TranslationStatus.Outdated
+        };
+        var entity = new FeedbackHistory
+        {
+            Id = 1,
+            Title = "Заголовок",
+            Story = "Історія",
+            Status = Status.Published,
+            Localizations = [localization]
+        };
+        _repository
+            .Setup(repository => repository.GetAllAsync(It.IsAny<QueryOptions<FeedbackHistory>>()))
+            .ReturnsAsync([entity]);
+        var mapper = new MapperConfiguration(cfg => cfg.AddMaps(typeof(BllAssemblyMarker).Assembly)).CreateMapper();
+
+        var result = await new GetPublishedFeedbackHistoriesHandler(mapper, _repositoryWrapper.Object)
+            .Handle(new GetPublishedFeedbackHistoriesQuery(), CancellationToken.None);
+
+        var history = Assert.Single(result.Value);
+        Assert.Equal("Заголовок", history.Title);
+        var localizationDto = Assert.Single(history.Localizations);
+        Assert.Equal("en", localizationDto.Language.Code);
+        Assert.Equal("Title", localizationDto.Title);
+        Assert.Equal("Story", localizationDto.Story);
+        Assert.Equal(TranslationStatus.Outdated, localizationDto.TranslationStatus);
     }
 
     [Fact]

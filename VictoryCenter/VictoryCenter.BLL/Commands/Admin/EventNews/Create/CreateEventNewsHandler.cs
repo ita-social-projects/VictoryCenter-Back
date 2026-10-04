@@ -4,10 +4,13 @@ using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Create;
@@ -17,15 +20,18 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly ISlugService _slugService;
+    private readonly IReorderService _reorderService;
 
     public CreateEventNewsHandler(
         IMapper mapper,
         IRepositoryWrapper repositoryWrapper,
-        ISlugService slugService)
+        ISlugService slugService,
+        IReorderService reorderService)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _slugService = slugService;
+        _reorderService = reorderService;
     }
 
     public async Task<Result<EventNewsDto>> Handle(
@@ -105,19 +111,35 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
                 cancellationToken);
         }
 
-        await _repositoryWrapper.EventNewsRepository.CreateAsync(eventNews);
+        await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
-        if (await EventNewsAggregateHelper.SaveWithSlugRetryAsync(
-                _repositoryWrapper,
-                _slugService,
-                eventNews,
-                titleForSlug,
-                cancellationToken) > 0)
+        try
         {
-            return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
-        }
+            await _repositoryWrapper.EventNewsRepository.CreateAsync(eventNews);
 
-        return Result.Fail<EventNewsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsEntity)));
+            if (await EventNewsAggregateHelper.SaveWithSlugRetryAsync(
+                    _repositoryWrapper,
+                    _slugService,
+                    eventNews,
+                    titleForSlug,
+                    cancellationToken) > 0)
+            {
+                await UpdateCategoryPriorityLinksAsync(eventNews.Id, categoriesResult.Value);
+
+                await transaction.CommitAsync(cancellationToken);
+
+                return Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
+            }
+
+            await transaction.RollbackAsync(cancellationToken);
+
+            return Result.Fail<EventNewsDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsEntity)));
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private static void AddCategories(EventNewsEntity eventNews, ICollection<EventNewsCategory> categories)
@@ -148,6 +170,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
                 Language = language,
                 Title = localizationDto.Title!.Trim(),
                 Description = localizationDto.Description?.Trim(),
+                AdditionalDescription = localizationDto.AdditionalDescription?.Trim(),
                 CreatedAt = createdAt
             };
 
@@ -155,5 +178,40 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         }
 
         return Result.Ok();
+    }
+
+    private async Task UpdateCategoryPriorityLinksAsync(
+        long eventNewsId,
+        ICollection<EventNewsCategory> categories)
+    {
+        foreach (var category in categories)
+        {
+            var nextPriority = await _reorderService
+                .GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                    link => link.CategoriesId == category.Id);
+
+            var links = await _repositoryWrapper
+                .EventNewsEventNewsCategoriesRepository
+                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+                {
+                    Filter = link =>
+                        link.EventsNewsId == eventNewsId &&
+                        link.CategoriesId == category.Id,
+                    AsNoTracking = false
+                });
+
+            var link = links.FirstOrDefault();
+
+            if (link is not null)
+            {
+                link.Priority = nextPriority;
+
+                _repositoryWrapper
+                    .EventNewsEventNewsCategoriesRepository
+                    .Update(link);
+            }
+        }
+
+        await _repositoryWrapper.SaveChangesAsync();
     }
 }

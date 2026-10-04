@@ -9,8 +9,10 @@ public class EventNews : BaseEntity, ITranslatedEntity<EventNewsLocalization>
 {
     public string? Slug { get; set; }
     public string? Resource { get; set; }
+    public string? ResourceEn { get; set; }
     public string? Title { get; set; }
     public string? Description { get; set; }
+    public string? AdditionalDescription { get; set; }
     public DateTimeOffset? PublishedAt { get; set; }
     public Status Status { get; set; }
     public long? PreviewImageId { get; set; }

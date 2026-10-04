@@ -4,4 +4,5 @@ public class EventNewsLocalization : LocalizationBase<EventNews>
 {
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
+    public string? AdditionalDescription { get; set; }
 }

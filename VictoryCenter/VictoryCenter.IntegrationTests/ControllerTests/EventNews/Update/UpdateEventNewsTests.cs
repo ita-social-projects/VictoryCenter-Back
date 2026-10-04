@@ -78,6 +78,28 @@ public class UpdateEventNewsTests : BaseTestClass
     }
 
     [Fact]
+    public async Task UpdateEventNews_ShouldSaveAdditionalDescriptionAndEnglishLink()
+    {
+        var dto = PublishedDto(localizations:
+        [
+            Localization(1, "Integration Event", "Integration event description") with { AdditionalDescription = "Online" },
+        ]) with
+        {
+            AdditionalDescription = "Київ, 18:00",
+            ResourceEn = "https://example.com/en/integration-update",
+        };
+
+        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var content = await response.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(content);
+        Assert.Equal("Київ, 18:00", content.AdditionalDescription);
+        Assert.Equal("https://example.com/en/integration-update", content.ResourceEn);
+        Assert.Equal("Online", content.Localizations.Single().AdditionalDescription);
+    }
+
+    [Fact]
     public async Task UpdateEventNews_ToEmptyDraft_ShouldRemoveContentAndHidePublicItem()
     {
         var dto = new UpdateEventNewsDto

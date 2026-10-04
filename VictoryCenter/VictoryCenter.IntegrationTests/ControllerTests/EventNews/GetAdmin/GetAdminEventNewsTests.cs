@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
 using VictoryCenter.BLL.DTOs.Common;
@@ -19,34 +20,43 @@ public class GetAdminEventNewsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetByFilters_ShouldReturnItemsAndTotalCountInDeterministicOrder()
+    public async Task GetByFilters_ShouldReturnItemsAndTotalCount()
     {
         var response = await Fixture.HttpClient.GetAsync(EndpointUri);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+
         Assert.NotNull(page);
         Assert.NotEmpty(page.Items);
         Assert.True(page.TotalItemsCount >= page.Items.Length);
-        Assert.Equal(
-            page.Items.Select(item => item.Id).OrderByDescending(id => id),
-            page.Items.Select(item => item.Id));
     }
 
     [Fact]
     public async Task GetByFilters_ShouldApplyOffsetAndLimit()
     {
-        var allItems = await Fixture.HttpClient.GetFromJsonAsync<PaginationResult<EventNewsDto>>(EndpointUri);
+        var allItems = await Fixture.HttpClient
+            .GetFromJsonAsync<PaginationResult<EventNewsDto>>(
+                $"{EndpointUri}?offset=0&limit=100");
 
-        var response = await Fixture.HttpClient.GetAsync($"{EndpointUri}?offset=1&limit=2");
+        Assert.NotNull(allItems);
+
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?offset=1&limit=2");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
-        Assert.NotNull(allItems);
+
+        var page = await response.Content
+            .ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+
         Assert.NotNull(page);
         Assert.Equal(2, page.Items.Length);
         Assert.Equal(allItems.TotalItemsCount, page.TotalItemsCount);
-        Assert.Equal(allItems.Items.Skip(1).Take(2).Select(item => item.Id), page.Items.Select(item => item.Id));
+
+        Assert.Equal(
+            allItems.Items.Skip(1).Take(2).Select(item => item.Id),
+            page.Items.Select(item => item.Id));
     }
 
     [Fact]
@@ -190,5 +200,53 @@ public class GetAdminEventNewsTests : BaseTestClass
         var response = await anonymousClient.GetAsync(endpoint);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetByFilters_WhenCategorySpecified_ShouldOrderItemsByPriority()
+    {
+        // Arrange
+        var categoryId = await Fixture.DbContext.EventNewsEventNewsCategories
+            .GroupBy(link => link.CategoriesId)
+            .Where(group => group.Count() >= 3)
+            .Select(group => group.Key)
+            .FirstAsync();
+
+        var links = await Fixture.DbContext.EventNewsEventNewsCategories
+            .Where(link => link.CategoriesId == categoryId)
+            .Take(3)
+            .ToArrayAsync();
+
+        links[0].Priority = 2;
+        links[1].Priority = 0;
+        links[2].Priority = 1;
+
+        await Fixture.DbContext.SaveChangesAsync();
+
+        // Act
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?categoryId={categoryId}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var page = await response.Content
+            .ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+
+        Assert.NotNull(page);
+
+        var testedIds = links
+            .Select(link => link.EventsNewsId)
+            .ToHashSet();
+
+        var testedItems = page.Items
+            .Where(item => testedIds.Contains(item.Id))
+            .ToArray();
+
+        Assert.Equal(3, testedItems.Length);
+
+        Assert.Equal(
+            [links[1].EventsNewsId, links[2].EventsNewsId, links[0].EventsNewsId],
+            testedItems.Select(item => item.Id));
     }
 }

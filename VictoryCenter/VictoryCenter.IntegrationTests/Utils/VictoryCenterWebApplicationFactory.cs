@@ -113,9 +113,11 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 
         services.AddDbContext<VictoryCenterDbContext>(options =>
         {
-            options.UseInMemoryDatabase(_databaseName)
+            options
+                .UseInMemoryDatabase(_databaseName)
                 .UseInternalServiceProvider(efServiceProvider)
-                .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+                .ConfigureWarnings(warnings =>
+                    warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
         });
     }
 

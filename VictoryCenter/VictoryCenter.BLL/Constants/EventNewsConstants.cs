@@ -8,5 +8,7 @@ public static class EventNewsConstants
     public const int TitleMaxLength = 60;
     public const int DescriptionMinLength = 5;
     public const int DescriptionMaxLength = 140;
+    public const int AdditionalDescriptionMinLength = 2;
+    public const int AdditionalDescriptionMaxLength = 20;
     public const int ResourceMaxLength = 150;
 }
