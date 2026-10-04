@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageDescriptionSection;
 using VictoryCenter.BLL.Validators.Localization.HippotherapyLandingPageDescriptionSection;
@@ -179,6 +180,34 @@ public class BaseHippotherapyLandingPageDescriptionSectionLocalizationValidatorT
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveOnlyRequiredError_WhenTitle_IsEmpty()
+    {
+        var model = new UpdateHippotherapyLandingPageDescriptionSectionLocalizationDto
+        {
+            Title = string.Empty,
+            Description = "Valid description",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageDescriptionSectionLocalizationDto.Title)))
+            .Only();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveOnlyRequiredError_WhenDescription_IsEmpty()
+    {
+        var model = new UpdateHippotherapyLandingPageDescriptionSectionLocalizationDto
+        {
+            Title = "Valid title",
+            Description = string.Empty,
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageDescriptionSectionLocalizationDto.Description)))
+            .Only();
     }
 
     [Fact]

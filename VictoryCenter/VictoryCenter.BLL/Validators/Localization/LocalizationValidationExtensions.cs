@@ -13,6 +13,7 @@ internal static class LocalizationValidationExtensions
         int maxLength)
     {
         return ruleBuilder
+            .Cascade(CascadeMode.Stop)
             .NotEmpty()
                 .WithMessage(ErrorMessagesConstants.PropertyIsRequired(propertyName))
             .Must(value => HtmlContentHelper.StripHtmlTags(value).Length >= minLength)
