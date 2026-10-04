@@ -41,20 +41,11 @@ public class GetEventNewsByFiltersHandler
                 await _repositoryWrapper.LocalizationLanguagesRepository.CountAsync() - 1)
             : 0;
 
-        Expression<Func<EventNewsEntity, bool>> filter = eventNews =>
-            (!categoryId.HasValue ||
-                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
-            (!status.HasValue ||
-                eventNews.Status == status.Value) &&
-            (!translationStatusFilter.HasValue ||
-                translationStatusFilter == TranslationStatusFilter.All ||
-                (translationStatusFilter == TranslationStatusFilter.Outdated &&
-                    eventNews.Localizations.Any(localization =>
-                        localization.TranslationStatus == TranslationStatus.Outdated)) ||
-                (translationStatusFilter == TranslationStatusFilter.Missing &&
-                    eventNews.Localizations.Count(localization =>
-                        localization.LanguageId != LocalizationLanguageConstants.PrimaryLanguageId) <
-                    requiredLocalizationCount));
+        var filter = BuildFilter(
+            categoryId,
+            status,
+            translationStatusFilter,
+            requiredLocalizationCount);
 
         var totalCount = await _repositoryWrapper.EventNewsRepository.CountAsync(
             new QueryOptions<EventNewsEntity>
@@ -88,6 +79,28 @@ public class GetEventNewsByFiltersHandler
             .ToArray();
 
         return Result.Ok(new PaginationResult<EventNewsDto>(sortedItems, totalCount));
+    }
+
+    private static Expression<Func<EventNewsEntity, bool>> BuildFilter(
+        long? categoryId,
+        Status? status,
+        TranslationStatusFilter? translationStatusFilter,
+        int requiredLocalizationCount)
+    {
+        var includeOnlyOutdated = translationStatusFilter == TranslationStatusFilter.Outdated;
+        var includeOnlyMissing = translationStatusFilter == TranslationStatusFilter.Missing;
+
+        return eventNews =>
+            (!categoryId.HasValue ||
+                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
+            (!status.HasValue || eventNews.Status == status.Value) &&
+            (!includeOnlyOutdated ||
+                eventNews.Localizations.Any(localization =>
+                    localization.TranslationStatus == TranslationStatus.Outdated)) &&
+            (!includeOnlyMissing ||
+                eventNews.Localizations.Count(localization =>
+                    localization.LanguageId != LocalizationLanguageConstants.PrimaryLanguageId) <
+                requiredLocalizationCount);
     }
 
     private static QueryOptions<EventNewsEntity> SetupEventNewsQueryOptions(
