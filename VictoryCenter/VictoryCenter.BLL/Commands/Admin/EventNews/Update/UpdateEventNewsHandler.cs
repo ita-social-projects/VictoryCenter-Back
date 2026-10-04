@@ -85,7 +85,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             return Result.Fail<EventNewsDto>(languagesResult.Errors);
         }
 
-        var (categoriesChanged, localizationsChanged, titlesChanged, hasChanges) = GetChanges(
+        var (categoriesChanged, localizationsChanged, titlesChanged, sourceContentChanged, hasChanges) = GetChanges(
             eventNews,
             dto,
             categoryIds,
@@ -112,7 +112,8 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                 localizationDtos,
                 languagesResult.Value,
                 categoriesChanged,
-                localizationsChanged);
+                localizationsChanged,
+                sourceContentChanged);
 
             var titleForSlug = localizationDtos
                 .Select(localization => localization.Title?.Trim())
@@ -195,6 +196,18 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                             || eventNews.BackgroundImageId != dto.BackgroundImageId;
 
         return scalarFieldsChanged || imagesChanged;
+    }
+
+    private static bool HasSourceContentChanges(
+        EventNewsEntity eventNews,
+        UpdateEventNewsDto dto)
+    {
+        return !string.Equals(eventNews.Title, dto.Title, StringComparison.Ordinal)
+               || !string.Equals(eventNews.Description, dto.Description, StringComparison.Ordinal)
+               || !string.Equals(
+                   eventNews.AdditionalDescription,
+                   dto.AdditionalDescription,
+                   StringComparison.Ordinal);
     }
 
     private static bool HaveSameCategoryIds(
@@ -328,7 +341,12 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private static (bool CategoriesChanged, bool LocalizationsChanged, bool TitlesChanged, bool HasChanges) GetChanges(
+    private static (
+        bool CategoriesChanged,
+        bool LocalizationsChanged,
+        bool TitlesChanged,
+        bool SourceContentChanged,
+        bool HasChanges) GetChanges(
         EventNewsEntity eventNews,
         UpdateEventNewsDto dto,
         IReadOnlyCollection<long> categoryIds,
@@ -338,13 +356,14 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         var (localizationsChanged, titlesChanged) = GetLocalizationChanges(
             eventNews.Localizations,
             localizationDtos);
+        var sourceContentChanged = HasSourceContentChanges(eventNews, dto);
         var slugStateChanged = string.IsNullOrWhiteSpace(eventNews.Slug) != (localizationDtos.Count == 0);
         var hasChanges = HasScalarOrImageChanges(eventNews, dto)
                          || categoriesChanged
                          || localizationsChanged
                          || slugStateChanged;
 
-        return (categoriesChanged, localizationsChanged, titlesChanged, hasChanges);
+        return (categoriesChanged, localizationsChanged, titlesChanged, sourceContentChanged, hasChanges);
     }
 
     private void ApplyChanges(
@@ -355,8 +374,17 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         IReadOnlyCollection<CreateEventNewsLocalizationDto> localizationDtos,
         IReadOnlyDictionary<long, LocalizationLanguage> languagesById,
         bool categoriesChanged,
-        bool localizationsChanged)
+        bool localizationsChanged,
+        bool sourceContentChanged)
     {
+        if (sourceContentChanged)
+        {
+            foreach (var localization in eventNews.Localizations)
+            {
+                localization.TranslationStatus = TranslationStatus.Outdated;
+            }
+        }
+
         ApplyScalarAndImageChanges(eventNews, dto, imagesById);
 
         if (categoriesChanged)
