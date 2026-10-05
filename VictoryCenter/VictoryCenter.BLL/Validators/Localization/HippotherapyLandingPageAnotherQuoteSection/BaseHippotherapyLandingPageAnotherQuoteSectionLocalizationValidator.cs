@@ -1,8 +1,6 @@
 using FluentValidation;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageAnotherQuoteSection;
-using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.Localization.HippotherapyLandingPageAnotherQuoteSection;
 
@@ -17,16 +15,11 @@ public class BaseHippotherapyLandingPageAnotherQuoteSectionLocalizationValidator
                 HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.QuoteTextMinLength,
                 HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.QuoteTextMaxLength);
 
-        RuleFor(x => x.AuthorName)
-            .Cascade(CascadeMode.Stop)
-            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length >= HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.AuthorNameMinLength)
-                .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
-                    nameof(UpdateHippotherapyLandingPageAnotherQuoteSectionLocalizationDto.AuthorName),
-                    HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.AuthorNameMinLength))
-            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length <= HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.AuthorNameMaxLength)
-                .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
-                    nameof(UpdateHippotherapyLandingPageAnotherQuoteSectionLocalizationDto.AuthorName),
-                    HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.AuthorNameMaxLength))
+        RuleFor(x => x.AuthorName!)
+            .MustHaveVisibleLength(
+                nameof(UpdateHippotherapyLandingPageAnotherQuoteSectionLocalizationDto.AuthorName),
+                HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.AuthorNameMinLength,
+                HippotherapyLandingPageAnotherQuoteSectionLocalizationConstants.AuthorNameMaxLength)
             .When(x => !string.IsNullOrWhiteSpace(x.AuthorName));
     }
 }
