@@ -38,6 +38,9 @@ public class CreateEventNewsTests : BaseTestClass
         Assert.NotNull(responseContent.Slug);
         Assert.Single(responseContent.Categories);
         Assert.Single(responseContent.Localizations);
+        Assert.Equal(
+            TranslationStatus.Relevant,
+            responseContent.Localizations.Single().TranslationStatus);
     }
 
     [Fact]
@@ -188,6 +191,45 @@ public class CreateEventNewsTests : BaseTestClass
         Assert.NotNull(createdEventNews);
         Assert.NotNull(publishedEventNews);
         Assert.DoesNotContain(publishedEventNews, eventNews => eventNews.Slug == createdEventNews.Slug);
+    }
+
+    [Fact]
+    public async Task CreateEventNews_ShouldAssignNextPriorityInCategory()
+    {
+        // Arrange
+        var existingLink = Fixture.DbContext.EventNewsEventNewsCategories
+            .First();
+
+        var categoryId = existingLink.CategoriesId;
+
+        var existingLinks = Fixture.DbContext.EventNewsEventNewsCategories
+            .Where(link => link.CategoriesId == categoryId)
+            .ToList();
+
+        var maxPriority = existingLinks.Max(link => link.Priority);
+
+        var createEventNewsDto = PublishedDto("Priority Test Event") with
+        {
+            CategoryIds = [categoryId]
+        };
+
+        // Act
+        var response = await PostAsync(createEventNewsDto);
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+
+        var createdEventNews = JsonConvert.DeserializeObject<EventNewsDto>(
+            await response.Content.ReadAsStringAsync());
+
+        Assert.NotNull(createdEventNews);
+
+        var createdLink = Fixture.DbContext.EventNewsEventNewsCategories
+            .Single(link =>
+                link.EventsNewsId == createdEventNews.Id &&
+                link.CategoriesId == categoryId);
+
+        Assert.Equal(maxPriority + 1, createdLink.Priority);
     }
 
     private static CreateEventNewsDto PublishedDto(string title)

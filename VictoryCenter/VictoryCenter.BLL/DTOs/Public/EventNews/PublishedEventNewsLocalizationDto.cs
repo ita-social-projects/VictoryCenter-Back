@@ -7,4 +7,5 @@ public record PublishedEventNewsLocalizationDto
     public LocalizationInfoDto Language { get; init; } = null!;
     public string Title { get; init; } = null!;
     public string? Description { get; init; }
+    public string? AdditionalDescription { get; init; }
 }

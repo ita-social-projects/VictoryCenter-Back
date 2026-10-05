@@ -95,6 +95,10 @@ public interface IRepositoryWrapper
 
     IHippotherapyLandingPageIntroSectionLocalizationsRepository HippotherapyLandingPageIntroSectionLocalizationsRepository { get; }
 
+    IHippotherapyLandingPageDescriptionSectionLocalizationsRepository HippotherapyLandingPageDescriptionSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageHippoventionSectionLocalizationsRepository HippotherapyLandingPageHippoventionSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageAnalysisSectionLocalizationsRepository HippotherapyLandingPageAnalysisSectionLocalizationsRepository { get; }
+
     IReportFundsExpendituresSettingsLocalizationsRepository ReportFundsExpendituresSettingsLocalizationsRepository { get; }
 
     IChangedLivesBlockRepository ChangedLivesBlockRepository { get; }
@@ -142,6 +146,7 @@ public interface IRepositoryWrapper
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
     IEventsIntroSectionsRepository EventsIntroSectionsRepository { get; }
+    IEventNewsEventNewsCategoriesRepository EventNewsEventNewsCategoriesRepository { get; }
 
     IFeedbackReviewsRepository FeedbackReviewsRepository { get; }
     IFeedbackReviewLocalizationsRepository FeedbackReviewLocalizationsRepository { get; }
@@ -149,6 +154,9 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPagesRepository HippotherapyLandingPagesRepository { get; }
     IHippotherapyLandingPageScientificReferencesRepository HippotherapyLandingPageScientificReferencesRepository { get; }
     IHippotherapyLandingPageIntroSectionsRepository HippotherapyLandingPageIntroSectionsRepository { get; }
+    IHippotherapyLandingPageDescriptionSectionsRepository HippotherapyLandingPageDescriptionSectionsRepository { get; }
+    IHippotherapyLandingPageHippoventionSectionsRepository HippotherapyLandingPageHippoventionSectionsRepository { get; }
+    IHippotherapyLandingPageAnalysisSectionsRepository HippotherapyLandingPageAnalysisSectionsRepository { get; }
     IFeedbackHistoriesRepository FeedbackHistoriesRepository { get; }
     IFeedbackHistoryLocalizationsRepository FeedbackHistoryLocalizationsRepository { get; }
 

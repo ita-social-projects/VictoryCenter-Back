@@ -1,9 +1,12 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -11,6 +14,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.UnitTests.Utils;
+using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 using EventNewsPredicate = System.Linq.Expressions.Expression<System.Func<VictoryCenter.DAL.Entities.EventNews, bool>>;
 
@@ -21,6 +25,8 @@ public class UpdateEventNewsTests
     private readonly Mock<IMapper> _mapper = new();
     private readonly Mock<IRepositoryWrapper> _repositoryWrapper = new();
     private readonly Mock<ISlugService> _slugService = new();
+    private readonly Mock<IReorderService> _reorderService = new();
+    private readonly Mock<IDbContextTransaction> _transaction = new();
 
     [Fact]
     public async Task Handle_WhenEntityDoesNotExist_ReturnsNotFound()
@@ -68,7 +74,7 @@ public class UpdateEventNewsTests
         var newLocalization = eventNews.Localizations.Single(item => item.LanguageId == 3);
         Assert.Equal("German Event Title", newLocalization.Title);
         Assert.NotEqual(default, newLocalization.CreatedAt);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
         _slugService.Verify(
             service => service.GenerateUniqueEventNewsSlugAsync(
                 10,
@@ -104,6 +110,7 @@ public class UpdateEventNewsTests
     {
         var eventNews = ExistingEventNews();
         var outdatedLocalization = eventNews.Localizations.Single(item => item.LanguageId == 1);
+        var relevantLocalization = eventNews.Localizations.Single(item => item.LanguageId == 2);
         var dto = MatchingDto(eventNews) with { Resource = "https://example.com/updated" };
         var handler = CreateHandler(eventNews);
 
@@ -113,6 +120,86 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(TranslationStatus.Outdated, outdatedLocalization.TranslationStatus);
+        Assert.Equal(TranslationStatus.Relevant, relevantLocalization.TranslationStatus);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSourceContentChanges_MarksUnchangedTranslationsAsOutdated()
+    {
+        var eventNews = ExistingEventNews();
+        var dto = MatchingDto(eventNews) with { Description = "Updated root description" };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.All(
+            eventNews.Localizations,
+            localization => Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenSourceAndTranslationChange_KeepsUpdatedTranslationRelevant()
+    {
+        var eventNews = ExistingEventNews();
+        var matchingDto = MatchingDto(eventNews);
+        var dto = matchingDto with
+        {
+            Title = "Updated root title",
+            Localizations = [.. matchingDto.Localizations.Select(localization => localization.LanguageId == 1
+                ? localization with { Title = "Updated translation" }
+                : localization)],
+        };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            TranslationStatus.Relevant,
+            eventNews.Localizations.Single(localization => localization.LanguageId == 1).TranslationStatus);
+        Assert.Equal(
+            TranslationStatus.Outdated,
+            eventNews.Localizations.Single(localization => localization.LanguageId == 2).TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOnlyAdditionalDescriptionAndEnglishLinkChange_SavesThem()
+    {
+        var eventNews = ExistingEventNews();
+        var dto = MatchingDto(eventNews) with
+        {
+            AdditionalDescription = "Київ, 18:00",
+            ResourceEn = "https://example.com/en",
+        };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Київ, 18:00", eventNews.AdditionalDescription);
+        Assert.Equal("https://example.com/en", eventNews.ResourceEn);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenOnlyLocalizationAdditionalDescriptionChanges_UpdatesLocalization()
+    {
+        var eventNews = ExistingEventNews();
+        var matchingDto = MatchingDto(eventNews);
+        var dto = matchingDto with
+        {
+            Localizations = [.. matchingDto.Localizations.Select(localization => localization.LanguageId == 2
+                ? localization with { AdditionalDescription = "  Online  " }
+                : localization)],
+        };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal("Online", eventNews.Localizations.Single(item => item.LanguageId == 2).AdditionalDescription);
         _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
     }
 
@@ -239,6 +326,7 @@ public class UpdateEventNewsTests
         var exception = SqlExceptionFactory.CreateDbUpdateException(2601, "Unique constraint violation");
         _repositoryWrapper.SetupSequence(wrapper => wrapper.SaveChangesAsync())
             .ThrowsAsync(exception)
+            .ReturnsAsync(1)
             .ReturnsAsync(1);
         _repositoryWrapper.Setup(wrapper => wrapper.EventNewsRepository.ExistsAsync(
                 It.IsAny<EventNewsPredicate>()))
@@ -256,7 +344,7 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("updated-event-title-1", eventNews.Slug);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(3));
     }
 
     [Fact]
@@ -306,6 +394,79 @@ public class UpdateEventNewsTests
         _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
     }
 
+    [Fact]
+    public async Task Handle_WhenCategoryIsAdded_AssignsNextPriority()
+    {
+        // Arrange
+        var eventNews = ExistingEventNews();
+        var handler = CreateHandler(eventNews);
+        var categoryLinks = new List<EventNewsCategoryLink>
+        {
+            new() { EventsNewsId = 20, CategoriesId = 2, Priority = 0 },
+            new() { EventsNewsId = 30, CategoriesId = 2, Priority = 2 },
+        };
+        var newLink = new EventNewsCategoryLink
+        {
+            EventsNewsId = 10,
+            CategoriesId = 2,
+        };
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
+            .ReturnsAsync((QueryOptions<EventNewsCategoryLink> options) =>
+            {
+                var source = options.AsNoTracking
+                    ? categoryLinks
+                    : [newLink];
+
+                return ApplyFilter(source, options);
+            });
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateEventNewsCommand(10, PublishedDto()),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(3, newLink.Priority);
+        _repositoryWrapper.Verify(
+            wrapper => wrapper.EventNewsEventNewsCategoriesRepository.Update(newLink),
+            Times.Once);
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task Handle_WhenPriorityUpdateFails_RollsBackTransaction()
+    {
+        // Arrange
+        var eventNews = ExistingEventNews();
+        var exception = new DbUpdateException("Priority update failed");
+        var handler = CreateHandler(eventNews);
+
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ThrowsAsync(exception);
+
+        // Act, Assert
+        var actualException = await Assert.ThrowsAsync<DbUpdateException>(() =>
+            handler.Handle(
+                new UpdateEventNewsCommand(10, PublishedDto()),
+                CancellationToken.None));
+
+        Assert.Same(exception, actualException);
+
+        _transaction.Verify(
+            transaction => transaction.RollbackAsync(CancellationToken.None),
+            Times.Once);
+
+        _transaction.Verify(
+            transaction => transaction.CommitAsync(CancellationToken.None),
+            Times.Never);
+    }
+
     private UpdateEventNewsHandler CreateHandler(
         EventNewsEntity? eventNews,
         IReadOnlyCollection<EventNewsCategory>? categories = null,
@@ -321,6 +482,8 @@ public class UpdateEventNewsTests
         _repositoryWrapper.Reset();
         _mapper.Reset();
         _slugService.Reset();
+        _reorderService.Reset();
+        _transaction.Reset();
 
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.GetFirstOrDefaultAsync(
@@ -337,6 +500,13 @@ public class UpdateEventNewsTests
             .Setup(wrapper => wrapper.LocalizationLanguagesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<LocalizationLanguage>>()))
             .ReturnsAsync((QueryOptions<LocalizationLanguage> options) => ApplyFilter(languages, options));
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
+                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
+            .ReturnsAsync([]);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transaction.Object);
 
         if (saveException is not null)
         {
@@ -362,11 +532,16 @@ public class UpdateEventNewsTests
                 PublishedAt = entity.PublishedAt,
                 Status = entity.Status
             });
+        _reorderService
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
+                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .ReturnsAsync(3);
 
         return new UpdateEventNewsHandler(
             _mapper.Object,
             _repositoryWrapper.Object,
             _slugService.Object,
+            _reorderService.Object,
             TimeProvider.System);
     }
 
@@ -466,7 +641,9 @@ public class UpdateEventNewsTests
         {
             Title = eventNews.Title,
             Description = eventNews.Description,
+            AdditionalDescription = eventNews.AdditionalDescription,
             Resource = eventNews.Resource,
+            ResourceEn = eventNews.ResourceEn,
             PublishedAt = eventNews.PublishedAt,
             Status = eventNews.Status,
             PreviewImageId = eventNews.PreviewImageId,
@@ -476,7 +653,8 @@ public class UpdateEventNewsTests
             {
                 LanguageId = localization.LanguageId,
                 Title = localization.Title,
-                Description = localization.Description
+                Description = localization.Description,
+                AdditionalDescription = localization.AdditionalDescription
             })]
         };
     }

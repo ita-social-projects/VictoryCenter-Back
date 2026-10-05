@@ -16,7 +16,9 @@ public class GetPublishedEventNewsHandler
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetPublishedEventNewsHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetPublishedEventNewsHandler(
+        IMapper mapper,
+        IRepositoryWrapper repositoryWrapper)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
@@ -31,17 +33,21 @@ public class GetPublishedEventNewsHandler
             Filter = eventNews => eventNews.Status == Status.Published,
             Include = eventNews => eventNews
                 .Include(e => e.Categories)
+                    .ThenInclude(category => category.Localizations)
+                        .ThenInclude(localization => localization.Language)
                 .Include(e => e.PreviewImage)
                 .Include(e => e.Localizations)
                     .ThenInclude(l => l.Language),
             OrderByDESC = eventNews => eventNews.PublishedAt,
+            ThenByDESC = eventNews => eventNews.Id,
             Limit = request.Take ?? 0,
+            AsSplitQuery = true,
         };
 
         IEnumerable<EventNewsEntity> publishedEventNews =
             await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
 
-        var result = _mapper.Map<IEnumerable<PublishedEventNewsDto>>(publishedEventNews).ToList();
+        var result = _mapper.Map<List<PublishedEventNewsDto>>(publishedEventNews);
 
         return Result.Ok(result);
     }

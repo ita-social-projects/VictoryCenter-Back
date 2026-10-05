@@ -3,8 +3,11 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Enums;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
@@ -31,32 +34,19 @@ public class GetEventNewsByFiltersHandler
     {
         var categoryId = request.Filter.CategoryId;
         var status = request.Filter.Status;
+        var translationStatusFilter = request.Filter.TranslationStatusFilter;
+        var requiredLocalizationCount = translationStatusFilter == TranslationStatusFilter.Missing
+            ? Math.Max(
+                0,
+                await _repositoryWrapper.LocalizationLanguagesRepository.CountAsync() - 1)
+            : 0;
 
-        Expression<Func<EventNewsEntity, bool>> filter = eventNews =>
-            (!categoryId.HasValue ||
-                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
-            (!status.HasValue ||
-                eventNews.Status == status.Value);
+        var filter = BuildFilter(
+            categoryId,
+            status,
+            translationStatusFilter,
+            requiredLocalizationCount);
 
-        var queryOptions = new QueryOptions<EventNewsEntity>
-        {
-            Filter = filter,
-            Include = eventNews => eventNews
-                .AsSplitQuery()
-                .Include(entity => entity.PreviewImage)
-                .Include(entity => entity.BackgroundImage)
-                .Include(entity => entity.Categories)
-                    .ThenInclude(category => category.Localizations)
-                        .ThenInclude(localization => localization.Language)
-                .Include(entity => entity.Localizations)
-                    .ThenInclude(localization => localization.Language),
-            Offset = request.Filter.Offset ?? 0,
-            Limit = request.Filter.Limit ?? DefaultLimit,
-            OrderByDESC = eventNews => eventNews.Id,
-            AsNoTracking = true
-        };
-
-        var eventNews = await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
         var totalCount = await _repositoryWrapper.EventNewsRepository.CountAsync(
             new QueryOptions<EventNewsEntity>
             {
@@ -64,8 +54,71 @@ public class GetEventNewsByFiltersHandler
                 AsNoTracking = true
             });
 
+        var offset = request.Filter.Offset ?? 0;
+        var limit = request.Filter.Limit ?? DefaultLimit;
+
+        var eventNewsIds = await _repositoryWrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+            filter,
+            categoryId,
+            offset,
+            limit,
+            cancellationToken);
+
+        var queryOptions = SetupEventNewsQueryOptions(eventNewsIds);
+
+        var eventNews = await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
+
         var items = _mapper.Map<EventNewsDto[]>(eventNews);
 
-        return Result.Ok(new PaginationResult<EventNewsDto>(items, totalCount));
+        var itemOrder = eventNewsIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(item => item.id, item => item.index);
+
+        var sortedItems = items
+            .OrderBy(item => itemOrder[item.Id])
+            .ToArray();
+
+        return Result.Ok(new PaginationResult<EventNewsDto>(sortedItems, totalCount));
+    }
+
+    private static Expression<Func<EventNewsEntity, bool>> BuildFilter(
+        long? categoryId,
+        Status? status,
+        TranslationStatusFilter? translationStatusFilter,
+        int requiredLocalizationCount)
+    {
+        var includeOnlyOutdated = translationStatusFilter == TranslationStatusFilter.Outdated;
+        var includeOnlyMissing = translationStatusFilter == TranslationStatusFilter.Missing;
+
+        return eventNews =>
+            (!categoryId.HasValue ||
+                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
+            (!status.HasValue || eventNews.Status == status.Value) &&
+            (!includeOnlyOutdated ||
+                eventNews.Localizations.Any(localization =>
+                    localization.TranslationStatus == TranslationStatus.Outdated)) &&
+            (!includeOnlyMissing ||
+                eventNews.Localizations.Count(localization =>
+                    localization.LanguageId != LocalizationLanguageConstants.PrimaryLanguageId) <
+                requiredLocalizationCount);
+    }
+
+    private static QueryOptions<EventNewsEntity> SetupEventNewsQueryOptions(
+        IReadOnlyCollection<long> eventNewsIds)
+    {
+        return new QueryOptions<EventNewsEntity>
+        {
+            Filter = eventNews => eventNewsIds.Contains(eventNews.Id),
+            Include = eventNews => eventNews
+                        .AsSplitQuery()
+                        .Include(entity => entity.PreviewImage)
+                        .Include(entity => entity.BackgroundImage)
+                        .Include(entity => entity.Categories)
+                            .ThenInclude(category => category.Localizations)
+                                .ThenInclude(localization => localization.Language)
+                        .Include(entity => entity.Localizations)
+                            .ThenInclude(localization => localization.Language),
+            AsNoTracking = true
+        };
     }
 }

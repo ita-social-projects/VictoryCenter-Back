@@ -20,6 +20,13 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
                 EventNewsConstants.ResourceMaxLength))
             .When(dto => !string.IsNullOrWhiteSpace(dto.Resource));
 
+        RuleFor(dto => dto.ResourceEn)
+            .MaximumLength(EventNewsConstants.ResourceMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.ResourceEn),
+                EventNewsConstants.ResourceMaxLength))
+            .When(dto => !string.IsNullOrWhiteSpace(dto.ResourceEn));
+
         RuleFor(dto => dto.Title)
             .MaximumLength(EventNewsConstants.TitleMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
@@ -48,6 +55,17 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
                 nameof(CreateEventNewsDto.Description),
                 EventNewsConstants.DescriptionMinLength))
             .When(dto => dto.Status == Status.Published);
+
+        RuleFor(dto => dto.AdditionalDescription)
+            .MinimumLength(EventNewsConstants.AdditionalDescriptionMinLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.AdditionalDescription),
+                EventNewsConstants.AdditionalDescriptionMinLength))
+            .MaximumLength(EventNewsConstants.AdditionalDescriptionMaxLength)
+            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                nameof(CreateEventNewsDto.AdditionalDescription),
+                EventNewsConstants.AdditionalDescriptionMaxLength))
+            .When(dto => !string.IsNullOrWhiteSpace(dto.AdditionalDescription));
 
         RuleFor(dto => dto.PublishedAt)
             .NotNull()
@@ -150,6 +168,7 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
 
             ValidateTitle(localization, context, prefix, isPublished);
             ValidateDescription(localization, context, prefix, isPublished);
+            ValidateAdditionalDescription(localization, context, prefix);
 
             index++;
         }
@@ -163,7 +182,9 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
     {
         if (string.IsNullOrWhiteSpace(localization.Title))
         {
-            if (isPublished || !string.IsNullOrWhiteSpace(localization.Description))
+            if (isPublished
+                || !string.IsNullOrWhiteSpace(localization.Description)
+                || !string.IsNullOrWhiteSpace(localization.AdditionalDescription))
             {
                 context.AddFailure(
                     $"{prefix}.{nameof(CreateEventNewsLocalizationDto.Title)}",
@@ -229,10 +250,40 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
         }
     }
 
+    private static void ValidateAdditionalDescription(
+        CreateEventNewsLocalizationDto localization,
+        ValidationContext<CreateEventNewsDto> context,
+        string prefix)
+    {
+        if (string.IsNullOrWhiteSpace(localization.AdditionalDescription))
+        {
+            return;
+        }
+
+        if (localization.AdditionalDescription.Length < EventNewsConstants.AdditionalDescriptionMinLength)
+        {
+            context.AddFailure(
+                $"{prefix}.{nameof(CreateEventNewsLocalizationDto.AdditionalDescription)}",
+                ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                    nameof(CreateEventNewsLocalizationDto.AdditionalDescription),
+                    EventNewsConstants.AdditionalDescriptionMinLength));
+        }
+
+        if (localization.AdditionalDescription.Length > EventNewsConstants.AdditionalDescriptionMaxLength)
+        {
+            context.AddFailure(
+                $"{prefix}.{nameof(CreateEventNewsLocalizationDto.AdditionalDescription)}",
+                ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
+                    nameof(CreateEventNewsLocalizationDto.AdditionalDescription),
+                    EventNewsConstants.AdditionalDescriptionMaxLength));
+        }
+    }
+
     private static bool IsMeaningful(CreateEventNewsLocalizationDto localization)
     {
         return localization.LanguageId > 0
                || !string.IsNullOrWhiteSpace(localization.Title)
-               || !string.IsNullOrWhiteSpace(localization.Description);
+               || !string.IsNullOrWhiteSpace(localization.Description)
+               || !string.IsNullOrWhiteSpace(localization.AdditionalDescription);
     }
 }

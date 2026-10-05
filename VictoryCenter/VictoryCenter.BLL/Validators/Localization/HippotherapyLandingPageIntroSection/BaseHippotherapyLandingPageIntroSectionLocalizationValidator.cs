@@ -1,5 +1,4 @@
 using FluentValidation;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageIntroSection;
 
@@ -11,29 +10,15 @@ public class BaseHippotherapyLandingPageIntroSectionLocalizationValidator
     public BaseHippotherapyLandingPageIntroSectionLocalizationValidator()
     {
         RuleFor(x => x.Title)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
-                nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Title)))
-            .MinimumLength(HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+            .MustHaveVisibleLength(
                 nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Title),
-                HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMinLength))
-            .MaximumLength(HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Title),
-                HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMaxLength));
+                HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMinLength,
+                HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMaxLength);
 
         RuleFor(x => x.Description)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(
-                nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Description)))
-            .MinimumLength(HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+            .MustHaveVisibleLength(
                 nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Description),
-                HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMinLength))
-            .MaximumLength(HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Description),
-                HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMaxLength));
+                HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMinLength,
+                HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMaxLength);
     }
 }

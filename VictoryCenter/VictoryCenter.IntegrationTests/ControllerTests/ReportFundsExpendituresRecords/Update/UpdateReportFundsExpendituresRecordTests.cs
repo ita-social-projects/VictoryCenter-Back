@@ -2,6 +2,8 @@ using System.Net;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -162,5 +164,49 @@ public class UpdateReportFundsExpendituresRecordTests : BaseTestClass
 
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_ShouldReturnReadableError_WhenAmountIsNotNumeric()
+    {
+        const string body = "{ \"categoryId\": 1, \"amount\": \"abc\", \"currency\": 1 }";
+
+        var response = await SendUpdateRequestAsync(body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var errors = await GetErrorsAsync(response);
+        var error = Assert.Single(errors);
+        Assert.Equal("UpdateReportFundsExpendituresRecordDto.Amount", error.Key);
+        Assert.Equal(new[] { ErrorMessagesConstants.PropertyMustContainOnlyDigits("Amount") }, error.Value);
+    }
+
+    [Fact]
+    public async Task Update_ShouldReturnBodyLevelError_WhenJsonIsMalformed()
+    {
+        const string body = "abc";
+
+        var response = await SendUpdateRequestAsync(body);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var errors = await GetErrorsAsync(response);
+        var error = Assert.Single(errors);
+        Assert.Equal("UpdateReportFundsExpendituresRecordDto", error.Key);
+        Assert.Equal(
+            new[] { ErrorMessagesConstants.PropertyMustBeInAValidFormat("UpdateReportFundsExpendituresRecordDto") },
+            error.Value);
+    }
+
+    // the request fails during model binding, before the handler runs, so no record needs to be seeded
+    private Task<HttpResponseMessage> SendUpdateRequestAsync(string body) =>
+        Fixture.HttpClient.PutAsync(
+            "/api/ReportFundsExpendituresRecords/1",
+            new StringContent(body, Encoding.UTF8, "application/json"));
+
+    private static async Task<Dictionary<string, string[]>> GetErrorsAsync(HttpResponseMessage response)
+    {
+        var content = JObject.Parse(await response.Content.ReadAsStringAsync());
+        return content.Value<JObject>("errors")!.ToObject<Dictionary<string, string[]>>()!;
     }
 }
