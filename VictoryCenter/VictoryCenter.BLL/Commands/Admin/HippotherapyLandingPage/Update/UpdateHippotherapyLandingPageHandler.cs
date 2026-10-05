@@ -124,6 +124,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
 
                     TrackImageChange(entity.AnotherQuoteSection!.ImageId, dto.AnotherQuoteSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.AnotherQuoteSection, entity.AnotherQuoteSection);
+                    MarkAnotherQuoteSectionLocalizationsOutdated(entity.AnotherQuoteSection);
 
                     _mapper.Map(dto.ParticipantsSection, entity.ParticipantsSection);
                     UpdateGalleryCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
@@ -205,6 +206,14 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
     private static void MarkAnalysisSectionLocalizationsOutdated(HippotherapyLandingPageAnalysisSection analysisSection)
     {
         foreach (var loc in analysisSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkAnotherQuoteSectionLocalizationsOutdated(HippotherapyLandingPageAnotherQuoteSection anotherQuoteSection)
+    {
+        foreach (var loc in anotherQuoteSection.Localizations)
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
