@@ -1,10 +1,13 @@
+using System.Data;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -19,17 +22,20 @@ public class BatchSaveReportProgramExpendituresRecordHandler
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<BatchSaveReportProgramExpendituresRecordCommand> _validator;
     private readonly IMapper _mapper;
+    private readonly ILogger<BatchSaveReportProgramExpendituresRecordHandler> _logger;
 
     public BatchSaveReportProgramExpendituresRecordHandler(
         IMediator mediator,
         IRepositoryWrapper repositoryWrapper,
         IValidator<BatchSaveReportProgramExpendituresRecordCommand> validator,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<BatchSaveReportProgramExpendituresRecordHandler> logger)
     {
         _mediator = mediator;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<Unit>> Handle(BatchSaveReportProgramExpendituresRecordCommand request, CancellationToken cancellationToken)
@@ -51,6 +57,9 @@ public class BatchSaveReportProgramExpendituresRecordHandler
                 .ToList();
 
             var existingRecordsDict = new Dictionary<long, ReportProgramExpendituresRecord>();
+
+            await using var scope = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
+
             if (targetIds.Count > 0)
             {
                 existingRecordsDict = (await _repositoryWrapper.ReportProgramExpendituresRecordsRepository
@@ -66,8 +75,6 @@ public class BatchSaveReportProgramExpendituresRecordHandler
             {
                 return existingRecordsValidationResult;
             }
-
-            await using var scope = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
             var categoriesValidationResult = await ValidateCategoryRulesAsync(dto, existingRecordsDict);
             if (categoriesValidationResult.IsFailed)
@@ -89,8 +96,23 @@ public class BatchSaveReportProgramExpendituresRecordHandler
 
             return Result.Ok(Unit.Value);
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException dbUpdateException) when (dbUpdateException.IsUniqueConstraintException())
         {
+            _logger.LogWarning(
+                dbUpdateException,
+                "Unique constraint violated while batch saving {EntityName}.",
+                nameof(ReportProgramExpendituresRecord));
+
+            return Result.Fail<Unit>(
+                ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord());
+        }
+        catch (DbUpdateException dbUpdateException)
+        {
+            _logger.LogError(
+                dbUpdateException,
+                "Unexpected database failure while batch saving {EntityName}.",
+                nameof(ReportProgramExpendituresRecord));
+
             return Result.Fail<Unit>(
                 ErrorMessagesConstants.FailedToSaveEntitiesInDatabase(nameof(ReportProgramExpendituresRecord)));
         }
@@ -140,7 +162,8 @@ public class BatchSaveReportProgramExpendituresRecordHandler
         var duplicateRecordsInCategory = await _repositoryWrapper.ReportProgramExpendituresRecordsRepository
             .GetAllAsync(new QueryOptions<ReportProgramExpendituresRecord>
             {
-                Filter = entity => categoryIdsToValidate.Contains(entity.HippotherapyProgramCategoryId)
+                Filter = entity => categoryIdsToValidate.Contains(entity.HippotherapyProgramCategoryId) &&
+                                    !dto.RecordIdsToDelete.Contains(entity.Id)
             });
 
         return EvaluateCategoryRules(
@@ -167,8 +190,10 @@ public class BatchSaveReportProgramExpendituresRecordHandler
 
         if (duplicateRecordsInCategory.Any())
         {
-            return Result.Fail<Unit>(
-                    ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+            var errorMessages = duplicateRecordsInCategory
+                .Select(r => ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(r.HippotherapyProgramCategoryId));
+
+            return Result.Fail<Unit>(errorMessages);
         }
 
         return Result.Ok(Unit.Value);

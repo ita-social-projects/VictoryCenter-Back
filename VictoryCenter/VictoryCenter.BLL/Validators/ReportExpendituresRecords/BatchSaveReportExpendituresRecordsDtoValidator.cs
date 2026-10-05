@@ -8,6 +8,8 @@ namespace VictoryCenter.BLL.Validators.ReportExpendituresRecords;
 
 public class BatchSaveReportExpendituresRecordsDtoValidator<TCreateDto, TUpdateDto>
     : AbstractValidator<IBatchSaveReportExpendituresRecordsDto<TCreateDto, TUpdateDto>>
+    where TCreateDto : class
+    where TUpdateDto : class
 {
     public BatchSaveReportExpendituresRecordsDtoValidator(
         IValidator<TCreateDto> createDtoValidator,
@@ -67,17 +69,24 @@ public class BatchSaveReportExpendituresRecordsDtoValidator<TCreateDto, TUpdateD
                 });
 
             RuleForEach(dto => dto.RecordsToCreate)
+                .NotNull()
                 .SetValidator(createDtoValidator);
 
             RuleForEach(dto => dto.RecordsToUpdate)
+                .NotNull()
                 .SetValidator(updateDtoValidator);
 
-            RuleFor(dto => dto.RecordsToUpdate.Select(updateIdSelector))
+            RuleFor(dto => dto.RecordsToUpdate
+                .Where(u => u != null)
+                .Select(updateIdSelector))
                 .MustHaveUniqueIds(nameof(IBatchSaveReportExpendituresRecordsDto<TCreateDto, TUpdateDto>.RecordsToUpdate));
 
             RuleFor(dto => dto.RecordsToUpdate
+                    .Where(u => u != null)
                     .Select(updateCategoryIdSelector)
-                    .Concat(dto.RecordsToCreate.Select(createCategoryIdSelector)))
+                    .Concat(dto.RecordsToCreate
+                        .Where(c => c != null)
+                        .Select(createCategoryIdSelector)))
                 .MustHaveUniqueIds(categoryIdPropertyName);
 
             When(dto => dto.RecordIdsToDelete.Count > 0, () =>

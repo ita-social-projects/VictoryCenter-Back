@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.BatchSave;
 using VictoryCenter.BLL.Constants;
@@ -14,6 +15,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportProgramExpendituresRecords;
 
@@ -25,6 +27,7 @@ public class BatchSaveReportProgramExpendituresRecordTests
     private readonly Mock<IHippotherapyProgramCategoriesRepository> _categoriesRepositoryMock;
     private readonly Mock<IMapper> _mapperMock;
     private readonly Mock<IDbContextTransaction> _transactionMock;
+    private readonly Mock<ILogger<BatchSaveReportProgramExpendituresRecordHandler>> _loggerMock;
     private readonly IValidator<BatchSaveReportProgramExpendituresRecordCommand> _validator;
 
     private readonly CreateReportProgramExpendituresRecordDto _createDto = new()
@@ -60,6 +63,7 @@ public class BatchSaveReportProgramExpendituresRecordTests
         _categoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
         _mapperMock = new Mock<IMapper>();
         _transactionMock = new Mock<IDbContextTransaction>();
+        _loggerMock = new Mock<ILogger<BatchSaveReportProgramExpendituresRecordHandler>>();
         var createDtoValidator = new CreateReportProgramExpendituresRecordDtoValidator(new BaseReportProgramExpendituresRecordValidator());
         var updateDtoValidator = new BatchUpdateReportProgramExpendituresRecordDtoValidator(new BaseReportProgramExpendituresRecordValidator());
 
@@ -99,7 +103,8 @@ public class BatchSaveReportProgramExpendituresRecordTests
             _mediatorMock.Object,
             _repositoryWrapperMock.Object,
             _validator,
-            _mapperMock.Object);
+            _mapperMock.Object,
+            _loggerMock.Object);
 
         var command = new BatchSaveReportProgramExpendituresRecordCommand(_batchDto);
 
@@ -140,7 +145,8 @@ public class BatchSaveReportProgramExpendituresRecordTests
            _mediatorMock.Object,
            _repositoryWrapperMock.Object,
            _validator,
-           _mapperMock.Object);
+           _mapperMock.Object,
+           _loggerMock.Object);
 
         var command = new BatchSaveReportProgramExpendituresRecordCommand(_batchDto);
 
@@ -197,7 +203,8 @@ public class BatchSaveReportProgramExpendituresRecordTests
            _mediatorMock.Object,
            _repositoryWrapperMock.Object,
            _validator,
-           _mapperMock.Object);
+           _mapperMock.Object,
+           _loggerMock.Object);
 
         var command = new BatchSaveReportProgramExpendituresRecordCommand(batchDto);
 
@@ -248,7 +255,8 @@ public class BatchSaveReportProgramExpendituresRecordTests
            _mediatorMock.Object,
            _repositoryWrapperMock.Object,
            _validator,
-           _mapperMock.Object);
+           _mapperMock.Object,
+           _loggerMock.Object);
 
         var command = new BatchSaveReportProgramExpendituresRecordCommand(_batchDto);
 
@@ -259,7 +267,7 @@ public class BatchSaveReportProgramExpendituresRecordTests
         Assert.False(result.IsSuccess);
         Assert.Contains(
             result.Errors,
-            e => e.Message == ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+            e => e.Message == ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord(duplicateRecords[0].HippotherapyProgramCategoryId));
 
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Never);
         _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
@@ -294,7 +302,8 @@ public class BatchSaveReportProgramExpendituresRecordTests
            _mediatorMock.Object,
            _repositoryWrapperMock.Object,
            _validator,
-           _mapperMock.Object);
+           _mapperMock.Object,
+           _loggerMock.Object);
 
         var command = new BatchSaveReportProgramExpendituresRecordCommand(_batchDto);
 
@@ -334,7 +343,8 @@ public class BatchSaveReportProgramExpendituresRecordTests
            _mediatorMock.Object,
            _repositoryWrapperMock.Object,
            _validator,
-           _mapperMock.Object);
+           _mapperMock.Object,
+           _loggerMock.Object);
 
         var command = new BatchSaveReportProgramExpendituresRecordCommand(invalidBatchDto);
 
@@ -352,6 +362,122 @@ public class BatchSaveReportProgramExpendituresRecordTests
         _repositoryWrapperMock.Verify(
             w => w.ReportProgramExpendituresRecordsRepository.GetAllAsync(
                 It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSucceed_WhenDeletingAndCreatingRecordsWithSameCategory()
+    {
+        // Arrange
+        var sameCategoryId = 3;
+        var createDto = new CreateReportProgramExpendituresRecordDto
+        {
+            HippotherapyProgramCategoryId = sameCategoryId,
+            AmountUah = 100.50m,
+            AmountUsd = 50.5m,
+            ReportingYear = TimeProvider.System.GetUtcNow().Year
+        };
+
+        var deleteRecord = new ReportProgramExpendituresRecord
+        {
+            Id = _deleteRecordId,
+            HippotherapyProgramCategoryId = sameCategoryId
+        };
+
+        var batchDto = new BatchSaveReportProgramExpendituresRecordsDto
+        {
+            RecordsToCreate = [createDto],
+            RecordsToUpdate = [],
+            RecordIdsToDelete = [_deleteRecordId]
+        };
+
+        var existingRecords = new List<ReportProgramExpendituresRecord>
+        {
+            deleteRecord
+        };
+
+        var existingCategories = new List<HippotherapyProgramCategory>
+        {
+            new() { Id = sameCategoryId }
+        };
+
+        SetupDependencies(existingRecords, existingCategories, [], saveResult: 2);
+
+        var handler = new BatchSaveReportProgramExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _loggerMock.Object);
+
+        var command = new BatchSaveReportProgramExpendituresRecordCommand(batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _recordsRepositoryMock.Verify(
+            r => r.DeleteRange(
+                It.Is<IEnumerable<ReportProgramExpendituresRecord>>(
+                    records => records.Any(rec => rec.Id == _deleteRecordId))),
+            Times.Once);
+        _recordsRepositoryMock.Verify(
+            r => r.CreateRangeAsync(It.Is<IEnumerable<ReportProgramExpendituresRecord>>(
+                records => records.Any(rec => rec.HippotherapyProgramCategoryId == sameCategoryId))),
+            Times.Once);
+        _recordsRepositoryMock.Verify(
+            r => r.UpdateRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()),
+            Times.Never);
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Once);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFail_WhenUniqueConstraintIsViolatedOnSave()
+    {
+        // Arrange
+        var existingRecords = new List<ReportProgramExpendituresRecord>
+        {
+            _existingRecordToUpdate,
+            _existingRecordToDelete
+        };
+
+        var existingCategories = new List<HippotherapyProgramCategory>
+        {
+            _categoryForCreate,
+            _categoryForUpdate
+        };
+
+        SetupDependencies(existingRecords, existingCategories, []);
+
+        _repositoryWrapperMock.Setup(w => w.SaveChangesAsync())
+            .ThrowsAsync(SqlExceptionFactory.CreateDbUpdateException(2601, "Unique index violation"));
+
+        var handler = new BatchSaveReportProgramExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _loggerMock.Object);
+
+        var command = new BatchSaveReportProgramExpendituresRecordCommand(_batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.False(result.IsSuccess);
+        Assert.Contains(
+            result.Errors,
+            e => e.Message == ReportProgramExpendituresRecordConstants.ProgramCategoryAlreadyHasRecord());
+
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

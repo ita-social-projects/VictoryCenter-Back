@@ -23,7 +23,7 @@ public class BaseReportProgramExpendituresRecordValidator
 
         RuleFor(dto => dto.AmountUsd)
             .MustBeValidAmountOfMoney(
-                nameof(ReportProgramExpendituresRecordDto.AmountUah),
+                nameof(ReportProgramExpendituresRecordDto.AmountUsd),
                 ReportProgramExpendituresRecordConstants.ZeroAmount,
                 ReportProgramExpendituresRecordConstants.AmountPrecision,
                 ReportProgramExpendituresRecordConstants.AmountScale,

@@ -66,7 +66,7 @@ public class CreateReportProgramExpendituresRecordDtoValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    private CreateReportProgramExpendituresRecordDto GetValidDto()
+    private static CreateReportProgramExpendituresRecordDto GetValidDto()
     {
         return new CreateReportProgramExpendituresRecordDto
         {
