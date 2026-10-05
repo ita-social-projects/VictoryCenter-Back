@@ -5,6 +5,7 @@ using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.BLL.Enums;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -107,8 +108,24 @@ public class UpdateEventNewsTests : BaseTestClass
         var existing = await Fixture.DbContext.EventNews
             .AsNoTracking()
             .Include(eventNews => eventNews.Categories)
-            .Include(eventNews => eventNews.Localizations)
             .SingleAsync(eventNews => eventNews.Id == 1);
+        var languageId = await Fixture.DbContext.LocalizationLanguages
+            .Select(language => language.Id)
+            .FirstAsync();
+        var existingLocalization = new EventNewsLocalization
+        {
+            EntityId = existing.Id,
+            LanguageId = languageId,
+            Title = "Existing translation",
+            Description = "Existing translation description",
+            TranslationStatus = TranslationStatus.Relevant,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        Fixture.DbContext.EventNewsLocalizations.Add(existingLocalization);
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+
         var dto = new UpdateEventNewsDto
         {
             Title = existing.Title,
@@ -121,13 +138,15 @@ public class UpdateEventNewsTests : BaseTestClass
             PreviewImageId = existing.PreviewImageId,
             BackgroundImageId = existing.BackgroundImageId,
             CategoryIds = [.. existing.Categories.Select(category => category.Id)],
-            Localizations = [.. existing.Localizations.Select(localization => new CreateEventNewsLocalizationDto
-            {
-                LanguageId = localization.LanguageId,
-                Title = localization.Title,
-                Description = localization.Description,
-                AdditionalDescription = localization.AdditionalDescription
-            })]
+            Localizations =
+            [
+                new CreateEventNewsLocalizationDto
+                {
+                    LanguageId = existingLocalization.LanguageId,
+                    Title = existingLocalization.Title,
+                    Description = existingLocalization.Description
+                },
+            ]
         };
 
         var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
