@@ -1,8 +1,10 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -13,7 +15,6 @@ public class ToggleEventsBlockTitleVisibilityHandler : IRequestHandler<ToggleEve
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
-    private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public ToggleEventsBlockTitleVisibilityHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
     {
@@ -23,7 +24,7 @@ public class ToggleEventsBlockTitleVisibilityHandler : IRequestHandler<ToggleEve
 
     public async Task<Result<EventsIntroSectionDto>> Handle(ToggleEventsBlockTitleVisibilityCommand request, CancellationToken cancellationToken)
     {
-        await _semaphore.WaitAsync(cancellationToken);
+        await EventsIntroSectionLock.Semaphore.WaitAsync(cancellationToken);
         try
         {
             var entity = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync(
@@ -39,9 +40,13 @@ public class ToggleEventsBlockTitleVisibilityHandler : IRequestHandler<ToggleEve
 
             return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            return Result.Fail<EventsIntroSectionDto>(new ConcurrencyConflictError(ErrorMessagesConstants.ConcurrencyConflict()));
+        }
         finally
         {
-            _semaphore.Release();
+            EventsIntroSectionLock.Semaphore.Release();
         }
     }
 }
