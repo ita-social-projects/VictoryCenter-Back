@@ -1,6 +1,7 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
 using VictoryCenter.BLL.Validators.EventNews;
 using Status = VictoryCenter.DAL.Enums.Status;
@@ -14,7 +15,12 @@ public class GetEventNewsByFiltersQueryValidatorTests
     [Fact]
     public void Validate_WhenFilterValuesAreValid_HasNoErrors()
     {
-        var query = Query(status: Status.Draft, offset: 0, limit: 20, categoryId: 1);
+        var query = Query(
+            status: Status.Draft,
+            offset: 0,
+            limit: 20,
+            categoryId: 1,
+            translationStatusFilter: TranslationStatusFilter.Missing);
 
         var result = _validator.TestValidate(query);
 
@@ -74,11 +80,23 @@ public class GetEventNewsByFiltersQueryValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("Status"));
     }
 
+    [Fact]
+    public void Validate_WhenTranslationStatusFilterIsInvalid_HasExpectedError()
+    {
+        var invalidFilter = Enum.GetValues<TranslationStatusFilter>().Max() + 1;
+
+        var result = _validator.TestValidate(Query(translationStatusFilter: invalidFilter));
+
+        result.ShouldHaveValidationErrorFor(query => query.Filter.TranslationStatusFilter)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("TranslationStatusFilter"));
+    }
+
     private static GetEventNewsByFiltersQuery Query(
         Status? status = null,
         int? offset = null,
         int? limit = null,
-        long? categoryId = null)
+        long? categoryId = null,
+        TranslationStatusFilter? translationStatusFilter = null)
     {
         return new GetEventNewsByFiltersQuery(
             new EventNewsFilterDto
@@ -86,7 +104,8 @@ public class GetEventNewsByFiltersQueryValidatorTests
                 Status = status,
                 Offset = offset,
                 Limit = limit,
-                CategoryId = categoryId
+                CategoryId = categoryId,
+                TranslationStatusFilter = translationStatusFilter
             });
     }
 }
