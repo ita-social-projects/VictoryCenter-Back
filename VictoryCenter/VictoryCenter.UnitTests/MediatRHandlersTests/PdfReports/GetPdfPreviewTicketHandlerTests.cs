@@ -4,17 +4,17 @@ using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Interfaces.PdfReports;
-using VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
 
-public class ConsumePdfPreviewTicketHandlerTests
+public class GetPdfPreviewTicketHandlerTests
 {
     private readonly Mock<IPdfTicketStore> _mockTicketStore;
     private readonly Mock<IMediator> _mockMediator;
 
-    public ConsumePdfPreviewTicketHandlerTests()
+    public GetPdfPreviewTicketHandlerTests()
     {
         _mockTicketStore = new Mock<IPdfTicketStore>();
         _mockMediator = new Mock<IMediator>();
@@ -24,7 +24,7 @@ public class ConsumePdfPreviewTicketHandlerTests
     public async Task Handle_WhenTicketIsInvalidOrExpired_ShouldReturnFailAndNotCallMediator()
     {
         // Arrange
-        var request = new ConsumePdfPreviewTicketQuery("invalid-ticket");
+        var request = new GetPdfPreviewTicketQuery("invalid-ticket");
         long dummyPdfId = 0;
 
         _mockTicketStore
@@ -49,7 +49,7 @@ public class ConsumePdfPreviewTicketHandlerTests
     public async Task Handle_WhenTicketIsValid_ShouldCallMediatorAndReturnItsResult()
     {
         // Arrange
-        var request = new ConsumePdfPreviewTicketQuery("valid-ticket");
+        var request = new GetPdfPreviewTicketQuery("valid-ticket");
         long expectedPdfId = 42;
 
         _mockTicketStore
@@ -75,7 +75,7 @@ public class ConsumePdfPreviewTicketHandlerTests
             Times.Once);
     }
 
-    private ConsumePdfPreviewTicketHandler CreateHandler() =>
+    private GetPdfPreviewTicketHandler CreateHandler() =>
         new(
             _mockTicketStore.Object,
             _mockMediator.Object);

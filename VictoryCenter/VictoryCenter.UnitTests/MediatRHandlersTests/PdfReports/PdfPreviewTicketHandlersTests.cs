@@ -5,7 +5,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.Interfaces.PdfReports;
-using VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfReports;
@@ -43,7 +43,7 @@ public class PdfPreviewTicketHandlersTests
     }
 
     [Fact]
-    public async Task ConsumeTicket_ShouldReturnFileDto_WhenTicketIsValid()
+    public async Task GetTicket_ShouldReturnFileDto_WhenTicketIsValid()
     {
         // Arrange
         var ticket = "test-ticket-123";
@@ -64,8 +64,8 @@ public class PdfPreviewTicketHandlersTests
             .Setup(m => m.Send(It.Is<GetPdfReportPreviewByIdQuery>(q => q.Id == expectedPdfId), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok(expectedDto));
 
-        var handler = new ConsumePdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
-        var query = new ConsumePdfPreviewTicketQuery(ticket);
+        var handler = new GetPdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
+        var query = new GetPdfPreviewTicketQuery(ticket);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
@@ -78,7 +78,7 @@ public class PdfPreviewTicketHandlersTests
     }
 
     [Fact]
-    public async Task ConsumeTicket_ShouldFail_WhenTicketIsInvalid()
+    public async Task GetTicket_ShouldFail_WhenTicketIsInvalid()
     {
         // Arrange
         var ticket = "invalid-ticket";
@@ -88,8 +88,8 @@ public class PdfPreviewTicketHandlersTests
             .Setup(t => t.TryGetTicket(ticket, out outId))
             .Returns(false);
 
-        var handler = new ConsumePdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
-        var query = new ConsumePdfPreviewTicketQuery(ticket);
+        var handler = new GetPdfPreviewTicketHandler(_ticketStoreMock.Object, _mediatorMock.Object);
+        var query = new GetPdfPreviewTicketQuery(ticket);
 
         // Act
         var result = await handler.Handle(query, CancellationToken.None);

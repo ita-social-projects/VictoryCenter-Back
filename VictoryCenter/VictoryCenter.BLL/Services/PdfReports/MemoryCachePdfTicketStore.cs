@@ -7,8 +7,6 @@ public class MemoryCachePdfTicketStore : IPdfTicketStore
 {
     private readonly IMemoryCache _cache;
 
-    private static readonly object _lock = new();
-
     public MemoryCachePdfTicketStore(IMemoryCache cache)
     {
         _cache = cache;

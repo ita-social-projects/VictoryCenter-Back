@@ -5,20 +5,20 @@ using VictoryCenter.BLL.Interfaces.PdfReports;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
 using VictoryCenter.BLL.Constants;
 
-namespace VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
+namespace VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewTicket;
 
-public class ConsumePdfPreviewTicketHandler : IRequestHandler<ConsumePdfPreviewTicketQuery, Result<PdfReportFileDto>>
+public class GetPdfPreviewTicketHandler : IRequestHandler<GetPdfPreviewTicketQuery, Result<PdfReportFileDto>>
 {
     private readonly IPdfTicketStore _ticketStore;
     private readonly IMediator _mediator;
 
-    public ConsumePdfPreviewTicketHandler(IPdfTicketStore ticketStore, IMediator mediator)
+    public GetPdfPreviewTicketHandler(IPdfTicketStore ticketStore, IMediator mediator)
     {
         _ticketStore = ticketStore;
         _mediator = mediator;
     }
 
-    public async Task<Result<PdfReportFileDto>> Handle(ConsumePdfPreviewTicketQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PdfReportFileDto>> Handle(GetPdfPreviewTicketQuery request, CancellationToken cancellationToken)
     {
         if (!_ticketStore.TryGetTicket(request.Ticket, out long pdfId))
         {
