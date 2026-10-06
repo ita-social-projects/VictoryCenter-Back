@@ -9,7 +9,10 @@ internal static class WebApiProjectPathResolver
         if (!string.IsNullOrWhiteSpace(configuredPath))
         {
             var fullPath = Path.GetFullPath(configuredPath);
-            var projectPath = Path.GetFileName(fullPath) == "appsettings.json"
+            var fileNameComparison = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+            var projectPath = string.Equals(Path.GetFileName(fullPath), "appsettings.json", fileNameComparison)
                 ? Path.GetDirectoryName(fullPath)!
                 : fullPath;
 

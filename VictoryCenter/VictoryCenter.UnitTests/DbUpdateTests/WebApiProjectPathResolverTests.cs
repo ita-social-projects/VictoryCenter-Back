@@ -46,6 +46,32 @@ public class WebApiProjectPathResolverTests
     }
 
     [Fact]
+    public void Resolve_UsesPlatformCasingForExplicitAppsettingsPath()
+    {
+        var root = CreateTemporaryDirectory();
+
+        try
+        {
+            File.WriteAllText(Path.Combine(root, "appsettings.json"), "{}");
+            var configuredPath = Path.Combine(root, "APPSETTINGS.JSON");
+
+            if (OperatingSystem.IsWindows() || OperatingSystem.IsMacOS())
+            {
+                Assert.Equal(root, WebApiProjectPathResolver.Resolve(configuredPath, root, root));
+            }
+            else
+            {
+                Assert.Throws<DirectoryNotFoundException>(() =>
+                    WebApiProjectPathResolver.Resolve(configuredPath, root, root));
+            }
+        }
+        finally
+        {
+            Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
     public void Resolve_FindsWebApiProjectFromExecutableDirectory()
     {
         var root = CreateTemporaryDirectory();
