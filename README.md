@@ -437,6 +437,8 @@ Run the following command to apply migrations and create the database schema:
 dotnet run --project VictoryCenter.DbUpdate
 ```
 
+DbUpdate finds `VictoryCenter.WebAPI/appsettings.json` by searching upward from the current directory and its executable. When running from elsewhere, set `VICTORYCENTER_WEBAPI_PATH` to the WebAPI project directory or its `appsettings.json` file. It reads `.env` from that directory when present; otherwise, provide the required values through environment variables.
+
 If migrations are missing or need to be created, here is an example:
 ```bash
 dotnet ef migrations add InitialCreate --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI

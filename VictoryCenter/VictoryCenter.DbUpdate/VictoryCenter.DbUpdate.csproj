@@ -12,6 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<InternalsVisibleTo Include="VictoryCenter.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\VictoryCenter.DAL\VictoryCenter.DAL.csproj" />
     <ProjectReference Include="..\VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj" />
   </ItemGroup>
