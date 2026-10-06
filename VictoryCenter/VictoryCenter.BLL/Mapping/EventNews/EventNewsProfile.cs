@@ -16,6 +16,9 @@ public class EventNewsProfile : Profile
         CreateMap<EventNewsEntity, PublishedEventNewsDto>();
         CreateMap<EventNewsEntity, EventNewsDto>();
 
+        CreateMap<EventNewsEntity, PublishedEventNewsDetailsDto>()
+            .IncludeBase<EventNewsEntity, PublishedEventNewsDto>();
+
         CreateMap<CreateEventNewsDto, EventNewsEntity>()
             .ForMember(dest => dest.Slug, opt => opt.Ignore())
             .ForMember(dest => dest.Categories, opt => opt.Ignore())

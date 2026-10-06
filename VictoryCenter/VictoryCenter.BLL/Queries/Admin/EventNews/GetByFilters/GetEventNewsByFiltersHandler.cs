@@ -80,10 +80,10 @@ public class GetEventNewsByFiltersHandler
             .ToArray();
 
         return Result.Ok(new PaginationResult<EventNewsDto>(sortedItems, totalCount));
-    }
+        }
 
     private static QueryOptions<EventNewsEntity> SetupEventNewsQueryOptions(List<long> eventNewsIds)
-    {
+        {
         return new QueryOptions<EventNewsEntity>
         {
             Filter = eventNews => eventNewsIds.Contains(eventNews.Id),
@@ -92,8 +92,8 @@ public class GetEventNewsByFiltersHandler
                         .Include(entity => entity.PreviewImage)
                         .Include(entity => entity.BackgroundImage)
                         .Include(entity => entity.Categories)
-                            .ThenInclude(category => category.Localizations)
-                                .ThenInclude(localization => localization.Language)
+                    .ThenInclude(category => category.Localizations)
+                        .ThenInclude(localization => localization.Language)
                         .Include(entity => entity.Localizations)
                             .ThenInclude(localization => localization.Language),
             AsNoTracking = true

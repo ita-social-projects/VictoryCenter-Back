@@ -1,7 +1,10 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -11,7 +14,7 @@ using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 namespace VictoryCenter.BLL.Queries.Public.EventNews.GetPublished;
 
 public class GetPublishedEventNewsHandler
-    : IRequestHandler<GetPublishedEventNewsQuery, Result<List<PublishedEventNewsDto>>>
+    : IRequestHandler<GetPublishedEventNewsQuery, Result<PaginationResult<PublishedEventNewsDto>>>
 {
     private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -24,13 +27,37 @@ public class GetPublishedEventNewsHandler
         _repositoryWrapper = repositoryWrapper;
     }
 
-    public async Task<Result<List<PublishedEventNewsDto>>> Handle(
+    public async Task<Result<PaginationResult<PublishedEventNewsDto>>> Handle(
         GetPublishedEventNewsQuery request,
         CancellationToken cancellationToken)
     {
+        var categoryId = request.CategoryId;
+        var offset = Math.Max(request.Offset ?? 0, 0);
+        var limit = Math.Clamp(
+    request.Limit ?? EventNewsConstants.DefaultLimit,
+    EventNewsConstants.PublishedTakeMinValue,
+    EventNewsConstants.PublishedTakeMaxValue);
+
+        Expression<Func<EventNewsEntity, bool>> filter = eventNews =>
+            eventNews.Status == Status.Published &&
+            (!categoryId.HasValue ||
+                eventNews.Categories.Any(category => category.Id == categoryId.Value));
+
+        var totalCount = await _repositoryWrapper.EventNewsRepository.CountAsync(
+            new QueryOptions<EventNewsEntity>
+            {
+                Filter = filter,
+                AsNoTracking = true,
+            });
+
+        if (totalCount == 0 || offset >= totalCount)
+        {
+            return Result.Ok(new PaginationResult<PublishedEventNewsDto>([], totalCount));
+        }
+
         var queryOptions = new QueryOptions<EventNewsEntity>
         {
-            Filter = eventNews => eventNews.Status == Status.Published,
+            Filter = filter,
             Include = eventNews => eventNews
                 .Include(e => e.Categories)
                     .ThenInclude(category => category.Localizations)
@@ -40,15 +67,16 @@ public class GetPublishedEventNewsHandler
                     .ThenInclude(l => l.Language),
             OrderByDESC = eventNews => eventNews.PublishedAt,
             ThenByDESC = eventNews => eventNews.Id,
-            Limit = request.Take ?? 0,
+            Offset = offset,
+            Limit = limit,
             AsSplitQuery = true,
+            AsNoTracking = true,
         };
 
-        IEnumerable<EventNewsEntity> publishedEventNews =
-            await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
+        var publishedEventNews = await _repositoryWrapper.EventNewsRepository.GetAllAsync(queryOptions);
 
-        var result = _mapper.Map<List<PublishedEventNewsDto>>(publishedEventNews);
+        var items = _mapper.Map<PublishedEventNewsDto[]>(publishedEventNews);
 
-        return Result.Ok(result);
+        return Result.Ok(new PaginationResult<PublishedEventNewsDto>(items, totalCount));
     }
 }
