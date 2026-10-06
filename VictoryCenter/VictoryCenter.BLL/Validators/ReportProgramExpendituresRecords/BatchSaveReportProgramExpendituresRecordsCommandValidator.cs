@@ -24,14 +24,17 @@ public class BatchSaveReportProgramExpendituresRecordsCommandValidator
             RuleFor(command => command.BatchSaveReportProgramExpendituresRecordsDto)
                 .SetValidator(new BatchSaveReportExpendituresRecordsDtoValidator<
                     CreateReportProgramExpendituresRecordDto,
-                    BatchUpdateReportProgramExpendituresRecordDto>(
-                        createDtoValidator,
-                        updateDtoValidator,
-                        ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation,
-                        u => u.Id,
-                        c => c.HippotherapyProgramCategoryId,
-                        u => u.HippotherapyProgramCategoryId,
-                        nameof(ReportProgramExpendituresRecord.HippotherapyProgramCategoryId)));
+                    BatchUpdateReportProgramExpendituresRecordDto>(new()
+                    {
+                        CreateDtoValidator = createDtoValidator,
+                        UpdateDtoValidator = updateDtoValidator,
+                        MaxNumberOfRecordsPerBatchOperation = ReportProgramExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation,
+                        UpdateIdSelector = u => u.Id,
+                        CreateCategoryIdSelector = c => c.HippotherapyProgramCategoryId,
+                        UpdateCategoryIdSelector = u => u.HippotherapyProgramCategoryId,
+                        CategoryIdPropertyName = nameof(ReportProgramExpendituresRecord.HippotherapyProgramCategoryId),
+                        EntityType = typeof(ReportProgramExpendituresRecord)
+                    }));
         });
     }
 }

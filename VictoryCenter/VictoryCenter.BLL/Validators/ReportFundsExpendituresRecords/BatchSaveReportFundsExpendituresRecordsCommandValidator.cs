@@ -24,14 +24,17 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidator
             RuleFor(command => command.BatchSaveReportFundsExpendituresRecordsDto)
                 .SetValidator(new BatchSaveReportExpendituresRecordsDtoValidator<
                     CreateReportFundsExpendituresRecordDto,
-                    BatchUpdateReportFundsExpendituresRecordDto>(
-                        createDtoValidator,
-                        updateDtoValidator,
-                        ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation,
-                        u => u.Id,
-                        c => c.CategoryId,
-                        u => u.CategoryId,
-                        nameof(ReportFundsExpendituresRecord.CategoryId)));
+                    BatchUpdateReportFundsExpendituresRecordDto>(new()
+                    {
+                        CreateDtoValidator = createDtoValidator,
+                        UpdateDtoValidator = updateDtoValidator,
+                        MaxNumberOfRecordsPerBatchOperation = ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation,
+                        UpdateIdSelector = u => u.Id,
+                        CreateCategoryIdSelector = c => c.CategoryId,
+                        UpdateCategoryIdSelector = u => u.CategoryId,
+                        CategoryIdPropertyName = nameof(ReportFundsExpendituresRecord.CategoryId),
+                        EntityType = typeof(ReportFundsExpendituresRecord)
+                    }));
         });
     }
 }

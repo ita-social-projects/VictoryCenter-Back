@@ -4,7 +4,6 @@ using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.ReportExpendituresRecords;
 using VictoryCenter.BLL.Validators.ReportExpendituresRecords;
-using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.ReportExpendituresRecords;
 
@@ -18,14 +17,17 @@ public class BatchSaveReportExpendituresRecordsDtoValidatorTests
         var createValidatorMock = new Mock<IValidator<TestCreateDto>>();
         var updateValidatorMock = new Mock<IValidator<TestUpdateDto>>();
 
-        _validator = new BatchSaveReportExpendituresRecordsDtoValidator<TestCreateDto, TestUpdateDto>(
-            createValidatorMock.Object,
-            updateValidatorMock.Object,
-            _maxRecordsLimit,
-            u => u.Id,
-            c => c.CategoryId,
-            u => u.CategoryId,
-            "CategoryId");
+        _validator = new BatchSaveReportExpendituresRecordsDtoValidator<TestCreateDto, TestUpdateDto>(new()
+        {
+            CreateDtoValidator = createValidatorMock.Object,
+            UpdateDtoValidator = updateValidatorMock.Object,
+            MaxNumberOfRecordsPerBatchOperation = _maxRecordsLimit,
+            UpdateIdSelector = u => u.Id,
+            CreateCategoryIdSelector = c => c.CategoryId,
+            UpdateCategoryIdSelector = u => u.CategoryId,
+            CategoryIdPropertyName = "CategoryId",
+            EntityType = typeof(TestEntity)
+        });
     }
 
     [Fact]
@@ -109,7 +111,7 @@ public class BatchSaveReportExpendituresRecordsDtoValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
             .WithErrorMessage(ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(
-                conflictingIds, typeof(ReportFundsExpendituresRecord)));
+                conflictingIds, typeof(TestEntity)));
     }
 
     [Fact]
@@ -168,6 +170,11 @@ public class BatchSaveReportExpendituresRecordsDtoValidatorTests
         // Assert
         result.ShouldHaveValidationErrorFor(x => x.RecordIdsToDelete)
             .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive("Id"));
+    }
+
+    public class TestEntity
+    {
+        public int Id { get; set; }
     }
 
     public class TestCreateDto

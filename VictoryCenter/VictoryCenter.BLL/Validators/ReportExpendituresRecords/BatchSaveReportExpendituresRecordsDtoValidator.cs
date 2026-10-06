@@ -12,13 +12,7 @@ public class BatchSaveReportExpendituresRecordsDtoValidator<TCreateDto, TUpdateD
     where TUpdateDto : class
 {
     public BatchSaveReportExpendituresRecordsDtoValidator(
-        IValidator<TCreateDto> createDtoValidator,
-        IValidator<TUpdateDto> updateDtoValidator,
-        int maxNumberOfRecordsPerBatchOperation,
-        Func<TUpdateDto, long> updateIdSelector,
-        Func<TCreateDto, long> createCategoryIdSelector,
-        Func<TUpdateDto, long> updateCategoryIdSelector,
-        string categoryIdPropertyName)
+        BatchSaveReportExpendituresValidatorOptions<TCreateDto, TUpdateDto> options)
     {
         RuleFor(dto => dto.RecordsToCreate)
             .NotNull()
@@ -48,21 +42,21 @@ public class BatchSaveReportExpendituresRecordsDtoValidator<TCreateDto, TUpdateD
                 .Must(dto =>
                         dto.RecordsToCreate.Count +
                         dto.RecordsToUpdate.Count +
-                        dto.RecordIdsToDelete.Count <= maxNumberOfRecordsPerBatchOperation)
+                        dto.RecordIdsToDelete.Count <= options.MaxNumberOfRecordsPerBatchOperation)
                 .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
                         ErrorMessagesConstants.BatchOperationTotalRecordsName,
-                        maxNumberOfRecordsPerBatchOperation))
+                        options.MaxNumberOfRecordsPerBatchOperation))
                 .Custom((dto, context) =>
                 {
                     var conflictingIds = dto.RecordsToUpdate
-                        .Select(updateIdSelector)
+                        .Select(options.UpdateIdSelector)
                         .Intersect(dto.RecordIdsToDelete)
                         .ToList();
 
                     if (conflictingIds.Count > 0)
                     {
                         var errorMessage = ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(
-                            conflictingIds, typeof(ReportFundsExpendituresRecord));
+                            conflictingIds, options.EntityType);
 
                         context.AddFailure(errorMessage);
                     }
@@ -70,24 +64,24 @@ public class BatchSaveReportExpendituresRecordsDtoValidator<TCreateDto, TUpdateD
 
             RuleForEach(dto => dto.RecordsToCreate)
                 .NotNull()
-                .SetValidator(createDtoValidator);
+                .SetValidator(options.CreateDtoValidator);
 
             RuleForEach(dto => dto.RecordsToUpdate)
                 .NotNull()
-                .SetValidator(updateDtoValidator);
+                .SetValidator(options.UpdateDtoValidator);
 
             RuleFor(dto => dto.RecordsToUpdate
                 .Where(u => u != null)
-                .Select(updateIdSelector))
+                .Select(options.UpdateIdSelector))
                 .MustHaveUniqueIds(nameof(IBatchSaveReportExpendituresRecordsDto<TCreateDto, TUpdateDto>.RecordsToUpdate));
 
             RuleFor(dto => dto.RecordsToUpdate
                     .Where(u => u != null)
-                    .Select(updateCategoryIdSelector)
+                    .Select(options.UpdateCategoryIdSelector)
                     .Concat(dto.RecordsToCreate
                         .Where(c => c != null)
-                        .Select(createCategoryIdSelector)))
-                .MustHaveUniqueIds(categoryIdPropertyName);
+                        .Select(options.CreateCategoryIdSelector)))
+                .MustHaveUniqueIds(options.CategoryIdPropertyName);
 
             When(dto => dto.RecordIdsToDelete.Count > 0, () =>
             {
