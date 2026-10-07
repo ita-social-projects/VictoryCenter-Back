@@ -1,8 +1,8 @@
-using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
@@ -17,6 +17,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 {
     private readonly IBlobService _blobService;
     private readonly IMapper _mapper;
+    private readonly ILogger<UpdateImageHandler> _logger;
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly TimeProvider _timeProvider;
     private readonly IValidator<UpdateImageCommand> _validator;
@@ -26,13 +27,15 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateImageCommand> validator,
         IBlobService blobService,
-        TimeProvider timeProvider)
+        TimeProvider timeProvider,
+        ILogger<UpdateImageHandler> logger)
     {
         _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
         _blobService = blobService;
         _timeProvider = timeProvider;
+        _logger = logger;
     }
 
     public async Task<Result<ImageDto>> Handle(UpdateImageCommand request, CancellationToken cancellationToken)
@@ -51,31 +54,42 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
             }
 
-            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
-
+            var previousBlobName = imageEntity.BlobName;
             var previousType = imageEntity.MimeType;
-            imageEntity.MimeType = request.UpdateImageDto.MimeType!;
-            imageEntity.UpdatedAt = _timeProvider.GetUtcNow();
+            var replacementBlobName = Guid.NewGuid().ToString("N");
 
-            _repositoryWrapper.ImageRepository.Update(imageEntity);
-
-            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
-            {
-                return Result.Fail<ImageDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)));
-            }
-
-            var updatedBlobName = await _blobService.UpdateFileInStorageAsync(
-                imageEntity.BlobName,
-                previousType,
+            await _blobService.SaveFileInStorageAsync(
                 request.UpdateImageDto.Base64!,
-                imageEntity.BlobName,
+                replacementBlobName,
                 request.UpdateImageDto.MimeType!);
 
-            imageEntity.BlobName = updatedBlobName;
+            var databaseUpdated = false;
+            try
+            {
+                imageEntity.BlobName = replacementBlobName;
+                imageEntity.MimeType = request.UpdateImageDto.MimeType!;
+                imageEntity.UpdatedAt = _timeProvider.GetUtcNow();
+
+                _repositoryWrapper.ImageRepository.Update(imageEntity);
+
+                if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+                {
+                    return Result.Fail<ImageDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)));
+                }
+
+                databaseUpdated = true;
+            }
+            finally
+            {
+                if (!databaseUpdated)
+                {
+                    TryDeleteBlob(replacementBlobName, request.UpdateImageDto.MimeType!);
+                }
+            }
+
+            TryDeleteBlob(previousBlobName, previousType);
 
             ImageDto resultDto = _mapper.Map<Image, ImageDto>(imageEntity);
-
-            transaction.Complete();
 
             return Result.Ok(resultDto);
         }
@@ -86,6 +100,21 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         catch (BlobStorageException e)
         {
             return Result.Fail<ImageDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
+        }
+    }
+
+    private void TryDeleteBlob(string blobName, string mimeType)
+    {
+        try
+        {
+            _blobService.DeleteFileInStorage(blobName, mimeType);
+        }
+        catch (BlobStorageException exception)
+        {
+            _logger.LogWarning(
+                exception,
+                "Failed to delete obsolete image blob {BlobName} during image replacement cleanup",
+                blobName);
         }
     }
 }
