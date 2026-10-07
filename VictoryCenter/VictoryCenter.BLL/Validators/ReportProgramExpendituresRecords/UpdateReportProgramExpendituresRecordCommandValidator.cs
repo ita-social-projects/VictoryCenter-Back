@@ -2,6 +2,7 @@ using FluentValidation;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -38,9 +39,19 @@ public class UpdateReportProgramExpendituresRecordCommandValidator
                     })
                     .WithMessage(ErrorMessagesConstants.NotFound());
                 RuleFor(x => x.Dto.AmountUah)
-                    .MustBeValidAmountOfMoney(nameof(UpdateReportProgramExpendituresRecordDto.AmountUah));
+                    .MustBeValidAmountOfMoney(
+                        nameof(UpdateReportProgramExpendituresRecordDto.AmountUah),
+                        ReportProgramExpendituresRecordConstants.ZeroAmount,
+                        ReportProgramExpendituresRecordConstants.AmountPrecision,
+                        ReportProgramExpendituresRecordConstants.AmountScale,
+                        ReportProgramExpendituresRecordConstants.AmountFormat);
                 RuleFor(x => x.Dto.AmountUsd)
-                    .MustBeValidAmountOfMoney(nameof(UpdateReportProgramExpendituresRecordDto.AmountUsd));
+                    .MustBeValidAmountOfMoney(
+                        nameof(UpdateReportProgramExpendituresRecordDto.AmountUsd),
+                        ReportProgramExpendituresRecordConstants.ZeroAmount,
+                        ReportProgramExpendituresRecordConstants.AmountPrecision,
+                        ReportProgramExpendituresRecordConstants.AmountScale,
+                        ReportProgramExpendituresRecordConstants.AmountFormat);
             });
     }
 }
