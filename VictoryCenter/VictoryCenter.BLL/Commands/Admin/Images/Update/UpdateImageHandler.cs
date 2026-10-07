@@ -1,3 +1,4 @@
+using System.Globalization;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -56,7 +57,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             var previousBlobName = imageEntity.BlobName;
             var previousType = imageEntity.MimeType;
-            var replacementBlobName = Guid.NewGuid().ToString("N");
+            var replacementBlobName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             await _blobService.SaveFileInStorageAsync(
                 request.UpdateImageDto.Base64!,

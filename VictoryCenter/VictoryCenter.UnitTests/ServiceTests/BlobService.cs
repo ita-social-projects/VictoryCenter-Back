@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Constants;
@@ -18,6 +19,7 @@ public class BlobServiceTests : IDisposable
     private readonly string _mimeType = "image/png";
     private readonly string _fileName = "testfile";
     private readonly Mock<IHttpContextAccessor> _mockHttpContext;
+    private readonly Mock<ILogger<BlobService>> _mockLogger;
     private readonly BlobEnvironmentVariables _blobEnv;
 
     public BlobServiceTests()
@@ -31,8 +33,12 @@ public class BlobServiceTests : IDisposable
         };
         _blobEnv = env;
         _mockHttpContext = new Mock<IHttpContextAccessor>();
+        _mockLogger = new Mock<ILogger<BlobService>>();
 
-        _blobService = new BlobService(Options.Create(env), _mockHttpContext.Object);
+        _blobService = new BlobService(
+            Options.Create(env),
+            _mockHttpContext.Object,
+            _mockLogger.Object);
     }
 
     [Fact]

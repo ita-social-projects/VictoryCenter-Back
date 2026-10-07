@@ -1,5 +1,6 @@
 using System.Buffers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
@@ -12,6 +13,7 @@ public class BlobService : IBlobService
 {
     private readonly BlobEnvironmentVariables _blobEnv;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<BlobService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BlobService"/> class.
@@ -19,13 +21,18 @@ public class BlobService : IBlobService
     /// </summary>
     /// <param name="environment">Configuration settings for the blob storage.</param>
     /// <param name="httpContextAccessor">Provides access to <see cref="HttpContext"/> for building absolute URLs.</param>
+    /// <param name="logger">The logger used to report best-effort cleanup failures.</param>
     /// <exception cref="BlobFileSystemException">
     /// Thrown if the local storage directory could not be created.
     /// </exception>
-    public BlobService(IOptions<BlobEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
+    public BlobService(
+        IOptions<BlobEnvironmentVariables> environment,
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<BlobService> logger)
     {
         _blobEnv = environment.Value;
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
         try
         {
             Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
@@ -233,7 +240,7 @@ public class BlobService : IBlobService
         }
     }
 
-    private static void DeleteTemporaryFileIfExists(string temporaryFilePath)
+    private void DeleteTemporaryFileIfExists(string temporaryFilePath)
     {
         try
         {
@@ -244,10 +251,10 @@ public class BlobService : IBlobService
         }
         catch (Exception ex)
         {
-            throw new ImageProcessingException(
-                temporaryFilePath,
-                ImageConstants.FailedToSaveImage,
-                ex);
+            _logger.LogWarning(
+                ex,
+                "Failed to delete temporary image file {TemporaryFilePath}",
+                temporaryFilePath);
         }
     }
 
