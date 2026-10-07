@@ -45,6 +45,7 @@ public class BlobServiceTests : IDisposable
         var encryptedContent = File.ReadAllBytes(filePath);
         var originalContent = Convert.FromBase64String(_base64);
         Assert.Equal(originalContent, encryptedContent);
+        Assert.Empty(Directory.GetFiles(_blobEnv.FullPath, ".*.tmp"));
     }
 
     [Theory]
@@ -102,24 +103,76 @@ public class BlobServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task UpdateFileInStorage_ShouldReplaceFile()
-    {
-        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
-        var newContent = Convert.ToBase64String(Encoding.UTF8.GetBytes("new content"));
-        await _blobService.UpdateFileInStorageAsync(_fileName, _mimeType, newContent, _fileName, _mimeType);
-
-        using var stream = await _blobService.FindFileInStorageAsMemoryStreamAsync(_fileName, _mimeType);
-        var content = Encoding.UTF8.GetString(stream.ToArray());
-        Assert.Equal("new content", content);
-    }
-
-    [Fact]
     public async Task DeleteFileInStorage_ShouldRemoveFile()
     {
         await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
         _blobService.DeleteFileInStorage(_fileName, _mimeType);
-        var filePath = Path.Combine(_tempDir, $"{_fileName}.png");
+        var filePath = Path.Combine(_blobEnv.FullPath, $"{_fileName}.png");
         Assert.False(File.Exists(filePath));
+    }
+
+    [Fact]
+    public async Task SaveReplacement_WithDifferentExtension_ShouldKeepNewFileAndRemovePreviousFile()
+    {
+        const string previousBlobName = "previous-image";
+        const string replacementBlobName = "replacement-image";
+        const string previousMimeType = ImageMimeTypes.Jpeg;
+        const string replacementMimeType = ImageMimeTypes.Png;
+        var replacementBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("replacement content"));
+
+        await _blobService.SaveFileInStorageAsync(_base64, previousBlobName, previousMimeType);
+        await _blobService.SaveFileInStorageAsync(
+            replacementBase64,
+            replacementBlobName,
+            replacementMimeType);
+        _blobService.DeleteFileInStorage(previousBlobName, previousMimeType);
+
+        var previousPath = Path.Combine(_blobEnv.FullPath, $"{previousBlobName}.jpg");
+        var replacementPath = Path.Combine(_blobEnv.FullPath, $"{replacementBlobName}.png");
+        Assert.False(File.Exists(previousPath));
+        Assert.True(File.Exists(replacementPath));
+        Assert.Equal(
+            "replacement content",
+            Encoding.UTF8.GetString(await File.ReadAllBytesAsync(replacementPath)));
+        Assert.Empty(Directory.GetFiles(_blobEnv.FullPath, ".*.tmp"));
+    }
+
+    [Fact]
+    public async Task SaveFileInStorage_ExistingFinalPath_ShouldReplaceFileWithoutLeavingTemporaryFile()
+    {
+        var replacementBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes("replacement content"));
+        await _blobService.SaveFileInStorageAsync(_base64, _fileName, _mimeType);
+
+        await _blobService.SaveFileInStorageAsync(replacementBase64, _fileName, _mimeType);
+
+        await using var stream = await _blobService.FindFileInStorageAsMemoryStreamAsync(_fileName, _mimeType);
+        Assert.Equal("replacement content", Encoding.UTF8.GetString(stream.ToArray()));
+        Assert.Empty(Directory.GetFiles(_blobEnv.FullPath, ".*.tmp"));
+    }
+
+    [Fact]
+    public async Task SaveReplacement_WhenFinalMoveFails_ShouldPreservePreviousFileAndRemoveTemporaryFile()
+    {
+        const string previousBlobName = "previous-image";
+        const string replacementBlobName = "blocked-replacement";
+        const string previousMimeType = ImageMimeTypes.Jpeg;
+        const string replacementMimeType = ImageMimeTypes.Png;
+        var blockedFinalPath = Path.Combine(_blobEnv.FullPath, $"{replacementBlobName}.png");
+
+        await _blobService.SaveFileInStorageAsync(_base64, previousBlobName, previousMimeType);
+        Directory.CreateDirectory(blockedFinalPath);
+
+        await Assert.ThrowsAsync<ImageProcessingException>(() =>
+            _blobService.SaveFileInStorageAsync(
+                _base64,
+                replacementBlobName,
+                replacementMimeType));
+
+        await using var previousFile = await _blobService.FindFileInStorageAsMemoryStreamAsync(
+            previousBlobName,
+            previousMimeType);
+        Assert.Equal("test image content", Encoding.UTF8.GetString(previousFile.ToArray()));
+        Assert.Empty(Directory.GetFiles(_blobEnv.FullPath, $".{replacementBlobName}.*.tmp"));
     }
 
     [Fact]
