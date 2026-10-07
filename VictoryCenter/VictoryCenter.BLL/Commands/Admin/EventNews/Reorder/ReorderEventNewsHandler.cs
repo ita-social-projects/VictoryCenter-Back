@@ -7,7 +7,6 @@ using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Reorder;
@@ -29,22 +28,22 @@ public class ReorderEventNewsHandler(
             var orderedIds = request.Dto.Ids;
             var categoryId = request.Dto.CategoryId;
 
-            var existingLinks = await repository
-                .EventNewsEventNewsCategoriesRepository
-                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
+            var existingEventNews = await repository
+                .EventNewsRepository
+                .GetAllAsync(new QueryOptions<EventNewsEntity>
                 {
-                    Filter = e => e.CategoriesId == categoryId && orderedIds.Contains(e.EventsNewsId)
+                    Filter = e => e.CategoryId == categoryId && orderedIds.Contains(e.Id)
                 });
 
-            if (existingLinks is null)
+            if (existingEventNews.Count() != orderedIds.Count)
             {
-                return Result.Fail(ErrorMessagesConstants.NotFound(categoryId, typeof(EventNewsCategoryLink)));
+                return Result.Fail(ErrorMessagesConstants.NotFound(categoryId, typeof(EventNewsEntity)));
             }
 
-            await reorderService.SwapElementsAsync<EventNewsCategoryLink>(
+            await reorderService.SwapElementsAsync<EventNewsEntity>(
                 orderedIds,
-                e => e.EventsNewsId,
-                e => e.CategoriesId == categoryId);
+                e => e.Id,
+                e => e.CategoryId == categoryId);
 
             return Result.Ok(Unit.Value);
         }
