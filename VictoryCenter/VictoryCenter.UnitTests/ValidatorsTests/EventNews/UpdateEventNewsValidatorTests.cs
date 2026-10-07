@@ -32,7 +32,7 @@ public class UpdateEventNewsValidatorTests
 
         result.ShouldHaveValidationErrorFor(item => item.EventNews.PublishedAt);
         result.ShouldHaveValidationErrorFor(item => item.EventNews.PreviewImageId);
-        result.ShouldHaveValidationErrorFor(item => item.EventNews.CategoryIds);
+        result.ShouldHaveValidationErrorFor(item => item.EventNews.CategoryId);
         result.ShouldHaveValidationErrorFor(item => item.EventNews.Localizations);
     }
 
@@ -49,7 +49,9 @@ public class UpdateEventNewsValidatorTests
     [Fact]
     public void Validate_ShouldNotHaveErrors_WhenDraftIsEmpty()
     {
-        var command = new UpdateEventNewsCommand(1, new UpdateEventNewsDto { Status = Status.Draft });
+        var command = new UpdateEventNewsCommand(
+            1,
+            new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 });
 
         var result = _validator.TestValidate(command);
 

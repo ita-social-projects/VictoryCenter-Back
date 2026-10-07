@@ -8,6 +8,8 @@ namespace VictoryCenter.IntegrationTests.RepositoryTests.EventNews;
 
 public class EventNewsRepositoryTests : BaseTestClass
 {
+    private static long _nextPriority = -1;
+
     public EventNewsRepositoryTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
@@ -60,6 +62,8 @@ public class EventNewsRepositoryTests : BaseTestClass
             Description = "This is a test event news description.",
             Slug = slug,
             Status = Status.Draft,
+            CategoryId = 1,
+            Priority = Interlocked.Decrement(ref _nextPriority),
             CreatedAt = DateTimeOffset.UtcNow
         };
     }

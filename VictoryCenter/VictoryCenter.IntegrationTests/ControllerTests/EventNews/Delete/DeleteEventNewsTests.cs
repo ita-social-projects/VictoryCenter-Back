@@ -23,9 +23,9 @@ public class DeleteEventNewsTests : BaseTestClass
         const long imageId = 1;
         const long languageId = 1;
         var eventNews = await Fixture.DbContext.EventNews
-            .Include(entity => entity.Categories)
+            .Include(entity => entity.Category)
             .SingleAsync(entity => entity.Id == eventNewsId);
-        var categoryIds = eventNews.Categories.Select(category => category.Id).ToList();
+        var categoryId = eventNews.CategoryId;
 
         eventNews.PreviewImageId = imageId;
         eventNews.Localizations.Add(new EventNewsLocalization
@@ -62,10 +62,10 @@ public class DeleteEventNewsTests : BaseTestClass
             .AsNoTracking()
             .AnyAsync(language => language.Id == languageId));
         Assert.Equal(
-            categoryIds.Count,
+            1,
             await Fixture.DbContext.EventNewsCategories
                 .AsNoTracking()
-                .CountAsync(category => categoryIds.Contains(category.Id)));
+                .CountAsync(category => category.Id == categoryId));
     }
 
     [Fact]
@@ -124,12 +124,10 @@ public class DeleteEventNewsTests : BaseTestClass
         // Arrange
         const long eventNewsId = 1;
 
-        var categoryIds = await Fixture.DbContext.EventNewsEventNewsCategories
-            .Where(link => link.EventsNewsId == eventNewsId)
-            .Select(link => link.CategoriesId)
-            .ToListAsync();
-
-        Assert.NotEmpty(categoryIds);
+        var categoryId = await Fixture.DbContext.EventNews
+            .Where(item => item.Id == eventNewsId)
+            .Select(item => item.CategoryId)
+            .SingleAsync();
 
         // Act
         var response = await Fixture.HttpClient.DeleteAsync($"{EndpointUri}/{eventNewsId}");
@@ -139,18 +137,15 @@ public class DeleteEventNewsTests : BaseTestClass
 
         Fixture.DbContext.ChangeTracker.Clear();
 
-        foreach (var categoryId in categoryIds)
-        {
-            var priorities = await Fixture.DbContext.EventNewsEventNewsCategories
-                .AsNoTracking()
-                .Where(link => link.CategoriesId == categoryId)
-                .OrderBy(link => link.Priority)
-                .Select(link => link.Priority)
-                .ToListAsync();
+        var priorities = await Fixture.DbContext.EventNews
+            .AsNoTracking()
+            .Where(item => item.CategoryId == categoryId)
+            .OrderBy(item => item.Priority)
+            .Select(item => item.Priority)
+            .ToListAsync();
 
-            Assert.Equal(
-                Enumerable.Range(1, priorities.Count).Select(priority => (long)priority),
-                priorities);
-        }
+        Assert.Equal(
+            Enumerable.Range(1, priorities.Count).Select(priority => (long)priority),
+            priorities);
     }
 }

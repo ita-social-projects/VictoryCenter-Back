@@ -98,8 +98,7 @@ public class EventNewsCategoryManagementTests : BaseTestClass
     {
         var categoryId = await Fixture.DbContext.EventNews
             .AsNoTracking()
-            .SelectMany(eventNews => eventNews.Categories)
-            .Select(category => category.Id)
+            .Select(eventNews => eventNews.CategoryId)
             .FirstAsync();
 
         var response = await Fixture.HttpClient.DeleteAsync($"/api/EventNewsCategories/{categoryId}");

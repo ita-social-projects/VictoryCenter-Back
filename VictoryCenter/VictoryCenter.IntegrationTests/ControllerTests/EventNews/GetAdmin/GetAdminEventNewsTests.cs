@@ -86,7 +86,7 @@ public class GetAdminEventNewsTests : BaseTestClass
     public async Task GetByFilters_ShouldFilterByAssignedCategory()
     {
         var allItems = await Fixture.HttpClient.GetFromJsonAsync<PaginationResult<EventNewsDto>>(EndpointUri);
-        var categoryId = allItems!.Items.SelectMany(item => item.Categories).First().Id;
+        var categoryId = allItems!.Items.First().Category.Id;
 
         var response = await Fixture.HttpClient.GetAsync($"{EndpointUri}?categoryId={categoryId}");
 
@@ -95,7 +95,7 @@ public class GetAdminEventNewsTests : BaseTestClass
         Assert.NotNull(page);
         Assert.NotEmpty(page.Items);
         Assert.True(page.TotalItemsCount >= page.Items.Length);
-        Assert.All(page.Items, item => Assert.Contains(item.Categories, category => category.Id == categoryId));
+        Assert.All(page.Items, item => Assert.Equal(categoryId, item.Category.Id));
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class GetAdminEventNewsTests : BaseTestClass
                 Status = Status.Published,
                 PreviewImageId = 1,
                 BackgroundImageId = 2,
-                CategoryIds = [categoryId],
+                CategoryId = categoryId,
                 Localizations =
                 [
                     new CreateEventNewsLocalizationDto
@@ -213,7 +213,7 @@ public class GetAdminEventNewsTests : BaseTestClass
         Assert.NotNull(eventNews.BackgroundImage);
         Assert.Equal(2, eventNews.BackgroundImage.Id);
 
-        var category = Assert.Single(eventNews.Categories);
+        var category = eventNews.Category;
         Assert.Equal(categoryId, category.Id);
         var categoryLocalization = Assert.Single(category.Localizations);
         Assert.Equal(languageId, categoryLocalization.Language.Id);
@@ -250,20 +250,25 @@ public class GetAdminEventNewsTests : BaseTestClass
     public async Task GetByFilters_WhenCategorySpecified_ShouldOrderItemsByPriority()
     {
         // Arrange
-        var categoryId = await Fixture.DbContext.EventNewsEventNewsCategories
-            .GroupBy(link => link.CategoriesId)
+        var categoryId = await Fixture.DbContext.EventNews
+            .GroupBy(eventNews => eventNews.CategoryId)
             .Where(group => group.Count() >= 3)
             .Select(group => group.Key)
             .FirstAsync();
 
-        var links = await Fixture.DbContext.EventNewsEventNewsCategories
-            .Where(link => link.CategoriesId == categoryId)
+        var items = await Fixture.DbContext.EventNews
+            .Where(eventNews => eventNews.CategoryId == categoryId)
             .Take(3)
             .ToArrayAsync();
 
-        links[0].Priority = 2;
-        links[1].Priority = 0;
-        links[2].Priority = 1;
+        items[0].Priority = -1;
+        items[1].Priority = -2;
+        items[2].Priority = -3;
+        await Fixture.DbContext.SaveChangesAsync();
+
+        items[0].Priority = 3;
+        items[1].Priority = 1;
+        items[2].Priority = 2;
 
         await Fixture.DbContext.SaveChangesAsync();
 
@@ -279,8 +284,8 @@ public class GetAdminEventNewsTests : BaseTestClass
 
         Assert.NotNull(page);
 
-        var testedIds = links
-            .Select(link => link.EventsNewsId)
+        var testedIds = items
+            .Select(item => item.Id)
             .ToHashSet();
 
         var testedItems = page.Items
@@ -290,7 +295,7 @@ public class GetAdminEventNewsTests : BaseTestClass
         Assert.Equal(3, testedItems.Length);
 
         Assert.Equal(
-            [links[1].EventsNewsId, links[2].EventsNewsId, links[0].EventsNewsId],
+            [items[1].Id, items[2].Id, items[0].Id],
             testedItems.Select(item => item.Id));
     }
 
@@ -307,19 +312,12 @@ public class GetAdminEventNewsTests : BaseTestClass
             Name = $"Filter-{Guid.NewGuid():N}"[..20],
             CreatedAt = DateTimeOffset.UtcNow
         };
-        var completeEvent = EventNews("Complete translation", Status.Published);
-        var missingEvent = EventNews("Missing translation", Status.Draft);
-        var outdatedEvent = EventNews("Outdated translation", Status.Published);
+        var completeEvent = EventNews("Complete translation", Status.Published, category, 1);
+        var missingEvent = EventNews("Missing translation", Status.Draft, category, 2);
+        var outdatedEvent = EventNews("Outdated translation", Status.Published, category, 3);
 
         Fixture.DbContext.EventNewsCategories.Add(category);
         Fixture.DbContext.EventNews.AddRange(completeEvent, missingEvent, outdatedEvent);
-        await Fixture.DbContext.SaveChangesAsync();
-
-        Fixture.DbContext.EventNewsEventNewsCategories.AddRange(
-            CategoryLink(category.Id, completeEvent.Id, 1),
-            CategoryLink(category.Id, missingEvent.Id, 2),
-            CategoryLink(category.Id, outdatedEvent.Id, 3));
-
         foreach (var languageId in languageIds)
         {
             completeEvent.Localizations.Add(Localization(languageId, TranslationStatus.Relevant));
@@ -338,27 +336,20 @@ public class GetAdminEventNewsTests : BaseTestClass
             outdatedEvent.Id);
     }
 
-    private static EventNewsEntity EventNews(string title, Status status)
+    private static EventNewsEntity EventNews(
+        string title,
+        Status status,
+        EventNewsCategory category,
+        long priority)
     {
         return new EventNewsEntity
         {
             Title = title,
             Slug = $"{title.Replace(' ', '-').ToLowerInvariant()}-{Guid.NewGuid():N}",
             Status = status,
+            Category = category,
+            Priority = priority,
             CreatedAt = DateTimeOffset.UtcNow
-        };
-    }
-
-    private static EventNewsEventNewsCategories CategoryLink(
-        long categoryId,
-        long eventNewsId,
-        long priority)
-    {
-        return new EventNewsEventNewsCategories
-        {
-            CategoriesId = categoryId,
-            EventsNewsId = eventNewsId,
-            Priority = priority
         };
     }
 

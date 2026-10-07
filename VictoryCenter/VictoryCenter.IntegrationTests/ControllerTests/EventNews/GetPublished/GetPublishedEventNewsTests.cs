@@ -28,16 +28,16 @@ public class GetPublishedEventNewsTests : BaseTestClass
         Assert.NotNull(responseContent);
         Assert.NotEmpty(responseContent);
         Assert.All(responseContent, item => Assert.NotNull(item.Localizations));
-        Assert.All(responseContent, item => Assert.NotNull(item.Categories));
+        Assert.All(responseContent, item => Assert.NotNull(item.Category));
     }
 
     [Fact]
     public async Task GetPublishedEventNews_ShouldReturnCategoryBaseNameAndLocalizations()
     {
         var eventNews = await Fixture.DbContext.EventNews
-            .Include(item => item.Categories)
+            .Include(item => item.Category)
             .FirstAsync(item => item.Status == VictoryCenter.DAL.Enums.Status.Published);
-        var category = eventNews.Categories.First();
+        var category = eventNews.Category;
         var language = await Fixture.DbContext.LocalizationLanguages
             .FirstAsync(item => item.Code == "en");
         const string localizedName = "Localized category name";
@@ -57,7 +57,8 @@ public class GetPublishedEventNewsTests : BaseTestClass
         response.EnsureSuccessStatusCode();
         var items = await response.Content.ReadFromJsonAsync<List<PublishedEventNewsDto>>();
         var returnedEvent = Assert.Single(items!, item => item.Id == eventNews.Id);
-        var returnedCategory = Assert.Single(returnedEvent.Categories, item => item.Id == category.Id);
+        var returnedCategory = returnedEvent.Category;
+        Assert.Equal(category.Id, returnedCategory.Id);
         Assert.Equal(category.Name, returnedCategory.Name);
         var localization = Assert.Single(
             returnedCategory.Localizations,

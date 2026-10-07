@@ -30,7 +30,7 @@ public class UpdateEventNewsTests : BaseTestClass
             .SingleAsync();
 
         var firstDto = PublishedDto(
-            categoryIds: [4, 5],
+            categoryId: 4,
             localizations:
             [
                 Localization(1, "Updated Integration Event", "Updated integration description"),
@@ -44,13 +44,13 @@ public class UpdateEventNewsTests : BaseTestClass
         Assert.NotNull(firstContent);
         Assert.Equal("updated-integration-event", firstContent.Slug);
         Assert.Equal(Status.Published, firstContent.Status);
-        Assert.Equal([4, 5], firstContent.Categories.Select(category => category.Id).OrderBy(id => id));
+        Assert.Equal(4, firstContent.Category.Id);
         Assert.Equal([1, 2], firstContent.Localizations.Select(item => item.Language.Id).OrderBy(id => id));
         Assert.NotNull(firstContent.PreviewImage);
         Assert.NotNull(firstContent.BackgroundImage);
 
         var secondDto = PublishedDto(
-            categoryIds: [5],
+            categoryId: 5,
             localizations:
             [
                 Localization(2, "Community Charity Day", "Final details for the community charity day"),
@@ -64,17 +64,17 @@ public class UpdateEventNewsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, repeatResponse.StatusCode);
         Assert.NotNull(secondContent);
         Assert.Equal("community-charity-day", secondContent.Slug);
-        Assert.Equal(5, Assert.Single(secondContent.Categories).Id);
+        Assert.Equal(5, secondContent.Category.Id);
         Assert.Equal(2, Assert.Single(secondContent.Localizations).Language.Id);
 
         Fixture.DbContext.ChangeTracker.Clear();
         var persisted = await Fixture.DbContext.EventNews
-            .Include(eventNews => eventNews.Categories)
+            .Include(eventNews => eventNews.Category)
             .Include(eventNews => eventNews.Localizations)
             .SingleAsync(eventNews => eventNews.Id == 1);
 
         Assert.Equal(originalCreatedAt, persisted.CreatedAt);
-        Assert.Equal(5, Assert.Single(persisted.Categories).Id);
+        Assert.Equal(5, persisted.CategoryId);
         var persistedLocalization = Assert.Single(persisted.Localizations);
         Assert.Equal(2, persistedLocalization.LanguageId);
         Assert.Equal(TranslationStatus.Relevant, persistedLocalization.TranslationStatus);
@@ -107,7 +107,7 @@ public class UpdateEventNewsTests : BaseTestClass
     {
         var existing = await Fixture.DbContext.EventNews
             .AsNoTracking()
-            .Include(eventNews => eventNews.Categories)
+            .Include(eventNews => eventNews.Category)
             .SingleAsync(eventNews => eventNews.Id == 1);
         var languageId = await Fixture.DbContext.LocalizationLanguages
             .Select(language => language.Id)
@@ -137,7 +137,7 @@ public class UpdateEventNewsTests : BaseTestClass
             Status = existing.Status,
             PreviewImageId = existing.PreviewImageId,
             BackgroundImageId = existing.BackgroundImageId,
-            CategoryIds = [.. existing.Categories.Select(category => category.Id)],
+            CategoryId = existing.CategoryId,
             Localizations =
             [
                 new CreateEventNewsLocalizationDto
@@ -173,6 +173,7 @@ public class UpdateEventNewsTests : BaseTestClass
         var dto = new UpdateEventNewsDto
         {
             Status = Status.Draft,
+            CategoryId = 2,
             Localizations = [new CreateEventNewsLocalizationDto { LanguageId = 1 }]
         };
 
@@ -186,7 +187,7 @@ public class UpdateEventNewsTests : BaseTestClass
         Assert.NotNull(content);
         Assert.Equal(Status.Draft, content.Status);
         Assert.Null(content.Slug);
-        Assert.Empty(content.Categories);
+        Assert.Equal(2, content.Category.Id);
         Assert.Empty(content.Localizations);
         Assert.NotNull(publicItems);
         Assert.DoesNotContain(publicItems, eventNews => eventNews.Id == 2);
@@ -197,7 +198,7 @@ public class UpdateEventNewsTests : BaseTestClass
     {
         var response = await Fixture.HttpClient.PutAsJsonAsync(
             $"{EndpointUri}/{long.MaxValue}",
-            new UpdateEventNewsDto { Status = Status.Draft });
+            new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 });
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -225,7 +226,7 @@ public class UpdateEventNewsTests : BaseTestClass
     [Fact]
     public async Task UpdateEventNews_WhenCategoryDoesNotExist_ShouldReturnNotFound()
     {
-        var dto = PublishedDto(categoryIds: [long.MaxValue]);
+        var dto = PublishedDto(categoryId: long.MaxValue);
 
         var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
 
@@ -268,7 +269,7 @@ public class UpdateEventNewsTests : BaseTestClass
     }
 
     private static UpdateEventNewsDto PublishedDto(
-        List<long>? categoryIds = null,
+        long categoryId = 1,
         List<CreateEventNewsLocalizationDto>? localizations = null)
     {
         return new UpdateEventNewsDto
@@ -280,7 +281,7 @@ public class UpdateEventNewsTests : BaseTestClass
             Status = Status.Published,
             PreviewImageId = 1,
             BackgroundImageId = 2,
-            CategoryIds = categoryIds ?? [1],
+            CategoryId = categoryId,
             Localizations = localizations ??
             [
                 Localization(1, "Default Integration Event", "Default integration description"),

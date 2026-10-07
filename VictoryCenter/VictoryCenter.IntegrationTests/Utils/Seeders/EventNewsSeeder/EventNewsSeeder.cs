@@ -9,7 +9,7 @@ namespace VictoryCenter.IntegrationTests.Utils.Seeders.EventNewsSeeder;
 
 public class EventNewsSeeder : BaseSeeder<EventNewsEntity>
 {
-    private const int EventNewsCount = 8;
+    private const int EventNewsCount = 12;
     private readonly SlugHelper _slugHelper = new();
 
     public EventNewsSeeder(VictoryCenterDbContext dbContext, ILogger<EventNewsSeeder> logger)
@@ -28,10 +28,7 @@ public class EventNewsSeeder : BaseSeeder<EventNewsEntity>
 
         for (var i = 0; i < EventNewsCount; i++)
         {
-            var selectedCategories = categories
-                .OrderBy(_ => Guid.NewGuid())
-                .Take(2)
-                .ToList();
+            var category = categories[i % categories.Count];
 
             var title = "TestEventNews" + (i + 1);
 
@@ -45,7 +42,8 @@ public class EventNewsSeeder : BaseSeeder<EventNewsEntity>
                 PublishedAt = DateTimeOffset.UtcNow.AddDays(-i),
                 Status = (Status)(i % Enum.GetNames<Status>().Length),
                 CreatedAt = DateTimeOffset.UtcNow.AddDays(-i),
-                Categories = selectedCategories,
+                Category = category,
+                Priority = (i / categories.Count) + 1,
             });
         }
 
