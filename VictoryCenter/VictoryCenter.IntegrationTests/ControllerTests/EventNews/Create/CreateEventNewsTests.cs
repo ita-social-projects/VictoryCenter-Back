@@ -1,7 +1,9 @@
 using System.Net;
 using System.Text;
 using Newtonsoft.Json;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -179,15 +181,16 @@ public class CreateEventNewsTests : BaseTestClass
         var createResponseString = await createResponse.Content.ReadAsStringAsync();
         EventNewsDto? createdEventNews = JsonConvert.DeserializeObject<EventNewsDto>(createResponseString);
 
-        HttpResponseMessage publicResponse = await Fixture.HttpClient.GetAsync("/api/EventNews/published");
+        HttpResponseMessage publicResponse = await Fixture.HttpClient.GetAsync(
+    $"/api/EventNews/published?limit={EventNewsConstants.PublishedTakeMaxValue}");
 
         publicResponse.EnsureSuccessStatusCode();
         var publicResponseString = await publicResponse.Content.ReadAsStringAsync();
-        List<PublishedEventNewsDto>? publishedEventNews = JsonConvert.DeserializeObject<List<PublishedEventNewsDto>>(publicResponseString);
+        var publishedEventNews = JsonConvert.DeserializeObject<PaginationResult<PublishedEventNewsDto>>(publicResponseString);
 
         Assert.NotNull(createdEventNews);
         Assert.NotNull(publishedEventNews);
-        Assert.DoesNotContain(publishedEventNews, eventNews => eventNews.Slug == createdEventNews.Slug);
+        Assert.DoesNotContain(publishedEventNews.Items, eventNews => eventNews.Slug == createdEventNews.Slug);
     }
 
     [Fact]
