@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
@@ -103,6 +104,11 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
             return Result.Ok(Unit.Value);
         }
+        catch (DbUpdateException dbUpdateException) when (dbUpdateException.IsUniqueConstraintException())
+        {
+            return Result.Fail<Unit>(
+                ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord());
+        }
         catch (DbUpdateException)
         {
             return Result.Fail<Unit>(
@@ -141,7 +147,8 @@ public class BatchSaveReportFundsExpendituresRecordHandler
         var duplicateRecordsInCategory = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
             .GetAllAsync(new QueryOptions<ReportFundsExpendituresRecord>
             {
-                Filter = entity => categoryIdsToValidate.Contains(entity.CategoryId)
+                Filter = entity => categoryIdsToValidate.Contains(entity.CategoryId) &&
+                                    !dto.RecordIdsToDelete.Contains(entity.Id)
             });
 
         return EvaluateCategoryRules(
@@ -197,8 +204,10 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (duplicateRecordsInCategory.Any())
         {
-            return Result.Fail<Unit>(
-                    ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+            var errorMessages = duplicateRecordsInCategory
+                .Select(r => ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord(r.CategoryId));
+
+            return Result.Fail<Unit>(errorMessages);
         }
 
         return Result.Ok(Unit.Value);
