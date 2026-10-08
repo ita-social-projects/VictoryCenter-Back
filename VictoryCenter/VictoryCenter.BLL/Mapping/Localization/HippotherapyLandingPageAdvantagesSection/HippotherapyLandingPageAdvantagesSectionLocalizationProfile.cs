@@ -16,6 +16,15 @@ public class HippotherapyLandingPageAdvantagesSectionLocalizationProfile : Profi
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<HippotherapyLandingPageAdvantagesSectionLocalization, HippotherapyLandingPageAdvantagesSectionLocalizationDto>()
-            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language))
+            .ForMember(dest => dest.Cards, opt => opt.Ignore());
+
+        CreateMap<UpdateHippotherapyLandingPageAdvantageCardLocalizationItemDto, HippotherapyLandingPageAdvantageCardLocalization>()
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.CardId))
+            .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<HippotherapyLandingPageAdvantageCardLocalization, HippotherapyLandingPageAdvantageCardLocalizationItemDto>()
+            .ForMember(dest => dest.CardId, opt => opt.MapFrom(src => src.EntityId));
     }
 }

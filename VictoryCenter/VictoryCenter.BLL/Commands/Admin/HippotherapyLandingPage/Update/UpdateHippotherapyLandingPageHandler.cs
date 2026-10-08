@@ -244,6 +244,11 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
+
+        foreach (var loc in advantagesSection.AdvantageCards.SelectMany(c => c.Localizations))
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
     }
 
     private static void TrackImageChange(long? oldImageId, long? newImageId, List<long> imageIdsToDelete)
