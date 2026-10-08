@@ -38,6 +38,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackHistories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackReviews;
@@ -143,6 +144,7 @@ public interface IRepositoryWrapper
     IHistorySectionContentLocalizationsRepository HistorySectionContentLocalizationsRepository { get; }
 
     IEventNewsRepository EventNewsRepository { get; }
+    IEventNewsLocalizationsRepository EventNewsLocalizationsRepository { get; }
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
     IEventsIntroSectionsRepository EventsIntroSectionsRepository { get; }
