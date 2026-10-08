@@ -96,6 +96,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
 
                     TrackImageChange(entity.QuoteSection!.ImageId, dto.QuoteSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.QuoteSection, entity.QuoteSection);
+                    MarkQuoteSectionLocalizationsOutdated(entity.QuoteSection);
 
                     _mapper.Map(dto.HippoventionSection, entity.HippoventionSection);
                     if (entity.HippoventionSection is not null)
@@ -125,6 +126,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
 
                     TrackImageChange(entity.AnotherQuoteSection!.ImageId, dto.AnotherQuoteSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.AnotherQuoteSection, entity.AnotherQuoteSection);
+                    MarkAnotherQuoteSectionLocalizationsOutdated(entity.AnotherQuoteSection);
 
                     _mapper.Map(dto.ParticipantsSection, entity.ParticipantsSection);
                     UpdateGalleryCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
@@ -206,6 +208,22 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
     private static void MarkAnalysisSectionLocalizationsOutdated(HippotherapyLandingPageAnalysisSection analysisSection)
     {
         foreach (var loc in analysisSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkQuoteSectionLocalizationsOutdated(HippotherapyLandingPageQuoteSection quoteSection)
+    {
+        foreach (var loc in quoteSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkAnotherQuoteSectionLocalizationsOutdated(HippotherapyLandingPageAnotherQuoteSection anotherQuoteSection)
+    {
+        foreach (var loc in anotherQuoteSection.Localizations)
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }

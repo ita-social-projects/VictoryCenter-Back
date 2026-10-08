@@ -15,7 +15,7 @@ public class MemoryCachePdfTicketStoreTests : IDisposable
     }
 
     [Fact]
-    public void TryConsumeTicket_WhenTicketExists_ShouldReturnTrueAndPdfIdAndRemoveFromCache()
+    public void TryGetTicket_WhenTicketExists_ShouldReturnTrueAndPdfId()
     {
         // Arrange
         var ticketId = "test-ticket-123";
@@ -25,24 +25,24 @@ public class MemoryCachePdfTicketStoreTests : IDisposable
         _memoryCache.Set(cacheKey, expectedPdfId);
 
         // Act
-        var isSuccess = _ticketStore.TryConsumeTicket(ticketId, out long actualPdfId);
+        var isSuccess = _ticketStore.TryGetTicket(ticketId, out long actualPdfId);
 
         // Assert
         Assert.True(isSuccess);
         Assert.Equal(expectedPdfId, actualPdfId);
 
         var stillExists = _memoryCache.TryGetValue(cacheKey, out _);
-        Assert.False(stillExists);
+        Assert.True(stillExists);
     }
 
     [Fact]
-    public void TryConsumeTicket_WhenTicketDoesNotExist_ShouldReturnFalseAndDefaultPdfId()
+    public void TryGetTicket_WhenTicketDoesNotExist_ShouldReturnFalseAndDefaultPdfId()
     {
         // Arrange
         var ticketId = "non-existent-ticket";
 
         // Act
-        var isSuccess = _ticketStore.TryConsumeTicket(ticketId, out long actualPdfId);
+        var isSuccess = _ticketStore.TryGetTicket(ticketId, out long actualPdfId);
 
         // Assert
         Assert.False(isSuccess);

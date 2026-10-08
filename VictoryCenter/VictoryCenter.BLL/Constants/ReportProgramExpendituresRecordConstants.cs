@@ -22,6 +22,13 @@ public static class ReportProgramExpendituresRecordConstants
 
     public static readonly int MaxNumberOfRecordsPerBulkDelete = 100;
 
+    public static readonly int MaxNumberOfRecordsPerBatchOperation = 100;
+
+    public static string ProgramCategoryAlreadyHasRecord()
+    {
+        return "A record for this program category already exists";
+    }
+
     public static string ProgramCategoryAlreadyHasRecord(long programCategoryId)
     {
         return $"A record for the {programCategoryId} program category already exists";

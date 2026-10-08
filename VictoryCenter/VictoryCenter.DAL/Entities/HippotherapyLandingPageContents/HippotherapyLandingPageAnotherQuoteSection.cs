@@ -1,8 +1,11 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 
-public class HippotherapyLandingPageAnotherQuoteSection : BaseEntity
+public class HippotherapyLandingPageAnotherQuoteSection
+    : BaseEntity, ITranslatedEntity<HippotherapyLandingPageAnotherQuoteSectionLocalization>
 {
     public long HippotherapyLandingPageId { get; set; }
 
@@ -15,4 +18,6 @@ public class HippotherapyLandingPageAnotherQuoteSection : BaseEntity
     public Image? Image { get; set; }
 
     public HippotherapyLandingPage HippotherapyLandingPage { get; set; } = null!;
+
+    public ICollection<HippotherapyLandingPageAnotherQuoteSectionLocalization> Localizations { get; set; } = [];
 }

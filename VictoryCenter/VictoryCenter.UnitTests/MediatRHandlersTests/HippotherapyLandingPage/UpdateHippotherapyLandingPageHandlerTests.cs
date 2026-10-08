@@ -482,6 +482,62 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenQuoteSectionUpdated_ShouldMarkExistingQuoteLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.QuoteSection!.Localizations =
+        [
+            new HippotherapyLandingPageQuoteSectionLocalization
+            {
+                EntityId = existing.QuoteSection.Id,
+                LanguageId = 2,
+                QuoteText = "Old translated quote text",
+                AuthorName = "Old translated author",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.QuoteSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenAnotherQuoteSectionUpdated_ShouldMarkExistingAnotherQuoteLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.AnotherQuoteSection!.Localizations =
+        [
+            new HippotherapyLandingPageAnotherQuoteSectionLocalization
+            {
+                EntityId = existing.AnotherQuoteSection.Id,
+                LanguageId = 2,
+                QuoteText = "Old translated quote text",
+                AuthorName = "Old translated author",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.AnotherQuoteSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
     public async Task Handle_WhenHippoventionCenterSectionUpdated_ShouldMarkExistingHippoventionCenterLocalizationsOutdated()
     {
         // Arrange
