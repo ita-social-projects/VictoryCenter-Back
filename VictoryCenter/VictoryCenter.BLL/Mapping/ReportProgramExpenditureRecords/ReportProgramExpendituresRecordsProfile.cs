@@ -12,5 +12,7 @@ public class ReportProgramExpendituresRecordsProfile : Profile
         CreateMap<ReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
         CreateMap<CreateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
         CreateMap<UpdateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>();
+        CreateMap<BatchUpdateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 }

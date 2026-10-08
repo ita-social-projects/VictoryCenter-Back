@@ -65,6 +65,7 @@ public class CreateEventNewsTests
         Assert.Equal("event-news-title", entity.Slug);
         Assert.Single(entity.Categories);
         Assert.Single(entity.Localizations);
+        Assert.Equal(TranslationStatus.Relevant, entity.Localizations.Single().TranslationStatus);
     }
 
     [Fact]

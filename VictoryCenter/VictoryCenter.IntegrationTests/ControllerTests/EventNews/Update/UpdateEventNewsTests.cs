@@ -2,7 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.BLL.Enums;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -97,6 +100,71 @@ public class UpdateEventNewsTests : BaseTestClass
         Assert.Equal("Київ, 18:00", content.AdditionalDescription);
         Assert.Equal("https://example.com/en/integration-update", content.ResourceEn);
         Assert.Equal("Online", content.Localizations.Single().AdditionalDescription);
+    }
+
+    [Fact]
+    public async Task UpdateEventNews_WhenSourceContentChanges_ShouldMarkTranslationsAsOutdated()
+    {
+        var existing = await Fixture.DbContext.EventNews
+            .AsNoTracking()
+            .Include(eventNews => eventNews.Categories)
+            .SingleAsync(eventNews => eventNews.Id == 1);
+        var languageId = await Fixture.DbContext.LocalizationLanguages
+            .Select(language => language.Id)
+            .FirstAsync();
+        var existingLocalization = new EventNewsLocalization
+        {
+            EntityId = existing.Id,
+            LanguageId = languageId,
+            Title = "Existing translation",
+            Description = "Existing translation description",
+            TranslationStatus = TranslationStatus.Relevant,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        Fixture.DbContext.EventNewsLocalizations.Add(existingLocalization);
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        var dto = new UpdateEventNewsDto
+        {
+            Title = existing.Title,
+            Description = $"{existing.Description} updated",
+            AdditionalDescription = existing.AdditionalDescription,
+            Resource = existing.Resource,
+            ResourceEn = existing.ResourceEn,
+            PublishedAt = existing.PublishedAt,
+            Status = existing.Status,
+            PreviewImageId = existing.PreviewImageId,
+            BackgroundImageId = existing.BackgroundImageId,
+            CategoryIds = [.. existing.Categories.Select(category => category.Id)],
+            Localizations =
+            [
+                new CreateEventNewsLocalizationDto
+                {
+                    LanguageId = existingLocalization.LanguageId,
+                    Title = existingLocalization.Title,
+                    Description = existingLocalization.Description
+                },
+            ]
+        };
+
+        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var content = await response.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(content);
+        Assert.NotEmpty(content.Localizations);
+        Assert.All(
+            content.Localizations,
+            localization => Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus));
+
+        var filteredPage = await Fixture.HttpClient.GetFromJsonAsync<PaginationResult<EventNewsDto>>(
+            $"{EndpointUri}?translationStatusFilter={TranslationStatusFilter.Outdated}",
+            JsonOptions);
+
+        Assert.NotNull(filteredPage);
+        Assert.Contains(filteredPage.Items, eventNews => eventNews.Id == existing.Id);
     }
 
     [Fact]

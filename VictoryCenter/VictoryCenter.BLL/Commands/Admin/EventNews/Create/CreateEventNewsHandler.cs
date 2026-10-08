@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
@@ -171,6 +172,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
                 Title = localizationDto.Title!.Trim(),
                 Description = localizationDto.Description?.Trim(),
                 AdditionalDescription = localizationDto.AdditionalDescription?.Trim(),
+                TranslationStatus = TranslationStatus.Relevant,
                 CreatedAt = createdAt
             };
 

@@ -38,6 +38,9 @@ public class CreateEventNewsTests : BaseTestClass
         Assert.NotNull(responseContent.Slug);
         Assert.Single(responseContent.Categories);
         Assert.Single(responseContent.Localizations);
+        Assert.Equal(
+            TranslationStatus.Relevant,
+            responseContent.Localizations.Single().TranslationStatus);
     }
 
     [Fact]
