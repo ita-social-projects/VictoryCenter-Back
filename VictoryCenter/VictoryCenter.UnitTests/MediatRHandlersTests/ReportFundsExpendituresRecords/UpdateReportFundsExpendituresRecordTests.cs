@@ -242,7 +242,7 @@ public class UpdateReportFundsExpendituresRecordTests
 
         _helperMock
             .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
-            .ReturnsAsync(Result.Fail(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord));
+            .ReturnsAsync(Result.Fail(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord()));
 
         var handler = CreateHandler();
 
@@ -253,7 +253,7 @@ public class UpdateReportFundsExpendituresRecordTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord, result.Errors[0].Message);
+        Assert.Equal(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord(), result.Errors[0].Message);
     }
 
     [Fact]
