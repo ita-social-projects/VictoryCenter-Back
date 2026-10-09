@@ -25,6 +25,7 @@ public class UpdateImageTest : BaseTestClass
     {
         Image? image = await Fixture.DbContext.Images.FirstOrDefaultAsync();
         var id = image!.Id;
+        var previousBlobName = image.BlobName;
 
         var extension = image.MimeType.Split("/")[1];
         string filePath = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, image.BlobName + "." + extension);
@@ -50,7 +51,10 @@ public class UpdateImageTest : BaseTestClass
         Assert.True(response.IsSuccessStatusCode);
         Assert.Equal(image.Id, responseContext.Id);
         Assert.Equal(updateImageDto.MimeType, responseContext.MimeType);
+        Assert.NotEqual(previousBlobName, responseContext.BlobName);
         Assert.NotEqual(oldHash, newHash);
+        Assert.False(File.Exists(filePath));
+        Assert.True(File.Exists(newFilePath));
     }
 
     [Fact]
