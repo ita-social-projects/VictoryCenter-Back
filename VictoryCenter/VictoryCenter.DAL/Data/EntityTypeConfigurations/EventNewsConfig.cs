@@ -38,6 +38,15 @@ public class EventNewsConfig : IEntityTypeConfiguration<EventNews>
         builder.Property(e => e.Status)
             .IsRequired();
 
+        builder.Property(e => e.CategoryId)
+            .IsRequired();
+
+        builder.Property(e => e.Priority)
+            .IsRequired();
+
+        builder.HasIndex(e => new { e.CategoryId, e.Priority })
+            .IsUnique();
+
         builder.Property(e => e.PreviewImageId);
 
         builder.Property(e => e.BackgroundImageId);
@@ -55,40 +64,9 @@ public class EventNewsConfig : IEntityTypeConfiguration<EventNews>
             .WithOne()
             .HasForeignKey<EventNews>(e => e.BackgroundImageId);
 
-        builder.HasMany(e => e.Categories)
+        builder.HasOne(e => e.Category)
             .WithMany(e => e.EventsNews)
-            .UsingEntity<EventNewsEventNewsCategories>(
-                category => category
-                    .HasOne<EventNewsCategory>()
-                    .WithMany()
-                    .HasForeignKey(ec => ec.CategoriesId)
-                    .OnDelete(DeleteBehavior.Restrict),
-                eventNews => eventNews
-                    .HasOne<EventNews>()
-                    .WithMany()
-                    .HasForeignKey(ec => ec.EventsNewsId)
-                    .OnDelete(DeleteBehavior.Cascade),
-                join =>
-                {
-                    join.ToTable("EventNewsEventNewsCategories");
-
-                    join.HasKey(ec => new
-                    {
-                        ec.CategoriesId,
-                        ec.EventsNewsId
-                    });
-
-                    join.Property(ec => ec.Priority)
-                        .IsRequired();
-
-                    join.HasIndex(ec => ec.EventsNewsId);
-
-                    join.HasIndex(ec => new
-                    {
-                        ec.CategoriesId,
-                        ec.Priority
-                    })
-                    .IsUnique();
-                });
+            .HasForeignKey(e => e.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

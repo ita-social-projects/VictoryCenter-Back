@@ -12,7 +12,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Update;
@@ -51,21 +50,24 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         }
 
         var dto = request.EventNews;
-        var categoryIds = dto.CategoryIds ?? [];
         var localizationDtos = (dto.Localizations ?? [])
             .Where(localization => localization is not null && !string.IsNullOrWhiteSpace(localization.Title))
             .ToList();
 
-        var categoriesResult = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(
-            _repositoryWrapper.EventNewsCategoryRepository,
-            categoryIds,
-            query => query
-                .Include(category => category.Localizations)
-                .ThenInclude(localization => localization.Language));
+        var category = await _repositoryWrapper.EventNewsCategoryRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<EventNewsCategory>
+            {
+                Filter = item => item.Id == dto.CategoryId,
+                Include = query => query
+                    .Include(item => item.Localizations)
+                    .ThenInclude(localization => localization.Language),
+                AsNoTracking = false
+            });
 
-        if (categoriesResult.IsFailed)
+        if (category is null)
         {
-            return Result.Fail<EventNewsDto>(categoriesResult.Errors);
+            return Result.Fail<EventNewsDto>(
+                ErrorMessagesConstants.NotFound(dto.CategoryId, typeof(EventNewsCategory)));
         }
 
         var imagesResult = await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
@@ -85,15 +87,12 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             return Result.Fail<EventNewsDto>(languagesResult.Errors);
         }
 
-        var (categoriesChanged, localizationsChanged, titlesChanged, sourceContentChanged, hasChanges) = GetChanges(
+        var (categoryChanged, localizationsChanged, titlesChanged, sourceContentChanged, hasChanges) = GetChanges(
             eventNews,
             dto,
-            categoryIds,
             localizationDtos);
 
-        var oldCategoryIds = eventNews.Categories
-            .Select(category => category.Id)
-            .ToHashSet();
+        var oldCategoryId = eventNews.CategoryId;
 
         if (!hasChanges)
         {
@@ -104,14 +103,14 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
 
         try
         {
-            ApplyChanges(
+            await ApplyChangesAsync(
                 eventNews,
                 dto,
                 imagesResult.Value,
-                categoriesResult.Value,
+                category,
                 localizationDtos,
                 languagesResult.Value,
-                categoriesChanged,
+                categoryChanged,
                 localizationsChanged,
                 sourceContentChanged);
 
@@ -130,12 +129,10 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                 return result;
             }
 
-            if (categoriesChanged)
+            if (categoryChanged)
             {
-                await UpdateCategoryPrioritiesAsync(
-                    eventNews.Id,
-                    oldCategoryIds,
-                    categoriesResult.Value);
+                await _reorderService.RenumberPriorityAsync<EventNewsEntity>(
+                    item => item.CategoryId == oldCategoryId);
             }
 
             await transaction.CommitAsync(cancellationToken);
@@ -158,7 +155,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                 Include = query => query
                     .Include(eventNews => eventNews.PreviewImage)
                     .Include(eventNews => eventNews.BackgroundImage)
-                    .Include(eventNews => eventNews.Categories)
+                    .Include(eventNews => eventNews.Category)
                     .ThenInclude(category => category.Localizations)
                     .ThenInclude(localization => localization.Language)
                     .Include(eventNews => eventNews.Localizations)
@@ -208,14 +205,6 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                    eventNews.AdditionalDescription,
                    dto.AdditionalDescription,
                    StringComparison.Ordinal);
-    }
-
-    private static bool HaveSameCategoryIds(
-        IEnumerable<EventNewsCategory> currentCategories,
-        IEnumerable<long> requestedCategoryIds)
-    {
-        return currentCategories.Select(category => category.Id).ToHashSet()
-            .SetEquals(requestedCategoryIds);
     }
 
     private static (bool LocalizationsChanged, bool TitlesChanged) GetLocalizationChanges(
@@ -271,17 +260,6 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         eventNews.BackgroundImage = dto.BackgroundImageId.HasValue
             ? imagesById[dto.BackgroundImageId.Value]
             : null;
-    }
-
-    private static void ReplaceCategories(
-        EventNewsEntity eventNews,
-        IEnumerable<EventNewsCategory> categories)
-    {
-        eventNews.Categories.Clear();
-        foreach (var category in categories)
-        {
-            eventNews.Categories.Add(category);
-        }
     }
 
     private void MergeLocalizations(
@@ -342,38 +320,37 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
     }
 
     private static (
-        bool CategoriesChanged,
+        bool CategoryChanged,
         bool LocalizationsChanged,
         bool TitlesChanged,
         bool SourceContentChanged,
         bool HasChanges) GetChanges(
         EventNewsEntity eventNews,
         UpdateEventNewsDto dto,
-        IReadOnlyCollection<long> categoryIds,
         IReadOnlyCollection<CreateEventNewsLocalizationDto> localizationDtos)
     {
-        var categoriesChanged = !HaveSameCategoryIds(eventNews.Categories, categoryIds);
+        var categoryChanged = eventNews.CategoryId != dto.CategoryId;
         var (localizationsChanged, titlesChanged) = GetLocalizationChanges(
             eventNews.Localizations,
             localizationDtos);
         var sourceContentChanged = HasSourceContentChanges(eventNews, dto);
         var slugStateChanged = string.IsNullOrWhiteSpace(eventNews.Slug) != (localizationDtos.Count == 0);
         var hasChanges = HasScalarOrImageChanges(eventNews, dto)
-                         || categoriesChanged
+                         || categoryChanged
                          || localizationsChanged
                          || slugStateChanged;
 
-        return (categoriesChanged, localizationsChanged, titlesChanged, sourceContentChanged, hasChanges);
+        return (categoryChanged, localizationsChanged, titlesChanged, sourceContentChanged, hasChanges);
     }
 
-    private void ApplyChanges(
+    private async Task ApplyChangesAsync(
         EventNewsEntity eventNews,
         UpdateEventNewsDto dto,
         IReadOnlyDictionary<long, Image> imagesById,
-        IEnumerable<EventNewsCategory> categories,
+        EventNewsCategory category,
         IReadOnlyCollection<CreateEventNewsLocalizationDto> localizationDtos,
         IReadOnlyDictionary<long, LocalizationLanguage> languagesById,
-        bool categoriesChanged,
+        bool categoryChanged,
         bool localizationsChanged,
         bool sourceContentChanged)
     {
@@ -387,9 +364,12 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
 
         ApplyScalarAndImageChanges(eventNews, dto, imagesById);
 
-        if (categoriesChanged)
+        if (categoryChanged)
         {
-            ReplaceCategories(eventNews, categories);
+            eventNews.CategoryId = category.Id;
+            eventNews.Category = category;
+            eventNews.Priority = await _reorderService
+                .GetNextDisplayOrderAsync<EventNewsEntity>(item => item.CategoryId == category.Id);
         }
 
         if (localizationsChanged)
@@ -419,61 +399,6 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             eventNews.Id,
             titleForSlug,
             cancellationToken);
-    }
-
-    private async Task UpdateCategoryPrioritiesAsync(
-        long eventNewsId,
-        IReadOnlySet<long> oldCategoryIds,
-        IEnumerable<EventNewsCategory> newCategories)
-    {
-        var newCategoryIds = newCategories
-            .Select(category => category.Id)
-            .ToHashSet();
-
-        var addedCategoryIds = newCategoryIds
-            .Where(id => !oldCategoryIds.Contains(id))
-            .ToList();
-
-        var removedCategoryIds = oldCategoryIds
-            .Where(id => !newCategoryIds.Contains(id))
-            .ToList();
-
-        foreach (var categoryId in addedCategoryIds)
-        {
-            var nextPriority = await _reorderService
-                .GetNextDisplayOrderAsync<EventNewsCategoryLink>(
-                    link => link.CategoriesId == categoryId);
-
-            var links = await _repositoryWrapper
-                .EventNewsEventNewsCategoriesRepository
-                .GetAllAsync(new QueryOptions<EventNewsCategoryLink>
-                {
-                    Filter = link =>
-                        link.EventsNewsId == eventNewsId &&
-                        link.CategoriesId == categoryId,
-                    AsNoTracking = false
-                });
-
-            var link = links.FirstOrDefault();
-
-            if (link is not null)
-            {
-                link.Priority = nextPriority;
-
-                _repositoryWrapper
-                    .EventNewsEventNewsCategoriesRepository
-                    .Update(link);
-            }
-        }
-
-        await _repositoryWrapper.SaveChangesAsync();
-
-        foreach (var categoryId in removedCategoryIds)
-        {
-            await _reorderService
-                .RenumberPriorityAsync<EventNewsCategoryLink>(
-                    link => link.CategoriesId == categoryId);
-        }
     }
 
     private async Task<Result<EventNewsDto>> SaveAsync(

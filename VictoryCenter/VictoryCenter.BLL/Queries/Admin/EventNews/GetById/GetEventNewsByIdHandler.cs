@@ -33,7 +33,7 @@ public class GetEventNewsByIdHandler : IRequestHandler<GetEventNewsByIdQuery, Re
                     .AsSplitQuery()
                     .Include(item => item.PreviewImage)
                     .Include(item => item.BackgroundImage)
-                    .Include(item => item.Categories)
+                    .Include(item => item.Category)
                         .ThenInclude(category => category.Localizations)
                             .ThenInclude(localization => localization.Language)
                     .Include(item => item.Localizations)

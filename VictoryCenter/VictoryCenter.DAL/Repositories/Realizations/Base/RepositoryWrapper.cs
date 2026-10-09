@@ -183,7 +183,6 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
     private IEventNewsCategoryLocalizationsRepository? _eventNewsCategoryLocalizationsRepository;
     private IEventsIntroSectionsRepository? _eventsIntroSectionsRepository;
-    private IEventNewsEventNewsCategoriesRepository? _eventNewsEventNewsCategoriesRepository;
     private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
     private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
     private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
@@ -443,9 +442,6 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IEventsIntroSectionsRepository EventsIntroSectionsRepository =>
         _eventsIntroSectionsRepository ??= new EventsIntroSectionsRepository(_victoryCenterDbContext);
-
-    public IEventNewsEventNewsCategoriesRepository EventNewsEventNewsCategoriesRepository =>
-        _eventNewsEventNewsCategoriesRepository ??= new EventNewsEventCategoriesRepository(_victoryCenterDbContext);
 
     public IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository =>
         _publishedReportFundsExpendituresRecordsRepository ??=

@@ -48,8 +48,7 @@ public class GetPublishedEventNewsTests
         var entity = new EventNewsEntity
         {
             Id = 1,
-            Categories =
-            [
+            Category =
                 new EventNewsCategory
                 {
                     Id = 10,
@@ -64,8 +63,7 @@ public class GetPublishedEventNewsTests
                             Name = "Localized category name"
                         },
                     ]
-                },
-            ]
+                }
         };
         var configuration = new MapperConfiguration(config =>
         {
@@ -76,7 +74,7 @@ public class GetPublishedEventNewsTests
 
         var result = mapper.Map<PublishedEventNewsDto>(entity);
 
-        var category = Assert.Single(result.Categories);
+        var category = result.Category;
         Assert.Equal("Base category name", category.Name);
         var localization = Assert.Single(category.Localizations);
         Assert.Equal("Localized category name", localization.Name);

@@ -36,7 +36,7 @@ public class DeleteEventNewsCategoryHandler
         }
 
         var isInUse = await _repositoryWrapper.EventNewsRepository.ExistsAsync(
-            eventNews => eventNews.Categories.Any(entity => entity.Id == request.Id));
+            eventNews => eventNews.CategoryId == request.Id);
 
         if (isInUse)
         {

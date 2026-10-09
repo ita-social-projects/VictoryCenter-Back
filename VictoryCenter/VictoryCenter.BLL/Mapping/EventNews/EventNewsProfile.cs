@@ -18,7 +18,8 @@ public class EventNewsProfile : Profile
 
         CreateMap<CreateEventNewsDto, EventNewsEntity>()
             .ForMember(dest => dest.Slug, opt => opt.Ignore())
-            .ForMember(dest => dest.Categories, opt => opt.Ignore())
+            .ForMember(dest => dest.Category, opt => opt.Ignore())
+            .ForMember(dest => dest.Priority, opt => opt.Ignore())
             .ForMember(dest => dest.PreviewImage, opt => opt.Ignore())
             .ForMember(dest => dest.BackgroundImage, opt => opt.Ignore())
             .ForMember(dest => dest.Localizations, opt => opt.Ignore())
