@@ -567,6 +567,66 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenAdvantagesSectionUpdated_ShouldMarkExistingAdvantagesLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.AdvantagesSection!.Localizations =
+        [
+            new HippotherapyLandingPageAdvantagesSectionLocalization
+            {
+                EntityId = existing.AdvantagesSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.AdvantagesSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenAdvantagesSectionUpdated_ShouldMarkExistingAdvantageCardLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        foreach (var card in existing.AdvantagesSection!.AdvantageCards.Take(2))
+        {
+            card.Localizations =
+            [
+                new HippotherapyLandingPageAdvantageCardLocalization
+                {
+                    EntityId = card.Id,
+                    LanguageId = 2,
+                    Description = "Old translated card description",
+                    TranslationStatus = TranslationStatus.Relevant,
+                },
+            ];
+        }
+
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var cardLocalizations = existing.AdvantagesSection.AdvantageCards.SelectMany(c => c.Localizations).ToList();
+        Assert.Equal(2, cardLocalizations.Count);
+        Assert.All(cardLocalizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
     public async Task Handle_WhenReorderExceptionOccurs_ShouldReturnReorderFailResult()
     {
         // Arrange

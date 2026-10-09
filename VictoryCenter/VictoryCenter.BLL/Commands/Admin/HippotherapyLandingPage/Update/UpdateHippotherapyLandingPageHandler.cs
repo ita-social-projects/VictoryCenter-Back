@@ -110,6 +110,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
 
                     _mapper.Map(dto.AdvantagesSection, entity.AdvantagesSection);
                     UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
+                    MarkAdvantagesSectionLocalizationsOutdated(entity.AdvantagesSection);
 
                     _mapper.Map(dto.AnalysisSection, entity.AnalysisSection);
                     if (entity.AnalysisSection is not null)
@@ -232,6 +233,19 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
     private static void MarkHippoventionCenterSectionLocalizationsOutdated(HippotherapyLandingPageHippoventionCenterSection hippoventionCenterSection)
     {
         foreach (var loc in hippoventionCenterSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkAdvantagesSectionLocalizationsOutdated(HippotherapyLandingPageAdvantagesSection advantagesSection)
+    {
+        foreach (var loc in advantagesSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+
+        foreach (var loc in advantagesSection.AdvantageCards.SelectMany(c => c.Localizations))
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
