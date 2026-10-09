@@ -131,8 +131,8 @@ public class UpdateWhoWeAreContentValidatorTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { ContentType = ContentType.Title, Title = "Valid Title", Id = 1 },
-                new() { ContentType = ContentType.Description, Description = "Valid description", Id = 2 }
+                new() { ContentType = ContentType.Title, Title = "Valid Title", Description = "Valid description", Id = 1 },
+                new() { ContentType = ContentType.Description, Title = "Valid Title", Description = "Valid description", Id = 2 }
             });
 
         var result = _validator.TestValidate(command);

@@ -12,6 +12,11 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
         if (sectionType == SectionType.Main)
         {
             RuleFor(x => x.Title)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage(
+                    ErrorMessagesConstants.PropertyIsRequired(
+                        nameof(UpdateWhoWeAreContentDto.Title)))
                 .MinimumLength(WhoWeAreConstants.ValidationTitleRules.MinLen)
                 .WithMessage(
                     ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
@@ -28,6 +33,11 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
         }
 
         RuleFor(x => x.Description)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .WithMessage(
+                ErrorMessagesConstants.PropertyIsRequired(
+                    nameof(UpdateWhoWeAreContentDto.Description)))
             .MinimumLength(WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen))
