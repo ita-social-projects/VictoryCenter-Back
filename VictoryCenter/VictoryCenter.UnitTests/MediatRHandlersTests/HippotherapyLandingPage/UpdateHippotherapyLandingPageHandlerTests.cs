@@ -594,11 +594,11 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenAdvantagesSectionUpdated_ShouldMarkExistingAdvantageCardLocalizationsOutdated()
+    public async Task Handle_WhenAdvantagesSectionUpdated_ShouldMarkOnlyChangedAdvantageCardLocalizationsOutdated()
     {
         // Arrange
         var existing = GetExistingEntity();
-        foreach (var card in existing.AdvantagesSection!.AdvantageCards.Take(2))
+        foreach (var card in existing.AdvantagesSection!.AdvantageCards)
         {
             card.Localizations =
             [
@@ -613,6 +613,8 @@ public class UpdateHippotherapyLandingPageHandlerTests
         }
 
         var dto = GetValidUpdateDto(existing);
+        dto.AdvantagesSection.Cards[0] = new UpdateGalleryCardDto { Description = "Old card 1", ImageId = null };
+        dto.AdvantagesSection.Cards[2] = new UpdateGalleryCardDto { Description = "Old card 3", ImageId = null };
         SetUpRepositoryWrapper(existing);
         var handler = CreateHandler();
 
@@ -621,9 +623,13 @@ public class UpdateHippotherapyLandingPageHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        var cardLocalizations = existing.AdvantagesSection.AdvantageCards.SelectMany(c => c.Localizations).ToList();
-        Assert.Equal(2, cardLocalizations.Count);
-        Assert.All(cardLocalizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+        var cardStatuses = existing.AdvantagesSection.AdvantageCards
+            .OrderBy(c => c.Priority)
+            .Select(c => c.Localizations.Single().TranslationStatus)
+            .ToList();
+        Assert.Equal(
+            [TranslationStatus.Relevant, TranslationStatus.Outdated, TranslationStatus.Relevant, TranslationStatus.Outdated],
+            cardStatuses);
     }
 
     [Fact]

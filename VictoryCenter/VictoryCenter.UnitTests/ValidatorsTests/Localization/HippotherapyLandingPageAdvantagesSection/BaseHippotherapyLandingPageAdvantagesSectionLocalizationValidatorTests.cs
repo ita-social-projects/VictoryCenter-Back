@@ -153,6 +153,19 @@ public class BaseHippotherapyLandingPageAdvantagesSectionLocalizationValidatorTe
     }
 
     [Fact]
+    public void Validate_ShouldHaveError_WhenCards_ContainNullElement()
+    {
+        var model = new UpdateHippotherapyLandingPageAdvantagesSectionLocalizationDto
+        {
+            Title = "Why this approach",
+            Cards = [null!],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Cards)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateHippotherapyLandingPageAdvantagesSectionLocalizationDto.Cards)));
+    }
+
+    [Fact]
     public void Validate_ShouldHaveError_WhenCards_ContainDuplicateCardIds()
     {
         var model = new UpdateHippotherapyLandingPageAdvantagesSectionLocalizationDto

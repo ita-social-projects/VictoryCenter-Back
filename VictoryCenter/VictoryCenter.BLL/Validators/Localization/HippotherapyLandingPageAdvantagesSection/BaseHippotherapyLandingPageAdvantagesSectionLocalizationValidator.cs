@@ -21,8 +21,9 @@ public class BaseHippotherapyLandingPageAdvantagesSectionLocalizationValidator
             .Cascade(CascadeMode.Stop)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageAdvantagesSectionLocalizationDto.Cards)))
-            .Must(cards => cards.All(c => c is not null)
-                && cards.Select(c => c.CardId).Distinct().Count() == cards.Count)
+            .Must(cards => cards.All(c => c is not null))
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateHippotherapyLandingPageAdvantagesSectionLocalizationDto.Cards)))
+            .Must(cards => cards.Select(c => c.CardId).Distinct().Count() == cards.Count)
             .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateHippotherapyLandingPageAdvantagesSectionLocalizationDto.Cards)));
 
         RuleForEach(x => x.Cards).SetValidator(cardValidator);

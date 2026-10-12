@@ -109,8 +109,8 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     MarkHippoventionCenterSectionLocalizationsOutdated(entity.HippoventionCenterSection);
 
                     _mapper.Map(dto.AdvantagesSection, entity.AdvantagesSection);
-                    UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
-                    MarkAdvantagesSectionLocalizationsOutdated(entity.AdvantagesSection);
+                    var changedAdvantageCards = UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
+                    MarkAdvantagesSectionLocalizationsOutdated(entity.AdvantagesSection, changedAdvantageCards);
 
                     _mapper.Map(dto.AnalysisSection, entity.AnalysisSection);
                     if (entity.AnalysisSection is not null)
@@ -238,14 +238,16 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static void MarkAdvantagesSectionLocalizationsOutdated(HippotherapyLandingPageAdvantagesSection advantagesSection)
+    private static void MarkAdvantagesSectionLocalizationsOutdated(
+        HippotherapyLandingPageAdvantagesSection advantagesSection,
+        List<HippotherapyLandingPageAdvantageCard> changedCards)
     {
         foreach (var loc in advantagesSection.Localizations)
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
 
-        foreach (var loc in advantagesSection.AdvantageCards.SelectMany(c => c.Localizations))
+        foreach (var loc in changedCards.SelectMany(c => c.Localizations))
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
@@ -268,21 +270,29 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static void UpdateGalleryCards<TCard>(
+    private static List<TCard> UpdateGalleryCards<TCard>(
         ICollection<TCard> existing,
         List<UpdateGalleryCardDto> incoming,
         List<long> imageIdsToDelete)
         where TCard : IGalleryCard
     {
+        var changedCards = new List<TCard>();
         var existingList = existing.OrderBy(c => c.Priority).ToList();
         for (var i = 0; i < existingList.Count && i < incoming.Count; i++)
         {
             var card = existingList[i];
             var cardDto = incoming[i];
             TrackImageChange(card.ImageId, cardDto.ImageId, imageIdsToDelete);
+            if (!string.Equals(card.Description, cardDto.Description, StringComparison.Ordinal))
+            {
+                changedCards.Add(card);
+            }
+
             card.ImageId = cardDto.ImageId;
             card.Description = cardDto.Description;
         }
+
+        return changedCards;
     }
 
     private Result UpdateScientificReferences(
