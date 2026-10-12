@@ -7,6 +7,8 @@ public class UpdateEventNewsLocalizationValidator : AbstractValidator<UpdateEven
 {
     public UpdateEventNewsLocalizationValidator(BaseEventNewsLocalizationValidator baseEventNewsLocalizationValidator)
     {
+        RuleFor(c => c.EntityId).GreaterThan(0);
+        RuleFor(c => c.LanguageId).GreaterThan(0);
         RuleFor(c => c.UpdateEventNewsLocalizationDto).SetValidator(baseEventNewsLocalizationValidator);
     }
 }

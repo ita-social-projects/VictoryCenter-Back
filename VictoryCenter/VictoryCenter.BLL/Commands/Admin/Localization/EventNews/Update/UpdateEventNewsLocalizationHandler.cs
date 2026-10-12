@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
@@ -14,16 +13,13 @@ namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNews.Update;
 public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNewsLocalizationCommand, Result<AdminEventNewsLocalizationDto>>
 {
     private readonly IMapper _mapper;
-    private readonly IValidator<UpdateEventNewsLocalizationCommand> _validator;
     private readonly ILocalizationService<EventNewsEntity, EventNewsLocalization> _localizationService;
 
     public UpdateEventNewsLocalizationHandler(
         IMapper mapper,
-        IValidator<UpdateEventNewsLocalizationCommand> validator,
         ILocalizationService<EventNewsEntity, EventNewsLocalization> localizationService)
     {
         _mapper = mapper;
-        _validator = validator;
         _localizationService = localizationService;
     }
 
@@ -31,8 +27,6 @@ public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNew
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
             var dto = request.UpdateEventNewsLocalizationDto;
             EventNewsLocalization entity = _mapper.Map<EventNewsLocalization>(dto);
             entity.EntityId = request.EntityId;
@@ -48,10 +42,6 @@ public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNew
         catch (InvalidOperationException)
         {
             return Result.Fail<AdminEventNewsLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(EventNewsLocalization)));
-        }
-        catch (ValidationException ex)
-        {
-            return Result.Fail<AdminEventNewsLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException)
         {

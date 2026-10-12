@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
@@ -14,16 +13,13 @@ namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNews.Create;
 public class CreateEventNewsLocalizationHandler : IRequestHandler<CreateEventNewsLocalizationCommand, Result<AdminEventNewsLocalizationDto>>
 {
     private readonly IMapper _mapper;
-    private readonly IValidator<CreateEventNewsLocalizationCommand> _validator;
     private readonly ILocalizationService<EventNewsEntity, EventNewsLocalization> _localizationService;
 
     public CreateEventNewsLocalizationHandler(
         IMapper mapper,
-        IValidator<CreateEventNewsLocalizationCommand> validator,
         ILocalizationService<EventNewsEntity, EventNewsLocalization> localizationService)
     {
         _mapper = mapper;
-        _validator = validator;
         _localizationService = localizationService;
     }
 
@@ -31,7 +27,6 @@ public class CreateEventNewsLocalizationHandler : IRequestHandler<CreateEventNew
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
             EventNewsLocalization entity = _mapper.Map<EventNewsLocalization>(request.CreateAdminEventNewsLocalizationDto);
             var result = await _localizationService.CreateEntityLocalizationAsync(entity);
             AdminEventNewsLocalizationDto responseDto = _mapper.Map<AdminEventNewsLocalizationDto>(result);
@@ -44,10 +39,6 @@ public class CreateEventNewsLocalizationHandler : IRequestHandler<CreateEventNew
         catch (InvalidOperationException)
         {
             return Result.Fail<AdminEventNewsLocalizationDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsLocalization)));
-        }
-        catch (ValidationException vex)
-        {
-            return Result.Fail<AdminEventNewsLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException)
         {

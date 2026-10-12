@@ -1,12 +1,10 @@
 using AutoMapper;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.EventNews.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNews;
 using VictoryCenter.BLL.Interfaces.Localization;
-using VictoryCenter.BLL.Validators.Localization.EventNews;
 using VictoryCenter.DAL.Entities.Localization;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
@@ -16,7 +14,6 @@ public class CreateEventNewsLocalizationTests
 {
     private readonly Mock<ILocalizationService<EventNewsEntity, EventNewsLocalization>> _mockLocalizationService;
     private readonly Mock<IMapper> _mockMapper;
-    private readonly IValidator<CreateEventNewsLocalizationCommand> _validator;
 
     private readonly CreateAdminEventNewsLocalizationDto _testCreateDto = new()
     {
@@ -49,7 +46,6 @@ public class CreateEventNewsLocalizationTests
     {
         _mockLocalizationService = new Mock<ILocalizationService<EventNewsEntity, EventNewsLocalization>>();
         _mockMapper = new Mock<IMapper>();
-        _validator = new CreateEventNewsLocalizationValidator(new BaseEventNewsLocalizationValidator());
     }
 
     [Fact]
@@ -58,7 +54,7 @@ public class CreateEventNewsLocalizationTests
         // Arrange
         SetupDependencies();
         var handler = new CreateEventNewsLocalizationHandler(
-            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+            _mockMapper.Object, _mockLocalizationService.Object);
 
         var command = new CreateEventNewsLocalizationCommand(_testCreateDto);
 
@@ -80,7 +76,7 @@ public class CreateEventNewsLocalizationTests
         // Arrange
         SetupDependencies();
         var handler = new CreateEventNewsLocalizationHandler(
-            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+            _mockMapper.Object, _mockLocalizationService.Object);
 
         var dtoWithoutDescription = new CreateAdminEventNewsLocalizationDto
         {
@@ -114,7 +110,7 @@ public class CreateEventNewsLocalizationTests
             .ThrowsAsync(new DbUpdateException());
 
         var handler = new CreateEventNewsLocalizationHandler(
-            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+            _mockMapper.Object, _mockLocalizationService.Object);
 
         var command = new CreateEventNewsLocalizationCommand(_testCreateDto);
 
@@ -142,7 +138,7 @@ public class CreateEventNewsLocalizationTests
             .ThrowsAsync(new KeyNotFoundException(notFoundMessage));
 
         var handler = new CreateEventNewsLocalizationHandler(
-            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+            _mockMapper.Object, _mockLocalizationService.Object);
 
         var command = new CreateEventNewsLocalizationCommand(_testCreateDto);
 
@@ -169,7 +165,7 @@ public class CreateEventNewsLocalizationTests
             .ThrowsAsync(new InvalidOperationException());
 
         var handler = new CreateEventNewsLocalizationHandler(
-            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+            _mockMapper.Object, _mockLocalizationService.Object);
 
         var command = new CreateEventNewsLocalizationCommand(_testCreateDto);
 
