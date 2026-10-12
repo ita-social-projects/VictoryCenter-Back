@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
+using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.BLL.Queries.Public.EventNews.GetPublishedBySlug;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
