@@ -8,18 +8,32 @@ public class GetPublishedEventNewsQueryValidator : AbstractValidator<GetPublishe
 {
     public GetPublishedEventNewsQueryValidator()
     {
-        RuleFor(query => query.Take)
-            .GreaterThanOrEqualTo(EventNewsConstants.PublishedTakeMinValue)
-            .When(query => query.Take.HasValue)
+        RuleFor(query => query.Offset)
+            .GreaterThanOrEqualTo(EventNewsConstants.PublishedOffsetMinValue)
+            .When(query => query.Offset.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
-                nameof(GetPublishedEventNewsQuery.Take),
+                nameof(GetPublishedEventNewsQuery.Offset),
+                EventNewsConstants.PublishedOffsetMinValue));
+
+        RuleFor(query => query.Limit)
+            .GreaterThanOrEqualTo(EventNewsConstants.PublishedTakeMinValue)
+            .When(query => query.Limit.HasValue)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
+                nameof(GetPublishedEventNewsQuery.Limit),
                 EventNewsConstants.PublishedTakeMinValue));
 
-        RuleFor(query => query.Take)
+        RuleFor(query => query.Limit)
             .LessThanOrEqualTo(EventNewsConstants.PublishedTakeMaxValue)
-            .When(query => query.Take.HasValue)
+            .When(query => query.Limit.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeLessThanOrEqualToN(
-                nameof(GetPublishedEventNewsQuery.Take),
+                nameof(GetPublishedEventNewsQuery.Limit),
                 EventNewsConstants.PublishedTakeMaxValue));
+
+        RuleFor(query => query.CategoryId)
+            .GreaterThanOrEqualTo(1)
+            .When(query => query.CategoryId.HasValue)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeGreaterThanOrEqualToN(
+                nameof(GetPublishedEventNewsQuery.CategoryId),
+                1));
     }
 }

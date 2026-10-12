@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
@@ -179,9 +181,11 @@ public class UpdateEventNewsTests : BaseTestClass
 
         var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/2", dto);
         var content = await response.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
-        var publicItems = await Fixture.HttpClient.GetFromJsonAsync<List<PublishedEventNewsDto>>(
-            "/api/EventNews/published",
-            JsonOptions);
+        var publicResponse = await Fixture.HttpClient.GetAsync(
+            $"/api/EventNews/published?limit={EventNewsConstants.PublishedTakeMaxValue}");
+        publicResponse.EnsureSuccessStatusCode();
+        var publicPage = JsonConvert.DeserializeObject<PaginationResult<PublishedEventNewsDto>>(
+            await publicResponse.Content.ReadAsStringAsync());
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.NotNull(content);
@@ -189,8 +193,8 @@ public class UpdateEventNewsTests : BaseTestClass
         Assert.Null(content.Slug);
         Assert.Equal(2, content.Category.Id);
         Assert.Empty(content.Localizations);
-        Assert.NotNull(publicItems);
-        Assert.DoesNotContain(publicItems, eventNews => eventNews.Id == 2);
+        Assert.NotNull(publicPage);
+        Assert.DoesNotContain(publicPage.Items, eventNews => eventNews.Id == 2);
     }
 
     [Fact]
