@@ -79,10 +79,33 @@ public class GetEventNewsByFiltersHandler
             .ToArray();
 
         return Result.Ok(new PaginationResult<EventNewsDto>(sortedItems, totalCount));
-        }
+    }
 
-    private static QueryOptions<EventNewsEntity> SetupEventNewsQueryOptions(List<long> eventNewsIds)
-        {
+    private static Expression<Func<EventNewsEntity, bool>> BuildFilter(
+        long? categoryId,
+        Status? status,
+        TranslationStatusFilter? translationStatusFilter,
+        int requiredLocalizationCount)
+    {
+        var includeOnlyOutdated = translationStatusFilter == TranslationStatusFilter.Outdated;
+        var includeOnlyMissing = translationStatusFilter == TranslationStatusFilter.Missing;
+
+        return eventNews =>
+            (!categoryId.HasValue ||
+                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
+            (!status.HasValue || eventNews.Status == status.Value) &&
+            (!includeOnlyOutdated ||
+                eventNews.Localizations.Any(localization =>
+                    localization.TranslationStatus == TranslationStatus.Outdated)) &&
+            (!includeOnlyMissing ||
+                eventNews.Localizations.Count(localization =>
+                    localization.LanguageId != LocalizationLanguageConstants.PrimaryLanguageId) <
+                requiredLocalizationCount);
+    }
+
+    private static QueryOptions<EventNewsEntity> SetupEventNewsQueryOptions(
+        IReadOnlyCollection<long> eventNewsIds)
+    {
         return new QueryOptions<EventNewsEntity>
         {
             Filter = eventNews => eventNewsIds.Contains(eventNews.Id),
@@ -91,8 +114,8 @@ public class GetEventNewsByFiltersHandler
                         .Include(entity => entity.PreviewImage)
                         .Include(entity => entity.BackgroundImage)
                         .Include(entity => entity.Categories)
-                    .ThenInclude(category => category.Localizations)
-                        .ThenInclude(localization => localization.Language)
+                            .ThenInclude(category => category.Localizations)
+                                .ThenInclude(localization => localization.Language)
                         .Include(entity => entity.Localizations)
                             .ThenInclude(localization => localization.Language),
             AsNoTracking = true
