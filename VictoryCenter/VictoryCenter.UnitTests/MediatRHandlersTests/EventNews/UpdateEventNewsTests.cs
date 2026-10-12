@@ -110,6 +110,7 @@ public class UpdateEventNewsTests
     {
         var eventNews = ExistingEventNews();
         var outdatedLocalization = eventNews.Localizations.Single(item => item.LanguageId == 1);
+        var relevantLocalization = eventNews.Localizations.Single(item => item.LanguageId == 2);
         var dto = MatchingDto(eventNews) with { Resource = "https://example.com/updated" };
         var handler = CreateHandler(eventNews);
 
@@ -119,7 +120,48 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(TranslationStatus.Outdated, outdatedLocalization.TranslationStatus);
+        Assert.Equal(TranslationStatus.Relevant, relevantLocalization.TranslationStatus);
         _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSourceContentChanges_MarksUnchangedTranslationsAsOutdated()
+    {
+        var eventNews = ExistingEventNews();
+        var dto = MatchingDto(eventNews) with { Description = "Updated root description" };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.All(
+            eventNews.Localizations,
+            localization => Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenSourceAndTranslationChange_KeepsUpdatedTranslationRelevant()
+    {
+        var eventNews = ExistingEventNews();
+        var matchingDto = MatchingDto(eventNews);
+        var dto = matchingDto with
+        {
+            Title = "Updated root title",
+            Localizations = [.. matchingDto.Localizations.Select(localization => localization.LanguageId == 1
+                ? localization with { Title = "Updated translation" }
+                : localization)],
+        };
+        var handler = CreateHandler(eventNews);
+
+        var result = await handler.Handle(new UpdateEventNewsCommand(10, dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(
+            TranslationStatus.Relevant,
+            eventNews.Localizations.Single(localization => localization.LanguageId == 1).TranslationStatus);
+        Assert.Equal(
+            TranslationStatus.Outdated,
+            eventNews.Localizations.Single(localization => localization.LanguageId == 2).TranslationStatus);
     }
 
     [Fact]

@@ -17,7 +17,7 @@ public class GeneratePdfPreviewTicketHandler : IRequestHandler<GeneratePdfPrevie
     {
         var ticketId = Guid.NewGuid().ToString();
 
-        _cache.Set($"PdfTicket_{ticketId}", request.Id, TimeSpan.FromSeconds(120));
+        _cache.Set($"PdfTicket_{ticketId}", request.Id, TimeSpan.FromSeconds(300));
 
         return Result.Ok(ticketId);
     }

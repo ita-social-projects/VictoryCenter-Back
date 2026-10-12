@@ -7,7 +7,7 @@ using VictoryCenter.BLL.Commands.Admin.PdfReports.Reorder;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Update;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
-using VictoryCenter.BLL.Queries.Admin.PdfReports.ConsumePreviewTicket;
+using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
 using VictoryCenter.WebAPI.Controllers.Common;
@@ -59,7 +59,7 @@ public class PdfReportsController : AuthorizedApiController
     [AllowAnonymous]
     public async Task<IActionResult> PreviewPdfReportByTicket([FromRoute] string fileName, [FromQuery] string ticket)
     {
-        var result = await Mediator.Send(new ConsumePdfPreviewTicketQuery(ticket));
+        var result = await Mediator.Send(new GetPdfPreviewTicketQuery(ticket));
 
         if (!result.IsSuccess)
         {

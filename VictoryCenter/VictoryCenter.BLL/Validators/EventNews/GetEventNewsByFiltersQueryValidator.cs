@@ -27,5 +27,10 @@ public class GetEventNewsByFiltersQueryValidator : AbstractValidator<GetEventNew
             .IsInEnum()
             .When(query => query.Filter.Status.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("Status"));
+
+        RuleFor(query => query.Filter.TranslationStatusFilter)
+            .IsInEnum()
+            .When(query => query.Filter.TranslationStatusFilter.HasValue)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBeValidEnum("TranslationStatusFilter"));
     }
 }

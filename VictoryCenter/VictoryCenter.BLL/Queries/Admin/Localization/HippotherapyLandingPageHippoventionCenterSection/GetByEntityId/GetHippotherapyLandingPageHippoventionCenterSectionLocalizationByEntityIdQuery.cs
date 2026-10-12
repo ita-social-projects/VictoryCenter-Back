@@ -1,0 +1,8 @@
+using FluentResults;
+using MediatR;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageHippoventionCenterSection;
+
+namespace VictoryCenter.BLL.Queries.Admin.Localization.HippotherapyLandingPageHippoventionCenterSection.GetByEntityId;
+
+public record GetHippotherapyLandingPageHippoventionCenterSectionLocalizationByEntityIdQuery(long Id)
+    : IRequest<Result<List<HippotherapyLandingPageHippoventionCenterSectionLocalizationDto>>>;

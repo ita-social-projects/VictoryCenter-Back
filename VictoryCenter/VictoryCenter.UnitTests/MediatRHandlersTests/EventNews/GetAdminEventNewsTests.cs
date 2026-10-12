@@ -1,7 +1,9 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Mapping.EventNews;
 using VictoryCenter.BLL.Mapping.EventNewsCategories;
 using VictoryCenter.BLL.Mapping.Localization.Languages;
@@ -107,6 +109,14 @@ public class GetAdminEventNewsTests
             .Callback<QueryOptions<EventNewsEntity>>(options => countOptions = options)
             .ReturnsAsync(7);
         _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                null,
+                1,
+                2,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([2, 3]);
+        _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
             .ReturnsAsync(
             [
@@ -174,6 +184,14 @@ public class GetAdminEventNewsTests
             .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .ReturnsAsync(25);
         _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                null,
+                0,
+                20,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Enumerable.Range(1, 20).Select(id => (long)id).ToArray());
+        _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
             .ReturnsAsync(priorities);
         _mapper
@@ -206,6 +224,7 @@ public class GetAdminEventNewsTests
         };
         QueryOptions<EventNewsEntity>? listOptions = null;
         QueryOptions<EventNewsEntity>? countOptions = null;
+        Expression<Func<EventNewsEntity, bool>>? pagedIdsFilter = null;
 
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
@@ -215,6 +234,16 @@ public class GetAdminEventNewsTests
             .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .Callback<QueryOptions<EventNewsEntity>>(options => countOptions = options)
             .ReturnsAsync(1);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                5,
+                0,
+                20,
+                It.IsAny<CancellationToken>()))
+            .Callback<Expression<Func<EventNewsEntity, bool>>, long?, int, int, CancellationToken>(
+                (filter, _, _, _, _) => pagedIdsFilter = filter)
+            .ReturnsAsync([1]);
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
             .ReturnsAsync(
@@ -237,8 +266,9 @@ public class GetAdminEventNewsTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(listOptions?.Filter);
         Assert.NotNull(countOptions?.Filter);
-        Assert.True(listOptions.Filter.Compile()(matchingItem));
-        Assert.False(listOptions.Filter.Compile()(otherItem));
+        Assert.NotNull(pagedIdsFilter);
+        Assert.True(pagedIdsFilter.Compile()(matchingItem));
+        Assert.False(pagedIdsFilter.Compile()(otherItem));
         Assert.True(countOptions.Filter.Compile()(matchingItem));
         Assert.False(countOptions.Filter.Compile()(otherItem));
     }
@@ -263,6 +293,7 @@ public class GetAdminEventNewsTests
         };
         QueryOptions<EventNewsEntity>? listOptions = null;
         QueryOptions<EventNewsEntity>? countOptions = null;
+        Expression<Func<EventNewsEntity, bool>>? pagedIdsFilter = null;
 
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
@@ -272,6 +303,16 @@ public class GetAdminEventNewsTests
             .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .Callback<QueryOptions<EventNewsEntity>>(options => countOptions = options)
             .ReturnsAsync(1);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                null,
+                0,
+                20,
+                It.IsAny<CancellationToken>()))
+            .Callback<Expression<Func<EventNewsEntity, bool>>, long?, int, int, CancellationToken>(
+                (filter, _, _, _, _) => pagedIdsFilter = filter)
+            .ReturnsAsync([1]);
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
@@ -298,10 +339,98 @@ public class GetAdminEventNewsTests
         Assert.True(result.IsSuccess);
         Assert.NotNull(listOptions?.Filter);
         Assert.NotNull(countOptions?.Filter);
-        Assert.True(listOptions.Filter.Compile()(matchingItem));
-        Assert.False(listOptions.Filter.Compile()(otherItem));
+        Assert.NotNull(pagedIdsFilter);
+        Assert.True(pagedIdsFilter.Compile()(matchingItem));
+        Assert.False(pagedIdsFilter.Compile()(otherItem));
         Assert.True(countOptions.Filter.Compile()(matchingItem));
         Assert.False(countOptions.Filter.Compile()(otherItem));
+    }
+
+    [Theory]
+    [InlineData(TranslationStatusFilter.Missing, 2)]
+    [InlineData(TranslationStatusFilter.Outdated, 3)]
+    public async Task GetByFilters_AppliesTranslationFilterBeforePaginationAndToCount(
+        TranslationStatusFilter translationFilter,
+        long expectedId)
+    {
+        var completeItem = new EventNewsEntity
+        {
+            Id = 1,
+            Localizations =
+            [
+                Localization(2, TranslationStatus.Relevant),
+                Localization(3, TranslationStatus.Relevant),
+            ]
+        };
+        var missingItem = new EventNewsEntity
+        {
+            Id = 2,
+            Localizations =
+            [
+                Localization(1, TranslationStatus.Relevant),
+                Localization(2, TranslationStatus.Relevant),
+            ]
+        };
+        var outdatedItem = new EventNewsEntity
+        {
+            Id = 3,
+            Localizations =
+            [
+                Localization(2, TranslationStatus.Outdated),
+                Localization(3, TranslationStatus.Relevant),
+            ]
+        };
+        var expectedItem = expectedId == missingItem.Id ? missingItem : outdatedItem;
+        Expression<Func<EventNewsEntity, bool>>? pagedIdsFilter = null;
+        QueryOptions<EventNewsEntity>? countOptions = null;
+
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.LocalizationLanguagesRepository.CountAsync(null))
+            .ReturnsAsync(3);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                null,
+                0,
+                20,
+                It.IsAny<CancellationToken>()))
+            .Callback<Expression<Func<EventNewsEntity, bool>>, long?, int, int, CancellationToken>(
+                (filter, _, _, _, _) => pagedIdsFilter = filter)
+            .ReturnsAsync([expectedId]);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(options => countOptions = options)
+            .ReturnsAsync(1);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .ReturnsAsync([expectedItem]);
+        _mapper
+            .Setup(mapper => mapper.Map<EventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
+            .Returns([new EventNewsDto { Id = expectedId }]);
+
+        var handler = new GetEventNewsByFiltersHandler(_mapper.Object, _repositoryWrapper.Object);
+        var result = await handler.Handle(
+            new GetEventNewsByFiltersQuery(new EventNewsFilterDto
+            {
+                TranslationStatusFilter = translationFilter
+            }),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedId, Assert.Single(result.Value.Items).Id);
+        Assert.Equal(1, result.Value.TotalItemsCount);
+        Assert.NotNull(pagedIdsFilter);
+        Assert.NotNull(countOptions?.Filter);
+        Assert.Equal(
+            pagedIdsFilter.Compile()(completeItem),
+            countOptions.Filter.Compile()(completeItem));
+        Assert.Equal(
+            pagedIdsFilter.Compile()(missingItem),
+            countOptions.Filter.Compile()(missingItem));
+        Assert.Equal(
+            pagedIdsFilter.Compile()(outdatedItem),
+            countOptions.Filter.Compile()(outdatedItem));
+        Assert.True(pagedIdsFilter.Compile()(expectedItem));
     }
 
     [Fact]
@@ -313,6 +442,14 @@ public class GetAdminEventNewsTests
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .ReturnsAsync(0);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                99,
+                0,
+                20,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
         _repositoryWrapper
             .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
             .ReturnsAsync([]);
@@ -420,6 +557,14 @@ public class GetAdminEventNewsTests
             .Setup(wrapper => wrapper.EventNewsRepository.CountAsync(
                 It.IsAny<QueryOptions<EventNewsEntity>>()))
             .ReturnsAsync(3);
+        _repositoryWrapper
+            .Setup(wrapper => wrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                5,
+                0,
+                20,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([2, 3, 1]);
 
         _mapper
             .Setup(mapper => mapper.Map<EventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
@@ -434,5 +579,17 @@ public class GetAdminEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal([2, 3, 1], result.Value.Items.Select(item => item.Id));
+    }
+
+    private static EventNewsLocalization Localization(
+        long languageId,
+        TranslationStatus translationStatus)
+    {
+        return new EventNewsLocalization
+        {
+            LanguageId = languageId,
+            Title = "Localized title",
+            TranslationStatus = translationStatus
+        };
     }
 }

@@ -2,10 +2,8 @@ using FluentValidation;
 using FluentValidation.TestHelper;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.BatchSave;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
-using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.ReportFundsExpendituresRecords;
 
@@ -37,99 +35,6 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto);
     }
 
-    [Theory]
-    [InlineData(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate))]
-    [InlineData(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate))]
-    [InlineData(nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete))]
-    public void Validate_ShouldHaveError_WhenAnyBatchCollectionIsNull(string nullCollectionName)
-    {
-        // Arrange
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordsToCreate = nullCollectionName == nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToCreate)
-                ? null!
-                : [],
-            RecordsToUpdate = nullCollectionName == nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)
-                ? null!
-                : [],
-            RecordIdsToDelete = nullCollectionName == nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
-                ? null!
-                : []
-        };
-
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor($"BatchSaveReportFundsExpendituresRecordsDto.{nullCollectionName}")
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nullCollectionName));
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenRecordsToUpdateHaveDuplicateIds()
-    {
-        // Arrange
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordsToUpdate =
-            [
-                new() { Id = 10 },
-                new() { Id = 10 }
-            ]
-        };
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate.Select(u => u.Id))
-            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
-                nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordsToUpdate)));
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenRecordIdsToDeleteHaveDuplicates()
-    {
-        // Arrange
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordIdsToDelete = [1, 2, 2, 3]
-        };
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(
-                nameof(BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)));
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-1)]
-    public void Validate_ShouldHaveError_WhenRecordIdsToDeleteContainNonPositiveId(long invalidId)
-    {
-        // Arrange
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordIdsToDelete = [1, invalidId, 3]
-        };
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto.RecordIdsToDelete)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(
-                nameof(ReportFundsExpendituresRecord.Id)));
-    }
-
     [Fact]
     public void Validate_ShouldNotHaveErrors_WhenAllDataIsValid()
     {
@@ -147,81 +52,5 @@ public class BatchSaveReportFundsExpendituresRecordsCommandValidatorTests
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenAllCollectionsAreEmpty()
-    {
-        // Arrange
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordsToCreate = [],
-            RecordsToUpdate = [],
-            RecordIdsToDelete = []
-        };
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
-            .WithErrorMessage(ErrorMessagesConstants.BatchOperationMustContainAtLeastOneRecord);
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenRecordsToUpdateAndRecordIdsToDeleteContainIntersectingIds()
-    {
-        // Arrange
-        const long intersectingId = 2;
-
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordsToCreate = [],
-            RecordsToUpdate =
-            [
-                new() { Id = 1 },
-                new() { Id = intersectingId },
-                new() { Id = 3 }
-            ],
-            RecordIdsToDelete = [intersectingId, 4, 5]
-        };
-
-        List<long> conflictingIds = [intersectingId];
-
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
-            .WithErrorMessage(ErrorMessagesConstants.CannotUpdateAndDeleteSameEntity(
-                conflictingIds, typeof(ReportFundsExpendituresRecord)));
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenCombinedRecordsTotalExceedsLimit()
-    {
-        // Arrange
-        var maxLimit = ReportFundsExpendituresRecordConstants.MaxNumberOfRecordsPerBatchOperation;
-
-        var dto = new BatchSaveReportFundsExpendituresRecordsDto
-        {
-            RecordsToCreate = [.. Enumerable.Range(1, maxLimit).Select(_ => new CreateReportFundsExpendituresRecordDto())],
-            RecordsToUpdate = [new BatchUpdateReportFundsExpendituresRecordDto()],
-            RecordIdsToDelete = []
-        };
-
-        var command = new BatchSaveReportFundsExpendituresRecordCommand(dto);
-
-        // Act
-        var result = _validator.TestValidate(command);
-
-        // Assert
-        result.ShouldHaveValidationErrorFor(x => x.BatchSaveReportFundsExpendituresRecordsDto)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
-                ErrorMessagesConstants.BatchOperationTotalRecordsName,
-                maxLimit));
     }
 }

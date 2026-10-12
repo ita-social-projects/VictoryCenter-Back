@@ -1,12 +1,13 @@
-using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Images;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Validators.Images;
@@ -19,11 +20,17 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.Images;
 
 public class UpdateImageHandlerTests
 {
-    private readonly Mock<IMapper> _mockMapper;
-    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
-    private readonly Mock<IBlobService> _mockBlobService;
-    private readonly Mock<TimeProvider> _mockTimeProvider;
-    private readonly IValidator<UpdateImageCommand> _validator;
+    private const string PreviousBlobName = "previous-blob";
+    private const string PreviousMimeType = "image/jpeg";
+
+    private static readonly DateTimeOffset TestNow = new(2025, 7, 16, 14, 30, 0, TimeSpan.Zero);
+
+    private readonly Mock<IBlobService> _mockBlobService = new();
+    private readonly Mock<ILogger<UpdateImageHandler>> _mockLogger = new();
+    private readonly Mock<IMapper> _mockMapper = new();
+    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper = new();
+    private readonly Mock<TimeProvider> _mockTimeProvider = new();
+    private readonly IValidator<UpdateImageCommand> _validator = new UpdateImageValidator(new ImageContentValidator());
 
     private readonly UpdateImageDto _testUpdateImageDto = new()
     {
@@ -34,176 +41,216 @@ public class UpdateImageHandlerTests
     private readonly Image _testImage = new()
     {
         Id = 1,
-        BlobName = "testblob.png",
-        MimeType = "image/png",
-        CreatedAt = new DateTimeOffset(2025, 7, 16, 14, 30, 0, TimeZoneInfo.Utc.BaseUtcOffset)
-    };
-
-    private static readonly DateTimeOffset TestNow = new(2025, 7, 16, 14, 30, 0, TimeSpan.Zero);
-
-    private readonly ImageDto _testImageDto = new()
-    {
-        Id = 1,
-        BlobName = "testblob.png",
-        MimeType = "image/png",
-        Url = "dGVzdA==",
-        CreatedAt = TestNow,
-        UpdatedAt = TestNow
+        BlobName = PreviousBlobName,
+        MimeType = PreviousMimeType,
+        CreatedAt = TestNow
     };
 
     public UpdateImageHandlerTests()
     {
-        _mockMapper = new Mock<IMapper>();
-        _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
-        _mockBlobService = new Mock<IBlobService>();
-        _mockTimeProvider = new Mock<TimeProvider>();
-        _mockTimeProvider.Setup(x => x.GetUtcNow()).Returns(TestNow);
-        _validator = new UpdateImageValidator(new ImageContentValidator());
+        _mockTimeProvider.Setup(provider => provider.GetUtcNow()).Returns(TestNow);
+        _mockMapper
+            .Setup(mapper => mapper.Map<Image, ImageDto>(It.IsAny<Image>()))
+            .Returns((Image image) => new ImageDto
+            {
+                Id = image.Id,
+                BlobName = image.BlobName,
+                MimeType = image.MimeType,
+                CreatedAt = image.CreatedAt,
+                UpdatedAt = image.UpdatedAt
+            });
     }
 
     [Fact]
-    public async Task Handle_ValidRequest_ShouldUpdateImageAndReturnDto()
+    public async Task Handle_ValidRequest_ShouldPersistReplacementBeforeDeletingPreviousBlob()
     {
-        var command = new UpdateImageCommand(_testUpdateImageDto, 1);
-
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
-            .ReturnsAsync(_testImage);
-
-        _mockBlobService.Setup(x => x.UpdateFileInStorageAsync(
-                _testImage.BlobName,
-                _testImage.MimeType,
+        var operations = new List<string>();
+        SetupExistingImage();
+        _mockBlobService
+            .Setup(service => service.SaveFileInStorageAsync(
                 _testUpdateImageDto.Base64!,
-                _testImage.BlobName,
+                It.IsAny<string>(),
                 _testUpdateImageDto.MimeType!))
-            .ReturnsAsync(_testImage.BlobName);
-
-        _mockMapper.Setup(x => x.Map<UpdateImageDto, Image>(It.IsAny<UpdateImageDto>()))
-            .Returns(_testImage);
-
-        _mockMapper.Setup(x => x.Map<Image, ImageDto>(It.IsAny<Image>()))
-            .Returns(_testImageDto);
-
-        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
+            .Callback(() => operations.Add("save-new"))
+            .ReturnsAsync((string _, string name, string _) => $"{name}.png");
+        _mockRepositoryWrapper
+            .Setup(wrapper => wrapper.SaveChangesAsync())
+            .Callback(() => operations.Add("update-database"))
             .ReturnsAsync(1);
+        _mockBlobService
+            .Setup(service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType))
+            .Callback(() => operations.Add("delete-old"));
 
-        _mockRepositoryWrapper.Setup(repositoryWrapper => repositoryWrapper.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        var result = await CreateHandler().Handle(
+            new UpdateImageCommand(_testUpdateImageDto, _testImage.Id),
+            CancellationToken.None);
 
-        var handler = new UpdateImageHandler(
-            _mockMapper.Object,
-            _mockRepositoryWrapper.Object,
-            _validator,
-            _mockBlobService.Object,
-            _mockTimeProvider.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
         Assert.True(result.IsSuccess);
-        Assert.NotNull(result.Value);
-        Assert.Equal(_testImageDto.Id, result.Value.Id);
-        Assert.Equal(_testImageDto.BlobName, result.Value.BlobName);
-        Assert.Equal(_testImageDto.MimeType, result.Value.MimeType);
-        Assert.Equal(_testImageDto.Url, result.Value.Url);
+        Assert.NotEqual(PreviousBlobName, result.Value.BlobName);
+        Assert.Equal(_testUpdateImageDto.MimeType, result.Value.MimeType);
+        Assert.Equal(TestNow, result.Value.UpdatedAt);
+        Assert.Equal(["save-new", "update-database", "delete-old"], operations);
         _mockBlobService.Verify(
-            x => x.UpdateFileInStorageAsync(
-            _testImage.BlobName,
-            _testImage.MimeType,
-            _testUpdateImageDto.Base64!,
-            _testImage.BlobName,
-            _testUpdateImageDto.MimeType!), Times.Once);
+            service => service.SaveFileInStorageAsync(
+                _testUpdateImageDto.Base64!,
+                result.Value.BlobName,
+                _testUpdateImageDto.MimeType!),
+            Times.Once);
+        _mockBlobService.Verify(
+            service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
+            Times.Once);
     }
 
     [Fact]
-    public async Task Handle_ImageNotFound_ShouldReturnNotFound()
+    public async Task Handle_ImageNotFound_ShouldNotWriteBlob()
     {
         const long id = 123;
-
-        // Arrange
-        var command = new UpdateImageCommand(_testUpdateImageDto, id);
-
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+        _mockRepositoryWrapper
+            .Setup(wrapper => wrapper.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((Image?)null);
 
-        var handler = new UpdateImageHandler(
-            _mockMapper.Object,
-            _mockRepositoryWrapper.Object,
-            _validator,
-            _mockBlobService.Object,
-            _mockTimeProvider.Object);
+        var result = await CreateHandler().Handle(
+            new UpdateImageCommand(_testUpdateImageDto, id),
+            CancellationToken.None);
 
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
+        Assert.True(result.IsFailed);
         Assert.Contains(ErrorMessagesConstants.NotFound(id, typeof(Image)), result.Errors[0].Message);
         _mockBlobService.Verify(
-            x => x.UpdateFileInStorageAsync(
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            service => service.SaveFileInStorageAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            Times.Never);
     }
 
     [Fact]
-    public async Task Handle_NullDto_ShouldReturnValidationError()
+    public async Task Handle_NullDto_ShouldReturnValidationErrorWithoutWritingBlob()
     {
-        var handler = new UpdateImageHandler(
-            _mockMapper.Object,
-            _mockRepositoryWrapper.Object,
-            _validator,
-            _mockBlobService.Object,
-            _mockTimeProvider.Object);
-
-        Result<ImageDto> result = await handler.Handle(new UpdateImageCommand(null!, 1), CancellationToken.None);
+        Result<ImageDto> result = await CreateHandler().Handle(
+            new UpdateImageCommand(null!, 1),
+            CancellationToken.None);
 
         Assert.True(result.IsFailed);
         Assert.Contains(
             ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImageCommand.UpdateImageDto)),
             result.Errors.Select(error => error.Message));
-        _mockRepositoryWrapper.Verify(
-            repositoryWrapper => repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()),
-            Times.Never);
         _mockBlobService.Verify(
-            blobService => blobService.UpdateFileInStorageAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+            service => service.SaveFileInStorageAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
             Times.Never);
     }
 
     [Fact]
-    public async Task Handle_SaveChangesFails_ShouldReturnFailure()
+    public async Task Handle_ReplacementBlobWriteFails_ShouldPreserveDatabaseAndPreviousBlob()
     {
-        // Arrange
-        var command = new UpdateImageCommand(_testUpdateImageDto, 1);
-
-        _mockRepositoryWrapper.Setup(x => x.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
-            .ReturnsAsync(_testImage);
-
-        _mockBlobService.Setup(x => x.UpdateFileInStorageAsync(
-                _testImage.BlobName,
-                _testImage.MimeType,
+        SetupExistingImage();
+        _mockBlobService
+            .Setup(service => service.SaveFileInStorageAsync(
                 _testUpdateImageDto.Base64!,
-                _testImage.BlobName,
+                It.IsAny<string>(),
                 _testUpdateImageDto.MimeType!))
-            .ReturnsAsync(_testImage.BlobName);
+            .ThrowsAsync(new ImageProcessingException("replacement", "Storage failure"));
 
-        _mockMapper.Setup(x => x.Map<UpdateImageDto, Image>(It.IsAny<UpdateImageDto>()))
-            .Returns(_testImage);
+        var result = await CreateHandler().Handle(
+            new UpdateImageCommand(_testUpdateImageDto, _testImage.Id),
+            CancellationToken.None);
 
-        _mockRepositoryWrapper.Setup(x => x.SaveChangesAsync())
-            .ReturnsAsync(0);
+        Assert.True(result.IsFailed);
+        Assert.Equal(PreviousBlobName, _testImage.BlobName);
+        Assert.Equal(PreviousMimeType, _testImage.MimeType);
+        _mockRepositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Never);
+        _mockBlobService.Verify(
+            service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
+            Times.Never);
+    }
 
-        var handler = new UpdateImageHandler(
+    [Fact]
+    public async Task Handle_DatabaseUpdateFails_ShouldDeleteReplacementAndPreservePreviousBlob()
+    {
+        string? replacementBlobName = null;
+        SetupExistingImage();
+        _mockRepositoryWrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(0);
+        _mockBlobService
+            .Setup(service => service.SaveFileInStorageAsync(
+                _testUpdateImageDto.Base64!,
+                It.IsAny<string>(),
+                _testUpdateImageDto.MimeType!))
+            .Callback<string, string, string>((_, name, _) => replacementBlobName = name)
+            .ReturnsAsync((string _, string name, string _) => $"{name}.png");
+
+        var result = await CreateHandler().Handle(
+            new UpdateImageCommand(_testUpdateImageDto, _testImage.Id),
+            CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.NotNull(replacementBlobName);
+        _mockBlobService.Verify(
+            service => service.DeleteFileInStorage(replacementBlobName, _testUpdateImageDto.MimeType!),
+            Times.Once);
+        _mockBlobService.Verify(
+            service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_DatabaseUpdateThrows_ShouldDeleteReplacementAndPreservePreviousBlob()
+    {
+        string? replacementBlobName = null;
+        SetupExistingImage();
+        _mockRepositoryWrapper
+            .Setup(wrapper => wrapper.SaveChangesAsync())
+            .ThrowsAsync(new InvalidOperationException("Database update failed"));
+        _mockBlobService
+            .Setup(service => service.SaveFileInStorageAsync(
+                _testUpdateImageDto.Base64!,
+                It.IsAny<string>(),
+                _testUpdateImageDto.MimeType!))
+            .Callback<string, string, string>((_, name, _) => replacementBlobName = name)
+            .ReturnsAsync((string _, string name, string _) => $"{name}.png");
+        await Assert.ThrowsAsync<InvalidOperationException>(() => CreateHandler().Handle(
+            new UpdateImageCommand(_testUpdateImageDto, _testImage.Id),
+            CancellationToken.None));
+
+        Assert.NotNull(replacementBlobName);
+        _mockBlobService.Verify(
+            service => service.DeleteFileInStorage(replacementBlobName, _testUpdateImageDto.MimeType!),
+            Times.Once);
+        _mockBlobService.Verify(
+            service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_PreviousBlobCleanupFails_ShouldKeepSuccessfulReplacement()
+    {
+        SetupExistingImage();
+        _mockRepositoryWrapper.Setup(wrapper => wrapper.SaveChangesAsync()).ReturnsAsync(1);
+        _mockBlobService
+            .Setup(service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType))
+            .Throws(new ImageProcessingException(PreviousBlobName, "Cleanup failed"));
+
+        var result = await CreateHandler().Handle(
+            new UpdateImageCommand(_testUpdateImageDto, _testImage.Id),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.NotEqual(PreviousBlobName, result.Value.BlobName);
+        _mockRepositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+    }
+
+    private void SetupExistingImage()
+    {
+        _mockRepositoryWrapper
+            .Setup(wrapper => wrapper.ImageRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<Image>>()))
+            .ReturnsAsync(_testImage);
+    }
+
+    private UpdateImageHandler CreateHandler()
+    {
+        return new UpdateImageHandler(
             _mockMapper.Object,
             _mockRepositoryWrapper.Object,
             _validator,
             _mockBlobService.Object,
-            _mockTimeProvider.Object);
-
-        // Act
-        var result = await handler.Handle(command, CancellationToken.None);
-
-        // Assert
-        Assert.False(result.IsSuccess);
-        Assert.Contains(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)), result.Errors[0].Message);
+            _mockTimeProvider.Object,
+            _mockLogger.Object);
     }
 }

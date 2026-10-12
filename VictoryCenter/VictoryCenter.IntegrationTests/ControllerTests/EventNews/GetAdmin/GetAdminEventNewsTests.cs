@@ -1,14 +1,20 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Enums;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 namespace VictoryCenter.IntegrationTests.ControllerTests.EventNews.GetAdmin;
+
+using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 public class GetAdminEventNewsTests : BaseTestClass
 {
@@ -108,11 +114,49 @@ public class GetAdminEventNewsTests : BaseTestClass
     [InlineData("offset=-1")]
     [InlineData("limit=0")]
     [InlineData("categoryId=0")]
+    [InlineData("translationStatusFilter=999")]
     public async Task GetByFilters_WhenFilterIsInvalid_ShouldReturnBadRequest(string query)
     {
         var response = await Fixture.HttpClient.GetAsync($"{EndpointUri}?{query}");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetByFilters_WhenTranslationIsMissing_ShouldFilterBeforePaginationAndCount()
+    {
+        var testData = await CreateTranslationFilterTestDataAsync();
+
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?categoryId={testData.CategoryId}" +
+            $"&status={Status.Draft}&translationStatusFilter={TranslationStatusFilter.Missing}" +
+            "&offset=0&limit=1");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+        Assert.NotNull(page);
+        Assert.Equal(1, page.TotalItemsCount);
+        Assert.Equal(testData.MissingEventId, Assert.Single(page.Items).Id);
+    }
+
+    [Fact]
+    public async Task GetByFilters_WhenTranslationIsOutdated_ShouldReturnMatchingLocalizationStatus()
+    {
+        var testData = await CreateTranslationFilterTestDataAsync();
+
+        var response = await Fixture.HttpClient.GetAsync(
+            $"{EndpointUri}?categoryId={testData.CategoryId}" +
+            $"&translationStatusFilter={TranslationStatusFilter.Outdated}");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var page = await response.Content.ReadFromJsonAsync<PaginationResult<EventNewsDto>>();
+        Assert.NotNull(page);
+        Assert.Equal(1, page.TotalItemsCount);
+        var item = Assert.Single(page.Items);
+        Assert.Equal(testData.OutdatedEventId, item.Id);
+        Assert.Contains(
+            item.Localizations,
+            localization => localization.TranslationStatus == TranslationStatus.Outdated);
     }
 
     [Fact]
@@ -249,4 +293,90 @@ public class GetAdminEventNewsTests : BaseTestClass
             [links[1].EventsNewsId, links[2].EventsNewsId, links[0].EventsNewsId],
             testedItems.Select(item => item.Id));
     }
+
+    private async Task<TranslationFilterTestData> CreateTranslationFilterTestDataAsync()
+    {
+        var languageIds = await Fixture.DbContext.LocalizationLanguages
+            .Where(language => language.Id != LocalizationLanguageConstants.PrimaryLanguageId)
+            .Select(language => language.Id)
+            .ToArrayAsync();
+        Assert.NotEmpty(languageIds);
+
+        var category = new EventNewsCategory
+        {
+            Name = $"Filter-{Guid.NewGuid():N}"[..20],
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        var completeEvent = EventNews("Complete translation", Status.Published);
+        var missingEvent = EventNews("Missing translation", Status.Draft);
+        var outdatedEvent = EventNews("Outdated translation", Status.Published);
+
+        Fixture.DbContext.EventNewsCategories.Add(category);
+        Fixture.DbContext.EventNews.AddRange(completeEvent, missingEvent, outdatedEvent);
+        await Fixture.DbContext.SaveChangesAsync();
+
+        Fixture.DbContext.EventNewsEventNewsCategories.AddRange(
+            CategoryLink(category.Id, completeEvent.Id, 1),
+            CategoryLink(category.Id, missingEvent.Id, 2),
+            CategoryLink(category.Id, outdatedEvent.Id, 3));
+
+        foreach (var languageId in languageIds)
+        {
+            completeEvent.Localizations.Add(Localization(languageId, TranslationStatus.Relevant));
+            outdatedEvent.Localizations.Add(Localization(
+                languageId,
+                languageId == languageIds[0]
+                    ? TranslationStatus.Outdated
+                    : TranslationStatus.Relevant));
+        }
+
+        await Fixture.DbContext.SaveChangesAsync();
+
+        return new TranslationFilterTestData(
+            category.Id,
+            missingEvent.Id,
+            outdatedEvent.Id);
+    }
+
+    private static EventNewsEntity EventNews(string title, Status status)
+    {
+        return new EventNewsEntity
+        {
+            Title = title,
+            Slug = $"{title.Replace(' ', '-').ToLowerInvariant()}-{Guid.NewGuid():N}",
+            Status = status,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private static EventNewsEventNewsCategories CategoryLink(
+        long categoryId,
+        long eventNewsId,
+        long priority)
+    {
+        return new EventNewsEventNewsCategories
+        {
+            CategoriesId = categoryId,
+            EventsNewsId = eventNewsId,
+            Priority = priority
+        };
+    }
+
+    private static EventNewsLocalization Localization(
+        long languageId,
+        TranslationStatus translationStatus)
+    {
+        return new EventNewsLocalization
+        {
+            LanguageId = languageId,
+            Title = "Localized event title",
+            TranslationStatus = translationStatus,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    private sealed record TranslationFilterTestData(
+        long CategoryId,
+        long MissingEventId,
+        long OutdatedEventId);
 }

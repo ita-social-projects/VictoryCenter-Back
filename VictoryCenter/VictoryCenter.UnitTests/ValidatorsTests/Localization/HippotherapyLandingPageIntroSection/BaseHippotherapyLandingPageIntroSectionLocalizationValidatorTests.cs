@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageIntroSection;
 using VictoryCenter.BLL.Validators.Localization.HippotherapyLandingPageIntroSection;
@@ -68,14 +69,37 @@ public class BaseHippotherapyLandingPageIntroSectionLocalizationValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Description);
     }
 
-    [Theory]
-    [InlineData("<p>Hi</p>")]
-    [InlineData("<p><br></p>")]
-    public void Validate_ShouldHaveError_WhenTitle_VisibleTextIsTooShort(string title)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTitle_VisibleTextIsTooShort()
+    {
+        var visibleText = new string('a', HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMinLength - 1);
+        var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
+        {
+            Title = $"<p>{visibleText}</p>",
+            Description = "Valid description",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Title);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTitle_HasNoVisibleText()
     {
         var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
         {
-            Title = title,
+            Title = "<p><br></p>",
+            Description = "Valid description",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Title);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenTitle_PlainTextIsTooShort()
+    {
+        var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
+        {
+            Title = new string('a', HippotherapyLandingPageIntroSectionLocalizationConstants.TitleMinLength - 1),
             Description = "Valid description",
         };
         var result = _validator.TestValidate(model);
@@ -95,15 +119,38 @@ public class BaseHippotherapyLandingPageIntroSectionLocalizationValidatorTests
         result.ShouldNotHaveValidationErrorFor(x => x.Title);
     }
 
-    [Theory]
-    [InlineData("<p><br></p>")]
-    [InlineData("<p>Too short</p>")]
-    public void Validate_ShouldHaveError_WhenDescription_VisibleTextIsTooShort(string description)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescription_VisibleTextIsTooShort()
+    {
+        var visibleText = new string('a', HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMinLength - 1);
+        var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
+        {
+            Title = "Valid title",
+            Description = $"<p>{visibleText}</p>",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescription_HasNoVisibleText()
     {
         var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
         {
             Title = "Valid title",
-            Description = description,
+            Description = "<p><br></p>",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescription_PlainTextIsTooShort()
+    {
+        var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
+        {
+            Title = "Valid title",
+            Description = new string('a', HippotherapyLandingPageIntroSectionLocalizationConstants.DescriptionMinLength - 1),
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description);
@@ -133,6 +180,34 @@ public class BaseHippotherapyLandingPageIntroSectionLocalizationValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveOnlyRequiredError_WhenTitle_IsEmpty()
+    {
+        var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
+        {
+            Title = string.Empty,
+            Description = "Valid description",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Title)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Title)))
+            .Only();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveOnlyRequiredError_WhenDescription_IsEmpty()
+    {
+        var model = new UpdateHippotherapyLandingPageIntroSectionLocalizationDto
+        {
+            Title = "Valid title",
+            Description = string.Empty,
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageIntroSectionLocalizationDto.Description)))
+            .Only();
     }
 
     [Fact]
