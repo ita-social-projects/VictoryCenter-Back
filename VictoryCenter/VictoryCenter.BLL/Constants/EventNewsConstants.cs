@@ -11,4 +11,6 @@ public static class EventNewsConstants
     public const int AdditionalDescriptionMinLength = 2;
     public const int AdditionalDescriptionMaxLength = 20;
     public const int ResourceMaxLength = 150;
+    public static readonly int DefaultLimit = 20;
+    public static readonly int PublishedOffsetMinValue = 0;
 }
