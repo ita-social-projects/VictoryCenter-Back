@@ -1,5 +1,6 @@
 using System.Buffers;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
@@ -12,6 +13,7 @@ public class BlobService : IBlobService
 {
     private readonly BlobEnvironmentVariables _blobEnv;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<BlobService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BlobService"/> class.
@@ -19,13 +21,18 @@ public class BlobService : IBlobService
     /// </summary>
     /// <param name="environment">Configuration settings for the blob storage.</param>
     /// <param name="httpContextAccessor">Provides access to <see cref="HttpContext"/> for building absolute URLs.</param>
+    /// <param name="logger">The logger used to report best-effort cleanup failures.</param>
     /// <exception cref="BlobFileSystemException">
     /// Thrown if the local storage directory could not be created.
     /// </exception>
-    public BlobService(IOptions<BlobEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
+    public BlobService(
+        IOptions<BlobEnvironmentVariables> environment,
+        IHttpContextAccessor httpContextAccessor,
+        ILogger<BlobService> logger)
     {
         _blobEnv = environment.Value;
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
         try
         {
             Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
@@ -131,37 +138,6 @@ public class BlobService : IBlobService
     }
 
     /// <summary>
-    /// Updates an existing file in storage.
-    /// Deletes the old file and saves a new one.
-    /// </summary>
-    /// <param name="previousBlobName">The previous file name.</param>
-    /// <param name="previousMimeType">The MIME type of the previous file.</param>
-    /// <param name="base64Format">The new file content as a Base64 string.</param>
-    /// <param name="newBlobName">The new file name.</param>
-    /// <param name="mimeType">The MIME type of the new file.</param>
-    /// <returns>New file name.</returns>
-    /// <exception cref="BlobFileNameException">
-    /// Thrown if the new or previous file name is invalid.
-    /// </exception>
-    /// <exception cref="ImageProcessingException">
-    /// Thrown if an error occurs while updating the file.
-    /// </exception>
-    /// <exception cref="BlobFileSystemException">
-    /// Thrown if an unknown error related to the file system occurs.
-    /// </exception>
-    /// <exception cref="InvalidBase64FormatException">
-    /// Thrown if the Base64 string has an invalid format.
-    /// </exception>
-    public async Task<string> UpdateFileInStorageAsync(string previousBlobName, string previousMimeType, string base64Format, string newBlobName, string mimeType)
-    {
-        ValidateFileName(newBlobName);
-        ValidateFileName(previousBlobName);
-        DeleteFileInStorage(previousBlobName, previousMimeType);
-        await SaveFileInStorageAsync(base64Format, newBlobName, mimeType);
-        return newBlobName;
-    }
-
-    /// <summary>
     /// Deletes a file from storage.
     /// If the file does not exist, nothing happens.
     /// </summary>
@@ -234,14 +210,51 @@ public class BlobService : IBlobService
         ValidateFileName(name);
 
         var filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
+        var temporaryFilePath = Path.Combine(
+            _blobEnv.FullPath,
+            $".{name}.{Guid.NewGuid():N}.tmp");
 
         try
         {
-            await File.WriteAllBytesAsync(filePath, imageBytes);
+            await using (var stream = new FileStream(
+                             temporaryFilePath,
+                             FileMode.CreateNew,
+                             FileAccess.Write,
+                             FileShare.None,
+                             bufferSize: 4096,
+                             FileOptions.Asynchronous | FileOptions.WriteThrough))
+            {
+                await stream.WriteAsync(imageBytes);
+                await stream.FlushAsync();
+            }
+
+            File.Move(temporaryFilePath, filePath, overwrite: true);
         }
         catch (Exception ex)
         {
             throw new ImageProcessingException($"{name}.{type}", ImageConstants.FailedToSaveImage, ex);
+        }
+        finally
+        {
+            DeleteTemporaryFileIfExists(temporaryFilePath);
+        }
+    }
+
+    private void DeleteTemporaryFileIfExists(string temporaryFilePath)
+    {
+        try
+        {
+            if (File.Exists(temporaryFilePath))
+            {
+                File.Delete(temporaryFilePath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to delete temporary image file {TemporaryFilePath}",
+                temporaryFilePath);
         }
     }
 
