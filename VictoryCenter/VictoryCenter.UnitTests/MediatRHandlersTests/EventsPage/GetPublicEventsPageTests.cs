@@ -126,6 +126,24 @@ public class GetPublicEventsPageTests
         Assert.Equal("en", localization.Language.Code);
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public async Task Handle_WhenFieldsAreHidden_ShouldReturnEmptyStringsForHiddenFields(
+    bool titleHidden, bool descriptionHidden)
+    {
+        _intro.IsEventsBlockTitleHidden = titleHidden;
+        _intro.IsPageDescriptionHidden = descriptionHidden;
+        SetUpDependencies(_intro, _categories);
+
+        var result = await CreateHandler().Handle(new GetPublicEventsPageQuery(), CancellationToken.None);
+
+        Assert.Equal(titleHidden ? string.Empty : _intro.EventsBlockTitle, result.Value.EventsBlockTitle);
+        Assert.Equal(descriptionHidden ? string.Empty : _intro.PageDescription, result.Value.PageDescription);
+        Assert.Equal(_categories.Count, result.Value.Categories.Count);
+    }
+
     private GetPublicEventsPageHandler CreateHandler() =>
         new(_repositoryWrapperMock.Object, _mapper);
 

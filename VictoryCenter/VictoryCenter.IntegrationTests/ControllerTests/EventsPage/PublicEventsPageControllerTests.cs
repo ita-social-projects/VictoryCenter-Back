@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.BLL.DTOs.Public.EventsPage;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -24,8 +24,9 @@ public class PublicEventsPageControllerTests : BaseTestClass
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var dto = await response.Content.ReadFromJsonAsync<EventsIntroSectionPublicDto>(JsonOptions);
+        var dto = await response.Content.ReadFromJsonAsync<PublicEventsPageDto>(JsonOptions);
         Assert.NotNull(dto);
+        Assert.NotEmpty(dto.Categories);
         Assert.Equal("<p>Що відбувалось</p>", dto.EventsBlockTitle);
         Assert.Equal(
             "<p>Цей розділ — про ті моменти, коли те, у що ми віримо, стає реальністю. Тут ти знайдеш все: від маленьких зустрічей до великих відкриттів, від перших кроків дітей у стайні до глибоких переживань ветеранів у сідлі.</p>",
@@ -47,10 +48,11 @@ public class PublicEventsPageControllerTests : BaseTestClass
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var dto = await response.Content.ReadFromJsonAsync<EventsIntroSectionPublicDto>(JsonOptions);
+        var dto = await response.Content.ReadFromJsonAsync<PublicEventsPageDto>(JsonOptions);
         Assert.NotNull(dto);
         Assert.Equal(string.Empty, dto.EventsBlockTitle);
         Assert.Equal(string.Empty, dto.PageDescription);
+        Assert.NotEmpty(dto.Categories);
     }
 
     [Fact]

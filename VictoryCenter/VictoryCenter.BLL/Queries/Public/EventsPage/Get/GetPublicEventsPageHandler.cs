@@ -28,6 +28,7 @@ public class GetPublicEventsPageHandler : IRequestHandler<GetPublicEventsPageQue
         CancellationToken cancellationToken)
     {
         var intro = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync();
+
         if (intro == null)
         {
             return Result.Fail<PublicEventsPageDto>(ErrorMessagesConstants.NotFound());
@@ -47,8 +48,8 @@ public class GetPublicEventsPageHandler : IRequestHandler<GetPublicEventsPageQue
 
         return Result.Ok(new PublicEventsPageDto
         {
-            EventsBlockTitle = introDto.EventsBlockTitle,
-            PageDescription = introDto.PageDescription,
+            EventsBlockTitle = introDto.IsEventsBlockTitleHidden ? string.Empty : introDto.EventsBlockTitle,
+            PageDescription = introDto.IsPageDescriptionHidden ? string.Empty : introDto.PageDescription,
             Categories = _mapper.Map<List<EventNewsCategoryDto>>(categories)
         });
     }
