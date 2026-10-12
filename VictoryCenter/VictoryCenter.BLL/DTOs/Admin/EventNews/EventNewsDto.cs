@@ -16,6 +16,6 @@ public record EventNewsDto
     public Status Status { get; init; }
     public ImageDto? PreviewImage { get; init; }
     public ImageDto? BackgroundImage { get; init; }
-    public List<EventNewsCategoryShortDto> Categories { get; init; } = [];
+    public EventNewsCategoryShortDto Category { get; init; } = null!;
     public List<EventNewsLocalizationDto> Localizations { get; init; } = [];
 }

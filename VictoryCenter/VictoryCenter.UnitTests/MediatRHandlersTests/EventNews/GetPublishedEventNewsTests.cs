@@ -51,8 +51,7 @@ public class GetPublishedEventNewsTests
         var entity = new EventNewsEntity
         {
             Id = 1,
-            Categories =
-            [
+            Category =
                 new EventNewsCategory
                 {
                     Id = 10,
@@ -67,8 +66,7 @@ public class GetPublishedEventNewsTests
                             Name = "Localized category name"
                         },
                     ]
-                },
-            ]
+                }
         };
         var configuration = new MapperConfiguration(config =>
         {
@@ -79,7 +77,7 @@ public class GetPublishedEventNewsTests
 
         var result = mapper.Map<PublishedEventNewsDto>(entity);
 
-        var category = Assert.Single(result.Categories);
+        var category = result.Category;
         Assert.Equal("Base category name", category.Name);
         var localization = Assert.Single(category.Localizations);
         Assert.Equal("Localized category name", localization.Name);
@@ -247,11 +245,11 @@ public class GetPublishedEventNewsTests
 
     private static List<EventNewsEntity> BuildFilterTestData() =>
     [
-        new() { Id = 1, Status = Status.Published, Categories = [new EventNewsCategory { Id = 10 }] },
-        new() { Id = 2, Status = Status.Published, Categories = [new EventNewsCategory { Id = 20 }] },
-        new() { Id = 3, Status = Status.Published, Categories = [new EventNewsCategory { Id = 10 }, new EventNewsCategory { Id = 20 }] },
-        new() { Id = 4, Status = Status.Draft, Categories = [new EventNewsCategory { Id = 10 }] },
-        new() { Id = 5, Status = Status.Draft, Categories = [] },
+        new() { Id = 1, Status = Status.Published, CategoryId = 10 },
+        new() { Id = 2, Status = Status.Published, CategoryId = 20 },
+        new() { Id = 3, Status = Status.Published, CategoryId = 10 },
+        new() { Id = 4, Status = Status.Draft, CategoryId = 10 },
+        new() { Id = 5, Status = Status.Draft, CategoryId = 20 },
     ];
 
     private async Task<Expression<Func<EventNewsEntity, bool>>> CaptureCountFilterAsync(

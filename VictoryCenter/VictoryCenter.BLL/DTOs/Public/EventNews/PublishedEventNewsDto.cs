@@ -13,6 +13,6 @@ public record PublishedEventNewsDto
     public string? ResourceEn { get; init; }
     public DateTimeOffset? PublishedAt { get; init; }
     public ImageDto? PreviewImage { get; init; }
-    public List<EventNewsCategoryDto> Categories { get; init; } = [];
+    public EventNewsCategoryDto Category { get; init; } = null!;
     public List<PublishedEventNewsLocalizationDto> Localizations { get; init; } = [];
 }

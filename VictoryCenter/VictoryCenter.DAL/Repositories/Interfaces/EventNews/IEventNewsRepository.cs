@@ -13,7 +13,6 @@ public interface IEventNewsRepository : IRepositoryBase<EventNewsEntity>
 
     Task<IReadOnlyCollection<long>> GetPagedIdsByFilterAsync(
         Expression<Func<EventNewsEntity, bool>> filter,
-        long? categoryId,
         int offset,
         int limit,
         CancellationToken cancellationToken = default);

@@ -5,7 +5,6 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Delete;
@@ -32,7 +31,6 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
             {
                 Filter = entity => entity.Id == request.Id,
                 Include = query => query
-                    .Include(entity => entity.Categories)
                     .Include(entity => entity.Localizations),
                 AsNoTracking = false,
                 AsSplitQuery = true
@@ -43,9 +41,7 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
             return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
         }
 
-        var categoryIds = eventNews.Categories
-            .Select(category => category.Id)
-            .ToList();
+        var categoryId = eventNews.CategoryId;
 
         await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
 
@@ -61,12 +57,8 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
                     ErrorMessagesConstants.FailedToDeleteEntity(typeof(EventNewsEntity)));
             }
 
-            foreach (var categoryId in categoryIds)
-            {
-                await _reorderService
-                    .RenumberPriorityAsync<EventNewsCategoryLink>(
-                        link => link.CategoriesId == categoryId);
-            }
+            await _reorderService.RenumberPriorityAsync<EventNewsEntity>(
+                entity => entity.CategoryId == categoryId);
 
             await transaction.CommitAsync(cancellationToken);
 

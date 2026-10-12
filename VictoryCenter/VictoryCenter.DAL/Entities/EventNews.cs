@@ -5,7 +5,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.DAL.Entities;
 
-public class EventNews : BaseEntity, ITranslatedEntity<EventNewsLocalization>
+public class EventNews : BaseEntity, ITranslatedEntity<EventNewsLocalization>, IOrderableEntity
 {
     public string? Slug { get; set; }
     public string? Resource { get; set; }
@@ -19,6 +19,8 @@ public class EventNews : BaseEntity, ITranslatedEntity<EventNewsLocalization>
     public Image? PreviewImage { get; set; }
     public long? BackgroundImageId { get; set; }
     public Image? BackgroundImage { get; set; }
-    public ICollection<EventNewsCategory> Categories { get; set; } = [];
+    public long CategoryId { get; set; }
+    public EventNewsCategory Category { get; set; } = null!;
+    public long Priority { get; set; }
     public ICollection<EventNewsLocalization> Localizations { get; set; } = [];
 }

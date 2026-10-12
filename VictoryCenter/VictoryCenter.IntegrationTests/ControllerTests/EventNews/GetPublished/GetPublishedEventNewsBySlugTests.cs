@@ -31,7 +31,7 @@ public class GetPublishedEventNewsBySlugTests : BaseTestClass
         Assert.NotNull(dto);
         Assert.Equal(eventNews.Id, dto.Id);
         Assert.Equal(eventNews.Slug, dto.Slug);
-        Assert.NotNull(dto.Categories);
+        Assert.NotNull(dto.Category);
         Assert.NotNull(dto.Localizations);
     }
 

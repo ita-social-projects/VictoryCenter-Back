@@ -5,7 +5,6 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Delete;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Interfaces.ReorderService;
-using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Options;
@@ -159,12 +158,11 @@ public class DeleteEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_ShouldRenumberPrioritiesForEventNewsCategories_AfterDeletion()
+    public async Task Handle_ShouldRenumberPrioritiesForEventNewsCategory_AfterDeletion()
     {
         var eventNews = EventNews(10);
 
-        eventNews.Categories.Add(new EventNewsCategory { Id = 1 });
-        eventNews.Categories.Add(new EventNewsCategory { Id = 2 });
+        eventNews.CategoryId = 1;
 
         SetupEventNews(eventNews);
 
@@ -183,20 +181,11 @@ public class DeleteEventNewsTests
         Assert.True(result.IsSuccess);
 
         _reorderService.Verify(
-            service => service.RenumberPriorityAsync<EventNewsEventNewsCategories>(
-                It.Is<Expression<Func<EventNewsEventNewsCategories, bool>>>(
-                    predicate => predicate.Compile()(new EventNewsEventNewsCategories
+            service => service.RenumberPriorityAsync<EventNewsEntity>(
+                It.Is<Expression<Func<EventNewsEntity, bool>>>(
+                    predicate => predicate.Compile()(new EventNewsEntity
                     {
-                        CategoriesId = 1
-                    }))),
-            Times.Once);
-
-        _reorderService.Verify(
-            service => service.RenumberPriorityAsync<EventNewsEventNewsCategories>(
-                It.Is<Expression<Func<EventNewsEventNewsCategories, bool>>>(
-                    predicate => predicate.Compile()(new EventNewsEventNewsCategories
-                    {
-                        CategoriesId = 2
+                        CategoryId = 1
                     }))),
             Times.Once);
     }
@@ -206,7 +195,7 @@ public class DeleteEventNewsTests
     {
         // Arrange
         var eventNews = EventNews(10);
-        eventNews.Categories.Add(new EventNewsCategory { Id = 1 });
+        eventNews.CategoryId = 1;
 
         SetupEventNews(eventNews);
 
@@ -221,8 +210,8 @@ public class DeleteEventNewsTests
             .ReturnsAsync(1);
 
         _reorderService
-            .Setup(service => service.RenumberPriorityAsync<EventNewsEventNewsCategories>(
-                It.IsAny<Expression<Func<EventNewsEventNewsCategories, bool>>>()))
+            .Setup(service => service.RenumberPriorityAsync<EventNewsEntity>(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
             .ThrowsAsync(new DbUpdateException("Reorder failed"));
 
         var handler = new DeleteEventNewsHandler(
@@ -257,6 +246,7 @@ public class DeleteEventNewsTests
         return new EventNewsEntity
         {
             Id = id,
+            CategoryId = 1,
             CreatedAt = DateTimeOffset.UtcNow
         };
     }

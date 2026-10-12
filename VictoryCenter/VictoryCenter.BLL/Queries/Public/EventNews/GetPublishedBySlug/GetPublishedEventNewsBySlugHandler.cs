@@ -32,7 +32,7 @@ public class GetPublishedEventNewsBySlugHandler
                 eventNews.Slug == request.Slug &&
                 eventNews.Status == Status.Published,
             Include = eventNews => eventNews
-                .Include(e => e.Categories)
+                .Include(e => e.Category)
                     .ThenInclude(category => category.Localizations)
                         .ThenInclude(localization => localization.Language)
                 .Include(e => e.PreviewImage)

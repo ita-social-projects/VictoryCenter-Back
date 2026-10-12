@@ -150,8 +150,6 @@ public interface IRepositoryWrapper
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
     IEventsIntroSectionsRepository EventsIntroSectionsRepository { get; }
-    IEventNewsEventNewsCategoriesRepository EventNewsEventNewsCategoriesRepository { get; }
-
     IFeedbackReviewsRepository FeedbackReviewsRepository { get; }
     IFeedbackReviewLocalizationsRepository FeedbackReviewLocalizationsRepository { get; }
 

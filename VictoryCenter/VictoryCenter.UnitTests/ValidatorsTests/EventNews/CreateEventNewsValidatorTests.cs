@@ -16,7 +16,8 @@ public class CreateEventNewsValidatorTests
     {
         var command = new CreateEventNewsCommand(new CreateEventNewsDto
         {
-            Status = Status.Draft
+            Status = Status.Draft,
+            CategoryId = 1
         });
 
         var result = _validator.TestValidate(command);
@@ -25,12 +26,12 @@ public class CreateEventNewsValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveErrors_WhenDraftCollectionsAreNull()
+    public void Validate_ShouldNotHaveErrors_WhenDraftLocalizationsAreNull()
     {
         var command = new CreateEventNewsCommand(new CreateEventNewsDto
         {
             Status = Status.Draft,
-            CategoryIds = null!,
+            CategoryId = 1,
             Localizations = null!
         });
 
@@ -47,13 +48,12 @@ public class CreateEventNewsValidatorTests
             Status = Status.Published,
             PublishedAt = DateTimeOffset.UtcNow,
             PreviewImageId = 1,
-            CategoryIds = null!,
             Localizations = null!
         });
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryIds);
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryId);
         result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Localizations);
     }
 
@@ -69,7 +69,7 @@ public class CreateEventNewsValidatorTests
 
         result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.PublishedAt);
         result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.PreviewImageId);
-        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryIds);
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryId);
         result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.Localizations);
     }
 
@@ -81,7 +81,7 @@ public class CreateEventNewsValidatorTests
             Status = Status.Published,
             PublishedAt = DateTimeOffset.UtcNow,
             PreviewImageId = 1,
-            CategoryIds = [1],
+            CategoryId = 1,
             Localizations =
             [
                 new CreateEventNewsLocalizationDto
@@ -124,18 +124,18 @@ public class CreateEventNewsValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenCategoryIdsAreDuplicated()
+    public void Validate_ShouldHaveError_WhenCategoryIdIsNotPositive()
     {
         var command = new CreateEventNewsCommand(new CreateEventNewsDto
         {
             Status = Status.Draft,
-            CategoryIds = [1, 1]
+            CategoryId = 0
         });
 
         var result = _validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryIds)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateEventNewsDto.CategoryIds)));
+        result.ShouldHaveValidationErrorFor(command => command.CreateEventNewsDto.CategoryId)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateEventNewsDto.CategoryId)));
     }
 
     [Fact]

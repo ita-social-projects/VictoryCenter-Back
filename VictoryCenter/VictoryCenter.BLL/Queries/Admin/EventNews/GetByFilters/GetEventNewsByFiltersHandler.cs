@@ -59,7 +59,6 @@ public class GetEventNewsByFiltersHandler
 
         var eventNewsIds = await _repositoryWrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
             filter,
-            categoryId,
             offset,
             limit,
             cancellationToken);
@@ -92,7 +91,7 @@ public class GetEventNewsByFiltersHandler
 
         return eventNews =>
             (!categoryId.HasValue ||
-                eventNews.Categories.Any(category => category.Id == categoryId.Value)) &&
+                eventNews.CategoryId == categoryId.Value) &&
             (!status.HasValue || eventNews.Status == status.Value) &&
             (!includeOnlyOutdated ||
                 eventNews.Localizations.Any(localization =>
@@ -113,7 +112,7 @@ public class GetEventNewsByFiltersHandler
                         .AsSplitQuery()
                         .Include(entity => entity.PreviewImage)
                         .Include(entity => entity.BackgroundImage)
-                        .Include(entity => entity.Categories)
+                        .Include(entity => entity.Category)
                             .ThenInclude(category => category.Localizations)
                                 .ThenInclude(localization => localization.Language)
                         .Include(entity => entity.Localizations)

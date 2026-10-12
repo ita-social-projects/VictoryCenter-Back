@@ -576,6 +576,9 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<long?>("BackgroundImageId")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("CategoryId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -584,6 +587,9 @@ namespace VictoryCenter.DAL.Migrations
                         .HasColumnType("nvarchar(140)");
 
                     b.Property<long?>("PreviewImageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("Priority")
                         .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("PublishedAt")
@@ -620,6 +626,9 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique()
                         .HasFilter("[Slug] IS NOT NULL");
 
+                    b.HasIndex("CategoryId", "Priority")
+                        .IsUnique();
+
                     b.ToTable("EventNews");
                 });
 
@@ -645,27 +654,6 @@ namespace VictoryCenter.DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("EventNewsCategories");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.EventNewsEventNewsCategories", b =>
-                {
-                    b.Property<long>("CategoriesId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("EventsNewsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Priority")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("CategoriesId", "EventsNewsId");
-
-                    b.HasIndex("EventsNewsId");
-
-                    b.HasIndex("CategoriesId", "Priority")
-                        .IsUnique();
-
-                    b.ToTable("EventNewsEventNewsCategories", (string)null);
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.EventsIntroSection", b =>
@@ -3885,28 +3873,21 @@ namespace VictoryCenter.DAL.Migrations
                         .WithOne()
                         .HasForeignKey("VictoryCenter.DAL.Entities.EventNews", "BackgroundImageId");
 
+                    b.HasOne("VictoryCenter.DAL.Entities.EventNewsCategory", "Category")
+                        .WithMany("EventsNews")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("VictoryCenter.DAL.Entities.Image", "PreviewImage")
                         .WithOne()
                         .HasForeignKey("VictoryCenter.DAL.Entities.EventNews", "PreviewImageId");
 
                     b.Navigation("BackgroundImage");
 
+                    b.Navigation("Category");
+
                     b.Navigation("PreviewImage");
-                });
-
-            modelBuilder.Entity("VictoryCenter.DAL.Entities.EventNewsEventNewsCategories", b =>
-                {
-                    b.HasOne("VictoryCenter.DAL.Entities.EventNewsCategory", null)
-                        .WithMany()
-                        .HasForeignKey("CategoriesId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("VictoryCenter.DAL.Entities.EventNews", null)
-                        .WithMany()
-                        .HasForeignKey("EventsNewsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FaqPlacement", b =>
@@ -5132,6 +5113,8 @@ namespace VictoryCenter.DAL.Migrations
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.EventNewsCategory", b =>
                 {
+                    b.Navigation("EventsNews");
+
                     b.Navigation("Localizations");
                 });
 

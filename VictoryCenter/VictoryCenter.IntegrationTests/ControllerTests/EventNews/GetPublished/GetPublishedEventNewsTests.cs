@@ -31,7 +31,7 @@ public class GetPublishedEventNewsTests : BaseTestClass
         Assert.NotEmpty(page.Items);
         Assert.Equal(publishedCount, page.TotalItemsCount);
         Assert.All(page.Items, item => Assert.NotNull(item.Localizations));
-        Assert.All(page.Items, item => Assert.NotNull(item.Categories));
+        Assert.All(page.Items, item => Assert.NotNull(item.Category));
     }
 
     [Fact]
@@ -59,9 +59,9 @@ public class GetPublishedEventNewsTests : BaseTestClass
     public async Task GetPublishedEventNews_ShouldReturnCategoryBaseNameAndLocalizations()
     {
         var eventNews = await Fixture.DbContext.EventNews
-            .Include(item => item.Categories)
-            .FirstAsync(item => item.Status == Status.Published && item.Categories.Any());
-        var category = eventNews.Categories.First();
+            .Include(item => item.Category)
+            .FirstAsync(item => item.Status == Status.Published);
+        var category = eventNews.Category;
         var language = await Fixture.DbContext.LocalizationLanguages
             .FirstAsync(item => item.Code == "en");
         const string localizedName = "Localized category name";
@@ -79,7 +79,8 @@ public class GetPublishedEventNewsTests : BaseTestClass
         var page = await GetPageAsync($"?categoryId={category.Id}&limit={EventNewsConstants.PublishedTakeMaxValue}");
 
         var returnedEvent = Assert.Single(page.Items, item => item.Id == eventNews.Id);
-        var returnedCategory = Assert.Single(returnedEvent.Categories, item => item.Id == category.Id);
+        var returnedCategory = returnedEvent.Category;
+        Assert.Equal(category.Id, returnedCategory.Id);
         Assert.Equal(category.Name, returnedCategory.Name);
         var localization = Assert.Single(
             returnedCategory.Localizations,
@@ -121,17 +122,17 @@ public class GetPublishedEventNewsTests : BaseTestClass
     public async Task GetPublishedEventNews_WhenFilteredByCategory_ShouldReturnOnlyItemsOfThatCategory()
     {
         var publishedWithCategory = await Fixture.DbContext.EventNews
-            .Include(n => n.Categories)
-            .FirstAsync(n => n.Status == Status.Published && n.Categories.Any());
-        var category = publishedWithCategory.Categories.First();
+            .Include(n => n.Category)
+            .FirstAsync(n => n.Status == Status.Published);
+        var category = publishedWithCategory.Category;
         var expectedCount = await Fixture.DbContext.EventNews
-            .CountAsync(n => n.Status == Status.Published && n.Categories.Any(c => c.Id == category.Id));
+            .CountAsync(n => n.Status == Status.Published && n.CategoryId == category.Id);
 
         var page = await GetPageAsync($"?categoryId={category.Id}&limit={EventNewsConstants.PublishedTakeMaxValue}");
 
         Assert.Equal(expectedCount, page.TotalItemsCount);
         Assert.NotEmpty(page.Items);
-        Assert.All(page.Items, item => Assert.Contains(item.Categories, c => c.Id == category.Id));
+        Assert.All(page.Items, item => Assert.Equal(category.Id, item.Category.Id));
     }
 
     [Fact]

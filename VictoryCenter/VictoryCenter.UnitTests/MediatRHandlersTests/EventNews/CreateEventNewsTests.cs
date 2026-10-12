@@ -14,7 +14,6 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.UnitTests.Utils;
-using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.EventNews;
@@ -44,16 +43,6 @@ public class CreateEventNewsTests
         new() { Id = 2, Code = "en", Name = "English" }
     ];
 
-    private static readonly List<EventNewsCategoryLink> CategoryLinks =
-    [
-        new()
-        {
-            EventsNewsId = 0,
-            CategoriesId = 1,
-            Priority = 0
-        },
-    ];
-
     [Fact]
     public async Task Handle_ValidPublishedRequest_ReturnsSuccessAndSetsSlug()
     {
@@ -63,7 +52,7 @@ public class CreateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("event-news-title", entity.Slug);
-        Assert.Single(entity.Categories);
+        Assert.Equal(1, entity.CategoryId);
         Assert.Single(entity.Localizations);
         Assert.Equal(TranslationStatus.Relevant, entity.Localizations.Single().TranslationStatus);
     }
@@ -107,7 +96,8 @@ public class CreateEventNewsTests
         var result = await sut.Handle(
             Command(new CreateEventNewsDto
             {
-                Status = Status.Draft
+                Status = Status.Draft,
+                CategoryId = 1
             }),
             CancellationToken.None);
 
@@ -125,6 +115,7 @@ public class CreateEventNewsTests
             Command(new CreateEventNewsDto
             {
                 Status = Status.Draft,
+                CategoryId = 1,
                 Localizations = [new CreateEventNewsLocalizationDto { LanguageId = 1 }]
             }),
             CancellationToken.None);
@@ -138,7 +129,7 @@ public class CreateEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_NullDraftCollections_ReturnsSuccess()
+    public async Task Handle_NullDraftLocalizations_ReturnsSuccess()
     {
         var (sut, entity) = CreateSut(saveChanges: 1);
 
@@ -146,13 +137,13 @@ public class CreateEventNewsTests
             Command(new CreateEventNewsDto
             {
                 Status = Status.Draft,
-                CategoryIds = null!,
+                CategoryId = 1,
                 Localizations = null!
             }),
             CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Empty(entity.Categories);
+        Assert.Equal(1, entity.CategoryId);
         Assert.Empty(entity.Localizations);
     }
 
@@ -161,7 +152,7 @@ public class CreateEventNewsTests
     {
         var (sut, _) = CreateSut(saveChanges: 1, categories: [Categories[0]]);
 
-        var result = await sut.Handle(Command(Dto(Status.Published, categoryIds: [1, 2])), CancellationToken.None);
+        var result = await sut.Handle(Command(Dto(Status.Published, categoryId: 2)), CancellationToken.None);
 
         Assert.Contains(
             nameof(EventNewsCategory),
@@ -236,7 +227,7 @@ public class CreateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("event-news-title-1", entity.Slug);
-        _repo.Verify(repository => repository.SaveChangesAsync(), Times.Exactly(3));
+        _repo.Verify(repository => repository.SaveChangesAsync(), Times.Exactly(2));
         _slugService.Verify(
             service => service.GenerateUniqueEventNewsSlugAsync(
                 0,
@@ -272,24 +263,13 @@ public class CreateEventNewsTests
     public async Task Handle_ValidPublishedRequest_UpdatesCategoryPriority()
     {
         // Arrange
-        var categoryLink = new EventNewsCategoryLink
-        {
-            EventsNewsId = 0,
-            CategoriesId = 1,
-            Priority = 0
-        };
-
-        var (sut, _) = CreateSut(saveChanges: 1, categoryLinks: [categoryLink]);
+        var (sut, entity) = CreateSut(saveChanges: 1);
 
         // Act
         await sut.Handle(Command(Dto(Status.Published)), CancellationToken.None);
 
         // Assert
-        Assert.Equal(1, categoryLink.Priority);
-
-        _repo.Verify(
-            repository => repository.EventNewsEventNewsCategoriesRepository.Update(categoryLink),
-            Times.Once);
+        Assert.Equal(1, entity.Priority);
     }
 
     [Fact]
@@ -300,8 +280,8 @@ public class CreateEventNewsTests
         var (sut, _) = CreateSut(saveChanges: 1);
 
         _reorderService
-            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
-                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsEntity>(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
             .ThrowsAsync(exception);
 
         // Act, Assert
@@ -324,14 +304,9 @@ public class CreateEventNewsTests
         List<EventNewsCategory>? categories = null,
         List<Image>? images = null,
         List<LocalizationLanguage>? languages = null,
-        List<EventNewsCategoryLink>? categoryLinks = null,
         bool throwOnSave = false)
     {
-        var entity = new EventNewsEntity
-        {
-            Categories = [],
-            Localizations = []
-        };
+        var entity = new EventNewsEntity { Localizations = [] };
 
         SetUpMapper(entity);
 
@@ -340,7 +315,6 @@ public class CreateEventNewsTests
             categories ?? Categories,
             images ?? Images,
             languages ?? Languages,
-            categoryLinks ?? CategoryLinks,
             throwOnSave);
 
         SetUpSlugService();
@@ -362,7 +336,7 @@ public class CreateEventNewsTests
                 entity.Status = dto.Status;
                 entity.PreviewImageId = dto.PreviewImageId;
                 entity.BackgroundImageId = dto.BackgroundImageId;
-                entity.Categories = [];
+                entity.CategoryId = dto.CategoryId;
                 entity.Localizations = [];
                 return entity;
             });
@@ -376,7 +350,7 @@ public class CreateEventNewsTests
                 Resource = eventNews.Resource,
                 PublishedAt = eventNews.PublishedAt,
                 Status = eventNews.Status,
-                Categories = [],
+                Category = new EventNewsCategoryShortDto { Id = eventNews.CategoryId },
                 Localizations = []
             });
     }
@@ -386,18 +360,17 @@ public class CreateEventNewsTests
         List<EventNewsCategory> categories,
         List<Image> images,
         List<LocalizationLanguage> languages,
-        List<EventNewsCategoryLink> categoryLinks,
         bool throwOnSave)
     {
         _repo.Reset();
         _transaction.Reset();
 
         _repo
-            .Setup(repo => repo.EventNewsCategoryRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
+            .Setup(repo => repo.EventNewsCategoryRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
             .ReturnsAsync((QueryOptions<EventNewsCategory> options) =>
             {
                 var predicate = options.Filter?.Compile();
-                return predicate is null ? categories : [.. categories.Where(predicate)];
+                return predicate is null ? categories.FirstOrDefault() : categories.FirstOrDefault(predicate);
             });
 
         _repo
@@ -418,18 +391,6 @@ public class CreateEventNewsTests
 
         _repo
             .Setup(repo => repo.EventNewsRepository.CreateAsync(It.IsAny<EventNewsEntity>()));
-
-        _repo
-            .Setup(repo => repo.EventNewsEventNewsCategoriesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
-            .ReturnsAsync((QueryOptions<EventNewsCategoryLink> options) =>
-            {
-                var predicate = options.Filter?.Compile();
-
-                return predicate is null
-                    ? []
-                    : [.. categoryLinks.Where(predicate)];
-            });
 
         _repo
             .Setup(repo => repo.BeginTransactionAsync(It.IsAny<CancellationToken>()))
@@ -458,14 +419,14 @@ public class CreateEventNewsTests
         _reorderService.Reset();
 
         _reorderService
-            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
-                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsEntity>(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
             .ReturnsAsync(1);
     }
 
     private static CreateEventNewsCommand Command(CreateEventNewsDto dto) => new(dto);
 
-    private static CreateEventNewsDto Dto(Status status, List<long>? categoryIds = null)
+    private static CreateEventNewsDto Dto(Status status, long categoryId = 1)
     {
         return new CreateEventNewsDto
         {
@@ -474,7 +435,7 @@ public class CreateEventNewsTests
             Status = status,
             PublishedAt = DateTimeOffset.UtcNow,
             PreviewImageId = 1,
-            CategoryIds = categoryIds ?? [1],
+            CategoryId = categoryId,
             Localizations =
             [
                 new CreateEventNewsLocalizationDto

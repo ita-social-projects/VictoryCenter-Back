@@ -14,7 +14,6 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.UnitTests.Utils;
-using EventNewsCategoryLink = VictoryCenter.DAL.Entities.EventNewsEventNewsCategories;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 using EventNewsPredicate = System.Linq.Expressions.Expression<System.Func<VictoryCenter.DAL.Entities.EventNews, bool>>;
 
@@ -62,7 +61,7 @@ public class UpdateEventNewsTests
         Assert.Equal(2, eventNews.BackgroundImageId);
         Assert.Equal(originalCreatedAt, eventNews.CreatedAt);
         Assert.Equal("updated-event-title", eventNews.Slug);
-        Assert.Equal([2], eventNews.Categories.Select(category => category.Id));
+        Assert.Equal(2, eventNews.CategoryId);
         Assert.Equal([1, 3], eventNews.Localizations.Select(item => item.LanguageId).OrderBy(id => id));
 
         var updatedLocalization = eventNews.Localizations.Single(item => item.LanguageId == 1);
@@ -74,7 +73,7 @@ public class UpdateEventNewsTests
         var newLocalization = eventNews.Localizations.Single(item => item.LanguageId == 3);
         Assert.Equal("German Event Title", newLocalization.Title);
         Assert.NotEqual(default, newLocalization.CreatedAt);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
         _slugService.Verify(
             service => service.GenerateUniqueEventNewsSlugAsync(
                 10,
@@ -204,7 +203,7 @@ public class UpdateEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_DraftWithoutContent_RemovesAssociationsAndSlug()
+    public async Task Handle_DraftWithoutContent_RemovesLocalizationsAndSlug()
     {
         var eventNews = ExistingEventNews();
         var handler = CreateHandler(eventNews);
@@ -217,7 +216,7 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Null(eventNews.Slug);
-        Assert.Empty(eventNews.Categories);
+        Assert.Equal(1, eventNews.CategoryId);
         Assert.Empty(eventNews.Localizations);
         _repositoryWrapper.Verify(
             wrapper => wrapper.LocalizationLanguagesRepository.GetAllAsync(
@@ -344,7 +343,7 @@ public class UpdateEventNewsTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal("updated-event-title-1", eventNews.Slug);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(3));
+        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
     }
 
     [Fact]
@@ -395,33 +394,11 @@ public class UpdateEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_WhenCategoryIsAdded_AssignsNextPriority()
+    public async Task Handle_WhenCategoryChanges_AssignsNextPriority()
     {
         // Arrange
         var eventNews = ExistingEventNews();
         var handler = CreateHandler(eventNews);
-        var categoryLinks = new List<EventNewsCategoryLink>
-        {
-            new() { EventsNewsId = 20, CategoriesId = 2, Priority = 0 },
-            new() { EventsNewsId = 30, CategoriesId = 2, Priority = 2 },
-        };
-        var newLink = new EventNewsCategoryLink
-        {
-            EventsNewsId = 10,
-            CategoriesId = 2,
-        };
-
-        _repositoryWrapper
-            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
-            .ReturnsAsync((QueryOptions<EventNewsCategoryLink> options) =>
-            {
-                var source = options.AsNoTracking
-                    ? categoryLinks
-                    : [newLink];
-
-                return ApplyFilter(source, options);
-            });
 
         // Act
         var result = await handler.Handle(
@@ -430,11 +407,13 @@ public class UpdateEventNewsTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(3, newLink.Priority);
-        _repositoryWrapper.Verify(
-            wrapper => wrapper.EventNewsEventNewsCategoriesRepository.Update(newLink),
+        Assert.Equal(2, eventNews.CategoryId);
+        Assert.Equal(3, eventNews.Priority);
+        _reorderService.Verify(
+            service => service.RenumberPriorityAsync<EventNewsEntity>(
+                It.Is<Expression<Func<EventNewsEntity, bool>>>(
+                    predicate => predicate.Compile()(new EventNewsEntity { CategoryId = 1 }))),
             Times.Once);
-        _repositoryWrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Exactly(2));
     }
 
     [Fact]
@@ -446,8 +425,8 @@ public class UpdateEventNewsTests
         var handler = CreateHandler(eventNews);
 
         _reorderService
-            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
-                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsEntity>(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
             .ThrowsAsync(exception);
 
         // Act, Assert
@@ -490,9 +469,9 @@ public class UpdateEventNewsTests
                 It.IsAny<QueryOptions<EventNewsEntity>>()))
             .ReturnsAsync(eventNews);
         _repositoryWrapper
-            .Setup(wrapper => wrapper.EventNewsCategoryRepository.GetAllAsync(
+            .Setup(wrapper => wrapper.EventNewsCategoryRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<EventNewsCategory>>()))
-            .ReturnsAsync((QueryOptions<EventNewsCategory> options) => ApplyFilter(categories, options));
+            .ReturnsAsync((QueryOptions<EventNewsCategory> options) => ApplyFilter(categories, options).FirstOrDefault());
         _repositoryWrapper
             .Setup(wrapper => wrapper.ImageRepository.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
             .ReturnsAsync((QueryOptions<Image> options) => ApplyFilter(images, options));
@@ -500,10 +479,6 @@ public class UpdateEventNewsTests
             .Setup(wrapper => wrapper.LocalizationLanguagesRepository.GetAllAsync(
                 It.IsAny<QueryOptions<LocalizationLanguage>>()))
             .ReturnsAsync((QueryOptions<LocalizationLanguage> options) => ApplyFilter(languages, options));
-        _repositoryWrapper
-            .Setup(wrapper => wrapper.EventNewsEventNewsCategoriesRepository.GetAllAsync(
-                It.IsAny<QueryOptions<EventNewsCategoryLink>>()))
-            .ReturnsAsync([]);
         _repositoryWrapper
             .Setup(wrapper => wrapper.BeginTransactionAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(_transaction.Object);
@@ -533,8 +508,8 @@ public class UpdateEventNewsTests
                 Status = entity.Status
             });
         _reorderService
-            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsCategoryLink>(
-                It.IsAny<Expression<Func<EventNewsCategoryLink, bool>>>()))
+            .Setup(service => service.GetNextDisplayOrderAsync<EventNewsEntity>(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
             .ReturnsAsync(3);
 
         return new UpdateEventNewsHandler(
@@ -573,7 +548,9 @@ public class UpdateEventNewsTests
             BackgroundImageId = 2,
             BackgroundImage = Image(2),
             CreatedAt = DateTimeOffset.UtcNow.AddDays(-10),
-            Categories = [Category(1)],
+            CategoryId = 1,
+            Category = Category(1),
+            Priority = 1,
             Localizations =
             [
                 new EventNewsLocalization
@@ -611,7 +588,7 @@ public class UpdateEventNewsTests
             Status = Status.Published,
             PreviewImageId = 3,
             BackgroundImageId = 2,
-            CategoryIds = [2],
+            CategoryId = 2,
             Localizations =
             [
                 new CreateEventNewsLocalizationDto
@@ -632,7 +609,7 @@ public class UpdateEventNewsTests
 
     private static UpdateEventNewsDto DraftDto()
     {
-        return new UpdateEventNewsDto { Status = Status.Draft };
+        return new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 };
     }
 
     private static UpdateEventNewsDto MatchingDto(EventNewsEntity eventNews)
@@ -648,7 +625,7 @@ public class UpdateEventNewsTests
             Status = eventNews.Status,
             PreviewImageId = eventNews.PreviewImageId,
             BackgroundImageId = eventNews.BackgroundImageId,
-            CategoryIds = [.. eventNews.Categories.Select(category => category.Id)],
+            CategoryId = eventNews.CategoryId,
             Localizations = [.. eventNews.Localizations.Select(localization => new CreateEventNewsLocalizationDto
             {
                 LanguageId = localization.LanguageId,

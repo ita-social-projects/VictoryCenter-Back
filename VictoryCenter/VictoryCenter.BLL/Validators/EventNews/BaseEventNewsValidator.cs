@@ -89,18 +89,9 @@ public class BaseEventNewsValidator : AbstractValidator<CreateEventNewsDto>
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateEventNewsDto.BackgroundImageId)))
             .When(dto => dto.BackgroundImageId.HasValue);
 
-        RuleFor(dto => dto.CategoryIds)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateEventNewsDto.CategoryIds)))
-            .When(dto => dto.Status == Status.Published);
-
-        RuleFor(dto => dto.CategoryIds)
-            .Must(categoryIds => categoryIds is null || categoryIds.Distinct().Count() == categoryIds.Count)
-            .WithMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(CreateEventNewsDto.CategoryIds)));
-
-        RuleForEach(dto => dto.CategoryIds)
+        RuleFor(dto => dto.CategoryId)
             .GreaterThan(0)
-            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateEventNewsDto.CategoryIds)));
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(CreateEventNewsDto.CategoryId)));
 
         RuleFor(dto => dto.Localizations)
             .NotEmpty()

@@ -34,14 +34,13 @@ public class GetPublishedEventNewsHandler
         var categoryId = request.CategoryId;
         var offset = Math.Max(request.Offset ?? 0, 0);
         var limit = Math.Clamp(
-    request.Limit ?? EventNewsConstants.DefaultLimit,
-    EventNewsConstants.PublishedTakeMinValue,
-    EventNewsConstants.PublishedTakeMaxValue);
+            request.Limit ?? EventNewsConstants.DefaultLimit,
+            EventNewsConstants.PublishedTakeMinValue,
+            EventNewsConstants.PublishedTakeMaxValue);
 
         Expression<Func<EventNewsEntity, bool>> filter = eventNews =>
             eventNews.Status == Status.Published &&
-            (!categoryId.HasValue ||
-                eventNews.Categories.Any(category => category.Id == categoryId.Value));
+            (!categoryId.HasValue || eventNews.CategoryId == categoryId.Value);
 
         var totalCount = await _repositoryWrapper.EventNewsRepository.CountAsync(
             new QueryOptions<EventNewsEntity>
@@ -59,7 +58,7 @@ public class GetPublishedEventNewsHandler
         {
             Filter = filter,
             Include = eventNews => eventNews
-                .Include(e => e.Categories)
+                .Include(e => e.Category)
                     .ThenInclude(category => category.Localizations)
                         .ThenInclude(localization => localization.Language)
                 .Include(e => e.PreviewImage)
