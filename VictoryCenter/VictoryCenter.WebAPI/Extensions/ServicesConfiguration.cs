@@ -16,6 +16,7 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Captcha;
 using VictoryCenter.BLL.Interfaces.Email;
+using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.ImageValidation;
 using VictoryCenter.BLL.Interfaces.Localization;
@@ -39,6 +40,7 @@ using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
 using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.FundsMetricSync;
+using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
 using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Services.Localization;
@@ -195,6 +197,7 @@ public static class ServicesConfiguration
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
         services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
         services.AddScoped<IPartnerSectionLocalizationUpdater, PartnerSectionLocalizationUpdater>();
+        services.AddScoped<IHippotherapyLandingPageAdvantageCardLocalizationUpdater, HippotherapyLandingPageAdvantageCardLocalizationUpdater>();
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
         services.AddScoped<IProgramSectionContentLocalizationTracker, ProgramSectionContentLocalizationTracker>();

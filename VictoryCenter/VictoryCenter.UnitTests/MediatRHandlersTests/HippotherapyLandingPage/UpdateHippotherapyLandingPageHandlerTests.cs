@@ -594,6 +594,45 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenAdvantagesSectionUpdated_ShouldMarkOnlyChangedAdvantageCardLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        foreach (var card in existing.AdvantagesSection!.AdvantageCards)
+        {
+            card.Localizations =
+            [
+                new HippotherapyLandingPageAdvantageCardLocalization
+                {
+                    EntityId = card.Id,
+                    LanguageId = 2,
+                    Description = "Old translated card description",
+                    TranslationStatus = TranslationStatus.Relevant,
+                },
+            ];
+        }
+
+        var dto = GetValidUpdateDto(existing);
+        dto.AdvantagesSection.Cards[0] = new UpdateGalleryCardDto { Description = "Old card 1", ImageId = null };
+        dto.AdvantagesSection.Cards[2] = new UpdateGalleryCardDto { Description = "Old card 3", ImageId = null };
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var cardStatuses = existing.AdvantagesSection.AdvantageCards
+            .OrderBy(c => c.Priority)
+            .Select(c => c.Localizations.Single().TranslationStatus)
+            .ToList();
+        Assert.Equal(
+            [TranslationStatus.Relevant, TranslationStatus.Outdated, TranslationStatus.Relevant, TranslationStatus.Outdated],
+            cardStatuses);
+    }
+
+    [Fact]
     public async Task Handle_WhenReorderExceptionOccurs_ShouldReturnReorderFailResult()
     {
         // Arrange
