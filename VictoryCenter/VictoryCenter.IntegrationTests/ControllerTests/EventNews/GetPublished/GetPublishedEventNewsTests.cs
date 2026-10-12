@@ -52,7 +52,7 @@ public class GetPublishedEventNewsTests : BaseTestClass
     {
         var page = await GetPageAsync();
 
-        Assert.True(page.Items.Count() <= EventNewsConstants.DefaultLimit);
+        Assert.True(page.Items.Length <= EventNewsConstants.DefaultLimit);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class GetPublishedEventNewsTests : BaseTestClass
     {
         var page = await GetPageAsync("?limit=4");
 
-        Assert.True(page.Items.Count() <= 4);
+        Assert.True(page.Items.Length <= 4);
     }
 
     [Fact]

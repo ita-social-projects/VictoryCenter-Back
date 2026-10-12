@@ -95,7 +95,7 @@ public class GetPublishedEventNewsTests
             await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Equal(2, result.Value.Items.Count());
+        Assert.Equal(2, result.Value.Items.Length);
         Assert.Equal(7, result.Value.TotalItemsCount);
     }
 
