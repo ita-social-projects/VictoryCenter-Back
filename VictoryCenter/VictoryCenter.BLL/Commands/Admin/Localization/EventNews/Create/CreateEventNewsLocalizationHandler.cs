@@ -11,7 +11,7 @@ using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNews.Create;
 
-public class CreateEventNewsLocalizationHandler : IRequestHandler<CreateEventNewsLocalizationCommand, Result<EventNewsLocalizationDto>>
+public class CreateEventNewsLocalizationHandler : IRequestHandler<CreateEventNewsLocalizationCommand, Result<AdminEventNewsLocalizationDto>>
 {
     private readonly IMapper _mapper;
     private readonly IValidator<CreateEventNewsLocalizationCommand> _validator;
@@ -27,31 +27,31 @@ public class CreateEventNewsLocalizationHandler : IRequestHandler<CreateEventNew
         _localizationService = localizationService;
     }
 
-    public async Task<Result<EventNewsLocalizationDto>> Handle(CreateEventNewsLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AdminEventNewsLocalizationDto>> Handle(CreateEventNewsLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            EventNewsLocalization entity = _mapper.Map<EventNewsLocalization>(request.CreateEventNewsLocalizationDto);
+            EventNewsLocalization entity = _mapper.Map<EventNewsLocalization>(request.CreateAdminEventNewsLocalizationDto);
             var result = await _localizationService.CreateEntityLocalizationAsync(entity);
-            EventNewsLocalizationDto responseDto = _mapper.Map<EventNewsLocalizationDto>(result);
+            AdminEventNewsLocalizationDto responseDto = _mapper.Map<AdminEventNewsLocalizationDto>(result);
             return Result.Ok(responseDto);
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<EventNewsLocalizationDto>(knfex.Message);
+            return Result.Fail<AdminEventNewsLocalizationDto>(knfex.Message);
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail<EventNewsLocalizationDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsLocalization)));
+            return Result.Fail<AdminEventNewsLocalizationDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(EventNewsLocalization)));
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<EventNewsLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<AdminEventNewsLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<EventNewsLocalizationDto>(ErrorMessagesConstants.
+            return Result.Fail<AdminEventNewsLocalizationDto>(ErrorMessagesConstants.
                 FailedToCreateEntityInDatabase(typeof(EventNewsLocalization)));
         }
     }

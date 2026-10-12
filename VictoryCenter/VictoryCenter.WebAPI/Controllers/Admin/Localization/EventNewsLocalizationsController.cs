@@ -10,16 +10,16 @@ namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
 public class EventNewsLocalizationsController : AuthorizedApiController
 {
     [HttpPost]
-    [ProducesResponseType(typeof(EventNewsLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminEventNewsLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CreateEventNewsLocalization([FromBody] CreateEventNewsLocalizationDto createEventNewsLocalizationDto)
+    public async Task<IActionResult> CreateEventNewsLocalization([FromBody] CreateAdminEventNewsLocalizationDto createAdminEventNewsLocalizationDto)
     {
-        return HandleResult(await Mediator.Send(new CreateEventNewsLocalizationCommand(createEventNewsLocalizationDto)));
+        return HandleResult(await Mediator.Send(new CreateEventNewsLocalizationCommand(createAdminEventNewsLocalizationDto)));
     }
 
     [HttpPut("{entityId:long}/{languageId:long}")]
-    [ProducesResponseType(typeof(EventNewsLocalizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AdminEventNewsLocalizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateEventNewsLocalization(

@@ -18,7 +18,7 @@ public class CreateEventNewsLocalizationTests
     private readonly Mock<IMapper> _mockMapper;
     private readonly IValidator<CreateEventNewsLocalizationCommand> _validator;
 
-    private readonly CreateEventNewsLocalizationDto _testCreateDto = new()
+    private readonly CreateAdminEventNewsLocalizationDto _testCreateDto = new()
     {
         EntityId = 1,
         LanguageId = 1,
@@ -36,7 +36,7 @@ public class CreateEventNewsLocalizationTests
         AdditionalDescription = "Additional info"
     };
 
-    private readonly EventNewsLocalizationDto _testDto = new()
+    private readonly AdminEventNewsLocalizationDto _testDto = new()
     {
         EntityId = 1,
         LocalizationInfoDto = new() { Id = 1, Code = "en" },
@@ -70,7 +70,7 @@ public class CreateEventNewsLocalizationTests
         Assert.NotNull(result.Value);
         Assert.Equal(_testDto.Title, result.Value.Title);
         Assert.Equal(_testDto.LocalizationInfoDto.Id, result.Value.LocalizationInfoDto.Id);
-        _mockMapper.Verify(m => m.Map<EventNewsLocalization>(It.IsAny<CreateEventNewsLocalizationDto>()), Times.Once);
+        _mockMapper.Verify(m => m.Map<EventNewsLocalization>(It.IsAny<CreateAdminEventNewsLocalizationDto>()), Times.Once);
         _mockLocalizationService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()), Times.Once);
     }
 
@@ -82,7 +82,7 @@ public class CreateEventNewsLocalizationTests
         var handler = new CreateEventNewsLocalizationHandler(
             _mockMapper.Object, _validator, _mockLocalizationService.Object);
 
-        var dtoWithoutDescription = new CreateEventNewsLocalizationDto
+        var dtoWithoutDescription = new CreateAdminEventNewsLocalizationDto
         {
             EntityId = 1,
             LanguageId = 1,
@@ -104,10 +104,10 @@ public class CreateEventNewsLocalizationTests
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         // Arrange
-        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateEventNewsLocalizationDto>()))
+        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateAdminEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.CreateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))
@@ -132,10 +132,10 @@ public class CreateEventNewsLocalizationTests
         // Arrange
         var notFoundMessage = "Not found";
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateEventNewsLocalizationDto>()))
+        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateAdminEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.CreateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))
@@ -159,10 +159,10 @@ public class CreateEventNewsLocalizationTests
     public async Task Handle_ShouldFail_WhenInvalidOperationExceptionThrown()
     {
         // Arrange
-        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateEventNewsLocalizationDto>()))
+        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateAdminEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.CreateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))
@@ -183,10 +183,10 @@ public class CreateEventNewsLocalizationTests
 
     private void SetupDependencies()
     {
-        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateEventNewsLocalizationDto>()))
+        _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<CreateAdminEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.CreateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))

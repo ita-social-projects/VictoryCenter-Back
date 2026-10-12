@@ -3,7 +3,7 @@ using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.DTOs.Admin.Localization.EventNews;
 
-public record EventNewsLocalizationDto
+public record AdminEventNewsLocalizationDto
 {
     public long EntityId { get; init; }
 

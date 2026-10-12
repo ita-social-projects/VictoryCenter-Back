@@ -9,9 +9,9 @@ public class CreateEventNewsLocalizationValidator : AbstractValidator<CreateEven
 {
     public CreateEventNewsLocalizationValidator(BaseEventNewsLocalizationValidator baseEventNewsLocalizationValidator)
     {
-        RuleFor(x => x.CreateEventNewsLocalizationDto)
-            .SetValidator(new LocalizationIdentityValidator<CreateEventNewsLocalizationDto>());
+        RuleFor(x => x.CreateAdminEventNewsLocalizationDto)
+            .SetValidator(new LocalizationIdentityValidator<CreateAdminEventNewsLocalizationDto>());
 
-        RuleFor(c => c.CreateEventNewsLocalizationDto).SetValidator(baseEventNewsLocalizationValidator);
+        RuleFor(c => c.CreateAdminEventNewsLocalizationDto).SetValidator(baseEventNewsLocalizationValidator);
     }
 }

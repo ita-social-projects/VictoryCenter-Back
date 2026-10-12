@@ -8,4 +8,4 @@ public record UpdateEventNewsLocalizationCommand(
     UpdateEventNewsLocalizationDto UpdateEventNewsLocalizationDto,
     long EntityId,
     long LanguageId)
-    : IRequest<Result<EventNewsLocalizationDto>>;
+    : IRequest<Result<AdminEventNewsLocalizationDto>>;

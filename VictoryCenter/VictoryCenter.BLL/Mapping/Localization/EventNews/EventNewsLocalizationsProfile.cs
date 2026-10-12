@@ -9,13 +9,13 @@ public class EventNewsLocalizationsProfile : Profile
 {
     public EventNewsLocalizationsProfile()
     {
-        CreateMap<CreateEventNewsLocalizationDto, EventNewsLocalization>()
+        CreateMap<CreateAdminEventNewsLocalizationDto, EventNewsLocalization>()
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<UpdateEventNewsLocalizationDto, EventNewsLocalization>()
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
-        CreateMap<EventNewsLocalization, EventNewsLocalizationDto>()
+        CreateMap<EventNewsLocalization, AdminEventNewsLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
     }
 }

@@ -34,7 +34,7 @@ public class UpdateEventNewsLocalizationTests
         AdditionalDescription = "Updated info"
     };
 
-    private readonly EventNewsLocalizationDto _testDto = new()
+    private readonly AdminEventNewsLocalizationDto _testDto = new()
     {
         EntityId = 1,
         LocalizationInfoDto = new() { Id = 1, Code = "en" },
@@ -103,7 +103,7 @@ public class UpdateEventNewsLocalizationTests
         _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<UpdateEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.UpdateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))
@@ -131,7 +131,7 @@ public class UpdateEventNewsLocalizationTests
         _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<UpdateEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.UpdateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))
@@ -158,7 +158,7 @@ public class UpdateEventNewsLocalizationTests
         _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<UpdateEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.UpdateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))
@@ -182,7 +182,7 @@ public class UpdateEventNewsLocalizationTests
         _mockMapper.Setup(x => x.Map<EventNewsLocalization>(It.IsAny<UpdateEventNewsLocalizationDto>()))
             .Returns(_testEntity);
 
-        _mockMapper.Setup(x => x.Map<EventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
+        _mockMapper.Setup(x => x.Map<AdminEventNewsLocalizationDto>(It.IsAny<EventNewsLocalization>()))
             .Returns(_testDto);
 
         _mockLocalizationService.Setup(x => x.UpdateEntityLocalizationAsync(It.IsAny<EventNewsLocalization>()))

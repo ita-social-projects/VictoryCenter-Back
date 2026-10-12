@@ -11,7 +11,7 @@ using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNews.Update;
 
-public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNewsLocalizationCommand, Result<EventNewsLocalizationDto>>
+public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNewsLocalizationCommand, Result<AdminEventNewsLocalizationDto>>
 {
     private readonly IMapper _mapper;
     private readonly IValidator<UpdateEventNewsLocalizationCommand> _validator;
@@ -27,7 +27,7 @@ public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNew
         _localizationService = localizationService;
     }
 
-    public async Task<Result<EventNewsLocalizationDto>> Handle(UpdateEventNewsLocalizationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<AdminEventNewsLocalizationDto>> Handle(UpdateEventNewsLocalizationCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -38,24 +38,24 @@ public class UpdateEventNewsLocalizationHandler : IRequestHandler<UpdateEventNew
             entity.EntityId = request.EntityId;
             entity.LanguageId = request.LanguageId;
             var result = await _localizationService.UpdateEntityLocalizationAsync(entity);
-            EventNewsLocalizationDto responseDto = _mapper.Map<EventNewsLocalizationDto>(result);
+            AdminEventNewsLocalizationDto responseDto = _mapper.Map<AdminEventNewsLocalizationDto>(result);
             return Result.Ok(responseDto);
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<EventNewsLocalizationDto>(knfex.Message);
+            return Result.Fail<AdminEventNewsLocalizationDto>(knfex.Message);
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail<EventNewsLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(EventNewsLocalization)));
+            return Result.Fail<AdminEventNewsLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(EventNewsLocalization)));
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<EventNewsLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<AdminEventNewsLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
         }
         catch (DbUpdateException)
         {
-            return Result.Fail<EventNewsLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(EventNewsLocalization)));
+            return Result.Fail<AdminEventNewsLocalizationDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(EventNewsLocalization)));
         }
     }
 }
