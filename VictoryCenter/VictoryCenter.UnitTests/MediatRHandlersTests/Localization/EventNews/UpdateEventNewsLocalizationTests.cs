@@ -73,6 +73,30 @@ public class UpdateEventNewsLocalizationTests
     }
 
     [Fact]
+    public async Task Handle_ShouldUpdateEventNewsLocalization_Successfully_WhenDescriptionIsNull()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new UpdateEventNewsLocalizationHandler(
+            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+
+        var dtoWithoutDescription = new UpdateEventNewsLocalizationDto
+        {
+            Title = "Updated Event Title",
+            Description = null,
+            AdditionalDescription = "Updated info"
+        };
+        var command = new UpdateEventNewsLocalizationCommand(dtoWithoutDescription, 1, 1);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         // Arrange

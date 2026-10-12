@@ -75,6 +75,32 @@ public class CreateEventNewsLocalizationTests
     }
 
     [Fact]
+    public async Task Handle_ShouldCreateEventNewsLocalization_Successfully_WhenDescriptionIsNull()
+    {
+        // Arrange
+        SetupDependencies();
+        var handler = new CreateEventNewsLocalizationHandler(
+            _mockMapper.Object, _validator, _mockLocalizationService.Object);
+
+        var dtoWithoutDescription = new CreateEventNewsLocalizationDto
+        {
+            EntityId = 1,
+            LanguageId = 1,
+            Title = "Event Title",
+            Description = null,
+            AdditionalDescription = "Additional info"
+        };
+        var command = new CreateEventNewsLocalizationCommand(dtoWithoutDescription);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.NotNull(result.Value);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenDbUpdateExceptionThrown()
     {
         // Arrange

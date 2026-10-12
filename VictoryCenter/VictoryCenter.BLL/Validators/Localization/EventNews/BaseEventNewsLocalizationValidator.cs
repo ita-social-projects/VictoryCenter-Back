@@ -14,9 +14,9 @@ public class BaseEventNewsLocalizationValidator : AbstractValidator<UpdateEventN
             .MaximumLength(EventNewsConstants.TitleMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateEventNewsLocalizationDto.Title), EventNewsConstants.TitleMaxLength));
 
         RuleFor(x => x.Description)
-            .NotEmpty().WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEventNewsLocalizationDto.Description)))
             .MinimumLength(EventNewsConstants.DescriptionMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateEventNewsLocalizationDto.Description), EventNewsConstants.DescriptionMinLength))
-            .MaximumLength(EventNewsConstants.DescriptionMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateEventNewsLocalizationDto.Description), EventNewsConstants.DescriptionMaxLength));
+            .MaximumLength(EventNewsConstants.DescriptionMaxLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(nameof(UpdateEventNewsLocalizationDto.Description), EventNewsConstants.DescriptionMaxLength))
+            .When(x => !string.IsNullOrWhiteSpace(x.Description));
 
         RuleFor(x => x.AdditionalDescription)
             .MinimumLength(EventNewsConstants.AdditionalDescriptionMinLength).WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(nameof(UpdateEventNewsLocalizationDto.AdditionalDescription), EventNewsConstants.AdditionalDescriptionMinLength))
