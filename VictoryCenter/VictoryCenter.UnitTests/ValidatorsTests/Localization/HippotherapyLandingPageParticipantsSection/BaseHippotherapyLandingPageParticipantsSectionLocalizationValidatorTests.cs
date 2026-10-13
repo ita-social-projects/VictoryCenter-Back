@@ -12,7 +12,8 @@ public class BaseHippotherapyLandingPageParticipantsSectionLocalizationValidator
 
     public BaseHippotherapyLandingPageParticipantsSectionLocalizationValidatorTests()
     {
-        _validator = new BaseHippotherapyLandingPageParticipantsSectionLocalizationValidator();
+        _validator = new BaseHippotherapyLandingPageParticipantsSectionLocalizationValidator(
+            new HippotherapyLandingPageParticipantCardLocalizationItemValidator());
     }
 
     [Theory]
@@ -120,5 +121,77 @@ public class BaseHippotherapyLandingPageParticipantsSectionLocalizationValidator
         };
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveError_WhenCards_AreValid()
+    {
+        var model = new UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto
+        {
+            Title = "Who the programs are for",
+            Cards =
+            [
+                new UpdateHippotherapyLandingPageParticipantCardLocalizationItemDto { CardId = 1, Description = "Valid card description 1" },
+                new UpdateHippotherapyLandingPageParticipantCardLocalizationItemDto { CardId = 2, Description = "Valid card description 2" },
+            ],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenCards_IsNull()
+    {
+        var model = new UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto
+        {
+            Title = "Who the programs are for",
+            Cards = null!,
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Cards)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto.Cards)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenCards_ContainNullElement()
+    {
+        var model = new UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto
+        {
+            Title = "Who the programs are for",
+            Cards = [null!],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Cards)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto.Cards)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenCards_ContainDuplicateCardIds()
+    {
+        var model = new UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto
+        {
+            Title = "Who the programs are for",
+            Cards =
+            [
+                new UpdateHippotherapyLandingPageParticipantCardLocalizationItemDto { CardId = 1, Description = "Valid card description 1" },
+                new UpdateHippotherapyLandingPageParticipantCardLocalizationItemDto { CardId = 1, Description = "Valid card description 2" },
+            ],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Cards)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto.Cards)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenCardItem_IsInvalid()
+    {
+        var model = new UpdateHippotherapyLandingPageParticipantsSectionLocalizationDto
+        {
+            Title = "Who the programs are for",
+            Cards = [new UpdateHippotherapyLandingPageParticipantCardLocalizationItemDto { CardId = 0, Description = "short" }],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor("Cards[0].CardId");
+        result.ShouldHaveValidationErrorFor("Cards[0].Description");
     }
 }

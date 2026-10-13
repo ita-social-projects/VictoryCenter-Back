@@ -130,8 +130,8 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     MarkAnotherQuoteSectionLocalizationsOutdated(entity.AnotherQuoteSection);
 
                     _mapper.Map(dto.ParticipantsSection, entity.ParticipantsSection);
-                    UpdateGalleryCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
-                    MarkParticipantsSectionLocalizationsOutdated(entity.ParticipantsSection);
+                    var changedParticipantCards = UpdateGalleryCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
+                    MarkParticipantsSectionLocalizationsOutdated(entity.ParticipantsSection, changedParticipantCards);
 
                     TrackImageChange(entity.EthicsSection!.ImageId, dto.EthicsSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.EthicsSection, entity.EthicsSection);
@@ -231,9 +231,16 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static void MarkParticipantsSectionLocalizationsOutdated(HippotherapyLandingPageParticipantsSection participantsSection)
+    private static void MarkParticipantsSectionLocalizationsOutdated(
+        HippotherapyLandingPageParticipantsSection participantsSection,
+        List<HippotherapyLandingPageParticipantCard> changedCards)
     {
         foreach (var loc in participantsSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+
+        foreach (var loc in changedCards.SelectMany(c => c.Localizations))
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }

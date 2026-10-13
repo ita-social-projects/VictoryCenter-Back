@@ -16,6 +16,15 @@ public class HippotherapyLandingPageParticipantsSectionLocalizationProfile : Pro
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<HippotherapyLandingPageParticipantsSectionLocalization, HippotherapyLandingPageParticipantsSectionLocalizationDto>()
-            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language))
+            .ForMember(dest => dest.Cards, opt => opt.Ignore());
+
+        CreateMap<UpdateHippotherapyLandingPageParticipantCardLocalizationItemDto, HippotherapyLandingPageParticipantCardLocalization>()
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.CardId))
+            .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<HippotherapyLandingPageParticipantCardLocalization, HippotherapyLandingPageParticipantCardLocalizationItemDto>()
+            .ForMember(dest => dest.CardId, opt => opt.MapFrom(src => src.EntityId));
     }
 }

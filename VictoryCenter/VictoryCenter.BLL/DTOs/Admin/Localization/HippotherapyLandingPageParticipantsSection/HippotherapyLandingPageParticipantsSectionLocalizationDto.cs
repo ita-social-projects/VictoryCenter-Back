@@ -12,4 +12,6 @@ public class HippotherapyLandingPageParticipantsSectionLocalizationDto
     public string Title { get; set; } = null!;
 
     public TranslationStatus TranslationStatus { get; init; }
+
+    public List<HippotherapyLandingPageParticipantCardLocalizationItemDto> Cards { get; set; } = [];
 }
