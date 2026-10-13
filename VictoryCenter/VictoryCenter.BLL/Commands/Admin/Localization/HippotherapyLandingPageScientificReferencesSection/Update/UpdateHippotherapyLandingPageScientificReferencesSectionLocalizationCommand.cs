@@ -1,0 +1,11 @@
+using FluentResults;
+using MediatR;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageScientificReferencesSection;
+
+namespace VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyLandingPageScientificReferencesSection.Update;
+
+public record UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationCommand(
+    UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto,
+    long EntityId,
+    long LanguageId)
+    : IRequest<Result<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>>;

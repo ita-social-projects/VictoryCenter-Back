@@ -125,6 +125,8 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                         return Result.Fail<HippotherapyLandingPageDto>(referencesResult.Errors);
                     }
 
+                    MarkScientificReferencesSectionLocalizationsOutdated(entity.ScientificReferencesSection!);
+
                     TrackImageChange(entity.AnotherQuoteSection!.ImageId, dto.AnotherQuoteSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.AnotherQuoteSection, entity.AnotherQuoteSection);
                     MarkAnotherQuoteSectionLocalizationsOutdated(entity.AnotherQuoteSection);
@@ -209,6 +211,15 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
     private static void MarkAnalysisSectionLocalizationsOutdated(HippotherapyLandingPageAnalysisSection analysisSection)
     {
         foreach (var loc in analysisSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkScientificReferencesSectionLocalizationsOutdated(
+        HippotherapyLandingPageScientificReferencesSection scientificReferencesSection)
+    {
+        foreach (var loc in scientificReferencesSection.Localizations)
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
