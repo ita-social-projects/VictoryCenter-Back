@@ -33,7 +33,9 @@ public class EventsIntroSectionHandlersTests
         // Arrange
         var entity = CreateEntity();
         var expectedDto = CreateDto(entity);
-        _repositoryMock.Setup(repository => repository.GetFirstOrDefaultAsync(null)).ReturnsAsync(entity);
+        _repositoryMock
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventsIntroSection>>()))
+            .ReturnsAsync(entity);
         _mapperMock.Setup(mapper => mapper.Map<EventsIntroSectionDto>(entity)).Returns(expectedDto);
         var handler = new GetEventsIntroSectionHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
 
@@ -49,7 +51,9 @@ public class EventsIntroSectionHandlersTests
     public async Task Get_Handle_WhenSectionDoesNotExist_ReturnsNotFound()
     {
         // Arrange
-        _repositoryMock.Setup(repository => repository.GetFirstOrDefaultAsync(null)).ReturnsAsync((EventsIntroSection?)null);
+        _repositoryMock
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventsIntroSection>>()))
+            .ReturnsAsync((EventsIntroSection?)null);
         var handler = new GetEventsIntroSectionHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
 
         // Act

@@ -165,6 +165,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<EventsIntroSection> EventsIntroSections { get; set; }
 
+    public DbSet<EventsIntroSectionLocalization> EventsIntroSectionLocalizations { get; set; }
+
     public DbSet<HippotherapyLandingPage> HippotherapyLandingPages { get; set; }
 
     public DbSet<HippotherapyLandingPageIntroSection> HippotherapyLandingPageIntroSections { get; set; }

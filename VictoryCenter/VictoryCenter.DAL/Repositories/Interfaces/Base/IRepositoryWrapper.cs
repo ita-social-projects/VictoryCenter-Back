@@ -45,6 +45,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.VideoReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventsIntroSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
@@ -151,6 +152,7 @@ public interface IRepositoryWrapper
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
     IEventsIntroSectionsRepository EventsIntroSectionsRepository { get; }
+    IEventsIntroSectionLocalizationsRepository EventsIntroSectionLocalizationsRepository { get; }
     IFeedbackReviewsRepository FeedbackReviewsRepository { get; }
     IFeedbackReviewLocalizationsRepository FeedbackReviewLocalizationsRepository { get; }
 
