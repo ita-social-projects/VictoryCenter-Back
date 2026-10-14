@@ -5,4 +5,6 @@ public class UpdateHippotherapyLandingPageScientificReferencesSectionLocalizatio
     public string Title { get; set; } = null!;
 
     public string Description { get; set; } = null!;
+
+    public List<UpdateHippotherapyLandingPageScientificReferenceLocalizationItemDto> References { get; set; } = [];
 }

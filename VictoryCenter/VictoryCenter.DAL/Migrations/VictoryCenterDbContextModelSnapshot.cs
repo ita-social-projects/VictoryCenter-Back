@@ -2147,6 +2147,33 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("HippotherapyLandingPageQuoteSectionLocalizations");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyLandingPageScientificReferenceLocalization", b =>
+                {
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("LanguageId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TranslationStatus")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("EntityId", "LanguageId");
+
+                    b.HasIndex("LanguageId");
+
+                    b.ToTable("HippotherapyLandingPageScientificReferenceLocalizations");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyLandingPageScientificReferencesSectionLocalization", b =>
                 {
                     b.Property<long>("EntityId")
@@ -4580,6 +4607,25 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Language");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyLandingPageScientificReferenceLocalization", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageScientificReference", "Entity")
+                        .WithMany("Localizations")
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VictoryCenter.DAL.Entities.Localization.LocalizationLanguage", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Entity");
+
+                    b.Navigation("Language");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.Localization.HippotherapyLandingPageScientificReferencesSectionLocalization", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageScientificReferencesSection", "Entity")
@@ -5314,6 +5360,11 @@ namespace VictoryCenter.DAL.Migrations
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageQuoteSection", b =>
+                {
+                    b.Navigation("Localizations");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageScientificReference", b =>
                 {
                     b.Navigation("Localizations");
                 });

@@ -125,7 +125,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                         return Result.Fail<HippotherapyLandingPageDto>(referencesResult.Errors);
                     }
 
-                    MarkScientificReferencesSectionLocalizationsOutdated(entity.ScientificReferencesSection!);
+                    MarkScientificReferencesSectionLocalizationsOutdated(entity.ScientificReferencesSection!, referencesResult.Value);
 
                     TrackImageChange(entity.AnotherQuoteSection!.ImageId, dto.AnotherQuoteSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.AnotherQuoteSection, entity.AnotherQuoteSection);
@@ -217,9 +217,15 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
     }
 
     private static void MarkScientificReferencesSectionLocalizationsOutdated(
-        HippotherapyLandingPageScientificReferencesSection scientificReferencesSection)
+        HippotherapyLandingPageScientificReferencesSection scientificReferencesSection,
+        List<HippotherapyLandingPageScientificReference> changedReferences)
     {
         foreach (var loc in scientificReferencesSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+
+        foreach (var loc in changedReferences.SelectMany(r => r.Localizations))
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
@@ -306,10 +312,11 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         return changedCards;
     }
 
-    private Result UpdateScientificReferences(
+    private Result<List<HippotherapyLandingPageScientificReference>> UpdateScientificReferences(
         HippotherapyLandingPageScientificReferencesSection section,
         UpdateScientificReferencesSectionDto dto)
     {
+        var changedReferences = new List<HippotherapyLandingPageScientificReference>();
         var existingById = section.ScientificReferences.ToDictionary(r => r.Id);
         var incomingIds = dto.ScientificReferences
             .Where(r => r.Id.HasValue)
@@ -336,6 +343,11 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                         referenceDto.Id.Value, typeof(HippotherapyLandingPageScientificReference)));
                 }
 
+                if (!string.Equals(existingReference.Name, referenceDto.Name, StringComparison.Ordinal))
+                {
+                    changedReferences.Add(existingReference);
+                }
+
                 _mapper.Map(referenceDto, existingReference);
             }
             else
@@ -347,7 +359,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             }
         }
 
-        return Result.Ok();
+        return Result.Ok(changedReferences);
     }
 
     private DAL.Entities.HippotherapyLandingPage BuildNewEntity(UpdateHippotherapyLandingPageDto dto)

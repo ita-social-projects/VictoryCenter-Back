@@ -510,6 +510,44 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenScientificReferencesSectionUpdated_ShouldMarkOnlyChangedReferenceLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        foreach (var reference in existing.ScientificReferencesSection!.ScientificReferences)
+        {
+            reference.Localizations =
+            [
+                new HippotherapyLandingPageScientificReferenceLocalization
+                {
+                    EntityId = reference.Id,
+                    LanguageId = 2,
+                    Name = "Old translated reference name",
+                    TranslationStatus = TranslationStatus.Relevant,
+                },
+            ];
+        }
+
+        var dto = GetValidUpdateDto(existing);
+        var unchanged = existing.ScientificReferencesSection.ScientificReferences.OrderBy(r => r.Priority).First();
+        dto.ScientificReferencesSection.ScientificReferences[0] =
+            new UpdateScientificReferenceDto { Id = unchanged.Id, Name = unchanged.Name, Url = "https://example.com/new-url" };
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var referenceStatuses = existing.ScientificReferencesSection.ScientificReferences
+            .OrderBy(r => r.Priority)
+            .Select(r => r.Localizations.Single().TranslationStatus)
+            .ToList();
+        Assert.Equal([TranslationStatus.Relevant, TranslationStatus.Outdated], referenceStatuses);
+    }
+
+    [Fact]
     public async Task Handle_WhenQuoteSectionUpdated_ShouldMarkExistingQuoteLocalizationsOutdated()
     {
         // Arrange

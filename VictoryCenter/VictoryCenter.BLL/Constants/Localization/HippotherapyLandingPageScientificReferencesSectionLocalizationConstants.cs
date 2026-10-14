@@ -7,4 +7,7 @@ public static class HippotherapyLandingPageScientificReferencesSectionLocalizati
 
     public static readonly int DescriptionMinLength = HippotherapyLandingPageConstants.TextMinLength;
     public static readonly int DescriptionMaxLength = HippotherapyLandingPageConstants.ScientificReferencesDescriptionMaxLength;
+
+    public static readonly int ReferenceNameMinLength = HippotherapyLandingPageConstants.ScientificReferenceNameMinLength;
+    public static readonly int ReferenceNameMaxLength = HippotherapyLandingPageConstants.ScientificReferenceNameMaxLength;
 }
