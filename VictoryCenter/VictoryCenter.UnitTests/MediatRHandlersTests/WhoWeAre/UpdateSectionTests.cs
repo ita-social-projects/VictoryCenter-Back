@@ -107,7 +107,7 @@ public class UpdateWhoWeAreContentTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { Id = 1, ContentType = ContentType.Description, Title = "Valid title", Description = updatedText }
+                new() { Id = 1, ContentType = ContentType.Description, Description = updatedText }
             });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });
@@ -131,7 +131,7 @@ public class UpdateWhoWeAreContentTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { Id = 1, ContentType = ContentType.Card, ImageId = 3, Title = "Valid Title", Description = "Description 1" }
+                new() { Id = 1, ContentType = ContentType.Card, ImageId = 3, Description = "Description 1" }
             });
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testCardContent });
 
@@ -154,7 +154,7 @@ public class UpdateWhoWeAreContentTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { Id = 1, ContentType = ContentType.Card, ImageId = 1, Title = "Valid Title", Description = "Description 1" }
+                new() { Id = 1, ContentType = ContentType.Card, ImageId = 1, Description = "Description 1" }
             });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testCardContent });
@@ -176,7 +176,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<UpdateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description, Title = "Valid Title", Description = "Description 1" } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description, Description = "Valid description" } });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent>());
 
@@ -198,7 +198,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description, Title = "Valid Title", Description = "Description 1" } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description, Description = "Valid description" } });
 
         var foreignContent = new DescriptionContent { Id = 1, SectionId = 999, ContentType = ContentType.Description };
 
@@ -222,7 +222,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Image, Title = "Valid Title", Description = "Description 1" } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Image } });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });
 

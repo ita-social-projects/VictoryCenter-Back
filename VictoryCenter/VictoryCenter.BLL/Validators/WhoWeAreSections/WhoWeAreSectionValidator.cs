@@ -24,7 +24,8 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
                 .MaximumLength(WhoWeAreConstants.ValidationTitleRules.MaxLen)
                 .WithMessage(
                     ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                        nameof(UpdateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen));
+                        nameof(UpdateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen))
+                .When(x => x.ContentType == ContentType.Title);
         }
 
         if (!WhoWeAreConstants.ValidationDescriptionRules.ContainsKey(sectionType))
@@ -44,6 +45,7 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
             .MaximumLength(WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen)
             .WithMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen));
+                    nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen))
+            .When(x => x.ContentType == ContentType.Description);
     }
 }
