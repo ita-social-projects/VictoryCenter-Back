@@ -35,6 +35,7 @@ public class UpdateSectionTests : BaseTestClass
             {
                 Id = contentId,
                 ContentType = ContentType.Description,
+                Title = "Valid Title",
                 Description = "Updated description",
             }
         };
@@ -71,6 +72,7 @@ public class UpdateSectionTests : BaseTestClass
             {
                 Id = fakeContentId,
                 ContentType = ContentType.Description,
+                Title = "Valid Title",
                 Description = "Invalid update"
             }
         };

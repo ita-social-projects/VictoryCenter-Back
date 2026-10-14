@@ -12,6 +12,11 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
         if (sectionType == SectionType.Main)
         {
             RuleFor(x => x.Title)
+                .Cascade(CascadeMode.Stop)
+                .NotEmpty()
+                .WithMessage(
+                    ErrorMessagesConstants.PropertyIsRequired(
+                        nameof(UpdateWhoWeAreContentDto.Title)))
                 .MinimumLength(WhoWeAreConstants.ValidationTitleRules.MinLen)
                 .WithMessage(
                     ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
@@ -19,7 +24,8 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
                 .MaximumLength(WhoWeAreConstants.ValidationTitleRules.MaxLen)
                 .WithMessage(
                     ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                        nameof(UpdateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen));
+                        nameof(UpdateWhoWeAreContentDto.Title), WhoWeAreConstants.ValidationTitleRules.MaxLen))
+                .When(x => x.ContentType == ContentType.Title);
         }
 
         if (!WhoWeAreConstants.ValidationDescriptionRules.ContainsKey(sectionType))
@@ -28,12 +34,18 @@ internal class WhoWeAreSectionValidator : AbstractValidator<UpdateWhoWeAreConten
         }
 
         RuleFor(x => x.Description)
+            .Cascade(CascadeMode.Stop)
+            .NotEmpty()
+            .WithMessage(
+                ErrorMessagesConstants.PropertyIsRequired(
+                    nameof(UpdateWhoWeAreContentDto.Description)))
             .MinimumLength(WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
                 nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MinLen))
             .MaximumLength(WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen)
             .WithMessage(
                 ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                    nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen));
+                    nameof(UpdateWhoWeAreContentDto.Description), WhoWeAreConstants.ValidationDescriptionRules[sectionType].MaxLen))
+            .When(x => x.ContentType == ContentType.Description);
     }
 }
