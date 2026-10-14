@@ -71,7 +71,8 @@ jobs:
             /o:"ita-social-projects" \
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
-            /d:sonar.exclusions="**/Migrations/**"
+            /d:sonar.exclusions="**/Migrations/**" \
+            /d:sonar.coverage.exclusions="**/VictoryCenter.DbUpdate/Program.cs"
 
       - name: Build the solution
         run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental

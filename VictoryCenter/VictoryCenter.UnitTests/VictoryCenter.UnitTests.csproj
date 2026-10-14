@@ -27,6 +27,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\VictoryCenter.DbUpdate\VictoryCenter.DbUpdate.csproj" />
         <ProjectReference Include="..\VictoryCenter.BLL\VictoryCenter.BLL.csproj" />
         <ProjectReference Include="..\VictoryCenter.DAL\VictoryCenter.DAL.csproj" />
         <ProjectReference Include="..\VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj" />
