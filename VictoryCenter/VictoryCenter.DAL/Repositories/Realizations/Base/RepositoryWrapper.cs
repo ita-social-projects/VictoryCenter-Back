@@ -157,6 +157,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyLandingPageAnalysisSectionLocalizationsRepository? _hippotherapyLandingPageAnalysisSectionLocalizationsRepository;
     private IHippotherapyLandingPageQuoteSectionLocalizationsRepository? _hippotherapyLandingPageQuoteSectionLocalizationsRepository;
     private IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository? _hippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository;
+    private IHippotherapyLandingPageParticipantsSectionLocalizationsRepository? _hippotherapyLandingPageParticipantsSectionLocalizationsRepository;
     private IHippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository? _hippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository;
     private IHippotherapyLandingPageAdvantagesSectionLocalizationsRepository? _hippotherapyLandingPageAdvantagesSectionLocalizationsRepository;
     private IHippotherapyLandingPageAdvantageCardLocalizationsRepository? _hippotherapyLandingPageAdvantageCardLocalizationsRepository;
@@ -203,6 +204,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyLandingPageAnalysisSectionsRepository? _hippotherapyLandingPageAnalysisSectionsRepository;
     private IHippotherapyLandingPageQuoteSectionsRepository? _hippotherapyLandingPageQuoteSectionsRepository;
     private IHippotherapyLandingPageAnotherQuoteSectionsRepository? _hippotherapyLandingPageAnotherQuoteSectionsRepository;
+    private IHippotherapyLandingPageParticipantsSectionsRepository? _hippotherapyLandingPageParticipantsSectionsRepository;
     private IHippotherapyLandingPageHippoventionCenterSectionsRepository? _hippotherapyLandingPageHippoventionCenterSectionsRepository;
     private IHippotherapyLandingPageAdvantagesSectionsRepository? _hippotherapyLandingPageAdvantagesSectionsRepository;
     private IHippotherapyLandingPageAdvantageCardsRepository? _hippotherapyLandingPageAdvantageCardsRepository;
@@ -334,6 +336,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository HippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository =>
         _hippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository ??=
             new HippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageParticipantsSectionLocalizationsRepository HippotherapyLandingPageParticipantsSectionLocalizationsRepository =>
+        _hippotherapyLandingPageParticipantsSectionLocalizationsRepository ??=
+            new HippotherapyLandingPageParticipantsSectionLocalizationsRepository(_victoryCenterDbContext);
 
     public IHippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository HippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository =>
         _hippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository ??=
@@ -512,6 +518,9 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IHippotherapyLandingPageAnotherQuoteSectionsRepository HippotherapyLandingPageAnotherQuoteSectionsRepository =>
         _hippotherapyLandingPageAnotherQuoteSectionsRepository ??= new HippotherapyLandingPageAnotherQuoteSectionsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageParticipantsSectionsRepository HippotherapyLandingPageParticipantsSectionsRepository =>
+        _hippotherapyLandingPageParticipantsSectionsRepository ??= new HippotherapyLandingPageParticipantsSectionsRepository(_victoryCenterDbContext);
 
     public IHippotherapyLandingPageHippoventionCenterSectionsRepository HippotherapyLandingPageHippoventionCenterSectionsRepository =>
         _hippotherapyLandingPageHippoventionCenterSectionsRepository ??= new HippotherapyLandingPageHippoventionCenterSectionsRepository(_victoryCenterDbContext);

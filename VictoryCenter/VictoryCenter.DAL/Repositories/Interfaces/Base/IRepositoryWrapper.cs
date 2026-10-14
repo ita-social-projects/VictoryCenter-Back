@@ -101,6 +101,7 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageAnalysisSectionLocalizationsRepository HippotherapyLandingPageAnalysisSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageQuoteSectionLocalizationsRepository HippotherapyLandingPageQuoteSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository HippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageParticipantsSectionLocalizationsRepository HippotherapyLandingPageParticipantsSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository HippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAdvantagesSectionLocalizationsRepository HippotherapyLandingPageAdvantagesSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAdvantageCardLocalizationsRepository HippotherapyLandingPageAdvantageCardLocalizationsRepository { get; }
@@ -164,6 +165,7 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageAnalysisSectionsRepository HippotherapyLandingPageAnalysisSectionsRepository { get; }
     IHippotherapyLandingPageQuoteSectionsRepository HippotherapyLandingPageQuoteSectionsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionsRepository HippotherapyLandingPageAnotherQuoteSectionsRepository { get; }
+    IHippotherapyLandingPageParticipantsSectionsRepository HippotherapyLandingPageParticipantsSectionsRepository { get; }
     IHippotherapyLandingPageHippoventionCenterSectionsRepository HippotherapyLandingPageHippoventionCenterSectionsRepository { get; }
     IHippotherapyLandingPageAdvantagesSectionsRepository HippotherapyLandingPageAdvantagesSectionsRepository { get; }
     IHippotherapyLandingPageAdvantageCardsRepository HippotherapyLandingPageAdvantageCardsRepository { get; }
