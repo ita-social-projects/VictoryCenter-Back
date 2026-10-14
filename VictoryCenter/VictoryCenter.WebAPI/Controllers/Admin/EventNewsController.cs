@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetById;
+using VictoryCenter.BLL.Queries.Admin.EventNews.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -20,6 +21,15 @@ public class EventNewsController : AuthorizedApiController
     public async Task<IActionResult> GetByFilters([FromQuery] EventNewsFilterDto filter)
     {
         return HandleResult(await Mediator.Send(new GetEventNewsByFiltersQuery(filter)));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(PaginationResult<EventNewsDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SearchEventNews([FromQuery] SearchEventNewsDto searchEventNewsDto)
+    {
+        return HandleResult(await Mediator.Send(new SearchEventNewsQuery(searchEventNewsDto)));
     }
 
     [HttpGet("{id:long}")]
