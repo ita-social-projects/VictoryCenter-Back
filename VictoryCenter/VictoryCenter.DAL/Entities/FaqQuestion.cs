@@ -9,7 +9,7 @@ public class FaqQuestion : BaseEntity, ITranslatedEntity<FaqQuestionLocalization
 {
     public string QuestionText { get; set; } = null!;
 
-    public string AnswerText { get; set; } = null!;
+    public string? AnswerText { get; set; }
 
     public Status Status { get; set; }
 
