@@ -17,10 +17,17 @@ public static class ReportFundsExpendituresRecordConstants
     public static readonly string CategoryTypeMustMatchRecordType =
         "Category type must match record type";
 
-    public static readonly string CategoryAlreadyHasRecord =
-        "Record for this category already exists";
-
     public static readonly int MaxNumberOfRecordsPerBulkDelete = 100;
 
     public static readonly int MaxNumberOfRecordsPerBatchOperation = 100;
+
+    public static string CategoryAlreadyHasRecord()
+    {
+        return "Record for this category already exists";
+    }
+
+    public static string CategoryAlreadyHasRecord(long categoryId)
+    {
+        return $"Record for the {categoryId} category already exists";
+    }
 }
