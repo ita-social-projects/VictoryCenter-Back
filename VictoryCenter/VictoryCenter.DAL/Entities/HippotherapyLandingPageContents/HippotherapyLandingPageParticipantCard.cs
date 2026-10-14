@@ -1,9 +1,11 @@
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 
-public class HippotherapyLandingPageParticipantCard : BaseEntity, IGalleryCard
+public class HippotherapyLandingPageParticipantCard
+    : BaseEntity, IGalleryCard, ITranslatedEntity<HippotherapyLandingPageParticipantCardLocalization>
 {
     public long ParticipantsSectionId { get; set; }
 
@@ -16,4 +18,6 @@ public class HippotherapyLandingPageParticipantCard : BaseEntity, IGalleryCard
     public long Priority { get; set; }
 
     public HippotherapyLandingPageParticipantsSection ParticipantsSection { get; set; } = null!;
+
+    public ICollection<HippotherapyLandingPageParticipantCardLocalization> Localizations { get; set; } = [];
 }
