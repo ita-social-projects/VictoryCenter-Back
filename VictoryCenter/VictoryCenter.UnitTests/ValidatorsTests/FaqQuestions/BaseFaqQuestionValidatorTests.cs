@@ -134,6 +134,7 @@ public class BaseFaqQuestionValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Fact]
     public void Validate_StatusIsDraftAndAnswerTextIsEmpty_ShouldNotHaveError()
     {
         var model = new CreateFaqQuestionDto
