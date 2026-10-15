@@ -86,7 +86,7 @@ public class SearchEventNewsTests : BaseTestClass
             Status = Status.Published,
             PublishedAt = publishedAt,
             PreviewImageId = 1,
-            CategoryIds = [1],
+            CategoryId = 1,
             Localizations =
             [
                 new CreateEventNewsLocalizationDto

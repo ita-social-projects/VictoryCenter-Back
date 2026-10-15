@@ -56,7 +56,7 @@ public class SearchEventNewsHandler : IRequestHandler<SearchEventNewsQuery, Resu
                         .AsSplitQuery()
                         .Include(entity => entity.PreviewImage)
                         .Include(entity => entity.BackgroundImage)
-                        .Include(entity => entity.Categories)
+                        .Include(entity => entity.Category)
                             .ThenInclude(category => category.Localizations)
                                 .ThenInclude(localization => localization.Language)
                         .Include(entity => entity.Localizations)
