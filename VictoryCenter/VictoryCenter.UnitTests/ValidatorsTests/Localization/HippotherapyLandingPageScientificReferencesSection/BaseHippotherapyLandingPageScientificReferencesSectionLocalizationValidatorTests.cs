@@ -12,7 +12,8 @@ public class BaseHippotherapyLandingPageScientificReferencesSectionLocalizationV
 
     public BaseHippotherapyLandingPageScientificReferencesSectionLocalizationValidatorTests()
     {
-        _validator = new BaseHippotherapyLandingPageScientificReferencesSectionLocalizationValidator();
+        _validator = new BaseHippotherapyLandingPageScientificReferencesSectionLocalizationValidator(
+            new HippotherapyLandingPageScientificReferenceLocalizationItemValidator());
     }
 
     [Theory]
@@ -220,5 +221,82 @@ public class BaseHippotherapyLandingPageScientificReferencesSectionLocalizationV
         };
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveError_WhenReferences_AreValid()
+    {
+        var model = new UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto
+        {
+            Title = "Scientific references",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            References =
+            [
+                new UpdateHippotherapyLandingPageScientificReferenceLocalizationItemDto { ReferenceId = 1, Name = "Valid reference name 1" },
+                new UpdateHippotherapyLandingPageScientificReferenceLocalizationItemDto { ReferenceId = 2, Name = "Valid reference name 2" },
+            ],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenReferences_IsNull()
+    {
+        var model = new UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto
+        {
+            Title = "Scientific references",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            References = null!,
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.References)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto.References)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenReferences_ContainNullElement()
+    {
+        var model = new UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto
+        {
+            Title = "Scientific references",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            References = [null!],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.References)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto.References)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenReferences_ContainDuplicateReferenceIds()
+    {
+        var model = new UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto
+        {
+            Title = "Scientific references",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            References =
+            [
+                new UpdateHippotherapyLandingPageScientificReferenceLocalizationItemDto { ReferenceId = 1, Name = "Valid reference name 1" },
+                new UpdateHippotherapyLandingPageScientificReferenceLocalizationItemDto { ReferenceId = 1, Name = "Valid reference name 2" },
+            ],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.References)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto.References)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenReferenceItem_IsInvalid()
+    {
+        var model = new UpdateHippotherapyLandingPageScientificReferencesSectionLocalizationDto
+        {
+            Title = "Scientific references",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            References = [new UpdateHippotherapyLandingPageScientificReferenceLocalizationItemDto { ReferenceId = 0, Name = "abc" }],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor("References[0].ReferenceId");
+        result.ShouldHaveValidationErrorFor("References[0].Name");
     }
 }

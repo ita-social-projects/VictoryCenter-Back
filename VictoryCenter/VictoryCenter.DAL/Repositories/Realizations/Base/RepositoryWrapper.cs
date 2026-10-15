@@ -156,6 +156,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IHippotherapyLandingPageHippoventionSectionLocalizationsRepository? _hippotherapyLandingPageHippoventionSectionLocalizationsRepository;
     private IHippotherapyLandingPageAnalysisSectionLocalizationsRepository? _hippotherapyLandingPageAnalysisSectionLocalizationsRepository;
     private IHippotherapyLandingPageScientificReferencesSectionLocalizationsRepository? _hippotherapyLandingPageScientificReferencesSectionLocalizationsRepository;
+    private IHippotherapyLandingPageScientificReferenceLocalizationsRepository? _hippotherapyLandingPageScientificReferenceLocalizationsRepository;
     private IHippotherapyLandingPageQuoteSectionLocalizationsRepository? _hippotherapyLandingPageQuoteSectionLocalizationsRepository;
     private IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository? _hippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository;
     private IHippotherapyLandingPageParticipantsSectionLocalizationsRepository? _hippotherapyLandingPageParticipantsSectionLocalizationsRepository;
@@ -336,6 +337,10 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IHippotherapyLandingPageScientificReferencesSectionLocalizationsRepository HippotherapyLandingPageScientificReferencesSectionLocalizationsRepository =>
         _hippotherapyLandingPageScientificReferencesSectionLocalizationsRepository ??=
             new HippotherapyLandingPageScientificReferencesSectionLocalizationsRepository(_victoryCenterDbContext);
+
+    public IHippotherapyLandingPageScientificReferenceLocalizationsRepository HippotherapyLandingPageScientificReferenceLocalizationsRepository =>
+        _hippotherapyLandingPageScientificReferenceLocalizationsRepository ??=
+            new HippotherapyLandingPageScientificReferenceLocalizationsRepository(_victoryCenterDbContext);
 
     public IHippotherapyLandingPageQuoteSectionLocalizationsRepository HippotherapyLandingPageQuoteSectionLocalizationsRepository =>
         _hippotherapyLandingPageQuoteSectionLocalizationsRepository ??=

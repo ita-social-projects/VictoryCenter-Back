@@ -1,9 +1,11 @@
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Entities.Interfaces;
+using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 
-public class HippotherapyLandingPageScientificReference : BaseEntity, IOrderableEntity
+public class HippotherapyLandingPageScientificReference
+    : BaseEntity, IOrderableEntity, ITranslatedEntity<HippotherapyLandingPageScientificReferenceLocalization>
 {
     public long ScientificReferencesSectionId { get; set; }
 
@@ -14,4 +16,6 @@ public class HippotherapyLandingPageScientificReference : BaseEntity, IOrderable
     public long Priority { get; set; }
 
     public HippotherapyLandingPageScientificReferencesSection ScientificReferencesSection { get; set; } = null!;
+
+    public ICollection<HippotherapyLandingPageScientificReferenceLocalization> Localizations { get; set; } = [];
 }

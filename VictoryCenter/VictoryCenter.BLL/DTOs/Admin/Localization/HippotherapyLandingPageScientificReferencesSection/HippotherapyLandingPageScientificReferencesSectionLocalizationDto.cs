@@ -14,4 +14,6 @@ public class HippotherapyLandingPageScientificReferencesSectionLocalizationDto
     public string Description { get; set; } = null!;
 
     public TranslationStatus TranslationStatus { get; init; }
+
+    public List<HippotherapyLandingPageScientificReferenceLocalizationItemDto> References { get; set; } = [];
 }
