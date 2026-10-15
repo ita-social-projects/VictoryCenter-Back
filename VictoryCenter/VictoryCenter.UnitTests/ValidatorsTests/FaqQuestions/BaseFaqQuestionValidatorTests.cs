@@ -134,13 +134,29 @@ public class BaseFaqQuestionValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    [Fact]
-    public void Validate_StatusIsDraftAndAnswerTextIsEmpty_ShouldNotHaveError()
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_StatusIsDraftAndAnswerTextIsEmpty_ShouldNotHaveError(string answerText)
     {
         var model = new CreateFaqQuestionDto
         {
             QuestionText = _validQuestionText,
-            AnswerText = "",
+            AnswerText = answerText,
+            PageIds = [1],
+            Status = DAL.Enums.Status.Draft
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.AnswerText);
+    }
+
+    [Fact]
+    public void Validate_StatusIsDraftAndAnswerIsNull_ShouldNotHaveError()
+    {
+        var model = new CreateFaqQuestionDto
+        {
+            QuestionText = _validQuestionText,
+            AnswerText = null,
             PageIds = [1],
             Status = DAL.Enums.Status.Draft
         };
