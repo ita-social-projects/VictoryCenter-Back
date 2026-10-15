@@ -1,0 +1,9 @@
+using FluentResults;
+using MediatR;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageEthicsSection;
+
+namespace VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyLandingPageEthicsSection.Create;
+
+public record CreateHippotherapyLandingPageEthicsSectionLocalizationCommand(
+    CreateHippotherapyLandingPageEthicsSectionLocalizationDto CreateHippotherapyLandingPageEthicsSectionLocalizationDto)
+    : IRequest<Result<HippotherapyLandingPageEthicsSectionLocalizationDto>>;
