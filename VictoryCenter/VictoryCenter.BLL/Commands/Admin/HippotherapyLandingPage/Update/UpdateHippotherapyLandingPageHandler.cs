@@ -137,8 +137,8 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
 
                     TrackImageChange(entity.EthicsSection!.ImageId, dto.EthicsSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.EthicsSection, entity.EthicsSection);
-                    UpdateEthicsPrinciples(entity.EthicsSection.EthicsPrinciples, dto.EthicsSection.Principles);
-                    MarkEthicsSectionLocalizationsOutdated(entity.EthicsSection);
+                    var changedEthicsPrinciples = UpdateEthicsPrinciples(entity.EthicsSection.EthicsPrinciples, dto.EthicsSection.Principles);
+                    MarkEthicsSectionLocalizationsOutdated(entity.EthicsSection, changedEthicsPrinciples);
 
                     _repositoryWrapper.HippotherapyLandingPagesRepository.Update(entity);
                 }
@@ -233,9 +233,16 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static void MarkEthicsSectionLocalizationsOutdated(HippotherapyLandingPageEthicsSection ethicsSection)
+    private static void MarkEthicsSectionLocalizationsOutdated(
+        HippotherapyLandingPageEthicsSection ethicsSection,
+        List<HippotherapyLandingPageEthicsPrinciple> changedPrinciples)
     {
         foreach (var loc in ethicsSection.Localizations)
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+
+        foreach (var loc in changedPrinciples.SelectMany(p => p.Localizations))
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
@@ -303,13 +310,23 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static void UpdateEthicsPrinciples(ICollection<HippotherapyLandingPageEthicsPrinciple> existing, List<string> incoming)
+    private static List<HippotherapyLandingPageEthicsPrinciple> UpdateEthicsPrinciples(
+        ICollection<HippotherapyLandingPageEthicsPrinciple> existing,
+        List<string> incoming)
     {
+        var changedPrinciples = new List<HippotherapyLandingPageEthicsPrinciple>();
         var existingList = existing.OrderBy(p => p.Priority).ToList();
         for (var i = 0; i < existingList.Count && i < incoming.Count; i++)
         {
+            if (!string.Equals(existingList[i].Text, incoming[i], StringComparison.Ordinal))
+            {
+                changedPrinciples.Add(existingList[i]);
+            }
+
             existingList[i].Text = incoming[i];
         }
+
+        return changedPrinciples;
     }
 
     private static List<TCard> UpdateGalleryCards<TCard>(

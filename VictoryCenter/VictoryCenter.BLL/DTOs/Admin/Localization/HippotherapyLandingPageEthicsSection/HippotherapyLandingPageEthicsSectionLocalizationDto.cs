@@ -14,4 +14,6 @@ public class HippotherapyLandingPageEthicsSectionLocalizationDto
     public string Description { get; set; } = null!;
 
     public TranslationStatus TranslationStatus { get; init; }
+
+    public List<HippotherapyLandingPageEthicsPrincipleLocalizationItemDto> Principles { get; set; } = [];
 }
