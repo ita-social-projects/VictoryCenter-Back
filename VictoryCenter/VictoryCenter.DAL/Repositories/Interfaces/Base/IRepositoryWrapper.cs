@@ -101,6 +101,8 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageAnalysisSectionLocalizationsRepository HippotherapyLandingPageAnalysisSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageScientificReferencesSectionLocalizationsRepository HippotherapyLandingPageScientificReferencesSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageScientificReferenceLocalizationsRepository HippotherapyLandingPageScientificReferenceLocalizationsRepository { get; }
+    IHippotherapyLandingPageEthicsSectionLocalizationsRepository HippotherapyLandingPageEthicsSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageEthicsPrincipleLocalizationsRepository HippotherapyLandingPageEthicsPrincipleLocalizationsRepository { get; }
     IHippotherapyLandingPageQuoteSectionLocalizationsRepository HippotherapyLandingPageQuoteSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository HippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageParticipantsSectionLocalizationsRepository HippotherapyLandingPageParticipantsSectionLocalizationsRepository { get; }
@@ -167,6 +169,8 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageHippoventionSectionsRepository HippotherapyLandingPageHippoventionSectionsRepository { get; }
     IHippotherapyLandingPageAnalysisSectionsRepository HippotherapyLandingPageAnalysisSectionsRepository { get; }
     IHippotherapyLandingPageScientificReferencesSectionsRepository HippotherapyLandingPageScientificReferencesSectionsRepository { get; }
+    IHippotherapyLandingPageEthicsSectionsRepository HippotherapyLandingPageEthicsSectionsRepository { get; }
+    IHippotherapyLandingPageEthicsPrinciplesRepository HippotherapyLandingPageEthicsPrinciplesRepository { get; }
     IHippotherapyLandingPageQuoteSectionsRepository HippotherapyLandingPageQuoteSectionsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionsRepository HippotherapyLandingPageAnotherQuoteSectionsRepository { get; }
     IHippotherapyLandingPageParticipantsSectionsRepository HippotherapyLandingPageParticipantsSectionsRepository { get; }

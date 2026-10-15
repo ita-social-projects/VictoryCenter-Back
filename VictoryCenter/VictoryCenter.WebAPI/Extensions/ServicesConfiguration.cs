@@ -200,6 +200,7 @@ public static class ServicesConfiguration
         services.AddScoped<IHippotherapyLandingPageAdvantageCardLocalizationUpdater, HippotherapyLandingPageAdvantageCardLocalizationUpdater>();
         services.AddScoped<IHippotherapyLandingPageParticipantCardLocalizationUpdater, HippotherapyLandingPageParticipantCardLocalizationUpdater>();
         services.AddScoped<IHippotherapyLandingPageScientificReferenceLocalizationUpdater, HippotherapyLandingPageScientificReferenceLocalizationUpdater>();
+        services.AddScoped<IHippotherapyLandingPageEthicsPrincipleLocalizationUpdater, HippotherapyLandingPageEthicsPrincipleLocalizationUpdater>();
 
         services.AddScoped<IProgramSectionContentService, ProgramSectionContentService>();
         services.AddScoped<IProgramSectionContentLocalizationTracker, ProgramSectionContentLocalizationTracker>();
