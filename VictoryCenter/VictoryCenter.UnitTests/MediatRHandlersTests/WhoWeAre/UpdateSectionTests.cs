@@ -176,7 +176,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<UpdateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 99, ContentType = ContentType.Description, Description = "Valid description" } });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent>());
 
@@ -198,7 +198,7 @@ public class UpdateWhoWeAreContentTests
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
-            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description } });
+            new List<UpdateWhoWeAreContentDto> { new() { Id = 1, ContentType = ContentType.Description, Description = "Valid description" } });
 
         var foreignContent = new DescriptionContent { Id = 1, SectionId = 999, ContentType = ContentType.Description };
 
@@ -260,16 +260,16 @@ public class UpdateWhoWeAreContentTests
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("Short")]
-    [InlineData("ninechars")]
-    public async Task Handle_ValidationFails_ShouldReturnValidationError(string? description)
+    [InlineData("", true)]
+    [InlineData("Short", false)]
+    [InlineData("ninechars", false)]
+    public async Task Handle_ValidationFails_ShouldReturnValidationError(string? description, bool isRequiredError)
     {
         // Arrange
         var command = new UpdateWhoWeAreContentCommand(
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
-                { new() { Id = 1, ContentType = ContentType.Description, Description = description } });
+                { new() { Id = 1, ContentType = ContentType.Description, Title = "Valid Title", Description = description } });
         var handler = new UpdateWhoWeAreContentHandler(_mockFactory.Object, _mockRepositoryWrapper.Object, _mockMapper.Object, _validator);
 
         // Act
@@ -277,10 +277,12 @@ public class UpdateWhoWeAreContentTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(
-            ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateWhoWeAreContentDto.Description), 10),
-            result.Errors[0].Message);
+        var expectedMessage = isRequiredError
+            ? ErrorMessagesConstants.PropertyIsRequired(
+                nameof(UpdateWhoWeAreContentDto.Description))
+            : ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
+                nameof(UpdateWhoWeAreContentDto.Description), 10);
+        Assert.Contains(expectedMessage, result.Errors[0].Message);
     }
 
     [Fact]
@@ -291,7 +293,7 @@ public class UpdateWhoWeAreContentTests
             SectionType.Main,
             new List<UpdateWhoWeAreContentDto>
             {
-                new() { Id = 1, ContentType = ContentType.Description, Description = "Updated Description" }
+                new() { Id = 1, ContentType = ContentType.Description, Title = "Valid Title", Description = "Updated Description" }
             });
 
         SetupRepositoryWrapper(_testSection, new List<WhoWeAreContent> { _testDescriptionContent });

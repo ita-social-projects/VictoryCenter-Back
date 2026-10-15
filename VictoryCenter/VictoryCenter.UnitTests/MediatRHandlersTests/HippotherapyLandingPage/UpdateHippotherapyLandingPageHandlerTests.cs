@@ -604,6 +604,72 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenParticipantsSectionUpdated_ShouldMarkExistingParticipantsLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.ParticipantsSection!.Localizations =
+        [
+            new HippotherapyLandingPageParticipantsSectionLocalization
+            {
+                EntityId = existing.ParticipantsSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.ParticipantsSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
+    public async Task Handle_WhenParticipantsSectionUpdated_ShouldMarkOnlyChangedParticipantCardLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        foreach (var card in existing.ParticipantsSection!.ParticipantCards)
+        {
+            card.Localizations =
+            [
+                new HippotherapyLandingPageParticipantCardLocalization
+                {
+                    EntityId = card.Id,
+                    LanguageId = 2,
+                    Description = "Old translated card description",
+                    TranslationStatus = TranslationStatus.Relevant,
+                },
+            ];
+        }
+
+        var dto = GetValidUpdateDto(existing);
+        dto.ParticipantsSection.Cards[0] = new UpdateGalleryCardDto { Description = "Old participant 1", ImageId = null };
+        dto.ParticipantsSection.Cards[2] = new UpdateGalleryCardDto { Description = "Old participant 3", ImageId = null };
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var cardStatuses = existing.ParticipantsSection.ParticipantCards
+            .OrderBy(c => c.Priority)
+            .Select(c => c.Localizations.Single().TranslationStatus)
+            .ToList();
+        Assert.Equal(
+            [TranslationStatus.Relevant, TranslationStatus.Outdated, TranslationStatus.Relevant, TranslationStatus.Outdated],
+            cardStatuses);
+    }
+
+    [Fact]
     public async Task Handle_WhenHippoventionCenterSectionUpdated_ShouldMarkExistingHippoventionCenterLocalizationsOutdated()
     {
         // Arrange

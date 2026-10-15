@@ -198,7 +198,7 @@ public class CreateReportFundsExpendituresRecordTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Equal(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord, result.Errors[0].Message);
+        Assert.Equal(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord(), result.Errors[0].Message);
     }
 
     [Fact]

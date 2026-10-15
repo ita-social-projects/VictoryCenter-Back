@@ -2,6 +2,7 @@ using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
 using VictoryCenter.BLL.Validators.FaqQuestions;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.FaqQuestions;
 
@@ -50,9 +51,9 @@ public class BaseFaqQuestionValidatorTests
     }
 
     [Fact]
-    public void Validate_AnswerTextIsEmpty_ShouldHaveError()
+    public void Validate_AnswerTextIsEmptyWhenPublished_ShouldHaveError()
     {
-        var model = new CreateFaqQuestionDto { QuestionText = _validQuestionText, AnswerText = "", };
+        var model = new CreateFaqQuestionDto { QuestionText = _validQuestionText, AnswerText = "", Status = Status.Published };
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.AnswerText)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)));
@@ -131,5 +132,35 @@ public class BaseFaqQuestionValidatorTests
 
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Validate_StatusIsDraftAndAnswerTextIsEmpty_ShouldNotHaveError(string answerText)
+    {
+        var model = new CreateFaqQuestionDto
+        {
+            QuestionText = _validQuestionText,
+            AnswerText = answerText,
+            PageIds = [1],
+            Status = DAL.Enums.Status.Draft
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.AnswerText);
+    }
+
+    [Fact]
+    public void Validate_StatusIsDraftAndAnswerIsNull_ShouldNotHaveError()
+    {
+        var model = new CreateFaqQuestionDto
+        {
+            QuestionText = _validQuestionText,
+            AnswerText = null,
+            PageIds = [1],
+            Status = DAL.Enums.Status.Draft
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.AnswerText);
     }
 }

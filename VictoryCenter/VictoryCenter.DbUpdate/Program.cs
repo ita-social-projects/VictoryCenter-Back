@@ -6,9 +6,16 @@ using VictoryCenter.DbUpdate;
 
 try
 {
-    var webApiProjectPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "VictoryCenter.WebApi"));
+    var webApiProjectPath = WebApiProjectPathResolver.Resolve(
+        Environment.GetEnvironmentVariable("VICTORYCENTER_WEBAPI_PATH"),
+        Directory.GetCurrentDirectory(),
+        AppContext.BaseDirectory);
 
-    DotEnv.Load(new DotEnvOptions(envFilePaths: new[] { Path.Combine(webApiProjectPath, ".env") }));
+    var envPath = Path.Combine(webApiProjectPath, ".env");
+    if (File.Exists(envPath))
+    {
+        DotEnv.Load(new DotEnvOptions(envFilePaths: new[] { envPath }));
+    }
 
     var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
 

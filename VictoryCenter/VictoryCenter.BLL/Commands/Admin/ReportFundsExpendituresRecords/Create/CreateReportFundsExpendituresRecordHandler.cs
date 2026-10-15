@@ -78,7 +78,7 @@ public class CreateReportFundsExpendituresRecordHandler
             if (duplicateRecord is not null)
             {
                 return Result.Fail<ReportFundsExpendituresRecordDto>(
-                    ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+                    ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord());
             }
 
             var entity = _mapper.Map<ReportFundsExpendituresRecord>(request.CreateReportFundsExpendituresRecordDto);

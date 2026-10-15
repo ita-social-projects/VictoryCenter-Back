@@ -27,6 +27,8 @@ public static class HippotherapyLandingPageIncludeHelper
             .Include(e => e.AnotherQuoteSection).ThenInclude(s => s!.Image)
             .Include(e => e.AnotherQuoteSection).ThenInclude(s => s!.Localizations)
             .Include(e => e.ParticipantsSection).ThenInclude(s => s!.ParticipantCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Image)
+            .Include(e => e.ParticipantsSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.ParticipantsSection).ThenInclude(s => s!.ParticipantCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Localizations)
             .Include(e => e.EthicsSection).ThenInclude(s => s!.Image)
             .Include(e => e.EthicsSection).ThenInclude(s => s!.EthicsPrinciples.OrderBy(p => p.Priority));
     }

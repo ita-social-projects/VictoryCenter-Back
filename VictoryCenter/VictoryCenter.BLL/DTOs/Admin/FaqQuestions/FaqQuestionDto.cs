@@ -9,7 +9,7 @@ public record FaqQuestionDto
 
     public string QuestionText { get; init; } = null!;
 
-    public string AnswerText { get; init; } = null!;
+    public string? AnswerText { get; init; }
 
     public Status Status { get; init; }
 

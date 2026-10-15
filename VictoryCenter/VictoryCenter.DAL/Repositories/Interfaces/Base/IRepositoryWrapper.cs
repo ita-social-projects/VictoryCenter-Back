@@ -38,6 +38,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
 using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackHistories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackReviews;
@@ -102,6 +103,8 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageScientificReferenceLocalizationsRepository HippotherapyLandingPageScientificReferenceLocalizationsRepository { get; }
     IHippotherapyLandingPageQuoteSectionLocalizationsRepository HippotherapyLandingPageQuoteSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository HippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageParticipantsSectionLocalizationsRepository HippotherapyLandingPageParticipantsSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageParticipantCardLocalizationsRepository HippotherapyLandingPageParticipantCardLocalizationsRepository { get; }
     IHippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository HippotherapyLandingPageHippoventionCenterSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAdvantagesSectionLocalizationsRepository HippotherapyLandingPageAdvantagesSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAdvantageCardLocalizationsRepository HippotherapyLandingPageAdvantageCardLocalizationsRepository { get; }
@@ -150,6 +153,7 @@ public interface IRepositoryWrapper
     IHistorySectionContentLocalizationsRepository HistorySectionContentLocalizationsRepository { get; }
 
     IEventNewsRepository EventNewsRepository { get; }
+    IEventNewsLocalizationsRepository EventNewsLocalizationsRepository { get; }
     IEventNewsCategoryRepository EventNewsCategoryRepository { get; }
     IEventNewsCategoryLocalizationsRepository EventNewsCategoryLocalizationsRepository { get; }
     IEventsIntroSectionsRepository EventsIntroSectionsRepository { get; }
@@ -165,6 +169,8 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageScientificReferencesSectionsRepository HippotherapyLandingPageScientificReferencesSectionsRepository { get; }
     IHippotherapyLandingPageQuoteSectionsRepository HippotherapyLandingPageQuoteSectionsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionsRepository HippotherapyLandingPageAnotherQuoteSectionsRepository { get; }
+    IHippotherapyLandingPageParticipantsSectionsRepository HippotherapyLandingPageParticipantsSectionsRepository { get; }
+    IHippotherapyLandingPageParticipantCardsRepository HippotherapyLandingPageParticipantCardsRepository { get; }
     IHippotherapyLandingPageHippoventionCenterSectionsRepository HippotherapyLandingPageHippoventionCenterSectionsRepository { get; }
     IHippotherapyLandingPageAdvantagesSectionsRepository HippotherapyLandingPageAdvantagesSectionsRepository { get; }
     IHippotherapyLandingPageAdvantageCardsRepository HippotherapyLandingPageAdvantageCardsRepository { get; }

@@ -297,7 +297,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains(result.Errors, e => e.Message == ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+        Assert.Contains(result.Errors, e => e.Message == ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord(duplicateRecords[0].CategoryId));
 
         _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Never);
@@ -384,6 +384,79 @@ public class BatchSaveReportFundsExpendituresRecordTests
         _repositoryWrapperMock.Verify(
             w => w.ReportFundsExpendituresRecordsRepository.GetAllAsync(
             It.IsAny<QueryOptions<ReportFundsExpendituresRecord>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSucceed_WhenDeletingAndCreatingRecordsWithSameCategory()
+    {
+        // Arrange
+        var sameCategoryId = 3;
+        var createDto = new CreateReportFundsExpendituresRecordDto
+        {
+            CategoryId = sameCategoryId,
+            Amount = 100.50m,
+            Currency = ReportFundsExpendituresCurrency.Uah,
+            ReportingYear = TimeProvider.System.GetUtcNow().Year,
+            Type = ReportFundsExpendituresType.Income,
+        };
+
+        var deleteRecord = new ReportFundsExpendituresRecord
+        {
+            Id = _deleteRecordId,
+            CategoryId = sameCategoryId,
+            Type = ReportFundsExpendituresType.Income
+        };
+
+        var batchDto = new BatchSaveReportFundsExpendituresRecordsDto
+        {
+            RecordsToCreate = [createDto],
+            RecordsToUpdate = [],
+            RecordIdsToDelete = [_deleteRecordId]
+        };
+
+        var existingRecords = new List<ReportFundsExpendituresRecord>
+        {
+            deleteRecord
+        };
+
+        var existingCategories = new List<ReportFundsExpendituresCategory>
+        {
+            new() { Id = sameCategoryId, Type = ReportFundsExpendituresType.Income }
+        };
+
+        SetupDependencies(existingRecords, existingCategories, [], saveResult: 2);
+
+        var handler = new BatchSaveReportFundsExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _helperMock.Object);
+
+        var command = new BatchSaveReportFundsExpendituresRecordCommand(batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        _recordsRepositoryMock.Verify(
+            r => r.DeleteRange(
+                It.Is<IEnumerable<ReportFundsExpendituresRecord>>(
+                    records => records.Any(rec => rec.Id == _deleteRecordId))),
+            Times.Once);
+        _recordsRepositoryMock.Verify(
+            r => r.CreateRangeAsync(It.Is<IEnumerable<ReportFundsExpendituresRecord>>(
+                records => records.Any(rec => rec.CategoryId == sameCategoryId))),
+            Times.Once);
+        _recordsRepositoryMock.Verify(
+            r => r.UpdateRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()),
+            Times.Never);
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Once);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private void SetupDependencies(

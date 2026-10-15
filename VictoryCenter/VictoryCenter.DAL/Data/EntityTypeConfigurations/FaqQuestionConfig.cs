@@ -21,7 +21,7 @@ public class FaqQuestionConfig : IEntityTypeConfiguration<FaqQuestion>
 
         entity
             .Property(e => e.AnswerText)
-            .IsRequired();
+            .IsRequired(false);
 
         entity
             .Property(e => e.Status)

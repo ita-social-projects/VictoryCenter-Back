@@ -1,6 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.FaqQuestions;
 
@@ -21,12 +22,16 @@ public class BaseFaqQuestionValidator : AbstractValidator<CreateFaqQuestionDto>
         RuleFor(x => x.AnswerText)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(CreateFaqQuestionDto.AnswerText)))
+            .When(x => x.Status == Status.Published);
+
+        RuleFor(x => x.AnswerText)
             .MinimumLength(FaqConstants.AnswerTextMinLength)
             .WithMessage(ErrorMessagesConstants
                             .PropertyMustHaveAMinimumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMinLength))
             .MaximumLength(FaqConstants.AnswerTextMaxLength)
             .WithMessage(ErrorMessagesConstants
-                            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMaxLength));
+                            .PropertyMustHaveAMaximumLengthOfNCharacters(nameof(CreateFaqQuestionDto.AnswerText), FaqConstants.AnswerTextMaxLength))
+            .When(x => !string.IsNullOrEmpty(x.AnswerText));
 
         RuleFor(x => x.PageIds)
             .NotEmpty()

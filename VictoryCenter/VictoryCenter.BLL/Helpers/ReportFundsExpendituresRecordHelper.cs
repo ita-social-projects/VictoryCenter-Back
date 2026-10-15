@@ -72,7 +72,7 @@ public class ReportFundsExpendituresRecordHelper : IReportFundsExpendituresRecor
 
         if (duplicateRecordInCategory is not null)
         {
-            return Result.Fail(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord);
+            return Result.Fail(ReportFundsExpendituresRecordConstants.CategoryAlreadyHasRecord());
         }
 
         return Result.Ok();
