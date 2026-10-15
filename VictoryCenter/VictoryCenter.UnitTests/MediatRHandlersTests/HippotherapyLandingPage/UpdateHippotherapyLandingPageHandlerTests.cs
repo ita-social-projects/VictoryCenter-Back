@@ -548,6 +548,34 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WhenEthicsSectionUpdated_ShouldMarkExistingEthicsLocalizationsOutdated()
+    {
+        // Arrange
+        var existing = GetExistingEntity();
+        existing.EthicsSection!.Localizations =
+        [
+            new HippotherapyLandingPageEthicsSectionLocalization
+            {
+                EntityId = existing.EthicsSection.Id,
+                LanguageId = 2,
+                Title = "Old translated title",
+                Description = "Old translated description",
+                TranslationStatus = TranslationStatus.Relevant,
+            },
+        ];
+        var dto = GetValidUpdateDto(existing);
+        SetUpRepositoryWrapper(existing);
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.All(existing.EthicsSection.Localizations, l => Assert.Equal(TranslationStatus.Outdated, l.TranslationStatus));
+    }
+
+    [Fact]
     public async Task Handle_WhenQuoteSectionUpdated_ShouldMarkExistingQuoteLocalizationsOutdated()
     {
         // Arrange
