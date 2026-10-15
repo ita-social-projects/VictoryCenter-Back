@@ -99,6 +99,7 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageDescriptionSectionLocalizationsRepository HippotherapyLandingPageDescriptionSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageHippoventionSectionLocalizationsRepository HippotherapyLandingPageHippoventionSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAnalysisSectionLocalizationsRepository HippotherapyLandingPageAnalysisSectionLocalizationsRepository { get; }
+    IHippotherapyLandingPageScientificReferencesSectionLocalizationsRepository HippotherapyLandingPageScientificReferencesSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageQuoteSectionLocalizationsRepository HippotherapyLandingPageQuoteSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository HippotherapyLandingPageAnotherQuoteSectionLocalizationsRepository { get; }
     IHippotherapyLandingPageParticipantsSectionLocalizationsRepository HippotherapyLandingPageParticipantsSectionLocalizationsRepository { get; }
@@ -164,6 +165,7 @@ public interface IRepositoryWrapper
     IHippotherapyLandingPageDescriptionSectionsRepository HippotherapyLandingPageDescriptionSectionsRepository { get; }
     IHippotherapyLandingPageHippoventionSectionsRepository HippotherapyLandingPageHippoventionSectionsRepository { get; }
     IHippotherapyLandingPageAnalysisSectionsRepository HippotherapyLandingPageAnalysisSectionsRepository { get; }
+    IHippotherapyLandingPageScientificReferencesSectionsRepository HippotherapyLandingPageScientificReferencesSectionsRepository { get; }
     IHippotherapyLandingPageQuoteSectionsRepository HippotherapyLandingPageQuoteSectionsRepository { get; }
     IHippotherapyLandingPageAnotherQuoteSectionsRepository HippotherapyLandingPageAnotherQuoteSectionsRepository { get; }
     IHippotherapyLandingPageParticipantsSectionsRepository HippotherapyLandingPageParticipantsSectionsRepository { get; }

@@ -1,0 +1,8 @@
+using FluentResults;
+using MediatR;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageScientificReferencesSection;
+
+namespace VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyLandingPageScientificReferencesSection.Delete;
+
+public record DeleteHippotherapyLandingPageScientificReferencesSectionLocalizationCommand(long EntityId, long LanguageId)
+    : IRequest<Result<DeleteHippotherapyLandingPageScientificReferencesSectionLocalizationDto>>;
