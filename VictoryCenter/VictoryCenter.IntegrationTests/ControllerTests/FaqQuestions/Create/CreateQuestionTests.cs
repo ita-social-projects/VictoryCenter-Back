@@ -79,4 +79,38 @@ public class CreateQuestionTests : BaseTestClass
         Assert.NotNull(responseContent);
         Assert.IsType<ProblemDetails>(responseContent);
     }
+
+    [Fact]
+    public async Task CreateQuestion_DtoIsDraftAndAnswerTextIsNull_ShouldReturnOk()
+    {
+        var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var createFaqQuestionDto = new CreateFaqQuestionDto
+        {
+            QuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1),
+            AnswerText = null,
+            Status = Status.Draft,
+            PageIds = [page.Id],
+        };
+        var serializedDto = JsonSerializer.Serialize(createFaqQuestionDto);
+        var response = await Fixture.HttpClient.PostAsync(_endpointUri, new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task CreateQuestion_DtoIsDraftAndAnswerTextIsEmpty_ShouldReturnOk(string answerText)
+    {
+        var page = await Fixture.DbContext.VisitorPages.FirstOrDefaultAsync() ?? throw new InvalidOperationException("Couldn't setup existing entity");
+        var createFaqQuestionDto = new CreateFaqQuestionDto
+        {
+            QuestionText = new('Q', FaqConstants.QuestionTextMinLength + 1),
+            AnswerText = answerText,
+            Status = Status.Draft,
+            PageIds = [page.Id],
+        };
+        var serializedDto = JsonSerializer.Serialize(createFaqQuestionDto);
+        var response = await Fixture.HttpClient.PostAsync(_endpointUri, new StringContent(serializedDto, Encoding.UTF8, "application/json"));
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
 }
