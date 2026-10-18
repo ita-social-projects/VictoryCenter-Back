@@ -241,6 +241,29 @@ public class EventNewsCategoryBusinessRulesTests
     }
 
     [Fact]
+    public async Task DeleteCategory_ShouldSucceed_WhenCategoryIsNotAssignedToEventNews()
+    {
+        var category = new EventNewsCategory { Id = 10, Name = "News" };
+        _categoryRepository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<EventNewsCategory>>()))
+            .ReturnsAsync(category);
+        _eventNewsRepository
+            .Setup(repository => repository.ExistsAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>()))
+            .ReturnsAsync(false);
+        _wrapper.Setup(repository => repository.SaveChangesAsync())
+            .ReturnsAsync(1);
+        var handler = new DeleteEventNewsCategoryHandler(_wrapper.Object);
+
+        var result = await handler.Handle(new DeleteEventNewsCategoryCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(10, result.Value);
+        _categoryRepository.Verify(repository => repository.Delete(category), Times.Once);
+        _wrapper.Verify(repository => repository.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
     public async Task GetAllCategories_ShouldUseReadOnlyOrderedQuery()
     {
         QueryOptions<EventNewsCategory>? capturedOptions = null;

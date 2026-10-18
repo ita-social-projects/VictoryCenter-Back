@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNewsCategories;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
+using VictoryCenter.BLL.DTOs.Public.EventsPage;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -81,6 +82,61 @@ public class EventNewsCategoryLocalizationManagementTests : BaseTestClass
         var deleteCategoryResponse = await Fixture.HttpClient.DeleteAsync(
             $"/api/EventNewsCategories/{category.Id}");
         Assert.Equal(HttpStatusCode.OK, deleteCategoryResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeleteCategory_ShouldDeleteEnglishTranslationAndNotDisplayOnPublicEventsPage()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var categoryName = $"Cat{suffix}";
+        var localizedEnglishName = $"EnCat{suffix}";
+        var englishLanguage = await Fixture.DbContext.LocalizationLanguages
+            .AsNoTracking()
+            .FirstAsync(l => l.Code == "en");
+
+        // 1. Create default (UKR) category
+        var category = await CreateCategoryAsync(categoryName);
+
+        // 2. Add English translation
+        var createLocalizationResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            "/api/EventNewsCategoryLocalizations",
+            new CreateEventNewsCategoryLocalizationDto
+            {
+                EntityId = category.Id,
+                LanguageId = englishLanguage.Id,
+                Name = localizedEnglishName
+            });
+        createLocalizationResponse.EnsureSuccessStatusCode();
+
+        // 3. Verify category and English translation exist on public Events page
+        var publicEventsPageResponse = await Fixture.HttpClient.GetAsync("/api/EventsPage/public");
+        publicEventsPageResponse.EnsureSuccessStatusCode();
+        var publicPage = await publicEventsPageResponse.Content.ReadFromJsonAsync<PublicEventsPageDto>();
+        Assert.NotNull(publicPage);
+        var publicCategory = Assert.Single(publicPage.Categories, c => c.Id == category.Id);
+        var publicEnglishLoc = Assert.Single(publicCategory.Localizations, l => l.Language.Code == "en");
+        Assert.Equal(localizedEnglishName, publicEnglishLoc.Name);
+
+        // 4. Delete the category
+        var deleteCategoryResponse = await Fixture.HttpClient.DeleteAsync($"/api/EventNewsCategories/{category.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteCategoryResponse.StatusCode);
+
+        // 5. Verify the category's English translation is deleted (endpoint returns 404)
+        var getLocalizationResponse = await Fixture.HttpClient.GetAsync(
+            $"/api/EventNewsCategoryLocalizations/entityId/{category.Id}");
+        Assert.Equal(HttpStatusCode.NotFound, getLocalizationResponse.StatusCode);
+
+        // Verify localization record no longer exists in DbContext
+        Assert.False(await Fixture.DbContext.EventNewsCategoryLocalizations
+            .AsNoTracking()
+            .AnyAsync(l => l.EntityId == category.Id));
+
+        // 6. Verify category is NOT displayed on the public Events page
+        var updatedPublicEventsPageResponse = await Fixture.HttpClient.GetAsync("/api/EventsPage/public");
+        updatedPublicEventsPageResponse.EnsureSuccessStatusCode();
+        var updatedPublicPage = await updatedPublicEventsPageResponse.Content.ReadFromJsonAsync<PublicEventsPageDto>();
+        Assert.NotNull(updatedPublicPage);
+        Assert.DoesNotContain(updatedPublicPage.Categories, c => c.Id == category.Id);
     }
 
     [Fact]

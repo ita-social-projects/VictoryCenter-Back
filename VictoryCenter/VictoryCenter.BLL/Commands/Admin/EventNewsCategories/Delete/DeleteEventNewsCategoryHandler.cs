@@ -27,6 +27,7 @@ public class DeleteEventNewsCategoryHandler
             new QueryOptions<EventNewsCategory>
             {
                 Filter = entity => entity.Id == request.Id,
+                Include = query => query.Include(entity => entity.Localizations),
                 AsNoTracking = false
             });
 
