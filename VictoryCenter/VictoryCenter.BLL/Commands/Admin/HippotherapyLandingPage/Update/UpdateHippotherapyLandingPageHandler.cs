@@ -75,6 +75,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                 {
                     AsNoTracking = false,
                     Include = HippotherapyLandingPageIncludeHelper.IncludeFullGraph,
+                    AsSplitQuery = true,
                 });
 
                 if (entity == null)
@@ -167,6 +168,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             var result = await _repositoryWrapper.HippotherapyLandingPagesRepository.GetFirstOrDefaultAsync(new QueryOptions<DAL.Entities.HippotherapyLandingPage>
             {
                 Include = HippotherapyLandingPageIncludeHelper.IncludeFullGraph,
+                AsSplitQuery = true,
             });
 
             return Result.Ok(_mapper.Map<HippotherapyLandingPageDto>(result));

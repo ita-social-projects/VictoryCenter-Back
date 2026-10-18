@@ -28,6 +28,7 @@ public class GetPublicHippotherapyLandingPageHandler : IRequestHandler<GetPublic
             new QueryOptions<DAL.Entities.HippotherapyLandingPage>
             {
                 Include = HippotherapyLandingPageIncludeHelper.IncludeFullGraph,
+                AsSplitQuery = true,
             });
 
         if (entity == null)
