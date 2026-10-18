@@ -138,6 +138,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     TrackImageChange(entity.EthicsSection!.ImageId, dto.EthicsSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.EthicsSection, entity.EthicsSection);
                     UpdateEthicsPrinciples(entity.EthicsSection.EthicsPrinciples, dto.EthicsSection.Principles);
+                    MarkEthicsSectionLocalizationsOutdated(entity.EthicsSection);
 
                     _repositoryWrapper.HippotherapyLandingPagesRepository.Update(entity);
                 }
@@ -227,6 +228,14 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
 
         foreach (var loc in changedReferences.SelectMany(r => r.Localizations))
+        {
+            loc.TranslationStatus = TranslationStatus.Outdated;
+        }
+    }
+
+    private static void MarkEthicsSectionLocalizationsOutdated(HippotherapyLandingPageEthicsSection ethicsSection)
+    {
+        foreach (var loc in ethicsSection.Localizations)
         {
             loc.TranslationStatus = TranslationStatus.Outdated;
         }
