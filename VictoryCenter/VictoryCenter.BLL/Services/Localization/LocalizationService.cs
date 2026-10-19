@@ -150,14 +150,14 @@ public class LocalizationService<TEntity, TEntityLocalization> : ILocalizationSe
         entityLocalization.TranslationStatus = TranslationStatus.Relevant;
         entityLocalization.CreatedAt = entityToUpdate.CreatedAt;
 
-        var updatedEntity = _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
+        _repositoryWrapper.GetRepository<TEntityLocalization>().Update(entityLocalization);
 
         if (await _repositoryWrapper.SaveChangesAsync() > 0)
         {
             var resultWithLanguage = await _repositoryWrapper.GetRepository<TEntityLocalization>()
                 .GetFirstOrDefaultAsync(new QueryOptions<TEntityLocalization>
                 {
-                    Filter = l => l.EntityId == updatedEntity.Entity.EntityId && l.LanguageId == updatedEntity.Entity.LanguageId,
+                    Filter = l => l.EntityId == entityLocalization.EntityId && l.LanguageId == entityLocalization.LanguageId,
                     Include = l => l.Include(x => x.Language)
                 });
 

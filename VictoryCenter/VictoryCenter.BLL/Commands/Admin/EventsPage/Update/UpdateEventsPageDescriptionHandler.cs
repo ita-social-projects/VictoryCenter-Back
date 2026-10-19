@@ -1,10 +1,12 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -24,15 +26,28 @@ public class UpdateEventsPageDescriptionHandler : IRequestHandler<UpdateEventsPa
     public async Task<Result<EventsIntroSectionDto>> Handle(UpdateEventsPageDescriptionCommand request, CancellationToken cancellationToken)
     {
         var entity = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync(
-            new QueryOptions<EventsIntroSection> { AsNoTracking = false });
+            new QueryOptions<EventsIntroSection>
+            {
+                Include = q => q.Include(e => e.Localizations),
+                AsNoTracking = false,
+            });
         if (entity == null)
         {
             return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
         }
 
         entity.PageDescription = HtmlContentHelper.NormalizeHtmlContent(request.Dto.PageDescription);
+        MarkLocalizationsOutdated(entity);
         await _repositoryWrapper.SaveChangesAsync();
 
         return Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));
+    }
+
+    private static void MarkLocalizationsOutdated(EventsIntroSection entity)
+    {
+        foreach (var localization in entity.Localizations)
+        {
+            localization.TranslationStatus = TranslationStatus.Outdated;
+        }
     }
 }

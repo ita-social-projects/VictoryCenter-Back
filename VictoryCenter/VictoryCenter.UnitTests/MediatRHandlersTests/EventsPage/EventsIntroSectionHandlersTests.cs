@@ -5,6 +5,8 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.Queries.Admin.EventsPage.Get;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Options;
@@ -105,6 +107,58 @@ public class EventsIntroSectionHandlersTests
         Assert.Equal(dto.EventsBlockTitle, entity.EventsBlockTitle);
         Assert.Equal(originalDescription, entity.PageDescription);
         VerifyTrackedUpdate(entity);
+    }
+
+    [Fact]
+    public async Task UpdateDescription_Handle_MarksExistingLocalizationsOutdated()
+    {
+        // Arrange
+        var entity = CreateEntity();
+        entity.Localizations.Add(new EventsIntroSectionLocalization
+        {
+            EntityId = entity.Id,
+            LanguageId = 2,
+            EventsBlockTitle = "<p>Title</p>",
+            PageDescription = "<p>Description</p>",
+            TranslationStatus = TranslationStatus.Relevant,
+        });
+        var dto = new UpdateEventsPageDescriptionDto { PageDescription = "<p>New description</p>" };
+        SetupTrackedEntity(entity);
+        _mapperMock.Setup(mapper => mapper.Map<EventsIntroSectionDto>(entity)).Returns(CreateDto(entity));
+        var handler = new UpdateEventsPageDescriptionHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new UpdateEventsPageDescriptionCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, entity.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task UpdateTitle_Handle_MarksExistingLocalizationsOutdated()
+    {
+        // Arrange
+        var entity = CreateEntity();
+        entity.Localizations.Add(new EventsIntroSectionLocalization
+        {
+            EntityId = entity.Id,
+            LanguageId = 2,
+            EventsBlockTitle = "<p>Title</p>",
+            PageDescription = "<p>Description</p>",
+            TranslationStatus = TranslationStatus.Relevant,
+        });
+        var dto = new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p>New title</p>" };
+        SetupTrackedEntity(entity);
+        _mapperMock.Setup(mapper => mapper.Map<EventsIntroSectionDto>(entity)).Returns(CreateDto(entity));
+        var handler = new UpdateEventsBlockTitleHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new UpdateEventsBlockTitleCommand(dto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(TranslationStatus.Outdated, entity.Localizations.Single().TranslationStatus);
     }
 
     [Fact]

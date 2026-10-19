@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
+using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -175,6 +177,36 @@ public class EventsPageControllerTests : BaseTestClass
         Assert.Equal(HttpStatusCode.OK, maxTitleResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, minDescriptionResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, maxDescriptionResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_AuthorizedRequests_MarkExistingLocalizationsOutdated()
+    {
+        // Arrange
+        var section = await Fixture.DbContext.EventsIntroSections.SingleAsync();
+        var language = await Fixture.DbContext.LocalizationLanguages.FirstAsync();
+        Fixture.DbContext.EventsIntroSectionLocalizations.Add(new EventsIntroSectionLocalization
+        {
+            EntityId = section.Id,
+            LanguageId = language.Id,
+            EventsBlockTitle = "<p>Translated title</p>",
+            PageDescription = "<p>Translated description</p>",
+            TranslationStatus = TranslationStatus.Relevant,
+        });
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        // Act
+        var descriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto { PageDescription = "<p>Updated description</p>" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, descriptionResponse.StatusCode);
+        Fixture.DbContext.ChangeTracker.Clear();
+        var localization = await Fixture.DbContext.EventsIntroSectionLocalizations
+            .SingleAsync(l => l.EntityId == section.Id && l.LanguageId == language.Id);
+        Assert.Equal(TranslationStatus.Outdated, localization.TranslationStatus);
     }
 
     [Fact]
