@@ -7,8 +7,13 @@ env:
   RUN_NUM: ${{ github.run_number }}
 
 jobs:
+  quality_gate:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
   docker:
     name: Build and push docker image
+    needs: quality_gate
     runs-on: ubuntu-latest
     steps:
      - name: Check out the repo
@@ -52,27 +57,77 @@ jobs:
               | jq '.[] | {user: .user.login, comment: .comment, environments: [.environments[].name]}' \
                | jq -r '.comment')" >> $GITHUB_OUTPUT
   stage_deploy:
-   needs: manual_approval_deploy
+   needs: [manual_approval_deploy, docker]
    if: contains(needs.manual_approval_deploy.outputs.comment, 'approve')
    runs-on: self-hosted
    outputs:
       backend_tag: ${{ steps.backend_tag.outputs.backend_tag }}
       frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
+      backend_tag_rollback: ${{ steps.backend_tag_rollback.outputs.backend_tag_rollback }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: "Set backend tag"
       id: backend_tag
-      run: echo "backend_tag=backend:fix-${GITHUB_REF##*/}.${RUN_NUM}" >> $GITHUB_OUTPUT   
+      run: echo "backend_tag=fix-${GITHUB_REF##*/}.${RUN_NUM}" >> "$GITHUB_OUTPUT"
     - name: "Set backend tag for rollback"
       id: backend_tag_rollback
-      run: echo "backend_tag_rollback=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/backend:" | cut -d "/" -f2)" >> $GITHUB_OUTPUT   
+      run: echo "backend_tag_rollback=$(docker inspect backend --format '{{.Config.Image}}' | cut -d: -f2)" >> "$GITHUB_OUTPUT"
     - name: "Set frontend tag"
       id: frontend_tag
-      run: echo "frontend_tag=$(docker container inspect $(docker container ls -aq) --format "{{.Config.Image}}" | grep -m 1 "victorycenterua/client:" | cut -d "/" -f2)" >> $GITHUB_OUTPUT   
+      run: echo "frontend_tag=$(docker inspect frontend --format '{{.Config.Image}}' | cut -d: -f2)" >> "$GITHUB_OUTPUT"
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Validate deployment configuration
+      env:
+        INITIAL_ADMIN_EMAIL: ${{ secrets.INITIAL_ADMIN_EMAIL }}
+        INITIAL_ADMIN_PASSWORD: ${{ secrets.INITIAL_ADMIN_PASSWORD }}
+        JWTOPTIONS_SECRETKEY: ${{ secrets.JWTOPTIONS_SECRETKEY }}
+        JWTOPTIONS_REFRESH_TOKEN_SECRETKEY: ${{ secrets.JWTOPTIONS_REFRESH_TOKEN_SECRETKEY }}
+        DOCKER_TAG_FRONTEND: ${{ steps.frontend_tag.outputs.frontend_tag }}
+        DOCKER_TAG_BACKEND: ${{ steps.backend_tag.outputs.backend_tag }}
+        DB_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        WAY4PAY_MERCHANT_LOGIN: ${{ secrets.WAY4PAY_MERCHANT_LOGIN }}
+        WAY4PAY_MERCHANT_SECRET_KEY: ${{ secrets.WAY4PAY_MERCHANT_SECRET_KEY }}
+        WAY4PAY_MERCHANT_DOMAIN_NAME: ${{ secrets.WAY4PAY_MERCHANT_DOMAIN_NAME }}
+        WAY4PAY_API_URL: ${{ secrets.WAY4PAY_API_URL }}
+        BLOB_LOCAL_STORE_KEY: ${{ secrets.BLOB_LOCAL_STORE_KEY }}
+        CLOUDFLARE_TURNSTILE_SECRET_KEY: ${{ secrets.CLOUDFLARE_TURNSTILE_SECRET_KEY }}
+        CLOUDFLARE_TURNSTILE_SITE_VERIFY_URL: ${{ secrets.CLOUDFLARE_TURNSTILE_SITE_VERIFY_URL }}
+        CONTACT_US_EMAIL_OPTIONS_FROM_ADDRESS: ${{ secrets.CONTACT_US_EMAIL_OPTIONS_FROM_ADDRESS }}
+      run: |
+        required_variables=(
+          INITIAL_ADMIN_EMAIL
+          INITIAL_ADMIN_PASSWORD
+          JWTOPTIONS_SECRETKEY
+          JWTOPTIONS_REFRESH_TOKEN_SECRETKEY
+          DOCKER_TAG_FRONTEND
+          DOCKER_TAG_BACKEND
+          DB_CONNECTION_STRING
+          WAY4PAY_MERCHANT_LOGIN
+          WAY4PAY_MERCHANT_SECRET_KEY
+          WAY4PAY_MERCHANT_DOMAIN_NAME
+          WAY4PAY_API_URL
+          BLOB_LOCAL_STORE_KEY
+          CLOUDFLARE_TURNSTILE_SECRET_KEY
+          CLOUDFLARE_TURNSTILE_SITE_VERIFY_URL
+          CONTACT_US_EMAIL_OPTIONS_FROM_ADDRESS
+        )
+        missing_variables=()
+
+        for variable_name in "${required_variables[@]}"; do
+          if [[ -z "${!variable_name:-}" ]]; then
+            missing_variables+=("$variable_name")
+          fi
+        done
+
+        if (( ${#missing_variables[@]} > 0 )); then
+          printf 'Missing required deployment configuration: %s\n' "${missing_variables[*]}" >&2
+          exit 1
+        fi
+
+        docker compose config --quiet
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend
     - name: Delete additon info
@@ -97,6 +152,45 @@ jobs:
         RESEND_API_TOKEN: ${{ secrets.RESEND_API_TOKEN }}
       run: |
         docker compose up -d
+    - name: Wait for backend readiness
+      run: |
+        for attempt in {1..24}; do
+          container_state=$(docker inspect backend --format '{{.State.Status}}' 2>/dev/null || true)
+          health_status=$(docker inspect backend --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}' 2>/dev/null || true)
+          echo "Readiness attempt ${attempt}/24: state=${container_state:-missing}, health=${health_status:-missing}"
+
+          if [[ "$container_state" == "exited" || "$container_state" == "dead" || "$container_state" == "restarting" ]]; then
+            echo "Backend container entered the '$container_state' state." >&2
+            exit 1
+          fi
+
+          if [[ "$health_status" == "healthy" ]]; then
+            exit 0
+          fi
+
+          if [[ "$health_status" == "unhealthy" || "$health_status" == "missing" ]]; then
+            echo "Backend health status is '$health_status'." >&2
+            exit 1
+          fi
+
+          sleep 5
+        done
+
+        echo "Backend did not become ready within 120 seconds." >&2
+        exit 1
+    - name: Run post-deployment smoke checks
+      env:
+        BACKEND_PUBLIC_URL: ${{ vars.BACKEND_PUBLIC_URL || 'https://backend.victorycenter.online' }}
+      run: |
+        curl --fail --silent --show-error --output /dev/null \
+          --retry 5 --retry-delay 5 --retry-all-errors \
+          "$BACKEND_PUBLIC_URL/health/ready"
+    - name: Show backend diagnostics
+      if: ${{ failure() }}
+      run: |
+        docker compose ps --all || true
+        docker inspect backend --format '{{json .State}}' || true
+        docker logs --tail 200 backend || true
     - name: Discord notification
       if: failure()
       env:
