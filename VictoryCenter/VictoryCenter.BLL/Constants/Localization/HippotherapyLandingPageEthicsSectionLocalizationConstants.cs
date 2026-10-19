@@ -7,4 +7,7 @@ public static class HippotherapyLandingPageEthicsSectionLocalizationConstants
 
     public static readonly int DescriptionMinLength = HippotherapyLandingPageConstants.TextMinLength;
     public static readonly int DescriptionMaxLength = HippotherapyLandingPageConstants.EthicsDescriptionMaxLength;
+
+    public static readonly int PrincipleTextMinLength = HippotherapyLandingPageConstants.TextMinLength;
+    public static readonly int PrincipleTextMaxLength = HippotherapyLandingPageConstants.EthicsPrincipleMaxLength;
 }

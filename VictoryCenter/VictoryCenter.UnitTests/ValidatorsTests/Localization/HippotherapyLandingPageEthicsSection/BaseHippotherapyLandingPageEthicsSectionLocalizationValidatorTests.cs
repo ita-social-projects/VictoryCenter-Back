@@ -12,7 +12,8 @@ public class BaseHippotherapyLandingPageEthicsSectionLocalizationValidatorTests
 
     public BaseHippotherapyLandingPageEthicsSectionLocalizationValidatorTests()
     {
-        _validator = new BaseHippotherapyLandingPageEthicsSectionLocalizationValidator();
+        _validator = new BaseHippotherapyLandingPageEthicsSectionLocalizationValidator(
+            new HippotherapyLandingPageEthicsPrincipleLocalizationItemValidator());
     }
 
     [Theory]
@@ -220,5 +221,82 @@ public class BaseHippotherapyLandingPageEthicsSectionLocalizationValidatorTests
         };
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveError_WhenPrinciples_AreValid()
+    {
+        var model = new UpdateHippotherapyLandingPageEthicsSectionLocalizationDto
+        {
+            Title = "Principles",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            Principles =
+            [
+                new UpdateHippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 1, Text = "Valid principle text 1" },
+                new UpdateHippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 2, Text = "Valid principle text 2" },
+            ],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPrinciples_IsNull()
+    {
+        var model = new UpdateHippotherapyLandingPageEthicsSectionLocalizationDto
+        {
+            Title = "Principles",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            Principles = null!,
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Principles)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageEthicsSectionLocalizationDto.Principles)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPrinciples_ContainNullElement()
+    {
+        var model = new UpdateHippotherapyLandingPageEthicsSectionLocalizationDto
+        {
+            Title = "Principles",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            Principles = [null!],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Principles)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainNullElements(nameof(UpdateHippotherapyLandingPageEthicsSectionLocalizationDto.Principles)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPrinciples_ContainDuplicatePrincipleIds()
+    {
+        var model = new UpdateHippotherapyLandingPageEthicsSectionLocalizationDto
+        {
+            Title = "Principles",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            Principles =
+            [
+                new UpdateHippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 1, Text = "Valid principle text 1" },
+                new UpdateHippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 1, Text = "Valid principle text 2" },
+            ],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x.Principles)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionMustContainUniqueValues(nameof(UpdateHippotherapyLandingPageEthicsSectionLocalizationDto.Principles)));
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenPrincipleItem_IsInvalid()
+    {
+        var model = new UpdateHippotherapyLandingPageEthicsSectionLocalizationDto
+        {
+            Title = "Principles",
+            Description = "Therapeutic horseback riding for children and veterans.",
+            Principles = [new UpdateHippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 0, Text = "abc" }],
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor("Principles[0].PrincipleId");
+        result.ShouldHaveValidationErrorFor("Principles[0].Text");
     }
 }

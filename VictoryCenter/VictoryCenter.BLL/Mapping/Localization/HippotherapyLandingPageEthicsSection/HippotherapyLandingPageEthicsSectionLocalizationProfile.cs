@@ -16,6 +16,15 @@ public class HippotherapyLandingPageEthicsSectionLocalizationProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
 
         CreateMap<HippotherapyLandingPageEthicsSectionLocalization, HippotherapyLandingPageEthicsSectionLocalizationDto>()
-            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
+            .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language))
+            .ForMember(dest => dest.Principles, opt => opt.Ignore());
+
+        CreateMap<UpdateHippotherapyLandingPageEthicsPrincipleLocalizationItemDto, HippotherapyLandingPageEthicsPrincipleLocalization>()
+            .ForMember(dest => dest.EntityId, opt => opt.MapFrom(src => src.PrincipleId))
+            .ForMember(dest => dest.LanguageId, opt => opt.Ignore())
+            .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
+
+        CreateMap<HippotherapyLandingPageEthicsPrincipleLocalization, HippotherapyLandingPageEthicsPrincipleLocalizationItemDto>()
+            .ForMember(dest => dest.PrincipleId, opt => opt.MapFrom(src => src.EntityId));
     }
 }

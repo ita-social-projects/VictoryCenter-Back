@@ -25,6 +25,7 @@ public class GetHippotherapyLandingPageHandler : IRequestHandler<GetHippotherapy
         var entity = await _repositoryWrapper.HippotherapyLandingPagesRepository.GetFirstOrDefaultAsync(new QueryOptions<DAL.Entities.HippotherapyLandingPage>
         {
             Include = HippotherapyLandingPageIncludeHelper.IncludeFullGraph,
+            AsSplitQuery = true,
         });
 
         if (entity == null)
