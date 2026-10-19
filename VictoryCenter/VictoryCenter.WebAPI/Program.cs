@@ -1,4 +1,5 @@
 using dotenv.net;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using VictoryCenter.WebAPI.Extensions;
 using VictoryCenter.BLL.Hubs;
 
@@ -27,6 +28,14 @@ app.UseRequestResponseLogging();
 app.UseCors();
 app.UseRateLimiter();
 app.MapControllers();
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = _ => false,
+});
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = healthCheck => healthCheck.Tags.Contains("ready"),
+});
 app.UseHttpsRedirection();
 app.UseCookiePolicy();
 app.UseAuthentication();

@@ -37,4 +37,6 @@ COPY --from=publish /app/publish ./
 
 LABEL atom="VictoryCenter"
 ENV ASPNETCORE_ENVIRONMENT=Production
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=5 \
+    CMD curl --fail --silent --show-error http://localhost:8080/health/ready || exit 1
 ENTRYPOINT ["dotnet", "VictoryCenter.WebAPI.dll"]
