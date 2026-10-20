@@ -54,9 +54,20 @@ public class GetPublishedEventNewsHandler
             return Result.Ok(new PaginationResult<PublishedEventNewsDto>([], totalCount));
         }
 
+        var eventNewsIds = await _repositoryWrapper.EventNewsRepository.GetPagedIdsByFilterAsync(
+            filter,
+            offset,
+            limit,
+            cancellationToken);
+
+        if (eventNewsIds.Count == 0)
+        {
+            return Result.Ok(new PaginationResult<PublishedEventNewsDto>([], totalCount));
+        }
+
         var queryOptions = new QueryOptions<EventNewsEntity>
         {
-            Filter = filter,
+            Filter = eventNews => eventNewsIds.Contains(eventNews.Id),
             Include = eventNews => eventNews
                 .Include(e => e.Category)
                     .ThenInclude(category => category.Localizations)
@@ -64,10 +75,6 @@ public class GetPublishedEventNewsHandler
                 .Include(e => e.PreviewImage)
                 .Include(e => e.Localizations)
                     .ThenInclude(l => l.Language),
-            OrderByDESC = eventNews => eventNews.PublishedAt,
-            ThenByDESC = eventNews => eventNews.Id,
-            Offset = offset,
-            Limit = limit,
             AsSplitQuery = true,
             AsNoTracking = true,
         };
@@ -76,6 +83,14 @@ public class GetPublishedEventNewsHandler
 
         var items = _mapper.Map<PublishedEventNewsDto[]>(publishedEventNews);
 
-        return Result.Ok(new PaginationResult<PublishedEventNewsDto>(items, totalCount));
+        var itemOrder = eventNewsIds
+            .Select((id, index) => new { id, index })
+            .ToDictionary(x => x.id, x => x.index);
+
+        var sortedItems = items
+            .OrderBy(item => itemOrder.GetValueOrDefault(item.Id, int.MaxValue))
+            .ToArray();
+
+        return Result.Ok(new PaginationResult<PublishedEventNewsDto>(sortedItems, totalCount));
     }
 }
