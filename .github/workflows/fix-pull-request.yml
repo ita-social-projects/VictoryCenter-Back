@@ -1,4 +1,4 @@
-name: Run on PR from fix/* into release
+name: Fix Deployment
 on:
   push:
     branches:

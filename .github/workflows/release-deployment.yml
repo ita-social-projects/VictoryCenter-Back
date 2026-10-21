@@ -1,4 +1,4 @@
-name: Main pipeline Backend
+name: Release Deployment
 
 on:
   push:
