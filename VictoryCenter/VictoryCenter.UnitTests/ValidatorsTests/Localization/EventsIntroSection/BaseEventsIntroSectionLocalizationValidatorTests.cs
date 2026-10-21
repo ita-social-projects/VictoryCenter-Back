@@ -36,7 +36,7 @@ public class BaseEventsIntroSectionLocalizationValidatorTests
     {
         var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto());
 
-        result.ShouldHaveAnyValidationError();
+        Assert.NotEmpty(result.Errors);
     }
 
     [Theory]
