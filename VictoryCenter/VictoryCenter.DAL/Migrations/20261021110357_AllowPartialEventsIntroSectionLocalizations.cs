@@ -30,6 +30,18 @@ namespace VictoryCenter.DAL.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql("""
+                UPDATE [EventsIntroSectionLocalizations]
+                SET [PageDescription] = N''
+                WHERE [PageDescription] IS NULL;
+                """);
+
+            migrationBuilder.Sql("""
+                UPDATE [EventsIntroSectionLocalizations]
+                SET [EventsBlockTitle] = N''
+                WHERE [EventsBlockTitle] IS NULL;
+                """);
+
             migrationBuilder.AlterColumn<string>(
                 name: "PageDescription",
                 table: "EventsIntroSectionLocalizations",

@@ -1,4 +1,5 @@
 using FluentValidation;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventsIntroSection;
 
@@ -11,7 +12,7 @@ public class BaseEventsIntroSectionLocalizationValidator
     {
         RuleFor(x => x)
             .Must(x => x.EventsBlockTitle is not null || x.PageDescription is not null)
-            .WithMessage("At least one localization field must be provided.");
+            .WithMessage(ErrorMessagesConstants.AtLeastOneLocalizationFieldMustBeProvided);
 
         RuleFor(x => x.EventsBlockTitle!)
             .MustHaveVisibleLength(

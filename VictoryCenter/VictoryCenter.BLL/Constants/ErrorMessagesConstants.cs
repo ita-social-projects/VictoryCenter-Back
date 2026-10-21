@@ -4,6 +4,8 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
 {
+    public static readonly string AtLeastOneLocalizationFieldMustBeProvided = "At least one localization field must be provided.";
+
     public static readonly string BatchOperationMustContainAtLeastOneRecord = "Batch operation must contain at least one record to create, update, or delete.";
     public static readonly string BatchOperationTotalRecordsName = "Batch operation (total records)";
 
