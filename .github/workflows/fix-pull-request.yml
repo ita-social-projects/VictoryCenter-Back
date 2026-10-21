@@ -71,10 +71,12 @@ jobs:
       run: echo "backend_tag=fix-${GITHUB_REF##*/}.${RUN_NUM}" >> "$GITHUB_OUTPUT"
     - name: "Set backend tag for rollback"
       id: backend_tag_rollback
-      run: echo "backend_tag_rollback=$(docker inspect backend --format '{{.Config.Image}}' | cut -d: -f2)" >> "$GITHUB_OUTPUT"
+      run: |
+        echo "backend_tag_rollback=$(docker inspect backend --format '{{.Config.Image}}' | cut -d: -f2)" >> "$GITHUB_OUTPUT"
     - name: "Set frontend tag"
       id: frontend_tag
-      run: echo "frontend_tag=$(docker inspect frontend --format '{{.Config.Image}}' | cut -d: -f2)" >> "$GITHUB_OUTPUT"
+      run: |
+        echo "frontend_tag=$(docker inspect frontend --format '{{.Config.Image}}' | cut -d: -f2)" >> "$GITHUB_OUTPUT"
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
