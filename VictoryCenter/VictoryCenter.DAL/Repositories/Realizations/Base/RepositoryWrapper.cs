@@ -84,9 +84,11 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNews;
 using VictoryCenter.DAL.Repositories.Realizations.Localization.EventNews;
 using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.EventsIntroSections;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Realizations.EventNews;
 using VictoryCenter.DAL.Repositories.Realizations.EventNewsCategories;
 using VictoryCenter.DAL.Repositories.Realizations.EventsIntroSections;
+using VictoryCenter.DAL.Repositories.Realizations.Localization.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
@@ -194,6 +196,7 @@ public class RepositoryWrapper : IRepositoryWrapper
     private IEventNewsCategoryRepository? _eventNewsCategoryRepository;
     private IEventNewsCategoryLocalizationsRepository? _eventNewsCategoryLocalizationsRepository;
     private IEventsIntroSectionsRepository? _eventsIntroSectionsRepository;
+    private IEventsIntroSectionLocalizationsRepository? _eventsIntroSectionLocalizationsRepository;
     private IPublishedReportFundsExpendituresRecordsRepository? _publishedReportFundsExpendituresRecordsRepository;
     private IPublishedReportProgramExpendituresRecordsRepository? _publishedReportProgramExpendituresRecordsRepository;
     private IPublishedReportFundsExpendituresSnapshotRepository? _publishedReportFundsExpendituresSnapshotRepository;
@@ -495,6 +498,10 @@ public class RepositoryWrapper : IRepositoryWrapper
 
     public IEventsIntroSectionsRepository EventsIntroSectionsRepository =>
         _eventsIntroSectionsRepository ??= new EventsIntroSectionsRepository(_victoryCenterDbContext);
+
+    public IEventsIntroSectionLocalizationsRepository EventsIntroSectionLocalizationsRepository =>
+        _eventsIntroSectionLocalizationsRepository ??=
+            new EventsIntroSectionLocalizationsRepository(_victoryCenterDbContext);
 
     public IPublishedReportFundsExpendituresRecordsRepository PublishedReportFundsExpendituresRecordsRepository =>
         _publishedReportFundsExpendituresRecordsRepository ??=
