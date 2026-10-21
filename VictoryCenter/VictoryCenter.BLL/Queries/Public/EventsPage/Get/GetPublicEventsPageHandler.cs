@@ -27,7 +27,13 @@ public class GetPublicEventsPageHandler : IRequestHandler<GetPublicEventsPageQue
         GetPublicEventsPageQuery request,
         CancellationToken cancellationToken)
     {
-        var intro = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync();
+        var intro = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync(
+            new QueryOptions<EventsIntroSection>
+            {
+                Include = query => query.Include(section => section.Localizations)
+                    .ThenInclude(localization => localization.Language),
+                AsNoTracking = true,
+            });
 
         if (intro == null)
         {
@@ -50,6 +56,9 @@ public class GetPublicEventsPageHandler : IRequestHandler<GetPublicEventsPageQue
         {
             EventsBlockTitle = introDto.IsEventsBlockTitleHidden ? string.Empty : introDto.EventsBlockTitle,
             PageDescription = introDto.IsPageDescriptionHidden ? string.Empty : introDto.PageDescription,
+            IsEventsBlockTitleHidden = introDto.IsEventsBlockTitleHidden,
+            IsPageDescriptionHidden = introDto.IsPageDescriptionHidden,
+            Localizations = _mapper.Map<List<PublicEventsIntroSectionLocalizationDto>>(intro.Localizations),
             Categories = _mapper.Map<List<EventNewsCategoryDto>>(categories)
         });
     }

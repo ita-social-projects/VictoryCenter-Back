@@ -9,16 +9,22 @@ public class BaseEventsIntroSectionLocalizationValidator
 {
     public BaseEventsIntroSectionLocalizationValidator()
     {
-        RuleFor(x => x.EventsBlockTitle)
+        RuleFor(x => x)
+            .Must(x => x.EventsBlockTitle is not null || x.PageDescription is not null)
+            .WithMessage("At least one localization field must be provided.");
+
+        RuleFor(x => x.EventsBlockTitle!)
             .MustHaveVisibleLength(
                 nameof(UpdateEventsIntroSectionLocalizationDto.EventsBlockTitle),
                 EventsIntroSectionLocalizationConstants.EventsBlockTitleMinLength,
-                EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength);
+                EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength)
+            .When(x => x.EventsBlockTitle is not null);
 
-        RuleFor(x => x.PageDescription)
+        RuleFor(x => x.PageDescription!)
             .MustHaveVisibleLength(
                 nameof(UpdateEventsIntroSectionLocalizationDto.PageDescription),
                 EventsIntroSectionLocalizationConstants.PageDescriptionMinLength,
-                EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength);
+                EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength)
+            .When(x => x.PageDescription is not null);
     }
 }

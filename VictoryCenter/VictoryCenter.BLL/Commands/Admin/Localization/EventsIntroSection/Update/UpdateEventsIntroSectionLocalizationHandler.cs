@@ -7,6 +7,8 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventsIntroSection;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Options;
 using EventsIntroSectionEntity = VictoryCenter.DAL.Entities.EventsIntroSection;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventsIntroSection.Update;
@@ -16,15 +18,18 @@ public class UpdateEventsIntroSectionLocalizationHandler
 {
     private readonly IMapper _mapper;
     private readonly ILocalizationService<EventsIntroSectionEntity, EventsIntroSectionLocalization> _localizationService;
+    private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdateEventsIntroSectionLocalizationCommand> _validator;
 
     public UpdateEventsIntroSectionLocalizationHandler(
         IMapper mapper,
         ILocalizationService<EventsIntroSectionEntity, EventsIntroSectionLocalization> localizationService,
+        IRepositoryWrapper repositoryWrapper,
         IValidator<UpdateEventsIntroSectionLocalizationCommand> validator)
     {
         _mapper = mapper;
         _localizationService = localizationService;
+        _repositoryWrapper = repositoryWrapper;
         _validator = validator;
     }
 
@@ -35,10 +40,21 @@ public class UpdateEventsIntroSectionLocalizationHandler
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
-            var entity = _mapper.Map<EventsIntroSectionLocalization>(
-                request.UpdateEventsIntroSectionLocalizationDto);
-            entity.EntityId = request.EntityId;
-            entity.LanguageId = request.LanguageId;
+            var entity = await _repositoryWrapper.EventsIntroSectionLocalizationsRepository
+                .GetFirstOrDefaultAsync(new QueryOptions<EventsIntroSectionLocalization>
+                {
+                    Filter = localization => localization.EntityId == request.EntityId
+                        && localization.LanguageId == request.LanguageId,
+                });
+
+            if (entity is null)
+            {
+                throw new KeyNotFoundException(ErrorMessagesConstants.NotFound(
+                    (request.EntityId, request.LanguageId),
+                    typeof(EventsIntroSectionLocalization)));
+            }
+
+            _mapper.Map(request.UpdateEventsIntroSectionLocalizationDto, entity);
             var result = await _localizationService.UpdateEntityLocalizationAsync(entity);
             var responseDto = _mapper.Map<EventsIntroSectionLocalizationDto>(result);
             return Result.Ok(responseDto);

@@ -13,7 +13,8 @@ public class EventsIntroSectionLocalizationProfile : Profile
             .ForMember(dest => dest.TranslationStatus, opt => opt.MapFrom(_ => TranslationStatus.Relevant));
 
         CreateMap<UpdateEventsIntroSectionLocalizationDto, EventsIntroSectionLocalization>()
-            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore());
+            .ForMember(dest => dest.TranslationStatus, opt => opt.Ignore())
+            .ForAllMembers(opt => opt.Condition((_, _, sourceMember) => sourceMember is not null));
 
         CreateMap<EventsIntroSectionLocalization, EventsIntroSectionLocalizationDto>()
             .ForMember(dest => dest.LocalizationInfoDto, opt => opt.MapFrom(src => src.Language));
