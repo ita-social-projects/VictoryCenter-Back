@@ -67,7 +67,9 @@ public class GetPublishedEventNewsHandler
 
         var queryOptions = new QueryOptions<EventNewsEntity>
         {
-            Filter = eventNews => eventNewsIds.Contains(eventNews.Id),
+            Filter = eventNews =>
+                eventNewsIds.Contains(eventNews.Id) &&
+                eventNews.Status == Status.Published,
             Include = eventNews => eventNews
                 .Include(e => e.Category)
                     .ThenInclude(category => category.Localizations)

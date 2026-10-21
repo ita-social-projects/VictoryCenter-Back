@@ -242,7 +242,7 @@ public class GetPublishedEventNewsTests
     public async Task Handle_ShouldLoadOnlyItemsFromPagedIds()
     {
         Expression<Func<EventNewsEntity, bool>>? itemsFilter = null;
-        SetUpDependencies(_eventNewsEntities, totalCount: 5, pagedIds: [2L, 4L]);
+        SetUpDependencies(_eventNewsEntities, totalCount: 5, pagedIds: [2L, 3L]);
         _mockRepositoryWrapper
             .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .Callback<QueryOptions<EventNewsEntity>>(o => itemsFilter = o.Filter)
@@ -252,7 +252,7 @@ public class GetPublishedEventNewsTests
 
         Assert.NotNull(itemsFilter);
         var matched = BuildFilterTestData().Where(itemsFilter.Compile()).Select(e => e.Id).ToList();
-        Assert.Equal([2L, 4L], matched);
+        Assert.Equal([2L, 3L], matched);
     }
 
     [Fact]
@@ -271,6 +271,24 @@ public class GetPublishedEventNewsTests
         var filter = await CaptureIdsFilterAsync(CreateQuery(categoryId: 10));
 
         var matched = BuildFilterTestData().Where(filter.Compile()).Select(e => e.Id).ToList();
+
+        Assert.Equal([1L, 3L], matched);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldLoadOnlyPublishedItemsFromPagedIds()
+    {
+        Expression<Func<EventNewsEntity, bool>>? itemsFilter = null;
+        SetUpDependencies(_eventNewsEntities, totalCount: 5, pagedIds: [1L, 3L, 4L]);
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(o => itemsFilter = o.Filter)
+            .ReturnsAsync(_eventNewsEntities);
+
+        await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
+
+        Assert.NotNull(itemsFilter);
+        var matched = BuildFilterTestData().Where(itemsFilter.Compile()).Select(e => e.Id).ToList();
 
         Assert.Equal([1L, 3L], matched);
     }
