@@ -9,9 +9,9 @@ public class EventsIntroSectionLocalizationDto
 
     public LocalizationInfoDto LocalizationInfoDto { get; init; } = null!;
 
-    public string EventsBlockTitle { get; set; } = null!;
+    public string? EventsBlockTitle { get; set; }
 
-    public string PageDescription { get; set; } = null!;
+    public string? PageDescription { get; set; }
 
     public TranslationStatus TranslationStatus { get; init; }
 }

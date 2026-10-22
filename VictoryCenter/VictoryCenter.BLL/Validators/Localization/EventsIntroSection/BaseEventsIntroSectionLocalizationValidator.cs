@@ -1,4 +1,5 @@
 using FluentValidation;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventsIntroSection;
 
@@ -9,16 +10,22 @@ public class BaseEventsIntroSectionLocalizationValidator
 {
     public BaseEventsIntroSectionLocalizationValidator()
     {
-        RuleFor(x => x.EventsBlockTitle)
+        RuleFor(x => x)
+            .Must(x => x.EventsBlockTitle is not null || x.PageDescription is not null)
+            .WithMessage(ErrorMessagesConstants.AtLeastOneLocalizationFieldMustBeProvided);
+
+        RuleFor(x => x.EventsBlockTitle!)
             .MustHaveVisibleLength(
                 nameof(UpdateEventsIntroSectionLocalizationDto.EventsBlockTitle),
                 EventsIntroSectionLocalizationConstants.EventsBlockTitleMinLength,
-                EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength);
+                EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength)
+            .When(x => x.EventsBlockTitle is not null);
 
-        RuleFor(x => x.PageDescription)
+        RuleFor(x => x.PageDescription!)
             .MustHaveVisibleLength(
                 nameof(UpdateEventsIntroSectionLocalizationDto.PageDescription),
                 EventsIntroSectionLocalizationConstants.PageDescriptionMinLength,
-                EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength);
+                EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength)
+            .When(x => x.PageDescription is not null);
     }
 }

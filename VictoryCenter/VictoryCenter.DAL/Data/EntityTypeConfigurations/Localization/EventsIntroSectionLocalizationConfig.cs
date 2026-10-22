@@ -11,10 +11,8 @@ public class EventsIntroSectionLocalizationConfig
     {
         base.Configure(entity);
 
-        entity.Property(e => e.EventsBlockTitle)
-            .IsRequired();
+        entity.Property(e => e.EventsBlockTitle);
 
-        entity.Property(e => e.PageDescription)
-            .IsRequired();
+        entity.Property(e => e.PageDescription);
     }
 }

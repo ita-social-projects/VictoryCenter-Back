@@ -1,5 +1,4 @@
 using FluentValidation.TestHelper;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventsIntroSection;
 using VictoryCenter.BLL.Validators.Localization.EventsIntroSection;
@@ -8,217 +7,97 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.Localization.EventsIntroSectio
 
 public class BaseEventsIntroSectionLocalizationValidatorTests
 {
-    private readonly BaseEventsIntroSectionLocalizationValidator _validator;
+    private readonly BaseEventsIntroSectionLocalizationValidator _validator = new();
 
-    public BaseEventsIntroSectionLocalizationValidatorTests()
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenOnlyEventsBlockTitleIsProvided()
     {
-        _validator = new BaseEventsIntroSectionLocalizationValidator();
+        var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto
+        {
+            EventsBlockTitle = "Valid title",
+        });
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveErrors_WhenOnlyPageDescriptionIsProvided()
+    {
+        var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto
+        {
+            PageDescription = "Valid description text.",
+        });
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldHaveError_WhenNoFieldsAreProvided()
+    {
+        var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto());
+
+        Assert.NotEmpty(result.Errors);
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData(" ")]
-    public void Validate_ShouldHaveError_WhenEventsBlockTitle_IsNullOrEmpty(string? title)
+    [InlineData("<p><br></p>")]
+    public void Validate_ShouldHaveError_WhenProvidedContentHasNoVisibleText(string content)
     {
-        var model = new UpdateEventsIntroSectionLocalizationDto
+        var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto
         {
-            EventsBlockTitle = title!,
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle);
+            EventsBlockTitle = content,
+        });
+
+        result.ShouldHaveValidationErrorFor(model => model.EventsBlockTitle);
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenEventsBlockTitle_IsTooLong()
+    public void Validate_ShouldHaveError_WhenEventsBlockTitleIsOutsideVisibleLengthLimits()
     {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength + 1),
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle);
-    }
+        var tooShort = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMinLength - 1);
+        var tooLong = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength + 1);
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void Validate_ShouldHaveError_WhenPageDescription_IsNullOrEmpty(string? description)
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = description!,
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription);
+        _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto { EventsBlockTitle = tooShort })
+            .ShouldHaveValidationErrorFor(model => model.EventsBlockTitle);
+        _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto { EventsBlockTitle = tooLong })
+            .ShouldHaveValidationErrorFor(model => model.EventsBlockTitle);
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenPageDescription_IsTooLong()
+    public void Validate_ShouldHaveError_WhenPageDescriptionIsOutsideVisibleLengthLimits()
     {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength + 1),
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription);
+        var tooShort = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMinLength - 1);
+        var tooLong = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength + 1);
+
+        _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto { PageDescription = tooShort })
+            .ShouldHaveValidationErrorFor(model => model.PageDescription);
+        _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto { PageDescription = tooLong })
+            .ShouldHaveValidationErrorFor(model => model.PageDescription);
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenEventsBlockTitle_VisibleTextIsTooShort()
+    public void Validate_ShouldNotHaveErrors_WhenValuesAreAtVisibleLengthBoundaries()
     {
-        var visibleText = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMinLength - 1);
-        var model = new UpdateEventsIntroSectionLocalizationDto
+        var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto
         {
-            EventsBlockTitle = $"<p>{visibleText}</p>",
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle);
+            EventsBlockTitle = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMinLength),
+            PageDescription = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength),
+        });
+
+        result.ShouldNotHaveAnyValidationErrors();
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenEventsBlockTitle_HasNoVisibleText()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "<p><br></p>",
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle);
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenEventsBlockTitle_PlainTextIsTooShort()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMinLength - 1),
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle);
-    }
-
-    [Fact]
-    public void Validate_ShouldNotHaveError_WhenEventsBlockTitle_WithHtmlMarkupHasVisibleTextWithinMaxLength()
+    public void Validate_ShouldUseVisibleHtmlLengthInsteadOfRawStringLength()
     {
         var visibleText = new string('a', EventsIntroSectionLocalizationConstants.EventsBlockTitleMaxLength);
-        var model = new UpdateEventsIntroSectionLocalizationDto
+        var result = _validator.TestValidate(new UpdateEventsIntroSectionLocalizationDto
         {
             EventsBlockTitle = $"<p><strong>{visibleText}</strong></p>",
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldNotHaveValidationErrorFor(x => x.EventsBlockTitle);
-    }
+        });
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenPageDescription_VisibleTextIsTooShort()
-    {
-        var visibleText = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMinLength - 1);
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = $"<p>{visibleText}</p>",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription);
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenPageDescription_HasNoVisibleText()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = "<p><br></p>",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription);
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenPageDescription_PlainTextIsTooShort()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMinLength - 1),
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription);
-    }
-
-    [Fact]
-    public void Validate_ShouldNotHaveError_WhenPageDescription_WithHtmlMarkupHasVisibleTextWithinMaxLength()
-    {
-        var visibleText = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength);
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = $"<p><strong>{visibleText}</strong></p>",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldNotHaveValidationErrorFor(x => x.PageDescription);
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveError_WhenPageDescription_VisibleTextExceedsMaxLength()
-    {
-        var visibleText = new string('a', EventsIntroSectionLocalizationConstants.PageDescriptionMaxLength + 1);
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = $"<p>{visibleText}</p>",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription);
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveOnlyRequiredError_WhenEventsBlockTitle_IsEmpty()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = string.Empty,
-            PageDescription = "Valid description text here.",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.EventsBlockTitle)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEventsIntroSectionLocalizationDto.EventsBlockTitle)))
-            .Only();
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveOnlyRequiredError_WhenPageDescription_IsEmpty()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "Valid title",
-            PageDescription = string.Empty,
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.PageDescription)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEventsIntroSectionLocalizationDto.PageDescription)))
-            .Only();
-    }
-
-    [Fact]
-    public void Validate_ShouldNotHaveError_WhenModel_IsValid()
-    {
-        var model = new UpdateEventsIntroSectionLocalizationDto
-        {
-            EventsBlockTitle = "What has been happening",
-            PageDescription = "This section is about the moments when what we believe in becomes real.",
-        };
-        var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
 }

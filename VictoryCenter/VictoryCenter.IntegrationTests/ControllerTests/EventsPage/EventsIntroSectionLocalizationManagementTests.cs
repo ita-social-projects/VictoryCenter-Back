@@ -24,7 +24,6 @@ public class EventsIntroSectionLocalizationManagementTests : BaseTestClass
         var title = $"Title{suffix}";
         var updatedTitle = $"Upd{suffix}";
         var description = $"Description text for {suffix} goes here.";
-        var updatedDescription = $"Updated description text for {suffix} goes here.";
         var section = await Fixture.DbContext.EventsIntroSections.AsNoTracking().SingleAsync();
         var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync();
 
@@ -34,7 +33,6 @@ public class EventsIntroSectionLocalizationManagementTests : BaseTestClass
             {
                 EntityId = section.Id,
                 LanguageId = language.Id,
-                EventsBlockTitle = title,
                 PageDescription = description
             });
         Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
@@ -45,13 +43,14 @@ public class EventsIntroSectionLocalizationManagementTests : BaseTestClass
         Assert.Equal(language.Id, localization.LocalizationInfoDto.Id);
         Assert.Equal(language.Code, localization.LocalizationInfoDto.Code);
         Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+        Assert.Null(localization.EventsBlockTitle);
+        Assert.Equal(description, localization.PageDescription);
 
         var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
             $"{Endpoint}/{section.Id}/{language.Id}",
             new UpdateEventsIntroSectionLocalizationDto
             {
                 EventsBlockTitle = updatedTitle,
-                PageDescription = updatedDescription
             });
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
@@ -61,7 +60,7 @@ public class EventsIntroSectionLocalizationManagementTests : BaseTestClass
             .ReadFromJsonAsync<List<EventsIntroSectionLocalizationDto>>();
         var updatedLocalization = Assert.Single(localizations!);
         Assert.Equal(updatedTitle, updatedLocalization.EventsBlockTitle);
-        Assert.Equal(updatedDescription, updatedLocalization.PageDescription);
+        Assert.Equal(description, updatedLocalization.PageDescription);
 
         var deleteResponse = await Fixture.HttpClient.DeleteAsync($"{Endpoint}/{section.Id}/{language.Id}");
         Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
@@ -123,5 +122,28 @@ public class EventsIntroSectionLocalizationManagementTests : BaseTestClass
             });
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var updateResponse = await anonymousClient.PutAsJsonAsync(
+            $"{Endpoint}/1/1",
+            new UpdateEventsIntroSectionLocalizationDto { EventsBlockTitle = "Unauthorized" });
+
+        Assert.Equal(HttpStatusCode.Unauthorized, updateResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task LocalizationManagement_ShouldReturnBadRequest_WhenNoFieldsAreProvided()
+    {
+        var section = await Fixture.DbContext.EventsIntroSections.AsNoTracking().SingleAsync();
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync();
+
+        var createResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            Endpoint,
+            new CreateEventsIntroSectionLocalizationDto { EntityId = section.Id, LanguageId = language.Id });
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/{section.Id}/{language.Id}",
+            new UpdateEventsIntroSectionLocalizationDto());
+
+        Assert.Equal(HttpStatusCode.BadRequest, createResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, updateResponse.StatusCode);
     }
 }

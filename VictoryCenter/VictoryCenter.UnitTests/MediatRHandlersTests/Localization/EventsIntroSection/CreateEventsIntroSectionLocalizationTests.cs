@@ -73,6 +73,42 @@ public class CreateEventsIntroSectionLocalizationTests
     }
 
     [Fact]
+    public async Task Handle_ShouldCreatePartialLocalization_WhenOnlyOneFieldIsProvided()
+    {
+        var partialDto = new CreateEventsIntroSectionLocalizationDto
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            PageDescription = "Valid partial description.",
+        };
+        var partialEntity = new EventsIntroSectionLocalization
+        {
+            EntityId = 1,
+            LanguageId = 2,
+            PageDescription = partialDto.PageDescription,
+        };
+        _mockMapper.Setup(mapper => mapper.Map<EventsIntroSectionLocalization>(partialDto)).Returns(partialEntity);
+        _mockMapper.Setup(mapper => mapper.Map<EventsIntroSectionLocalizationDto>(partialEntity)).Returns(new EventsIntroSectionLocalizationDto
+        {
+            EntityId = 1,
+            LocalizationInfoDto = new LocalizationInfoDto { Id = 2, Code = "en" },
+            PageDescription = partialDto.PageDescription,
+            TranslationStatus = VictoryCenter.DAL.Enums.TranslationStatus.Relevant,
+        });
+        _mockLocalizationService.Setup(service => service.CreateEntityLocalizationAsync(partialEntity))
+            .ReturnsAsync(partialEntity);
+
+        var result = await _handler.Handle(
+            new CreateEventsIntroSectionLocalizationCommand(partialDto),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(result.Value.EventsBlockTitle);
+        Assert.Equal(partialDto.PageDescription, result.Value.PageDescription);
+        _mockLocalizationService.Verify(service => service.CreateEntityLocalizationAsync(partialEntity), Times.Once);
+    }
+
+    [Fact]
     public async Task Handle_ShouldFail_WhenValidationFails()
     {
         var invalidDto = new CreateEventsIntroSectionLocalizationDto
