@@ -42,9 +42,9 @@ public class GetPublishedEventNewsTests : BaseTestClass
             .Select(item => item.Id)
             .ToListAsync();
 
-        var page = await GetPageAsync($"?limit={EventNewsConstants.PublishedTakeMaxValue}");
+        var items = await GetAllItemsAsync();
 
-        Assert.DoesNotContain(page.Items, item => unpublishedIds.Contains(item.Id));
+        Assert.DoesNotContain(items, item => unpublishedIds.Contains(item.Id));
     }
 
     [Fact]
@@ -76,9 +76,9 @@ public class GetPublishedEventNewsTests : BaseTestClass
         await Fixture.DbContext.SaveChangesAsync();
         Fixture.DbContext.ChangeTracker.Clear();
 
-        var page = await GetPageAsync($"?categoryId={category.Id}&limit={EventNewsConstants.PublishedTakeMaxValue}");
+        var items = await GetAllItemsAsync($"categoryId={category.Id}");
 
-        var returnedEvent = Assert.Single(page.Items, item => item.Id == eventNews.Id);
+        var returnedEvent = Assert.Single(items, item => item.Id == eventNews.Id);
         var returnedCategory = returnedEvent.Category;
         Assert.Equal(category.Id, returnedCategory.Id);
         Assert.Equal(category.Name, returnedCategory.Name);
@@ -145,39 +145,138 @@ public class GetPublishedEventNewsTests : BaseTestClass
     }
 
     [Fact]
-    public async Task GetPublishedEventNews_ShouldOrderItemsByPublishedAtDescending()
+    public async Task GetPublishedEventNews_ShouldReturnItemsInAdminDefinedOrder()
     {
-        // Arrange
-        var publishedEvents = Fixture.DbContext.EventNews
-            .Where(eventNews => eventNews.Status == Status.Published)
-            .Take(3)
+        var published = await GetPublishedEntitiesAsync(3);
+        var desiredOrder = new[] { published[2].Id, published[0].Id, published[1].Id };
+
+        await SetPrioritiesAsync(desiredOrder);
+
+        var items = await GetAllItemsAsync();
+
+        var actual = items
+            .Select(item => item.Id)
+            .Where(desiredOrder.Contains)
             .ToList();
 
-        Assert.Equal(3, publishedEvents.Count);
+        Assert.Equal(desiredOrder, actual);
+    }
 
-        publishedEvents[0].PublishedAt = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
-        publishedEvents[1].PublishedAt = new DateTimeOffset(2026, 3, 1, 12, 0, 0, TimeSpan.Zero);
-        publishedEvents[2].PublishedAt = new DateTimeOffset(2026, 2, 1, 12, 0, 0, TimeSpan.Zero);
+    [Fact]
+    public async Task GetPublishedEventNews_WhenAdminChangesOrder_ShouldReflectNewOrder()
+    {
+        var published = await GetPublishedEntitiesAsync(2);
+        var firstId = published[0].Id;
+        var secondId = published[1].Id;
+
+        await SetPrioritiesAsync([firstId, secondId]);
+        var before = (await GetAllItemsAsync()).Select(item => item.Id).ToList();
+
+        await SetPrioritiesAsync([secondId, firstId]);
+        var after = (await GetAllItemsAsync()).Select(item => item.Id).ToList();
+
+        Assert.True(before.IndexOf(firstId) < before.IndexOf(secondId));
+        Assert.True(after.IndexOf(secondId) < after.IndexOf(firstId));
+    }
+
+    [Fact]
+    public async Task GetPublishedEventNews_WhenPrioritiesAreEqual_ShouldOrderById()
+    {
+        var published = await GetPublishedEntitiesAsync(2);
+        var ids = published.Select(item => item.Id).OrderBy(id => id).ToList();
+
+        var tracked = await Fixture.DbContext.EventNews
+            .Where(item => ids.Contains(item.Id))
+            .ToListAsync();
+        var samePriority = tracked.Max(item => item.Priority) + 1;
+        foreach (var item in tracked)
+        {
+            item.Priority = samePriority;
+        }
 
         await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
 
-        // Act
-        var page = await GetPageAsync($"?limit={EventNewsConstants.PublishedTakeMaxValue}");
+        var items = await GetAllItemsAsync();
 
-        // Assert
-        var testedIds = publishedEvents.Select(eventNews => eventNews.Id).ToHashSet();
-        var testedItems = page.Items
-            .Where(item => testedIds.Contains(item.Id))
+        var actual = items.Select(item => item.Id).Where(ids.Contains).ToList();
+        Assert.Equal(ids, actual);
+    }
+
+    [Fact]
+    public async Task GetPublishedEventNews_WhenUnpublishedItemHasTopPriority_ShouldNotReturnIt()
+    {
+        var draft = await Fixture.DbContext.EventNews
+            .FirstOrDefaultAsync(item => item.Status != Status.Published);
+        if (draft is null)
+        {
+            return;
+        }
+
+        var draftId = draft.Id;
+        var minPriority = await Fixture.DbContext.EventNews.MinAsync(item => item.Priority);
+        draft.Priority = minPriority - 1;
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        var page = await GetPageAsync("?offset=0&limit=2");
+
+        Assert.DoesNotContain(page.Items, item => item.Id == draftId);
+    }
+
+    [Fact]
+    public async Task GetPublishedEventNews_PagesConcatenated_ShouldMatchSortedOrderWithoutDuplicates()
+    {
+        var total = (await GetPageAsync("?limit=2")).TotalItemsCount;
+        Assert.True(total >= 3, "At least 3 published items are required in seed data");
+
+        var expectedIds = await Fixture.DbContext.EventNews
+            .AsNoTracking()
+            .Where(item => item.Status == Status.Published)
+            .OrderBy(item => item.Priority)
+            .ThenBy(item => item.Id)
             .Select(item => item.Id)
-            .ToList();
+            .ToListAsync();
 
-        Assert.Equal(
-            [
-                publishedEvents[1].Id,
-                publishedEvents[2].Id,
-                publishedEvents[0].Id
-            ],
-            testedItems);
+        const int pageSize = 2;
+        var collected = new List<long>();
+        for (var offset = 0; offset < total; offset += pageSize)
+        {
+            var page = await GetPageAsync($"?offset={offset}&limit={pageSize}");
+            collected.AddRange(page.Items.Select(item => item.Id));
+        }
+
+        Assert.Equal(expectedIds, collected);
+        Assert.Equal(collected.Count, collected.Distinct().Count());
+    }
+
+    [Fact]
+    public async Task GetPublishedEventNews_WhenFilteredByCategory_ShouldKeepAdminOrderInsideCategory()
+    {
+        var categoryId = await Fixture.DbContext.EventNews
+            .Where(item => item.Status == Status.Published)
+            .GroupBy(item => item.CategoryId)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .FirstOrDefaultAsync();
+        Assert.NotEqual(0, categoryId);
+
+        var categoryIds = await Fixture.DbContext.EventNews
+            .Where(item => item.Status == Status.Published && item.CategoryId == categoryId)
+            .OrderBy(item => item.Id)
+            .Select(item => item.Id)
+            .Take(2)
+            .ToListAsync();
+        Assert.Equal(2, categoryIds.Count);
+
+        var desiredOrder = new[] { categoryIds[1], categoryIds[0] };
+        await SetPrioritiesAsync(desiredOrder);
+
+        var items = await GetAllItemsAsync($"categoryId={categoryId}");
+
+        Assert.All(items, item => Assert.Equal(categoryId, item.Category.Id));
+        var actual = items.Select(item => item.Id).Where(desiredOrder.Contains).ToList();
+        Assert.Equal(desiredOrder, actual);
     }
 
     [Theory]
@@ -197,6 +296,64 @@ public class GetPublishedEventNewsTests : BaseTestClass
         HttpResponseMessage response = await Fixture.HttpClient.GetAsync($"{BaseUrl}?offset=-1");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private async Task<List<VictoryCenter.DAL.Entities.EventNews>> GetPublishedEntitiesAsync(int count)
+    {
+        var entities = await Fixture.DbContext.EventNews
+            .AsNoTracking()
+            .Where(item => item.Status == Status.Published)
+            .OrderBy(item => item.Id)
+            .Take(count)
+            .ToListAsync();
+
+        Assert.Equal(count, entities.Count);
+        return entities;
+    }
+
+    private async Task SetPrioritiesAsync(IReadOnlyList<long> idsInDesiredOrder)
+    {
+        Fixture.DbContext.ChangeTracker.Clear();
+
+        var entities = await Fixture.DbContext.EventNews
+            .Where(item => idsInDesiredOrder.Contains(item.Id))
+            .ToListAsync();
+
+        var basePriority = await Fixture.DbContext.EventNews.MaxAsync(item => item.Priority) + 1;
+        for (var i = 0; i < idsInDesiredOrder.Count; i++)
+        {
+            entities.Single(item => item.Id == idsInDesiredOrder[i]).Priority = basePriority + i;
+        }
+
+        await Fixture.DbContext.SaveChangesAsync();
+        Fixture.DbContext.ChangeTracker.Clear();
+    }
+
+    private async Task<List<PublishedEventNewsDto>> GetAllItemsAsync(string? extraQuery = null)
+    {
+        var items = new List<PublishedEventNewsDto>();
+        var offset = 0;
+        var limit = EventNewsConstants.PublishedTakeMaxValue;
+
+        while (true)
+        {
+            var query = $"?offset={offset}&limit={limit}";
+            if (!string.IsNullOrEmpty(extraQuery))
+            {
+                query += $"&{extraQuery}";
+            }
+
+            var page = await GetPageAsync(query);
+            items.AddRange(page.Items);
+            offset += limit;
+
+            if (page.Items.Length == 0 || offset >= page.TotalItemsCount)
+            {
+                break;
+            }
+        }
+
+        return items;
     }
 
     private async Task<PaginationResult<PublishedEventNewsDto>> GetPageAsync(string query = "")

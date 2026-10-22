@@ -44,6 +44,27 @@ public class GetPublishedEventNewsTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
     }
 
+    public static IEnumerable<object?[]> OffsetAndLimitCases()
+    {
+        yield return new object?[] { 8, 4, 8, 4 };
+        yield return new object?[] { null, null, 0, EventNewsConstants.DefaultLimit };
+        yield return new object?[] { -5, 4, 0, 4 };
+        yield return new object?[]
+        {
+            0,
+            EventNewsConstants.PublishedTakeMaxValue + 50,
+            0,
+            EventNewsConstants.PublishedTakeMaxValue
+        };
+        yield return new object?[]
+        {
+            0,
+            EventNewsConstants.PublishedTakeMinValue - 1,
+            0,
+            EventNewsConstants.PublishedTakeMinValue
+        };
+    }
+
     [Fact]
     public void Mapping_MapsCategoryBaseNameAndLocalizations()
     {
@@ -98,24 +119,43 @@ public class GetPublishedEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_WhenNoPublishedItems_ShouldReturnEmptyPageWithoutLoadingItems()
+    public async Task Handle_ShouldReturnItemsInOrderOfPagedIds_NotInOrderReturnedByDatabase()
     {
-        SetUpDependencies([], totalCount: 0);
+        var entities = new List<EventNewsEntity>
+        {
+            new() { Id = 1, Status = Status.Published },
+            new() { Id = 2, Status = Status.Published },
+            new() { Id = 3, Status = Status.Published },
+        };
+        SetUpDependencies(entities, totalCount: 3, pagedIds: [3L, 1L, 2L]);
+
+        var result = await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
+
+        Assert.Equal([3L, 1L, 2L], result.Value.Items.Select(i => i.Id).ToArray());
+    }
+
+    [Fact]
+    public async Task Handle_WhenLoadedItemIsNotInPagedIds_ShouldPlaceItAtTheEndWithoutThrowing()
+    {
+        var entities = new List<EventNewsEntity>
+        {
+            new() { Id = 99, Status = Status.Published },
+            new() { Id = 1, Status = Status.Published },
+        };
+        SetUpDependencies(entities, totalCount: 2, pagedIds: [1L]);
 
         var result = await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        Assert.Empty(result.Value.Items);
-        Assert.Equal(0, result.Value.TotalItemsCount);
-        VerifyPageQueryNeverExecuted();
+        Assert.Equal([1L, 99L], result.Value.Items.Select(i => i.Id).ToArray());
     }
 
     [Fact]
-    public async Task Handle_WhenOffsetIsGreaterThanOrEqualToTotal_ShouldReturnEmptyPageWithTotalCount()
+    public async Task Handle_WhenPagedIdsAreEmpty_ShouldReturnEmptyPageWithoutLoadingItems()
     {
-        SetUpDependencies(_eventNewsEntities, totalCount: 5);
+        SetUpDependencies([], totalCount: 5, pagedIds: Array.Empty<long>());
 
-        var result = await CreateHandler().Handle(CreateQuery(offset: 5), CancellationToken.None);
+        var result = await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
         Assert.Empty(result.Value.Items);
@@ -124,100 +164,101 @@ public class GetPublishedEventNewsTests
     }
 
     [Fact]
-    public async Task Handle_WhenOffsetAndLimitProvided_ShouldPassThemToQueryOptions()
+    public async Task Handle_WhenNoPublishedItems_ShouldNotRequestIdsOrItems()
     {
-        SetUpDependencies(_eventNewsEntities, totalCount: 50);
+        SetUpDependencies([], totalCount: 0);
 
-        var result = await CreateHandler().Handle(CreateQuery(offset: 8, limit: 4), CancellationToken.None);
+        var result = await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        VerifyPageQuery(o => o.Offset == 8 && o.Limit == 4);
+        Assert.Empty(result.Value.Items);
+        Assert.Equal(0, result.Value.TotalItemsCount);
+        VerifyIdsQueryNeverExecuted();
+        VerifyPageQueryNeverExecuted();
     }
 
     [Fact]
-    public async Task Handle_WhenOffsetAndLimitAreNull_ShouldUseDefaults()
+    public async Task Handle_WhenOffsetIsGreaterThanOrEqualToTotal_ShouldNotRequestIdsOrItems()
     {
-        SetUpDependencies(_eventNewsEntities, totalCount: 50);
+        SetUpDependencies(_eventNewsEntities, totalCount: 5);
 
-        await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
+        var result = await CreateHandler().Handle(CreateQuery(offset: 5), CancellationToken.None);
 
-        VerifyPageQuery(o => o.Offset == 0 && o.Limit == EventNewsConstants.DefaultLimit);
+        Assert.True(result.IsSuccess);
+        Assert.Empty(result.Value.Items);
+        Assert.Equal(5, result.Value.TotalItemsCount);
+        VerifyIdsQueryNeverExecuted();
+        VerifyPageQueryNeverExecuted();
     }
 
-    [Fact]
-    public async Task Handle_WhenOffsetIsNegative_ShouldTreatItAsZero()
-    {
-        SetUpDependencies(_eventNewsEntities, totalCount: 50);
-
-        await CreateHandler().Handle(CreateQuery(offset: -5, limit: 4), CancellationToken.None);
-
-        VerifyPageQuery(o => o.Offset == 0);
-    }
-
-    [Fact]
-    public async Task Handle_WhenLimitExceedsMaximum_ShouldClampToMaximum()
-    {
-        SetUpDependencies(_eventNewsEntities, totalCount: 500);
-
-        await CreateHandler().Handle(
-            CreateQuery(limit: EventNewsConstants.PublishedTakeMaxValue + 50),
-            CancellationToken.None);
-
-        VerifyPageQuery(o => o.Limit == EventNewsConstants.PublishedTakeMaxValue);
-    }
-
-    [Fact]
-    public async Task Handle_WhenLimitIsBelowMinimum_ShouldClampToMinimum()
+    [Theory]
+    [MemberData(nameof(OffsetAndLimitCases))]
+    public async Task Handle_ShouldPassNormalizedOffsetAndLimitToPagedIdsQuery(
+        int? offset,
+        int? limit,
+        int expectedOffset,
+        int expectedLimit)
     {
         SetUpDependencies(_eventNewsEntities, totalCount: 500);
 
-        await CreateHandler().Handle(
-            CreateQuery(limit: EventNewsConstants.PublishedTakeMinValue - 1),
-            CancellationToken.None);
+        await CreateHandler().Handle(CreateQuery(offset: offset, limit: limit), CancellationToken.None);
 
-        VerifyPageQuery(o => o.Limit == EventNewsConstants.PublishedTakeMinValue);
+        VerifyIdsQuery(expectedOffset, expectedLimit);
     }
 
     [Fact]
-    public async Task Handle_ShouldUseStableOrderingAndReadOnlyOptions()
+    public async Task Handle_ShouldNotApplyOrderingToItemsQuery_AndUseReadOnlyOptions()
     {
         SetUpDependencies(_eventNewsEntities, totalCount: 2);
 
         await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
 
         VerifyPageQuery(o =>
-            o.OrderByDESC != null &&
-            o.ThenByDESC != null &&
+            o.OrderByDESC == null &&
+            o.ThenByDESC == null &&
             o.AsSplitQuery &&
             o.AsNoTracking);
     }
 
     [Fact]
-    public async Task Handle_ShouldUseSameFilterForCountAndPageQuery()
+    public async Task Handle_ShouldUseSameFilterForCountAndPagedIdsQuery()
     {
         Expression<Func<EventNewsEntity, bool>>? countFilter = null;
-        Expression<Func<EventNewsEntity, bool>>? pageFilter = null;
         SetUpDependencies(_eventNewsEntities, totalCount: 2);
         _mockRepositoryWrapper
             .Setup(x => x.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
             .Callback<QueryOptions<EventNewsEntity>>(o => countFilter = o.Filter)
             .ReturnsAsync(2);
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
-            .Callback<QueryOptions<EventNewsEntity>>(o => pageFilter = o.Filter)
-            .ReturnsAsync(_eventNewsEntities);
+        var getIdsFilter = CaptureIdsFilter();
 
         await CreateHandler().Handle(CreateQuery(categoryId: 10), CancellationToken.None);
 
         Assert.NotNull(countFilter);
-        Assert.NotNull(pageFilter);
-        Assert.Same(countFilter, pageFilter);
+        Assert.NotNull(getIdsFilter());
+        Assert.Same(countFilter, getIdsFilter());
+    }
+
+    [Fact]
+    public async Task Handle_ShouldLoadOnlyItemsFromPagedIds()
+    {
+        Expression<Func<EventNewsEntity, bool>>? itemsFilter = null;
+        SetUpDependencies(_eventNewsEntities, totalCount: 5, pagedIds: [2L, 3L]);
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(o => itemsFilter = o.Filter)
+            .ReturnsAsync(_eventNewsEntities);
+
+        await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
+
+        Assert.NotNull(itemsFilter);
+        var matched = BuildFilterTestData().Where(itemsFilter.Compile()).Select(e => e.Id).ToList();
+        Assert.Equal([2L, 3L], matched);
     }
 
     [Fact]
     public async Task Handle_WithoutCategory_ShouldFilterOnlyPublishedItems()
     {
-        var filter = await CaptureCountFilterAsync(CreateQuery());
+        var filter = await CaptureIdsFilterAsync(CreateQuery());
 
         var matched = BuildFilterTestData().Where(filter.Compile()).Select(e => e.Id).ToList();
 
@@ -227,12 +268,126 @@ public class GetPublishedEventNewsTests
     [Fact]
     public async Task Handle_WithCategory_ShouldFilterPublishedItemsOfThatCategory()
     {
-        var filter = await CaptureCountFilterAsync(CreateQuery(categoryId: 10));
+        var filter = await CaptureIdsFilterAsync(CreateQuery(categoryId: 10));
 
         var matched = BuildFilterTestData().Where(filter.Compile()).Select(e => e.Id).ToList();
 
-        // 1 and 3 are published in category 10; 4 is a draft in category 10; 2 is in another category
         Assert.Equal([1L, 3L], matched);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldLoadOnlyPublishedItemsFromPagedIds()
+    {
+        Expression<Func<EventNewsEntity, bool>>? itemsFilter = null;
+        SetUpDependencies(_eventNewsEntities, totalCount: 5, pagedIds: [1L, 3L, 4L]);
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .Callback<QueryOptions<EventNewsEntity>>(o => itemsFilter = o.Filter)
+            .ReturnsAsync(_eventNewsEntities);
+
+        await CreateHandler().Handle(CreateQuery(), CancellationToken.None);
+
+        Assert.NotNull(itemsFilter);
+        var matched = BuildFilterTestData().Where(itemsFilter.Compile()).Select(e => e.Id).ToList();
+
+        Assert.Equal([1L, 3L], matched);
+    }
+
+    private Func<Expression<Func<EventNewsEntity, bool>>?> CaptureIdsFilter()
+    {
+        Expression<Func<EventNewsEntity, bool>>? captured = null;
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<Expression<Func<EventNewsEntity, bool>>, int, int, CancellationToken>(
+                (filter, _, _, _) => captured = filter)
+            .ReturnsAsync((IReadOnlyCollection<long>)_eventNewsEntities.Select(e => e.Id).ToList());
+        return () => captured;
+    }
+
+    private async Task<Expression<Func<EventNewsEntity, bool>>> CaptureIdsFilterAsync(
+        GetPublishedEventNewsQuery query)
+    {
+        SetUpDependencies(_eventNewsEntities, totalCount: 2);
+        var getFilter = CaptureIdsFilter();
+
+        await CreateHandler().Handle(query, CancellationToken.None);
+
+        var captured = getFilter();
+        Assert.NotNull(captured);
+        return captured;
+    }
+
+    private void VerifyIdsQuery(int offset, int limit)
+    {
+        _mockRepositoryWrapper.Verify(
+            x => x.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                offset,
+                limit,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    private void VerifyIdsQueryNeverExecuted()
+    {
+        _mockRepositoryWrapper.Verify(
+            x => x.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    private void VerifyPageQuery(Expression<Func<QueryOptions<EventNewsEntity>, bool>> predicate)
+    {
+        _mockRepositoryWrapper.Verify(
+            x => x.EventNewsRepository.GetAllAsync(It.Is(predicate)),
+            Times.Once);
+    }
+
+    private void VerifyPageQueryNeverExecuted()
+    {
+        _mockRepositoryWrapper.Verify(
+            x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()),
+            Times.Never);
+    }
+
+    private void SetUpDependencies(
+        IEnumerable<EventNewsEntity> items,
+        int totalCount,
+        IReadOnlyCollection<long>? pagedIds = null)
+    {
+        var itemsList = items.ToList();
+
+        _mapperMock
+            .Setup(x => x.Map<PublishedEventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
+            .Returns((IEnumerable<EventNewsEntity> source) =>
+                source.Select(x => new PublishedEventNewsDto
+                {
+                    Id = x.Id,
+                    Resource = x.Resource
+                }).ToArray());
+
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .ReturnsAsync(totalCount);
+
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.GetPagedIdsByFilterAsync(
+                It.IsAny<Expression<Func<EventNewsEntity, bool>>>(),
+                It.IsAny<int>(),
+                It.IsAny<int>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(pagedIds ?? itemsList.Select(x => x.Id).ToList());
+
+        _mockRepositoryWrapper
+            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
+            .ReturnsAsync(itemsList);
     }
 
     private static GetPublishedEventNewsQuery CreateQuery(
@@ -251,54 +406,4 @@ public class GetPublishedEventNewsTests
         new() { Id = 4, Status = Status.Draft, CategoryId = 10 },
         new() { Id = 5, Status = Status.Draft, CategoryId = 20 },
     ];
-
-    private async Task<Expression<Func<EventNewsEntity, bool>>> CaptureCountFilterAsync(
-        GetPublishedEventNewsQuery query)
-    {
-        Expression<Func<EventNewsEntity, bool>>? captured = null;
-        SetUpDependencies(_eventNewsEntities, totalCount: 2);
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
-            .Callback<QueryOptions<EventNewsEntity>>(o => captured = o.Filter)
-            .ReturnsAsync(2);
-
-        await CreateHandler().Handle(query, CancellationToken.None);
-
-        Assert.NotNull(captured);
-        return captured;
-    }
-
-    private void VerifyPageQuery(Expression<Func<QueryOptions<EventNewsEntity>, bool>> predicate)
-    {
-        _mockRepositoryWrapper.Verify(
-            x => x.EventNewsRepository.GetAllAsync(It.Is(predicate)),
-            Times.Once);
-    }
-
-    private void VerifyPageQueryNeverExecuted()
-    {
-        _mockRepositoryWrapper.Verify(
-            x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()),
-            Times.Never);
-    }
-
-    private void SetUpDependencies(IEnumerable<EventNewsEntity> items, int totalCount)
-    {
-        _mapperMock
-            .Setup(x => x.Map<PublishedEventNewsDto[]>(It.IsAny<IEnumerable<EventNewsEntity>>()))
-            .Returns((IEnumerable<EventNewsEntity> source) =>
-                source.Select(x => new PublishedEventNewsDto
-                {
-                    Id = x.Id,
-                    Resource = x.Resource
-                }).ToArray());
-
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsRepository.CountAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
-            .ReturnsAsync(totalCount);
-
-        _mockRepositoryWrapper
-            .Setup(x => x.EventNewsRepository.GetAllAsync(It.IsAny<QueryOptions<EventNewsEntity>>()))
-            .ReturnsAsync(items);
-    }
 }
