@@ -191,12 +191,26 @@ jobs:
         echo "Backend did not become ready within 120 seconds." >&2
         exit 1
     - name: Run post-deployment smoke checks
+      timeout-minutes: 2
       env:
         BACKEND_PUBLIC_URL: ${{ vars.BACKEND_PUBLIC_URL || 'https://backend.victorycenter.online' }}
       run: |
-        curl --fail --silent --show-error --output /dev/null \
-          --retry 5 --retry-delay 5 --retry-all-errors \
-          "$BACKEND_PUBLIC_URL/health/ready"
+        for attempt in {1..6}; do
+          http_status=$(curl --silent --show-error --output /dev/null \
+            --connect-timeout 5 --max-time 10 --write-out '%{http_code}' \
+            "$BACKEND_PUBLIC_URL/health/ready") && curl_succeeded=true || curl_succeeded=false
+          if [[ "$curl_succeeded" == "true" && "$http_status" == "200" ]]; then
+            exit 0
+          fi
+
+          echo "Smoke-check attempt ${attempt}/6 failed: HTTP ${http_status:-unavailable}." >&2
+          if (( attempt < 6 )); then
+            sleep 5
+          fi
+        done
+
+        echo "Backend public readiness check failed." >&2
+        exit 1
     - name: Show backend diagnostics
       if: ${{ failure() }}
       run: |
