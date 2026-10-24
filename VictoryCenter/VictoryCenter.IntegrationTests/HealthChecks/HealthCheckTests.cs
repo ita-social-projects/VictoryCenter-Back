@@ -1,6 +1,8 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -12,6 +14,24 @@ public class HealthCheckTests : BaseTestClass
     public HealthCheckTests(IntegrationTestDbFixture fixture)
         : base(fixture)
     {
+    }
+
+    [Fact]
+    public async Task Host_WhenStopped_DisposesConfigurationFileWatcher()
+    {
+        await using var factory = Fixture.Factory.WithWebHostBuilder(_ => { });
+        using var client = factory.CreateClient();
+        var configuration = factory.Services.GetRequiredService<IConfiguration>();
+        var builder = Assert.IsAssignableFrom<IConfigurationBuilder>(configuration);
+        var fileProvider = Assert.IsType<PhysicalFileProvider>(builder.GetFileProvider());
+        Assert.Equal(
+            Path.GetFullPath(Directory.GetCurrentDirectory()).TrimEnd(Path.DirectorySeparatorChar),
+            fileProvider.Root.TrimEnd(Path.DirectorySeparatorChar));
+        fileProvider.Watch("appsettings.json");
+
+        await factory.DisposeAsync();
+
+        Assert.Throws<ObjectDisposedException>(() => fileProvider.Watch("disposed-watcher-check.json"));
     }
 
     [Fact]

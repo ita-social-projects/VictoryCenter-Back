@@ -6,7 +6,7 @@ using VictoryCenter.BLL.Hubs;
 DotEnv.Load();
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Host.ConfigureApplication(builder);
+using var configurationFileProvider = builder.Host.ConfigureApplication(builder);
 builder.Configuration.AddLocalEnvironmentVariables();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddCustomServices(builder.Configuration);
@@ -17,6 +17,7 @@ builder.Services.AddRateLimiterConfiguration();
 builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 
 var app = builder.Build();
+app.Lifetime.ApplicationStopped.Register(configurationFileProvider.Dispose);
 
 app.MapOpenApi();
 
