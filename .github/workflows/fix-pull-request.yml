@@ -9,7 +9,8 @@ env:
 jobs:
   quality_gate:
     uses: ./.github/workflows/build.yml
-    secrets: inherit
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   docker:
     name: Build and push docker image

@@ -1,6 +1,9 @@
 name: Build, Test and Analyze
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
   push:
     branches:
       - main
