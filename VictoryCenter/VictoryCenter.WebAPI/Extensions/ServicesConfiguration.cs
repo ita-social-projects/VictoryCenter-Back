@@ -64,6 +64,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
+using VictoryCenter.WebAPI.HealthChecks;
 using VictoryCenter.WebAPI.Utils;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
@@ -215,6 +216,8 @@ public static class ServicesConfiguration
         services.AddSignalR();
         services.AddMemoryCache();
         services.AddSingleton<IPdfTicketStore, MemoryCachePdfTicketStore>();
+        services.AddHealthChecks()
+            .AddCheck<SqlDatabaseHealthCheck>("sql", tags: ["ready"]);
     }
 
     public static void MapOpenApi(this IApplicationBuilder app)
