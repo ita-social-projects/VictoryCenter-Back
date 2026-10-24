@@ -64,6 +64,7 @@ jobs:
       backend_tag: ${{ steps.backend_tag.outputs.backend_tag }}
       frontend_tag: ${{ steps.frontend_tag.outputs.frontend_tag }}
       backend_tag_rollback: ${{ steps.backend_tag_rollback.outputs.backend_tag_rollback }}
+      deployment_started: ${{ steps.deployment_started.outputs.started }}
    steps:
     - run: echo ${{ needs.manual_approval_deploy.outputs.comment }}
     - name: "Set backend tag"
@@ -130,6 +131,9 @@ jobs:
         fi
 
         docker compose config --quiet
+    - name: Mark deployment as started
+      id: deployment_started
+      run: echo "started=true" >> "$GITHUB_OUTPUT"
     - name: Stop all containers
       run: docker stop nginx certbot frontend backend
     - name: Delete additon info
@@ -208,6 +212,10 @@ jobs:
       
   manual_approval_rollback:
     needs: stage_deploy
+    if: >-
+      ${{ !cancelled() && needs.stage_deploy.outputs.deployment_started == 'true' &&
+          needs.stage_deploy.outputs.backend_tag_rollback != '' &&
+          needs.stage_deploy.outputs.frontend_tag != '' }}
     environment: stage 
     runs-on: ubuntu-latest
     outputs:
@@ -224,15 +232,26 @@ jobs:
                 | jq -r '.[0].comment')" >> $GITHUB_OUTPUT    
   stage_rollback:
    needs: [manual_approval_rollback, stage_deploy]
-   if: contains(needs.manual_approval_rollback.outputs.comment, 'approve')
+   if: >-
+     ${{ !cancelled() && needs.manual_approval_rollback.result == 'success' &&
+         contains(needs.manual_approval_rollback.outputs.comment, 'approve') }}
    runs-on: self-hosted
    steps:
     - name: Checkout
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         repository: ita-social-projects/VictoryCenter-DevOps
+    - name: Validate rollback image tags
+      env:
+        BACKEND_TAG: ${{ needs.stage_deploy.outputs.backend_tag_rollback }}
+        FRONTEND_TAG: ${{ needs.stage_deploy.outputs.frontend_tag }}
+      run: |
+        if [[ -z "$BACKEND_TAG" || -z "$FRONTEND_TAG" ]]; then
+          echo "Previous backend and frontend image tags are required for rollback." >&2
+          exit 1
+        fi
     - name: Stop all containers
-      run: docker stop nginx certbot frontend backend 
+      run: docker stop nginx certbot frontend backend || true
     - name: Delete additon info
       run: docker system prune -f
     - name: Set up enviroments and Deploy
