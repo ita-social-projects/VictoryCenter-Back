@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Resources;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using VictoryCenter.DAL.Data;
 
@@ -8,6 +10,10 @@ public sealed class SqlDatabaseHealthCheck(
     ILogger<SqlDatabaseHealthCheck> logger) : IHealthCheck
 {
     private const string UnavailableDescription = "SQL database connection is unavailable";
+
+    private static readonly ResourceManager LogMessages = new(
+        "VictoryCenter.WebAPI.HealthChecks.HealthCheckMessages",
+        typeof(SqlDatabaseHealthCheck).Assembly);
 
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
@@ -28,7 +34,7 @@ public sealed class SqlDatabaseHealthCheck(
         }
         catch (Exception exception)
         {
-            logger.LogWarning(exception, "SQL database readiness check failed");
+            logger.LogWarning(exception, LogMessages.GetString("SqlReadinessCheckFailed", CultureInfo.InvariantCulture));
             return HealthCheckResult.Unhealthy(UnavailableDescription);
         }
     }

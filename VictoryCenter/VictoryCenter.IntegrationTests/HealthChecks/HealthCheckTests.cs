@@ -33,11 +33,11 @@ public class HealthCheckTests : BaseTestClass
         // PhysicalFileProvider has no public disposal flag; Watch behaves differently in polling mode.
         var disposedField = typeof(PhysicalFileProvider).GetField("_disposed", BindingFlags.Instance | BindingFlags.NonPublic);
         Assert.NotNull(disposedField);
-        Assert.Equal(false, disposedField.GetValue(fileProvider));
+        Assert.False(Assert.IsType<bool>(disposedField.GetValue(fileProvider)));
 
         await factory.DisposeAsync();
 
-        Assert.Equal(true, disposedField.GetValue(fileProvider));
+        Assert.True(Assert.IsType<bool>(disposedField.GetValue(fileProvider)));
     }
 
     [Fact]
