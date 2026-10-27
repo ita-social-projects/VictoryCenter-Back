@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Notifications.ReportFunds;
+using VictoryCenter.BLL.Services.ReportExpendituresCategorySwapService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -81,17 +82,14 @@ public class BatchSaveReportProgramExpendituresRecordHandler
                 return categoriesValidationResult;
             }
 
-            HandleDeletions(dto, existingRecordsDict);
-            HandleUpdates(dto, existingRecordsDict);
+            await HandleDeletionsAsync(dto, existingRecordsDict);
+            await HandleUpdatesAsync(dto, existingRecordsDict);
             await HandleCreationsAsync(dto);
 
-            int affectedRows = await _repositoryWrapper.SaveChangesAsync();
+            await _repositoryWrapper.SaveChangesAsync();
             await scope.CommitAsync(cancellationToken);
 
-            if (affectedRows > 0)
-            {
-                await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
-            }
+            await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
 
             return Result.Ok(Unit.Value);
         }
@@ -158,11 +156,15 @@ public class BatchSaveReportProgramExpendituresRecordHandler
             }))
             .ToDictionary(c => c.Id);
 
+        var touchedRecordIds = dto.RecordIdsToDelete
+            .Concat(dto.RecordsToUpdate.Select(u => u.Id))
+            .ToList();
+
         var duplicateRecordsInCategory = await _repositoryWrapper.ReportProgramExpendituresRecordsRepository
             .GetAllAsync(new QueryOptions<ReportProgramExpendituresRecord>
             {
                 Filter = entity => categoryIdsToValidate.Contains(entity.HippotherapyProgramCategoryId) &&
-                                    !dto.RecordIdsToDelete.Contains(entity.Id)
+                                    !touchedRecordIds.Contains(entity.Id)
             });
 
         return EvaluateCategoryRules(
@@ -198,7 +200,7 @@ public class BatchSaveReportProgramExpendituresRecordHandler
         return Result.Ok(Unit.Value);
     }
 
-    private void HandleDeletions(
+    private async Task HandleDeletionsAsync(
         BatchSaveReportProgramExpendituresRecordsDto dto,
         Dictionary<long, ReportProgramExpendituresRecord> existingRecordsDict)
     {
@@ -212,9 +214,10 @@ public class BatchSaveReportProgramExpendituresRecordHandler
             .ToList();
 
         _repositoryWrapper.ReportProgramExpendituresRecordsRepository.DeleteRange(recordsToDelete);
+        await _repositoryWrapper.SaveChangesAsync();
     }
 
-    private void HandleUpdates(
+    private async Task HandleUpdatesAsync(
         BatchSaveReportProgramExpendituresRecordsDto dto,
         Dictionary<long, ReportProgramExpendituresRecord> existingRecordsDict)
     {
@@ -223,17 +226,48 @@ public class BatchSaveReportProgramExpendituresRecordHandler
             return;
         }
 
-        var entitiesToUpdate = new List<ReportProgramExpendituresRecord>();
-
-        foreach (var recordToUpdateDto in dto.RecordsToUpdate)
+        var context = new ReportExpendituresCategorySwapContext<ReportProgramExpendituresRecord, BatchUpdateReportProgramExpendituresRecordDto>
         {
-            var existingEntity = existingRecordsDict[recordToUpdateDto.Id];
-            _mapper.Map(recordToUpdateDto, existingEntity);
+            GetEntityId = e => e.Id,
+            GetEntityCategoryId = e => e.HippotherapyProgramCategoryId,
+            SetEntityCategoryId = (e, id) => e.HippotherapyProgramCategoryId = id,
 
-            entitiesToUpdate.Add(existingEntity);
-        }
+            GetDtoId = d => d.Id,
+            GetTargetCategoryId = d => d.HippotherapyProgramCategoryId,
 
-        _repositoryWrapper.ReportProgramExpendituresRecordsRepository.UpdateRange(entitiesToUpdate);
+            ApplyEntityUpdates = (entity, record) => _mapper.Map(record, entity),
+            UpdateRangeInDb = entities => _repositoryWrapper.ReportProgramExpendituresRecordsRepository.UpdateRange(entities),
+            UpdateInDb = entity => _repositoryWrapper.ReportProgramExpendituresRecordsRepository.Update(entity),
+            SaveChangesAsync = async () => await _repositoryWrapper.SaveChangesAsync(),
+
+            CreateTempCategoryAsync = async () =>
+            {
+                var tempCategory = new HippotherapyProgramCategory { Name = ReportProgramExpendituresRecordConstants.TempCategoryName };
+                await _repositoryWrapper.HippotherapyProgramCategoriesRepository.CreateAsync(tempCategory);
+                await _repositoryWrapper.SaveChangesAsync();
+                return tempCategory.Id;
+            },
+            CleanupTempCategoryAsync = async (tempId) =>
+            {
+                var tempCategory = await _repositoryWrapper.HippotherapyProgramCategoriesRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
+                    {
+                        Filter = c => c.Id == tempId,
+                    });
+
+                if (tempCategory != null)
+                {
+                    _repositoryWrapper.HippotherapyProgramCategoriesRepository.Delete(tempCategory);
+                    await _repositoryWrapper.SaveChangesAsync();
+                }
+            }
+        };
+
+        await ReportExpendituresCategorySwapService.ProcessUpdatesAsync(
+            dto.RecordsToUpdate,
+            dto.RecordIdsToDelete,
+            existingRecordsDict,
+            context);
     }
 
     private async Task HandleCreationsAsync(

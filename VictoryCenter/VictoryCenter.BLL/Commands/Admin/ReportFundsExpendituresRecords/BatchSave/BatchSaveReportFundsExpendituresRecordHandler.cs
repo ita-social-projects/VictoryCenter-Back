@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
+using VictoryCenter.BLL.Services.ReportExpendituresCategorySwapService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -64,6 +65,9 @@ public class BatchSaveReportFundsExpendituresRecordHandler
                 .ToList();
 
             var existingRecordsDict = new Dictionary<long, ReportFundsExpendituresRecord>();
+
+            await using var scope = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
+
             if (targetIds.Count > 0)
             {
                 existingRecordsDict = (await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
@@ -80,8 +84,6 @@ public class BatchSaveReportFundsExpendituresRecordHandler
                 return existingRecordsValidationResult;
             }
 
-            await using var scope = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
-
             var categoriesValidationResult = await ValidateCategoryRulesAsync(dto, existingRecordsDict);
             if (categoriesValidationResult.IsFailed)
             {
@@ -90,17 +92,14 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
             decimal exchangeRate = settingsResult.Value.ExchangeRate;
 
-            HandleDeletions(dto, existingRecordsDict);
-            HandleUpdates(dto, existingRecordsDict, exchangeRate);
+            await HandleDeletionsAsync(dto, existingRecordsDict);
+            await HandleUpdatesAsync(dto, existingRecordsDict, exchangeRate);
             await HandleCreationsAsync(dto, exchangeRate);
 
-            int affectedRows = await _repositoryWrapper.SaveChangesAsync();
+            await _repositoryWrapper.SaveChangesAsync();
             await scope.CommitAsync(cancellationToken);
 
-            if (affectedRows > 0)
-            {
-                await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
-            }
+            await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
 
             return Result.Ok(Unit.Value);
         }
@@ -144,11 +143,15 @@ public class BatchSaveReportFundsExpendituresRecordHandler
             }))
             .ToDictionary(c => c.Id);
 
+        var touchedRecordIds = dto.RecordIdsToDelete
+            .Concat(dto.RecordsToUpdate.Select(u => u.Id))
+            .ToList();
+
         var duplicateRecordsInCategory = await _repositoryWrapper.ReportFundsExpendituresRecordsRepository
             .GetAllAsync(new QueryOptions<ReportFundsExpendituresRecord>
             {
                 Filter = entity => categoryIdsToValidate.Contains(entity.CategoryId) &&
-                                    !dto.RecordIdsToDelete.Contains(entity.Id)
+                                    !touchedRecordIds.Contains(entity.Id)
             });
 
         return EvaluateCategoryRules(
@@ -213,7 +216,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
         return Result.Ok(Unit.Value);
     }
 
-    private void HandleDeletions(
+    private async Task HandleDeletionsAsync(
         BatchSaveReportFundsExpendituresRecordsDto dto,
         Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict)
     {
@@ -227,9 +230,10 @@ public class BatchSaveReportFundsExpendituresRecordHandler
             .ToList();
 
         _repositoryWrapper.ReportFundsExpendituresRecordsRepository.DeleteRange(recordsToDelete);
+        await _repositoryWrapper.SaveChangesAsync();
     }
 
-    private void HandleUpdates(
+    private async Task HandleUpdatesAsync(
         BatchSaveReportFundsExpendituresRecordsDto dto,
         Dictionary<long, ReportFundsExpendituresRecord> existingRecordsDict,
         decimal exchangeRate)
@@ -239,22 +243,59 @@ public class BatchSaveReportFundsExpendituresRecordHandler
             return;
         }
 
-        var entitiesToUpdate = new List<ReportFundsExpendituresRecord>();
-
-        foreach (var recordToUpdateDto in dto.RecordsToUpdate)
+        var context = new ReportExpendituresCategorySwapContext<ReportFundsExpendituresRecord, BatchUpdateReportFundsExpendituresRecordDto>
         {
-            var existingEntity = existingRecordsDict[recordToUpdateDto.Id];
-            _mapper.Map(recordToUpdateDto, existingEntity);
+            GetEntityId = e => e.Id,
+            GetEntityCategoryId = e => e.CategoryId,
+            SetEntityCategoryId = (e, id) => e.CategoryId = id,
 
-            (existingEntity.AmountUah, existingEntity.AmountUsd) = _helper.CalculateAmounts(
-                recordToUpdateDto.Amount!.Value,
-                recordToUpdateDto.Currency,
-                exchangeRate);
+            GetDtoId = d => d.Id,
+            GetTargetCategoryId = d => d.CategoryId,
 
-            entitiesToUpdate.Add(existingEntity);
-        }
+            ApplyEntityUpdates = (entity, record) =>
+            {
+                _mapper.Map(record, entity);
+                (entity.AmountUah, entity.AmountUsd) = _helper.CalculateAmounts(
+                    record.Amount!.Value,
+                    record.Currency,
+                    exchangeRate);
+            },
+            UpdateRangeInDb = entities => _repositoryWrapper.ReportFundsExpendituresRecordsRepository.UpdateRange(entities),
+            UpdateInDb = entity => _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Update(entity),
+            SaveChangesAsync = async () => await _repositoryWrapper.SaveChangesAsync(),
 
-        _repositoryWrapper.ReportFundsExpendituresRecordsRepository.UpdateRange(entitiesToUpdate);
+            CreateTempCategoryAsync = async () =>
+            {
+                var tempCategory = new ReportFundsExpendituresCategory
+                {
+                    Name = ReportFundsExpendituresRecordConstants.TempCategoryName,
+                    Type = ReportFundsExpendituresType.Income,
+                };
+                await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.CreateAsync(tempCategory);
+                await _repositoryWrapper.SaveChangesAsync();
+                return tempCategory.Id;
+            },
+            CleanupTempCategoryAsync = async (tempId) =>
+            {
+                var tempCategory = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
+                    .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresCategory>
+                    {
+                        Filter = c => c.Id == tempId,
+                    });
+
+                if (tempCategory != null)
+                {
+                    _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.Delete(tempCategory);
+                    await _repositoryWrapper.SaveChangesAsync();
+                }
+            }
+        };
+
+        await ReportExpendituresCategorySwapService.ProcessUpdatesAsync(
+            dto.RecordsToUpdate,
+            dto.RecordIdsToDelete,
+            existingRecordsDict,
+            context);
     }
 
     private async Task HandleCreationsAsync(

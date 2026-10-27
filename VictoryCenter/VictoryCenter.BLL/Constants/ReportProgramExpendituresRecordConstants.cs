@@ -24,6 +24,8 @@ public static class ReportProgramExpendituresRecordConstants
 
     public static readonly int MaxNumberOfRecordsPerBatchOperation = 100;
 
+    public static readonly string TempCategoryName = "System_TempSwapCategory";
+
     public static string ProgramCategoryAlreadyHasRecord()
     {
         return "A record for this program category already exists";
