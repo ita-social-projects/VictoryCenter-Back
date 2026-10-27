@@ -281,6 +281,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
                     .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresCategory>
                     {
                         Filter = c => c.Id == tempId,
+                        AsNoTracking = false
                     });
 
                 if (tempCategory != null)

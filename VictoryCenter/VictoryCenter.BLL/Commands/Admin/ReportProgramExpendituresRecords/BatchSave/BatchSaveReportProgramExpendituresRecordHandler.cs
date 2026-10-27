@@ -253,6 +253,7 @@ public class BatchSaveReportProgramExpendituresRecordHandler
                     .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
                     {
                         Filter = c => c.Id == tempId,
+                        AsNoTracking = false
                     });
 
                 if (tempCategory != null)
