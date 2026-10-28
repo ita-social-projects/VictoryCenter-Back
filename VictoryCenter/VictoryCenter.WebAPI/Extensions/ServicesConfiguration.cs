@@ -148,24 +148,12 @@ public static class ServicesConfiguration
         services.ConfigureBlob(configuration);
         services.ConfigurePdf(configuration);
         services.ConfigureEmail(configuration);
+        services.ConfigureAccountLockout();
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
             .ValidateDataAnnotations()
             .ValidateOnStart();
-
-        services.AddOptions<AccountLockoutOptions>()
-            .BindConfiguration(AccountLockoutOptions.Position)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddOptions<IdentityOptions>()
-            .Configure<IOptions<AccountLockoutOptions>>((identityOptions, lockoutOptions) =>
-            {
-                identityOptions.Lockout.AllowedForNewUsers = true;
-                identityOptions.Lockout.MaxFailedAccessAttempts = lockoutOptions.Value.MaxFailedAccessAttempts;
-                identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutOptions.Value.LockoutMinutes);
-            });
 
         services.AddOptions<WayForPayOptions>()
             .BindConfiguration(WayForPayOptions.Position)
@@ -1007,6 +995,24 @@ public static class ServicesConfiguration
                     $"Unsupported EmailProvider value: '{emailOptions.EmailProvider}'. "
                     + "Valid values are 'Resend' and 'Dummy'.");
         }
+
+        return services;
+    }
+
+    private static IServiceCollection ConfigureAccountLockout(this IServiceCollection services)
+    {
+        services.AddOptions<AccountLockoutOptions>()
+            .BindConfiguration(AccountLockoutOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<IdentityOptions>()
+            .Configure<IOptions<AccountLockoutOptions>>((identityOptions, lockoutOptions) =>
+            {
+                identityOptions.Lockout.AllowedForNewUsers = true;
+                identityOptions.Lockout.MaxFailedAccessAttempts = lockoutOptions.Value.MaxFailedAccessAttempts;
+                identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutOptions.Value.LockoutMinutes);
+            });
 
         return services;
     }
