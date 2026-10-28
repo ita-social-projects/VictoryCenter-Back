@@ -17,7 +17,7 @@ public class GetHippotherapyLandingPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Get_PageIsAutoSeededOnStartup_ShouldReturnOkWithAllSections()
+    public async Task Get_PageIsAutoSeededOnStartup_ShouldReturnOkWithAllSectionsAndLocalizations()
     {
         var response = await Fixture.HttpClient.GetAsync(_endpointUri);
         var responseString = await response.Content.ReadAsStringAsync();
@@ -31,6 +31,9 @@ public class GetHippotherapyLandingPageTests : BaseTestClass
         Assert.Equal(4, responseContent.ParticipantsSection.Cards.Count);
         Assert.Equal(4, responseContent.EthicsSection.Principles.Count);
         Assert.NotEmpty(responseContent.ScientificReferencesSection.ScientificReferences);
+
+        Assert.NotNull(responseContent.Localizations);
+        Assert.NotNull(responseContent.TranslationStatuses);
     }
 
     [Fact]
