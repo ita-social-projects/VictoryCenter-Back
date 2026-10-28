@@ -16,5 +16,5 @@ public class ReportExpendituresCategorySwapContext<TEntity, TDto>
     public required Action<TEntity> UpdateInDb { get; init; }
     public required Func<Task> SaveChangesAsync { get; init; }
     public required Func<Task<long>> CreateTempCategoryAsync { get; init; }
-    public required Func<long, Task> CleanupTempCategoryAsync { get; init; }
+    public required Func<Task> CleanupTempCategoryAsync { get; init; }
 }

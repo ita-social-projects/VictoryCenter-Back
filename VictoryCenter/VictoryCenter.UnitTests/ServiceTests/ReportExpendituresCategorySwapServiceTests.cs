@@ -110,7 +110,7 @@ public class ReportExpendituresCategorySwapServiceTests
     }
 
     [Fact]
-    public async Task ProcessUpdatesAsync_WhenExceptionThrownDuringSwap_ShouldStillCleanupTempCategory()
+    public async Task ProcessUpdatesAsync_WhenExceptionThrownDuringSwap_ShouldPropagateExceptionAndNotCallCleanup()
     {
         // Arrange
         var entities = CreateEntities((1, 1), (2, 2));
@@ -126,8 +126,7 @@ public class ReportExpendituresCategorySwapServiceTests
                 entities,
                 context));
         Assert.Equal(1, tracker.CreateTempCategoryCalls);
-        Assert.Equal(1, tracker.CleanupTempCategoryCalls);
-        Assert.Equal(tracker.CreatedTempCategoryId, tracker.CleanupTempCategoryId);
+        Assert.Equal(0, tracker.CleanupTempCategoryCalls);
     }
 
     private static Dictionary<long, TestEntity> CreateEntities(params (long Id, long CategoryId)[] entries)
@@ -160,6 +159,8 @@ public class ReportExpendituresCategorySwapServiceTests
 
     private static ReportExpendituresCategorySwapContext<TestEntity, TestUpdateDto> CreateContext(SwapExecutionTracker tracker)
     {
+        TestCategory? tempCategory = null;
+
         return new ReportExpendituresCategorySwapContext<TestEntity, TestUpdateDto>
         {
             GetEntityId = entity => entity.Id,
@@ -183,13 +184,17 @@ public class ReportExpendituresCategorySwapServiceTests
             CreateTempCategoryAsync = () =>
             {
                 tracker.CreateTempCategoryCalls++;
-                tracker.CreatedTempCategoryId = 999;
+                tempCategory = new TestCategory
+                {
+                    Id = 999,
+                };
+                tracker.CreatedTempCategoryId = tempCategory.Id;
                 return Task.FromResult(tracker.CreatedTempCategoryId.Value);
             },
-            CleanupTempCategoryAsync = tempCategoryId =>
+            CleanupTempCategoryAsync = () =>
             {
                 tracker.CleanupTempCategoryCalls++;
-                tracker.CleanupTempCategoryId = tempCategoryId;
+                tracker.CleanupTempCategoryId = tempCategory?.Id;
                 return Task.CompletedTask;
             },
         };
@@ -207,6 +212,11 @@ public class ReportExpendituresCategorySwapServiceTests
         public long Id { get; init; }
 
         public long TargetCategoryId { get; init; }
+    }
+
+    private class TestCategory
+    {
+        public long Id { get; init; }
     }
 
     private class SwapExecutionTracker

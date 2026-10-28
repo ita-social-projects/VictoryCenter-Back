@@ -226,6 +226,8 @@ public class BatchSaveReportProgramExpendituresRecordHandler
             return;
         }
 
+        HippotherapyProgramCategory? tempCategory = null;
+
         var context = new ReportExpendituresCategorySwapContext<ReportProgramExpendituresRecord, BatchUpdateReportProgramExpendituresRecordDto>
         {
             GetEntityId = e => e.Id,
@@ -242,20 +244,13 @@ public class BatchSaveReportProgramExpendituresRecordHandler
 
             CreateTempCategoryAsync = async () =>
             {
-                var tempCategory = new HippotherapyProgramCategory { Name = ReportProgramExpendituresRecordConstants.TempCategoryName };
+                tempCategory = new HippotherapyProgramCategory { Name = ReportProgramExpendituresRecordConstants.TempCategoryName };
                 await _repositoryWrapper.HippotherapyProgramCategoriesRepository.CreateAsync(tempCategory);
                 await _repositoryWrapper.SaveChangesAsync();
                 return tempCategory.Id;
             },
-            CleanupTempCategoryAsync = async (tempId) =>
+            CleanupTempCategoryAsync = async () =>
             {
-                var tempCategory = await _repositoryWrapper.HippotherapyProgramCategoriesRepository
-                    .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
-                    {
-                        Filter = c => c.Id == tempId,
-                        AsNoTracking = false
-                    });
-
                 if (tempCategory != null)
                 {
                     _repositoryWrapper.HippotherapyProgramCategoriesRepository.Delete(tempCategory);

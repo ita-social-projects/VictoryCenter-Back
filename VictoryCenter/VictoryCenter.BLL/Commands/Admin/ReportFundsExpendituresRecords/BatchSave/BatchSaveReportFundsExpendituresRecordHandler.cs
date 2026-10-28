@@ -243,6 +243,8 @@ public class BatchSaveReportFundsExpendituresRecordHandler
             return;
         }
 
+        ReportFundsExpendituresCategory? tempCategory = null;
+
         var context = new ReportExpendituresCategorySwapContext<ReportFundsExpendituresRecord, BatchUpdateReportFundsExpendituresRecordDto>
         {
             GetEntityId = e => e.Id,
@@ -266,7 +268,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
             CreateTempCategoryAsync = async () =>
             {
-                var tempCategory = new ReportFundsExpendituresCategory
+                tempCategory = new ReportFundsExpendituresCategory
                 {
                     Name = ReportFundsExpendituresRecordConstants.TempCategoryName,
                     Type = ReportFundsExpendituresType.Income,
@@ -275,15 +277,8 @@ public class BatchSaveReportFundsExpendituresRecordHandler
                 await _repositoryWrapper.SaveChangesAsync();
                 return tempCategory.Id;
             },
-            CleanupTempCategoryAsync = async (tempId) =>
+            CleanupTempCategoryAsync = async () =>
             {
-                var tempCategory = await _repositoryWrapper.ReportFundsExpendituresCategoriesRepository
-                    .GetFirstOrDefaultAsync(new QueryOptions<ReportFundsExpendituresCategory>
-                    {
-                        Filter = c => c.Id == tempId,
-                        AsNoTracking = false
-                    });
-
                 if (tempCategory != null)
                 {
                     _repositoryWrapper.ReportFundsExpendituresCategoriesRepository.Delete(tempCategory);

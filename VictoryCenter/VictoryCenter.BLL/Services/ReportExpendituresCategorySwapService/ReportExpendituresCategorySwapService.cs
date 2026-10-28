@@ -2,6 +2,8 @@ namespace VictoryCenter.BLL.Services.ReportExpendituresCategorySwapService;
 
 public static class ReportExpendituresCategorySwapService
 {
+    private const string CategorySwapConflictErrorMessage = "Unable to resolve category swap conflict.";
+
     public static async Task ProcessUpdatesAsync<TEntity, TDto>(
         List<TDto> recordsToUpdate,
         List<long> recordIdsToDelete,
@@ -123,42 +125,44 @@ public static class ReportExpendituresCategorySwapService
         TEntity? tempRecord = null;
         long targetForTempRecord = -1;
 
-        try
+        while (conflictingRecords.Count > 0 || tempRecord != null)
         {
-            while (conflictingRecords.Count > 0 || tempRecord != null)
+            if (tempRecord != null && await TryResolveTempRecordAsync(tempRecord, targetForTempRecord, occupiedCategories, context))
             {
-                if (tempRecord != null && await TryResolveTempRecordAsync(tempRecord, targetForTempRecord, occupiedCategories, context))
+                tempRecord = null;
+                targetForTempRecord = -1;
+                continue;
+            }
+
+            if (await TryResolveReadyRecordAsync(conflictingRecords, existingEntities, occupiedCategories, context))
+            {
+                continue;
+            }
+
+            if (tempRecord == null)
+            {
+                if (tempCategoryId == -1)
                 {
-                    tempRecord = null;
-                    targetForTempRecord = -1;
-                    continue;
+                    tempCategoryId = await context.CreateTempCategoryAsync();
                 }
 
-                if (await TryResolveReadyRecordAsync(conflictingRecords, existingEntities, occupiedCategories, context))
-                {
-                    continue;
-                }
-
-                if (tempRecord == null)
-                {
-                    if (tempCategoryId == -1)
-                    {
-                        tempCategoryId = await context.CreateTempCategoryAsync();
-                    }
-
-                    (tempRecord, targetForTempRecord) =
-                        await ParkFirstConflictAsync(
-                            conflictingRecords,
-                            tempCategoryId,
-                            existingEntities,
-                            occupiedCategories,
-                            context);
-                }
+                (tempRecord, targetForTempRecord) =
+                    await ParkFirstConflictAsync(
+                        conflictingRecords,
+                        tempCategoryId,
+                        existingEntities,
+                        occupiedCategories,
+                        context);
+            }
+            else
+            {
+                throw new InvalidOperationException(CategorySwapConflictErrorMessage);
             }
         }
-        finally
+
+        if (tempCategoryId != -1)
         {
-            await TryCleanupTempCategoryAsync(tempCategoryId, context);
+            await context.CleanupTempCategoryAsync();
         }
     }
 
@@ -242,27 +246,5 @@ public static class ReportExpendituresCategorySwapService
         conflictingRecords.Remove(conflictDto);
 
         return (tempRecord, targetForTempRecord);
-    }
-
-    private static async Task TryCleanupTempCategoryAsync<TEntity, TDto>(
-        long tempCategoryId,
-        ReportExpendituresCategorySwapContext<TEntity, TDto> context)
-        where TEntity : class
-        where TDto : class
-    {
-        if (tempCategoryId == -1)
-        {
-            return;
-        }
-
-        try
-        {
-            await context.CleanupTempCategoryAsync(tempCategoryId);
-        }
-        catch
-        {
-            // Intentionally suppressed to avoid masking the primary exception.
-            // Transaction rollback will handle cleanup.
-        }
     }
 }
