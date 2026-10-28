@@ -61,12 +61,22 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
+        if (await _userManager.IsLockedOutAsync(admin))
+        {
+            PerformDummyPasswordCheck(request.LoginRequestDto.Password);
+            LogLockedOutLoginAttempt(admin.Id);
+            return Result.Fail(AuthConstants.Unauthorized);
+        }
+
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
         if (!result)
         {
+            await _userManager.AccessFailedAsync(admin);
             LogFailedLoginAttempt();
             return Result.Fail(AuthConstants.Unauthorized);
         }
+
+        await _userManager.ResetAccessFailedCountAsync(admin);
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
@@ -91,6 +101,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     {
         _logger.LogWarning(
             "Admin login failed from client IP {ClientIpAddress}",
+            _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+    }
+
+    private void LogLockedOutLoginAttempt(int adminId)
+    {
+        _logger.LogWarning(
+            "Admin login rejected for locked out account {AdminId} from client IP {ClientIpAddress}",
+            adminId,
             _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
     }
 
