@@ -29,11 +29,11 @@ Default values are in `appsettings.json`:
 
 Both values must be 1 or more. If a value is missing or invalid, the application does not start.
 
-To change the values for one environment, override them in `appsettings.{Environment}.json` or with environment variables:
+To change the values for one environment, override them in `appsettings.{Environment}.json` or with environment variables. The `VICTORYCENTER_` prefix is required, variables without it are overridden by the JSON files:
 
 ```
-AccountLockout__MaxFailedAccessAttempts=5
-AccountLockout__LockoutMinutes=15
+VICTORYCENTER_AccountLockout__MaxFailedAccessAttempts=5
+VICTORYCENTER_AccountLockout__LockoutMinutes=15
 ```
 
 ## Logs
