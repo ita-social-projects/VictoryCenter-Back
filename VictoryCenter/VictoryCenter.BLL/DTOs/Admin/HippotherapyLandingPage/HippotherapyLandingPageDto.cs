@@ -1,4 +1,5 @@
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPage;
 
 namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 
@@ -25,4 +26,7 @@ public record HippotherapyLandingPageDto
     public GallerySectionDto ParticipantsSection { get; init; } = null!;
 
     public EthicsSectionDto EthicsSection { get; init; } = null!;
+
+    public List<HippotherapyLandingPageAggregatedLocalizationDto> Localizations { get; init; } = [];
+    public List<HippotherapyLandingPageTranslationStatusDto> TranslationStatuses { get; init; } = [];
 }

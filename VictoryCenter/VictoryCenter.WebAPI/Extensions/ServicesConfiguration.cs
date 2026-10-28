@@ -198,6 +198,7 @@ public static class ServicesConfiguration
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
         services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
         services.AddScoped<IPartnerSectionLocalizationUpdater, PartnerSectionLocalizationUpdater>();
+        services.AddScoped<IHippotherapyLandingPageLocalizationLoader, HippotherapyLandingPageLocalizationLoader>();
         services.AddScoped<IHippotherapyLandingPageAdvantageCardLocalizationUpdater, HippotherapyLandingPageAdvantageCardLocalizationUpdater>();
         services.AddScoped<IHippotherapyLandingPageParticipantCardLocalizationUpdater, HippotherapyLandingPageParticipantCardLocalizationUpdater>();
         services.AddScoped<IHippotherapyLandingPageScientificReferenceLocalizationUpdater, HippotherapyLandingPageScientificReferenceLocalizationUpdater>();
