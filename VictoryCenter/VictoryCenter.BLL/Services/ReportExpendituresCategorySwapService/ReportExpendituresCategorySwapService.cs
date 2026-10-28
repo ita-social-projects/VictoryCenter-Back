@@ -127,65 +127,142 @@ public static class ReportExpendituresCategorySwapService
         {
             while (conflictingRecords.Count > 0 || tempRecord != null)
             {
-                if (tempRecord != null && (!occupiedCategories.TryGetValue(targetForTempRecord, out long occupantId) || occupantId == context.GetEntityId(tempRecord)))
+                if (tempRecord != null && await TryResolveTempRecordAsync(tempRecord, targetForTempRecord, occupiedCategories, context))
                 {
-                    context.SetEntityCategoryId(tempRecord, targetForTempRecord);
-                    context.UpdateInDb(tempRecord);
-                    await context.SaveChangesAsync();
-
-                    occupiedCategories[targetForTempRecord] = context.GetEntityId(tempRecord);
                     tempRecord = null;
                     targetForTempRecord = -1;
                     continue;
                 }
 
-                var readyDto = conflictingRecords.FirstOrDefault(r =>
-                    !occupiedCategories.TryGetValue(context.GetTargetCategoryId(r), out long occupantId) || occupantId == context.GetDtoId(r));
-
-                if (readyDto != null)
+                if (await TryResolveReadyRecordAsync(conflictingRecords, existingEntities, occupiedCategories, context))
                 {
-                    var entity = existingEntities[context.GetDtoId(readyDto)];
-                    var oldCategory = context.GetEntityCategoryId(entity);
-
-                    context.ApplyEntityUpdates(entity, readyDto);
-                    context.UpdateInDb(entity);
-                    await context.SaveChangesAsync();
-
-                    occupiedCategories.Remove(oldCategory);
-                    occupiedCategories[context.GetTargetCategoryId(readyDto)] = context.GetEntityId(entity);
-                    conflictingRecords.Remove(readyDto);
+                    continue;
                 }
-                else if (tempRecord == null)
+
+                if (tempRecord == null)
                 {
                     if (tempCategoryId == -1)
                     {
                         tempCategoryId = await context.CreateTempCategoryAsync();
                     }
 
-                    var conflictDto = conflictingRecords[0];
-                    var entity = existingEntities[context.GetDtoId(conflictDto)];
-                    var oldCategory = context.GetEntityCategoryId(entity);
-
-                    tempRecord = entity;
-                    targetForTempRecord = context.GetTargetCategoryId(conflictDto);
-
-                    context.ApplyEntityUpdates(entity, conflictDto);
-                    context.SetEntityCategoryId(entity, tempCategoryId);
-
-                    context.UpdateInDb(entity);
-                    await context.SaveChangesAsync();
-
-                    occupiedCategories.Remove(oldCategory);
-                    conflictingRecords.Remove(conflictDto);
+                    (tempRecord, targetForTempRecord) =
+                        await ParkFirstConflictAsync(
+                            conflictingRecords,
+                            tempCategoryId,
+                            existingEntities,
+                            occupiedCategories,
+                            context);
                 }
             }
         }
         finally
         {
-            if (tempCategoryId != -1)
-            {
-                await context.CleanupTempCategoryAsync(tempCategoryId);
-            }
+            await TryCleanupTempCategoryAsync(tempCategoryId, context);
+        }
+    }
+
+    private static async Task<bool> TryResolveTempRecordAsync<TEntity, TDto>(
+        TEntity tempRecord,
+        long targetForTempRecord,
+        Dictionary<long, long> occupiedCategories,
+        ReportExpendituresCategorySwapContext<TEntity, TDto> context)
+        where TEntity : class
+        where TDto : class
+    {
+        bool isTargetFree = !occupiedCategories.TryGetValue(targetForTempRecord, out long occupantId) || occupantId == context.GetEntityId(tempRecord);
+
+        if (!isTargetFree)
+        {
+            return false;
+        }
+
+        context.SetEntityCategoryId(tempRecord, targetForTempRecord);
+        context.UpdateInDb(tempRecord);
+        await context.SaveChangesAsync();
+
+        occupiedCategories[targetForTempRecord] = context.GetEntityId(tempRecord);
+        return true;
+    }
+
+    private static async Task<bool> TryResolveReadyRecordAsync<TEntity, TDto>(
+        List<TDto> conflictingRecords,
+        Dictionary<long, TEntity> existingEntities,
+        Dictionary<long, long> occupiedCategories,
+        ReportExpendituresCategorySwapContext<TEntity, TDto> context)
+        where TEntity : class
+        where TDto : class
+    {
+        var readyDto = conflictingRecords.Find(r =>
+            !occupiedCategories.TryGetValue(context.GetTargetCategoryId(r), out long occupantId)
+            || occupantId == context.GetDtoId(r));
+
+        if (readyDto == null)
+        {
+            return false;
+        }
+
+        var entity = existingEntities[context.GetDtoId(readyDto)];
+        var oldCategory = context.GetEntityCategoryId(entity);
+
+        context.ApplyEntityUpdates(entity, readyDto);
+        context.UpdateInDb(entity);
+        await context.SaveChangesAsync();
+
+        occupiedCategories.Remove(oldCategory);
+        occupiedCategories[context.GetTargetCategoryId(readyDto)] = context.GetEntityId(entity);
+        conflictingRecords.Remove(readyDto);
+
+        return true;
+    }
+
+    private static async Task<(TEntity TempRecord, long TargetCategoryId)> ParkFirstConflictAsync<TEntity, TDto>(
+        List<TDto> conflictingRecords,
+        long tempCategoryId,
+        Dictionary<long, TEntity> existingEntities,
+        Dictionary<long, long> occupiedCategories,
+        ReportExpendituresCategorySwapContext<TEntity, TDto> context)
+        where TEntity : class
+        where TDto : class
+    {
+        var conflictDto = conflictingRecords[0];
+        var entity = existingEntities[context.GetDtoId(conflictDto)];
+        var oldCategory = context.GetEntityCategoryId(entity);
+
+        var tempRecord = entity;
+        long targetForTempRecord = context.GetTargetCategoryId(conflictDto);
+
+        context.ApplyEntityUpdates(entity, conflictDto);
+        context.SetEntityCategoryId(entity, tempCategoryId);
+
+        context.UpdateInDb(entity);
+        await context.SaveChangesAsync();
+
+        occupiedCategories.Remove(oldCategory);
+        conflictingRecords.Remove(conflictDto);
+
+        return (tempRecord, targetForTempRecord);
+    }
+
+    private static async Task TryCleanupTempCategoryAsync<TEntity, TDto>(
+        long tempCategoryId,
+        ReportExpendituresCategorySwapContext<TEntity, TDto> context)
+        where TEntity : class
+        where TDto : class
+    {
+        if (tempCategoryId == -1)
+        {
+            return;
+        }
+
+        try
+        {
+            await context.CleanupTempCategoryAsync(tempCategoryId);
+        }
+        catch
+        {
+            // Intentionally suppressed to avoid masking the primary exception.
+            // Transaction rollback will handle cleanup.
         }
     }
 }

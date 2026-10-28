@@ -118,15 +118,13 @@ public class ReportExpendituresCategorySwapServiceTests
         var tracker = CreateTracker(throwOnSaveAfterTempCreated: true);
         var context = CreateContext(tracker);
 
-        // Act
-        var action = async () => await ReportExpendituresCategorySwapService.ProcessUpdatesAsync(
-            recordsToUpdate,
-            recordIdsToDelete: [],
-            entities,
-            context);
-
-        // Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(action);
+        // Act and Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            ReportExpendituresCategorySwapService.ProcessUpdatesAsync(
+                recordsToUpdate,
+                recordIdsToDelete: [],
+                entities,
+                context));
         Assert.Equal(1, tracker.CreateTempCategoryCalls);
         Assert.Equal(1, tracker.CleanupTempCategoryCalls);
         Assert.Equal(tracker.CreatedTempCategoryId, tracker.CleanupTempCategoryId);
@@ -145,11 +143,11 @@ public class ReportExpendituresCategorySwapServiceTests
 
     private static List<TestUpdateDto> CreateUpdates(params (long Id, long TargetCategoryId)[] entries)
     {
-        return entries.Select(x => new TestUpdateDto
+        return [.. entries.Select(x => new TestUpdateDto
         {
             Id = x.Id,
             TargetCategoryId = x.TargetCategoryId,
-        }).ToList();
+        })];
     }
 
     private static SwapExecutionTracker CreateTracker(bool throwOnSaveAfterTempCreated = false)
