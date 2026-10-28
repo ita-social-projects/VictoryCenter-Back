@@ -1,4 +1,5 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Entities.Localization;
 
@@ -9,6 +10,7 @@ public class HippotherapyLandingPageEthicsPrinciple
 {
     public long EthicsSectionId { get; set; }
 
+    [RichText]
     public string Text { get; set; } = null!;
 
     public long Priority { get; set; }

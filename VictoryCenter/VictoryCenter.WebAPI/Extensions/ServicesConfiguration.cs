@@ -13,11 +13,13 @@ using VictoryCenter.BLL.Behaviors;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interceptors;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Captcha;
 using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
+using VictoryCenter.BLL.Interfaces.HtmlSanitization;
 using VictoryCenter.BLL.Interfaces.ImageValidation;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
@@ -42,6 +44,7 @@ using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
+using VictoryCenter.BLL.Services.HtmlSanitization;
 using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
@@ -76,13 +79,17 @@ public static class ServicesConfiguration
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddDbContext<VictoryCenterDbContext>(options =>
+        services.AddSingleton<IRichTextSanitizer, RichTextSanitizer>();
+        services.AddSingleton<RichTextSanitizationInterceptor>();
+
+        services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
         {
             options.UseSqlServer(connectionString, opt =>
             {
                 opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
                 opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
             });
+            options.AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
         });
 
         services.AddIdentity<AdminUser, IdentityRole<int>>()
@@ -629,7 +636,7 @@ public static class ServicesConfiguration
             CreatedAt = now,
             IntroSection = new HippotherapyLandingPageIntroSection
             {
-                Title = "<h3><b><i>Кінь</i></b> не питає, він <b><i>просто поруч</i></b></h3>",
+                Title = "<b><i>Кінь</i></b> не питає, він <b><i>просто поруч</i></b>",
                 Description = "Це про зустріч. Між людиною, яка вчиться знову довіряти, і конем, який відповідає без слів. Тут зцілення йде не з розмови, а з присутності.",
                 CreatedAt = now,
             },

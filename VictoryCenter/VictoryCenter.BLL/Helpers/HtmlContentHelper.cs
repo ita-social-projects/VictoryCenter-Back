@@ -1,5 +1,6 @@
 using System.Net;
 using HtmlAgilityPack;
+using VictoryCenter.BLL.Services.HtmlSanitization;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -14,6 +15,17 @@ public static class HtmlContentHelper
 
         var htmlDoc = new HtmlDocument();
         htmlDoc.LoadHtml(input);
+
+        // Skip content the sanitizer drops, so validation measures what will be saved
+        var droppedNodes = htmlDoc.DocumentNode
+            .Descendants()
+            .Where(n => n.NodeType == HtmlNodeType.Element && RichTextSanitizer.TagsRemovedWithContent.Contains(n.Name))
+            .ToList();
+        foreach (var node in droppedNodes)
+        {
+            node.Remove();
+        }
+
         return htmlDoc.DocumentNode.InnerText;
     }
 

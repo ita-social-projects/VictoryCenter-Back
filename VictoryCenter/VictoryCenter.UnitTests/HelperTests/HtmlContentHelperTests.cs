@@ -63,6 +63,20 @@ public class HtmlContentHelperTests
         Assert.Equal("Line oneLine twoLine three", result);
     }
 
+    [Theory]
+    [InlineData("<template>Hidden text</template>")]
+    [InlineData("<textarea>Hidden text</textarea>")]
+    [InlineData("<noscript>Hidden text</noscript>")]
+    [InlineData("<svg><text>Hidden text</text></svg>")]
+    public void StripHtmlTags_ContentDroppedBySanitizer_ShouldNotBeCounted(string hiddenMarkup)
+    {
+        // Act
+        var result = HtmlContentHelper.StripHtmlTags($"<p>Visible{hiddenMarkup}</p>");
+
+        // Assert
+        Assert.Equal("Visible", result);
+    }
+
     [Fact]
     public void GetVisibleText_TextWithHtmlEntity_ShouldDecodeEntity()
     {

@@ -73,6 +73,41 @@ public class EventsIntroSectionLocalizationManagementTests : BaseTestClass
     }
 
     [Fact]
+    public async Task LocalizationManagement_WithUnsafeHtml_StoresSanitizedContent()
+    {
+        var section = await Fixture.DbContext.EventsIntroSections.AsNoTracking().SingleAsync();
+        var language = await Fixture.DbContext.LocalizationLanguages.AsNoTracking().FirstAsync();
+
+        var createResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            Endpoint,
+            new CreateEventsIntroSectionLocalizationDto
+            {
+                EntityId = section.Id,
+                LanguageId = language.Id,
+                EventsBlockTitle = "<p onclick=\"alert(1)\">Safe title</p>",
+                PageDescription = "<p><strong>Safe</strong> description<img src=x onerror=alert(1)></p>"
+            });
+        Assert.Equal(HttpStatusCode.OK, createResponse.StatusCode);
+
+        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/{section.Id}/{language.Id}",
+            new UpdateEventsIntroSectionLocalizationDto
+            {
+                EventsBlockTitle = "<p>Updated <em>title</em><script>alert(1)</script></p>",
+            });
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        var localizations = await Fixture.HttpClient
+            .GetFromJsonAsync<List<EventsIntroSectionLocalizationDto>>($"{Endpoint}/{section.Id}");
+        var localization = Assert.Single(localizations!);
+        Assert.Equal("<p>Updated <em>title</em></p>", localization.EventsBlockTitle);
+        Assert.Equal("<p><strong>Safe</strong> description</p>", localization.PageDescription);
+
+        var deleteResponse = await Fixture.HttpClient.DeleteAsync($"{Endpoint}/{section.Id}/{language.Id}");
+        Assert.Equal(HttpStatusCode.OK, deleteResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task LocalizationManagement_ShouldReturnNotFoundForMissingResources()
     {
         const long missingId = long.MaxValue;
