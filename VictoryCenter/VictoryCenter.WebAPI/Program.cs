@@ -17,8 +17,6 @@ builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 
 var app = builder.Build();
 
-app.MapOpenApi();
-
 await app.ApplyMigrationsAsync();
 await app.CreateInitialDataAsync();
 
@@ -26,6 +24,7 @@ app.UseForwardedHeaders();
 app.UseRequestResponseLogging();
 app.UseCors();
 app.UseRateLimiter();
+app.MapOpenApi();
 app.MapControllers();
 app.UseHttpsRedirection();
 app.UseCookiePolicy();

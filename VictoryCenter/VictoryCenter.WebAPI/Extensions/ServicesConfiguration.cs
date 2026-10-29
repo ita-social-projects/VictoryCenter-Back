@@ -65,6 +65,7 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
+using VictoryCenter.WebAPI.Middleware;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -219,6 +220,13 @@ public static class ServicesConfiguration
 
     public static void MapOpenApi(this IApplicationBuilder app)
     {
+        var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+        if (!env.IsDevelopment())
+        {
+            app.UseMiddleware<SwaggerBasicAuthMiddleware>();
+        }
+
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
