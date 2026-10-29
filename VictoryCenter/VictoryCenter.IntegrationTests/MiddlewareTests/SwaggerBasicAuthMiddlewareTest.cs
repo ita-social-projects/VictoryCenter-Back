@@ -11,7 +11,7 @@ public class SwaggerAuthMiddlewareTest(IntegrationTestDbFixture fixture)
 {
     private const string SwaggerUrl = "/swagger/index.html";
     private const string SwaggerJsonUrl = "/swagger/v1/swagger.json";
-    private const int SwaggerRequestLimit = 5;
+    private const int SwaggerRequestLimit = 60;
 
     [Fact]
     public async Task Development_WithoutCredentials_ShouldReturn200()
@@ -27,13 +27,13 @@ public class SwaggerAuthMiddlewareTest(IntegrationTestDbFixture fixture)
     }
 
     [Fact]
-    public async Task Development_Over5Requests_ShouldNotBeRateLimited()
+    public async Task Development_Over60Requests_ShouldNotBeRateLimited()
     {
         // Arrange
         using var client = CreateClient("Development");
 
         // Act, Assert
-        for (var i = 0; i < 10; i++)
+        for (var i = 0; i < 75; i++)
         {
             var response = await client.GetAsync(SwaggerUrl);
 
@@ -75,7 +75,7 @@ public class SwaggerAuthMiddlewareTest(IntegrationTestDbFixture fixture)
     }
 
     [Fact]
-    public async Task Production_Over5Requests_ShouldReturn429()
+    public async Task Production_Over60Requests_ShouldReturn429()
     {
         // Arrange
         using var client = CreateClient("Production");
