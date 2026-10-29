@@ -999,7 +999,7 @@ public static class ServicesConfiguration
         return services;
     }
 
-    private static IServiceCollection ConfigureAccountLockout(this IServiceCollection services)
+    private static void ConfigureAccountLockout(this IServiceCollection services)
     {
         services.AddOptions<AccountLockoutOptions>()
             .BindConfiguration(AccountLockoutOptions.Position)
@@ -1013,7 +1013,5 @@ public static class ServicesConfiguration
                 identityOptions.Lockout.MaxFailedAccessAttempts = lockoutOptions.Value.MaxFailedAccessAttempts;
                 identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutOptions.Value.LockoutMinutes);
             });
-
-        return services;
     }
 }
