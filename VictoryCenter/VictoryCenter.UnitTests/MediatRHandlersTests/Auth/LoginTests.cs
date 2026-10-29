@@ -11,6 +11,8 @@ using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Validators.Auth;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.RefreshTokenSessions;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Auth;
 
@@ -21,6 +23,8 @@ public class LoginTests
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ILogger<LoginCommandHandler>> _mockLogger;
+    private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IRefreshTokenSessionRepository> _mockRefreshTokenSessionRepository;
 
     public LoginTests()
     {
@@ -51,13 +55,20 @@ public class LoginTests
         _mockTokenService = new Mock<ITokenService>();
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<LoginCommandHandler>>();
+        _mockRefreshTokenSessionRepository = new Mock<IRefreshTokenSessionRepository>();
+        _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockRepositoryWrapper.Setup(x => x.RefreshTokenSessionRepository)
+            .Returns(_mockRefreshTokenSessionRepository.Object);
+
         _commandHandler = new LoginCommandHandler(
             _mockTokenService.Object,
             _mockUserManager.Object,
             new LoginCommandValidator(),
             _mockHttpContextAccessor.Object,
             jwtOptions1,
-            _mockLogger.Object);
+            _mockLogger.Object,
+            _mockRepositoryWrapper.Object,
+            TimeProvider.System);
     }
 
     [Fact]
@@ -104,10 +115,11 @@ public class LoginTests
         Assert.False(result.IsSuccess);
         Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
+        _mockUserManager.Verify(x => x.CheckPasswordAsync(It.IsAny<AdminUser>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_GivenIncorrectPassword_ReturnsFail()
+    public async Task Handle_GivenInvalidPassword_ReturnsFail()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
         var admin = new AdminUser();
@@ -120,13 +132,14 @@ public class LoginTests
         Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateAsync(It.IsAny<AdminUser>()), Times.Never);
     }
 
     [Fact]
-    public async Task Handle_GivenValidData_UpdatesSuccessfully()
+    public async Task Handle_GivenValidCredentials_ReturnsSuccess()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new AdminUser();
+        var admin = new AdminUser { Id = 1, Email = "admin@gmail.com" };
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
@@ -158,6 +171,8 @@ public class LoginTests
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.HashRefreshToken("refresh_token"), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.RefreshTokenSessionRepository.CreateAsync(It.IsAny<RefreshTokenSession>()), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
     }
 
@@ -165,7 +180,7 @@ public class LoginTests
     public async Task Handle_GivenValidData_UpdatesUnsuccessfully()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new AdminUser();
+        var admin = new AdminUser { Id = 1, Email = "admin@gmail.com" };
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
@@ -190,6 +205,8 @@ public class LoginTests
         _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.HashRefreshToken("refresh_token"), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.RefreshTokenSessionRepository.CreateAsync(It.IsAny<RefreshTokenSession>()), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()),

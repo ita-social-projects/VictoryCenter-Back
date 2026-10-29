@@ -1,31 +1,48 @@
 using System.Transactions;
 using Microsoft.EntityFrameworkCore.Storage;
+using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
+using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
+using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqPlacements;
 using VictoryCenter.DAL.Repositories.Interfaces.FaqQuestions;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.HippotherapyPrograms;
 using VictoryCenter.DAL.Repositories.Interfaces.HistorySections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.CompanyProfile;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNews;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventsIntroSections;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.FaqQuestions;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackHistories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyLandingPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyProgramCategories;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.HippotherapyPrograms;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.Languages;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.PdfSection;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.TeamMembers;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.Partners;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.VideoReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.Localization.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Interfaces.Partners;
 using VictoryCenter.DAL.Repositories.Interfaces.PdfSection;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
+using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
+using VictoryCenter.DAL.Repositories.Interfaces.RefreshTokenSessions;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
@@ -33,26 +50,10 @@ using VictoryCenter.DAL.Repositories.Interfaces.ReportMediaSettings;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamCategories;
 using VictoryCenter.DAL.Repositories.Interfaces.TeamMembers;
+using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 using VictoryCenter.DAL.Repositories.Interfaces.VisitorPages;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.WhoWeAreSections;
-using VictoryCenter.DAL.Repositories.Interfaces.FeedbackReviews;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.History;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNews;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventNewsCategories;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackHistories;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.FeedbackReviews;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.VideoReviews;
-using VictoryCenter.DAL.Repositories.Interfaces.EventNews;
-using VictoryCenter.DAL.Repositories.Interfaces.EventNewsCategories;
-using VictoryCenter.DAL.Repositories.Interfaces.EventsIntroSections;
-using VictoryCenter.DAL.Repositories.Interfaces.Localization.EventsIntroSections;
-using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresRecords;
-using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportProgramExpendituresRecords;
-using VictoryCenter.DAL.Repositories.Interfaces.PublishedReportFundsExpendituresSnapshot;
-using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
-using VictoryCenter.DAL.Repositories.Interfaces.FeedbackHistories;
-using VictoryCenter.DAL.Repositories.Interfaces.VideoReviews;
 
 namespace VictoryCenter.DAL.Repositories.Interfaces.Base;
 
@@ -185,6 +186,8 @@ public interface IRepositoryWrapper
 
     IVideoReviewsRepository VideoReviewsRepository { get; }
     IVideoReviewLocalizationsRepository VideoReviewLocalizationsRepository { get; }
+
+    IRefreshTokenSessionRepository RefreshTokenSessionRepository { get; }
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;

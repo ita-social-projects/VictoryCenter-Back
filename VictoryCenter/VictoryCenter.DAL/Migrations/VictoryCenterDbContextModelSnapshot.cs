@@ -3428,6 +3428,57 @@ namespace VictoryCenter.DAL.Migrations
                     b.ToTable("PublishedReportProgramExpendituresRecords");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.RefreshTokenSession", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("AdminUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("FamilyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReplacedByTokenHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("RevocationReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FamilyId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("AdminUserId", "IsRevoked");
+
+                    b.ToTable("RefreshTokenSessions", (string)null);
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", b =>
                 {
                     b.Property<long>("Id")
@@ -5361,6 +5412,17 @@ namespace VictoryCenter.DAL.Migrations
                     b.Navigation("Language");
                 });
 
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.RefreshTokenSession", b =>
+                {
+                    b.HasOne("VictoryCenter.DAL.Entities.AdminUser", "AdminUser")
+                        .WithMany("RefreshTokenSessions")
+                        .HasForeignKey("AdminUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AdminUser");
+                });
+
             modelBuilder.Entity("VictoryCenter.DAL.Entities.ReportFundsExpendituresRecord", b =>
                 {
                     b.HasOne("VictoryCenter.DAL.Entities.ReportFundsExpendituresCategory", "Category")
@@ -5460,6 +5522,11 @@ namespace VictoryCenter.DAL.Migrations
                         .HasForeignKey("ImageId");
 
                     b.Navigation("Image");
+                });
+
+            modelBuilder.Entity("VictoryCenter.DAL.Entities.AdminUser", b =>
+                {
+                    b.Navigation("RefreshTokenSessions");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.CompanyProfile", b =>
