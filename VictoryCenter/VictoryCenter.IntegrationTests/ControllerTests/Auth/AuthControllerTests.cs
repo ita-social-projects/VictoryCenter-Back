@@ -143,7 +143,7 @@ public class AuthControllerTests : BaseTestClass
 
         using var rotatedTokenRequest = CreateRefreshRequest(rotatedCookie);
         using var rotatedTokenResponse = await Fixture.HttpClient.SendAsync(rotatedTokenRequest);
-        rotatedTokenResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Unauthorized, rotatedTokenResponse.StatusCode);
     }
 
     [Fact]
@@ -207,6 +207,29 @@ public class AuthControllerTests : BaseTestClass
         var logoutResponse = await Fixture.HttpClient.SendAsync(logoutRequest);
 
         Assert.Equal(HttpStatusCode.Unauthorized, logoutResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task RefreshToken_AfterLogout_ReturnsUnauthorized()
+    {
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse!.AccessToken;
+        var refreshTokenCookie = GetRefreshTokenCookie(loginResponse);
+
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
+        logoutRequest.Headers.Add("Cookie", refreshTokenCookie);
+        logoutRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        var logoutResponse = await Fixture.HttpClient.SendAsync(logoutRequest);
+        logoutResponse.EnsureSuccessStatusCode();
+
+        using var refreshRequest = CreateRefreshRequest(refreshTokenCookie);
+        using var refreshResponse = await Fixture.HttpClient.SendAsync(refreshRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
     }
 
     private static string GetRefreshTokenCookie(HttpResponseMessage response)

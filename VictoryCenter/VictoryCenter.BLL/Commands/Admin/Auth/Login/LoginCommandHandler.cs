@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Login;
 
@@ -28,6 +29,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly ILogger<LoginCommandHandler> _logger;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
 
     public LoginCommandHandler(
         ITokenService tokenService,
@@ -35,7 +38,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         IValidator<LoginCommand> validator,
         IHttpContextAccessor httpContextAccessor,
         IOptions<JwtOptions> jwtOptions,
-        ILogger<LoginCommandHandler> logger)
+        ILogger<LoginCommandHandler> logger,
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider)
     {
         _tokenService = tokenService;
         _userManager = userManager;
@@ -43,6 +48,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions;
         _logger = logger;
+        _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -68,20 +75,50 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
+        var now = _timeProvider.GetUtcNow();
+        var familyId = Guid.NewGuid();
+
+        await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
+            admin.Id,
+            AuthConstants.RevocationReasons.SupersededByNewLogin,
+            now,
+            cancellationToken);
+
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
             new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)
         ]);
-        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)]);
-        var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
-        admin.RefreshToken = _tokenService.HashRefreshToken(refreshToken);
+
+        var refreshToken = _tokenService.CreateRefreshToken([
+            new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
+            new Claim("family_id", familyId.ToString())
+        ]);
+
+        var refreshTokenExpires = now.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
+        var tokenHash = _tokenService.HashRefreshToken(refreshToken);
+
+        admin.RefreshToken = tokenHash;
         admin.RefreshTokenValidTo = refreshTokenExpires;
+
+        var sessionRecord = new RefreshTokenSession
+        {
+            AdminUserId = admin.Id,
+            FamilyId = familyId,
+            TokenHash = tokenHash,
+            ExpiresAt = refreshTokenExpires,
+            CreatedAt = now,
+            IsRevoked = false
+        };
+
+        await _repositoryWrapper.RefreshTokenSessionRepository.CreateAsync(sessionRecord);
 
         var updateResult = await _userManager.UpdateAsync(admin);
         if (!updateResult.Succeeded)
         {
             return Result.Fail(updateResult.Errors.Select(x => x.Description));
         }
+
+        await _repositoryWrapper.SaveChangesAsync();
 
         AppendRefreshTokenCookie(refreshToken, refreshTokenExpires);
         return Result.Ok(new AuthResponseDto(accessToken));
