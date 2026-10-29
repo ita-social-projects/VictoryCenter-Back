@@ -57,7 +57,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
             {
                 await _repositoryWrapper.RefreshTokenSessionRepository.RevokeFamilyAsync(
                     session.FamilyId,
-                    "Logout",
+                    AuthConstants.RevocationReasons.Logout,
                     now,
                     cancellationToken);
             }
@@ -65,7 +65,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 
         await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
             admin.Id,
-            "Logout",
+            AuthConstants.RevocationReasons.Logout,
             now,
             cancellationToken);
 

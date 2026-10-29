@@ -16,7 +16,6 @@ public class RefreshTokenSessionRepository : RepositoryBase<RefreshTokenSession>
     public async Task<RefreshTokenSession?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken = default)
     {
         return await DbContext.RefreshTokenSessions
-            .Include(s => s.AdminUser)
             .FirstOrDefaultAsync(s => s.TokenHash == tokenHash, cancellationToken);
     }
 

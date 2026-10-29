@@ -80,7 +80,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
             admin.Id,
-            "SupersededByNewLogin",
+            AuthConstants.RevocationReasons.SupersededByNewLogin,
             now,
             cancellationToken);
 
@@ -111,13 +111,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         };
 
         await _repositoryWrapper.RefreshTokenSessionRepository.CreateAsync(sessionRecord);
-        await _repositoryWrapper.SaveChangesAsync();
 
         var updateResult = await _userManager.UpdateAsync(admin);
         if (!updateResult.Succeeded)
         {
             return Result.Fail(updateResult.Errors.Select(x => x.Description));
         }
+
+        await _repositoryWrapper.SaveChangesAsync();
 
         AppendRefreshTokenCookie(refreshToken, refreshTokenExpires);
         return Result.Ok(new AuthResponseDto(accessToken));

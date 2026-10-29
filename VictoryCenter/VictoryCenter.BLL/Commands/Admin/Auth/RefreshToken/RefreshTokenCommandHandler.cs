@@ -94,7 +94,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
             await _repositoryWrapper.RefreshTokenSessionRepository.RevokeFamilyAsync(
                 session.FamilyId,
-                "SuspectedTokenReuse",
+                AuthConstants.RevocationReasons.SuspectedTokenReuse,
                 now,
                 cancellationToken);
 
@@ -111,7 +111,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         {
             session.IsRevoked = true;
             session.RevokedAt = now;
-            session.RevocationReason = "Expired";
+            session.RevocationReason = AuthConstants.RevocationReasons.Expired;
 
             if (admin.RefreshToken == tokenHash)
             {
@@ -136,7 +136,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         session.IsRevoked = true;
         session.RevokedAt = now;
-        session.RevocationReason = "Rotated";
+        session.RevocationReason = AuthConstants.RevocationReasons.Rotated;
         session.ReplacedByTokenHash = newTokenHash;
 
         var newSession = new RefreshTokenSession
@@ -172,6 +172,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         }
         catch (DbUpdateConcurrencyException)
         {
+            _logger.LogInformation(
+                "Concurrent refresh collision detected for session in FamilyId: {FamilyId}",
+                session.FamilyId);
             DeleteRefreshTokenCookie();
             return Result.Fail(AuthConstants.Unauthorized);
         }

@@ -206,7 +206,7 @@ public class LoginTests
         _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.HashRefreshToken("refresh_token"), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.RefreshTokenSessionRepository.CreateAsync(It.IsAny<RefreshTokenSession>()), Times.Once);
-        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()),
