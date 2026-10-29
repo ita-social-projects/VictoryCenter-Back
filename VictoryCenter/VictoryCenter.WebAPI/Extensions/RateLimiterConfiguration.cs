@@ -9,7 +9,7 @@ public static class RateLimiterConfiguration
     private const int ImageUploadQueueLimit = 64;
     private const int DonationRequestPermitLimit = 10;
     private const int AdminLoginRequestPermitLimit = 5;
-    private const int SwaggerRequestPermitLimit = 20;
+    private const int SwaggerRequestPermitLimit = 5;
 
     public static IServiceCollection AddRateLimiterConfiguration(this IServiceCollection services)
     {
