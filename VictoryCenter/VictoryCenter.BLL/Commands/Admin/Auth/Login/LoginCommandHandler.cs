@@ -71,12 +71,21 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
         if (!result)
         {
-            await _userManager.AccessFailedAsync(admin);
+            var accessFailedResult = await _userManager.AccessFailedAsync(admin);
+            if (!accessFailedResult.Succeeded)
+            {
+                LogFailedAttemptNotRecorded(admin.Id, accessFailedResult);
+            }
+
             LogFailedLoginAttempt();
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
-        await _userManager.ResetAccessFailedCountAsync(admin);
+        var resetResult = await _userManager.ResetAccessFailedCountAsync(admin);
+        if (!resetResult.Succeeded)
+        {
+            return Result.Fail(resetResult.Errors.Select(x => x.Description));
+        }
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
@@ -131,5 +140,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
                 Expires = expires,
                 Path = AuthConstants.RefreshTokenCookiePath
             });
+    }
+
+    private void LogFailedAttemptNotRecorded(int adminId, IdentityResult identityResult)
+    {
+        _logger.LogError(
+            "Failed login attempt was not recorded for account {AdminId}: {Errors}",
+            adminId,
+            string.Join(", ", identityResult.Errors.Select(e => e.Description)));
     }
 }
