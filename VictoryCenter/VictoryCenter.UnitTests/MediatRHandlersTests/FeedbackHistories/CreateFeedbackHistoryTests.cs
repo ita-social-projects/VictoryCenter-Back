@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -95,6 +96,101 @@ public class CreateFeedbackHistoryTests
 
         Assert.True(result.IsSuccess);
         Assert.Equal(expectedTime, feedbackHistory.CreatedAt);
+    }
+
+    [Fact]
+    public async Task Handle_WhenStatusIsPublished_ShouldSetPublishedAtFromTimeProvider()
+    {
+        var expectedTime = new DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero);
+        var mockTimeProvider = new Mock<TimeProvider>();
+        mockTimeProvider.Setup(t => t.GetUtcNow()).Returns(expectedTime);
+
+        var createDto = new CreateFeedbackHistoryDto
+        {
+            Title = "Published title",
+            Story = "Published story",
+            ImageId = null,
+            Status = Status.Published
+        };
+
+        var entity = new FeedbackHistory { Status = Status.Published };
+        _mapperMock.Setup(m => m.Map<FeedbackHistory>(createDto)).Returns(entity);
+        _mapperMock.Setup(m => m.Map<FeedbackHistoryDto>(It.IsAny<FeedbackHistory>()))
+            .Returns(new FeedbackHistoryDto
+            {
+                Id = 1,
+                Title = createDto.Title,
+                Story = createDto.Story,
+                Status = createDto.Status,
+                Priority = 1
+            });
+        _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateFeedbackHistoryCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        _reorderServiceMock.Setup(r => r.GetNextDisplayOrderAsync<FeedbackHistory>(It.IsAny<Expression<Func<FeedbackHistory, bool>>?>()))
+            .ReturnsAsync(1);
+        _repositoryWrapperMock.Setup(r => r.FeedbackHistoriesRepository.CreateAsync(It.IsAny<FeedbackHistory>()))
+            .ReturnsAsync(entity);
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
+        var handler = new CreateFeedbackHistoryHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validatorMock.Object,
+            _reorderServiceMock.Object,
+            mockTimeProvider.Object);
+
+        var result = await handler.Handle(new CreateFeedbackHistoryCommand(createDto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedTime, entity.PublishedAt);
+    }
+
+    [Fact]
+    public async Task Handle_WhenStatusIsDraft_ShouldKeepPublishedAtNull()
+    {
+        var expectedTime = new DateTimeOffset(2026, 1, 1, 9, 0, 0, TimeSpan.Zero);
+        var mockTimeProvider = new Mock<TimeProvider>();
+        mockTimeProvider.Setup(t => t.GetUtcNow()).Returns(expectedTime);
+
+        var createDto = new CreateFeedbackHistoryDto
+        {
+            Title = "Draft title",
+            Story = "Draft story",
+            ImageId = null,
+            Status = Status.Draft
+        };
+
+        var entity = new FeedbackHistory { Status = Status.Draft };
+        _mapperMock.Setup(m => m.Map<FeedbackHistory>(createDto)).Returns(entity);
+        _mapperMock.Setup(m => m.Map<FeedbackHistoryDto>(It.IsAny<FeedbackHistory>()))
+            .Returns(new FeedbackHistoryDto
+            {
+                Id = 1,
+                Title = createDto.Title,
+                Story = createDto.Story,
+                Status = createDto.Status,
+                Priority = 1
+            });
+
+        _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateFeedbackHistoryCommand>(), It.IsAny<CancellationToken>()))
+        .ReturnsAsync(new ValidationResult());
+        _reorderServiceMock.Setup(r => r.GetNextDisplayOrderAsync<FeedbackHistory>(It.IsAny<Expression<Func<FeedbackHistory, bool>>?>()))
+            .ReturnsAsync(1);
+        _repositoryWrapperMock.Setup(r => r.FeedbackHistoriesRepository.CreateAsync(It.IsAny<FeedbackHistory>()))
+            .ReturnsAsync(entity);
+        _repositoryWrapperMock.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
+
+        var handler = new CreateFeedbackHistoryHandler(
+            _mapperMock.Object,
+            _repositoryWrapperMock.Object,
+            _validatorMock.Object,
+            _reorderServiceMock.Object,
+            mockTimeProvider.Object);
+
+        var result = await handler.Handle(new CreateFeedbackHistoryCommand(createDto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(entity.PublishedAt);
     }
 
     [Fact]
