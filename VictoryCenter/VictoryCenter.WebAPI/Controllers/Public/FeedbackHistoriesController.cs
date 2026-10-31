@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.DTOs.Public.FeedbackHistories;
+using VictoryCenter.BLL.Queries.Public.FeedbackHistories.GetLatestPublished;
 using VictoryCenter.BLL.Queries.Public.FeedbackHistories.GetPublished;
 using VictoryCenter.WebAPI.Controllers.Common;
 
@@ -12,5 +13,12 @@ public class FeedbackHistoriesController : BaseApiController
     public async Task<IActionResult> GetPublishedFeedbackHistories()
     {
         return HandleResult(await Mediator.Send(new GetPublishedFeedbackHistoriesQuery()));
+    }
+
+    [HttpGet("published/latest")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublishedFeedbackHistoryDto>))]
+    public async Task<IActionResult> GetLatestPublished()
+    {
+        return HandleResult(await Mediator.Send(new GetLatestPublishedFeedbackHistoriesQuery()));
     }
 }

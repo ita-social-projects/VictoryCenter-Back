@@ -66,11 +66,22 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
                     .NotFound(request.Id, typeof(FeedbackHistory)));
             }
 
+            var previousStatus = entity.Status;
             SetTranslationsToOutdated(request.UpdateFeedbackHistoryDto, entity);
 
+            var now = _timeProvider.GetUtcNow();
             var entityToUpdate = _mapper.Map(request.UpdateFeedbackHistoryDto, entity);
             entityToUpdate.Image = imageResult.Value;
-            entityToUpdate.UpdatedAt = _timeProvider.GetUtcNow();
+            entityToUpdate.UpdatedAt = now;
+
+            if (previousStatus != Status.Published && entityToUpdate.Status == Status.Published)
+            {
+                entityToUpdate.PublishedAt = now;
+            }
+            else if (entityToUpdate.Status != Status.Published)
+            {
+                entityToUpdate.PublishedAt = null;
+            }
 
             _repositoryWrapper.FeedbackHistoriesRepository.Update(entityToUpdate);
 
