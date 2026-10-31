@@ -70,7 +70,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
-            new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)
+            new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
+            new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
         var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)]);
         var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));

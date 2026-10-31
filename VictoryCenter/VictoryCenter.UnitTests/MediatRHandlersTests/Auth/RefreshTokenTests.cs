@@ -39,7 +39,7 @@ public class RefreshTokenTests
         {
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
-            LifetimeInMinutes = 1440,
+            LifetimeInMinutes = 15,
             SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenLifetimeInDays = 7
@@ -273,7 +273,8 @@ public class RefreshTokenTests
         {
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
-            Email = "test@email.com"
+            Email = "test@email.com",
+            SecurityStamp = "security_stamp"
         };
         var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
             new Claim(ClaimTypes.Email, "test@email.com")
@@ -294,6 +295,7 @@ public class RefreshTokenTests
         _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("refresh_token")).Returns(claimsPrincipal);
         _mockTokenService.Setup(x => x.VerifyRefreshTokenHash("refresh_token", "refresh_token")).Returns(true);
         _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
         _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");
@@ -306,6 +308,11 @@ public class RefreshTokenTests
         Assert.Equal("new_access_token", result.Value.AccessToken);
         Assert.Equal("new_refresh_token_hash", admin.RefreshToken);
         Assert.True(admin.RefreshTokenValidTo > FixedTestTime);
+        _mockTokenService.Verify(x => x.HashSecurityStamp("security_stamp"), Times.Once);
+        _mockTokenService.Verify(
+            x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
+                claim.Type == AuthConstants.SecurityStampHashClaimType && claim.Value == "security_stamp_hash"))),
+            Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(
             It.Is<string>(s => s == "refreshToken"),
@@ -348,6 +355,7 @@ public class RefreshTokenTests
         _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("refresh_token")).Returns(claimsPrincipal);
         _mockTokenService.Setup(x => x.VerifyRefreshTokenHash("refresh_token", "refresh_token")).Returns(true);
         _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
         _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");

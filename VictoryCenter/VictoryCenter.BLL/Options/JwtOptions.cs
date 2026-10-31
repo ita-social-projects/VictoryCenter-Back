@@ -13,6 +13,7 @@ public class JwtOptions
     public string Issuer { get; init; } = null!;
 
     [Required]
+    [Range(1, 60)]
     public int LifetimeInMinutes { get; init; }
 
     [Required]
@@ -22,5 +23,6 @@ public class JwtOptions
     public string RefreshTokenSecretKey { get; init; } = null!;
 
     [Required]
+    [Range(1, 30)]
     public int RefreshTokenLifetimeInDays { get; init; }
 }

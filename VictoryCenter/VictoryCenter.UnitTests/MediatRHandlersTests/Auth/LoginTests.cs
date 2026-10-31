@@ -38,7 +38,7 @@ public class LoginTests
         {
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
-            LifetimeInMinutes = 1440,
+            LifetimeInMinutes = 15,
             SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenLifetimeInDays = 7
@@ -126,11 +126,12 @@ public class LoginTests
     public async Task Handle_GivenValidData_UpdatesSuccessfully()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new AdminUser();
+        var admin = new AdminUser { SecurityStamp = "security_stamp" };
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
         _mockTokenService.Setup(x => x.HashRefreshToken("refresh_token")).Returns("refresh_token_hash");
@@ -148,6 +149,11 @@ public class LoginTests
         Assert.Equal("access_token", result.Value.AccessToken);
         Assert.Equal("refresh_token_hash", admin.RefreshToken);
         Assert.True(admin.RefreshTokenValidTo > DateTimeOffset.UtcNow);
+        _mockTokenService.Verify(x => x.HashSecurityStamp("security_stamp"), Times.Once);
+        _mockTokenService.Verify(
+            x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
+                claim.Type == AuthConstants.SecurityStampHashClaimType && claim.Value == "security_stamp_hash"))),
+            Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(
             It.Is<string>(s => s == "refreshToken"),
@@ -170,6 +176,7 @@ public class LoginTests
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
         _mockTokenService.Setup(x => x.HashRefreshToken("refresh_token")).Returns("refresh_token_hash");
