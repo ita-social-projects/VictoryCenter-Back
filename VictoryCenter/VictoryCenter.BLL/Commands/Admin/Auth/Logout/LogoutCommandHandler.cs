@@ -36,7 +36,8 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         admin.RefreshToken = null;
         admin.RefreshTokenValidTo = null;
 
-        var updateAdmin = await _userManager.UpdateAsync(admin);
+        // Rotating the stamp revokes every access token issued before logout; the call also persists the cleared refresh token.
+        var updateAdmin = await _userManager.UpdateSecurityStampAsync(admin);
 
         if (!updateAdmin.Succeeded)
         {

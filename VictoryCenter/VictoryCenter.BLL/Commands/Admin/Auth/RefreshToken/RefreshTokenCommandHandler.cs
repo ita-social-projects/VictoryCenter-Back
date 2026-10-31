@@ -75,7 +75,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
-            email
+            email,
+            new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
         var newRefreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, admin.Email!)]);
         var refreshTokenExpires = _timeProvider.GetUtcNow().Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));

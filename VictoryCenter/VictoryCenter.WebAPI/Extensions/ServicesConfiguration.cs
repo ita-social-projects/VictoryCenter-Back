@@ -62,6 +62,7 @@ using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.WebAPI.Authentication;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.HealthChecks;
@@ -95,7 +96,12 @@ public static class ServicesConfiguration
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-            .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration);
+                options.EventsType = typeof(AccessTokenValidationEvents);
+            });
+        services.AddScoped<AccessTokenValidationEvents>();
 
         services.Configure<CookiePolicyOptions>(options =>
         {

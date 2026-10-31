@@ -1,14 +1,12 @@
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using VictoryCenter.BLL.Options;
+using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PdfStorage;
-using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils.Seeders;
@@ -17,6 +15,9 @@ namespace VictoryCenter.IntegrationTests.Utils.DbFixture;
 
 public class IntegrationTestDbFixture : IAsyncLifetime
 {
+    private const string TestAdminEmail = "testadmin@victorycenter.com";
+    private const string TestAdminPassword = "TestPassword123!";
+
     private IServiceScope _scope;
 
     public IntegrationTestDbFixture()
@@ -24,7 +25,6 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         Factory = new VictoryCenterWebApplicationFactory<Program>();
         _scope = Factory.Services.CreateScope();
         HttpClient = Factory.CreateClient();
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
     }
 
     public VictoryCenterWebApplicationFactory<Program> Factory { get; private set; }
@@ -64,6 +64,19 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         }
     }
 
+    public static async Task<AuthenticationHeaderValue> CreateAdminAuthorizationHeaderAsync(IServiceProvider serviceProvider)
+    {
+        await using var scope = serviceProvider.CreateAsyncScope();
+        var admin = await EnsureTestAdminUserAsync(scope.ServiceProvider);
+        var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+        var accessToken = tokenService.CreateAccessToken([
+            new Claim(ClaimTypes.Email, admin.Email!),
+            new Claim(AuthConstants.SecurityStampHashClaimType, tokenService.HashSecurityStamp(admin.SecurityStamp!))
+        ]);
+
+        return new AuthenticationHeaderValue("Bearer", accessToken);
+    }
+
     public async Task CreateFreshWebApplicationAsync()
     {
         if (Factory != null)
@@ -83,7 +96,6 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         Factory = new VictoryCenterWebApplicationFactory<Program>();
         _scope = Factory.Services.CreateScope();
         HttpClient = Factory.CreateClient();
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", GetAuthorizationToken(_scope.ServiceProvider));
 
         var options = _scope.ServiceProvider.GetRequiredService<IOptions<BlobEnvironmentVariables>>();
         var pdfOptions = _scope.ServiceProvider.GetRequiredService<IOptions<PdfEnvironmentVariables>>();
@@ -96,7 +108,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
     private async Task InitializeDatabaseAsync()
     {
         await DbContext.Database.EnsureCreatedAsync();
-        await EnsureTestAdminUserAsync(_scope.ServiceProvider);
+        HttpClient.DefaultRequestHeaders.Authorization = await CreateAdminAuthorizationHeaderAsync(_scope.ServiceProvider);
     }
 
     private void InitializeSeeders()
@@ -104,39 +116,31 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         SeederManager = new SeederManager(_scope.ServiceProvider);
     }
 
-    private static string GetAuthorizationToken(IServiceProvider serviceProvider)
-    {
-        var jwtOptions = serviceProvider.GetRequiredService<IOptions<JwtOptions>>();
-        var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-        var logger = serviceProvider.GetRequiredService<ILogger<TokenService>>();
-        var tokenService = new TokenService(jwtOptions, configuration, logger);
-
-        return tokenService.CreateAccessToken(Array.Empty<Claim>());
-    }
-
-    private static async Task EnsureTestAdminUserAsync(IServiceProvider serviceProvider)
+    private static async Task<AdminUser> EnsureTestAdminUserAsync(IServiceProvider serviceProvider)
     {
         var userManager = serviceProvider.GetRequiredService<UserManager<AdminUser>>();
-        const string testEmail = "testadmin@victorycenter.com";
-        const string testPassword = "TestPassword123!";
-        var existing = await userManager.FindByEmailAsync(testEmail);
-        if (existing == null)
+        var existing = await userManager.FindByEmailAsync(TestAdminEmail);
+        if (existing != null)
         {
-            var admin = new AdminUser
-            {
-                UserName = testEmail,
-                Email = testEmail,
-                EmailConfirmed = true,
-                CreatedAt = DateTimeOffset.UtcNow,
-                RefreshToken = "refresh_token",
-                RefreshTokenValidTo = DateTimeOffset.MaxValue
-            };
-            var result = await userManager.CreateAsync(admin, testPassword);
-            if (!result.Succeeded)
-            {
-                throw new InvalidOperationException(
-                    $"Failed to create test admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
-            }
+            return existing;
         }
+
+        var admin = new AdminUser
+        {
+            UserName = TestAdminEmail,
+            Email = TestAdminEmail,
+            EmailConfirmed = true,
+            CreatedAt = DateTimeOffset.UtcNow,
+            RefreshToken = "refresh_token",
+            RefreshTokenValidTo = DateTimeOffset.MaxValue
+        };
+        var result = await userManager.CreateAsync(admin, TestAdminPassword);
+        if (!result.Succeeded)
+        {
+            throw new InvalidOperationException(
+                $"Failed to create test admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+
+        return admin;
     }
 }
