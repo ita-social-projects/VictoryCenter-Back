@@ -124,7 +124,7 @@ public class BatchSaveReportProgramExpendituresRecordTests
         _recordsRepositoryMock.Verify(
             r => r.CreateRangeAsync(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()),
             Times.Once);
-        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Once);
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(3));
         _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         _mediatorMock.Verify(
             m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
@@ -429,7 +429,7 @@ public class BatchSaveReportProgramExpendituresRecordTests
         _recordsRepositoryMock.Verify(
             r => r.UpdateRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()),
             Times.Never);
-        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Once);
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(2));
         _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         _mediatorMock.Verify(
             m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
@@ -479,6 +479,198 @@ public class BatchSaveReportProgramExpendituresRecordTests
         _mediatorMock.Verify(
             m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSucceed_WhenTwoRecordsSwapCategories()
+    {
+        // Arrange
+        var firstRecord = new ReportProgramExpendituresRecord
+        {
+            Id = 1,
+            HippotherapyProgramCategoryId = 1,
+            AmountUah = 100,
+            AmountUsd = 10
+        };
+
+        var secondRecord = new ReportProgramExpendituresRecord
+        {
+            Id = 2,
+            HippotherapyProgramCategoryId = 2,
+            AmountUah = 200,
+            AmountUsd = 20
+        };
+
+        var batchDto = new BatchSaveReportProgramExpendituresRecordsDto
+        {
+            RecordsToCreate = [],
+            RecordsToUpdate =
+            [
+                new BatchUpdateReportProgramExpendituresRecordDto
+                {
+                    Id = 1,
+                    HippotherapyProgramCategoryId = 2,
+                    AmountUah = 111,
+                    AmountUsd = 11
+                },
+                new BatchUpdateReportProgramExpendituresRecordDto
+                {
+                    Id = 2,
+                    HippotherapyProgramCategoryId = 1,
+                    AmountUah = 222,
+                    AmountUsd = 22
+                },
+            ],
+            RecordIdsToDelete = []
+        };
+
+        var existingRecords = new List<ReportProgramExpendituresRecord> { firstRecord, secondRecord };
+        var existingCategories = new List<HippotherapyProgramCategory>
+        {
+            new() { Id = 1 },
+            new() { Id = 2 }
+        };
+
+        SetupDependencies(existingRecords, existingCategories, duplicateRecords: [], saveResult: 1);
+
+        _mapperMock
+            .Setup(m => m.Map(It.IsAny<BatchUpdateReportProgramExpendituresRecordDto>(), It.IsAny<ReportProgramExpendituresRecord>()))
+            .Callback((BatchUpdateReportProgramExpendituresRecordDto src, ReportProgramExpendituresRecord dest) =>
+            {
+                dest.HippotherapyProgramCategoryId = src.HippotherapyProgramCategoryId;
+                dest.AmountUah = src.AmountUah ?? dest.AmountUah;
+                dest.AmountUsd = src.AmountUsd ?? dest.AmountUsd;
+            });
+
+        _categoriesRepositoryMock
+            .Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .ReturnsAsync(new HippotherapyProgramCategory { Id = 999, Name = "Temp Program Category" });
+
+        var handler = new BatchSaveReportProgramExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _loggerMock.Object);
+
+        var command = new BatchSaveReportProgramExpendituresRecordCommand(batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        _recordsRepositoryMock.Verify(r => r.Update(It.IsAny<ReportProgramExpendituresRecord>()), Times.Exactly(3));
+        _recordsRepositoryMock.Verify(r => r.UpdateRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()), Times.Never);
+
+        _categoriesRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<HippotherapyProgramCategory>()), Times.Once);
+        _categoriesRepositoryMock.Verify(r => r.Delete(It.IsAny<HippotherapyProgramCategory>()), Times.Once);
+
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(6));
+
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSucceed_WhenRecordsAreReassignedTransitivelyAcrossCategories()
+    {
+        // Arrange
+        var recordA = new ReportProgramExpendituresRecord { Id = 1, HippotherapyProgramCategoryId = 1, AmountUah = 100, AmountUsd = 10 };
+        var recordB = new ReportProgramExpendituresRecord { Id = 2, HippotherapyProgramCategoryId = 2, AmountUah = 200, AmountUsd = 20 };
+        var recordC = new ReportProgramExpendituresRecord { Id = 3, HippotherapyProgramCategoryId = 3, AmountUah = 300, AmountUsd = 30 };
+
+        var batchDto = new BatchSaveReportProgramExpendituresRecordsDto
+        {
+            RecordsToCreate = [],
+            RecordsToUpdate =
+            [
+                new BatchUpdateReportProgramExpendituresRecordDto
+            {
+                Id = 1,
+                HippotherapyProgramCategoryId = 2,
+                AmountUah = 111,
+                AmountUsd = 11
+            },
+            new BatchUpdateReportProgramExpendituresRecordDto
+            {
+                Id = 2,
+                HippotherapyProgramCategoryId = 3,
+                AmountUah = 222,
+                AmountUsd = 22
+            },
+            new BatchUpdateReportProgramExpendituresRecordDto
+            {
+                Id = 3,
+                HippotherapyProgramCategoryId = 1,
+                AmountUah = 333,
+                AmountUsd = 33
+            },
+            ],
+            RecordIdsToDelete = []
+        };
+
+        var existingRecords = new List<ReportProgramExpendituresRecord> { recordA, recordB, recordC };
+        var existingCategories = new List<HippotherapyProgramCategory>
+    {
+        new() { Id = 1 },
+        new() { Id = 2 },
+        new() { Id = 3 }
+    };
+
+        SetupDependencies(existingRecords, existingCategories, duplicateRecords: [], saveResult: 1);
+
+        _mapperMock
+            .Setup(m => m.Map(It.IsAny<BatchUpdateReportProgramExpendituresRecordDto>(), It.IsAny<ReportProgramExpendituresRecord>()))
+            .Callback((BatchUpdateReportProgramExpendituresRecordDto src, ReportProgramExpendituresRecord dest) =>
+            {
+                dest.HippotherapyProgramCategoryId = src.HippotherapyProgramCategoryId;
+                dest.AmountUah = src.AmountUah ?? dest.AmountUah;
+                dest.AmountUsd = src.AmountUsd ?? dest.AmountUsd;
+            });
+
+        _categoriesRepositoryMock
+            .Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .ReturnsAsync(new HippotherapyProgramCategory { Id = 999, Name = ReportProgramExpendituresRecordConstants.TempCategoryName });
+
+        var handler = new BatchSaveReportProgramExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _loggerMock.Object);
+
+        var command = new BatchSaveReportProgramExpendituresRecordCommand(batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        _recordsRepositoryMock.Verify(r => r.Update(It.IsAny<ReportProgramExpendituresRecord>()), Times.Exactly(4));
+        _recordsRepositoryMock.Verify(r => r.UpdateRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<ReportProgramExpendituresRecord>>()), Times.Never);
+
+        _categoriesRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<HippotherapyProgramCategory>()), Times.Once);
+        _categoriesRepositoryMock.Verify(r => r.Delete(It.IsAny<HippotherapyProgramCategory>()), Times.Once);
+
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(7));
+
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     private void SetupDependencies(
