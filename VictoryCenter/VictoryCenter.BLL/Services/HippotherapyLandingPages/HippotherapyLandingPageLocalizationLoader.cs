@@ -34,6 +34,15 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
         DAL.Entities.HippotherapyLandingPage page,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(page);
+
+        if (!HasAllSections(page))
+        {
+            throw new ArgumentException(
+                "Hippotherapy landing page must contain all sections (use IncludeFullGraph).",
+                nameof(page));
+        }
+
         var intro = await LoadSectionAsync<
             HippotherapyLandingPageIntroSectionLocalization,
             HippotherapyLandingPageIntroSectionLocalizationDto>(
@@ -83,10 +92,24 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             l => l.EntityId == page.AnotherQuoteSection.Id,
             l => l.Include(x => x.Language));
 
-        var advantages = await LoadAdvantagesAsync(page.AdvantagesSection.Id);
-        var participants = await LoadParticipantsAsync(page.ParticipantsSection.Id);
-        var references = await LoadReferencesAsync(page.ScientificReferencesSection.Id);
-        var ethics = await LoadEthicsAsync(page.EthicsSection.Id);
+        var advantages = await LoadAdvantagesAsync(
+            page.AdvantagesSection.Id,
+            page.AdvantagesSection.AdvantageCards.OrderBy(c => c.Priority).Select(c => c.Id).ToList());
+
+        var participants = await LoadParticipantsAsync(
+            page.ParticipantsSection.Id,
+            page.ParticipantsSection.ParticipantCards.OrderBy(c => c.Priority).Select(c => c.Id).ToList());
+
+        var references = await LoadReferencesAsync(
+            page.ScientificReferencesSection.Id,
+            page.ScientificReferencesSection.ScientificReferences
+                .OrderBy(r => r.Priority)
+                .Select(r => r.Id)
+                .ToList());
+
+        var ethics = await LoadEthicsAsync(
+            page.EthicsSection.Id,
+            page.EthicsSection.EthicsPrinciples.OrderBy(p => p.Priority).Select(p => p.Id).ToList());
 
         return new HippotherapyLandingPageLocalizationSource(
             intro,
@@ -102,8 +125,22 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             ethics);
     }
 
+    private static bool HasAllSections(DAL.Entities.HippotherapyLandingPage page)
+        => page.IntroSection is not null
+            && page.DescriptionSection is not null
+            && page.QuoteSection is not null
+            && page.HippoventionSection is not null
+            && page.HippoventionCenterSection is not null
+            && page.AdvantagesSection is not null
+            && page.AnalysisSection is not null
+            && page.ScientificReferencesSection is not null
+            && page.AnotherQuoteSection is not null
+            && page.ParticipantsSection is not null
+            && page.EthicsSection is not null;
+
     private async Task<List<HippotherapyLandingPageAdvantagesSectionLocalizationDto>> LoadAdvantagesAsync(
-        long sectionId)
+        long sectionId,
+        IReadOnlyList<long> cardIds)
     {
         var dtos = await LoadSectionAsync<
             HippotherapyLandingPageAdvantagesSectionLocalization,
@@ -112,16 +149,10 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             l => l.EntityId == sectionId,
             l => l.Include(x => x.Language));
 
-        if (dtos.Count == 0)
+        if (dtos.Count == 0 || cardIds.Count == 0)
         {
             return dtos;
         }
-
-        var cardIds = await GetOrderedIdsAsync(
-            _repositories.HippotherapyLandingPageAdvantageCardsRepository,
-            c => c.AdvantagesSectionId == sectionId,
-            c => c.Priority,
-            c => c.Id);
 
         var localizations = await GetItemLocalizationsAsync(
             _repositories.HippotherapyLandingPageAdvantageCardLocalizationsRepository,
@@ -145,7 +176,8 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
     }
 
     private async Task<List<HippotherapyLandingPageParticipantsSectionLocalizationDto>> LoadParticipantsAsync(
-        long sectionId)
+        long sectionId,
+        IReadOnlyList<long> cardIds)
     {
         var dtos = await LoadSectionAsync<
             HippotherapyLandingPageParticipantsSectionLocalization,
@@ -154,16 +186,10 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             l => l.EntityId == sectionId,
             l => l.Include(x => x.Language));
 
-        if (dtos.Count == 0)
+        if (dtos.Count == 0 || cardIds.Count == 0)
         {
             return dtos;
         }
-
-        var cardIds = await GetOrderedIdsAsync(
-            _repositories.HippotherapyLandingPageParticipantCardsRepository,
-            c => c.ParticipantsSectionId == sectionId,
-            c => c.Priority,
-            c => c.Id);
 
         var localizations = await GetItemLocalizationsAsync(
             _repositories.HippotherapyLandingPageParticipantCardLocalizationsRepository,
@@ -187,7 +213,8 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
     }
 
     private async Task<List<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>> LoadReferencesAsync(
-        long sectionId)
+        long sectionId,
+        IReadOnlyList<long> referenceIds)
     {
         var dtos = await LoadSectionAsync<
             HippotherapyLandingPageScientificReferencesSectionLocalization,
@@ -196,16 +223,10 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             l => l.EntityId == sectionId,
             l => l.Include(x => x.Language));
 
-        if (dtos.Count == 0)
+        if (dtos.Count == 0 || referenceIds.Count == 0)
         {
             return dtos;
         }
-
-        var referenceIds = await GetOrderedIdsAsync(
-            _repositories.HippotherapyLandingPageScientificReferencesRepository,
-            r => r.ScientificReferencesSectionId == sectionId,
-            r => r.Priority,
-            r => r.Id);
 
         var localizations = await GetItemLocalizationsAsync(
             _repositories.HippotherapyLandingPageScientificReferenceLocalizationsRepository,
@@ -228,7 +249,9 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
         return dtos;
     }
 
-    private async Task<List<HippotherapyLandingPageEthicsSectionLocalizationDto>> LoadEthicsAsync(long sectionId)
+    private async Task<List<HippotherapyLandingPageEthicsSectionLocalizationDto>> LoadEthicsAsync(
+        long sectionId,
+        IReadOnlyList<long> principleIds)
     {
         var dtos = await LoadSectionAsync<
             HippotherapyLandingPageEthicsSectionLocalization,
@@ -237,16 +260,10 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             l => l.EntityId == sectionId,
             l => l.Include(x => x.Language));
 
-        if (dtos.Count == 0)
+        if (dtos.Count == 0 || principleIds.Count == 0)
         {
             return dtos;
         }
-
-        var principleIds = await GetOrderedIdsAsync(
-            _repositories.HippotherapyLandingPageEthicsPrinciplesRepository,
-            p => p.EthicsSectionId == sectionId,
-            p => p.Priority,
-            p => p.Id);
 
         var localizations = await GetItemLocalizationsAsync(
             _repositories.HippotherapyLandingPageEthicsPrincipleLocalizationsRepository,
@@ -285,23 +302,6 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
         return _mapper.Map<List<TDto>>(entities);
     }
 
-    private static async Task<List<long>> GetOrderedIdsAsync<TItem>(
-        IRepositoryBase<TItem> repository,
-        Expression<Func<TItem, bool>> filter,
-        Expression<Func<TItem, object>> orderBy,
-        Func<TItem, long> idSelector)
-        where TItem : class
-    {
-        var items = await repository.GetAllAsync(new QueryOptions<TItem>
-        {
-            Filter = filter,
-            OrderByASC = orderBy,
-            AsNoTracking = true,
-        });
-
-        return items.Select(idSelector).ToList();
-    }
-
     private static async Task<Dictionary<(long EntityId, long LanguageId), TLocalization>> GetItemLocalizationsAsync<
         TLocalization>(
         IRepositoryBase<TLocalization> repository,
@@ -315,6 +315,8 @@ public class HippotherapyLandingPageLocalizationLoader : IHippotherapyLandingPag
             AsNoTracking = true,
         });
 
-        return items.ToDictionary(keySelector);
+        return items
+            .GroupBy(keySelector)
+            .ToDictionary(g => g.Key, g => g.First());
     }
 }

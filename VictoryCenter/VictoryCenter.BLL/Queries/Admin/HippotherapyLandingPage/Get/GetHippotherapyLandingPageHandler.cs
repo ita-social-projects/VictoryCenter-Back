@@ -37,7 +37,7 @@ public class GetHippotherapyLandingPageHandler
                 AsSplitQuery = true,
             });
 
-        if (entity == null)
+        if (entity == null || !HasAllSections(entity))
         {
             return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
         }
@@ -51,4 +51,17 @@ public class GetHippotherapyLandingPageHandler
             TranslationStatuses = HippotherapyLandingPageLocalizationAggregator.BuildStatuses(source),
         });
     }
+
+    private static bool HasAllSections(DAL.Entities.HippotherapyLandingPage page)
+   => page.IntroSection is not null
+       && page.DescriptionSection is not null
+       && page.QuoteSection is not null
+       && page.HippoventionSection is not null
+       && page.HippoventionCenterSection is not null
+       && page.AdvantagesSection is not null
+       && page.AnalysisSection is not null
+       && page.ScientificReferencesSection is not null
+       && page.AnotherQuoteSection is not null
+       && page.ParticipantsSection is not null
+       && page.EthicsSection is not null;
 }

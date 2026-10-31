@@ -36,98 +36,249 @@ public class HippotherapyLandingPageLocalizationLoaderTests
     {
         var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
         var lang = HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+        SetupIntro(page, lang);
+        SetupAdvantages(page, lang, cardLocalizations: [CreateAdvantageCardLocalization(100, 1)]);
+        SetAdvantageCards(
+            page,
+            new HippotherapyLandingPageAdvantageCard { Id = 100, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 1 },
+            new HippotherapyLandingPageAdvantageCard { Id = 200, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 2 });
 
-        var introEntities = new List<HippotherapyLandingPageIntroSectionLocalization>
-        {
-            new() { EntityId = page.IntroSection.Id }
-        };
-        var introRepoMock = SetupRepo(r => r.HippotherapyLandingPageIntroSectionLocalizationsRepository);
-        introRepoMock
-            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageIntroSectionLocalization>>()))
-            .ReturnsAsync(introEntities);
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
 
-        _mapperMock
-            .Setup(m => m.Map<List<HippotherapyLandingPageIntroSectionLocalizationDto>>(introEntities))
-            .Returns([new HippotherapyLandingPageIntroSectionLocalizationDto { LocalizationInfoDto = lang, Title = "Intro" }]);
-
-        var advantagesEntities = new List<HippotherapyLandingPageAdvantagesSectionLocalization>
-        {
-            new() { EntityId = page.AdvantagesSection.Id }
-        };
-        var advantagesSectionDtos = new List<HippotherapyLandingPageAdvantagesSectionLocalizationDto>
-        {
-            new() { LocalizationInfoDto = lang, Title = "Adv" }
-        };
-
-        var advantagesRepoMock = SetupRepo(r => r.HippotherapyLandingPageAdvantagesSectionLocalizationsRepository);
-        advantagesRepoMock
-            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageAdvantagesSectionLocalization>>()))
-            .ReturnsAsync(advantagesEntities);
-
-        _mapperMock
-            .Setup(m => m.Map<List<HippotherapyLandingPageAdvantagesSectionLocalizationDto>>(advantagesEntities))
-            .Returns(advantagesSectionDtos);
-
-        var cards = new List<HippotherapyLandingPageAdvantageCard>
-        {
-            new() { Id = 100, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 1 },
-            new() { Id = 200, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 2 },
-        };
-
-        _repoWrapperMock
-            .Setup(r => r.HippotherapyLandingPageAdvantageCardsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<HippotherapyLandingPageAdvantageCard>>()))
-            .ReturnsAsync(cards);
-
-        var cardLoc = new HippotherapyLandingPageAdvantageCardLocalization { EntityId = 100, LanguageId = 1 };
-        _repoWrapperMock
-            .Setup(r => r.HippotherapyLandingPageAdvantageCardLocalizationsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<HippotherapyLandingPageAdvantageCardLocalization>>()))
-            .ReturnsAsync([cardLoc]);
-
-        _mapperMock
-            .Setup(m => m.Map<HippotherapyLandingPageAdvantageCardLocalizationItemDto>(cardLoc))
-            .Returns(new HippotherapyLandingPageAdvantageCardLocalizationItemDto { CardId = 100, Description = "Card 100" });
-
-        var loader = CreateLoader();
-
-        // Act
-        var result = await loader.LoadAsync(page, CancellationToken.None);
-
-        // Assert
-        Assert.NotNull(result);
         Assert.Single(result.Intro);
-        Assert.Single(result.Advantages);
-
-        var advantageSection = result.Advantages[0];
-        Assert.Equal(2, advantageSection.Cards.Count);
-        Assert.Equal(100, advantageSection.Cards[0].CardId);
-        Assert.Equal("Card 100", advantageSection.Cards[0].Description);
-
-        Assert.Equal(200, advantageSection.Cards[1].CardId);
-        Assert.Equal(string.Empty, advantageSection.Cards[1].Description);
+        var advantages = Assert.Single(result.Advantages);
+        Assert.Equal(2, advantages.Cards.Count);
+        Assert.Equal(100, advantages.Cards[0].CardId);
+        Assert.Equal("Card 100", advantages.Cards[0].Description);
+        Assert.Equal(200, advantages.Cards[1].CardId);
+        Assert.Equal(string.Empty, advantages.Cards[1].Description);
     }
 
     [Fact]
-    public async Task LoadAsync_WhenComplexSectionHasNoLocalizations_ShouldReturnEmptyListWithoutQueryingCards()
+    public async Task LoadAsync_ShouldOrderItemsByPriorityFromPageGraph()
     {
-        // Arrange
         var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
-        var loader = CreateLoader();
+        var lang = HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+        SetupAdvantages(page, lang, cardLocalizations: []);
+        SetAdvantageCards(
+            page,
+            new HippotherapyLandingPageAdvantageCard { Id = 100, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 2 },
+            new HippotherapyLandingPageAdvantageCard { Id = 200, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 1 });
 
-        // Act
-        var result = await loader.LoadAsync(page, CancellationToken.None);
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
 
-        // Assert
+        var advantages = Assert.Single(result.Advantages);
+        Assert.Equal([200L, 100L], advantages.Cards.Select(c => c.CardId).ToArray());
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenItemLocalizationIsMissing_ShouldReturnItemWithEmptyText()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        var lang = HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+        SetupAdvantages(page, lang, cardLocalizations: []);
+        SetAdvantageCards(
+            page,
+            new HippotherapyLandingPageAdvantageCard { Id = 100, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 1 });
+
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
+
+        var card = Assert.Single(Assert.Single(result.Advantages).Cards);
+        Assert.Equal(100, card.CardId);
+        Assert.Equal(string.Empty, card.Description);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenItemLocalizationsContainDuplicates_ShouldNotThrowAndUseFirst()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        var lang = HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+        var first = CreateAdvantageCardLocalization(100, 1);
+        var duplicate = CreateAdvantageCardLocalization(100, 1);
+        SetupAdvantages(page, lang, cardLocalizations: [first, duplicate]);
+        SetAdvantageCards(
+            page,
+            new HippotherapyLandingPageAdvantageCard { Id = 100, AdvantagesSectionId = page.AdvantagesSection.Id, Priority = 1 });
+
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
+
+        var card = Assert.Single(Assert.Single(result.Advantages).Cards);
+        Assert.Equal("Card 100", card.Description);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenParticipantsHaveLocalizations_ShouldFillCardsInGraphOrder()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        var lang = HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+
+        var sectionEntities = new List<HippotherapyLandingPageParticipantsSectionLocalization>
+        {
+            new() { EntityId = page.ParticipantsSection.Id },
+        };
+        SetupRepo(r => r.HippotherapyLandingPageParticipantsSectionLocalizationsRepository)
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageParticipantsSectionLocalization>>()))
+            .ReturnsAsync(sectionEntities);
+        _mapperMock
+            .Setup(m => m.Map<List<HippotherapyLandingPageParticipantsSectionLocalizationDto>>(sectionEntities))
+            .Returns([new HippotherapyLandingPageParticipantsSectionLocalizationDto { LocalizationInfoDto = lang, Title = "P" }]);
+
+        var cardLocalization = new HippotherapyLandingPageParticipantCardLocalization { EntityId = 20, LanguageId = 1 };
+        SetupRepo(r => r.HippotherapyLandingPageParticipantCardLocalizationsRepository)
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageParticipantCardLocalization>>()))
+            .ReturnsAsync([cardLocalization]);
+        _mapperMock
+            .Setup(m => m.Map<HippotherapyLandingPageParticipantCardLocalizationItemDto>(cardLocalization))
+            .Returns(new HippotherapyLandingPageParticipantCardLocalizationItemDto { CardId = 20, Description = "Card 20" });
+
+        page.ParticipantsSection.ParticipantCards =
+        [
+            new HippotherapyLandingPageParticipantCard { Id = 10, ParticipantsSectionId = page.ParticipantsSection.Id, Priority = 2 },
+            new HippotherapyLandingPageParticipantCard { Id = 20, ParticipantsSectionId = page.ParticipantsSection.Id, Priority = 1 },
+        ];
+
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
+
+        var participants = Assert.Single(result.Participants);
+        Assert.Equal([20L, 10L], participants.Cards.Select(c => c.CardId).ToArray());
+        Assert.Equal("Card 20", participants.Cards[0].Description);
+        Assert.Equal(string.Empty, participants.Cards[1].Description);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenComplexSectionHasNoLocalizations_ShouldReturnEmptyListWithoutQueryingItems()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
+
         Assert.Empty(result.Advantages);
-        _repoWrapperMock.Verify(
-            r => r.HippotherapyLandingPageAdvantageCardsRepository.GetAllAsync(
-                It.IsAny<QueryOptions<HippotherapyLandingPageAdvantageCard>>()),
-            Times.Never);
+        VerifyItemLocalizationsNeverQueried();
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenSectionHasLocalizationsButNoItems_ShouldNotQueryItemLocalizations()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        var lang = HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+        SetupAdvantages(page, lang, cardLocalizations: []);
+        SetAdvantageCards(page);
+
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
+
+        Assert.Single(result.Advantages);
+        VerifyItemLocalizationsNeverQueried();
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenAllSectionsAreEmpty_ShouldReturnEmptySource()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+
+        var result = await CreateLoader().LoadAsync(page, CancellationToken.None);
+
+        Assert.Empty(result.Intro);
+        Assert.Empty(result.Description);
+        Assert.Empty(result.Quote);
+        Assert.Empty(result.Hippovention);
+        Assert.Empty(result.HippoventionCenter);
+        Assert.Empty(result.Advantages);
+        Assert.Empty(result.Analysis);
+        Assert.Empty(result.ScientificReferences);
+        Assert.Empty(result.AnotherQuote);
+        Assert.Empty(result.Participants);
+        Assert.Empty(result.Ethics);
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenPageIsNull_ShouldThrowArgumentNullException()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(
+            () => CreateLoader().LoadAsync(null!, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task LoadAsync_WhenSectionIsMissing_ShouldThrowArgumentException()
+    {
+        var page = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        page.IntroSection = null!;
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => CreateLoader().LoadAsync(page, CancellationToken.None));
     }
 
     private HippotherapyLandingPageLocalizationLoader CreateLoader() =>
         new(_repoWrapperMock.Object, _mapperMock.Object);
+
+    private static HippotherapyLandingPageAdvantageCardLocalization CreateAdvantageCardLocalization(
+        long cardId,
+        long languageId) =>
+        new() { EntityId = cardId, LanguageId = languageId };
+
+    private static void SetAdvantageCards(
+        DAL.Entities.HippotherapyLandingPage page,
+        params HippotherapyLandingPageAdvantageCard[] cards)
+    {
+        page.AdvantagesSection.AdvantageCards = [.. cards];
+    }
+
+    private void SetupIntro(DAL.Entities.HippotherapyLandingPage page, VictoryCenter.BLL.DTOs.Common.LocalizationInfoDto lang)
+    {
+        var entities = new List<HippotherapyLandingPageIntroSectionLocalization>
+        {
+            new() { EntityId = page.IntroSection.Id },
+        };
+        SetupRepo(r => r.HippotherapyLandingPageIntroSectionLocalizationsRepository)
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageIntroSectionLocalization>>()))
+            .ReturnsAsync(entities);
+        _mapperMock
+            .Setup(m => m.Map<List<HippotherapyLandingPageIntroSectionLocalizationDto>>(entities))
+            .Returns([new HippotherapyLandingPageIntroSectionLocalizationDto { LocalizationInfoDto = lang, Title = "Intro" }]);
+    }
+
+    private void SetupAdvantages(
+        DAL.Entities.HippotherapyLandingPage page,
+        VictoryCenter.BLL.DTOs.Common.LocalizationInfoDto lang,
+        List<HippotherapyLandingPageAdvantageCardLocalization> cardLocalizations)
+    {
+        var sectionEntities = new List<HippotherapyLandingPageAdvantagesSectionLocalization>
+        {
+            new() { EntityId = page.AdvantagesSection.Id },
+        };
+        SetupRepo(r => r.HippotherapyLandingPageAdvantagesSectionLocalizationsRepository)
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageAdvantagesSectionLocalization>>()))
+            .ReturnsAsync(sectionEntities);
+        _mapperMock
+            .Setup(m => m.Map<List<HippotherapyLandingPageAdvantagesSectionLocalizationDto>>(sectionEntities))
+            .Returns([new HippotherapyLandingPageAdvantagesSectionLocalizationDto { LocalizationInfoDto = lang, Title = "Adv" }]);
+
+        SetupRepo(r => r.HippotherapyLandingPageAdvantageCardLocalizationsRepository)
+            .Setup(r => r.GetAllAsync(It.IsAny<QueryOptions<HippotherapyLandingPageAdvantageCardLocalization>>()))
+            .ReturnsAsync(cardLocalizations);
+
+        foreach (var localization in cardLocalizations)
+        {
+            _mapperMock
+                .Setup(m => m.Map<HippotherapyLandingPageAdvantageCardLocalizationItemDto>(localization))
+                .Returns(new HippotherapyLandingPageAdvantageCardLocalizationItemDto
+                {
+                    CardId = localization.EntityId,
+                    Description = $"Card {localization.EntityId}",
+                });
+        }
+    }
+
+    private void VerifyItemLocalizationsNeverQueried()
+    {
+        _repoWrapperMock.Verify(
+            r => r.HippotherapyLandingPageAdvantageCardLocalizationsRepository.GetAllAsync(
+                It.IsAny<QueryOptions<HippotherapyLandingPageAdvantageCardLocalization>>()),
+            Times.Never);
+        _repoWrapperMock.Verify(
+            r => r.HippotherapyLandingPageParticipantCardLocalizationsRepository.GetAllAsync(
+                It.IsAny<QueryOptions<HippotherapyLandingPageParticipantCardLocalization>>()),
+            Times.Never);
+    }
 
     private void SetupDefaults()
     {
@@ -154,13 +305,9 @@ public class HippotherapyLandingPageLocalizationLoaderTests
         SetupRepo(r => r.HippotherapyLandingPageEthicsSectionLocalizationsRepository);
         SetupEmptyMapping<HippotherapyLandingPageEthicsSectionLocalizationDto>();
 
-        SetupRepo(r => r.HippotherapyLandingPageAdvantageCardsRepository);
         SetupRepo(r => r.HippotherapyLandingPageAdvantageCardLocalizationsRepository);
-        SetupRepo(r => r.HippotherapyLandingPageParticipantCardsRepository);
         SetupRepo(r => r.HippotherapyLandingPageParticipantCardLocalizationsRepository);
-        SetupRepo(r => r.HippotherapyLandingPageScientificReferencesRepository);
         SetupRepo(r => r.HippotherapyLandingPageScientificReferenceLocalizationsRepository);
-        SetupRepo(r => r.HippotherapyLandingPageEthicsPrinciplesRepository);
         SetupRepo(r => r.HippotherapyLandingPageEthicsPrincipleLocalizationsRepository);
     }
 
