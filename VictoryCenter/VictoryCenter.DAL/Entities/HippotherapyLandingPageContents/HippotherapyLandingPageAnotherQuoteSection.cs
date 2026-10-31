@@ -1,4 +1,5 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Entities.Localization;
 
@@ -9,8 +10,10 @@ public class HippotherapyLandingPageAnotherQuoteSection
 {
     public long HippotherapyLandingPageId { get; set; }
 
+    [RichText]
     public string QuoteText { get; set; } = null!;
 
+    [RichText]
     public string? AuthorName { get; set; }
 
     public long? ImageId { get; set; }

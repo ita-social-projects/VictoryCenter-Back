@@ -1,4 +1,5 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Entities.Localization;
 
@@ -9,6 +10,7 @@ public class HippotherapyLandingPageParticipantsSection
 {
     public long HippotherapyLandingPageId { get; set; }
 
+    [RichText]
     public string Title { get; set; } = null!;
 
     public ICollection<HippotherapyLandingPageParticipantCard> ParticipantCards { get; set; } = [];

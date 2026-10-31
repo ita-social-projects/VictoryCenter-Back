@@ -70,6 +70,29 @@ public class EventsPageControllerTests : BaseTestClass
     }
 
     [Fact]
+    public async Task Put_WithUnsafeHtml_StoresSanitizedContent()
+    {
+        // Act
+        var descriptionResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/description",
+            new UpdateEventsPageDescriptionDto
+            {
+                PageDescription = "<p onclick=\"alert(1)\"><strong>Safe</strong> description<script>alert(1)</script><img src=x onerror=alert(1)></p>"
+            });
+        var titleResponse = await Fixture.HttpClient.PutAsJsonAsync(
+            $"{Endpoint}/events-block-title",
+            new UpdateEventsBlockTitleDto { EventsBlockTitle = "<p><a href=\"javascript:alert(1)\">Safe title</a></p>" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, descriptionResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, titleResponse.StatusCode);
+        Fixture.DbContext.ChangeTracker.Clear();
+        var stored = await Fixture.DbContext.EventsIntroSections.SingleAsync();
+        Assert.Equal("<p><strong>Safe</strong> description</p>", stored.PageDescription);
+        Assert.Equal("<p>Safe title</p>", stored.EventsBlockTitle);
+    }
+
+    [Fact]
     public async Task Post_AuthorizedRequests_ToggleVisibility()
     {
         // Arrange

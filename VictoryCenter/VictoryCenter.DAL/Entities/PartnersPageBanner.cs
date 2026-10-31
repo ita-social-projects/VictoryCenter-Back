@@ -1,4 +1,5 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Entities.Localization;
 
@@ -6,6 +7,7 @@ namespace VictoryCenter.DAL.Entities;
 
 public class PartnersPageBanner : BaseEntity, ITranslatedEntity<PartnersPageBannerLocalization>
 {
+    [RichText]
     public string Title { get; set; } = null!;
     public string Description { get; set; } = null!;
     public long? ImageId { get; set; }
