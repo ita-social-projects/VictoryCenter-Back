@@ -113,6 +113,7 @@ public class LoginTests
         var admin = new AdminUser();
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(false);
+        _mockUserManager.Setup(x => x.AccessFailedAsync(admin)).ReturnsAsync(IdentityResult.Success);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -120,6 +121,58 @@ public class LoginTests
         Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!"), Times.Once);
+        _mockUserManager.Verify(x => x.AccessFailedAsync(admin), Times.Once);
+        _mockUserManager.Verify(x => x.ResetAccessFailedCountAsync(admin), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_GivenLockedOutAdmin_ReturnsUnauthorizedWithoutCheckingPassword()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        var admin = new AdminUser();
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.IsLockedOutAsync(admin)).ReturnsAsync(true);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
+        _mockUserManager.Verify(x => x.CheckPasswordAsync(It.IsAny<AdminUser>(), It.IsAny<string>()), Times.Never);
+        _mockUserManager.Verify(x => x.AccessFailedAsync(It.IsAny<AdminUser>()), Times.Never);
+        _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_FailedAttemptNotRecorded_StillReturnsUnauthorized()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        var admin = new AdminUser();
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(false);
+        _mockUserManager.Setup(x => x.AccessFailedAsync(admin))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed" }));
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ResetFailedCountFails_ReturnsFailWithoutTokens()
+    {
+        var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
+        var admin = new AdminUser();
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
+        _mockUserManager.Setup(x => x.ResetAccessFailedCountAsync(admin))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed" }));
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal("Failed", result.Errors[0].Message);
+        _mockTokenService.Verify(x => x.CreateAccessToken(It.IsAny<Claim[]>()), Times.Never);
     }
 
     [Fact]
@@ -130,6 +183,7 @@ public class LoginTests
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
+        _mockUserManager.Setup(x => x.ResetAccessFailedCountAsync(admin)).ReturnsAsync(IdentityResult.Success);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
@@ -159,6 +213,7 @@ public class LoginTests
         _mockTokenService.Verify(x => x.CreateRefreshToken(It.IsAny<Claim[]>()), Times.Once);
         _mockTokenService.Verify(x => x.HashRefreshToken("refresh_token"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
+        _mockUserManager.Verify(x => x.ResetAccessFailedCountAsync(admin), Times.Once);
     }
 
     [Fact]
@@ -169,6 +224,7 @@ public class LoginTests
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
+        _mockUserManager.Setup(x => x.ResetAccessFailedCountAsync(admin)).ReturnsAsync(IdentityResult.Success);
         _mockUserManager.Setup(x => x.GetClaimsAsync(admin)).ReturnsAsync([]);
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("refresh_token");
