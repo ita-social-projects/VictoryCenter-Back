@@ -53,8 +53,7 @@ public sealed class SeederManager
 
     private IEnumerable<ISeeder> CreateDefaultSeeders()
     {
-        var seederTypes = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(a => a.GetTypes())
+        var seederTypes = typeof(ISeeder).Assembly.GetTypes()
             .Where(t => typeof(ISeeder).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
         foreach (var type in seederTypes)

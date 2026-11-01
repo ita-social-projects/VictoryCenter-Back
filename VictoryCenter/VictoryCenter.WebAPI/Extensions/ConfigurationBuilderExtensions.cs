@@ -1,12 +1,15 @@
+using Microsoft.Extensions.FileProviders;
+
 namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ConfigurationBuilderExtensions
 {
     public static IConfigurationBuilder ConfigureCustom(
         this IConfigurationBuilder configurationBuilder,
-        string environment)
+        string environment,
+        IFileProvider fileProvider)
     {
-        configurationBuilder.SetBasePath(Directory.GetCurrentDirectory())
+        configurationBuilder.SetFileProvider(fileProvider)
             .AddJsonFile("appsettings.json", false, true)
             .AddJsonFile($"appsettings.{environment}.json", true, true)
             .AddEnvironmentVariables("VICTORYCENTER_");
