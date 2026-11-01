@@ -10,28 +10,41 @@ public static class HippotherapyLandingPageIncludeHelper
     {
         return query
             .Include(e => e.IntroSection).ThenInclude(s => s!.Image)
-            .Include(e => e.IntroSection).ThenInclude(s => s!.Localizations)
-            .Include(e => e.DescriptionSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.IntroSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
+            .Include(e => e.DescriptionSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.QuoteSection).ThenInclude(s => s!.Image)
-            .Include(e => e.QuoteSection).ThenInclude(s => s!.Localizations)
-            .Include(e => e.HippoventionSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.QuoteSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
+            .Include(e => e.HippoventionSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.HippoventionCenterSection).ThenInclude(s => s!.Image)
-            .Include(e => e.HippoventionCenterSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.HippoventionCenterSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.AdvantagesSection).ThenInclude(s => s!.AdvantageCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Image)
-            .Include(e => e.AdvantagesSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.AdvantagesSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.AdvantagesSection).ThenInclude(s => s!.AdvantageCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Localizations)
-            .Include(e => e.AnalysisSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.AnalysisSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.ScientificReferencesSection).ThenInclude(s => s!.ScientificReferences.OrderBy(r => r.Priority))
-            .Include(e => e.ScientificReferencesSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.ScientificReferencesSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.ScientificReferencesSection).ThenInclude(s => s!.ScientificReferences.OrderBy(r => r.Priority)).ThenInclude(r => r.Localizations)
             .Include(e => e.AnotherQuoteSection).ThenInclude(s => s!.Image)
-            .Include(e => e.AnotherQuoteSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.AnotherQuoteSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.ParticipantsSection).ThenInclude(s => s!.ParticipantCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Image)
-            .Include(e => e.ParticipantsSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.ParticipantsSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.ParticipantsSection).ThenInclude(s => s!.ParticipantCards.OrderBy(c => c.Priority)).ThenInclude(c => c.Localizations)
             .Include(e => e.EthicsSection).ThenInclude(s => s!.Image)
             .Include(e => e.EthicsSection).ThenInclude(s => s!.EthicsPrinciples.OrderBy(p => p.Priority))
-            .Include(e => e.EthicsSection).ThenInclude(s => s!.Localizations)
+            .Include(e => e.EthicsSection).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
             .Include(e => e.EthicsSection).ThenInclude(s => s!.EthicsPrinciples.OrderBy(p => p.Priority)).ThenInclude(p => p.Localizations);
     }
+
+    public static bool HasAllSections(this DAL.Entities.HippotherapyLandingPage page)
+        => page.IntroSection is not null
+            && page.DescriptionSection is not null
+            && page.QuoteSection is not null
+            && page.HippoventionSection is not null
+            && page.HippoventionCenterSection is not null
+            && page.AdvantagesSection is not null
+            && page.AnalysisSection is not null
+            && page.ScientificReferencesSection is not null
+            && page.AnotherQuoteSection is not null
+            && page.ParticipantsSection is not null
+            && page.EthicsSection is not null;
 }

@@ -15,16 +15,19 @@ public class GetHippotherapyLandingPageHandler
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IMapper _mapper;
-    private readonly IHippotherapyLandingPageLocalizationLoader _localizationLoader;
+    private readonly IHippotherapyLandingPageResponseFactory _responseFactory;
+    private readonly IHippotherapyLandingPageLocalizationBuilder _builder;
 
     public GetHippotherapyLandingPageHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
-        IHippotherapyLandingPageLocalizationLoader localizationLoader)
+        IHippotherapyLandingPageResponseFactory responseFactory,
+        IHippotherapyLandingPageLocalizationBuilder builder)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
-        _localizationLoader = localizationLoader;
+        _responseFactory = responseFactory;
+        _builder = builder;
     }
 
     public async Task<Result<HippotherapyLandingPageDto>> Handle(
@@ -37,31 +40,14 @@ public class GetHippotherapyLandingPageHandler
                 AsSplitQuery = true,
             });
 
-        if (entity == null || !HasAllSections(entity))
+        if (entity == null || !entity.HasAllSections())
         {
             return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
         }
 
         var dto = _mapper.Map<HippotherapyLandingPageDto>(entity);
-        var source = await _localizationLoader.LoadAsync(entity, cancellationToken);
+        var source = _builder.Build(entity);
 
-        return Result.Ok(dto with
-        {
-            Localizations = HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source),
-            TranslationStatuses = HippotherapyLandingPageLocalizationAggregator.BuildStatuses(source),
-        });
+        return Result.Ok(_responseFactory.Create(entity));
     }
-
-    private static bool HasAllSections(DAL.Entities.HippotherapyLandingPage page)
-   => page.IntroSection is not null
-       && page.DescriptionSection is not null
-       && page.QuoteSection is not null
-       && page.HippoventionSection is not null
-       && page.HippoventionCenterSection is not null
-       && page.AdvantagesSection is not null
-       && page.AnalysisSection is not null
-       && page.ScientificReferencesSection is not null
-       && page.AnotherQuoteSection is not null
-       && page.ParticipantsSection is not null
-       && page.EthicsSection is not null;
 }

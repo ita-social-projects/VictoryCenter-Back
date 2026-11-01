@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
+using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Localization;
@@ -32,6 +33,7 @@ public class UpdateHippotherapyLandingPageHandlerTests
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<IValidator<UpdateHippotherapyLandingPageCommand>> _validatorMock = new();
     private readonly Mock<IReorderService> _reorderServiceMock = new();
+    private readonly Mock<IHippotherapyLandingPageResponseFactory> _responseFactoryMock = new();
 
     public UpdateHippotherapyLandingPageHandlerTests()
     {
@@ -875,7 +877,8 @@ public class UpdateHippotherapyLandingPageHandlerTests
         _repositoryWrapperMock.Object,
         _mapperMock.Object,
         _validatorMock.Object,
-        _reorderServiceMock.Object);
+        _reorderServiceMock.Object,
+        _responseFactoryMock.Object);
 
     private void SetUpRepositoryWrapper(EntityHippotherapyLandingPage? entityToReturn, List<Image>? availableImages = null)
     {

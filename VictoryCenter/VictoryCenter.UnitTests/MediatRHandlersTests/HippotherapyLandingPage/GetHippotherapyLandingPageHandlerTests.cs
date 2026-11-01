@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentResults;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
@@ -14,7 +15,7 @@ public class GetHippotherapyLandingPageHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
     private readonly Mock<IMapper> _mapperMock = new();
-    private readonly Mock<IHippotherapyLandingPageLocalizationLoader> _localizationLoaderMock = new();
+    private readonly Mock<IHippotherapyLandingPageLocalizationBuilder> _localizationBuilderMock = new();
 
     [Fact]
     public async Task Handle_WhenPageExists_ShouldReturnMappedDtoWithAggregatedLocalizationsAndStatuses()
@@ -47,9 +48,8 @@ public class GetHippotherapyLandingPageHandlerTests
             .Setup(x => x.Map<HippotherapyLandingPageDto>(entity))
             .Returns(initialDto);
 
-        _localizationLoaderMock
-            .Setup(x => x.LoadAsync(entity, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(localizationSource);
+        _localizationBuilderMock
+           .Setup(x => x.Build(entity).ToResult());
 
         var handler = CreateHandler();
 
@@ -61,7 +61,7 @@ public class GetHippotherapyLandingPageHandlerTests
         Assert.NotNull(result.Value);
         Assert.NotEmpty(result.Value.Localizations);
         Assert.NotEmpty(result.Value.TranslationStatuses);
-        _localizationLoaderMock.Verify(x => x.LoadAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
+        _localizationBuilderMock.Verify(x => x.Build(entity).ToResult());
     }
 
     [Fact]
@@ -82,11 +82,10 @@ public class GetHippotherapyLandingPageHandlerTests
         Assert.True(result.IsFailed);
         Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors[0].Message);
         _mapperMock.Verify(x => x.Map<HippotherapyLandingPageDto>(It.IsAny<object>()), Times.Never);
-        _localizationLoaderMock.Verify(
-            x => x.LoadAsync(It.IsAny<DAL.Entities.HippotherapyLandingPage>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        _localizationBuilderMock.Verify(
+            x => x.Build(It.IsAny<DAL.Entities.HippotherapyLandingPage>()).ToResult());
     }
 
     private GetHippotherapyLandingPageHandler CreateHandler() =>
-       new(_repositoryWrapperMock.Object, _mapperMock.Object, _localizationLoaderMock.Object);
+       new(_repositoryWrapperMock.Object, _mapperMock.Object, _localizationBuilderMock.Object);
 }
