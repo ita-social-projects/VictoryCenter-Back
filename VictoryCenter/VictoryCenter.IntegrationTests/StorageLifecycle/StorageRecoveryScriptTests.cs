@@ -9,6 +9,64 @@ namespace VictoryCenter.IntegrationTests.StorageLifecycle;
 public partial class StorageSqlServerTests
 {
     [StorageSqlServerFact]
+    public async Task QueueSummary_GroupsAndOrdersOperationsWithoutChangingData()
+    {
+        await using var context = Context();
+        await context.Database.OpenConnectionAsync();
+
+        async Task<List<(int FileKind, int Kind, int Status, long Count)>> ReadSummaryAsync()
+        {
+            await using var command = context.Database.GetDbConnection().CreateCommand();
+            command.CommandText = await File.ReadAllTextAsync(
+                Path.Combine(AppContext.BaseDirectory, "StorageScripts", "summarize-operations.sql"));
+            await using var reader = await command.ExecuteReaderAsync();
+            List<(int FileKind, int Kind, int Status, long Count)> rows = [];
+            while (await reader.ReadAsync())
+            {
+                rows.Add((reader.GetInt32(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetInt64(3)));
+            }
+
+            return rows;
+        }
+
+        Assert.Empty(await ReadSummaryAsync());
+        var inputs = new[]
+        {
+            (StorageFileKind.Image, StorageOperationKind.Delete, StorageOperationStatus.Failed),
+            (StorageFileKind.Image, StorageOperationKind.UploadCleanup, StorageOperationStatus.Pending),
+            (StorageFileKind.Pdf, StorageOperationKind.Delete, StorageOperationStatus.Completed),
+            (StorageFileKind.Pdf, StorageOperationKind.Delete, StorageOperationStatus.Processing),
+            (StorageFileKind.Image, StorageOperationKind.Delete, StorageOperationStatus.Failed),
+            (StorageFileKind.Image, StorageOperationKind.Delete, StorageOperationStatus.Pending)
+        };
+        context.StorageOperations.AddRange(inputs.Select((input, index) => new StorageOperation
+        {
+            FileKind = input.Item1,
+            Kind = input.Item2,
+            Status = input.Item3,
+            FileName = $"summary-{index}.{(input.Item1 == StorageFileKind.Image ? "png" : "pdf")}",
+            NextAttemptAt = _now
+        }));
+        await context.SaveChangesAsync();
+        var snapshot = context.StorageOperations.AsNoTracking().OrderBy(operation => operation.Id)
+            .Select(operation => new { operation.Id, operation.Status, operation.Attempts, operation.Version });
+        var before = await snapshot.ToListAsync();
+
+        Assert.Equal(
+            new[]
+            {
+                ((int)StorageFileKind.Image, (int)StorageOperationKind.UploadCleanup, (int)StorageOperationStatus.Pending, 1L),
+                ((int)StorageFileKind.Image, (int)StorageOperationKind.Delete, (int)StorageOperationStatus.Pending, 1L),
+                ((int)StorageFileKind.Image, (int)StorageOperationKind.Delete, (int)StorageOperationStatus.Failed, 2L),
+                ((int)StorageFileKind.Pdf, (int)StorageOperationKind.Delete, (int)StorageOperationStatus.Processing, 1L),
+                ((int)StorageFileKind.Pdf, (int)StorageOperationKind.Delete, (int)StorageOperationStatus.Completed, 1L)
+            },
+            await ReadSummaryAsync());
+        Assert.Equal(inputs.Length, await context.StorageOperations.CountAsync());
+        Assert.Equal(before, await snapshot.ToListAsync());
+    }
+
+    [StorageSqlServerFact]
     public async Task CleanupScript_ConcurrentRequestsReuseOneAuditedOperation()
     {
         var finding = new StorageReconciliationFinding

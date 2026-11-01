@@ -77,6 +77,10 @@ The recovery scripts are run manually by an operator. They are not executed
 by application startup, EF migrations or deployment. They queue/reset work;
 the background worker performs the actual file operations.
 
+For a read-only count of operations by file kind, operation kind and status,
+run [summarize-operations.sql](../scripts/storage/summarize-operations.sql).
+It includes historical Completed/Failed operations as well as active work.
+
 ```sql
 SELECT TOP (100) * FROM media.StorageOperations
 WHERE Status = 3 ORDER BY CreatedAt, Id;
