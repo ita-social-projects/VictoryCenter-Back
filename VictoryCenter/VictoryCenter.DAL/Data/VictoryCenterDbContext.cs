@@ -29,6 +29,10 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<Image> Images { get; set; }
 
+    public DbSet<StorageOperation> StorageOperations { get; set; }
+
+    public DbSet<StorageReconciliationFinding> StorageReconciliationFindings { get; set; }
+
     public DbSet<PdfSection> PdfSections { get; set; }
 
     public DbSet<PdfSectionLocalization> PdfSectionLocalizations { get; set; }
@@ -240,9 +244,115 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<VideoReviewLocalization> VideoReviewLocalizations { get; set; }
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        foreach (var (kind, name) in PrepareStorageChanges())
+        {
+            CompleteUploadIntent(StorageOperations.SingleOrDefault(operation => operation.FileKind == kind
+                && operation.FileName == name && operation.Kind == StorageOperationKind.UploadCleanup));
+        }
+
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var (kind, name) in PrepareStorageChanges())
+        {
+            var operation = await StorageOperations.SingleOrDefaultAsync(
+                operation => operation.FileKind == kind && operation.FileName == name
+                    && operation.Kind == StorageOperationKind.UploadCleanup, cancellationToken);
+            CompleteUploadIntent(operation);
+        }
+
+        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(VictoryCenterDbContext).Assembly);
+    }
+
+    private List<(StorageFileKind Kind, string Name)> PrepareStorageChanges()
+    {
+        List<(StorageFileKind Kind, string Name)> uploads = [];
+        ChangeTracker.DetectChanges();
+        foreach (var entry in ChangeTracker.Entries<Image>().ToArray())
+        {
+            if (entry.State is EntityState.Unchanged or EntityState.Detached)
+            {
+                continue;
+            }
+
+            var current = StorageFileNames.Image(entry.Entity.BlobName, entry.Entity.MimeType);
+            var previous = entry.State == EntityState.Added ? null : StorageFileNames.Image(
+                entry.OriginalValues.GetValue<string>(nameof(Image.BlobName)),
+                entry.OriginalValues.GetValue<string>(nameof(Image.MimeType)));
+            if (entry.State == EntityState.Deleted || (previous != null && previous != current))
+            {
+                QueueStorageDeletion(StorageFileKind.Image, previous!);
+            }
+
+            if (entry.State == EntityState.Added || (entry.State == EntityState.Modified && previous != current))
+            {
+                uploads.Add((StorageFileKind.Image, current));
+            }
+
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.StorageVersion = Guid.NewGuid();
+            }
+        }
+
+        foreach (var entry in ChangeTracker.Entries<PdfReport>().ToArray())
+        {
+            if (entry.State == EntityState.Deleted)
+            {
+                QueueStorageDeletion(StorageFileKind.Pdf, entry.Entity.BlobName);
+            }
+            else if (entry.State == EntityState.Added)
+            {
+                uploads.Add((StorageFileKind.Pdf, entry.Entity.BlobName));
+            }
+        }
+
+        return uploads.Distinct().ToList();
+    }
+
+    private void QueueStorageDeletion(StorageFileKind fileKind, string fileName)
+    {
+        if (!StorageOperations.Local.Any(operation => operation.FileKind == fileKind
+            && operation.FileName == fileName && operation.Kind == StorageOperationKind.Delete
+            && operation.Status == StorageOperationStatus.Pending))
+        {
+            StorageOperations.Add(new StorageOperation
+            {
+                FileKind = fileKind,
+                FileName = fileName,
+                Kind = StorageOperationKind.Delete,
+                NextAttemptAt = DateTimeOffset.UtcNow
+            });
+        }
+    }
+
+    private static void CompleteUploadIntent(StorageOperation? operation)
+    {
+        if (operation == null)
+        {
+            // Existing files and database-only seed data predate upload intents.
+            return;
+        }
+
+        if (operation.Status != StorageOperationStatus.Pending)
+        {
+            throw new DbUpdateConcurrencyException("The upload reservation is no longer available.");
+        }
+
+        operation.Status = StorageOperationStatus.Completed;
+        operation.CompletedAt = DateTimeOffset.UtcNow;
+        operation.Version = Guid.NewGuid();
     }
 }
