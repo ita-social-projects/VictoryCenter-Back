@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
@@ -197,11 +198,10 @@ public class BlobService : IBlobService
     {
         return mimeType.ToLower() switch
         {
-            ImageMimeTypes.Jpeg => "jpg",
-            ImageMimeTypes.Jpg => "jpg",
-            ImageMimeTypes.Png => "png",
-            ImageMimeTypes.Webp => "webp",
-            _ => "jpg"
+            ImageMimeTypes.Jpeg or ImageMimeTypes.Jpg => FileExtensions.Jpg,
+            ImageMimeTypes.Png => FileExtensions.Png,
+            ImageMimeTypes.Webp => FileExtensions.Webp,
+            _ => FileExtensions.Jpg
         };
     }
 
@@ -212,7 +212,7 @@ public class BlobService : IBlobService
         var filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
         var temporaryFilePath = Path.Combine(
             _blobEnv.FullPath,
-            $".{name}.{Guid.NewGuid():N}.tmp");
+            $".{name}.{type}.{Guid.NewGuid():N}{FileExtensions.TemporaryWithDot}");
 
         try
         {
@@ -283,6 +283,7 @@ public class BlobService : IBlobService
     {
         if (string.IsNullOrWhiteSpace(name)
             || name.Contains("..")
+            || name.Contains('/') || name.Contains('\\')
             || Path.GetInvalidFileNameChars().Any(name.Contains))
         {
             throw new BlobFileNameException(name, ImageConstants.WrongFileName(name));

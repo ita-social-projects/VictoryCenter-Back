@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.TokenService;
+using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils.Seeders;
@@ -37,6 +38,15 @@ public class IntegrationTestDbFixture : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await CreateFreshWebApplicationAsync();
+    }
+
+    public async Task ProcessPendingStorageOperationsAsync()
+    {
+        await using var scope = Factory.Services.CreateAsyncScope();
+        var processor = scope.ServiceProvider.GetRequiredService<StorageOperationProcessor>();
+        while (await processor.ProcessBatchAsync(CancellationToken.None) > 0)
+        {
+        }
     }
 
     public async Task DisposeAsync()

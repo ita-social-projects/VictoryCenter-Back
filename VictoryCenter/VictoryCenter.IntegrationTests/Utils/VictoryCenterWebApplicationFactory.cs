@@ -6,13 +6,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.WebAPI.Services;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
 public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>
     where TStartup : class
 {
-    protected static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
+    protected readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
     private readonly string _databaseName;
 
     public VictoryCenterWebApplicationFactory(string? databaseName = null)
@@ -20,8 +21,16 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
     }
 
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        CleanupTestBlobDirectory();
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Directory.CreateDirectory(TestBlobPath);
+        builder.UseWebRoot(TestBlobPath);
         SetEnvironmentalVariables();
 
         builder.ConfigureAppConfiguration((_, config) =>
@@ -49,6 +58,12 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 
         builder.ConfigureServices(services =>
         {
+            var storageWorker = services.FirstOrDefault(descriptor => descriptor.ImplementationType == typeof(StorageOperationWorker));
+            if (storageWorker != null)
+            {
+                services.Remove(storageWorker);
+            }
+
             RemoveExistingContext(services);
             AddTestDbContext(services);
 
@@ -61,12 +76,11 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
         if (disposing)
         {
             CleanupTestBlobDirectory();
         }
-
-        base.Dispose(disposing);
     }
 
     private static void SetEnvironmentalVariables()
@@ -121,12 +135,18 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         });
     }
 
-    private static void CleanupTestBlobDirectory()
+    private void CleanupTestBlobDirectory()
     {
         try
         {
             if (Directory.Exists(TestBlobPath))
             {
+                var allowedRoot = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs")) + Path.DirectorySeparatorChar;
+                if (!Path.GetFullPath(TestBlobPath).StartsWith(allowedRoot, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new InvalidOperationException("The test storage path is outside the temporary test root.");
+                }
+
                 Directory.Delete(TestBlobPath, true);
             }
         }

@@ -1,9 +1,11 @@
+using VictoryCenter.DAL.Constants;
+
 namespace VictoryCenter.BLL.Constants;
 
 public static class ImageMimeTypes
 {
-    public const string Jpeg = "image/jpeg";
-    public const string Jpg = "image/jpg";
-    public const string Png = "image/png";
-    public const string Webp = "image/webp";
+    public const string Jpeg = FileMimeTypes.ImageJpeg;
+    public const string Jpg = FileMimeTypes.ImageJpg;
+    public const string Png = FileMimeTypes.ImagePng;
+    public const string Webp = FileMimeTypes.ImageWebp;
 }

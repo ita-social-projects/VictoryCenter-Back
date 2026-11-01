@@ -65,6 +65,8 @@ using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.Utils;
+using VictoryCenter.BLL.Services.StorageLifecycle;
+using VictoryCenter.WebAPI.Services;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -73,6 +75,19 @@ public static class ServicesConfiguration
 {
     public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddOptions<StorageLifecycleOptions>()
+            .Bind(configuration.GetSection(StorageLifecycleConstants.SectionName))
+            .ValidateDataAnnotations()
+            .Validate(
+                options => options.RetryDelaySeconds <= options.MaxRetryDelaySeconds,
+                StorageLifecycleConstants.InvalidRetryDelay)
+            .ValidateOnStart();
+        services.AddScoped<LocalStorageFiles>();
+        services.AddScoped<StorageUploadReservations>();
+        services.AddScoped<StorageOperationProcessor>();
+        services.AddScoped<StorageReconciliation>();
+        services.AddHostedService<StorageOperationWorker>();
+
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         services.AddDbContext<VictoryCenterDbContext>(options =>
@@ -886,13 +901,15 @@ public static class ServicesConfiguration
                     {
                         options.RootPath = env.WebRootPath;
                     });
-                services.AddScoped<IBlobService, BlobService>();
+                services.AddScoped<BlobService>();
+                services.AddScoped<IBlobService, ImageStorageService>();
                 break;
 
             case "Azure":
                 services.AddOptions<BlobEnvironmentVariables>().Bind(blobSection.GetSection("Azure"))
                     .ValidateDataAnnotations();
-                services.AddScoped<IBlobService, BlobService>();
+                services.AddScoped<BlobService>();
+                services.AddScoped<IBlobService, ImageStorageService>();
                 break;
 
             default:
@@ -917,14 +934,16 @@ public static class ServicesConfiguration
                     {
                         options.RootPath = env.WebRootPath;
                     });
-                services.AddScoped<IPdfService, PdfService>();
+                services.AddScoped<PdfService>();
+                services.AddScoped<IPdfService, PdfStorageService>();
                 break;
 
             case "Azure":
                 services.AddOptions<PdfEnvironmentVariables>()
                     .Bind(blobSection.GetSection("Azure"))
                     .ValidateDataAnnotations();
-                services.AddScoped<IPdfService, PdfService>();
+                services.AddScoped<PdfService>();
+                services.AddScoped<IPdfService, PdfStorageService>();
                 break;
 
             default:
