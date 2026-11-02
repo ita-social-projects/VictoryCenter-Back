@@ -61,11 +61,30 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
+        if (await _userManager.IsLockedOutAsync(admin))
+        {
+            PerformDummyPasswordCheck(request.LoginRequestDto.Password);
+            LogLockedOutLoginAttempt(admin.Id);
+            return Result.Fail(AuthConstants.Unauthorized);
+        }
+
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
         if (!result)
         {
+            var accessFailedResult = await _userManager.AccessFailedAsync(admin);
+            if (!accessFailedResult.Succeeded)
+            {
+                LogFailedAttemptNotRecorded(admin.Id, accessFailedResult);
+            }
+
             LogFailedLoginAttempt();
             return Result.Fail(AuthConstants.Unauthorized);
+        }
+
+        var resetResult = await _userManager.ResetAccessFailedCountAsync(admin);
+        if (!resetResult.Succeeded)
+        {
+            return Result.Fail(resetResult.Errors.Select(x => x.Description));
         }
 
         var accessToken = _tokenService.CreateAccessToken([
@@ -94,6 +113,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
     }
 
+    private void LogLockedOutLoginAttempt(int adminId)
+    {
+        _logger.LogWarning(
+            "Admin login rejected for locked out account {AdminId} from client IP {ClientIpAddress}",
+            adminId,
+            _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress);
+    }
+
     private static void PerformDummyPasswordCheck(string password)
     {
         _ = DummyPasswordHasher.VerifyHashedPassword(DummyAdmin, DummyPasswordHash, password);
@@ -113,5 +140,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
                 Expires = expires,
                 Path = AuthConstants.RefreshTokenCookiePath
             });
+    }
+
+    private void LogFailedAttemptNotRecorded(int adminId, IdentityResult identityResult)
+    {
+        _logger.LogError(
+            "Failed login attempt was not recorded for account {AdminId}: {Errors}",
+            adminId,
+            string.Join(", ", identityResult.Errors.Select(e => e.Description)));
     }
 }

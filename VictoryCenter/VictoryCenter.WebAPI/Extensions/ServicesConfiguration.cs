@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Resend;
 using Slugify;
@@ -148,6 +149,7 @@ public static class ServicesConfiguration
         services.ConfigureBlob(configuration);
         services.ConfigurePdf(configuration);
         services.ConfigureEmail(configuration);
+        services.ConfigureAccountLockout();
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
@@ -1003,5 +1005,21 @@ public static class ServicesConfiguration
         }
 
         return services;
+    }
+
+    private static void ConfigureAccountLockout(this IServiceCollection services)
+    {
+        services.AddOptions<AccountLockoutOptions>()
+            .BindConfiguration(AccountLockoutOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<IdentityOptions>()
+            .Configure<IOptions<AccountLockoutOptions>>((identityOptions, lockoutOptions) =>
+            {
+                identityOptions.Lockout.AllowedForNewUsers = true;
+                identityOptions.Lockout.MaxFailedAccessAttempts = lockoutOptions.Value.MaxFailedAccessAttempts;
+                identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutOptions.Value.LockoutMinutes);
+            });
     }
 }
