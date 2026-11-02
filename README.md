@@ -397,6 +397,20 @@ WAY4PAY_MERCHANT_DOMAIN_NAME="<WAY4PAY_MERCHANT_DOMAIN_NAME>"
 WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 ```
 
+### Authentication tokens
+
+| Token | Lifetime | Setting (`appsettings.json`) | Allowed range |
+|---|---|---|---|
+| Access token (Bearer JWT) | 15 minutes | `JwtOptions:LifetimeInMinutes` | 1–60 |
+| Refresh token (`HttpOnly` cookie) | 7 days | `JwtOptions:RefreshTokenLifetimeInDays` | 1–30 |
+
+- **Overriding per environment:** use the `VICTORYCENTER_` prefix, e.g. `VICTORYCENTER_JwtOptions__LifetimeInMinutes=10`. Unprefixed variables are overridden by `appsettings.json`. A value outside the allowed range stops the API from starting.
+- **Login:** issues a new access token and replaces the admin's single refresh token. Access tokens issued earlier on other devices stay valid until they expire.
+- **Refresh:** rotates the refresh token, which is stored only as a SHA-256 hash.
+- **Logout:** clears the refresh token and rotates the admin's Identity security stamp. Each access token carries a hash of that stamp, so every access token issued before logout is rejected immediately, on all devices.
+- **Expiry:** expired access tokens are rejected after a 30-second clock skew. The client then refreshes silently on `401`.
+- **First deploy of stamp validation:** access tokens issued before the deploy have no stamp claim and are rejected once. The client refreshes them automatically.
+
 ### Clone
 
 - Clone this repo to your local machine using `https://github.com/ita-social-projects/VictoryCenter-Back.git`

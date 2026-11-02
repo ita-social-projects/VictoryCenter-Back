@@ -1,10 +1,13 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
+using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -17,6 +20,7 @@ public class AuthControllerTests : BaseTestClass
     private const string LoginPath = "/api/auth/login";
     private const string RefreshTokenPath = "/api/auth/refresh-token";
     private const string LogoutPath = "/api/auth/logout";
+    private const string AdminEndpointPath = "/api/TeamCategories";
 
     public AuthControllerTests(IntegrationTestDbFixture fixture)
         : base(fixture)
@@ -203,10 +207,50 @@ public class AuthControllerTests : BaseTestClass
     [Fact]
     public async Task Logout_WithoutAuthorization_ReturnsUnauthorized()
     {
+        using var anonymousClient = Fixture.Factory.CreateClient();
         var logoutRequest = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
-        var logoutResponse = await Fixture.HttpClient.SendAsync(logoutRequest);
+        var logoutResponse = await anonymousClient.SendAsync(logoutRequest);
 
         Assert.Equal(HttpStatusCode.Unauthorized, logoutResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_RevokesAccessTokenIssuedBeforeLogout()
+    {
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+        var accessToken = (await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>())!.AccessToken;
+
+        using var requestBeforeLogout = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
+        using var responseBeforeLogout = await Fixture.HttpClient.SendAsync(requestBeforeLogout);
+        Assert.Equal(HttpStatusCode.OK, responseBeforeLogout.StatusCode);
+
+        using var logoutRequest = CreateAuthorizedRequest(HttpMethod.Post, LogoutPath, accessToken);
+        using var logoutResponse = await Fixture.HttpClient.SendAsync(logoutRequest);
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+
+        using var requestAfterLogout = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
+        using var responseAfterLogout = await Fixture.HttpClient.SendAsync(requestAfterLogout);
+        Assert.Equal(HttpStatusCode.Unauthorized, responseAfterLogout.StatusCode);
+    }
+
+    [Fact]
+    public async Task AdminEndpoint_WithAccessTokenWithoutSecurityStampClaim_ReturnsUnauthorized()
+    {
+        var tokenService = Fixture.Factory.Services.GetRequiredService<ITokenService>();
+        var accessToken = tokenService.CreateAccessToken([new Claim(ClaimTypes.Email, TestEmail)]);
+
+        using var request = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
+        using var response = await Fixture.HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private static HttpRequestMessage CreateAuthorizedRequest(HttpMethod method, string path, string accessToken)
+    {
+        var request = new HttpRequestMessage(method, path);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        return request;
     }
 
     private static string GetRefreshTokenCookie(HttpResponseMessage response)

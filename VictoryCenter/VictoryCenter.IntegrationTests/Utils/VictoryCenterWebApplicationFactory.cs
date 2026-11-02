@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using VictoryCenter.BLL.Interceptors;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.WebAPI.Services;
 
@@ -127,13 +128,14 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
             .AddEntityFrameworkInMemoryDatabase()
             .BuildServiceProvider();
 
-        services.AddDbContext<VictoryCenterDbContext>(options =>
+        services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
         {
             options
                 .UseInMemoryDatabase(_databaseName)
                 .UseInternalServiceProvider(efServiceProvider)
                 .ConfigureWarnings(warnings =>
-                    warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+                    warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+                .AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
         });
     }
 

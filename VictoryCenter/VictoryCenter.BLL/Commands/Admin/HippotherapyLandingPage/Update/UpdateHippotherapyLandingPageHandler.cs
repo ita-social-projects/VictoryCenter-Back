@@ -9,6 +9,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
+using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Interfaces;
@@ -24,17 +25,20 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
     private readonly IMapper _mapper;
     private readonly IValidator<UpdateHippotherapyLandingPageCommand> _validator;
     private readonly IReorderService _reorderService;
+    private readonly IHippotherapyLandingPageResponseFactory _responseFactory;
 
     public UpdateHippotherapyLandingPageHandler(
         IRepositoryWrapper repositoryWrapper,
         IMapper mapper,
         IValidator<UpdateHippotherapyLandingPageCommand> validator,
-        IReorderService reorderService)
+        IReorderService reorderService,
+        IHippotherapyLandingPageResponseFactory hippotherapyLandingPageResponseFactory)
     {
         _repositoryWrapper = repositoryWrapper;
         _mapper = mapper;
         _validator = validator;
         _reorderService = reorderService;
+        _responseFactory = hippotherapyLandingPageResponseFactory;
     }
 
     public async Task<Result<HippotherapyLandingPageDto>> Handle(UpdateHippotherapyLandingPageCommand request, CancellationToken cancellationToken)
@@ -171,7 +175,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                 AsSplitQuery = true,
             });
 
-            return Result.Ok(_mapper.Map<HippotherapyLandingPageDto>(result));
+            return Result.Ok(_responseFactory.Create(result!));
         }
         catch (ValidationException vex)
         {

@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
+using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Localization;
@@ -32,6 +33,7 @@ public class UpdateHippotherapyLandingPageHandlerTests
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<IValidator<UpdateHippotherapyLandingPageCommand>> _validatorMock = new();
     private readonly Mock<IReorderService> _reorderServiceMock = new();
+    private readonly Mock<IHippotherapyLandingPageResponseFactory> _responseFactoryMock = new();
 
     public UpdateHippotherapyLandingPageHandlerTests()
     {
@@ -45,8 +47,8 @@ public class UpdateHippotherapyLandingPageHandlerTests
                 It.IsAny<Expression<Func<HippotherapyLandingPageScientificReference, bool>>>()))
             .Returns(Task.CompletedTask);
 
-        _mapperMock
-            .Setup(x => x.Map<HippotherapyLandingPageDto>(It.IsAny<EntityHippotherapyLandingPage>()))
+        _responseFactoryMock
+            .Setup(f => f.Create(It.IsAny<EntityHippotherapyLandingPage>()))
             .Returns(new HippotherapyLandingPageDto
             {
                 IntroSection = null!,
@@ -871,11 +873,68 @@ public class UpdateHippotherapyLandingPageHandlerTests
             result.Errors[0].Message);
     }
 
+    [Fact]
+    public async Task Handle_WhenUpdateSucceeds_ShouldReturnDtoCreatedByResponseFactoryFromFreshEntity()
+    {
+        var existing = GetExistingEntity();
+        var expected = new HippotherapyLandingPageDto
+        {
+            IntroSection = null!,
+            DescriptionSection = null!,
+            QuoteSection = null!,
+            HippoventionSection = null!,
+            HippoventionCenterSection = null!,
+            AdvantagesSection = null!,
+            AnalysisSection = null!,
+            ScientificReferencesSection = null!,
+            AnotherQuoteSection = null!,
+            ParticipantsSection = null!,
+            EthicsSection = null!,
+        };
+        SetUpRepositoryWrapper(existing);
+        _responseFactoryMock.Setup(f => f.Create(existing)).Returns(expected);
+
+        var result = await CreateHandler().Handle(
+            new UpdateHippotherapyLandingPageCommand(GetValidUpdateDto(existing)),
+            CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Same(expected, result.Value);
+        _responseFactoryMock.Verify(f => f.Create(existing), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenValidationFails_ShouldNotCallResponseFactory()
+    {
+        SetupValidationFailure("Validation failed");
+
+        await CreateHandler().Handle(
+            new UpdateHippotherapyLandingPageCommand(GetValidUpdateDto(GetExistingEntity())),
+            CancellationToken.None);
+
+        _responseFactoryMock.Verify(f => f.Create(It.IsAny<EntityHippotherapyLandingPage>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenSaveFails_ShouldNotCallResponseFactory()
+    {
+        var existing = GetExistingEntity();
+        SetUpRepositoryWrapper(existing);
+        _repositoryWrapperMock.Setup(x => x.SaveChangesAsync()).ThrowsAsync(new DbUpdateException());
+
+        await CreateHandler().Handle(
+            new UpdateHippotherapyLandingPageCommand(GetValidUpdateDto(existing)),
+            CancellationToken.None);
+
+        _responseFactoryMock.Verify(f => f.Create(It.IsAny<EntityHippotherapyLandingPage>()), Times.Never);
+    }
+
     private UpdateHippotherapyLandingPageHandler CreateHandler() => new(
         _repositoryWrapperMock.Object,
         _mapperMock.Object,
         _validatorMock.Object,
-        _reorderServiceMock.Object);
+        _reorderServiceMock.Object,
+        _responseFactoryMock.Object);
 
     private void SetUpRepositoryWrapper(EntityHippotherapyLandingPage? entityToReturn, List<Image>? availableImages = null)
     {

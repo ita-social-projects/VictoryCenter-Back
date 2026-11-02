@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.IntegrationTests.Utils;
@@ -8,14 +9,15 @@ using VictoryCenter.WebAPI.Middleware;
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
 [Collection("SharedIntegrationTests")]
-public class RequestResponseLoggingMiddlewareTests
+public class RequestResponseLoggingMiddlewareTests : IAsyncLifetime
 {
+    private readonly WebApplicationFactory<Program> _customFactory;
     private readonly HttpClient _client;
     private readonly InMemoryLoggerProvider _loggerProvider;
 
     public RequestResponseLoggingMiddlewareTests(IntegrationTestDbFixture fixture)
     {
-        var customFactory = fixture.Factory.WithWebHostBuilder(builder =>
+        _customFactory = fixture.Factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureLogging(logging =>
             {
@@ -32,13 +34,24 @@ public class RequestResponseLoggingMiddlewareTests
             });
         });
 
-        _client = customFactory.CreateClient();
-        _client.DefaultRequestHeaders.Authorization = fixture.HttpClient.DefaultRequestHeaders.Authorization;
+        _client = _customFactory.CreateClient();
 
-        _loggerProvider = customFactory.Services
+        _loggerProvider = _customFactory.Services
             .GetServices<ILoggerProvider>()
             .OfType<InMemoryLoggerProvider>()
             .Single();
+    }
+
+    public async Task InitializeAsync()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            await IntegrationTestDbFixture.CreateAdminAuthorizationHeaderAsync(_customFactory.Services);
+    }
+
+    public async Task DisposeAsync()
+    {
+        _client.Dispose();
+        await _customFactory.DisposeAsync();
     }
 
     [Fact]
