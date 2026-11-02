@@ -17,6 +17,14 @@ namespace VictoryCenter.DAL.Migrations
                 type: "datetimeoffset",
                 nullable: true);
 
+            // Backfill PublishedAt for existing published feedback histories.
+            migrationBuilder.Sql("""
+                UPDATE FeedbackHistories
+                SET [PublishedAt] = [CreatedAt]
+                WHERE Status = 1
+                    AND [PublishedAt] IS NULL;
+                """);
+
             migrationBuilder.CreateIndex(
                 name: "IX_FeedbackHistories_Status_PublishedAt",
                 table: "FeedbackHistories",
