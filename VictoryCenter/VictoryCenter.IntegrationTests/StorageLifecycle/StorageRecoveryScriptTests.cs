@@ -8,6 +8,7 @@ namespace VictoryCenter.IntegrationTests.StorageLifecycle;
 
 public partial class StorageSqlServerTests
 {
+    private static readonly string[] CleanupActors = ["first-admin", "second-admin"];
     [StorageSqlServerFact]
     public async Task QueueSummary_GroupsAndOrdersOperationsWithoutChangingData()
     {
@@ -90,7 +91,7 @@ public partial class StorageSqlServerTests
             RunScriptAsync(second, "queue-orphan-cleanup.sql", "@FindingId", finding.Id, "second-admin"));
         await using var verification = Context();
         var operation = await verification.StorageOperations.SingleAsync();
-        Assert.Contains(operation.RequestedBy, new[] { "first-admin", "second-admin" });
+        Assert.Contains(operation.RequestedBy, CleanupActors);
         Assert.Equal(operation.Id, (await verification.StorageReconciliationFindings.SingleAsync()).CleanupOperationId);
         Assert.True(File.Exists(path));
     }

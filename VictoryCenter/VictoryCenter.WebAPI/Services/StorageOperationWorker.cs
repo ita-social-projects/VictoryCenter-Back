@@ -11,7 +11,7 @@ public class StorageOperationWorker(
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Do not perform filesystem work on the host's startup path.
+        // Do not run recovery batches on the host's startup path.
         await Task.Yield();
         var nextReconciliation = clock.GetUtcNow();
         while (!stoppingToken.IsCancellationRequested)
@@ -22,18 +22,13 @@ public class StorageOperationWorker(
                 await scope.ServiceProvider.GetRequiredService<StorageOperationProcessor>().ProcessBatchAsync(stoppingToken);
                 if (clock.GetUtcNow() >= nextReconciliation)
                 {
-                    var findings = await scope.ServiceProvider.GetRequiredService<StorageReconciliation>().ScanAsync(stoppingToken);
-                    if (findings > 0)
-                    {
-                        logger.LogWarning("Storage reconciliation observed {FindingCount} missing or unreferenced files", findings);
-                    }
-
+                    await ReconcileAsync(scope.ServiceProvider, stoppingToken);
                     nextReconciliation = clock.GetUtcNow().AddMinutes(options.Value.ReconciliationIntervalMinutes);
                 }
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                break;
+                return;
             }
             catch (Exception exception)
             {
@@ -46,8 +41,17 @@ public class StorageOperationWorker(
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                break;
+                return;
             }
+        }
+    }
+
+    private async Task ReconcileAsync(IServiceProvider services, CancellationToken cancellationToken)
+    {
+        var findings = await services.GetRequiredService<StorageReconciliation>().ScanAsync(cancellationToken);
+        if (findings > 0)
+        {
+            logger.LogWarning("Storage reconciliation observed {FindingCount} missing or unreferenced files", findings);
         }
     }
 }

@@ -10,4 +10,4 @@ SELECT
     COUNT_BIG(*) AS OperationCount
 FROM media.StorageOperations
 GROUP BY FileKind, Kind, Status
-ORDER BY FileKind, Kind, Status;
+ORDER BY FileKind ASC, Kind ASC, Status ASC;

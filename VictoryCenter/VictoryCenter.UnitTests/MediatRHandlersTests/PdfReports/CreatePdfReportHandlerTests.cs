@@ -40,7 +40,7 @@ public class CreatePdfReportHandlerTests
         _mockPdfService = new Mock<IPdfService>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockRepositoryWrapper.Setup(repository => repository.PdfReportRepository.GetAllAsync(It.IsAny<QueryOptions<PdfReport>>()))
-            .ReturnsAsync(Array.Empty<PdfReport>());
+            .ReturnsAsync([]);
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
         _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();

@@ -22,10 +22,16 @@ public static class StorageFileNames
 
     public static string Image(string name, string mimeType)
     {
-        var extension = string.Equals(mimeType, FileMimeTypes.ImagePng, StringComparison.OrdinalIgnoreCase)
-            ? FileExtensions.Png : string.Equals(mimeType, FileMimeTypes.ImageWebp, StringComparison.OrdinalIgnoreCase)
-                ? FileExtensions.Webp : FileExtensions.Jpg;
+        if (string.Equals(mimeType, FileMimeTypes.ImagePng, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{name}.{FileExtensions.Png}";
+        }
 
-        return $"{name}.{extension}";
+        if (string.Equals(mimeType, FileMimeTypes.ImageWebp, StringComparison.OrdinalIgnoreCase))
+        {
+            return $"{name}.{FileExtensions.Webp}";
+        }
+
+        return $"{name}.{FileExtensions.Jpg}";
     }
 }

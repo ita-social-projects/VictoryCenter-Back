@@ -295,14 +295,14 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
         foreach (var entry in ChangeTracker.Entries<PdfReport>().ToArray())
         {
-            switch (entry.State)
+            if (entry.State == EntityState.Deleted)
             {
-                case EntityState.Deleted:
-                    QueueStorageDeletion(StorageFileKind.Pdf, entry.Entity.BlobName);
-                    break;
-                case EntityState.Added:
-                    uploads.Add((StorageFileKind.Pdf, entry.Entity.BlobName));
-                    break;
+                QueueStorageDeletion(StorageFileKind.Pdf, entry.Entity.BlobName);
+            }
+
+            if (entry.State == EntityState.Added)
+            {
+                uploads.Add((StorageFileKind.Pdf, entry.Entity.BlobName));
             }
         }
 
