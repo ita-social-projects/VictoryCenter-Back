@@ -23,8 +23,9 @@ await app.ApplyMigrationsAsync();
 await app.CreateInitialDataAsync();
 
 app.UseForwardedHeaders();
-app.UseRequestResponseLogging();
 app.UseCors();
+app.UseExceptionHandling();
+app.UseRequestResponseLogging();
 app.UseRateLimiter();
 app.MapOpenApi();
 app.MapControllers();
