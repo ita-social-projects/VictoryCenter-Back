@@ -17,6 +17,7 @@ public class StorageOperationWorkerTests : IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), $"vc-worker-{Guid.NewGuid():N}");
     private readonly Mock<ILogger<StorageOperationWorker>> _logger = new();
+    private readonly Mock<ILogger<StorageOperationProcessor>> _operationLogger = new();
     private readonly AdjustableClock _clock = new();
 
     [Theory]
@@ -52,7 +53,9 @@ public class StorageOperationWorkerTests : IDisposable
         var saved = await verification.ServiceProvider.GetRequiredService<VictoryCenterDbContext>().StorageOperations.SingleAsync();
         Assert.Equal(StorageOperationStatus.Completed, saved.Status);
         Assert.Equal(1, saved.Attempts);
-        var errors = _logger.Invocations.Where(invocation => invocation.Method.Name == "Log"
+        Assert.DoesNotContain(_logger.Invocations, invocation => invocation.Method.Name == "Log"
+            && (LogLevel)invocation.Arguments[0] == LogLevel.Error);
+        var errors = _operationLogger.Invocations.Where(invocation => invocation.Method.Name == "Log"
             && (LogLevel)invocation.Arguments[0] == LogLevel.Error).ToList();
         Assert.Equal(failFirstClaim ? 1 : 0, errors.Count);
         Assert.All(errors, invocation => Assert.DoesNotContain("sensitive failure detail", invocation.Arguments[2].ToString()));
@@ -121,6 +124,7 @@ public class StorageOperationWorkerTests : IDisposable
     public void Dispose()
     {
         Directory.Delete(_root, recursive: true);
+        GC.SuppressFinalize(this);
     }
 
     private ServiceProvider Services(SaveChangesInterceptor? interceptor = null)
@@ -128,6 +132,7 @@ public class StorageOperationWorkerTests : IDisposable
         var database = Guid.NewGuid().ToString();
         return new ServiceCollection()
             .AddLogging()
+            .AddSingleton(_operationLogger.Object)
             .AddSingleton<TimeProvider>(_clock)
             .AddSingleton(Options.Create(new StorageLifecycleOptions { PollIntervalSeconds = 1 }))
             .AddSingleton(Options.Create(new BlobEnvironmentVariables { RootPath = _root, ImagesSubPath = "images" }))

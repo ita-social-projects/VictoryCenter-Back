@@ -22,13 +22,9 @@ public static class StorageFileNames
 
     public static string Image(string name, string mimeType)
     {
-        var extension = mimeType.ToLowerInvariant() switch
-        {
-            FileMimeTypes.ImageJpeg or FileMimeTypes.ImageJpg => FileExtensions.Jpg,
-            FileMimeTypes.ImagePng => FileExtensions.Png,
-            FileMimeTypes.ImageWebp => FileExtensions.Webp,
-            _ => throw new ArgumentException("Unsupported image MIME type.", nameof(mimeType))
-        };
+        var extension = string.Equals(mimeType, FileMimeTypes.ImagePng, StringComparison.OrdinalIgnoreCase)
+            ? FileExtensions.Png : string.Equals(mimeType, FileMimeTypes.ImageWebp, StringComparison.OrdinalIgnoreCase)
+                ? FileExtensions.Webp : FileExtensions.Jpg;
 
         return $"{name}.{extension}";
     }

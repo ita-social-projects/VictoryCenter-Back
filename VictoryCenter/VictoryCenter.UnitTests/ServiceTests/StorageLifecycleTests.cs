@@ -137,7 +137,8 @@ public partial class StorageLifecycleTests : IDisposable
         await using var context = CreateContext();
         context.Images.AddRange(
             new Image { BlobName = "shared", MimeType = "image/jpeg" },
-            new Image { BlobName = "shared", MimeType = "image/JPG" });
+            new Image { BlobName = "shared", MimeType = "image/JPG" },
+            new Image { BlobName = "shared", MimeType = "image/gif" });
         await context.SaveChangesAsync();
 
         Assert.Equal(1, await Reconciliation(context).ScanAsync(CancellationToken.None));
@@ -211,7 +212,8 @@ public partial class StorageLifecycleTests : IDisposable
             .AddInterceptors(new RejectAcknowledgement()).Options;
         await using (var failed = new VictoryCenterDbContext(options))
         {
-            await Assert.ThrowsAsync<DbUpdateException>(() => Processor(failed).ProcessBatchAsync(CancellationToken.None));
+            Assert.Equal(0, await Processor(failed).ProcessBatchAsync(CancellationToken.None));
+            Assert.Empty(failed.ChangeTracker.Entries());
         }
 
         Assert.False(File.Exists(path));
@@ -229,6 +231,9 @@ public partial class StorageLifecycleTests : IDisposable
     [InlineData("image/jpeg", "live.jpg")]
     [InlineData("image/JPG", "live.jpg")]
     [InlineData("image/WEBP", "live.webp")]
+    [InlineData("image/gif", "live.jpg")]
+    [InlineData("application/octet-stream", "live.jpg")]
+    [InlineData("", "live.jpg")]
     public async Task Processor_DoesNotDeleteReferencedImage(string mimeType, string fileName)
     {
         await using var context = CreateContext();
@@ -458,7 +463,7 @@ public partial class StorageLifecycleTests : IDisposable
             Options.Create(new BlobEnvironmentVariables { RootPath = root, ImagesSubPath = "images" }),
             Options.Create(new PdfEnvironmentVariables { RootPath = root, PdfSubPath = "pdfs" }));
         await using var context = CreateContext();
-        var reconciliation = new StorageReconciliation(context, files, _clock.Object);
+        var reconciliation = new StorageReconciliation(context, files, _clock.Object, NullLogger<StorageReconciliation>.Instance);
 
         Assert.Equal(0, await reconciliation.ScanAsync(CancellationToken.None));
         Assert.Empty(await context.StorageReconciliationFindings.ToListAsync());
@@ -609,6 +614,7 @@ public partial class StorageLifecycleTests : IDisposable
     public void Dispose()
     {
         Directory.Delete(_root, recursive: true);
+        GC.SuppressFinalize(this);
     }
 
     private static Image NewImage(string name) => new() { BlobName = name, MimeType = "image/png" };
@@ -621,7 +627,7 @@ public partial class StorageLifecycleTests : IDisposable
         NextAttemptAt = _now.AddMinutes(-1)
     };
 
-    private VictoryCenterDbContext CreateContext() => new(_databaseOptions);
+    private VictoryCenterDbContext CreateContext() => new(_databaseOptions, _clock.Object);
 
     private StorageUploadReservations Reservations(ServiceProvider provider) => new(
         provider.GetRequiredService<IServiceScopeFactory>(), Files(), Options.Create(_options), _clock.Object);
@@ -633,7 +639,8 @@ public partial class StorageLifecycleTests : IDisposable
     private StorageOperationProcessor Processor(VictoryCenterDbContext context) => new(
         context, Files(), Options.Create(_options), _clock.Object, NullLogger<StorageOperationProcessor>.Instance);
 
-    private StorageReconciliation Reconciliation(VictoryCenterDbContext context) => new(context, Files(), _clock.Object);
+    private StorageReconciliation Reconciliation(VictoryCenterDbContext context) => new(
+        context, Files(), _clock.Object, NullLogger<StorageReconciliation>.Instance);
 
     private sealed class RejectAcknowledgement : SaveChangesInterceptor
     {

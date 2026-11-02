@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
@@ -7,7 +8,8 @@ namespace VictoryCenter.BLL.Services.StorageLifecycle;
 public class StorageReconciliation(
     VictoryCenterDbContext context,
     LocalStorageFiles files,
-    TimeProvider clock)
+    TimeProvider clock,
+    ILogger<StorageReconciliation> logger)
 {
     private const int ScanBatchSize = 200;
 
@@ -15,20 +17,38 @@ public class StorageReconciliation(
     {
         var scanStartedAt = clock.GetUtcNow();
         var findings = 0;
+        var failures = 0;
         foreach (var fileKind in Enum.GetValues<StorageFileKind>())
         {
-            long afterId = 0;
-            while (true)
-            {
-                var references = await StorageReferences.Inventory(context, fileKind)
-                    .Where(reference => reference.Id > afterId).OrderBy(reference => reference.Id)
-                    .Take(ScanBatchSize).ToListAsync(cancellationToken);
-                if (references.Count == 0)
-                {
-                    break;
-                }
+            var references = await ScanReferencesAsync(fileKind, cancellationToken);
+            var inventory = await ScanFilesAsync(fileKind, cancellationToken);
+            findings += references.Findings + inventory.Findings;
+            failures += references.Failures + inventory.Failures;
+        }
 
-                foreach (var reference in references)
+        failures += await RecheckStaleFindingsAsync(scanStartedAt, cancellationToken);
+        if (failures > 0)
+        {
+            logger.LogWarning("Storage reconciliation skipped {FailureCount} entries because of storage errors", failures);
+        }
+
+        return findings;
+    }
+
+    private async Task<(int Findings, int Failures)> ScanReferencesAsync(StorageFileKind fileKind, CancellationToken cancellationToken)
+    {
+        var findings = 0;
+        var failures = 0;
+        long afterId = 0;
+        List<StorageReference> references;
+        do
+        {
+            references = await StorageReferences.Inventory(context, fileKind)
+                .Where(reference => reference.Id > afterId).OrderBy(reference => reference.Id)
+                .Take(ScanBatchSize).ToListAsync(cancellationToken);
+            foreach (var reference in references)
+            {
+                try
                 {
                     var name = fileKind == StorageFileKind.Image
                         ? StorageFileNames.Image(reference.Name, reference.MimeType) : reference.Name;
@@ -36,13 +56,33 @@ public class StorageReconciliation(
                     await RecordAsync(fileKind, name, StorageFindingKind.Missing, missing, cancellationToken);
                     findings += missing ? 1 : 0;
                 }
-
-                afterId = references[^1].Id;
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+                {
+                    failures++;
+                    logger.LogWarning(
+                        "Storage reconciliation skipped reference {ReferenceId} of {FileKind} with {ErrorCode}",
+                        reference.Id,
+                        fileKind,
+                        exception.GetType().Name);
+                }
             }
 
-            foreach (var fileName in files.Enumerate(fileKind))
+            afterId = references.Count > 0 ? references[^1].Id : afterId;
+        }
+        while (references.Count == ScanBatchSize);
+
+        return (findings, failures);
+    }
+
+    private async Task<(int Findings, int Failures)> ScanFilesAsync(StorageFileKind fileKind, CancellationToken cancellationToken)
+    {
+        var findings = 0;
+        var failures = 0;
+        foreach (var fileName in files.Enumerate(fileKind))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 var unreferenced = !await StorageReferences.ExistsAsync(context, fileKind, fileName, cancellationToken);
                 if (unreferenced && await StorageReferences.IsProtectedAsync(context, fileKind, fileName, cancellationToken))
                 {
@@ -53,29 +93,45 @@ public class StorageReconciliation(
                 await RecordAsync(fileKind, fileName, StorageFindingKind.Unreferenced, unreferenced, cancellationToken);
                 findings += unreferenced ? 1 : 0;
             }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+            {
+                failures++;
+                logger.LogWarning("Storage reconciliation skipped a file of {FileKind} with {ErrorCode}", fileKind, exception.GetType().Name);
+            }
         }
 
-        while (true)
+        return (findings, failures);
+    }
+
+    private async Task<int> RecheckStaleFindingsAsync(DateTimeOffset scanStartedAt, CancellationToken cancellationToken)
+    {
+        HashSet<Guid> failedIds = [];
+        List<StorageReconciliationFinding> staleFindings;
+        do
         {
-            var staleFindings = await context.StorageReconciliationFindings.AsNoTracking()
-                .Where(finding => finding.ResolvedAt == null && finding.LastSeenAt < scanStartedAt)
+            staleFindings = await context.StorageReconciliationFindings.AsNoTracking()
+                .Where(finding => finding.ResolvedAt == null && finding.LastSeenAt < scanStartedAt && !failedIds.Contains(finding.Id))
                 .OrderBy(finding => finding.LastSeenAt).ThenBy(finding => finding.Id)
                 .Take(ScanBatchSize).ToListAsync(cancellationToken);
-            if (staleFindings.Count == 0)
-            {
-                break;
-            }
-
             foreach (var finding in staleFindings)
             {
-                var referenced = await StorageReferences.ExistsAsync(context, finding.FileKind, finding.FileName, cancellationToken);
-                var exists = files.Exists(finding.FileKind, finding.FileName);
-                var stillPresent = finding.Kind == StorageFindingKind.Missing ? referenced && !exists : !referenced && exists;
-                await RecordAsync(finding.FileKind, finding.FileName, finding.Kind, stillPresent, cancellationToken);
+                try
+                {
+                    var referenced = await StorageReferences.ExistsAsync(context, finding.FileKind, finding.FileName, cancellationToken);
+                    var exists = files.Exists(finding.FileKind, finding.FileName);
+                    var stillPresent = finding.Kind == StorageFindingKind.Missing ? referenced && !exists : !referenced && exists;
+                    await RecordAsync(finding.FileKind, finding.FileName, finding.Kind, stillPresent, cancellationToken);
+                }
+                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+                {
+                    failedIds.Add(finding.Id);
+                    logger.LogWarning("Storage reconciliation skipped finding {FindingId} with {ErrorCode}", finding.Id, exception.GetType().Name);
+                }
             }
         }
+        while (staleFindings.Count == ScanBatchSize);
 
-        return findings;
+        return failedIds.Count;
     }
 
     private async Task RecordAsync(

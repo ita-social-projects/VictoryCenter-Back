@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
@@ -12,9 +13,12 @@ namespace VictoryCenter.DAL.Data;
 
 public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<int>, int>
 {
-    public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
+    private readonly TimeProvider _clock;
+
+    public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options, TimeProvider? clock = null)
         : base(options)
     {
+        _clock = clock ?? TimeProvider.System;
     }
 
     public DbSet<TeamCategory> TeamCategories { get; set; }
@@ -282,44 +286,65 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
         ChangeTracker.DetectChanges();
         foreach (var entry in ChangeTracker.Entries<Image>().ToArray())
         {
-            if (entry.State is EntityState.Unchanged or EntityState.Detached)
+            var upload = PrepareImageChange(entry);
+            if (upload != null)
             {
-                continue;
-            }
-
-            var current = StorageFileNames.Image(entry.Entity.BlobName, entry.Entity.MimeType);
-            var previous = entry.State == EntityState.Added ? null : StorageFileNames.Image(
-                entry.OriginalValues.GetValue<string>(nameof(Image.BlobName)),
-                entry.OriginalValues.GetValue<string>(nameof(Image.MimeType)));
-            if (entry.State == EntityState.Deleted || (previous != null && previous != current))
-            {
-                QueueStorageDeletion(StorageFileKind.Image, previous!);
-            }
-
-            if (entry.State == EntityState.Added || (entry.State == EntityState.Modified && previous != current))
-            {
-                uploads.Add((StorageFileKind.Image, current));
-            }
-
-            if (entry.State == EntityState.Modified)
-            {
-                entry.Entity.StorageVersion = Guid.NewGuid();
+                uploads.Add((StorageFileKind.Image, upload));
             }
         }
 
         foreach (var entry in ChangeTracker.Entries<PdfReport>().ToArray())
         {
-            if (entry.State == EntityState.Deleted)
+            switch (entry.State)
             {
-                QueueStorageDeletion(StorageFileKind.Pdf, entry.Entity.BlobName);
-            }
-            else if (entry.State == EntityState.Added)
-            {
-                uploads.Add((StorageFileKind.Pdf, entry.Entity.BlobName));
+                case EntityState.Deleted:
+                    QueueStorageDeletion(StorageFileKind.Pdf, entry.Entity.BlobName);
+                    break;
+                case EntityState.Added:
+                    uploads.Add((StorageFileKind.Pdf, entry.Entity.BlobName));
+                    break;
             }
         }
 
-        return uploads.Distinct().ToList();
+        foreach (var entry in ChangeTracker.Entries<StorageOperation>().Where(entry => entry.State == EntityState.Added
+            && entry.Entity.CreatedAt == default))
+        {
+            entry.Entity.CreatedAt = _clock.GetUtcNow();
+        }
+
+        return [.. uploads.Distinct()];
+    }
+
+    private string? PrepareImageChange(EntityEntry<Image> entry)
+    {
+        if (entry.State == EntityState.Added)
+        {
+            return StorageFileNames.Image(entry.Entity.BlobName, entry.Entity.MimeType);
+        }
+
+        if (entry.State is EntityState.Unchanged or EntityState.Detached)
+        {
+            return null;
+        }
+
+        var previous = StorageFileNames.Image(
+            entry.OriginalValues.GetValue<string>(nameof(Image.BlobName)),
+            entry.OriginalValues.GetValue<string>(nameof(Image.MimeType)));
+        if (entry.State == EntityState.Deleted)
+        {
+            QueueStorageDeletion(StorageFileKind.Image, previous);
+            return null;
+        }
+
+        entry.Entity.StorageVersion = Guid.NewGuid();
+        var current = StorageFileNames.Image(entry.Entity.BlobName, entry.Entity.MimeType);
+        if (previous == current)
+        {
+            return null;
+        }
+
+        QueueStorageDeletion(StorageFileKind.Image, previous);
+        return current;
     }
 
     private void QueueStorageDeletion(StorageFileKind fileKind, string fileName)
@@ -333,12 +358,12 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
                 FileKind = fileKind,
                 FileName = fileName,
                 Kind = StorageOperationKind.Delete,
-                NextAttemptAt = DateTimeOffset.UtcNow
+                NextAttemptAt = _clock.GetUtcNow()
             });
         }
     }
 
-    private static void CompleteUploadIntent(StorageOperation? operation)
+    private void CompleteUploadIntent(StorageOperation? operation)
     {
         if (operation == null)
         {
@@ -352,7 +377,7 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
         }
 
         operation.Status = StorageOperationStatus.Completed;
-        operation.CompletedAt = DateTimeOffset.UtcNow;
+        operation.CompletedAt = _clock.GetUtcNow();
         operation.Version = Guid.NewGuid();
     }
 }

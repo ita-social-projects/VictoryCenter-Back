@@ -28,7 +28,7 @@ public class StorageOperation
     public StorageOperationKind Kind { get; set; }
     public StorageOperationStatus Status { get; set; }
     public int Attempts { get; set; }
-    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset NextAttemptAt { get; set; }
     public DateTimeOffset? CompletedAt { get; set; }
     public string? LastErrorCode { get; set; }

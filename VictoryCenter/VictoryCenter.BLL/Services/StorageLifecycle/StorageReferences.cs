@@ -17,13 +17,21 @@ public static class StorageReferences
     {
         var temporaryOwner = StorageFileNames.TemporaryOwner(name);
         var legacyPrefix = temporaryOwner == null ? null : temporaryOwner + ".";
-        return context.StorageOperations.AnyAsync(
-            operation => operation.FileKind == kind
-                && (!excludedOperationId.HasValue || operation.Id != excludedOperationId.Value)
-                && (operation.FileName == name || (temporaryOwner != null
-                    && operation.Kind == StorageOperationKind.UploadCleanup
-                    && (operation.FileName == temporaryOwner || operation.FileName.StartsWith(legacyPrefix!))))
-                && (operation.Status == StorageOperationStatus.Pending || operation.Status == StorageOperationStatus.Processing), cancellationToken);
+        var operations = context.StorageOperations.Where(operation => operation.FileKind == kind
+            && (operation.Status == StorageOperationStatus.Pending || operation.Status == StorageOperationStatus.Processing));
+        if (excludedOperationId.HasValue)
+        {
+            operations = operations.Where(operation => operation.Id != excludedOperationId.Value);
+        }
+
+        if (temporaryOwner == null)
+        {
+            return operations.AnyAsync(operation => operation.FileName == name, cancellationToken);
+        }
+
+        return operations.AnyAsync(
+            operation => operation.FileName == name || (operation.Kind == StorageOperationKind.UploadCleanup
+                && (operation.FileName == temporaryOwner || operation.FileName.StartsWith(legacyPrefix!))), cancellationToken);
     }
 
     public static IQueryable<StorageReference> Inventory(VictoryCenterDbContext context, StorageFileKind fileKind)
@@ -35,8 +43,8 @@ public static class StorageReferences
                 {
                     image.Id,
                     Name = image.BlobName,
-                    MimeType = string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Jpg)
-                        ? ImageMimeTypes.Jpeg : image.MimeType.ToLower()
+                    MimeType = string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Png) ? ImageMimeTypes.Png
+                        : string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Webp) ? ImageMimeTypes.Webp : ImageMimeTypes.Jpeg
                 }),
             StorageFileKind.Pdf => context.PdfReports.AsNoTracking()
                 .Select(report => new { report.Id, Name = report.BlobName, MimeType = string.Empty }),
@@ -65,14 +73,24 @@ public static class StorageReferences
         }
 
         var name = Path.GetFileNameWithoutExtension(fileName);
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
-        return context.Images.AnyAsync(
-            image => image.BlobName == name
-            && ((string.Equals(extension, FileExtensions.JpgWithDot)
-                    && (string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Jpeg)
-                        || string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Jpg)))
-                || (string.Equals(extension, FileExtensions.PngWithDot) && string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Png))
-                || (string.Equals(extension, FileExtensions.WebpWithDot) && string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Webp))), cancellationToken);
+        var extension = Path.GetExtension(fileName);
+        var images = context.Images.Where(image => image.BlobName == name);
+        if (string.Equals(extension, FileExtensions.PngWithDot, StringComparison.OrdinalIgnoreCase))
+        {
+            return images.AnyAsync(image => string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Png), cancellationToken);
+        }
+
+        if (string.Equals(extension, FileExtensions.WebpWithDot, StringComparison.OrdinalIgnoreCase))
+        {
+            return images.AnyAsync(image => string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Webp), cancellationToken);
+        }
+
+        // BlobService stores legacy/unknown MIME types as JPEG. Keep cleanup conservative.
+        return string.Equals(extension, FileExtensions.JpgWithDot, StringComparison.OrdinalIgnoreCase)
+            ? images.AnyAsync(
+                image => !string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Png)
+                    && !string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Webp), cancellationToken)
+            : Task.FromResult(false);
     }
 }
 

@@ -13,7 +13,6 @@ namespace VictoryCenter.IntegrationTests.Utils;
 public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactory<TStartup>
     where TStartup : class
 {
-    protected readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
     private readonly string _databaseName;
 
     public VictoryCenterWebApplicationFactory(string? databaseName = null)
@@ -21,10 +20,13 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
         _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
     }
 
+    protected string TestBlobPath { get; } = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
+
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync();
         CleanupTestBlobDirectory();
+        GC.SuppressFinalize(this);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

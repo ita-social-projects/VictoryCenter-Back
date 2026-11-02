@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Services.StorageLifecycle;
@@ -18,6 +19,203 @@ namespace VictoryCenter.UnitTests.ServiceTests;
 
 public partial class StorageLifecycleTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MetadataSave_UsesInjectedClockForLifecycleTimestamps(bool synchronous)
+    {
+        var timestamp = new DateTimeOffset(2025, 1, 2, 3, 4, 5, TimeSpan.Zero);
+        _clock.Setup(clock => clock.GetUtcNow()).Returns(timestamp);
+        await using var context = CreateContext();
+        var reservation = Operation("clock.png", StorageOperationKind.UploadCleanup);
+        context.StorageOperations.Add(reservation);
+        if (synchronous)
+        {
+            context.SaveChanges();
+        }
+        else
+        {
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Equal(timestamp, reservation.CreatedAt);
+        var image = NewImage("clock");
+        context.Images.Add(image);
+        if (synchronous)
+        {
+            context.SaveChanges();
+        }
+        else
+        {
+            await context.SaveChangesAsync();
+        }
+
+        Assert.Equal(timestamp, reservation.CompletedAt);
+        context.Images.Remove(image);
+        if (synchronous)
+        {
+            context.SaveChanges();
+        }
+        else
+        {
+            await context.SaveChangesAsync();
+        }
+
+        var deletion = await context.StorageOperations.SingleAsync(operation => operation.Kind == StorageOperationKind.Delete);
+        Assert.Equal(timestamp, deletion.CreatedAt);
+        Assert.Equal(timestamp, deletion.NextAttemptAt);
+    }
+
+    [Fact]
+    public async Task MetadataSave_PreservesExplicitOperationCreationTime()
+    {
+        await using var context = CreateContext();
+        var operation = Operation("audited.png");
+        operation.CreatedAt = _now.AddDays(-2);
+        context.StorageOperations.Add(operation);
+
+        await context.SaveChangesAsync();
+
+        Assert.Equal(_now.AddDays(-2), operation.CreatedAt);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Processor_SaveFailureDoesNotBlockLaterOperations(bool acknowledgement)
+    {
+        var failedOperation = Operation("failed.png");
+        failedOperation.NextAttemptAt = _now.AddMinutes(-2);
+        var healthyOperation = Operation("healthy.png");
+        await using (var seed = CreateContext())
+        {
+            seed.StorageOperations.AddRange(failedOperation, healthyOperation);
+            await seed.SaveChangesAsync();
+        }
+
+        var failedPath = Files().GetPath(StorageFileKind.Image, failedOperation.FileName);
+        var healthyPath = Files().GetPath(StorageFileKind.Image, healthyOperation.FileName);
+        await File.WriteAllTextAsync(failedPath, "failed operation bytes");
+        await File.WriteAllTextAsync(healthyPath, "healthy operation bytes");
+        var interceptor = new StorageSaveInterceptor(before: database =>
+        {
+            if (database.ChangeTracker.Entries<StorageOperation>().Any(entry => entry.Entity.Id == failedOperation.Id
+                && entry.Entity.Status == (acknowledgement ? StorageOperationStatus.Completed : StorageOperationStatus.Processing)))
+            {
+                throw new DbUpdateException("Simulated per-operation save failure.");
+            }
+        });
+        var databaseOptions = new DbContextOptionsBuilder<VictoryCenterDbContext>(_databaseOptions).AddInterceptors(interceptor).Options;
+        await using var context = new VictoryCenterDbContext(databaseOptions);
+
+        Assert.Equal(1, await Processor(context).ProcessBatchAsync(CancellationToken.None));
+
+        await using var verification = CreateContext();
+        var savedFailure = await verification.StorageOperations.SingleAsync(operation => operation.Id == failedOperation.Id);
+        Assert.Equal(acknowledgement ? StorageOperationStatus.Processing : StorageOperationStatus.Pending, savedFailure.Status);
+        Assert.Equal(acknowledgement ? 1 : 0, savedFailure.Attempts);
+        Assert.Equal(!acknowledgement, File.Exists(failedPath));
+        Assert.False(File.Exists(healthyPath));
+        Assert.Equal(
+            StorageOperationStatus.Completed,
+            (await verification.StorageOperations.SingleAsync(operation => operation.Id == healthyOperation.Id)).Status);
+    }
+
+    [Fact]
+    public async Task Processor_InvalidCleanupFindingsDoNotBlockLaterOperations()
+    {
+        await using var context = CreateContext();
+        var operation = Operation("ambiguous.png");
+        operation.NextAttemptAt = _now.AddMinutes(-2);
+        var healthyOperation = Operation("healthy.png");
+        context.StorageOperations.AddRange(operation, healthyOperation);
+        context.StorageReconciliationFindings.AddRange(
+            new StorageReconciliationFinding { FileName = "first.png", CleanupOperationId = operation.Id },
+            new StorageReconciliationFinding { FileName = "second.png", CleanupOperationId = operation.Id });
+        await context.SaveChangesAsync();
+        var path = Files().GetPath(StorageFileKind.Image, operation.FileName);
+        await File.WriteAllTextAsync(path, "keep ambiguous file");
+
+        Assert.Equal(1, await Processor(context).ProcessBatchAsync(CancellationToken.None));
+
+        Assert.Equal("keep ambiguous file", await File.ReadAllTextAsync(path));
+        Assert.Equal(
+            StorageOperationStatus.Processing,
+            (await context.StorageOperations.SingleAsync(item => item.Id == operation.Id)).Status);
+        Assert.Equal(
+            StorageOperationStatus.Completed,
+            (await context.StorageOperations.SingleAsync(item => item.Id == healthyOperation.Id)).Status);
+    }
+
+    [Theory]
+    [InlineData("../invalid")]
+    [InlineData("directory")]
+    [InlineData("long")]
+    public async Task Reconciliation_BadReferenceDoesNotBlockIndependentPasses(string name)
+    {
+        await using var context = CreateContext();
+        name = name == "long" ? new string('a', StorageFileNames.MaxLength) : name;
+        context.Images.AddRange(NewImage(name), NewImage("missing"));
+        context.PdfReports.Add(new PdfReport { Name = "Missing PDF", BlobName = "missing.pdf" });
+        await context.SaveChangesAsync();
+        Directory.CreateDirectory(Path.Combine(_root, "images", "directory.png"));
+        await File.WriteAllTextAsync(Files().GetPath(StorageFileKind.Image, "orphan.png"), "orphan");
+        var logger = new Mock<ILogger<StorageReconciliation>>();
+        var reconciliation = new StorageReconciliation(context, Files(), _clock.Object, logger.Object);
+
+        Assert.Equal(3, await reconciliation.ScanAsync(CancellationToken.None));
+
+        Assert.Equal(3, await context.StorageReconciliationFindings.CountAsync());
+        Assert.Contains(await context.StorageReconciliationFindings.ToListAsync(), finding => finding.FileName == "missing.pdf");
+        Assert.Contains(logger.Invocations, invocation => invocation.Arguments.Any(argument =>
+            argument?.ToString()?.Contains("skipped 1 entries", StringComparison.Ordinal) == true));
+    }
+
+    [Fact]
+    public async Task Reconciliation_BadStaleFindingsAreSkippedWithoutLoopingOrBlockingLaterPages()
+    {
+        await using var context = CreateContext();
+        const int invalidFindingCount = 201;
+        for (var index = 0; index < invalidFindingCount; index++)
+        {
+            context.StorageReconciliationFindings.Add(new StorageReconciliationFinding
+            {
+                FileName = $"../invalid-{index}.png", LastSeenAt = _now.AddDays(-2)
+            });
+        }
+
+        var resolved = new StorageReconciliationFinding { FileName = "gone.png", LastSeenAt = _now.AddDays(-1) };
+        context.StorageReconciliationFindings.Add(resolved);
+        await context.SaveChangesAsync();
+
+        Assert.Equal(0, await Reconciliation(context).ScanAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5)));
+
+        context.ChangeTracker.Clear();
+        Assert.Equal(_now, (await context.StorageReconciliationFindings.SingleAsync(finding => finding.Id == resolved.Id)).ResolvedAt);
+        Assert.Equal(invalidFindingCount, await context.StorageReconciliationFindings.CountAsync(finding => finding.ResolvedAt == null));
+    }
+
+    [Fact]
+    public async Task LegacyMime_ReplacementAndDeletionQueueTheOriginalJpegFile()
+    {
+        await using var context = CreateContext();
+        var image = new Image { BlobName = "legacy", MimeType = "image/gif" };
+        context.Images.Add(image);
+        await context.SaveChangesAsync();
+        var oldPath = Files().GetPath(StorageFileKind.Image, "legacy.jpg");
+        await File.WriteAllTextAsync(oldPath, "legacy bytes");
+
+        image.BlobName = "replacement";
+        image.MimeType = "image/png";
+        await context.SaveChangesAsync();
+        context.Images.Remove(image);
+        await context.SaveChangesAsync();
+
+        Assert.Equal(2, await Processor(context).ProcessBatchAsync(CancellationToken.None));
+        Assert.False(File.Exists(oldPath));
+        Assert.All(await context.StorageOperations.ToListAsync(), operation => Assert.Equal(StorageOperationStatus.Completed, operation.Status));
+    }
+
     [Theory]
     [InlineData(StorageFileKind.Image, "upload.png")]
     [InlineData(StorageFileKind.Pdf, "upload.pdf")]
@@ -241,7 +439,7 @@ public partial class StorageLifecycleTests
             .AddInterceptors(new StorageSaveInterceptor(before: _ => throw new DbUpdateException("Simulated claim failure"))).Options;
         await using (var failed = new VictoryCenterDbContext(options))
         {
-            await Assert.ThrowsAsync<DbUpdateException>(() => Processor(failed).ProcessBatchAsync(CancellationToken.None));
+            Assert.Equal(0, await Processor(failed).ProcessBatchAsync(CancellationToken.None));
         }
 
         await using var verification = CreateContext();
@@ -275,6 +473,7 @@ public partial class StorageLifecycleTests
         await using var loser = new VictoryCenterDbContext(options);
 
         Assert.Equal(0, await Processor(loser).ProcessBatchAsync(CancellationToken.None));
+        Assert.Empty(loser.ChangeTracker.Entries());
         Assert.Equal("keep", await File.ReadAllTextAsync(path));
     }
 
@@ -303,6 +502,7 @@ public partial class StorageLifecycleTests
         await using (var loser = new VictoryCenterDbContext(options))
         {
             Assert.Equal(1, await Processor(loser).ProcessBatchAsync(CancellationToken.None));
+            Assert.Empty(loser.ChangeTracker.Entries());
         }
 
         Assert.False(File.Exists(path));
@@ -457,7 +657,7 @@ public partial class StorageLifecycleTests
         await using var context = CreateContext();
         var files = Files();
         Directory.Delete(Path.Combine(_root, "images"));
-        var reconciliation = new StorageReconciliation(context, files, _clock.Object);
+        var reconciliation = new StorageReconciliation(context, files, _clock.Object, NullLogger<StorageReconciliation>.Instance);
 
         await Assert.ThrowsAsync<DirectoryNotFoundException>(() => reconciliation.ScanAsync(CancellationToken.None));
         Assert.Empty(await context.StorageReconciliationFindings.ToListAsync());

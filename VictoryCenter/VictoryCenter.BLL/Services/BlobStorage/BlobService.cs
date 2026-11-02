@@ -283,8 +283,8 @@ public class BlobService : IBlobService
     {
         if (string.IsNullOrWhiteSpace(name)
             || name.Contains("..")
-            || name.Contains('/') || name.Contains('\\')
-            || Path.GetInvalidFileNameChars().Any(name.Contains))
+            || name.IndexOfAny(['/', '\\']) >= 0
+            || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
         {
             throw new BlobFileNameException(name, ImageConstants.WrongFileName(name));
         }

@@ -16,13 +16,7 @@ public class LocalStorageFiles(
 
     public string GetPath(StorageFileKind fileKind, string fileName)
     {
-        if (string.IsNullOrWhiteSpace(fileName) || fileName.Length > StorageFileNames.MaxLength
-            || fileName is "." or ".." || fileName.Contains('/') || fileName.Contains('\\')
-            || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-        {
-            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
-        }
-
+        ValidateFileName(fileName);
         var root = fileKind switch
         {
             StorageFileKind.Image => _imageRoot,
@@ -73,6 +67,19 @@ public class LocalStorageFiles(
             .Select(Path.GetFileName).OfType<string>().Where(name => IsManagedFile(fileKind, name));
     }
 
+    private static void ValidateFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) || fileName.Length > StorageFileNames.MaxLength || fileName is "." or "..")
+        {
+            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
+        }
+
+        if (fileName.Contains('/') || fileName.Contains('\\') || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
+        }
+    }
+
     private static bool IsManagedFile(StorageFileKind fileKind, string fileName)
     {
         if (fileName.StartsWith('.') && fileName.EndsWith(FileExtensions.TemporaryWithDot, StringComparison.OrdinalIgnoreCase))
@@ -80,9 +87,11 @@ public class LocalStorageFiles(
             return StorageFileNames.TemporaryOwner(fileName) != null;
         }
 
-        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        var extension = Path.GetExtension(fileName);
         return fileKind == StorageFileKind.Pdf
-            ? string.Equals(extension, FileExtensions.PdfWithDot, StringComparison.Ordinal)
-            : extension is FileExtensions.JpgWithDot or FileExtensions.PngWithDot or FileExtensions.WebpWithDot;
+            ? string.Equals(extension, FileExtensions.PdfWithDot, StringComparison.OrdinalIgnoreCase)
+            : string.Equals(extension, FileExtensions.JpgWithDot, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, FileExtensions.PngWithDot, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, FileExtensions.WebpWithDot, StringComparison.OrdinalIgnoreCase);
     }
 }

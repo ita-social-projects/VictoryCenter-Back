@@ -27,48 +27,66 @@ public class StorageOperationProcessor(
         foreach (var id in ids)
         {
             context.ChangeTracker.Clear();
-            var operation = await context.StorageOperations.SingleAsync(item => item.Id == id, cancellationToken);
-            if (operation.Status is StorageOperationStatus.Completed or StorageOperationStatus.Failed
-                || operation.NextAttemptAt > clock.GetUtcNow())
-            {
-                continue;
-            }
-
-            if (operation.Attempts >= options.Value.MaxAttempts)
-            {
-                operation.Status = StorageOperationStatus.Failed;
-                operation.LastErrorCode = StorageLifecycleConstants.RetryLimitReached;
-                operation.Version = Guid.NewGuid();
-            }
-            else
-            {
-                operation.Status = StorageOperationStatus.Processing;
-                operation.Attempts++;
-                operation.NextAttemptAt = clock.GetUtcNow().AddSeconds(options.Value.LeaseSeconds);
-                operation.Version = Guid.NewGuid();
-            }
-
             try
             {
-                await context.SaveChangesAsync(cancellationToken);
+                processed += await ProcessOperationAsync(id, cancellationToken) ? 1 : 0;
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception exception) when (exception is not OperationCanceledException)
             {
-                // Another worker or the metadata commit acquired the same intent.
-                continue;
+                // The persisted lease permits retry even when acknowledgement could not be saved.
+                context.ChangeTracker.Clear();
+                logger.LogError(
+                    "Storage operation {OperationId} failed unexpectedly with {ErrorCode}; later operations will continue",
+                    id,
+                    exception.GetType().Name);
             }
-
-            if (operation.Status == StorageOperationStatus.Failed)
-            {
-                logger.LogError("Storage operation {OperationId} exhausted its retry budget", operation.Id);
-                continue;
-            }
-
-            await ProcessClaimedAsync(operation, cancellationToken);
-            processed++;
         }
 
         return processed;
+    }
+
+    private async Task<bool> ProcessOperationAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var operation = await context.StorageOperations.SingleAsync(item => item.Id == id, cancellationToken);
+        if (operation.Status is StorageOperationStatus.Completed or StorageOperationStatus.Failed
+            || operation.NextAttemptAt > clock.GetUtcNow())
+        {
+            return false;
+        }
+
+        if (operation.Attempts >= options.Value.MaxAttempts)
+        {
+            operation.Status = StorageOperationStatus.Failed;
+            operation.LastErrorCode = StorageLifecycleConstants.RetryLimitReached;
+            operation.Version = Guid.NewGuid();
+        }
+        else
+        {
+            operation.Status = StorageOperationStatus.Processing;
+            operation.Attempts++;
+            operation.NextAttemptAt = clock.GetUtcNow().AddSeconds(options.Value.LeaseSeconds);
+            operation.Version = Guid.NewGuid();
+        }
+
+        try
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Another worker or the metadata commit acquired the same intent.
+            context.ChangeTracker.Clear();
+            return false;
+        }
+
+        if (operation.Status == StorageOperationStatus.Failed)
+        {
+            logger.LogError("Storage operation {OperationId} exhausted its retry budget", operation.Id);
+            return false;
+        }
+
+        await ProcessClaimedAsync(operation, cancellationToken);
+        return true;
     }
 
     private async Task ProcessClaimedAsync(StorageOperation operation, CancellationToken cancellationToken)
@@ -90,16 +108,7 @@ public class StorageOperationProcessor(
             }
             else
             {
-                File.Delete(files.GetPath(operation.FileKind, operation.FileName));
-                if (operation.Kind == StorageOperationKind.UploadCleanup)
-                {
-                    foreach (var temporaryFile in files.Enumerate(operation.FileKind)
-                        .Where(name => StorageFileNames.TemporaryOwner(name) == operation.FileName))
-                    {
-                        File.Delete(files.GetPath(operation.FileKind, temporaryFile));
-                    }
-                }
-
+                DeleteFiles(operation);
                 operation.Status = StorageOperationStatus.Completed;
                 operation.LastErrorCode = null;
             }
@@ -133,10 +142,26 @@ public class StorageOperationProcessor(
         }
         catch (DbUpdateConcurrencyException)
         {
+            context.ChangeTracker.Clear();
             logger.LogWarning("Storage operation {OperationId} was reclaimed before acknowledgement", operation.Id);
         }
 
         logger.LogInformation("Storage operation {OperationId} finished attempt with status {Status}", operation.Id, operation.Status);
+    }
+
+    private void DeleteFiles(StorageOperation operation)
+    {
+        File.Delete(files.GetPath(operation.FileKind, operation.FileName));
+        if (operation.Kind != StorageOperationKind.UploadCleanup)
+        {
+            return;
+        }
+
+        foreach (var temporaryFile in files.Enumerate(operation.FileKind)
+            .Where(name => StorageFileNames.TemporaryOwner(name) == operation.FileName))
+        {
+            File.Delete(files.GetPath(operation.FileKind, temporaryFile));
+        }
     }
 
     private async Task<bool> IsCleanupSafeAsync(StorageOperation operation, CancellationToken cancellationToken)
@@ -159,9 +184,12 @@ public class StorageOperationProcessor(
         }
 
         var cutoff = clock.GetUtcNow().AddHours(-options.Value.OrphanMinimumAgeHours);
-        return finding.Kind == StorageFindingKind.Unreferenced && finding.ResolvedAt == null
-            && finding.FirstSeenAt <= cutoff
-            && File.GetLastWriteTimeUtc(files.GetPath(operation.FileKind, operation.FileName)) <= cutoff.UtcDateTime
+        if (finding.Kind != StorageFindingKind.Unreferenced || finding.ResolvedAt != null || finding.FirstSeenAt > cutoff)
+        {
+            return false;
+        }
+
+        return File.GetLastWriteTimeUtc(files.GetPath(operation.FileKind, operation.FileName)) <= cutoff.UtcDateTime
             && !await StorageReferences.IsProtectedAsync(context, operation.FileKind, operation.FileName, cancellationToken, operation.Id);
     }
 }
