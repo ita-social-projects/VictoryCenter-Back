@@ -20,6 +20,58 @@ public class StorageOperationWorkerTests : IDisposable
     private readonly Mock<ILogger<StorageOperationProcessor>> _operationLogger = new();
     private readonly AdjustableClock _clock = new();
 
+    [Fact]
+    public async Task Worker_UnavailableRootDoesNotRecreateDirectoriesOrConsumeAttemptsAndRecoversAfterRestore()
+    {
+        var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var unavailable = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var provider = Services(new CompletionObserver(completed, failFirstClaim: false));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var context = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            context.StorageOperations.Add(new StorageOperation
+            {
+                FileName = "absent.png", FileKind = StorageFileKind.Image, Kind = StorageOperationKind.Delete,
+                NextAttemptAt = _clock.GetUtcNow().AddSeconds(-1)
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var imageRoot = Path.Combine(_root, "images");
+        Directory.Delete(imageRoot);
+        _logger.Setup(logger => logger.Log(
+            LogLevel.Error,
+            It.IsAny<EventId>(),
+            It.IsAny<It.IsAnyType>(),
+            It.IsAny<Exception?>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
+            .Callback(new InvocationAction(_ => unavailable.TrySetResult()));
+        using var worker = Worker(provider);
+        try
+        {
+            await worker.StartAsync(CancellationToken.None);
+            await unavailable.Task.WaitAsync(TimeSpan.FromSeconds(15));
+            Assert.False(Directory.Exists(imageRoot));
+            await using (var scope = provider.CreateAsyncScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+                var operation = await context.StorageOperations.SingleAsync();
+                Assert.Equal(StorageOperationStatus.Pending, operation.Status);
+                Assert.Equal(0, operation.Attempts);
+                Assert.Empty(await context.StorageReconciliationFindings.ToListAsync());
+            }
+
+            Directory.CreateDirectory(imageRoot);
+            await completed.Task.WaitAsync(TimeSpan.FromSeconds(15));
+        }
+        finally
+        {
+            await worker.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5));
+        }
+
+        Assert.True(worker.ExecuteTask!.IsCompletedSuccessfully);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -129,6 +181,8 @@ public class StorageOperationWorkerTests : IDisposable
 
     private ServiceProvider Services(SaveChangesInterceptor? interceptor = null)
     {
+        Directory.CreateDirectory(Path.Combine(_root, "images"));
+        Directory.CreateDirectory(Path.Combine(_root, "pdfs"));
         var database = Guid.NewGuid().ToString();
         return new ServiceCollection()
             .AddLogging()

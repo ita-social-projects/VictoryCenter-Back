@@ -257,7 +257,7 @@ public partial class StorageLifecycleTests
         context.Images.RemoveRange(images);
         await context.SaveChangesAsync();
 
-        Assert.Equal(new[] { "first.png", "second.png" }, await context.StorageOperations.OrderBy(operation => operation.FileName)
+        Assert.Equal(DeletedImageNames, await context.StorageOperations.OrderBy(operation => operation.FileName)
             .Select(operation => operation.FileName).ToArrayAsync());
         Assert.All(images, image => Assert.True(File.Exists(Files().GetPath(StorageFileKind.Image, image.BlobName + ".png"))));
     }

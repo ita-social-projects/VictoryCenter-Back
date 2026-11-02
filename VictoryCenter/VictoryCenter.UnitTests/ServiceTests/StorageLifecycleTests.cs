@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -11,11 +12,14 @@ using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.UnitTests.ServiceTests;
 
 public partial class StorageLifecycleTests : IDisposable
 {
+    private static readonly string[] SharedInventoryNames = ["shared", "other"];
+    private static readonly string[] DeletedImageNames = ["first.png", "second.png"];
     private readonly string _root = Path.Combine(Path.GetTempPath(), $"vc-storage-{Guid.NewGuid():N}");
     private readonly DbContextOptions<VictoryCenterDbContext> _databaseOptions =
         new DbContextOptionsBuilder<VictoryCenterDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
@@ -124,7 +128,7 @@ public partial class StorageLifecycleTests : IDisposable
         var inventory = await StorageReferences.Inventory(context, StorageFileKind.Image)
             .OrderBy(reference => reference.Id).ToListAsync();
 
-        Assert.Equal(new[] { "shared", "other" }, inventory.Select(reference => reference.Name));
+        Assert.Equal(SharedInventoryNames, inventory.Select(reference => reference.Name));
         var nextPage = await StorageReferences.Inventory(context, StorageFileKind.Image)
             .Where(reference => reference.Id > inventory[0].Id).OrderBy(reference => reference.Id).Take(1).ToListAsync();
         Assert.Equal("other", Assert.Single(nextPage).Name);
@@ -456,12 +460,22 @@ public partial class StorageLifecycleTests : IDisposable
     }
 
     [Fact]
-    public async Task Reconciliation_InitializesEmptyStorageBeforeTheFirstUpload()
+    public async Task Startup_InitializesEmptyStorageOnceBeforeTheFirstScan()
     {
         var root = Path.Combine(_root, "empty");
+        var images = Options.Create(new BlobEnvironmentVariables { RootPath = root, ImagesSubPath = "images" });
+        var pdfs = Options.Create(new PdfEnvironmentVariables { RootPath = root, PdfSubPath = "pdfs" });
+        using var services = new ServiceCollection().AddSingleton(images).AddSingleton(pdfs).BuildServiceProvider();
+        var app = new ApplicationBuilder(services);
+        app.InitializeStorage();
+        var sentinel = Path.Combine(images.Value.FullPath, "existing.png");
+        await File.WriteAllTextAsync(sentinel, "existing bytes");
+        app.InitializeStorage();
+        Assert.Equal("existing bytes", await File.ReadAllTextAsync(sentinel));
+        File.Delete(sentinel);
         var files = new LocalStorageFiles(
-            Options.Create(new BlobEnvironmentVariables { RootPath = root, ImagesSubPath = "images" }),
-            Options.Create(new PdfEnvironmentVariables { RootPath = root, PdfSubPath = "pdfs" }));
+            images,
+            pdfs);
         await using var context = CreateContext();
         var reconciliation = new StorageReconciliation(context, files, _clock.Object, NullLogger<StorageReconciliation>.Instance);
 

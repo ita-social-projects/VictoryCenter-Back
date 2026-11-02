@@ -11,7 +11,8 @@ public class PdfStorageService(PdfService storage, StorageUploadReservations res
 {
     public Task<string> UploadPdfAsync(IFormFile file, string? fileName = null)
     {
-        var name = fileName ?? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
+        var name = string.IsNullOrWhiteSpace(fileName)
+            ? Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture) : fileName;
         if (name.Contains('/') || name.Contains('\\'))
         {
             throw new ArgumentException("Invalid PDF storage identifier.", nameof(fileName));

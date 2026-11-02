@@ -11,18 +11,15 @@ public class LocalStorageFiles(
     IOptions<BlobEnvironmentVariables> images,
     IOptions<PdfEnvironmentVariables> pdfs)
 {
-    private readonly string _imageRoot = Directory.CreateDirectory(images.Value.FullPath).FullName;
-    private readonly string _pdfRoot = Directory.CreateDirectory(pdfs.Value.FullPath).FullName;
+    private readonly string _imageRoot = GetExistingRoot(images.Value.FullPath);
+    private readonly string _pdfRoot = GetExistingRoot(pdfs.Value.FullPath);
+
+    public void EnsureAvailable(StorageFileKind fileKind) => GetExistingRoot(GetRoot(fileKind));
 
     public string GetPath(StorageFileKind fileKind, string fileName)
     {
         ValidateFileName(fileName);
-        var root = fileKind switch
-        {
-            StorageFileKind.Image => _imageRoot,
-            StorageFileKind.Pdf => _pdfRoot,
-            _ => throw new ArgumentOutOfRangeException(nameof(fileKind))
-        };
+        var root = GetExistingRoot(GetRoot(fileKind));
         var path = Path.Combine(root, fileName);
         if (File.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
         {
@@ -47,24 +44,39 @@ public class LocalStorageFiles(
         }
         catch (FileNotFoundException)
         {
+            EnsureAvailable(fileKind);
             return false;
         }
         catch (DirectoryNotFoundException)
         {
+            EnsureAvailable(fileKind);
             return false;
         }
     }
 
     public IEnumerable<string> Enumerate(StorageFileKind fileKind)
     {
-        var root = Path.GetDirectoryName(GetPath(fileKind, "inventory"))!;
-        if (!Directory.Exists(root))
-        {
-            throw new DirectoryNotFoundException("The storage root is unavailable.");
-        }
+        var root = GetExistingRoot(GetRoot(fileKind));
 
         return Directory.EnumerateFiles(root, "*", SearchOption.TopDirectoryOnly)
             .Select(Path.GetFileName).OfType<string>().Where(name => IsManagedFile(fileKind, name));
+    }
+
+    private static string GetExistingRoot(string root)
+    {
+        try
+        {
+            if ((File.GetAttributes(root) & FileAttributes.Directory) == 0)
+            {
+                throw new IOException("The storage root is not a directory.");
+            }
+        }
+        catch (FileNotFoundException exception)
+        {
+            throw new DirectoryNotFoundException("The storage root is unavailable.", exception);
+        }
+
+        return Path.GetFullPath(root);
     }
 
     private static void ValidateFileName(string fileName)
@@ -94,4 +106,11 @@ public class LocalStorageFiles(
                 || string.Equals(extension, FileExtensions.PngWithDot, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(extension, FileExtensions.WebpWithDot, StringComparison.OrdinalIgnoreCase);
     }
+
+    private string GetRoot(StorageFileKind fileKind) => fileKind switch
+    {
+        StorageFileKind.Image => _imageRoot,
+        StorageFileKind.Pdf => _pdfRoot,
+        _ => throw new ArgumentOutOfRangeException(nameof(fileKind))
+    };
 }

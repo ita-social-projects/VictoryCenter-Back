@@ -69,6 +69,13 @@ share storage and DB. Both existing Local/Azure ServiceType names currently
 select filesystem storage, not a remote Azure Blob API. Apply the generated
 migration before starting this version.
 
+Storage directories are initialized once during application startup. Scoped
+services never recreate a missing root. A missing root aborts reconciliation
+instead of reporting its references as missing files; restoring the root lets
+the next worker iteration retry. Operators must verify the configured paths
+and mounted volumes: an existing empty directory alone cannot prove that the
+intended volume is mounted.
+
 ## Operator Recovery
 
 Use restricted database administration access in the correct environment:

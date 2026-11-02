@@ -20,10 +20,15 @@ public class StorageReconciliation(
         var failures = 0;
         foreach (var fileKind in Enum.GetValues<StorageFileKind>())
         {
-            var references = await ScanReferencesAsync(fileKind, cancellationToken);
-            var inventory = await ScanFilesAsync(fileKind, cancellationToken);
-            findings += references.Findings + inventory.Findings;
-            failures += references.Failures + inventory.Failures;
+            files.EnsureAvailable(fileKind);
+        }
+
+        foreach (var fileKind in Enum.GetValues<StorageFileKind>())
+        {
+            var (referenceFindings, referenceFailures) = await ScanReferencesAsync(fileKind, cancellationToken);
+            var (inventoryFindings, inventoryFailures) = await ScanFilesAsync(fileKind, cancellationToken);
+            findings += referenceFindings + inventoryFindings;
+            failures += referenceFailures + inventoryFailures;
         }
 
         failures += await RecheckStaleFindingsAsync(scanStartedAt, cancellationToken);
@@ -56,7 +61,7 @@ public class StorageReconciliation(
                     await RecordAsync(fileKind, name, StorageFindingKind.Missing, missing, cancellationToken);
                     findings += missing ? 1 : 0;
                 }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+                catch (Exception exception) when (IsEntryError(exception))
                 {
                     failures++;
                     logger.LogWarning(
@@ -93,7 +98,7 @@ public class StorageReconciliation(
                 await RecordAsync(fileKind, fileName, StorageFindingKind.Unreferenced, unreferenced, cancellationToken);
                 findings += unreferenced ? 1 : 0;
             }
-            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+            catch (Exception exception) when (IsEntryError(exception))
             {
                 failures++;
                 logger.LogWarning("Storage reconciliation skipped a file of {FileKind} with {ErrorCode}", fileKind, exception.GetType().Name);
@@ -122,7 +127,7 @@ public class StorageReconciliation(
                     var stillPresent = finding.Kind == StorageFindingKind.Missing ? referenced && !exists : !referenced && exists;
                     await RecordAsync(finding.FileKind, finding.FileName, finding.Kind, stillPresent, cancellationToken);
                 }
-                catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+                catch (Exception exception) when (IsEntryError(exception))
                 {
                     failedIds.Add(finding.Id);
                     logger.LogWarning("Storage reconciliation skipped finding {FindingId} with {ErrorCode}", finding.Id, exception.GetType().Name);
@@ -134,6 +139,16 @@ public class StorageReconciliation(
         return failedIds.Count;
     }
 
+    private static bool IsEntryError(Exception exception)
+    {
+        if (exception is DirectoryNotFoundException)
+        {
+            return false;
+        }
+
+        return exception is IOException or UnauthorizedAccessException or ArgumentException;
+    }
+
     private async Task RecordAsync(
         StorageFileKind fileKind,
         string fileName,
@@ -141,6 +156,7 @@ public class StorageReconciliation(
         bool present,
         CancellationToken cancellationToken)
     {
+        files.EnsureAvailable(fileKind);
         var finding = await context.StorageReconciliationFindings.SingleOrDefaultAsync(
             item => item.FileKind == fileKind
             && item.FileName == fileName && item.Kind == kind, cancellationToken);
@@ -169,6 +185,7 @@ public class StorageReconciliation(
 
         finding.LastSeenAt = clock.GetUtcNow();
         finding.ResolvedAt = present ? null : clock.GetUtcNow();
+        files.EnsureAvailable(fileKind);
         await context.SaveChangesAsync(cancellationToken);
         context.Entry(finding).State = EntityState.Detached;
     }

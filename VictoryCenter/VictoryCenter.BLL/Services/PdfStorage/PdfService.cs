@@ -14,15 +14,6 @@ public class PdfService : IPdfService
     public PdfService(IOptions<PdfEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
         _pdfEnv = environment.Value;
-
-        try
-        {
-            Directory.CreateDirectory(_pdfEnv.FullPath);
-        }
-        catch (Exception ex)
-        {
-            throw new BlobFileSystemException(_pdfEnv.FullPath, PdfReportConstants.FailedToCreateDirectory, ex);
-        }
     }
 
     public async Task<string> UploadPdfAsync(IFormFile file, string? fileName = null)

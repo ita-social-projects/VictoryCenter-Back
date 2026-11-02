@@ -38,7 +38,8 @@ public partial class StorageSqlServerTests : IAsyncLifetime
         _databaseOptions = new DbContextOptionsBuilder<VictoryCenterDbContext>()
             .UseSqlServer(connection.ConnectionString, sql => sql.MigrationsHistoryTable("__EFMigrationsHistory", "entity_framework")).Options;
         _clock.Setup(clock => clock.GetUtcNow()).Returns(_now);
-        Files();
+        Directory.CreateDirectory(Path.Combine(_root, "images"));
+        Directory.CreateDirectory(Path.Combine(_root, "pdfs"));
         await using var context = Context();
         await context.Database.EnsureCreatedAsync();
     }
