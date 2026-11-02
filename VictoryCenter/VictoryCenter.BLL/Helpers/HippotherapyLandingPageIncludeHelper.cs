@@ -36,15 +36,24 @@ public static class HippotherapyLandingPageIncludeHelper
     }
 
     public static bool HasAllSections(this DAL.Entities.HippotherapyLandingPage page)
-        => page.IntroSection is not null
-            && page.DescriptionSection is not null
-            && page.QuoteSection is not null
-            && page.HippoventionSection is not null
-            && page.HippoventionCenterSection is not null
-            && page.AdvantagesSection is not null
-            && page.AnalysisSection is not null
-            && page.ScientificReferencesSection is not null
-            && page.AnotherQuoteSection is not null
-            && page.ParticipantsSection is not null
-            && page.EthicsSection is not null;
+    {
+        ArgumentNullException.ThrowIfNull(page);
+
+        object?[] sections =
+        [
+            page.IntroSection,
+            page.DescriptionSection,
+            page.QuoteSection,
+            page.HippoventionSection,
+            page.HippoventionCenterSection,
+            page.AdvantagesSection,
+            page.AnalysisSection,
+            page.ScientificReferencesSection,
+            page.AnotherQuoteSection,
+            page.ParticipantsSection,
+            page.EthicsSection,
+        ];
+
+        return Array.TrueForAll(sections, static s => s is not null);
+    }
 }

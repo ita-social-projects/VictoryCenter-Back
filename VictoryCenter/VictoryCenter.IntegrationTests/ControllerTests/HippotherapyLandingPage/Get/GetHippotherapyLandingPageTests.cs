@@ -56,7 +56,7 @@ public class GetHippotherapyLandingPageTests : BaseTestClass
         var page = await Fixture.DbContext.HippotherapyLandingPages
             .Include(p => p.IntroSection)
             .FirstAsync();
-        Fixture.DbContext.Remove(page.IntroSection);
+        Fixture.DbContext.Remove(page.IntroSection!);
         await Fixture.DbContext.SaveChangesAsync();
         Fixture.DbContext.ChangeTracker.Clear();
 
@@ -174,14 +174,16 @@ public class GetHippotherapyLandingPageTests : BaseTestClass
             .FirstAsync();
         var language = await Fixture.DbContext.LocalizationLanguages.FirstAsync(l => l.Code == "en");
 
+        var introSection = page.IntroSection!;
+
         var existing = await Fixture.DbContext.Set<HippotherapyLandingPageIntroSectionLocalization>()
-            .Where(l => l.EntityId == page.IntroSection.Id && l.LanguageId == language.Id)
+            .Where(l => l.EntityId == introSection.Id && l.LanguageId == language.Id)
             .ToListAsync();
         Fixture.DbContext.RemoveRange(existing);
 
         Fixture.DbContext.Add(new HippotherapyLandingPageIntroSectionLocalization
         {
-            EntityId = page.IntroSection.Id,
+            EntityId = introSection.Id,
             LanguageId = language.Id,
             Title = title,
             Description = description,
@@ -191,7 +193,7 @@ public class GetHippotherapyLandingPageTests : BaseTestClass
         await Fixture.DbContext.SaveChangesAsync();
         Fixture.DbContext.ChangeTracker.Clear();
 
-        return (page.IntroSection.Id, language);
+        return (introSection.Id, language);
     }
 
     private async Task RemoveAllTranslationsForLanguageAsync(long languageId)

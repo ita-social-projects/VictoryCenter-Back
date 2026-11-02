@@ -64,7 +64,7 @@ public class HippotherapyLandingPageLocalizationAggregatorTests
 
         var result = HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source);
 
-        Assert.Equal([Uk.Id, En.Id], result.Select(l => l.LocalizationInfoDto.Id).ToArray());
+        Assert.Equal([Uk.Id, En.Id], result.Select(l => l.LocalizationInfoDto.Id));
         Assert.Null(result[0].IntroSection);
         Assert.NotNull(result[1].IntroSection);
     }
@@ -140,8 +140,8 @@ public class HippotherapyLandingPageLocalizationAggregatorTests
 
         var ethics = Assert.Single(HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source)).EthicsSection!;
 
-        Assert.Equal([9L, 3L], ethics.Principles.Select(p => p.PrincipleId).ToArray());
-        Assert.Equal(["a", "b"], ethics.Principles.Select(p => p.Text).ToArray());
+        Assert.Equal([9L, 3L], ethics.Principles.Select(p => p.PrincipleId));
+        Assert.Equal(["a", "b"], ethics.Principles.Select(p => p.Text));
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class HippotherapyLandingPageLocalizationAggregatorTests
                 (HippotherapyLandingPageBlock.Intro, En.Id),
                 (HippotherapyLandingPageBlock.Quote, En.Id),
             ],
-            result.Select(s => (s.Block, s.LanguageId)).ToArray());
+            result.Select(s => (s.Block, s.LanguageId)));
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 using AutoMapper;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
-using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 
+namespace VictoryCenter.BLL.Services.HippotherapyLandingPages;
 public class HippotherapyLandingPageResponseFactory : IHippotherapyLandingPageResponseFactory
 {
     private readonly IMapper _mapper;
@@ -14,7 +14,7 @@ public class HippotherapyLandingPageResponseFactory : IHippotherapyLandingPageRe
         _builder = builder;
     }
 
-    public HippotherapyLandingPageDto Create(VictoryCenter.DAL.Entities.HippotherapyLandingPage page)
+    public HippotherapyLandingPageDto Create(DAL.Entities.HippotherapyLandingPage page)
     {
         var dto = _mapper.Map<HippotherapyLandingPageDto>(page);
         var source = _builder.Build(page);

@@ -1,4 +1,3 @@
-using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
@@ -13,9 +12,7 @@ namespace VictoryCenter.UnitTests.MediatRHandlersTests.HippotherapyLandingPage;
 public class GetHippotherapyLandingPageHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
-    private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<IHippotherapyLandingPageResponseFactory> _responseFactoryMock = new();
-    private readonly Mock<IHippotherapyLandingPageLocalizationBuilder> _builderMock = new();
 
     [Fact]
     public async Task Handle_WhenPageExists_ShouldReturnDtoCreatedByResponseFactory()
@@ -60,8 +57,16 @@ public class GetHippotherapyLandingPageHandlerTests
         _responseFactoryMock.Verify(x => x.Create(It.IsAny<DAL.Entities.HippotherapyLandingPage>()), Times.Never);
     }
 
-    public static IEnumerable<object[]> SectionRemovers() =>
-        SectionRemoverActions().Select(action => new object[] { action });
+    public static TheoryData<Action<DAL.Entities.HippotherapyLandingPage>> SectionRemovers()
+    {
+        var data = new TheoryData<Action<DAL.Entities.HippotherapyLandingPage>>();
+        foreach (var action in SectionRemoverActions())
+        {
+            data.Add(action);
+        }
+
+        return data;
+    }
 
     internal static IEnumerable<Action<DAL.Entities.HippotherapyLandingPage>> SectionRemoverActions()
     {
@@ -85,8 +90,7 @@ public class GetHippotherapyLandingPageHandlerTests
             .ReturnsAsync(entity);
 
     private GetHippotherapyLandingPageHandler CreateHandler() =>
-        new(_repositoryWrapperMock.Object,
-            _responseFactoryMock.Object);
+        new(_repositoryWrapperMock.Object, _responseFactoryMock.Object);
 
     private static HippotherapyLandingPageDto CreateEmptyDto() => new()
     {
