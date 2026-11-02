@@ -1,4 +1,3 @@
-using AutoMapper;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
@@ -14,20 +13,14 @@ public class GetHippotherapyLandingPageHandler
     : IRequestHandler<GetHippotherapyLandingPageQuery, Result<HippotherapyLandingPageDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
-    private readonly IMapper _mapper;
     private readonly IHippotherapyLandingPageResponseFactory _responseFactory;
-    private readonly IHippotherapyLandingPageLocalizationBuilder _builder;
 
     public GetHippotherapyLandingPageHandler(
         IRepositoryWrapper repositoryWrapper,
-        IMapper mapper,
-        IHippotherapyLandingPageResponseFactory responseFactory,
-        IHippotherapyLandingPageLocalizationBuilder builder)
+        IHippotherapyLandingPageResponseFactory responseFactory)
     {
         _repositoryWrapper = repositoryWrapper;
-        _mapper = mapper;
         _responseFactory = responseFactory;
-        _builder = builder;
     }
 
     public async Task<Result<HippotherapyLandingPageDto>> Handle(
@@ -44,9 +37,6 @@ public class GetHippotherapyLandingPageHandler
         {
             return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
         }
-
-        var dto = _mapper.Map<HippotherapyLandingPageDto>(entity);
-        var source = _builder.Build(entity);
 
         return Result.Ok(_responseFactory.Create(entity));
     }

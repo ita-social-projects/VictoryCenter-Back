@@ -59,6 +59,7 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
             dtos,
             section.AdvantageCards.OrderBy(c => c.Priority).Select(c => c.Id).ToList(),
             section.AdvantageCards.SelectMany(c => c.Localizations),
+            l => (l.EntityId, l.LanguageId),
             dto => dto.LocalizationInfoDto.Id,
             (dto, items) => dto.Cards = items,
             id => new HippotherapyLandingPageAdvantageCardLocalizationItemDto
@@ -80,6 +81,7 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
             dtos,
             section.ParticipantCards.OrderBy(c => c.Priority).Select(c => c.Id).ToList(),
             section.ParticipantCards.SelectMany(c => c.Localizations),
+            l => (l.EntityId, l.LanguageId),
             dto => dto.LocalizationInfoDto.Id,
             (dto, items) => dto.Cards = items,
             id => new HippotherapyLandingPageParticipantCardLocalizationItemDto
@@ -101,6 +103,7 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
             dtos,
             section.ScientificReferences.OrderBy(r => r.Priority).Select(r => r.Id).ToList(),
             section.ScientificReferences.SelectMany(r => r.Localizations),
+            l => (l.EntityId, l.LanguageId),
             dto => dto.LocalizationInfoDto.Id,
             (dto, items) => dto.References = items,
             id => new HippotherapyLandingPageScientificReferenceLocalizationItemDto
@@ -122,6 +125,7 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
             dtos,
             section.EthicsPrinciples.OrderBy(p => p.Priority).Select(p => p.Id).ToList(),
             section.EthicsPrinciples.SelectMany(p => p.Localizations),
+            l => (l.EntityId, l.LanguageId),
             dto => dto.LocalizationInfoDto.Id,
             (dto, items) => dto.Principles = items,
             id => new HippotherapyLandingPageEthicsPrincipleLocalizationItemDto
@@ -137,10 +141,11 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
         List<TSectionDto> sectionDtos,
         IReadOnlyList<long> orderedItemIds,
         IEnumerable<TItemEntity> itemLocalizations,
+        Func<TItemEntity, (long EntityId, long LanguageId)> keySelector,
         Func<TSectionDto, long> languageIdSelector,
         Action<TSectionDto, List<TItemDto>> assign,
         Func<long, TItemDto> createEmpty)
-        where TItemEntity : class
+    where TItemEntity : class
     {
         if (sectionDtos.Count == 0 || orderedItemIds.Count == 0)
         {
@@ -148,7 +153,7 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
         }
 
         var byKey = itemLocalizations
-            .GroupBy(GetKey)
+            .GroupBy(keySelector)
             .ToDictionary(g => g.Key, g => g.First());
 
         foreach (var dto in sectionDtos)
@@ -162,13 +167,6 @@ public class HippotherapyLandingPageLocalizationBuilder : IHippotherapyLandingPa
                         : createEmpty(id))
                     .ToList());
         }
-    }
-
-    private static (long EntityId, long LanguageId) GetKey<TItemEntity>(TItemEntity localization)
-        where TItemEntity : class
-    {
-        dynamic item = localization;
-        return ((long)item.EntityId, (long)item.LanguageId);
     }
 
     private List<TDto> Map<TDto>(object source) => _mapper.Map<List<TDto>>(source);

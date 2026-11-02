@@ -1,3 +1,7 @@
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageAdvantagesSection;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageEthicsSection;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageIntroSection;
+using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageQuoteSection;
 using VictoryCenter.BLL.Enums;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Enums;
@@ -7,6 +11,12 @@ namespace VictoryCenter.UnitTests.ServiceTests;
 
 public class HippotherapyLandingPageLocalizationAggregatorTests
 {
+    private static readonly VictoryCenter.BLL.DTOs.Common.LocalizationInfoDto Uk =
+        HippotherapyLandingPageTestDataHelper.CreateLanguage(1);
+
+    private static readonly VictoryCenter.BLL.DTOs.Common.LocalizationInfoDto En =
+        HippotherapyLandingPageTestDataHelper.CreateLanguage(2);
+
     [Fact]
     public void BuildLocalizations_WhenSourceIsEmpty_ShouldReturnEmptyList()
     {
@@ -17,77 +27,165 @@ public class HippotherapyLandingPageLocalizationAggregatorTests
     }
 
     [Fact]
-    public void BuildLocalizations_WhenAllSectionsAreRelevant_TranslationStatusShouldBeRelevant()
+    public void BuildStatuses_WhenSourceIsEmpty_ShouldReturnEmptyList()
     {
-        var source = HippotherapyLandingPageTestDataHelper.CreateFullLocalizationSource(
-            sectionStatus: TranslationStatus.Relevant,
-            itemStatus: TranslationStatus.Relevant);
+        var result = HippotherapyLandingPageLocalizationAggregator.BuildStatuses(
+            HippotherapyLandingPageLocalizationSource.Empty);
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public void BuildLocalizations_WhenOnlyIntroAndQuoteTranslated_ShouldLeaveOtherSectionsNull()
+    {
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Intro = [Intro(En, "I", TranslationStatus.Relevant)],
+            Quote = [Quote(En, "Q", TranslationStatus.Relevant)],
+        };
+
+        var localization = Assert.Single(HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source));
+
+        Assert.Equal("I", localization.IntroSection!.Title);
+        Assert.Equal("Q", localization.QuoteSection!.QuoteText);
+        Assert.Null(localization.DescriptionSection);
+        Assert.Null(localization.AdvantagesSection);
+        Assert.Null(localization.EthicsSection);
+    }
+
+    [Fact]
+    public void BuildLocalizations_ShouldReturnLanguagesOrderedAndMergedAcrossSections()
+    {
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Intro = [Intro(En, "I", TranslationStatus.Relevant)],
+            Quote = [Quote(Uk, "Q", TranslationStatus.Relevant), Quote(En, "Q2", TranslationStatus.Relevant)],
+        };
 
         var result = HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source);
 
-        var localized = Assert.Single(result);
-        Assert.Equal(TranslationStatus.Relevant, localized.TranslationStatus);
-        Assert.NotNull(localized.IntroSection);
-        Assert.NotNull(localized.DescriptionSection);
-        Assert.NotNull(localized.QuoteSection);
-        Assert.NotNull(localized.HippoventionSection);
-        Assert.NotNull(localized.HippoventionCenterSection);
-        Assert.NotNull(localized.AdvantagesSection);
-        Assert.NotNull(localized.AnalysisSection);
-        Assert.NotNull(localized.ScientificReferencesSection);
-        Assert.NotNull(localized.AnotherQuoteSection);
-        Assert.NotNull(localized.ParticipantsSection);
-        Assert.NotNull(localized.EthicsSection);
-        Assert.Single(localized.AdvantagesSection.Cards);
-        Assert.Single(localized.ScientificReferencesSection.References);
-        Assert.Single(localized.ParticipantsSection.Cards);
-        Assert.Single(localized.EthicsSection.Principles);
+        Assert.Equal([Uk.Id, En.Id], result.Select(l => l.LocalizationInfoDto.Id).ToArray());
+        Assert.Null(result[0].IntroSection);
+        Assert.NotNull(result[1].IntroSection);
     }
 
     [Theory]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    public void BuildLocalizations_WhenAnyPartIsOutdated_AggregatedStatusShouldBeOutdated(
-        bool sectionOutdated, bool itemOutdated)
+    [InlineData(TranslationStatus.Relevant, TranslationStatus.Relevant, TranslationStatus.Relevant)]
+    [InlineData(TranslationStatus.Outdated, TranslationStatus.Relevant, TranslationStatus.Outdated)]
+    [InlineData(TranslationStatus.Relevant, TranslationStatus.Outdated, TranslationStatus.Outdated)]
+    public void BuildLocalizations_LanguageStatus_ShouldBeOutdatedIfAnyBlockOutdated(
+        TranslationStatus intro,
+        TranslationStatus quote,
+        TranslationStatus expected)
     {
-        var sectionStatus = sectionOutdated ? TranslationStatus.Outdated : TranslationStatus.Relevant;
-        var itemStatus = itemOutdated ? TranslationStatus.Outdated : TranslationStatus.Relevant;
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Intro = [Intro(En, "I", intro)],
+            Quote = [Quote(En, "Q", quote)],
+        };
 
-        var source = HippotherapyLandingPageTestDataHelper.CreateFullLocalizationSource(
-            sectionStatus: sectionStatus,
-            itemStatus: itemStatus);
+        var localization = Assert.Single(HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source));
 
-        var result = HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source);
-
-        var localized = Assert.Single(result);
-        Assert.Equal(TranslationStatus.Outdated, localized.TranslationStatus);
+        Assert.Equal(expected, localization.TranslationStatus);
     }
 
     [Fact]
-    public void BuildStatuses_WhenGivenSource_ShouldCreateEntriesForAllBlocksOrderedCorrectly()
+    public void BuildStatuses_WhenNestedCardIsOutdated_ShouldMarkBlockOutdated()
     {
-        var source = HippotherapyLandingPageTestDataHelper.CreateFullLocalizationSource(languageId: 1);
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Advantages =
+            [
+                new HippotherapyLandingPageAdvantagesSectionLocalizationDto
+                {
+                    LocalizationInfoDto = En,
+                    TranslationStatus = TranslationStatus.Relevant,
+                    Cards =
+                    [
+                        new HippotherapyLandingPageAdvantageCardLocalizationItemDto
+                            { CardId = 1, TranslationStatus = TranslationStatus.Relevant },
+                        new HippotherapyLandingPageAdvantageCardLocalizationItemDto
+                            { CardId = 2, TranslationStatus = TranslationStatus.Outdated },
+                    ],
+                },
+            ],
+        };
 
-        var statuses = HippotherapyLandingPageLocalizationAggregator.BuildStatuses(source);
+        var status = Assert.Single(HippotherapyLandingPageLocalizationAggregator.BuildStatuses(source));
 
-        Assert.Equal(11, statuses.Count);
-        Assert.All(statuses, s => Assert.Equal(1, s.LanguageId));
-
-        var expectedBlocks = Enum.GetValues<HippotherapyLandingPageBlock>().OrderBy(b => b).ToList();
-        var actualBlocks = statuses.Select(s => s.Block).ToList();
-        Assert.Equal(expectedBlocks, actualBlocks);
+        Assert.Equal(HippotherapyLandingPageBlock.Advantages, status.Block);
+        Assert.Equal(TranslationStatus.Outdated, status.TranslationStatus);
     }
 
     [Fact]
-    public void BuildStatuses_WhenAdvantageCardIsOutdated_BlockStatusShouldBeOutdated()
+    public void BuildLocalizations_ShouldPreserveEthicsPrinciplesOrderAndIds()
     {
-        var source = HippotherapyLandingPageTestDataHelper.CreateFullLocalizationSource(
-            sectionStatus: TranslationStatus.Relevant,
-            itemStatus: TranslationStatus.Outdated);
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Ethics =
+            [
+                new HippotherapyLandingPageEthicsSectionLocalizationDto
+                {
+                    LocalizationInfoDto = En,
+                    Title = "E",
+                    Description = "D",
+                    Principles =
+                    [
+                        new HippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 9, Text = "a" },
+                        new HippotherapyLandingPageEthicsPrincipleLocalizationItemDto { PrincipleId = 3, Text = "b" },
+                    ],
+                },
+            ],
+        };
 
-        var statuses = HippotherapyLandingPageLocalizationAggregator.BuildStatuses(source);
+        var ethics = Assert.Single(HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source)).EthicsSection!;
 
-        var advantagesStatus = statuses.First(s => s.Block == HippotherapyLandingPageBlock.Advantages);
-        Assert.Equal(TranslationStatus.Outdated, advantagesStatus.TranslationStatus);
+        Assert.Equal([9L, 3L], ethics.Principles.Select(p => p.PrincipleId).ToArray());
+        Assert.Equal(["a", "b"], ethics.Principles.Select(p => p.Text).ToArray());
     }
+
+    [Fact]
+    public void BuildStatuses_ShouldReturnOneRecordPerBlockAndLanguageOrderedByBlockThenLanguage()
+    {
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Intro = [Intro(En, "I", TranslationStatus.Relevant), Intro(Uk, "I", TranslationStatus.Outdated)],
+            Quote = [Quote(En, "Q", TranslationStatus.Relevant)],
+        };
+
+        var result = HippotherapyLandingPageLocalizationAggregator.BuildStatuses(source);
+
+        Assert.Equal(
+            [
+                (HippotherapyLandingPageBlock.Intro, Uk.Id),
+                (HippotherapyLandingPageBlock.Intro, En.Id),
+                (HippotherapyLandingPageBlock.Quote, En.Id),
+            ],
+            result.Select(s => (s.Block, s.LanguageId)).ToArray());
+    }
+
+    [Fact]
+    public void BuildLocalizations_WhenSectionHasDuplicateRowsForOneLanguage_ShouldUseFirstAndNotThrow()
+    {
+        var source = HippotherapyLandingPageLocalizationSource.Empty with
+        {
+            Intro = [Intro(En, "first", TranslationStatus.Relevant), Intro(En, "second", TranslationStatus.Relevant)],
+        };
+
+        var localization = Assert.Single(HippotherapyLandingPageLocalizationAggregator.BuildLocalizations(source));
+
+        Assert.Equal("first", localization.IntroSection!.Title);
+    }
+
+    private static HippotherapyLandingPageIntroSectionLocalizationDto Intro(
+        VictoryCenter.BLL.DTOs.Common.LocalizationInfoDto language,
+        string title,
+        TranslationStatus status) =>
+        new() { LocalizationInfoDto = language, Title = title, Description = "d", TranslationStatus = status };
+
+    private static HippotherapyLandingPageQuoteSectionLocalizationDto Quote(
+        VictoryCenter.BLL.DTOs.Common.LocalizationInfoDto language,
+        string text,
+        TranslationStatus status) =>
+        new() { LocalizationInfoDto = language, QuoteText = text, TranslationStatus = status };
 }
