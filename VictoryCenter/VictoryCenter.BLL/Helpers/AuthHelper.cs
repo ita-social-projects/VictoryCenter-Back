@@ -6,6 +6,8 @@ namespace VictoryCenter.BLL.Helpers;
 
 public static class AuthHelper
 {
+    private static readonly TimeSpan ClockSkew = TimeSpan.FromSeconds(30);
+
     public static TokenValidationParameters GetTokenValidationParameters(IConfiguration configuration)
     {
         return new TokenValidationParameters
@@ -14,6 +16,7 @@ public static class AuthHelper
             ValidateIssuer = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            ClockSkew = ClockSkew,
             ValidAudience = configuration.GetValue<string>("JwtOptions:Audience") ?? throw new InvalidOperationException("Audience for jwt options is not specified"),
             ValidIssuer = configuration.GetValue<string>("JwtOptions:Issuer") ?? throw new InvalidOperationException("Issuer for jwt options is not specified"),
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("JwtOptions:SecretKey") ??

@@ -64,7 +64,7 @@ public class LogoutTests
         Assert.False(result.IsSuccess);
         Assert.Equal(AuthConstants.AdminWithGivenEmailWasNotFound, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
-        _mockUserManager.Verify(x => x.UpdateAsync(It.IsAny<AdminUser>()), Times.Never);
+        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(It.IsAny<AdminUser>()), Times.Never);
     }
 
     [Fact]
@@ -77,7 +77,7 @@ public class LogoutTests
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
-        _mockUserManager.Setup(x => x.UpdateAsync(admin))
+        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(admin))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = AuthConstants.NotUpdated }));
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
@@ -85,7 +85,7 @@ public class LogoutTests
         Assert.False(result.IsSuccess);
         Assert.Equal(AuthConstants.NotUpdated, result.Errors[0].Message);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
-        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Once);
         Assert.Null(admin.RefreshToken);
         Assert.Null(admin.RefreshTokenValidTo);
     }
@@ -104,7 +104,7 @@ public class LogoutTests
         mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
-        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Success);
+        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(admin)).ReturnsAsync(IdentityResult.Success);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
@@ -113,7 +113,7 @@ public class LogoutTests
         Assert.Null(admin.RefreshToken);
         Assert.Null(admin.RefreshTokenValidTo);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
-        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Once);
         mockResponseCookies.Verify(
             c => c.Delete(
                 It.Is<string>(s => s == AuthConstants.RefreshTokenCookieName),

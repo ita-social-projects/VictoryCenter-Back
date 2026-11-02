@@ -78,7 +78,7 @@ public class TokenService : ITokenService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
 
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken)));
+        return ComputeSha256Hex(refreshToken);
     }
 
     public bool VerifyRefreshTokenHash(string refreshToken, string? storedHash)
@@ -88,19 +88,26 @@ public class TokenService : ITokenService
             return false;
         }
 
-        byte[] storedHashBytes;
-        try
+        // Existing plaintext refresh tokens are intentionally invalid after deployment.
+        return MatchesSha256Hex(refreshToken, storedHash);
+    }
+
+    public string HashSecurityStamp(string securityStamp)
+    {
+        // The raw stamp is also key material for Identity token providers, so only its hash goes into the readable JWT payload.
+        ArgumentException.ThrowIfNullOrWhiteSpace(securityStamp);
+
+        return ComputeSha256Hex(securityStamp);
+    }
+
+    public bool VerifySecurityStampHash(string? securityStamp, string? securityStampHash)
+    {
+        if (string.IsNullOrWhiteSpace(securityStamp) || string.IsNullOrWhiteSpace(securityStampHash))
         {
-            storedHashBytes = Convert.FromHexString(storedHash);
-        }
-        catch (FormatException)
-        {
-            // Existing plaintext refresh tokens are intentionally invalid after deployment.
             return false;
         }
 
-        var providedHashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
-        return CryptographicOperations.FixedTimeEquals(providedHashBytes, storedHashBytes);
+        return MatchesSha256Hex(securityStamp, securityStampHash);
     }
 
     public Result<ClaimsPrincipal> GetClaimsFromExpiredToken(string refreshToken)
@@ -139,5 +146,26 @@ public class TokenService : ITokenService
                 nameof(TokenService));
             return Result.Fail(AuthConstants.InvalidTokenSignature);
         }
+    }
+
+    private static string ComputeSha256Hex(string value)
+    {
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+    }
+
+    private static bool MatchesSha256Hex(string value, string storedHash)
+    {
+        byte[] storedHashBytes;
+        try
+        {
+            storedHashBytes = Convert.FromHexString(storedHash);
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
+
+        var providedHashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
+        return CryptographicOperations.FixedTimeEquals(providedHashBytes, storedHashBytes);
     }
 }
