@@ -52,6 +52,37 @@ public class UpdateMainPageLocalizationTests : BaseTestClass
     }
 
     [Fact]
+    public async Task UpdateMainPageLocalization_WithUnsafeHtml_StoresSanitizedContent()
+    {
+        var (mainPage, languageId) = await EnsureMainPageWithLocalizationsAsync();
+        var dto = new UpdateMainPageLocalizationDto
+        {
+            Title = "<p>Localized <em>title</em><script>alert(1)</script></p>",
+            Description = "<p style=\"color:red\">Localized description<img src=x onerror=alert(1)></p>",
+            MainAboutUs = new UpdateMainAboutUsLocalizationDto
+            {
+                Title = "<p><span>About us</span> title</p>",
+                Description = "<p>About us<br>description</p>"
+            }
+        };
+
+        var response = await Fixture.HttpClient.PutAsync(
+            $"/api/MainPageLocalizations/{mainPage.Id}/{languageId}",
+            Serialize(dto));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Fixture.DbContext.ChangeTracker.Clear();
+        var localization = await Fixture.DbContext.MainPageLocalizations
+            .SingleAsync(l => l.EntityId == mainPage.Id && l.LanguageId == languageId);
+        var aboutUsLocalization = await Fixture.DbContext.MainAboutUsLocalizations
+            .SingleAsync(l => l.EntityId == mainPage.MainAboutUs!.Id && l.LanguageId == languageId);
+        Assert.Equal("<p>Localized <em>title</em></p>", localization.Title);
+        Assert.Equal("<p>Localized description</p>", localization.Description);
+        Assert.Equal("<p>About us title</p>", aboutUsLocalization.Title);
+        Assert.Equal("<p>About us<br>description</p>", aboutUsLocalization.Description);
+    }
+
+    [Fact]
     public async Task UpdateMainPageLocalization_ShouldReturnNotFound()
     {
         var languageId = await GetExistingLanguageIdAsync();
