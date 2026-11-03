@@ -111,6 +111,175 @@ public class UpdateFeedbackHistoryTests
         Assert.Equal(expectedTime, entityToUpdate.UpdatedAt);
     }
 
+    [Fact]
+    public async Task Handle_StatusChangedFromDraftToPublished_ShouldSetPublishedAt()
+    {
+        var expectedTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var mockTimeProvider = new Mock<TimeProvider>();
+        mockTimeProvider.Setup(tp => tp.GetUtcNow()).Returns(expectedTime);
+
+        var existingHistory = new FeedbackHistory
+        {
+            Id = 1,
+            Title = "Old Title",
+            Story = "Old Story Text",
+            Status = Status.Draft,
+            Priority = 1
+        };
+
+        var updateDto = new UpdateFeedbackHistoryDto
+        {
+            Title = "New Title",
+            Story = "New Story Text",
+            ImageId = null,
+            Status = Status.Published
+        };
+
+        var mappedEntity = new FeedbackHistory
+        {
+            Id = 1,
+            Title = updateDto.Title,
+            Story = updateDto.Story,
+            Status = Status.Published,
+            Priority = 1
+        };
+
+        SetupRepositoryWrapper(existingHistory, 1);
+        _mockMapper.Setup(x => x.Map(It.IsAny<UpdateFeedbackHistoryDto>(), It.IsAny<FeedbackHistory>()))
+            .Returns(mappedEntity);
+        _mockMapper.Setup(x => x.Map<FeedbackHistoryDto>(It.IsAny<FeedbackHistory>()))
+            .Returns(_resultDto);
+
+        var handler = new UpdateFeedbackHistoryHandler(
+            _mockMapper.Object,
+            _mockRepositoryWrapper.Object,
+            _validatorMock.Object,
+            mockTimeProvider.Object);
+
+        var result = await handler.Handle(new UpdateFeedbackHistoryCommand(updateDto, existingHistory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(expectedTime, mappedEntity.PublishedAt);
+    }
+
+    [Fact]
+    public async Task Handle_StatusChangedFromPublishedToDraft_ShouldClearPublishedAt()
+    {
+        var expectedTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var mockTimeProvider = new Mock<TimeProvider>();
+        mockTimeProvider.Setup(tp => tp.GetUtcNow()).Returns(expectedTime);
+
+        var oldPublishedAt = new DateTimeOffset(2025, 12, 1, 8, 0, 0, TimeSpan.Zero);
+
+        var existingHistory = new FeedbackHistory
+        {
+            Id = 1,
+            Title = "Old Title",
+            Story = "Old Story Text",
+            Status = Status.Published,
+            PublishedAt = oldPublishedAt,
+            Priority = 1
+        };
+
+        var updateDto = new UpdateFeedbackHistoryDto
+        {
+            Title = "New Title",
+            Story = "New Story Text",
+            ImageId = null,
+            Status = Status.Draft
+        };
+
+        var mappedEntity = new FeedbackHistory
+        {
+            Id = 1,
+            Title = updateDto.Title,
+            Story = updateDto.Story,
+            Status = Status.Draft,
+            PublishedAt = oldPublishedAt,
+            Priority = 1
+        };
+
+        SetupRepositoryWrapper(existingHistory, 1);
+        _mockMapper.Setup(x => x.Map(It.IsAny<UpdateFeedbackHistoryDto>(), It.IsAny<FeedbackHistory>()))
+            .Returns(mappedEntity);
+        _mockMapper.Setup(x => x.Map<FeedbackHistoryDto>(It.IsAny<FeedbackHistory>()))
+            .Returns(new FeedbackHistoryDto
+            {
+                Id = 1,
+                Title = updateDto.Title,
+                Story = updateDto.Story,
+                Image = null,
+                Priority = 1,
+                Status = Status.Draft
+            });
+
+        var handler = new UpdateFeedbackHistoryHandler(
+            _mockMapper.Object,
+            _mockRepositoryWrapper.Object,
+            _validatorMock.Object,
+            mockTimeProvider.Object);
+
+        var result = await handler.Handle(new UpdateFeedbackHistoryCommand(updateDto, existingHistory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Null(mappedEntity.PublishedAt);
+    }
+
+    [Fact]
+    public async Task Handle_StatusRemainsPublished_ShouldKeepPublishedAtUnchanged()
+    {
+        var expectedTime = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var mockTimeProvider = new Mock<TimeProvider>();
+        mockTimeProvider.Setup(tp => tp.GetUtcNow()).Returns(expectedTime);
+
+        var oldPublishedAt = new DateTimeOffset(2025, 12, 1, 8, 0, 0, TimeSpan.Zero);
+
+        var existingHistory = new FeedbackHistory
+        {
+            Id = 1,
+            Title = "Old Title",
+            Story = "Old Story Text",
+            Status = Status.Published,
+            PublishedAt = oldPublishedAt,
+            Priority = 1
+        };
+
+        var updateDto = new UpdateFeedbackHistoryDto
+        {
+            Title = "New Title",
+            Story = "New Story Text",
+            ImageId = null,
+            Status = Status.Published
+        };
+
+        var mappedEntity = new FeedbackHistory
+        {
+            Id = 1,
+            Title = updateDto.Title,
+            Story = updateDto.Story,
+            Status = Status.Published,
+            PublishedAt = oldPublishedAt,
+            Priority = 1
+        };
+
+        SetupRepositoryWrapper(existingHistory, 1);
+        _mockMapper.Setup(x => x.Map(It.IsAny<UpdateFeedbackHistoryDto>(), It.IsAny<FeedbackHistory>()))
+            .Returns(mappedEntity);
+        _mockMapper.Setup(x => x.Map<FeedbackHistoryDto>(It.IsAny<FeedbackHistory>()))
+            .Returns(_resultDto);
+
+        var handler = new UpdateFeedbackHistoryHandler(
+            _mockMapper.Object,
+            _mockRepositoryWrapper.Object,
+            _validatorMock.Object,
+            mockTimeProvider.Object);
+
+        var result = await handler.Handle(new UpdateFeedbackHistoryCommand(updateDto, existingHistory.Id), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(oldPublishedAt, mappedEntity.PublishedAt);
+    }
+
     [Theory]
     [InlineData(-1)]
     [InlineData(0)]
