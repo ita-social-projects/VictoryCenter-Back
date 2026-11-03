@@ -53,7 +53,7 @@ Refresh-token sessions are tracked in the `RefreshTokenSessions` table (`Victory
 When a refresh request presents a token whose session is already marked `IsRevoked == true`:
 
 1. **Family Revocation**: Calls `RevokeFamilyAsync(session.FamilyId, "SuspectedTokenReuse")` to immediately invalidate all tokens in that family.
-2. **Clear User Session**: Clears `AdminUser.RefreshToken` if the user's active token belongs to the revoked family.
+2. **Session Invalidation**: All sessions in the family are marked revoked and persisted in `RefreshTokenSessions` as the source of truth, avoiding concurrency races on `AdminUser`.
 3. **Audit Logging**: Logs a warning with `AdminUserId`, `FamilyId`, and prior `RevocationReason` without logging token values.
 4. **Cookie Removal & Rejection**: Deletes the client cookie and returns `401 Unauthorized`.
 
@@ -74,7 +74,7 @@ Refresh tokens are sent in an HTTP cookie configured with:
 ## 5. Error Consistency & Concurrency
 
 - **Consistent 401 Responses**: All authentication and refresh failures return a uniform `401 Unauthorized` ProblemDetails. Internal token status (expired vs. revoked vs. missing) is not exposed to the client.
-- **Concurrency Protection**: Unique index on `TokenHash` and ASP.NET Core Identity `ConcurrencyStamp` on `AdminUser` prevent concurrent requests from establishing parallel valid token chains. Requests losing a race condition fail safely with `401 Unauthorized`.
+- **Concurrency Protection**: Unique index on `TokenHash` and ASP.NET Core Identity `ConcurrencyStamp` on `AdminUser` prevent concurrent requests from establishing parallel valid token chains. Requests losing a race condition fail safely with `401 Unauthorized` without deleting the winner's valid rotated cookie.
 
 ---
 

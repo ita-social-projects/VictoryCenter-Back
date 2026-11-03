@@ -98,9 +98,6 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
                 now,
                 cancellationToken);
 
-            admin.RefreshToken = null;
-            admin.RefreshTokenValidTo = null;
-            await _userManager.UpdateAsync(admin);
             await _repositoryWrapper.SaveChangesAsync();
 
             DeleteRefreshTokenCookie();
@@ -157,13 +154,23 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var updateResult = await _userManager.UpdateAsync(admin);
         if (!updateResult.Succeeded)
         {
-            DeleteRefreshTokenCookie();
             if (updateResult.Errors.Any(error => error.Code == ConcurrencyFailureCode))
             {
+                _logger.LogInformation(
+                    "Concurrent refresh collision detected when updating admin user for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}",
+                    admin.Id,
+                    session.FamilyId);
+
                 return Result.Fail(AuthConstants.Unauthorized);
             }
 
-            return Result.Fail(updateResult.Errors.Select(error => error.Description));
+            _logger.LogError(
+                "Failed to update admin user {AdminUserId} during refresh: {Errors}",
+                admin.Id,
+                string.Join("; ", updateResult.Errors.Select(e => e.Description)));
+
+            DeleteRefreshTokenCookie();
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         try
@@ -175,7 +182,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             _logger.LogInformation(
                 "Concurrent refresh collision detected for session in FamilyId: {FamilyId}",
                 session.FamilyId);
-            DeleteRefreshTokenCookie();
+
             return Result.Fail(AuthConstants.Unauthorized);
         }
 

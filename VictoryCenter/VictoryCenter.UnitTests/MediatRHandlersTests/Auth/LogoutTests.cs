@@ -156,4 +156,95 @@ public class LogoutTests
                 It.Is<CookieOptions>(options => options.Path == AuthConstants.RefreshTokenCookiePath)),
             Times.Once);
     }
+
+    [Fact]
+    public async Task Handle_GivenSessionOfDifferentAdmin_DoesNotRevokeFamily()
+    {
+        var cmd = new LogoutCommand();
+        var admin = new AdminUser { Id = 1, Email = "admin@gmail.com" };
+        var mockHttpContext = new Mock<HttpContext>();
+        var claims = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "admin@gmail.com")]));
+        mockHttpContext.SetupGet(c => c.User).Returns(claims);
+        var mockHttpRequest = new Mock<HttpRequest>();
+        var mockRequestCookies = new Mock<IRequestCookieCollection>();
+        string cookieValue = "other_admin_refresh_token";
+        mockRequestCookies.Setup(c => c.TryGetValue(AuthConstants.RefreshTokenCookieName, out cookieValue!)).Returns(true);
+        mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
+        mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
+
+        var familyId = Guid.NewGuid();
+        var sessionOfOtherAdmin = new RefreshTokenSession { AdminUserId = 2, FamilyId = familyId, TokenHash = "other_hash", IsRevoked = false };
+        _mockTokenService.Setup(x => x.HashRefreshToken("other_admin_refresh_token")).Returns("other_hash");
+        _mockRepositoryWrapper.Setup(x => x.RefreshTokenSessionRepository.GetByTokenHashAsync("other_hash", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(sessionOfOtherAdmin);
+
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(admin)).ReturnsAsync(IdentityResult.Success);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mockRefreshTokenSessionRepository.Verify(
+            x => x.RevokeFamilyAsync(
+                It.IsAny<Guid>(),
+                It.IsAny<string>(),
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+        _mockRefreshTokenSessionRepository.Verify(
+            x => x.RevokeAdminSessionsAsync(
+                admin.Id,
+                "Logout",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_GivenConcurrencyFailureOnUpdateSecurityStamp_RetriesWithFreshAdminAndSucceeds()
+    {
+        var cmd = new LogoutCommand();
+        var admin = new AdminUser { Id = 1, Email = "admin@gmail.com" };
+        var freshAdmin = new AdminUser { Id = 1, Email = "admin@gmail.com", SecurityStamp = "new_stamp" };
+        var mockHttpContext = new Mock<HttpContext>();
+        var claims = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "admin@gmail.com")]));
+        mockHttpContext.SetupGet(c => c.User).Returns(claims);
+        var mockHttpRequest = new Mock<HttpRequest>();
+        mockHttpRequest.SetupGet(r => r.Cookies).Returns(new Mock<IRequestCookieCollection>().Object);
+        mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
+
+        _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
+        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(admin))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError
+            {
+                Code = new IdentityErrorDescriber().ConcurrencyFailure().Code,
+                Description = "Optimistic concurrency failure"
+            }));
+        _mockUserManager.Setup(x => x.FindByIdAsync("1")).ReturnsAsync(freshAdmin);
+        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(freshAdmin)).ReturnsAsync(IdentityResult.Success);
+
+        var result = await _commandHandler.Handle(cmd, CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Once);
+        _mockUserManager.Verify(x => x.FindByIdAsync("1"), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(freshAdmin), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+        mockResponseCookies.Verify(
+            c => c.Delete(
+                It.Is<string>(s => s == AuthConstants.RefreshTokenCookieName),
+                It.Is<CookieOptions>(options => options.Path == AuthConstants.RefreshTokenCookiePath)),
+            Times.Once);
+    }
 }

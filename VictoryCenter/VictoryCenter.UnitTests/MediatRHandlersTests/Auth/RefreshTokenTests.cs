@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentResults;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -290,13 +291,11 @@ public class RefreshTokenTests
 
         Assert.False(result.IsSuccess);
         Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
-        Assert.Null(admin.RefreshToken);
-        Assert.Null(admin.RefreshTokenValidTo);
 
         _mockRepositoryWrapper.Verify(
             r => r.RefreshTokenSessionRepository.RevokeFamilyAsync(familyId, "SuspectedTokenReuse", FixedTestTime, It.IsAny<CancellationToken>()),
             Times.Once);
-        _mockUserManager.Verify(x => x.UpdateAsync(admin), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateAsync(It.IsAny<AdminUser>()), Times.Never);
         _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Once);
         mockResponseCookies.Verify(
             c => c.Delete(
@@ -492,6 +491,132 @@ public class RefreshTokenTests
             {
                 Code = new IdentityErrorDescriber().ConcurrencyFailure().Code,
                 Description = "Concurrency failure"
+            }));
+
+        var result = await _handler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
+        mockResponseCookies.Verify(
+            c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()),
+            Times.Never);
+        mockResponseCookies.Verify(
+            c => c.Delete(It.IsAny<string>(), It.IsAny<CookieOptions>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_GivenDbUpdateConcurrencyException_ReturnsUnauthorizedWithoutDeletingCookie()
+    {
+        var cmd = new RefreshTokenCommand();
+        var familyId = Guid.NewGuid();
+        var admin = new AdminUser
+        {
+            Id = 1,
+            RefreshToken = "valid_token_hash",
+            RefreshTokenValidTo = FixedTestTime.AddHours(24),
+            Email = "test@email.com",
+            SecurityStamp = "security_stamp"
+        };
+        var validSession = new RefreshTokenSession
+        {
+            AdminUserId = 1,
+            FamilyId = familyId,
+            TokenHash = "valid_token_hash",
+            ExpiresAt = FixedTestTime.AddHours(24),
+            IsRevoked = false
+        };
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
+            new Claim(ClaimTypes.Email, "test@email.com")
+        ]));
+        var mockRequestCookies = new Mock<IRequestCookieCollection>();
+        string cookieValue = "valid_token";
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out cookieValue!)).Returns(true);
+        var mockHttpRequest = new Mock<HttpRequest>();
+        mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        var mockHttpContext = new Mock<HttpContext>();
+        mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
+
+        _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("valid_token")).Returns(claimsPrincipal);
+        _mockTokenService.Setup(x => x.HashRefreshToken("valid_token")).Returns("valid_token_hash");
+        _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
+        _mockRepositoryWrapper.Setup(r => r.RefreshTokenSessionRepository.GetByTokenHashAsync("valid_token_hash", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(validSession);
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
+        _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
+        _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
+        _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");
+        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Success);
+        _mockRepositoryWrapper.Setup(r => r.SaveChangesAsync()).ThrowsAsync(new DbUpdateConcurrencyException());
+
+        var result = await _handler.Handle(cmd, CancellationToken.None);
+
+        Assert.False(result.IsSuccess);
+        Assert.Equal(AuthConstants.Unauthorized, result.Errors[0].Message);
+        mockResponseCookies.Verify(
+            c => c.Append(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CookieOptions>()),
+            Times.Never);
+        mockResponseCookies.Verify(
+            c => c.Delete(It.IsAny<string>(), It.IsAny<CookieOptions>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_GivenNonConcurrencyUpdateFailure_ReturnsUnauthorizedAndDeletesCookie()
+    {
+        var cmd = new RefreshTokenCommand();
+        var familyId = Guid.NewGuid();
+        var admin = new AdminUser
+        {
+            Id = 1,
+            RefreshToken = "valid_token_hash",
+            RefreshTokenValidTo = FixedTestTime.AddHours(24),
+            Email = "test@email.com",
+            SecurityStamp = "security_stamp"
+        };
+        var validSession = new RefreshTokenSession
+        {
+            AdminUserId = 1,
+            FamilyId = familyId,
+            TokenHash = "valid_token_hash",
+            ExpiresAt = FixedTestTime.AddHours(24),
+            IsRevoked = false
+        };
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
+            new Claim(ClaimTypes.Email, "test@email.com")
+        ]));
+        var mockRequestCookies = new Mock<IRequestCookieCollection>();
+        string cookieValue = "valid_token";
+        mockRequestCookies.Setup(c => c.TryGetValue("refreshToken", out cookieValue!)).Returns(true);
+        var mockHttpRequest = new Mock<HttpRequest>();
+        mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
+        var mockResponseCookies = new Mock<IResponseCookies>();
+        var mockHttpResponse = new Mock<HttpResponse>();
+        mockHttpResponse.SetupGet(r => r.Cookies).Returns(mockResponseCookies.Object);
+        var mockHttpContext = new Mock<HttpContext>();
+        mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
+        mockHttpContext.SetupGet(c => c.Response).Returns(mockHttpResponse.Object);
+        _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
+
+        _mockTokenService.Setup(x => x.GetClaimsFromExpiredToken("valid_token")).Returns(claimsPrincipal);
+        _mockTokenService.Setup(x => x.HashRefreshToken("valid_token")).Returns("valid_token_hash");
+        _mockUserManager.Setup(x => x.FindByEmailAsync("test@email.com")).ReturnsAsync(admin);
+        _mockRepositoryWrapper.Setup(r => r.RefreshTokenSessionRepository.GetByTokenHashAsync("valid_token_hash", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(validSession);
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
+        _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
+        _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
+        _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");
+        _mockUserManager.Setup(x => x.UpdateAsync(admin)).ReturnsAsync(IdentityResult.Failed(
+            new IdentityError
+            {
+                Code = "GenericError",
+                Description = "Database disk full"
             }));
 
         var result = await _handler.Handle(cmd, CancellationToken.None);

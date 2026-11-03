@@ -12,6 +12,8 @@ namespace VictoryCenter.BLL.Commands.Admin.Auth.Logout;
 
 public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 {
+    private static readonly string ConcurrencyFailureCode = new IdentityErrorDescriber().ConcurrencyFailure().Code;
+
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AdminUser> _userManager;
     private readonly IRepositoryWrapper _repositoryWrapper;
@@ -53,7 +55,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         {
             var tokenHash = _tokenService.HashRefreshToken(refreshToken);
             var session = await _repositoryWrapper.RefreshTokenSessionRepository.GetByTokenHashAsync(tokenHash, cancellationToken);
-            if (session != null)
+            if (session != null && session.AdminUserId == admin.Id)
             {
                 await _repositoryWrapper.RefreshTokenSessionRepository.RevokeFamilyAsync(
                     session.FamilyId,
@@ -69,19 +71,38 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
             now,
             cancellationToken);
 
+        await _repositoryWrapper.SaveChangesAsync();
+
         admin.RefreshToken = null;
         admin.RefreshTokenValidTo = null;
 
         // Rotating the stamp revokes every access token issued before logout; the call also persists the cleared refresh token.
         var updateAdmin = await _userManager.UpdateSecurityStampAsync(admin);
+        if (!updateAdmin.Succeeded && updateAdmin.Errors.Any(e => e.Code == ConcurrencyFailureCode))
+        {
+            var currentAdmin = await _userManager.FindByIdAsync(admin.Id.ToString());
+            if (currentAdmin != null)
+            {
+                currentAdmin.RefreshToken = null;
+                currentAdmin.RefreshTokenValidTo = null;
+                updateAdmin = await _userManager.UpdateSecurityStampAsync(currentAdmin);
+            }
+        }
+
+        DeleteRefreshTokenCookie();
+
         if (!updateAdmin.Succeeded)
         {
             return Result.Fail(AuthConstants.NotUpdated);
         }
 
-        await _repositoryWrapper.SaveChangesAsync();
+        return Result.Ok(Unit.Value);
+    }
 
-        _httpContextAccessor.HttpContext!.Response.Cookies.Delete(
+    private void DeleteRefreshTokenCookie()
+    {
+        var response = _httpContextAccessor.HttpContext?.Response;
+        response?.Cookies.Delete(
             AuthConstants.RefreshTokenCookieName,
             new CookieOptions
             {
@@ -90,7 +111,5 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
                 SameSite = SameSiteMode.Strict,
                 Path = AuthConstants.RefreshTokenCookiePath
             });
-
-        return Result.Ok(Unit.Value);
     }
 }
