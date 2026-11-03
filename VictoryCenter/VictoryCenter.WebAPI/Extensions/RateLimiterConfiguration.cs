@@ -9,12 +9,35 @@ public static class RateLimiterConfiguration
     private const int ImageUploadQueueLimit = 64;
     private const int DonationRequestPermitLimit = 10;
     private const int AdminLoginRequestPermitLimit = 5;
+    private const int SwaggerRequestPermitLimit = 60;
 
     public static IServiceCollection AddRateLimiterConfiguration(this IServiceCollection services)
     {
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+                context =>
+                {
+                    var env = context.RequestServices.GetRequiredService<IWebHostEnvironment>();
+
+                    if (env.IsDevelopment() ||
+                        !context.Request.Path.StartsWithSegments("/swagger"))
+                    {
+                        return RateLimitPartition.GetNoLimiter("non-swagger");
+                    }
+
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        partitionKey: $"swagger:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
+                        factory: _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = SwaggerRequestPermitLimit,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueLimit = 0,
+                            AutoReplenishment = true
+                        });
+                });
 
             // Keep aggregate decode memory bounded: at most PermitLimit images are decoded at once.
             // Extra uploads wait in the queue instead of being rejected - a queued request has not been read yet, so it holds no image data.

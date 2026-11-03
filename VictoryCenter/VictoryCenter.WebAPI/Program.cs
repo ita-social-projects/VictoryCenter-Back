@@ -19,15 +19,15 @@ builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 var app = builder.Build();
 app.Lifetime.ApplicationStopped.Register(configurationFileProvider.Dispose);
 
-app.MapOpenApi();
-
 await app.ApplyMigrationsAsync();
 await app.CreateInitialDataAsync();
 
 app.UseForwardedHeaders();
-app.UseRequestResponseLogging();
 app.UseCors();
+app.UseExceptionHandling();
+app.UseRequestResponseLogging();
 app.UseRateLimiter();
+app.MapOpenApi();
 app.MapControllers();
 app.MapHealthChecks("/health/live", new HealthCheckOptions
 {

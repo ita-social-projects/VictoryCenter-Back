@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Resend;
 using Slugify;
@@ -13,11 +14,13 @@ using VictoryCenter.BLL.Behaviors;
 using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Interceptors;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Captcha;
 using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
+using VictoryCenter.BLL.Interfaces.HtmlSanitization;
 using VictoryCenter.BLL.Interfaces.ImageValidation;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
@@ -42,6 +45,7 @@ using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.BLL.Services.HippotherapyPrograms;
+using VictoryCenter.BLL.Services.HtmlSanitization;
 using VictoryCenter.BLL.Services.ImageValidation;
 using VictoryCenter.BLL.Services.Localization;
 using VictoryCenter.BLL.Services.MainPage;
@@ -62,10 +66,12 @@ using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
+using VictoryCenter.WebAPI.Authentication;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.HealthChecks;
 using VictoryCenter.WebAPI.Utils;
+using VictoryCenter.WebAPI.Middleware;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -76,13 +82,17 @@ public static class ServicesConfiguration
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        services.AddDbContext<VictoryCenterDbContext>(options =>
+        services.AddSingleton<IRichTextSanitizer, RichTextSanitizer>();
+        services.AddSingleton<RichTextSanitizationInterceptor>();
+
+        services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
         {
             options.UseSqlServer(connectionString, opt =>
             {
                 opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
                 opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
             });
+            options.AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
         });
 
         services.AddIdentity<AdminUser, IdentityRole<int>>()
@@ -95,7 +105,12 @@ public static class ServicesConfiguration
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-            .AddJwtBearer(options => { options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration); });
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration);
+                options.EventsType = typeof(AccessTokenValidationEvents);
+            });
+        services.AddScoped<AccessTokenValidationEvents>();
 
         services.Configure<CookiePolicyOptions>(options =>
         {
@@ -147,6 +162,7 @@ public static class ServicesConfiguration
         services.ConfigureBlob(configuration);
         services.ConfigurePdf(configuration);
         services.ConfigureEmail(configuration);
+        services.ConfigureAccountLockout();
 
         services.AddOptions<JwtOptions>()
             .BindConfiguration(JwtOptions.Position)
@@ -198,6 +214,8 @@ public static class ServicesConfiguration
         services.AddScoped(typeof(ILocalizationService<,>), typeof(LocalizationService<,>));
         services.AddScoped<IMainPageBlocksLocalizationUpdater, MainPageBlocksLocalizationUpdater>();
         services.AddScoped<IPartnerSectionLocalizationUpdater, PartnerSectionLocalizationUpdater>();
+        services.AddScoped<IHippotherapyLandingPageLocalizationBuilder, HippotherapyLandingPageLocalizationBuilder>();
+        services.AddScoped<IHippotherapyLandingPageResponseFactory, HippotherapyLandingPageResponseFactory>();
         services.AddScoped<IHippotherapyLandingPageAdvantageCardLocalizationUpdater, HippotherapyLandingPageAdvantageCardLocalizationUpdater>();
         services.AddScoped<IHippotherapyLandingPageParticipantCardLocalizationUpdater, HippotherapyLandingPageParticipantCardLocalizationUpdater>();
         services.AddScoped<IHippotherapyLandingPageScientificReferenceLocalizationUpdater, HippotherapyLandingPageScientificReferenceLocalizationUpdater>();
@@ -222,6 +240,13 @@ public static class ServicesConfiguration
 
     public static void MapOpenApi(this IApplicationBuilder app)
     {
+        var env = app.ApplicationServices.GetRequiredService<IWebHostEnvironment>();
+
+        if (!env.IsDevelopment())
+        {
+            app.UseMiddleware<SwaggerBasicAuthMiddleware>();
+        }
+
         app.UseSwagger();
         app.UseSwaggerUI(c =>
         {
@@ -629,7 +654,7 @@ public static class ServicesConfiguration
             CreatedAt = now,
             IntroSection = new HippotherapyLandingPageIntroSection
             {
-                Title = "<h3><b><i>Кінь</i></b> не питає, він <b><i>просто поруч</i></b></h3>",
+                Title = "<b><i>Кінь</i></b> не питає, він <b><i>просто поруч</i></b>",
                 Description = "Це про зустріч. Між людиною, яка вчиться знову довіряти, і конем, який відповідає без слів. Тут зцілення йде не з розмови, а з присутності.",
                 CreatedAt = now,
             },
@@ -995,5 +1020,21 @@ public static class ServicesConfiguration
         }
 
         return services;
+    }
+
+    private static void ConfigureAccountLockout(this IServiceCollection services)
+    {
+        services.AddOptions<AccountLockoutOptions>()
+            .BindConfiguration(AccountLockoutOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<IdentityOptions>()
+            .Configure<IOptions<AccountLockoutOptions>>((identityOptions, lockoutOptions) =>
+            {
+                identityOptions.Lockout.AllowedForNewUsers = true;
+                identityOptions.Lockout.MaxFailedAccessAttempts = lockoutOptions.Value.MaxFailedAccessAttempts;
+                identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutOptions.Value.LockoutMinutes);
+            });
     }
 }

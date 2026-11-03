@@ -1,74 +1,109 @@
-using AutoMapper;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.Queries.Admin.HippotherapyLandingPage.Get;
+using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.HippotherapyLandingPageTestDataHelper;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.HippotherapyLandingPage;
 
 public class GetHippotherapyLandingPageHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
-    private readonly Mock<IMapper> _mapperMock = new();
+    private readonly Mock<IHippotherapyLandingPageResponseFactory> _responseFactoryMock = new();
 
     [Fact]
-    public async Task Handle_WhenPageExists_ShouldReturnMappedDto()
+    public async Task Handle_WhenPageExists_ShouldReturnDtoCreatedByResponseFactory()
     {
-        // Arrange
-        var entity = new DAL.Entities.HippotherapyLandingPage { Id = 1 };
-        var expectedDto = new HippotherapyLandingPageDto
-        {
-            IntroSection = null!,
-            DescriptionSection = null!,
-            QuoteSection = null!,
-            HippoventionSection = null!,
-            HippoventionCenterSection = null!,
-            AdvantagesSection = null!,
-            AnalysisSection = null!,
-            ScientificReferencesSection = null!,
-            AnotherQuoteSection = null!,
-            ParticipantsSection = null!,
-            EthicsSection = null!,
-        };
+        var entity = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        var expected = CreateEmptyDto();
+        SetupRepository(entity);
+        _responseFactoryMock.Setup(x => x.Create(entity)).Returns(expected);
 
+        var result = await CreateHandler().Handle(new GetHippotherapyLandingPageQuery(), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Same(expected, result.Value);
+        _responseFactoryMock.Verify(x => x.Create(entity), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_WhenPageDoesNotExist_ShouldReturnNotFoundAndNotCallFactory()
+    {
+        SetupRepository(null);
+
+        var result = await CreateHandler().Handle(new GetHippotherapyLandingPageQuery(), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors[0].Message);
+        _responseFactoryMock.Verify(x => x.Create(It.IsAny<DAL.Entities.HippotherapyLandingPage>()), Times.Never);
+    }
+
+    [Theory]
+    [MemberData(nameof(SectionRemovers))]
+    public async Task Handle_WhenAnySectionIsMissing_ShouldReturnNotFoundAndNotCallFactory(
+        Action<DAL.Entities.HippotherapyLandingPage> removeSection)
+    {
+        var entity = HippotherapyLandingPageTestDataHelper.CreateLandingPageEntity();
+        removeSection(entity);
+        SetupRepository(entity);
+
+        var result = await CreateHandler().Handle(new GetHippotherapyLandingPageQuery(), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors[0].Message);
+        _responseFactoryMock.Verify(x => x.Create(It.IsAny<DAL.Entities.HippotherapyLandingPage>()), Times.Never);
+    }
+
+    public static TheoryData<Action<DAL.Entities.HippotherapyLandingPage>> SectionRemovers()
+    {
+        var data = new TheoryData<Action<DAL.Entities.HippotherapyLandingPage>>();
+        foreach (var action in SectionRemoverActions())
+        {
+            data.Add(action);
+        }
+
+        return data;
+    }
+
+    internal static IEnumerable<Action<DAL.Entities.HippotherapyLandingPage>> SectionRemoverActions()
+    {
+        yield return p => p.IntroSection = null;
+        yield return p => p.DescriptionSection = null;
+        yield return p => p.QuoteSection = null;
+        yield return p => p.HippoventionSection = null;
+        yield return p => p.HippoventionCenterSection = null;
+        yield return p => p.AdvantagesSection = null;
+        yield return p => p.AnalysisSection = null;
+        yield return p => p.ScientificReferencesSection = null;
+        yield return p => p.AnotherQuoteSection = null;
+        yield return p => p.ParticipantsSection = null;
+        yield return p => p.EthicsSection = null;
+    }
+
+    private void SetupRepository(DAL.Entities.HippotherapyLandingPage? entity) =>
         _repositoryWrapperMock
             .Setup(x => x.HippotherapyLandingPagesRepository.GetFirstOrDefaultAsync(
                 It.IsAny<QueryOptions<DAL.Entities.HippotherapyLandingPage>>()))
             .ReturnsAsync(entity);
 
-        _mapperMock
-            .Setup(x => x.Map<HippotherapyLandingPageDto>(entity))
-            .Returns(expectedDto);
+    private GetHippotherapyLandingPageHandler CreateHandler() =>
+        new(_repositoryWrapperMock.Object, _responseFactoryMock.Object);
 
-        var handler = new GetHippotherapyLandingPageHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
-
-        // Act
-        var result = await handler.Handle(new GetHippotherapyLandingPageQuery(), CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        Assert.Same(expectedDto, result.Value);
-    }
-
-    [Fact]
-    public async Task Handle_WhenPageDoesNotExist_ShouldReturnNotFoundError()
+    private static HippotherapyLandingPageDto CreateEmptyDto() => new()
     {
-        // Arrange
-        _repositoryWrapperMock
-            .Setup(x => x.HippotherapyLandingPagesRepository.GetFirstOrDefaultAsync(
-                It.IsAny<QueryOptions<DAL.Entities.HippotherapyLandingPage>>()))
-            .ReturnsAsync((DAL.Entities.HippotherapyLandingPage?)null);
-
-        var handler = new GetHippotherapyLandingPageHandler(_repositoryWrapperMock.Object, _mapperMock.Object);
-
-        // Act
-        var result = await handler.Handle(new GetHippotherapyLandingPageQuery(), CancellationToken.None);
-
-        // Assert
-        Assert.True(result.IsFailed);
-        Assert.Equal(ErrorMessagesConstants.NotFound(), result.Errors[0].Message);
-        _mapperMock.Verify(x => x.Map<HippotherapyLandingPageDto>(It.IsAny<object>()), Times.Never);
-    }
+        IntroSection = null!,
+        DescriptionSection = null!,
+        QuoteSection = null!,
+        HippoventionSection = null!,
+        HippoventionCenterSection = null!,
+        AdvantagesSection = null!,
+        AnalysisSection = null!,
+        ScientificReferencesSection = null!,
+        AnotherQuoteSection = null!,
+        ParticipantsSection = null!,
+        EthicsSection = null!,
+    };
 }

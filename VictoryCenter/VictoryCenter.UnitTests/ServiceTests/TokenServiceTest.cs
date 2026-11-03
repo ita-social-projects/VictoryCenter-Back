@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -27,7 +28,7 @@ public class TokenServiceTest
             .AddInMemoryCollection([
                 new("JwtOptions:Audience", "UnitTests.Client"),
                 new("JwtOptions:Issuer", "UnitTests.Tested"),
-                new("JwtOptions:LifetimeInMinutes", "1440"),
+                new("JwtOptions:LifetimeInMinutes", "15"),
                 new("JwtOptions:Secretkey", "09DF83C7-1862-4AC2-B400-7FDA46861AC2")
             ])
             .Build();
@@ -36,7 +37,7 @@ public class TokenServiceTest
         {
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
-            LifetimeInMinutes = 1440,
+            LifetimeInMinutes = 15,
             SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenLifetimeInDays = 7
@@ -76,6 +77,16 @@ public class TokenServiceTest
         Assert.True(nbf != null && !string.IsNullOrWhiteSpace(nbf.Value));
         Assert.True(iat != null && !string.IsNullOrWhiteSpace(iat.Value));
         Assert.True(email is { Value: "admintest@gmail.com" });
+    }
+
+    [Fact]
+    public void CreateAccessToken_GivenClaims_ExpiresAfterConfiguredLifetime()
+    {
+        var token = _tokenService.CreateAccessToken([]);
+
+        var jwtToken = _jwtSecurityTokenHandler.ReadJwtToken(token);
+
+        Assert.Equal(TimeSpan.FromMinutes(_jwtOptions.LifetimeInMinutes), jwtToken.ValidTo - jwtToken.ValidFrom);
     }
 
     [Fact]
@@ -124,6 +135,72 @@ public class TokenServiceTest
         var isValid = _tokenService.VerifyRefreshTokenHash("refresh_token", "refresh_token");
 
         Assert.False(isValid);
+    }
+
+    [Fact]
+    public void HashSecurityStamp_GivenStamp_ReturnsVerifiableSha256Hash()
+    {
+        const string securityStamp = "SECURITYSTAMPVALUE";
+
+        var hash = _tokenService.HashSecurityStamp(securityStamp);
+
+        Assert.Equal(64, hash.Length);
+        Assert.DoesNotContain(securityStamp, hash);
+        Assert.True(_tokenService.VerifySecurityStampHash(securityStamp, hash));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void HashSecurityStamp_GivenEmptyStamp_ThrowsArgumentException(string securityStamp)
+    {
+        Assert.Throws<ArgumentException>(() => _tokenService.HashSecurityStamp(securityStamp));
+    }
+
+    [Fact]
+    public void VerifySecurityStampHash_GivenRotatedStamp_ReturnsFalse()
+    {
+        var hashInToken = _tokenService.HashSecurityStamp("SECURITYSTAMPVALUE");
+
+        var isValid = _tokenService.VerifySecurityStampHash("ROTATEDSTAMP", hashInToken);
+
+        Assert.False(isValid);
+    }
+
+    [Theory]
+    [InlineData(null, "ABCDEF")]
+    [InlineData("SECURITYSTAMPVALUE", null)]
+    [InlineData("SECURITYSTAMPVALUE", "")]
+    [InlineData("SECURITYSTAMPVALUE", "SECURITYSTAMPVALUE")]
+    public void VerifySecurityStampHash_GivenMissingOrMalformedValues_ReturnsFalse(string? currentStamp, string? hashInToken)
+    {
+        var isValid = _tokenService.VerifySecurityStampHash(currentStamp, hashInToken);
+
+        Assert.False(isValid);
+    }
+
+    [Theory]
+    [InlineData(0, 7, false)]
+    [InlineData(61, 7, false)]
+    [InlineData(1440, 7, false)]
+    [InlineData(15, 0, false)]
+    [InlineData(15, 31, false)]
+    [InlineData(15, 7, true)]
+    public void JwtOptions_ValidatesLifetimeRanges(int lifetimeInMinutes, int refreshTokenLifetimeInDays, bool expectedIsValid)
+    {
+        var options = new JwtOptions
+        {
+            Audience = _jwtOptions.Audience,
+            Issuer = _jwtOptions.Issuer,
+            LifetimeInMinutes = lifetimeInMinutes,
+            SecretKey = _jwtOptions.SecretKey,
+            RefreshTokenSecretKey = _jwtOptions.RefreshTokenSecretKey,
+            RefreshTokenLifetimeInDays = refreshTokenLifetimeInDays
+        };
+
+        var isValid = Validator.TryValidateObject(options, new ValidationContext(options), null, validateAllProperties: true);
+
+        Assert.Equal(expectedIsValid, isValid);
     }
 
     [Fact]

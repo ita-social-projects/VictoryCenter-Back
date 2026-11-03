@@ -45,7 +45,7 @@ public class RefreshTokenTests
         {
             Audience = "UnitTests.Client",
             Issuer = "UnitTests.Tested",
-            LifetimeInMinutes = 1440,
+            LifetimeInMinutes = 15,
             SecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenSecretKey = "09DF83C7-1862-4AC2-B400-7FDA46861AC2",
             RefreshTokenLifetimeInDays = 7
@@ -371,7 +371,8 @@ public class RefreshTokenTests
             Id = 1,
             RefreshToken = "valid_token_hash",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
-            Email = "test@email.com"
+            Email = "test@email.com",
+            SecurityStamp = "security_stamp"
         };
         var validSession = new RefreshTokenSession
         {
@@ -403,6 +404,7 @@ public class RefreshTokenTests
         _mockRepositoryWrapper.Setup(r => r.RefreshTokenSessionRepository.GetByTokenHashAsync("valid_token_hash", It.IsAny<CancellationToken>()))
             .ReturnsAsync(validSession);
 
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
         _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");
@@ -425,6 +427,11 @@ public class RefreshTokenTests
             Times.Once);
         _mockRepositoryWrapper.Verify(r => r.SaveChangesAsync(), Times.Once);
 
+        _mockTokenService.Verify(x => x.HashSecurityStamp("security_stamp"), Times.Once);
+        _mockTokenService.Verify(
+            x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
+                claim.Type == AuthConstants.SecurityStampHashClaimType && claim.Value == "security_stamp_hash"))),
+            Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(
                 It.Is<string>(s => s == "refreshToken"),
@@ -443,7 +450,8 @@ public class RefreshTokenTests
             Id = 1,
             RefreshToken = "valid_token_hash",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
-            Email = "test@email.com"
+            Email = "test@email.com",
+            SecurityStamp = "security_stamp"
         };
         var validSession = new RefreshTokenSession
         {
@@ -475,6 +483,7 @@ public class RefreshTokenTests
         _mockRepositoryWrapper.Setup(r => r.RefreshTokenSessionRepository.GetByTokenHashAsync("valid_token_hash", It.IsAny<CancellationToken>()))
             .ReturnsAsync(validSession);
 
+        _mockTokenService.Setup(x => x.HashSecurityStamp(It.IsAny<string>())).Returns("security_stamp_hash");
         _mockTokenService.Setup(x => x.CreateAccessToken(It.IsAny<Claim[]>())).Returns("new_access_token");
         _mockTokenService.Setup(x => x.CreateRefreshToken(It.IsAny<Claim[]>())).Returns("new_refresh_token");
         _mockTokenService.Setup(x => x.HashRefreshToken("new_refresh_token")).Returns("new_refresh_token_hash");

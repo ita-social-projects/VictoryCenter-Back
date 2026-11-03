@@ -127,7 +127,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
                     records => records.Any(rec => rec.Id == _deleteRecordId))),
             Times.Once);
         _recordsRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Once);
-        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Once);
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(3));
         _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Once);
     }
@@ -165,7 +165,7 @@ public class BatchSaveReportFundsExpendituresRecordTests
 
         Assert.Contains(result.Errors, e => e.Message == expectedErrorMessage);
 
-        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
         _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Never);
         _mediatorMock.Verify(m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()), Times.Never);
     }
@@ -452,8 +452,204 @@ public class BatchSaveReportFundsExpendituresRecordTests
         _recordsRepositoryMock.Verify(
             r => r.UpdateRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()),
             Times.Never);
-        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Once);
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(2));
         _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSucceed_WhenTwoRecordsSwapCategories()
+    {
+        // Arrange
+        var recordA = new ReportFundsExpendituresRecord
+        {
+            Id = 1,
+            CategoryId = 1,
+            Type = ReportFundsExpendituresType.Income
+        };
+
+        var recordB = new ReportFundsExpendituresRecord
+        {
+            Id = 2,
+            CategoryId = 2,
+            Type = ReportFundsExpendituresType.Income
+        };
+
+        var batchDto = new BatchSaveReportFundsExpendituresRecordsDto
+        {
+            RecordsToCreate = [],
+            RecordsToUpdate =
+            [
+                new BatchUpdateReportFundsExpendituresRecordDto
+            {
+                Id = 1,
+                CategoryId = 2,
+                Amount = 111m,
+                Currency = ReportFundsExpendituresCurrency.Uah
+            },
+            new BatchUpdateReportFundsExpendituresRecordDto
+            {
+                Id = 2,
+                CategoryId = 1,
+                Amount = 222m,
+                Currency = ReportFundsExpendituresCurrency.Uah
+            },
+            ],
+            RecordIdsToDelete = []
+        };
+
+        var existingRecords = new List<ReportFundsExpendituresRecord> { recordA, recordB };
+        var existingCategories = new List<ReportFundsExpendituresCategory>
+    {
+        new() { Id = 1, Type = ReportFundsExpendituresType.Income },
+        new() { Id = 2, Type = ReportFundsExpendituresType.Income }
+    };
+
+        SetupDependencies(existingRecords, existingCategories, duplicateRecords: [], saveResult: 1);
+
+        _mapperMock
+            .Setup(m => m.Map(It.IsAny<BatchUpdateReportFundsExpendituresRecordDto>(), It.IsAny<ReportFundsExpendituresRecord>()))
+            .Callback((BatchUpdateReportFundsExpendituresRecordDto src, ReportFundsExpendituresRecord dest) =>
+            {
+                dest.CategoryId = src.CategoryId;
+            });
+
+        _categoriesRepositoryMock
+            .Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
+            .ReturnsAsync(new ReportFundsExpendituresCategory
+            {
+                Id = 999,
+                Name = ReportFundsExpendituresRecordConstants.TempCategoryName,
+                Type = ReportFundsExpendituresType.Income
+            });
+
+        var handler = new BatchSaveReportFundsExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _helperMock.Object);
+
+        var command = new BatchSaveReportFundsExpendituresRecordCommand(batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        _recordsRepositoryMock.Verify(r => r.Update(It.IsAny<ReportFundsExpendituresRecord>()), Times.Exactly(3));
+        _recordsRepositoryMock.Verify(r => r.UpdateRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Never);
+
+        _categoriesRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<ReportFundsExpendituresCategory>()), Times.Once);
+        _categoriesRepositoryMock.Verify(r => r.Delete(It.IsAny<ReportFundsExpendituresCategory>()), Times.Once);
+
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(6));
+
+        _mediatorMock.Verify(
+            m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldSucceed_WhenRecordsAreReassignedTransitivelyAcrossCategories()
+    {
+        // Arrange
+        var recordA = new ReportFundsExpendituresRecord { Id = 1, CategoryId = 1, Type = ReportFundsExpendituresType.Income };
+        var recordB = new ReportFundsExpendituresRecord { Id = 2, CategoryId = 2, Type = ReportFundsExpendituresType.Income };
+        var recordC = new ReportFundsExpendituresRecord { Id = 3, CategoryId = 3, Type = ReportFundsExpendituresType.Income };
+
+        var batchDto = new BatchSaveReportFundsExpendituresRecordsDto
+        {
+            RecordsToCreate = [],
+            RecordsToUpdate =
+            [
+                new BatchUpdateReportFundsExpendituresRecordDto
+            {
+                Id = 1,
+                CategoryId = 2,
+                Amount = 111m,
+                Currency = ReportFundsExpendituresCurrency.Uah
+            },
+            new BatchUpdateReportFundsExpendituresRecordDto
+            {
+                Id = 2,
+                CategoryId = 3,
+                Amount = 222m,
+                Currency = ReportFundsExpendituresCurrency.Uah
+            },
+            new BatchUpdateReportFundsExpendituresRecordDto
+            {
+                Id = 3,
+                CategoryId = 1,
+                Amount = 333m,
+                Currency = ReportFundsExpendituresCurrency.Uah
+            },
+            ],
+            RecordIdsToDelete = []
+        };
+
+        var existingRecords = new List<ReportFundsExpendituresRecord> { recordA, recordB, recordC };
+        var existingCategories = new List<ReportFundsExpendituresCategory>
+        {
+            new() { Id = 1, Type = ReportFundsExpendituresType.Income },
+            new() { Id = 2, Type = ReportFundsExpendituresType.Income },
+            new() { Id = 3, Type = ReportFundsExpendituresType.Income }
+        };
+
+        SetupDependencies(existingRecords, existingCategories, duplicateRecords: [], saveResult: 1);
+
+        _mapperMock
+            .Setup(m => m.Map(It.IsAny<BatchUpdateReportFundsExpendituresRecordDto>(), It.IsAny<ReportFundsExpendituresRecord>()))
+            .Callback((BatchUpdateReportFundsExpendituresRecordDto src, ReportFundsExpendituresRecord dest) =>
+            {
+                dest.CategoryId = src.CategoryId;
+            });
+
+        _categoriesRepositoryMock
+            .Setup(r => r.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<ReportFundsExpendituresCategory>>()))
+            .ReturnsAsync(new ReportFundsExpendituresCategory
+            {
+                Id = 999,
+                Name = ReportFundsExpendituresRecordConstants.TempCategoryName,
+                Type = ReportFundsExpendituresType.Income
+            });
+
+        var handler = new BatchSaveReportFundsExpendituresRecordHandler(
+            _mediatorMock.Object,
+            _repositoryWrapperMock.Object,
+            _validator,
+            _mapperMock.Object,
+            _helperMock.Object);
+
+        var command = new BatchSaveReportFundsExpendituresRecordCommand(batchDto);
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        _repositoryWrapperMock.Verify(w => w.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _transactionMock.Verify(t => t.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        _recordsRepositoryMock.Verify(r => r.Update(It.IsAny<ReportFundsExpendituresRecord>()), Times.Exactly(4));
+        _recordsRepositoryMock.Verify(r => r.UpdateRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.CreateRangeAsync(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Never);
+        _recordsRepositoryMock.Verify(r => r.DeleteRange(It.IsAny<IEnumerable<ReportFundsExpendituresRecord>>()), Times.Never);
+
+        _categoriesRepositoryMock.Verify(r => r.CreateAsync(It.IsAny<ReportFundsExpendituresCategory>()), Times.Once);
+        _categoriesRepositoryMock.Verify(r => r.Delete(It.IsAny<ReportFundsExpendituresCategory>()), Times.Once);
+
+        _repositoryWrapperMock.Verify(w => w.SaveChangesAsync(), Times.Exactly(7));
+
         _mediatorMock.Verify(
             m => m.Publish(It.IsAny<ReportFundsChangedNotification>(), It.IsAny<CancellationToken>()),
             Times.Once);
