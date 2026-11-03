@@ -196,6 +196,9 @@ public interface IRepositoryWrapper
 
     Task<int> SaveChangesAsync();
 
+    Task ReloadAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        where TEntity : class;
+
     /// <summary>Legacy ambient-scope transaction. Prefer <see cref="BeginTransactionAsync"/> for new code.</summary>
     /// <returns>A <see cref="TransactionScope"/> with async flow enabled.</returns>
     TransactionScope BeginTransaction();

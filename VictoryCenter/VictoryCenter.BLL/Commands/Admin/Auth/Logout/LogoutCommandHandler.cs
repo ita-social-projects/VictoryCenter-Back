@@ -80,13 +80,10 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         var updateAdmin = await _userManager.UpdateSecurityStampAsync(admin);
         if (!updateAdmin.Succeeded && updateAdmin.Errors.Any(e => e.Code == ConcurrencyFailureCode))
         {
-            var currentAdmin = await _userManager.FindByIdAsync(admin.Id.ToString());
-            if (currentAdmin != null)
-            {
-                currentAdmin.RefreshToken = null;
-                currentAdmin.RefreshTokenValidTo = null;
-                updateAdmin = await _userManager.UpdateSecurityStampAsync(currentAdmin);
-            }
+            await _repositoryWrapper.ReloadAsync(admin, cancellationToken);
+            admin.RefreshToken = null;
+            admin.RefreshTokenValidTo = null;
+            updateAdmin = await _userManager.UpdateSecurityStampAsync(admin);
         }
 
         DeleteRefreshTokenCookie();

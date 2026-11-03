@@ -617,6 +617,12 @@ public class RepositoryWrapper : IRepositoryWrapper
         return await _victoryCenterDbContext.SaveChangesAsync();
     }
 
+    public Task ReloadAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
+        where TEntity : class
+    {
+        return _victoryCenterDbContext.Entry(entity).ReloadAsync(cancellationToken);
+    }
+
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         return _victoryCenterDbContext.Database.BeginTransactionAsync(cancellationToken);

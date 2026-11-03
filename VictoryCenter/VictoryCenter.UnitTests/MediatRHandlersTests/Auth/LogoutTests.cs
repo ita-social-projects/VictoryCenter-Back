@@ -211,7 +211,6 @@ public class LogoutTests
     {
         var cmd = new LogoutCommand();
         var admin = new AdminUser { Id = 1, Email = "admin@gmail.com" };
-        var freshAdmin = new AdminUser { Id = 1, Email = "admin@gmail.com", SecurityStamp = "new_stamp" };
         var mockHttpContext = new Mock<HttpContext>();
         var claims = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "admin@gmail.com")]));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
@@ -225,21 +224,21 @@ public class LogoutTests
         _mockHttpContextAccessor.SetupGet(x => x.HttpContext).Returns(mockHttpContext.Object);
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
-        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(admin))
+        _mockUserManager.SetupSequence(x => x.UpdateSecurityStampAsync(admin))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError
             {
                 Code = new IdentityErrorDescriber().ConcurrencyFailure().Code,
                 Description = "Optimistic concurrency failure"
-            }));
-        _mockUserManager.Setup(x => x.FindByIdAsync("1")).ReturnsAsync(freshAdmin);
-        _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(freshAdmin)).ReturnsAsync(IdentityResult.Success);
+            }))
+            .ReturnsAsync(IdentityResult.Success);
+        _mockRepositoryWrapper.Setup(x => x.ReloadAsync(admin, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         var result = await _commandHandler.Handle(cmd, CancellationToken.None);
 
         Assert.True(result.IsSuccess);
-        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Once);
-        _mockUserManager.Verify(x => x.FindByIdAsync("1"), Times.Once);
-        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(freshAdmin), Times.Once);
+        _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Exactly(2));
+        _mockRepositoryWrapper.Verify(x => x.ReloadAsync(admin, It.IsAny<CancellationToken>()), Times.Once);
         _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
         mockResponseCookies.Verify(
             c => c.Delete(

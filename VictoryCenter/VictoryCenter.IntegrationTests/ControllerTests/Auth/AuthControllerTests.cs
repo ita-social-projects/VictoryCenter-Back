@@ -8,6 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -258,6 +262,86 @@ public class AuthControllerTests : BaseTestClass
     }
 
     [Fact]
+    public async Task Logout_WithStaleConcurrencyStamp_RetriesAndRotatesSecurityStamp()
+    {
+        var customFactory = Fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.Single(d => d.ServiceType == typeof(IRepositoryWrapper));
+                services.Remove(descriptor);
+                services.AddScoped<IRepositoryWrapper, ConcurrencySimulatingRepositoryWrapper>();
+            });
+        });
+        using var client = customFactory.CreateClient();
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AdminUser>>();
+            var existing = await userManager.FindByEmailAsync(TestEmail);
+            if (existing == null)
+            {
+                var admin = new AdminUser
+                {
+                    UserName = TestEmail,
+                    Email = TestEmail,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    RefreshToken = "refresh_token",
+                    RefreshTokenValidTo = DateTimeOffset.MaxValue
+                };
+                var createResult = await userManager.CreateAsync(admin, TestPassword);
+                Assert.True(createResult.Succeeded);
+            }
+        }
+
+        var loginResponse = await client.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse!.AccessToken;
+        var refreshTokenCookie = GetRefreshTokenCookie(loginResponse);
+
+        string? initialSecurityStamp;
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var initialAdmin = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
+            initialSecurityStamp = initialAdmin.SecurityStamp;
+        }
+
+        Assert.NotNull(initialSecurityStamp);
+
+        ConcurrencySimulatingRepositoryWrapper.ShouldSimulate = true;
+        try
+        {
+            using var logoutRequest = CreateAuthorizedRequest(HttpMethod.Post, LogoutPath, accessToken);
+            logoutRequest.Headers.Add("Cookie", refreshTokenCookie);
+            using var logoutResponse = await client.SendAsync(logoutRequest);
+
+            Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        }
+        finally
+        {
+            ConcurrencySimulatingRepositoryWrapper.ShouldSimulate = false;
+        }
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var updatedAdmin = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
+            Assert.NotEqual(initialSecurityStamp, updatedAdmin.SecurityStamp);
+            Assert.Null(updatedAdmin.RefreshToken);
+        }
+
+        using var subsequentRequest = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
+        using var subsequentResponse = await client.SendAsync(subsequentRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, subsequentResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task AdminEndpoint_WithAccessTokenWithoutSecurityStampClaim_ReturnsUnauthorized()
     {
         var tokenService = Fixture.Factory.Services.GetRequiredService<ITokenService>();
@@ -288,5 +372,41 @@ public class AuthControllerTests : BaseTestClass
         var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
         request.Headers.Add("Cookie", refreshTokenCookie);
         return request;
+    }
+
+    private sealed class ConcurrencySimulatingRepositoryWrapper : RepositoryWrapper, IRepositoryWrapper
+    {
+        private static bool _shouldSimulate;
+        private readonly IServiceProvider _serviceProvider;
+        private int _simulationExecuted;
+
+        public ConcurrencySimulatingRepositoryWrapper(
+            VictoryCenterDbContext context,
+            IServiceProvider serviceProvider)
+            : base(context)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public static bool ShouldSimulate
+        {
+            get => _shouldSimulate;
+            set => _shouldSimulate = value;
+        }
+
+        async Task<int> IRepositoryWrapper.SaveChangesAsync()
+        {
+            var result = await SaveChangesAsync();
+            if (ShouldSimulate && Interlocked.Exchange(ref _simulationExecuted, 1) == 0)
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+                var adminInDb = await dbContext.Users.FirstAsync(u => u.Email == TestEmail);
+                adminInDb.ConcurrencyStamp = Guid.NewGuid().ToString();
+                await dbContext.SaveChangesAsync();
+            }
+
+            return result;
+        }
     }
 }
