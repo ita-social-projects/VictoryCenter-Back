@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
@@ -56,7 +57,7 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
                 if (section is null)
                 {
                     return Result.Fail<List<HistorySectionLocalizationDto>>(
-                        ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
+                        new NotFoundError(ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection))));
                 }
 
                 HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(

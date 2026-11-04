@@ -62,7 +62,7 @@ public class UpdatePdfSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<PdfSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<PdfSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

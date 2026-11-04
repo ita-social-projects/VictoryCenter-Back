@@ -100,7 +100,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyProgramLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyProgramLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

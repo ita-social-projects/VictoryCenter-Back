@@ -74,7 +74,7 @@ public class CreateHippotherapyLandingPageEthicsSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

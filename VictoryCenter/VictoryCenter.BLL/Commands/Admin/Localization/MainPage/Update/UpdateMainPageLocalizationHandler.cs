@@ -87,7 +87,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<MainPageLocalizationDto>(knfex.Message);
+            return Result.Fail<MainPageLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

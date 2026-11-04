@@ -76,7 +76,7 @@ public class UpdateHippotherapyLandingPageAdvantagesSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

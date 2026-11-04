@@ -81,7 +81,7 @@ public class UpdatePartnerSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<PartnerSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<PartnerSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HistorySection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -61,7 +62,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
             if (unknownIds.Count > 0)
             {
                 return Result.Fail<List<HistorySectionDto>>(
-                    ErrorMessagesConstants.NotFound(unknownIds, typeof(HistorySection)));
+                    new NotFoundError(ErrorMessagesConstants.NotFound(unknownIds, typeof(HistorySection))));
             }
 
             var contentMismatches = incomingSections

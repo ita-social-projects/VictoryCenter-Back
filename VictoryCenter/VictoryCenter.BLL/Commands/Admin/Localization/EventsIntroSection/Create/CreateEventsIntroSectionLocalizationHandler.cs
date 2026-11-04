@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventsIntroSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using EventsIntroSectionEntity = VictoryCenter.DAL.Entities.EventsIntroSection;
@@ -43,7 +44,7 @@ public class CreateEventsIntroSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<EventsIntroSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<EventsIntroSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

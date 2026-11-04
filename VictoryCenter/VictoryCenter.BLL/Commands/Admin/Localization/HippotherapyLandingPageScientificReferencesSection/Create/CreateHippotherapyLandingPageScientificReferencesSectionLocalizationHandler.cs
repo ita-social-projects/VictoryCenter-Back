@@ -74,7 +74,7 @@ public class CreateHippotherapyLandingPageScientificReferencesSectionLocalizatio
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
