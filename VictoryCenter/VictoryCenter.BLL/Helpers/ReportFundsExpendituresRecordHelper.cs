@@ -29,7 +29,8 @@ public class ReportFundsExpendituresRecordHelper : IReportFundsExpendituresRecor
 
         if (settingsEntity is null)
         {
-            return Result.Fail<ReportFundsExpendituresSettingsDto>(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage);
+            return Result.Fail<ReportFundsExpendituresSettingsDto>(
+                new NotFoundError(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage));
         }
 
         var settingsDto = _mapper.Map<ReportFundsExpendituresSettingsDto>(settingsEntity);
