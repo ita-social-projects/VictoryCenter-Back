@@ -15,10 +15,12 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 {
     protected static readonly string TestBlobPath = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
     private readonly string _databaseName;
+    private readonly string? _sqlServerConnectionString;
 
-    public VictoryCenterWebApplicationFactory(string? databaseName = null)
+    public VictoryCenterWebApplicationFactory(string? databaseName = null, string? sqlServerConnectionString = null)
     {
         _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
+        _sqlServerConnectionString = sqlServerConnectionString;
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -56,7 +58,10 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
             var provider = services.BuildServiceProvider();
             using var scope = provider.CreateScope();
             var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            dbContext.Database.EnsureCreated();
+            if (_sqlServerConnectionString is null)
+            {
+                dbContext.Database.EnsureCreated();
+            }
         });
     }
 
@@ -108,6 +113,14 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 
     private void AddTestDbContext(IServiceCollection services)
     {
+        if (_sqlServerConnectionString is not null)
+        {
+            services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) => options
+                .UseSqlServer(_sqlServerConnectionString)
+                .AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>()));
+            return;
+        }
+
         var efServiceProvider = new ServiceCollection()
             .AddEntityFrameworkInMemoryDatabase()
             .BuildServiceProvider();

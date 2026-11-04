@@ -258,6 +258,11 @@ public static class ErrorMessagesConstants
         return $"Metrics must contain exactly {count} items.";
     }
 
+    public static string MetricsMustMatchExistingStatistics()
+    {
+        return "ImpactStatistics.Id must match the existing statistics block. Metrics must include every persisted metric with its original ID and type; omit IDs only for new metric types.";
+    }
+
     public static string MetricTypesMustBeUnique()
     {
         return "Each of the four metric types must appear exactly once: Partners, Programs, Raised, TherapyHours.";

@@ -55,7 +55,8 @@ public class UpdateMainPageTests : BaseTestClass
             mainImageId: image1.Id,
             statImageId: image2.Id,
             statId: existingStat?.Id,
-            metricId: existingMetric?.Id);
+            metricId: existingMetric?.Id,
+            partnerId: existingStat?.Metrics.Single(m => m.Type == MetricType.Partners).Id);
 
         var response = await PutRaw(updateDto);
 
@@ -91,7 +92,8 @@ public class UpdateMainPageTests : BaseTestClass
             mainImageId: image1.Id,
             statImageId: image1.Id,
             statId: existingStat?.Id,
-            metricId: existingMetric?.Id);
+            metricId: existingMetric?.Id,
+            partnerId: existingStat?.Metrics.Single(m => m.Type == MetricType.Partners).Id);
 
         var response = await PutRaw(updateDto);
 
@@ -112,7 +114,8 @@ public class UpdateMainPageTests : BaseTestClass
             mainImageId: nonExistentId,
             statImageId: nonExistentId,
             statId: existingStat?.Id,
-            metricId: existingMetric?.Id);
+            metricId: existingMetric?.Id,
+            partnerId: existingStat?.Metrics.Single(m => m.Type == MetricType.Partners).Id);
 
         var response = await PutRaw(updateDto);
 
@@ -132,7 +135,8 @@ public class UpdateMainPageTests : BaseTestClass
             mainImageId: image.Id,
             statImageId: image.Id,
             statId: existingStat?.Id,
-            metricId: existingMetric?.Id) with
+            metricId: existingMetric?.Id,
+            partnerId: existingStat?.Metrics.Single(m => m.Type == MetricType.Partners).Id) with
         {
             MainDonations = new UpdateMainDonationsDto
             {
@@ -204,7 +208,7 @@ public class UpdateMainPageTests : BaseTestClass
             new StringContent(serialized, Encoding.UTF8, "application/json"));
     }
 
-    private static UpdateMainPageDto CreateUpdateDto(string title, long mainImageId, long statImageId, long? statId = null, long? metricId = null)
+    private static UpdateMainPageDto CreateUpdateDto(string title, long mainImageId, long statImageId, long? statId = null, long? metricId = null, long? partnerId = null)
     {
         return new UpdateMainPageDto
         {
@@ -227,7 +231,9 @@ public class UpdateMainPageTests : BaseTestClass
                 Metrics =
                 [
                     new UpdateMetricDto { Id = metricId, Value = 999, Name = "updated-name", Type = MetricType.Raised },
-                    new UpdateMetricDto { Value = 123, Name = "new-metric", Type = MetricType.Partners },
+                    new UpdateMetricDto { Id = partnerId, Value = 123, Name = "new-metric", Type = MetricType.Partners },
+                    new UpdateMetricDto { Value = 100, Name = "programs", Type = MetricType.Programs },
+                    new UpdateMetricDto { Value = 100, Name = "hours", Type = MetricType.TherapyHours },
                 ],
             },
         };

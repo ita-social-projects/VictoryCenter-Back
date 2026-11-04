@@ -142,11 +142,50 @@ public class UpdateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor("Metrics[0]");
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(5)]
+    public void Validate_ShouldRejectIncorrectMetricCount(int count)
+    {
+        var metrics = Enumerable.Range(0, count)
+            .Select(index => new UpdateMetricDto { Name = "metric", Type = (MetricType)(index % 4) })
+            .ToList();
+
+        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(4));
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectDuplicateAndMissingTypes()
+    {
+        var metrics = GetValidDto().Metrics.ToList();
+        metrics[0] = metrics[0] with { Type = metrics[1].Type };
+
+        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.MetricTypesMustBeUnique());
+    }
+
+    [Fact]
+    public void Validate_ShouldAllowAllNewMetricsWithoutIds()
+    {
+        var metrics = GetValidDto().Metrics.Select(metric => metric with { Id = null }).ToList();
+
+        _validator.TestValidate(GetValidDto() with { Metrics = metrics }).ShouldNotHaveAnyValidationErrors();
+    }
+
     private static UpdateImpactStatisticDto GetValidDto() => new()
     {
         Id = 1,
         Title = "Impact title",
         ImageId = 1,
-        Metrics = [new UpdateMetricDto { Id = 2, Value = 100, Name = "kids", Type = MetricType.Raised }],
+        Metrics = Enum.GetValues<MetricType>()
+            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })
+            .ToList(),
     };
 }
