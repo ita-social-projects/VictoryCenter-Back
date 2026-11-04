@@ -4,8 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
-using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -163,9 +163,9 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         {
             ImpactStatistics = dto.ImpactStatistics! with
             {
-                Metrics = Enum.GetValues<MetricType>().Select(type =>
+                Metrics = [.. Enum.GetValues<MetricType>().Select(type =>
                     dto.ImpactStatistics.Metrics.SingleOrDefault(m => m.Type == type) ??
-                    new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 }).ToList(),
+                    new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 })],
             },
         };
 
@@ -197,8 +197,8 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             ImpactStatistics = dto.ImpactStatistics! with
             {
                 Id = null,
-                Metrics = Enum.GetValues<MetricType>()
-                    .Select(type => new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 }).ToList(),
+                Metrics = [.. Enum.GetValues<MetricType>()
+                    .Select(type => new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 })],
             },
         };
 
@@ -282,7 +282,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var persisted = await db.Metrics.OrderBy(m => m.Priority).ToListAsync();
         Assert.Equal(ids, persisted.Select(m => m.Id));
-        Assert.Equal(new long[] { 0, 1, 2, 3 }, persisted.Select(m => m.Priority));
+        Assert.Equal([0, 1, 2, 3], persisted.Select(m => m.Priority));
         Assert.Equal(hidden ? 1 : 0, persisted.Count(m => m.IsHidden));
     }
 
@@ -294,7 +294,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         var response = await _fixture.Client.PutAsJsonAsync("/api/MainPage/metrics/reorder", new ReorderMetricsDto
         {
             StatisticId = page.ImpactStatistics!.Id,
-            OrderedIds = page.ImpactStatistics.Metrics.Where(m => !m.IsHidden).Select(m => m.Id).Reverse().ToList(),
+            OrderedIds = [.. page.ImpactStatistics.Metrics.Where(m => !m.IsHidden).Select(m => m.Id).Reverse()],
         });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -313,7 +313,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             ImpactStatistics = new ImpactStatistics
             {
                 Title = "Statistics title",
-                Metrics = Enum.GetValues<MetricType>().Take(count).Select((type, index) => new Metric
+                Metrics = [.. Enum.GetValues<MetricType>().Take(count).Select((type, index) => new Metric
                 {
                     Name = type.ToString(),
                     Value = 123,
@@ -332,7 +332,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
                             TranslationStatus = TranslationStatus.Relevant,
                         },
                     ],
-                }).ToList(),
+                })],
             },
         };
         db.MainPages.Add(page);
@@ -348,7 +348,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         {
             Id = page.ImpactStatistics!.Id,
             Title = page.ImpactStatistics.Title,
-            Metrics = page.ImpactStatistics.Metrics.Select(m => new UpdateMetricDto
+            Metrics = [.. page.ImpactStatistics.Metrics.Select(m => new UpdateMetricDto
             {
                 Id = m.Id,
                 Name = m.Name,
@@ -356,7 +356,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
                 Type = m.Type,
                 Prefix = m.Prefix,
                 IsAutoSynced = m.IsAutoSynced,
-            }).ToList(),
+            })],
         },
     };
 
@@ -365,8 +365,8 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var metrics = await db.Metrics.Include(m => m.Localizations).OrderBy(m => m.Id).ToListAsync();
-        return metrics.Select(m => $"{m.Id}|{m.Name}|{m.Value}|{m.Type}|{m.Prefix}|{m.Priority}|{m.IsHidden}|{m.IsAutoSynced}|" +
+        return [.. metrics.Select(m => $"{m.Id}|{m.Name}|{m.Value}|{m.Type}|{m.Prefix}|{m.Priority}|{m.IsHidden}|{m.IsAutoSynced}|" +
             string.Join(";", m.Localizations.OrderBy(l => l.LanguageId)
-                .Select(l => $"{l.EntityId}|{l.LanguageId}|{l.Name}|{l.Value}|{l.TranslationStatus}"))).ToArray();
+                .Select(l => $"{l.EntityId}|{l.LanguageId}|{l.Name}|{l.Value}|{l.TranslationStatus}")))];
     }
 }

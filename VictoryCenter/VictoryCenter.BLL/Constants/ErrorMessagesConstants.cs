@@ -4,6 +4,10 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ErrorMessagesConstants
 {
+    public const string MetricsMustMatchExistingStatistics =
+        "ImpactStatistics.Id must match the existing statistics block. " +
+        "Metrics must include every persisted metric with its original ID and type; omit IDs only for new metric types.";
+
     public static readonly string AtLeastOneLocalizationFieldMustBeProvided = "At least one localization field must be provided.";
 
     public static readonly string BatchOperationMustContainAtLeastOneRecord = "Batch operation must contain at least one record to create, update, or delete.";
@@ -256,11 +260,6 @@ public static class ErrorMessagesConstants
     public static string MetricsMustContainExactlyNItems(int count)
     {
         return $"Metrics must contain exactly {count} items.";
-    }
-
-    public static string MetricsMustMatchExistingStatistics()
-    {
-        return "ImpactStatistics.Id must match the existing statistics block. Metrics must include every persisted metric with its original ID and type; omit IDs only for new metric types.";
     }
 
     public static string MetricTypesMustBeUnique()

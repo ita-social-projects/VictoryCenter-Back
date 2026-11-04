@@ -210,8 +210,7 @@ public class UpdateMainPageDtoValidatorTests
         Id = 1,
         Title = "Impact statistic title",
         ImageId = 2,
-        Metrics = Enum.GetValues<MetricType>()
-            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })
-            .ToList(),
+        Metrics = [.. Enum.GetValues<MetricType>()
+            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })],
     };
 }

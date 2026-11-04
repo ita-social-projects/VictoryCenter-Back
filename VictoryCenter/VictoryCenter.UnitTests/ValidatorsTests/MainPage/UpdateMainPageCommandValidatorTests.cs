@@ -79,7 +79,7 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics());
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics());
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class UpdateMainPageCommandValidatorTests
         var result = await CreateValidator().TestValidateAsync(command);
 
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics());
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
     }
 
     [Fact]

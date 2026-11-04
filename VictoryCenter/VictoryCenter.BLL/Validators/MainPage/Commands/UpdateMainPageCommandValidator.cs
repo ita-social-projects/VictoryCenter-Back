@@ -2,7 +2,9 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
@@ -25,7 +27,7 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
         {
             RuleFor(x => x)
                 .MustAsync(ValidateNestedIdsByMembershipAsync)
-                .WithMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics());
+                .WithMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
         });
     }
 
@@ -59,8 +61,14 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return true;
         }
 
-        var existingMetrics = existingMainPage.ImpactStatistics?.Metrics ?? [];
-        var requestedIds = statDto.Metrics
+        return MetricsMatchExistingStatistics(statDto.Metrics, existingMainPage.ImpactStatistics?.Metrics ?? []);
+    }
+
+    private static bool MetricsMatchExistingStatistics(
+        ICollection<UpdateMetricDto> metrics,
+        ICollection<Metric> existingMetrics)
+    {
+        var requestedIds = metrics
             .Where(m => m.Id.HasValue)
             .Select(m => m.Id!.Value)
             .ToHashSet();
@@ -70,7 +78,7 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return false;
         }
 
-        return statDto.Metrics.All(metric => metric.Id.HasValue
+        return metrics.All(metric => metric.Id.HasValue
             ? existingMetrics.Any(existing => existing.Id == metric.Id.Value && existing.Type == metric.Type)
             : existingMetrics.All(existing => existing.Type != metric.Type));
     }

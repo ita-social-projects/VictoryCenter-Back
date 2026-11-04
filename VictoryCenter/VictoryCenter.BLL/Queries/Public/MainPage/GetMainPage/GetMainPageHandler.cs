@@ -38,7 +38,9 @@ public class GetMainPageHandler : IRequestHandler<GetMainPageQuery, Result<MainP
                     .Include(e => e.MainDonations).ThenInclude(d => d!.Localizations).ThenInclude(l => l.Language)
                     .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Image)
                     .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Localizations).ThenInclude(l => l.Language)
-                    .Include(e => e.ImpactStatistics).ThenInclude(s => s!.Metrics.Where(m => request.IncludeHiddenMetrics || !m.IsHidden).OrderBy(m => m.Priority)).ThenInclude(m => m.Localizations).ThenInclude(l => l.Language),
+                    .Include(e => e.ImpactStatistics)
+                        .ThenInclude(s => s!.Metrics.Where(m => request.IncludeHiddenMetrics || !m.IsHidden).OrderBy(m => m.Priority))
+                        .ThenInclude(m => m.Localizations).ThenInclude(l => l.Language),
                 AsNoTracking = true
             });
 

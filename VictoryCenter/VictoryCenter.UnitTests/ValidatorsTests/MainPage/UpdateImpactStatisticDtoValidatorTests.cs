@@ -184,8 +184,7 @@ public class UpdateImpactStatisticDtoValidatorTests
         Id = 1,
         Title = "Impact title",
         ImageId = 1,
-        Metrics = Enum.GetValues<MetricType>()
-            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })
-            .ToList(),
+        Metrics = [.. Enum.GetValues<MetricType>()
+            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })],
     };
 }
