@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageEthicsSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
@@ -50,8 +51,8 @@ public class CreateHippotherapyLandingPageEthicsSectionLocalizationHandler
             var section = await GetSectionWithPrinciplesAsync(dto.EntityId);
             if (section is null)
             {
-                return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageEthicsSectionEntity)));
+                return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(new NotFoundError(
+                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageEthicsSectionEntity))));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();

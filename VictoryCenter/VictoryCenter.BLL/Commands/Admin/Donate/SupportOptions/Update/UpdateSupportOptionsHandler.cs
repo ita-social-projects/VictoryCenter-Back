@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
@@ -38,8 +39,8 @@ public class UpdateSupportOptionsHandler : IRequestHandler<UpdateSupportOptionsC
 
             if (supportOptionsEntity is null)
             {
-                return Result.Fail<SupportOptionsDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(Entities.SupportOptions)));
+                return Result.Fail<SupportOptionsDto>(new NotFoundError(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(Entities.SupportOptions))));
             }
 
             Entities.SupportOptions entityToUpdate = _mapper.Map(request.UpdateSupportOptionsDto, supportOptionsEntity);

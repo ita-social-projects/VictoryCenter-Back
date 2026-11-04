@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -30,8 +31,8 @@ public class CreateEventNewsCategoryLocalizationHandler
         var dto = request.Localization;
         if (!await _repositoryWrapper.EventNewsCategoryRepository.ExistsAsync(category => category.Id == dto.EntityId))
         {
-            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(EventNewsCategory)));
+            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(new NotFoundError(
+                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(EventNewsCategory))));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -43,8 +44,8 @@ public class CreateEventNewsCategoryLocalizationHandler
 
         if (language is null)
         {
-            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
+            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(new NotFoundError(
+                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage))));
         }
 
         if (await _repositoryWrapper.EventNewsCategoryLocalizationsRepository.ExistsAsync(

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -37,9 +38,9 @@ public class UpdateFeedbackReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<FeedbackReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<FeedbackReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackReviewLocalization)));
+                typeof(FeedbackReviewLocalization))));
         }
 
         var normalizedAuthorName = request.Localization.AuthorName.Trim();
@@ -65,9 +66,9 @@ public class UpdateFeedbackReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<FeedbackReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<FeedbackReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackReviewLocalization)));
+                typeof(FeedbackReviewLocalization))));
         }
 
         return Result.Fail<FeedbackReviewLocalizationDto>(

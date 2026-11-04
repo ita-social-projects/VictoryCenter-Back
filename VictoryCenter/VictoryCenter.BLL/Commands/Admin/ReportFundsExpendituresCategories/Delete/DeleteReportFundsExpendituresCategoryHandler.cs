@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -30,7 +31,7 @@ public class DeleteReportFundsExpendituresCategoryHandler
 
         if (categoryToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
+            return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory))));
         }
 
         if (categoryToDelete.Records.Count > 0)

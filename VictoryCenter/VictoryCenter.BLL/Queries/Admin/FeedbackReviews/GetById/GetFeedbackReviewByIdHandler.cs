@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -32,7 +33,7 @@ public class GetFeedbackReviewByIdHandler : IRequestHandler<GetFeedbackReviewByI
             });
 
         return review is null
-            ? Result.Fail<FeedbackReviewDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview)))
+            ? Result.Fail<FeedbackReviewDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview))))
             : Result.Ok(_mapper.Map<FeedbackReviewDto>(review));
     }
 }

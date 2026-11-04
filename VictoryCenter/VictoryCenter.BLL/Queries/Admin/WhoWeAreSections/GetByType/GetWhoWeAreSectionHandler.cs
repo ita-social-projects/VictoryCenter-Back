@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -40,7 +41,7 @@ public class GetWhoWeAreSectionHandler : IRequestHandler<GetWhoWeAreSectionQuery
 
         if (section == null)
         {
-            return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection))));
         }
 
         return Result.Ok(_mapper.Map<WhoWeAreSectionDto>(section));
