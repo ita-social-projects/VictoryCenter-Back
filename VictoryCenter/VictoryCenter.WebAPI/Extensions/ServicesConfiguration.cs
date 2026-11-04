@@ -840,7 +840,50 @@ public static class ServicesConfiguration
             {
                 Title = string.Empty,
                 ImageId = null,
-                CreatedAt = timeProvider.GetUtcNow()
+                CreatedAt = timeProvider.GetUtcNow(),
+                Metrics =
+                [
+                    new Metric
+                    {
+                        Type = MetricType.Partners,
+                        Name = "Партнерів",
+                        Value = 0,
+                        Priority = 0,
+                        IsHidden = false,
+                        IsAutoSynced = false,
+                        CreatedAt = timeProvider.GetUtcNow()
+                    },
+                    new Metric
+                    {
+                        Type = MetricType.Programs,
+                        Name = "Програм",
+                        Value = 0,
+                        Priority = 1,
+                        IsHidden = false,
+                        IsAutoSynced = false,
+                        CreatedAt = timeProvider.GetUtcNow()
+                    },
+                    new Metric
+                    {
+                        Type = MetricType.Raised,
+                        Name = "Зібрано",
+                        Value = 0,
+                        Priority = 2,
+                        IsHidden = false,
+                        IsAutoSynced = false,
+                        CreatedAt = timeProvider.GetUtcNow()
+                    },
+                    new Metric
+                    {
+                        Type = MetricType.TherapyHours,
+                        Name = "Годин терапії",
+                        Value = 0,
+                        Priority = 3,
+                        IsHidden = false,
+                        IsAutoSynced = false,
+                        CreatedAt = timeProvider.GetUtcNow()
+                    },
+                ]
             }
         };
 
