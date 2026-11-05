@@ -15,4 +15,13 @@ public static class AuthConstants
     public static readonly string AccessTokenRevoked = "Access token has been revoked";
     public static readonly string NotUpdated = "Not updated";
     public static readonly string Unauthorized = "Unauthorized";
+
+    public static class RevocationReasons
+    {
+        public static readonly string Rotated = "Rotated";
+        public static readonly string Logout = "Logout";
+        public static readonly string SupersededByNewLogin = "SupersededByNewLogin";
+        public static readonly string SuspectedTokenReuse = "SuspectedTokenReuse";
+        public static readonly string Expired = "Expired";
+    }
 }
