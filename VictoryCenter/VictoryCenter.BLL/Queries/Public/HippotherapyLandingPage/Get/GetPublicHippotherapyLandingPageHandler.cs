@@ -1,9 +1,9 @@
-using AutoMapper;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -12,12 +12,14 @@ namespace VictoryCenter.BLL.Queries.Public.HippotherapyLandingPage.Get;
 public class GetPublicHippotherapyLandingPageHandler : IRequestHandler<GetPublicHippotherapyLandingPageQuery, Result<HippotherapyLandingPageDto>>
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
-    private readonly IMapper _mapper;
+    private readonly IHippotherapyLandingPageResponseFactory _responseFactory;
 
-    public GetPublicHippotherapyLandingPageHandler(IRepositoryWrapper repositoryWrapper, IMapper mapper)
+    public GetPublicHippotherapyLandingPageHandler(
+        IRepositoryWrapper repositoryWrapper,
+        IHippotherapyLandingPageResponseFactory responseFactory)
     {
         _repositoryWrapper = repositoryWrapper;
-        _mapper = mapper;
+        _responseFactory = responseFactory;
     }
 
     public async Task<Result<HippotherapyLandingPageDto>> Handle(
@@ -31,11 +33,11 @@ public class GetPublicHippotherapyLandingPageHandler : IRequestHandler<GetPublic
                 AsSplitQuery = true,
             });
 
-        if (entity == null)
+        if (entity == null || !entity.HasAllSections())
         {
             return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
         }
 
-        return Result.Ok(_mapper.Map<HippotherapyLandingPageDto>(entity));
+        return Result.Ok(_responseFactory.Create(entity));
     }
 }
