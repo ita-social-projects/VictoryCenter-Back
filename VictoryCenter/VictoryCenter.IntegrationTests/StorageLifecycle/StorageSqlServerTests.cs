@@ -251,6 +251,43 @@ public partial class StorageSqlServerTests : IAsyncLifetime
         Assert.Empty(await context.StorageReconciliationFindings.ToListAsync());
     }
 
+    [StorageSqlServerFact]
+    public async Task Migration_StorageUpgradeAndRollbackPreserveReleasePublicationBackfill()
+    {
+        await using var context = Context();
+        var migrations = context.Database.GetMigrations().ToArray();
+        var publication = Array.FindIndex(migrations, migration => migration.EndsWith("_AddPublishedAtToFeedbackHistories", StringComparison.Ordinal));
+        Assert.True(publication > 0);
+        await context.Database.EnsureDeletedAsync();
+        var migrator = context.GetService<IMigrator>();
+        await migrator.MigrateAsync(migrations[publication - 1]);
+        await context.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO FeedbackHistories (Title, Story, Priority, Status, CreatedAt, UpdatedAt)
+            VALUES ('Published legacy', 'Published story', 1, 1, {_now}, {_now}),
+                   ('Draft legacy', 'Draft story', 2, 0, {_now}, {_now});
+            """);
+        await migrator.MigrateAsync(migrations[publication]);
+        var expected = await context.FeedbackHistories.AsNoTracking().OrderBy(history => history.Id)
+            .Select(history => new { history.Id, history.Title, history.Story, history.Priority, history.Status, history.CreatedAt, history.PublishedAt })
+            .ToListAsync();
+        Assert.Equal(_now, expected.Single(history => history.Title == "Published legacy").PublishedAt);
+        Assert.Null(expected.Single(history => history.Title == "Draft legacy").PublishedAt);
+
+        await migrator.MigrateAsync();
+        await migrator.MigrateAsync(migrations[publication]);
+
+        var afterRollback = await context.FeedbackHistories.AsNoTracking().OrderBy(history => history.Id)
+            .Select(history => new { history.Id, history.Title, history.Story, history.Priority, history.Status, history.CreatedAt, history.PublishedAt })
+            .ToListAsync();
+        Assert.Equal(expected, afterRollback);
+        Assert.Equal(1, await context.Database.SqlQueryRaw<int>("""
+            SELECT COUNT(*) AS Value FROM sys.indexes
+            WHERE object_id = OBJECT_ID('FeedbackHistories') AND name = 'IX_FeedbackHistories_Status_PublishedAt'
+            """).SingleAsync());
+        await migrator.MigrateAsync();
+        Assert.Empty(await context.Database.GetPendingMigrationsAsync());
+    }
+
     public async Task DisposeAsync()
     {
         if (_databaseOptions != null)
