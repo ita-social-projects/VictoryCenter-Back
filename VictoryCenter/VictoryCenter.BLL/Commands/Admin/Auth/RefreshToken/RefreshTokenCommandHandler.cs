@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
@@ -41,28 +42,28 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
         if (principalResult.IsFailed)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var admin = await _userManager.FindByEmailAsync(email.Value);
         if (admin is null)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         if (admin.RefreshTokenValidTo is null
@@ -70,7 +71,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             || !_tokenService.VerifyRefreshTokenHash(refreshToken, admin.RefreshToken))
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var accessToken = _tokenService.CreateAccessToken([
@@ -89,7 +90,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             DeleteRefreshTokenCookie();
             if (result.Errors.Any(error => error.Code == ConcurrencyFailureCode))
             {
-                return Result.Fail(AuthConstants.Unauthorized);
+                return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
             }
 
             return Result.Fail(result.Errors.Select(error => error.Description));

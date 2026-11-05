@@ -68,7 +68,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
 
                 if (metric is null)
                 {
-                    return Result.Fail<UpdateMetricResult>(ErrorMessagesConstants.NotFound(request.MetricId, typeof(Metric)));
+                    return Result.Fail<UpdateMetricResult>(NotFoundErrors.NotFound(request.MetricId, typeof(Metric)));
                 }
 
                 if (request.Dto.ExpectedVersion != null &&
@@ -206,7 +206,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<UpdateMetricResult>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<UpdateMetricResult>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateConcurrencyException)
         {

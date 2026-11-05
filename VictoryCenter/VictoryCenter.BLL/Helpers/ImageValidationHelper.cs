@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -65,7 +66,7 @@ public static class ImageValidationHelper
             var missingIds = ids.Where(id => !imagesById.ContainsKey(id)).ToList();
 
             return missingIds.Count != 0
-                ? Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.NotFound(missingIds, typeof(Image)))
+                ? Result.Fail<IReadOnlyDictionary<long, Image>>(NotFoundErrors.NotFound(missingIds, typeof(Image)))
                 : Result.Ok<IReadOnlyDictionary<long, Image>>(imagesById);
         }
         catch (BlobStorageException)

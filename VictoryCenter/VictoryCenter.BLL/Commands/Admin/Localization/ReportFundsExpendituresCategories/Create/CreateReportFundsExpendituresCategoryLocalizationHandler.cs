@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.ReportFundsExpendituresCategorie
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.ReportFundsExpendituresCategories.Create;
 
@@ -51,7 +52,7 @@ public class CreateReportFundsExpendituresCategoryLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ReportFundsExpendituresCategoryLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ReportFundsExpendituresCategoryLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

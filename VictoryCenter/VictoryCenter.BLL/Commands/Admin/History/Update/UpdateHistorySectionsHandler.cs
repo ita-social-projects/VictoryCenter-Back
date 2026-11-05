@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.History.Update;
 
@@ -61,7 +62,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
             if (unknownIds.Count > 0)
             {
                 return Result.Fail<List<HistorySectionDto>>(
-                    ErrorMessagesConstants.NotFound(unknownIds, typeof(HistorySection)));
+                    NotFoundErrors.NotFound(unknownIds, typeof(HistorySection)));
             }
 
             var contentMismatches = incomingSections
@@ -115,7 +116,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<List<HistorySectionDto>>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<List<HistorySectionDto>>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 

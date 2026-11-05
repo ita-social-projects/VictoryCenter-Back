@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Delete;
 
@@ -31,7 +32,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(TeamMember)));
             }
 
             using (var transactionScope = _repositoryWrapper.BeginTransaction())

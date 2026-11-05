@@ -1,12 +1,12 @@
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -42,7 +42,7 @@ public static class EventNewsAggregateHelper
         return missingIds.Count == 0
             ? Result.Ok<IReadOnlyDictionary<long, LocalizationLanguage>>(languagesById)
             : Result.Fail<IReadOnlyDictionary<long, LocalizationLanguage>>(
-                ErrorMessagesConstants.NotFound(missingIds, typeof(LocalizationLanguage)));
+                NotFoundErrors.NotFound(missingIds, typeof(LocalizationLanguage)));
     }
 
     public static async Task<int> SaveWithSlugRetryAsync(

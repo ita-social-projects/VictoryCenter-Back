@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Services.Search.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.Search;
 
@@ -78,7 +79,7 @@ public class SearchHippotherapyProgramsHandler : IRequestHandler<SearchHippother
         }
         catch (ValidationException vex)
         {
-            return Result.Fail(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

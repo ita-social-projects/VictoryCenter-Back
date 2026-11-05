@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.SupportOptions;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.SupportOptions.Update;
@@ -56,7 +57,7 @@ public class UpdateSupportOptionsHandler : IRequestHandler<UpdateSupportOptionsC
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<SupportOptionsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<SupportOptionsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

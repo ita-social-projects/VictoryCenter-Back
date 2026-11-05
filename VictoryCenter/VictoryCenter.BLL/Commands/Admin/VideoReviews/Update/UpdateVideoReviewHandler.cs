@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 
@@ -36,7 +37,7 @@ public class UpdateVideoReviewHandler : IRequestHandler<UpdateVideoReviewCommand
 
         if (entity is null)
         {
-            return Result.Fail<VideoReviewDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
+            return Result.Fail<VideoReviewDto>(NotFoundErrors.NotFound(request.Id, typeof(VideoReview)));
         }
 
         var normalizedDto = request.VideoReview with

@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnersPageBanner;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 using PartnersPageBannerEntity = VictoryCenter.DAL.Entities.PartnersPageBanner;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.PartnersPageBanner.Update;
@@ -52,7 +53,7 @@ public class UpdatePartnersPageBannerLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnersPageBannerLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnersPageBannerLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

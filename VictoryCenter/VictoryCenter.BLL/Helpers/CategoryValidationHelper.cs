@@ -1,9 +1,9 @@
 using FluentResults;
 using Microsoft.EntityFrameworkCore.Query;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Data.BaseEntity;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -35,7 +35,7 @@ public static class CategoryValidationHelper
             var missingIds = requestedIdsList.Except(existingIds).ToList();
 
             return Result.Fail<ICollection<TCategory>>(
-                ErrorMessagesConstants.NotFound(missingIds, typeof(TCategory)));
+                NotFoundErrors.NotFound(missingIds, typeof(TCategory)));
         }
 
         return Result.Ok<ICollection<TCategory>>(retrievedCategoriesList);

@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 
@@ -54,7 +55,7 @@ public class UpdateReportProgramExpendituresRecordHandler
         if (recordToUpdate is null)
         {
             return Result.Fail(
-                ErrorMessagesConstants.NotFound(
+                NotFoundErrors.NotFound(
                     request.ReportProgramExpendituresRecordId,
                     typeof(ReportProgramExpendituresRecord)));
         }

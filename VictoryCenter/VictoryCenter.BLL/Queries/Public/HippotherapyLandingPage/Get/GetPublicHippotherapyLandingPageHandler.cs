@@ -1,11 +1,11 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Public.HippotherapyLandingPage.Get;
 
@@ -33,7 +33,7 @@ public class GetPublicHippotherapyLandingPageHandler : IRequestHandler<GetPublic
 
         if (entity == null)
         {
-            return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
+            return Result.Fail<HippotherapyLandingPageDto>(NotFoundErrors.NotFound());
         }
 
         return Result.Ok(_mapper.Map<HippotherapyLandingPageDto>(entity));

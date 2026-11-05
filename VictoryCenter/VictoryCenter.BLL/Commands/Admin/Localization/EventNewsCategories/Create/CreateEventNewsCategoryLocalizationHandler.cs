@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNewsCategories.Create;
 
@@ -31,7 +32,7 @@ public class CreateEventNewsCategoryLocalizationHandler
         if (!await _repositoryWrapper.EventNewsCategoryRepository.ExistsAsync(category => category.Id == dto.EntityId))
         {
             return Result.Fail<AdminEventNewsCategoryLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(EventNewsCategory)));
+                NotFoundErrors.NotFound(dto.EntityId, typeof(EventNewsCategory)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -44,7 +45,7 @@ public class CreateEventNewsCategoryLocalizationHandler
         if (language is null)
         {
             return Result.Fail<AdminEventNewsCategoryLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.EventNewsCategoryLocalizationsRepository.ExistsAsync(

@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Image = VictoryCenter.DAL.Entities.Image;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportMediaSettings.UpdateReportMediaSettings;
 
@@ -51,7 +52,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                 if (collectedFundsImageExists == null)
                 {
                     return Result.Fail<ReportMediaSettingsDto>(
-                        ErrorMessagesConstants.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image)));
+                        NotFoundErrors.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image)));
                 }
             }
 
@@ -68,7 +69,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
                 if (changedLivesImageExists == null)
                 {
                     return Result.Fail<ReportMediaSettingsDto>(
-                        ErrorMessagesConstants.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image)));
+                        NotFoundErrors.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image)));
                 }
             }
 
@@ -144,7 +145,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ReportMediaSettingsDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ReportMediaSettingsDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

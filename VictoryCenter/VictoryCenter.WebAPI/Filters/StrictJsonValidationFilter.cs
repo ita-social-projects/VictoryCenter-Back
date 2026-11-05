@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using VictoryCenter.BLL.Helpers;
 
@@ -12,6 +13,8 @@ namespace VictoryCenter.WebAPI.Filters;
 
 public class StrictJsonValidationFilter : IAsyncResourceFilter
 {
+    private const string UnknownBodyName = "RequestBody";
+
     private static readonly JsonSerializerOptions StrictOptions = new()
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
@@ -19,6 +22,13 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
         AllowTrailingCommas = false,
         PropertyNameCaseInsensitive = true
     };
+
+    private readonly ProblemDetailsFactory _problemsFactory;
+
+    public StrictJsonValidationFilter(ProblemDetailsFactory problemsFactory)
+    {
+        _problemsFactory = problemsFactory;
+    }
 
     public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
@@ -55,6 +65,7 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
         }
 
         var validationErrors = new List<string>();
+        string? bodyParameterName = null;
 
         foreach (var parameter in actionDescriptor.Parameters)
         {
@@ -67,23 +78,23 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
             if (errors.Count > 0)
             {
                 validationErrors.AddRange(errors);
+                bodyParameterName ??= parameter.ParameterType.Name;
             }
         }
 
         if (validationErrors.Count > 0)
         {
-            var problemDetails = new ProblemDetails
+            var modelState = new ModelStateDictionary();
+            foreach (var error in validationErrors)
             {
-                Title = "Invalid JSON format",
-                Status = StatusCodes.Status400BadRequest,
-                Detail = validationErrors.Count == 1
-                    ? validationErrors[0]
-                    : "The request contains multiple JSON validation errors. See the 'errors' property for details.",
-                Extensions =
-                {
-                    ["errors"] = validationErrors
-                }
-            };
+                modelState.AddModelError(bodyParameterName ?? UnknownBodyName, error);
+            }
+
+            var problemDetails = _problemsFactory.CreateValidationProblemDetails(
+                context.HttpContext,
+                modelState,
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid JSON format");
 
             context.Result = new BadRequestObjectResult(problemDetails);
             return;

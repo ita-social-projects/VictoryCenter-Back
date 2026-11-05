@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.CorrespondentBankDetails.Create;
@@ -55,7 +56,7 @@ public class CreateCorrespondentBankDetailsHandler : IRequestHandler<CreateCorre
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<CorrespondentBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<CorrespondentBankDetailsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

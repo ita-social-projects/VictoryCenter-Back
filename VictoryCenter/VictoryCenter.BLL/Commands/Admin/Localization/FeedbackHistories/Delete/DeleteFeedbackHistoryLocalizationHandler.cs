@@ -6,6 +6,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.FeedbackHistories.Delete;
 
@@ -31,7 +32,7 @@ public class DeleteFeedbackHistoryLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(FeedbackHistoryLocalization)));
         }
@@ -47,7 +48,7 @@ public class DeleteFeedbackHistoryLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(FeedbackHistoryLocalization)));
         }

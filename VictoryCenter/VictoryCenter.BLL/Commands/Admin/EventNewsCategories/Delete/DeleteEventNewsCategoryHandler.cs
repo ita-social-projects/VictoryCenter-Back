@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNewsCategories.Delete;
 
@@ -33,7 +34,7 @@ public class DeleteEventNewsCategoryHandler
 
         if (category is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsCategory)));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(EventNewsCategory)));
         }
 
         var isInUse = await _repositoryWrapper.EventNewsRepository.ExistsAsync(

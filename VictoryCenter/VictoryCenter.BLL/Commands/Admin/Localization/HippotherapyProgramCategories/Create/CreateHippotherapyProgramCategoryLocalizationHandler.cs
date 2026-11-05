@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramCategories;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyProgramCategories.Create;
 
@@ -51,7 +52,7 @@ public class CreateHippotherapyProgramCategoryLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyProgramCategoryLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramCategoryLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

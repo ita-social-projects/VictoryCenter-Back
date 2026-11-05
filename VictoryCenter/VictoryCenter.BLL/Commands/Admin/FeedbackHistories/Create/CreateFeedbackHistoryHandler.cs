@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Create;
 
@@ -80,7 +81,7 @@ public class CreateFeedbackHistoryHandler : IRequestHandler<CreateFeedbackHistor
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

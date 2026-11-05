@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.PdfSection.Create;
 
@@ -47,7 +48,7 @@ public class CreatePdfSectionLocalizationHandler
             if (section is null)
             {
                 return Result.Fail<PdfSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound());
+                    NotFoundErrors.NotFound());
             }
 
             PdfSectionLocalization entity = _mapper.Map<PdfSectionLocalization>(request.Dto);
@@ -68,7 +69,7 @@ public class CreatePdfSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PdfSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PdfSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.FeedbackReviews.Update;
 
@@ -37,7 +38,7 @@ public class UpdateFeedbackReviewHandler : IRequestHandler<UpdateFeedbackReviewC
         if (feedbackReview is null)
         {
             return Result.Fail<FeedbackReviewDto>(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview)));
+                NotFoundErrors.NotFound(request.Id, typeof(FeedbackReview)));
         }
 
         var normalizedDto = request.FeedbackReview with

@@ -12,6 +12,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 
@@ -49,7 +50,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
 
         if (category is null)
         {
-            return Result.Fail<EventNewsDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<EventNewsDto>(NotFoundErrors.NotFound(
                 request.CreateEventNewsDto.CategoryId,
                 typeof(EventNewsCategory)));
         }
@@ -157,7 +158,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
             if (!languagesById.TryGetValue(localizationDto.LanguageId, out var language))
             {
                 return Result.Fail(
-                    ErrorMessagesConstants.NotFound(localizationDto.LanguageId, typeof(LocalizationLanguage)));
+                    NotFoundErrors.NotFound(localizationDto.LanguageId, typeof(LocalizationLanguage)));
             }
 
             var localization = new EventNewsLocalization

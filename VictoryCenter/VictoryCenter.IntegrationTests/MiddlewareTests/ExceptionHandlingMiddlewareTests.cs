@@ -62,19 +62,19 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_ShouldReturn400WithValidationErrors_WhenValidationExceptionThrown()
+    public async Task InvokeAsync_ShouldReturn400WithFieldGroupedErrors_WhenValidationExceptionThrown()
     {
         var response = await _client.GetAsync("/api/Test/ThrowValidationException");
         var content = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(400, (int)response.StatusCode);
 
-        var pd = JsonSerializer.Deserialize<ProblemDetails>(content);
+        var pd = JsonSerializer.Deserialize<ValidationProblemDetails>(content);
 
         Assert.NotNull(pd);
         Assert.Equal(400, pd.Status);
         Assert.Equal("Bad Request", pd.Title);
-        Assert.Contains("Name is required", pd.Detail);
+        Assert.Contains("Name is required", pd.Errors["Name"]);
 
         var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
         Assert.DoesNotContain(_loggerProvider.Entries, e => e.Category == categoryName);

@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.FeedbackReviews.Delete;
 
@@ -34,7 +35,7 @@ public class DeleteFeedbackReviewHandler : IRequestHandler<DeleteFeedbackReviewC
 
             if (reviewToDelete is null)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview)));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(FeedbackReview)));
             }
 
             using var transactionScope = _repositoryWrapper.BeginTransaction();

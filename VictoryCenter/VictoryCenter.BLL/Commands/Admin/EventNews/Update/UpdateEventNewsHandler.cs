@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Update;
 
@@ -46,7 +47,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         if (eventNews is null)
         {
             return Result.Fail<EventNewsDto>(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
+                NotFoundErrors.NotFound(request.Id, typeof(EventNewsEntity)));
         }
 
         var dto = request.EventNews;
@@ -67,7 +68,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         if (category is null)
         {
             return Result.Fail<EventNewsDto>(
-                ErrorMessagesConstants.NotFound(dto.CategoryId, typeof(EventNewsCategory)));
+                NotFoundErrors.NotFound(dto.CategoryId, typeof(EventNewsCategory)));
         }
 
         var imagesResult = await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
@@ -424,7 +425,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                     entity => entity.Id == eventNews.Id))
             {
                 return Result.Fail<EventNewsDto>(
-                    ErrorMessagesConstants.NotFound(eventNews.Id, typeof(EventNewsEntity)));
+                    NotFoundErrors.NotFound(eventNews.Id, typeof(EventNewsEntity)));
             }
 
             throw;

@@ -1,7 +1,6 @@
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.Enums;
 using VictoryCenter.DAL.Entities;
@@ -9,6 +8,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.Localization.MainPage.GetStatuses;
 
@@ -43,7 +43,7 @@ public class GetMainPageTranslationStatusesHandler
         if (mainPage is null)
         {
             return Result.Fail<List<MainPageTranslationStatusDto>>(
-                ErrorMessagesConstants.NotFound(request.EntityId, typeof(MainPageEntity)));
+                NotFoundErrors.NotFound(request.EntityId, typeof(MainPageEntity)));
         }
 
         var statuses = new List<MainPageTranslationStatusDto>
