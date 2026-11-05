@@ -1,6 +1,8 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
@@ -91,9 +93,70 @@ public partial class StorageSqlServerTests
             RunScriptAsync(second, "queue-orphan-cleanup.sql", "@FindingId", finding.Id, "second-admin"));
         await using var verification = Context();
         var operation = await verification.StorageOperations.SingleAsync();
+        Assert.Equal(StorageOperationKind.OrphanCleanup, operation.Kind);
         Assert.Contains(operation.RequestedBy, CleanupActors);
         Assert.Equal(operation.Id, (await verification.StorageReconciliationFindings.SingleAsync()).CleanupOperationId);
         Assert.True(File.Exists(path));
+    }
+
+    [StorageSqlServerFact]
+    public async Task CleanupScript_RetryAfterFindingReappearsRetainsSafetyChecks()
+    {
+        await using var context = Context();
+        var finding = new StorageReconciliationFinding
+        {
+            FileKind = StorageFileKind.Image,
+            FileName = "rediscovered.png",
+            Kind = StorageFindingKind.Unreferenced,
+            FirstSeenAt = _now.AddDays(-3),
+            LastSeenAt = _now.AddDays(-2)
+        };
+        context.StorageReconciliationFindings.Add(finding);
+        await context.SaveChangesAsync();
+        await RunScriptAsync(context, "queue-orphan-cleanup.sql", "@FindingId", finding.Id, "original-admin");
+        context.ChangeTracker.Clear();
+        var operation = await context.StorageOperations.SingleAsync();
+        Assert.Equal(StorageOperationKind.OrphanCleanup, operation.Kind);
+        operation.Status = StorageOperationStatus.Failed;
+        await context.SaveChangesAsync();
+        var reconciliation = new StorageReconciliation(
+            context, Files(), _clock.Object, NullLogger<StorageReconciliation>.Instance);
+        await reconciliation.ScanAsync(CancellationToken.None);
+        Assert.NotNull((await context.StorageReconciliationFindings.SingleAsync()).ResolvedAt);
+        var path = Files().GetPath(StorageFileKind.Image, finding.FileName);
+        await File.WriteAllTextAsync(path, "new orphan content");
+        _clock.Setup(clock => clock.GetUtcNow()).Returns(_now.AddMinutes(1));
+        await reconciliation.ScanAsync(CancellationToken.None);
+        Assert.Null((await context.StorageReconciliationFindings.SingleAsync()).CleanupOperationId);
+
+        await RunScriptAsync(context, "retry-failed-operation.sql", "@OperationId", operation.Id, "retry-admin");
+        var reset = await context.StorageOperations.AsNoTracking().SingleAsync();
+        Assert.Equal(StorageOperationKind.OrphanCleanup, reset.Kind);
+        _clock.Setup(clock => clock.GetUtcNow()).Returns(reset.NextAttemptAt.AddMinutes(1));
+        await Processor(context).ProcessBatchAsync(CancellationToken.None);
+
+        var saved = await context.StorageOperations.AsNoTracking().SingleAsync();
+        Assert.Equal(StorageOperationStatus.Failed, saved.Status);
+        Assert.Equal("CleanupNotSafe", saved.LastErrorCode);
+        Assert.Equal("new orphan content", await File.ReadAllTextAsync(path));
+    }
+
+    [StorageSqlServerFact]
+    public async Task Reconciliation_OversizedFileDoesNotAbortSqlScan()
+    {
+        await using var context = Context();
+        var root = Path.GetDirectoryName(Files().GetPath(StorageFileKind.Image, "normal.png"))!;
+        var oversizedName = new string('a', StorageFileNames.MaxLength) + ".png";
+        await File.WriteAllTextAsync(Path.Combine(root, oversizedName), "oversized orphan");
+        await File.WriteAllTextAsync(Path.Combine(root, "normal.png"), "normal orphan");
+        var reconciliation = new StorageReconciliation(
+            context, Files(), _clock.Object, NullLogger<StorageReconciliation>.Instance);
+
+        Assert.Equal(1, await reconciliation.ScanAsync(CancellationToken.None));
+        Assert.Equal(1, await reconciliation.ScanAsync(CancellationToken.None));
+
+        Assert.Equal("normal.png", (await context.StorageReconciliationFindings.SingleAsync()).FileName);
+        Assert.True(File.Exists(Path.Combine(root, oversizedName)));
     }
 
     [StorageSqlServerFact]

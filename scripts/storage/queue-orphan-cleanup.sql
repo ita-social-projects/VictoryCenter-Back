@@ -27,11 +27,11 @@ BEGIN TRY
     BEGIN
         SET @OperationId = NEWID();
 
-        -- Kind=1: Delete; Status=0: Pending. Values follow the persisted enums.
+        -- Kind=2: OrphanCleanup; Status=0: Pending. Values follow the persisted enums.
         INSERT INTO media.StorageOperations
             (Id, FileKind, FileName, Kind, Status, Attempts, CreatedAt, NextAttemptAt, RequestedBy, Version)
         VALUES
-            (@OperationId, @FileKind, @FileName, 1, 0, 0, SYSUTCDATETIME(), SYSUTCDATETIME(), @Actor, NEWID());
+            (@OperationId, @FileKind, @FileName, 2, 0, 0, SYSUTCDATETIME(), SYSUTCDATETIME(), @Actor, NEWID());
 
         UPDATE media.StorageReconciliationFindings
         SET CleanupOperationId = @OperationId

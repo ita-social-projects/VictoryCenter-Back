@@ -43,6 +43,23 @@ public class StorageReferenceQueryTranslationTests
             context, StorageFileKind.Image, name, CancellationToken.None, excluded));
     }
 
+    [Theory]
+    [InlineData(StorageFileKind.Image, false)]
+    [InlineData(StorageFileKind.Image, true)]
+    [InlineData(StorageFileKind.Pdf, false)]
+    [InlineData(StorageFileKind.Pdf, true)]
+    public async Task BatchQueries_TranslateFileCollectionsAndTemporaryOwners(StorageFileKind kind, bool temporary)
+    {
+        var options = new DbContextOptionsBuilder<VictoryCenterDbContext>()
+            .UseSqlServer("Server=unused;Database=QueryTranslationOnly;Integrated Security=True")
+            .AddInterceptors(new BlockConnection()).Options;
+        await using var context = new VictoryCenterDbContext(options);
+        var names = temporary ? new[] { $".report.v2.pdf.{Guid.NewGuid():N}.tmp", "other.png" } : new[] { "image.png", "report.pdf" };
+
+        await Assert.ThrowsAsync<ConnectionBlockedException>(() => StorageReferences.ReferencedNames(context, kind, names).ToListAsync());
+        await Assert.ThrowsAsync<ConnectionBlockedException>(() => StorageReferences.ProtectedNamesAsync(context, kind, names, CancellationToken.None));
+    }
+
     private sealed class BlockConnection : DbConnectionInterceptor
     {
         public override ValueTask<InterceptionResult> ConnectionOpeningAsync(

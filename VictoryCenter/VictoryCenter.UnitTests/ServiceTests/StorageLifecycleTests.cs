@@ -534,7 +534,7 @@ public partial class StorageLifecycleTests : IDisposable
         var path = Files().GetPath(StorageFileKind.Image, "old.png");
         await File.WriteAllTextAsync(path, "old orphan");
         File.SetLastWriteTimeUtc(path, _now.AddDays(-3).UtcDateTime);
-        var operation = Operation("old.png");
+        var operation = Operation("old.png", StorageOperationKind.OrphanCleanup);
         operation.RequestedBy = "admin-1";
         context.StorageOperations.Add(operation);
         context.StorageReconciliationFindings.Add(new StorageReconciliationFinding

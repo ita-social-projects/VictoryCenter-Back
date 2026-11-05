@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Constants;
@@ -59,6 +60,58 @@ public static class StorageReferences
                 Name = group.Key.Name,
                 MimeType = group.Key.MimeType
             });
+    }
+
+    public static IQueryable<string> ReferencedNames(VictoryCenterDbContext context, StorageFileKind fileKind, string[] fileNames)
+    {
+        if (fileKind == StorageFileKind.Pdf)
+        {
+            return context.PdfReports.AsNoTracking().Where(report => fileNames.Contains(report.BlobName))
+                .Select(report => report.BlobName).Distinct();
+        }
+
+        var blobNames = fileNames.Select(Path.GetFileNameWithoutExtension).ToArray();
+        return context.Images.AsNoTracking().Where(image => blobNames.Contains(image.BlobName))
+            .Select(image => image.BlobName + (string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Png) ? FileExtensions.PngWithDot
+                : string.Equals(image.MimeType.ToLower(), ImageMimeTypes.Webp) ? FileExtensions.WebpWithDot : FileExtensions.JpgWithDot))
+            .Where(name => fileNames.Contains(name)).Distinct();
+    }
+
+    public static IQueryable<StorageOperation> ProtectingOperations(VictoryCenterDbContext context, StorageFileKind fileKind, string[] fileNames)
+    {
+        var owners = fileNames.Select(StorageFileNames.TemporaryOwner).OfType<string>().Distinct().ToArray();
+        Expression<Func<StorageOperation, bool>> matches = operation => fileNames.Contains(operation.FileName)
+            || (operation.Kind == StorageOperationKind.UploadCleanup && owners.Contains(operation.FileName));
+        var name = Expression.Property(matches.Parameters[0], nameof(StorageOperation.FileName));
+        var upload = Expression.Equal(Expression.Property(matches.Parameters[0], nameof(StorageOperation.Kind)), Expression.Constant(StorageOperationKind.UploadCleanup));
+
+        // Expand legacy owner prefixes into one predicate translated by both EF providers.
+        foreach (var owner in owners)
+        {
+            var startsWith = Expression.Call(name, nameof(string.StartsWith), Type.EmptyTypes, Expression.Constant(owner + "."));
+            matches = Expression.Lambda<Func<StorageOperation, bool>>(
+                Expression.OrElse(matches.Body, Expression.AndAlso(upload, startsWith)), matches.Parameters);
+        }
+
+        return context.StorageOperations.AsNoTracking()
+            .Where(operation => operation.FileKind == fileKind
+                && (operation.Status == StorageOperationStatus.Pending || operation.Status == StorageOperationStatus.Processing))
+            .Where(matches);
+    }
+
+    public static async Task<HashSet<string>> ProtectedNamesAsync(
+        VictoryCenterDbContext context,
+        StorageFileKind fileKind,
+        string[] fileNames,
+        CancellationToken cancellationToken)
+    {
+        var operations = await ProtectingOperations(context, fileKind, fileNames)
+            .Select(operation => new { operation.FileName, operation.Kind }).Distinct().ToListAsync(cancellationToken);
+        return fileNames.Where(name => operations.Any(operation => string.Equals(operation.FileName, name, StringComparison.OrdinalIgnoreCase)
+            || (operation.Kind == StorageOperationKind.UploadCleanup && StorageFileNames.TemporaryOwner(name) is { } owner
+                && (string.Equals(operation.FileName, owner, StringComparison.OrdinalIgnoreCase)
+                    || operation.FileName.StartsWith(owner + ".", StringComparison.OrdinalIgnoreCase)))))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
     }
 
     public static Task<bool> ExistsAsync(

@@ -678,7 +678,7 @@ public partial class StorageLifecycleTests
         var path = Files().GetPath(StorageFileKind.Image, "unsafe.png");
         await File.WriteAllTextAsync(path, "keep");
         File.SetLastWriteTimeUtc(path, _now.AddDays(-3).UtcDateTime);
-        var operation = Operation("unsafe.png");
+        var operation = Operation("unsafe.png", StorageOperationKind.OrphanCleanup);
         operation.RequestedBy = "admin";
         context.StorageOperations.Add(operation);
         var finding = new StorageReconciliationFinding
@@ -723,7 +723,7 @@ public partial class StorageLifecycleTests
     public async Task Cleanup_AlreadyAbsentOrphanIsIdempotentlyAcknowledged()
     {
         await using var context = CreateContext();
-        var operation = Operation("absent.png");
+        var operation = Operation("absent.png", StorageOperationKind.OrphanCleanup);
         operation.RequestedBy = "admin";
         context.StorageOperations.Add(operation);
         context.StorageReconciliationFindings.Add(new StorageReconciliationFinding

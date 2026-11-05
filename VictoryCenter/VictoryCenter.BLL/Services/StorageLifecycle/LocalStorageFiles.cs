@@ -62,6 +62,19 @@ public class LocalStorageFiles(
             .Select(Path.GetFileName).OfType<string>().Where(name => IsManagedFile(fileKind, name));
     }
 
+    internal static void ValidateFileName(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) || fileName.Length > StorageFileNames.MaxLength || fileName is "." or "..")
+        {
+            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
+        }
+
+        if (fileName.Contains('/') || fileName.Contains('\\') || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
+        }
+    }
+
     private static string GetExistingRoot(string root)
     {
         try
@@ -77,19 +90,6 @@ public class LocalStorageFiles(
         }
 
         return Path.GetFullPath(root);
-    }
-
-    private static void ValidateFileName(string fileName)
-    {
-        if (string.IsNullOrWhiteSpace(fileName) || fileName.Length > StorageFileNames.MaxLength || fileName is "." or "..")
-        {
-            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
-        }
-
-        if (fileName.Contains('/') || fileName.Contains('\\') || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-        {
-            throw new ArgumentException("Invalid storage file name.", nameof(fileName));
-        }
     }
 
     private static bool IsManagedFile(StorageFileKind fileKind, string fileName)

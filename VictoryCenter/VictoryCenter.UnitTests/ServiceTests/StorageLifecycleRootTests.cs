@@ -71,16 +71,15 @@ public partial class StorageLifecycleTests
     {
         await using (var seed = CreateContext())
         {
+            const int referenceCount = 201;
             if (kind == StorageFileKind.Image)
             {
-                seed.Images.AddRange(NewImage("first"), NewImage("second"), NewImage("third"));
+                seed.Images.AddRange(Enumerable.Range(0, referenceCount).Select(index => NewImage($"missing-{index}")));
             }
             else
             {
-                seed.PdfReports.AddRange(
-                    new PdfReport { Name = "First", BlobName = "first.pdf" },
-                    new PdfReport { Name = "Second", BlobName = "second.pdf" },
-                    new PdfReport { Name = "Third", BlobName = "third.pdf" });
+                seed.PdfReports.AddRange(Enumerable.Range(0, referenceCount)
+                    .Select(index => new PdfReport { Name = $"Missing {index}", BlobName = $"missing-{index}.pdf" }));
             }
 
             await seed.SaveChangesAsync();
@@ -102,7 +101,7 @@ public partial class StorageLifecycleTests
         await Assert.ThrowsAsync<DirectoryNotFoundException>(() => Reconciliation(context).ScanAsync(CancellationToken.None));
 
         Assert.True(removed);
-        Assert.Single(await context.StorageReconciliationFindings.ToListAsync());
+        Assert.Equal(200, await context.StorageReconciliationFindings.CountAsync());
         Assert.False(Directory.Exists(root));
     }
 

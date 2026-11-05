@@ -99,9 +99,9 @@ public class StorageOperationProcessor(
                 // Upload cleanup can encounter legacy callers that persisted metadata before uploading.
                 operation.Status = operation.Kind == StorageOperationKind.UploadCleanup
                     ? StorageOperationStatus.Completed : StorageOperationStatus.Failed;
-                operation.LastErrorCode = operation.Kind == StorageOperationKind.Delete ? StorageLifecycleConstants.FileStillReferenced : null;
+                operation.LastErrorCode = operation.Kind != StorageOperationKind.UploadCleanup ? StorageLifecycleConstants.FileStillReferenced : null;
             }
-            else if (operation.Kind == StorageOperationKind.Delete && !await IsCleanupSafeAsync(operation, cancellationToken))
+            else if (operation.Kind != StorageOperationKind.UploadCleanup && !await IsCleanupSafeAsync(operation, cancellationToken))
             {
                 operation.Status = StorageOperationStatus.Failed;
                 operation.LastErrorCode = StorageLifecycleConstants.CleanupNotSafe;
@@ -170,7 +170,8 @@ public class StorageOperationProcessor(
             .SingleOrDefaultAsync(item => item.CleanupOperationId == operation.Id, cancellationToken);
         if (finding == null)
         {
-            return true;
+            // An orphan cleanup must retain its reviewed finding, including after a manual retry.
+            return operation.Kind == StorageOperationKind.Delete;
         }
 
         if (finding.FileKind != operation.FileKind || !string.Equals(finding.FileName, operation.FileName, StringComparison.Ordinal))

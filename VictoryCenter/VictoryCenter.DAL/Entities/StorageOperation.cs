@@ -9,7 +9,8 @@ public enum StorageFileKind
 public enum StorageOperationKind
 {
     UploadCleanup,
-    Delete
+    Delete,
+    OrphanCleanup
 }
 
 public enum StorageOperationStatus
