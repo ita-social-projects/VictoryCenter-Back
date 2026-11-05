@@ -84,11 +84,11 @@ public class InMemoryContentLockManagerTests
 
         Assert.True(_manager.GetStatus(_resource).IsLocked);
         var expired = Assert.Single(_manager.ReleaseExpired());
-        var next = _manager.Acquire(_resource, "other@example.test", "connection-b");
 
         Assert.Equal(_resource.ResourceType, expired.ResourceType);
         Assert.Equal(_resource.ResourceId, expired.ResourceId);
         Assert.False(_manager.GetStatus(_resource).IsLocked);
+        var next = _manager.Acquire(_resource, "other@example.test", "connection-b");
         Assert.True(next.Acquired);
     }
 
@@ -142,6 +142,7 @@ public class InMemoryContentLockManagerTests
         _manager.EndUpdate(acquired.LockId!, _resource, "admin@example.test", "connection-a");
         _timeProvider.Advance(TimeSpan.FromMinutes(3));
 
+        Assert.Single(_manager.ReleaseExpired());
         Assert.False(_manager.GetStatus(_resource).IsLocked);
     }
 
