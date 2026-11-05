@@ -125,6 +125,10 @@ from backup; the next scan resolves the finding.
 ### Request Orphan Cleanup
 
 Review an unresolved Unreferenced finding and confirm its file is obsolete.
+Before queuing, check that both the finding's age (`FirstSeenAt`) and the file's
+age (filesystem last-write time in UTC) are at least `OrphanMinimumAgeHours`
+(24 hours by default). The worker rechecks both ages before deleting the file.
+
 Declare the reviewed ID and your operator identity in a new standalone SQL batch,
 then append [queue-orphan-cleanup.sql](../scripts/storage/queue-orphan-cleanup.sql):
 
@@ -137,6 +141,12 @@ DECLARE @Actor nvarchar(200) = N'REPLACE-WITH-YOUR-OPERATOR-IDENTITY';
 The script atomically links one queued operation to the finding. Repeated or
 concurrent requests reuse its ID and retain the original actor. It never deletes
 files; the worker validates the actual filesystem state before executing cleanup.
+
+If cleanup is queued before both ages meet the minimum, the worker marks the
+operation Failed. Wait until both ages meet the minimum, then use
+[retry-failed-operation.sql](../scripts/storage/retry-failed-operation.sql) as
+described below. Rerunning the queue script returns the existing operation ID;
+it does not retry a failed operation.
 
 ### Retry a Failed Operation
 
