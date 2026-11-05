@@ -1,19 +1,30 @@
 using Microsoft.AspNetCore.Mvc;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Create;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Delete;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Update;
 using VictoryCenter.BLL.Commands.Admin.EventNews.Reorder;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Interfaces.Concurrency;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetByFilters;
 using VictoryCenter.BLL.Queries.Admin.EventNews.GetById;
 using VictoryCenter.BLL.Queries.Admin.EventNews.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.WebAPI.Filters;
+using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class EventNewsController : AuthorizedApiController
 {
+    private readonly IContentLockUpdateCompletionService _contentLockUpdateCompletionService;
+
+    public EventNewsController(IContentLockUpdateCompletionService contentLockUpdateCompletionService)
+    {
+        _contentLockUpdateCompletionService = contentLockUpdateCompletionService;
+    }
+
     [HttpGet]
     [ProducesResponseType(typeof(PaginationResult<EventNewsDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -58,13 +69,27 @@ public class EventNewsController : AuthorizedApiController
     }
 
     [HttpPut("{id:long}")]
+    [RequireContentLock(ContentLockConstants.EventNewsResourceType, "id")]
     [ProducesResponseType(typeof(EventNewsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status423Locked)]
     public async Task<IActionResult> UpdateEventNews(long id, [FromBody] UpdateEventNewsDto updateEventNewsDto)
     {
-        return HandleResult(await Mediator.Send(new UpdateEventNewsCommand(id, updateEventNewsDto)));
+        var result = await Mediator.Send(new UpdateEventNewsCommand(id, updateEventNewsDto));
+        if (result.IsSuccess)
+        {
+            await _contentLockUpdateCompletionService.CompleteAsync(
+                new()
+                {
+                    ResourceType = ContentLockConstants.EventNewsResourceType,
+                    ResourceId = id,
+                },
+                HttpContext.GetContentLockSessionOrDefault());
+        }
+
+        return HandleResult(result);
     }
 
     [HttpPut("reorder")]
