@@ -25,8 +25,7 @@ public class BaseApiController : ControllerBase
             return Ok(result.Value);
         }
 
-        if (result.HasError(error
-            => error.Message.Contains("not found", StringComparison.CurrentCultureIgnoreCase)))
+        if (result.HasError<NotFoundError>())
         {
             var notFoundDetails = problemsFactory.CreateProblemDetails(
                 HttpContext,

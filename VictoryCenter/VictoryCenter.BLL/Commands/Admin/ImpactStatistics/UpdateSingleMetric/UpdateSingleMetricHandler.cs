@@ -4,6 +4,7 @@ using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
@@ -11,7 +12,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Services.FundsMetricSync;
-using VictoryCenter.BLL.Errors;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.DAL.Entities.Interfaces;
 using Metric = VictoryCenter.DAL.Entities.Metric;
@@ -68,7 +68,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
 
                 if (metric is null)
                 {
-                    return Result.Fail<UpdateMetricResult>(ErrorMessagesConstants.NotFound(request.MetricId, typeof(Metric)));
+                    return Result.Fail<UpdateMetricResult>(new NotFoundError(ErrorMessagesConstants.NotFound(request.MetricId, typeof(Metric))));
                 }
 
                 if (request.Dto.ExpectedVersion != null &&

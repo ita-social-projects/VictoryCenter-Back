@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
@@ -50,7 +51,7 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
 
         if (pdfReport == null)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
         }
 
         var blobName = pdfReport.BlobName;

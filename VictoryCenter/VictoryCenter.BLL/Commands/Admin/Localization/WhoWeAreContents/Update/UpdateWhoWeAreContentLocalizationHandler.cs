@@ -47,7 +47,7 @@ public class UpdateWhoWeAreContentLocalizationHandler : IRequestHandler<UpdateWh
 
             if (sanitizedDtosResult.IsFailed)
             {
-                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors.Select(e => e.Message));
+                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors);
             }
 
             var localizationsToUpdate = sanitizedDtosResult.Value

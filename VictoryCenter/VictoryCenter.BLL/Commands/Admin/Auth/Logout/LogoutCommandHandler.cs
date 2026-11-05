@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Logout;
@@ -30,7 +31,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         var admin = await _userManager.FindByEmailAsync(email);
         if (admin == null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            return Result.Fail(new NotFoundError(AuthConstants.AdminWithGivenEmailWasNotFound));
         }
 
         admin.RefreshToken = null;

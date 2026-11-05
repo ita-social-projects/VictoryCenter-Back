@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
@@ -33,7 +34,7 @@ public class GetPdfSectionHandler
 
         if (section == null)
         {
-            return Result.Fail<PdfSectionDto>(PdfSectionConstants.SectionNotFound);
+            return Result.Fail<PdfSectionDto>(new NotFoundError(PdfSectionConstants.SectionNotFound));
         }
 
         var dto = new PdfSectionDto

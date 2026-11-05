@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -46,8 +47,8 @@ public class UpdatePdfSectionLocalizationHandler
 
             if (section is null)
             {
-                return Result.Fail<PdfSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound());
+                return Result.Fail<PdfSectionLocalizationDto>(new NotFoundError(
+                    ErrorMessagesConstants.NotFound()));
             }
 
             var dto = request.UpdatePdfSectionLocalizationDto;
@@ -61,7 +62,7 @@ public class UpdatePdfSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<PdfSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<PdfSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

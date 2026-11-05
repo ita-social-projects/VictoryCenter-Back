@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -31,9 +32,9 @@ public class DeleteFeedbackHistoryLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization)));
+                typeof(FeedbackHistoryLocalization))));
         }
 
         _repositoryWrapper.FeedbackHistoryLocalizationsRepository.Delete(localization);
@@ -47,9 +48,9 @@ public class DeleteFeedbackHistoryLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackHistoryLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization)));
+                typeof(FeedbackHistoryLocalization))));
         }
     }
 }

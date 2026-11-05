@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -44,10 +45,10 @@ public class DeleteReportProgramExpendituresRecordHandler
 
             if (recordToBeDeleted is null)
             {
-                return Result.Fail(
+                return Result.Fail(new NotFoundError(
                     ErrorMessagesConstants.NotFound(
                         request.ReportProgramExpendituresRecordId,
-                        typeof(ReportProgramExpendituresRecord)));
+                        typeof(ReportProgramExpendituresRecord))));
             }
 
             _repositoryWrapper.ReportProgramExpendituresRecordsRepository.Delete(recordToBeDeleted);

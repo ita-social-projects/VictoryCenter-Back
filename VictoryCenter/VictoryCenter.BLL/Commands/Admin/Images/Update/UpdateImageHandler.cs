@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -52,7 +53,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (imageEntity is null)
             {
-                return Result.Fail<ImageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
+                return Result.Fail<ImageDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(Image))));
             }
 
             var previousBlobName = imageEntity.BlobName;

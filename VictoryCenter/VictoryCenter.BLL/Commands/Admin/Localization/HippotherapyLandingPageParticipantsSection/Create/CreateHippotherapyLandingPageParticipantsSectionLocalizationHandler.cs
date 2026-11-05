@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageParticipantsSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
@@ -50,8 +51,8 @@ public class CreateHippotherapyLandingPageParticipantsSectionLocalizationHandler
             var section = await GetSectionWithCardsAsync(dto.EntityId);
             if (section is null)
             {
-                return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageParticipantsSectionEntity)));
+                return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(new NotFoundError(
+                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageParticipantsSectionEntity))));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -73,7 +74,7 @@ public class CreateHippotherapyLandingPageParticipantsSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

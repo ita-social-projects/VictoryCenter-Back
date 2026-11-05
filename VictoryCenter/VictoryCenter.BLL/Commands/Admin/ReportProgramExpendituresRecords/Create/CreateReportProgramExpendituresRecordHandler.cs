@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
@@ -44,10 +45,10 @@ public class CreateReportProgramExpendituresRecordHandler :
 
         if (programCategory is null)
         {
-            return Result.Fail(
+            return Result.Fail(new NotFoundError(
                 ErrorMessagesConstants.NotFound(
                     request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
-                    typeof(HippotherapyProgramCategory)));
+                    typeof(HippotherapyProgramCategory))));
         }
 
         var reportProgramExpendituresRecord =

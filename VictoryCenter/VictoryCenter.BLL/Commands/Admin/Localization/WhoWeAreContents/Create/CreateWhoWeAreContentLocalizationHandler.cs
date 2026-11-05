@@ -46,7 +46,7 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
 
             if (sanitizedDtosResult.IsFailed)
             {
-                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors.Select(e => e.Message));
+                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors);
             }
 
             var createdLocalizations = new List<WhoWeAreContentLocalizationDto>();

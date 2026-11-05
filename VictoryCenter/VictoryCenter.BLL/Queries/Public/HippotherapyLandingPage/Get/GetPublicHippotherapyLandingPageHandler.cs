@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -33,7 +34,7 @@ public class GetPublicHippotherapyLandingPageHandler : IRequestHandler<GetPublic
 
         if (entity == null)
         {
-            return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
+            return Result.Fail<HippotherapyLandingPageDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
         }
 
         return Result.Ok(_mapper.Map<HippotherapyLandingPageDto>(entity));
