@@ -61,8 +61,9 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 
         builder.ConfigureServices(services =>
         {
-            var storageWorker = services.FirstOrDefault(descriptor => descriptor.ImplementationType == typeof(StorageOperationWorker));
-            if (storageWorker != null)
+            var storageWorkers = services.Where(descriptor => descriptor.ImplementationType == typeof(StorageOperationWorker)
+                || descriptor.ImplementationType == typeof(StorageReconciliationWorker)).ToList();
+            foreach (var storageWorker in storageWorkers)
             {
                 services.Remove(storageWorker);
             }

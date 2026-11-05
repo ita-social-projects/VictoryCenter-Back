@@ -26,6 +26,18 @@ raw SQL or database-side cascades when deleting image/PDF metadata.
 ## Worker and Reconciliation
 
 BackgroundService claims due operations with optimistic concurrency and a lease.
+Reconciliation runs in a separate hosted service with its own scope and DbContext,
+so the cleanup loop does not wait for a full inventory scan to finish. Scans are
+sequential within each application instance; the configured reconciliation interval
+starts after a successful scan. Failed scans retry after PollIntervalSeconds.
+Each reconciliation pass uses batches of up to 200 entries. File references,
+protecting operations and existing findings are loaded for a batch rather than
+queried per file. Findings are saved together with one SaveChanges call per batch;
+EF may split that save into multiple SQL commands according to provider limits.
+Only a conflicting batch falls back to reloading/saving individual findings, so
+an operator's new cleanup link is not overwritten and healthy entries can progress.
+Queries do not load the entire storage inventory into memory. The workers still
+share database and filesystem resources; batching is not a latency guarantee.
 Expired claims can be reclaimed after restart. Deleting an absent file is success,
 including after a failed acknowledgement. I/O failures use capped exponential
 backoff and a bounded retry budget. Failed operations remain available for recovery.
@@ -42,9 +54,19 @@ its previous cleanup link.
 
 For reviewed orphan cleanup, the worker also checks finding/file identity,
 unresolved Unreferenced status, minimum finding age, modification age and other
-active operations. Unsafe cleanup fails with `CleanupNotSafe`; absent files are
+active operations. These requests use the distinct OrphanCleanup operation kind;
+a missing finding link fails closed, even after an operator retry. Ordinary
+metadata deletion remains independently retryable. Unsafe cleanup fails with
+`CleanupNotSafe`; absent files with a valid finding link are
 acknowledged idempotently. Logs contain codes, IDs, kinds, attempts and statuses,
 not payloads, Base64 or raw exception messages.
+
+Invalid filenames (including names longer than 150 characters) are skipped before
+database access rather than aborting reconciliation. File-scan warnings identify
+the entry by FileKind and FileNameHash: the uppercase SHA-256 of the exact filename
+encoded as UTF-8 (case-sensitive, excluding its directory). Operators can hash
+local filenames with the same algorithm to locate the entry without exposing
+legacy filenames or full paths in application logs.
 
 ## Configuration
 
@@ -137,7 +159,7 @@ Down removes the recovery ledger.
 ## Verification
 
 HTTP tests exercise existing image/PDF endpoints and explicitly drain the queue;
-the factory disables the worker, whose lifecycle is unit-tested separately.
+the factory disables both workers, whose lifecycles are unit-tested separately.
 InMemory does not prove SQL atomicity.
 
 SQL tests cover transactions, constraints, races, recovery scripts, generated

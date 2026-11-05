@@ -13,12 +13,12 @@ using VictoryCenter.WebAPI.Services;
 
 namespace VictoryCenter.UnitTests.ServiceTests;
 
-public class StorageOperationWorkerTests : IDisposable
+public partial class StorageOperationWorkerTests : IDisposable
 {
     private readonly string _root = Path.Combine(Path.GetTempPath(), $"vc-worker-{Guid.NewGuid():N}");
     private readonly Mock<ILogger<StorageOperationWorker>> _logger = new();
     private readonly Mock<ILogger<StorageOperationProcessor>> _operationLogger = new();
-    private readonly AdjustableClock _clock = new();
+    private readonly TimeProvider _clock = TimeProvider.System;
 
     [Fact]
     public async Task Worker_UnavailableRootDoesNotRecreateDirectoriesOrConsumeAttemptsAndRecoversAfterRestore()
@@ -114,72 +114,13 @@ public class StorageOperationWorkerTests : IDisposable
         Assert.True(worker.ExecuteTask!.IsCompletedSuccessfully);
     }
 
-    [Fact]
-    public async Task Worker_RescansAfterConfiguredIntervalAndCancelsLongWaitCleanly()
-    {
-        var firstWait = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var longWait = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var secondScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var waits = 0;
-        _clock.TimerCreated = () =>
-        {
-            if (Interlocked.Increment(ref waits) == 1)
-            {
-                firstWait.TrySetResult();
-            }
-            else
-            {
-                longWait.TrySetResult();
-            }
-        };
-        var scans = 0;
-        _logger.Setup(logger => logger.Log(
-            LogLevel.Warning,
-            It.IsAny<EventId>(),
-            It.IsAny<It.IsAnyType>(),
-            It.IsAny<Exception?>(),
-            It.IsAny<Func<It.IsAnyType, Exception?, string>>()))
-            .Callback(new InvocationAction(_ =>
-            {
-                if (Interlocked.Increment(ref scans) == 2)
-                {
-                    secondScan.TrySetResult();
-                }
-            }));
-        using var provider = Services();
-        await using (var scope = provider.CreateAsyncScope())
-        {
-            var context = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            context.Images.Add(new Image { BlobName = "missing", MimeType = "image/png" });
-            await context.SaveChangesAsync();
-        }
-
-        using var worker = Worker(provider);
-        try
-        {
-            await worker.StartAsync(CancellationToken.None);
-            await firstWait.Task.WaitAsync(TimeSpan.FromSeconds(15));
-            Assert.Equal(1, Volatile.Read(ref scans));
-            provider.GetRequiredService<IOptions<StorageLifecycleOptions>>().Value.PollIntervalSeconds = 3600;
-            _clock.Advance(TimeSpan.FromMinutes(61));
-            await secondScan.Task.WaitAsync(TimeSpan.FromSeconds(15));
-            await longWait.Task.WaitAsync(TimeSpan.FromSeconds(15));
-        }
-        finally
-        {
-            await worker.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5));
-        }
-
-        Assert.True(worker.ExecuteTask!.IsCompletedSuccessfully);
-    }
-
     public void Dispose()
     {
         Directory.Delete(_root, recursive: true);
         GC.SuppressFinalize(this);
     }
 
-    private ServiceProvider Services(SaveChangesInterceptor? interceptor = null)
+    private ServiceProvider Services(params SaveChangesInterceptor[] interceptors)
     {
         Directory.CreateDirectory(Path.Combine(_root, "images"));
         Directory.CreateDirectory(Path.Combine(_root, "pdfs"));
@@ -194,10 +135,7 @@ public class StorageOperationWorkerTests : IDisposable
             .AddDbContext<VictoryCenterDbContext>(options =>
             {
                 options.UseInMemoryDatabase(database);
-                if (interceptor != null)
-                {
-                    options.AddInterceptors(interceptor);
-                }
+                options.AddInterceptors(interceptors);
             })
             .AddScoped<LocalStorageFiles>()
             .AddScoped<StorageOperationProcessor>()
@@ -233,24 +171,6 @@ public class StorageOperationWorkerTests : IDisposable
             }
 
             return ValueTask.FromResult(result);
-        }
-    }
-
-    private sealed class AdjustableClock : TimeProvider
-    {
-        private long _offset;
-
-        public Action? TimerCreated { get; set; }
-
-        public override DateTimeOffset GetUtcNow() => DateTimeOffset.UtcNow.AddTicks(Interlocked.Read(ref _offset));
-
-        public void Advance(TimeSpan duration) => Interlocked.Add(ref _offset, duration.Ticks);
-
-        public override ITimer CreateTimer(TimerCallback callback, object? state, TimeSpan dueTime, TimeSpan period)
-        {
-            var timer = base.CreateTimer(callback, state, dueTime, period);
-            TimerCreated?.Invoke();
-            return timer;
         }
     }
 }

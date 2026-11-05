@@ -94,6 +94,7 @@ public static class ServicesConfiguration
         services.AddScoped<StorageOperationProcessor>();
         services.AddScoped<StorageReconciliation>();
         services.AddHostedService<StorageOperationWorker>();
+        services.AddHostedService<StorageReconciliationWorker>();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
