@@ -765,6 +765,9 @@ namespace VictoryCenter.DAL.Migrations
                     b.Property<long>("Priority")
                         .HasColumnType("bigint");
 
+                    b.Property<DateTimeOffset?>("PublishedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -785,7 +788,9 @@ namespace VictoryCenter.DAL.Migrations
 
                     b.HasIndex("ImageId");
 
-                    b.ToTable("FeedbackHistories", (string)null);
+                    b.HasIndex("Status", "PublishedAt");
+
+                    b.ToTable("FeedbackHistories");
                 });
 
             modelBuilder.Entity("VictoryCenter.DAL.Entities.FeedbackReview", b =>

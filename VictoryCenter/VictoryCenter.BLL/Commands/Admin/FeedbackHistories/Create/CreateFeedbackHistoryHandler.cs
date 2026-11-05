@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Create;
@@ -55,10 +56,12 @@ public class CreateFeedbackHistoryHandler : IRequestHandler<CreateFeedbackHistor
                 return Result.Fail<FeedbackHistoryDto>(imageResult.Errors);
             }
 
+            var now = _timeProvider.GetUtcNow();
             var entity = _mapper.Map<FeedbackHistory>(request.CreateFeedbackHistoryDto);
-            entity.CreatedAt = _timeProvider.GetUtcNow();
+            entity.CreatedAt = now;
             entity.Priority = await _reorderService.GetNextDisplayOrderAsync<FeedbackHistory>();
             entity.Image = imageResult.Value;
+            entity.PublishedAt = request.CreateFeedbackHistoryDto.Status == Status.Published ? now : null;
 
             await _repositoryWrapper.FeedbackHistoriesRepository.CreateAsync(entity);
 
