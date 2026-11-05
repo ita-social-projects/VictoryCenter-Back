@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.DTOs.Concurrency.WebSocket;
 using VictoryCenter.BLL.Interfaces.Concurrency;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;

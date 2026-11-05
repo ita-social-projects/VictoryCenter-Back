@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Concurrency.WebSocket;
 using VictoryCenter.BLL.Interfaces.Concurrency;
 
 namespace VictoryCenter.IntegrationTests.Utils;
