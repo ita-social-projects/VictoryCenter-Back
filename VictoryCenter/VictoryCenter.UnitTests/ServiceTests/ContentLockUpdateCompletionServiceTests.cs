@@ -15,70 +15,51 @@ public class ContentLockUpdateCompletionServiceTests
         ResourceId = 1,
     };
 
-    private static readonly ContentLockSessionDto Session = new()
-    {
-        LockId = "lock-id",
-        OwnerIdentity = "admin@example.test",
-        ConnectionId = "connection-id",
-    };
-
     [Fact]
     public async Task CompleteAsync_PublishesWithoutHttpRequestCancellation()
     {
-        var manager = new Mock<IContentLockManager>();
         var notifier = new Mock<IContentLockNotifier>();
         CancellationToken entityChangedCancellationToken = new(true);
-        manager
-            .Setup(item => item.Release(Session.LockId, Resource, Session.OwnerIdentity, Session.ConnectionId))
-            .Returns(new ContentLockReleaseResult { Accepted = true });
         notifier
             .Setup(item => item.NotifyEntityChangedAsync(It.IsAny<ContentEntityChangedDto>(), It.IsAny<CancellationToken>()))
             .Callback<ContentEntityChangedDto, CancellationToken>((_, cancellationToken) => entityChangedCancellationToken = cancellationToken)
             .Returns(Task.CompletedTask);
-        var service = CreateService(manager.Object, notifier.Object);
+        var service = CreateService(notifier.Object);
 
-        await service.CompleteAsync(Resource, Session);
+        await service.CompleteAsync(Resource);
 
         Assert.Equal(CancellationToken.None, entityChangedCancellationToken);
+        notifier.Verify(
+            item => item.NotifyEntityChangedAsync(
+                It.Is<ContentEntityChangedDto>(entityChanged => entityChanged.ResourceType == Resource.ResourceType
+                                                           && entityChanged.ResourceId == Resource.ResourceId),
+                CancellationToken.None),
+            Times.Once);
+        notifier.Verify(
+            item => item.NotifyLockReleasedAsync(It.IsAny<ContentLockLifecycleDto>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
     public async Task CompleteAsync_WhenNotificationFails_DoesNotThrowAfterPersistence()
     {
-        var manager = new Mock<IContentLockManager>();
         var notifier = new Mock<IContentLockNotifier>();
-        manager
-            .Setup(item => item.Release(Session.LockId, Resource, Session.OwnerIdentity, Session.ConnectionId))
-            .Returns(new ContentLockReleaseResult
-            {
-                Accepted = true,
-                ReleasedLock = new ContentLockLifecycleDto
-                {
-                    ResourceType = Resource.ResourceType,
-                    ResourceId = Resource.ResourceId,
-                    LockId = Session.LockId,
-                    OwnerIdentity = Session.OwnerIdentity,
-                },
-            });
         notifier
             .Setup(item => item.NotifyEntityChangedAsync(It.IsAny<ContentEntityChangedDto>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("SignalR is unavailable."));
-        var service = CreateService(manager.Object, notifier.Object);
+        var service = CreateService(notifier.Object);
 
-        var exception = await Record.ExceptionAsync(() => service.CompleteAsync(Resource, Session));
+        var exception = await Record.ExceptionAsync(() => service.CompleteAsync(Resource));
 
         Assert.Null(exception);
         notifier.Verify(
-            item => item.NotifyLockReleasedAsync(It.IsAny<ContentLockLifecycleDto>(), CancellationToken.None),
-            Times.Once);
+            item => item.NotifyLockReleasedAsync(It.IsAny<ContentLockLifecycleDto>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
-    private static ContentLockUpdateCompletionService CreateService(
-        IContentLockManager lockManager,
-        IContentLockNotifier notifier)
+    private static ContentLockUpdateCompletionService CreateService(IContentLockNotifier notifier)
     {
         return new ContentLockUpdateCompletionService(
-            lockManager,
             notifier,
             Mock.Of<ILogger<ContentLockUpdateCompletionService>>());
     }

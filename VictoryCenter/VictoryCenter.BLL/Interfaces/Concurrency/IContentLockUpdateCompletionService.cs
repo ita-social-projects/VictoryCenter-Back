@@ -4,7 +4,5 @@ namespace VictoryCenter.BLL.Interfaces.Concurrency;
 
 public interface IContentLockUpdateCompletionService
 {
-    Task CompleteAsync(
-        ContentLockResourceDto resource,
-        ContentLockSessionDto? session);
+    Task CompleteAsync(ContentLockResourceDto resource);
 }

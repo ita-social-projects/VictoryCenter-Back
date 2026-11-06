@@ -59,6 +59,13 @@ public sealed class RequireContentLockFilter : IAsyncActionFilter
             return;
         }
 
+        if (long.TryParse(context.RouteData.Values.GetValueOrDefault(_routeValueName)?.ToString(), out var routeId)
+            && routeId <= 0)
+        {
+            await next();
+            return;
+        }
+
         if (!TryGetSession(context, out var resource, out var session)
             || !_lockManager.TryBeginUpdate(session.LockId, resource, session.OwnerIdentity, session.ConnectionId))
         {

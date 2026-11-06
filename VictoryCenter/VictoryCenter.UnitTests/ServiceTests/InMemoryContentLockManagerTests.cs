@@ -139,7 +139,11 @@ public class InMemoryContentLockManagerTests
         var acquired = _manager.Acquire(_resource, "admin@example.test", "connection-a");
         Assert.True(_manager.TryBeginUpdate(acquired.LockId!, _resource, "admin@example.test", "connection-a"));
 
-        _manager.EndUpdate(acquired.LockId!, _resource, "admin@example.test", "connection-a");
+        var releasedLock = _manager.EndUpdate(acquired.LockId!, _resource, "admin@example.test", "connection-a");
+
+        Assert.Null(releasedLock);
+        Assert.True(_manager.GetStatus(_resource).IsLocked);
+        Assert.False(_manager.GetStatus(_resource).IsUpdateInProgress);
         _timeProvider.Advance(TimeSpan.FromMinutes(3));
 
         Assert.Single(_manager.ReleaseExpired());

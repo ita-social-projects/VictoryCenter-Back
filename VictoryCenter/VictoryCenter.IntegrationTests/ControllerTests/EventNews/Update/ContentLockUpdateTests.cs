@@ -41,7 +41,7 @@ public class ContentLockUpdateTests : BaseTestClass
     }
 
     [Fact]
-    public async Task EventNewsUpdate_WithValidLock_SucceedsAndReleasesLock()
+    public async Task EventNewsUpdate_WithValidLock_SucceedsAndKeepsLockForFurtherEditing()
     {
         const string connectionId = "integration-content-lock-session";
         var resource = new ContentLockResourceDto
@@ -61,7 +61,40 @@ public class ContentLockUpdateTests : BaseTestClass
         var response = await Fixture.HttpClient.SendAsync(request);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.False(manager.GetStatus(resource).IsLocked);
+        var status = manager.GetStatus(resource);
+        Assert.True(status.IsLocked);
+        Assert.False(status.IsUpdateInProgress);
+        Assert.True(manager.Renew(acquisition.LockId!, resource, AdminEmail, connectionId).Acquired);
+        Assert.True(manager.Release(acquisition.LockId!, resource, AdminEmail, connectionId).Accepted);
+    }
+
+    [Fact]
+    public async Task EventNewsUpdate_WhenActionFails_ReturnsLockToEditingState()
+    {
+        const long missingEventNewsId = long.MaxValue;
+        const string connectionId = "failed-update-content-lock-session";
+        var resource = new ContentLockResourceDto
+        {
+            ResourceType = ContentLockConstants.EventNewsResourceType,
+            ResourceId = missingEventNewsId,
+        };
+        var manager = Fixture.Factory.Services.GetRequiredService<IContentLockManager>();
+        var acquisition = manager.Acquire(resource, AdminEmail, connectionId);
+        Assert.True(acquisition.Acquired);
+
+        using var request = CreateLockedRequest(
+            $"/api/EventNews/{missingEventNewsId}",
+            new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 },
+            acquisition.LockId!,
+            connectionId);
+        var response = await Fixture.HttpClient.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var status = manager.GetStatus(resource);
+        Assert.True(status.IsLocked);
+        Assert.False(status.IsUpdateInProgress);
+        Assert.True(manager.Renew(acquisition.LockId!, resource, AdminEmail, connectionId).Acquired);
+        Assert.True(manager.Release(acquisition.LockId!, resource, AdminEmail, connectionId).Accepted);
     }
 
     private static HttpRequestMessage CreateLockedRequest<T>(string uri, T body, string lockId, string connectionId)

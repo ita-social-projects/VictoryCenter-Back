@@ -8,7 +8,7 @@ This contract coordinates exclusive editing of administrative content through Si
 
 `ContentLock:EnforcementEnabled` is disabled by default. In that mode existing clients can save without a lock, while SignalR coordination remains available. Enable it only after a compatible client has been deployed.
 
-Locks are held in process memory. Consequently, this implementation is valid only for a single API instance; a distributed lock provider is required before scaling out.
+Locks are held in process memory. Enable enforcement only when the API runs as a single replica. Do not enable enforcement across multiple API replicas until this implementation uses a distributed lock provider.
 
 ## Connection and methods
 
@@ -36,7 +36,7 @@ When enforcement is enabled, the following headers are required for Event News u
 
 An absent, expired, foreign, or invalid lock produces `423 Locked` with a ProblemDetails response. The response header `X-Content-Lock-Enforced` indicates whether this environment requires the headers.
 
-Before an update handler starts, the server atomically marks the lock as updating. The lock cannot expire while the database transaction is running. On a successful commit, the server sends `EntityChanged` and releases the lock. A validation or not-found response keeps the normal edit lock so that its owner may correct the form and retry, unless its SignalR connection disconnected during the update.
+Before an update handler starts, the server atomically marks the lock as updating. The lock cannot expire while the database transaction is running. On a successful commit, the server sends `EntityChanged` and returns the lock to its normal editing state. A validation or not-found response does the same, so that its owner may correct the form and retry, unless its SignalR connection disconnected during the update.
 
 ## Events
 
@@ -57,6 +57,8 @@ SignalR notifications are sent after persistence and do not change the result of
 3. Renew on the configured interval while the edit form is open.
 4. Send both values as HTTP headers when saving.
 5. On `EntityChanged`, reload stale form data when the change came from another session.
-6. On `LockReleased` or `LockExpired`, a waiting editor may acquire the resource again.
-7. After reconnecting, discard the old connection id, request status again, and acquire a new lock when available.
-8. When the authentication token expires, the server closes the SignalR connection. Reconnect with a fresh token and acquire a new lock when available.
+6. Keep renewing the lock after a successful save while the edit form remains open.
+7. Call `ReleaseLock` when editing is finished or the form is closed.
+8. On `LockReleased` or `LockExpired`, a waiting editor may acquire the resource again.
+9. After reconnecting, discard the old connection id, request status again, and acquire a new lock when available.
+10. When the authentication token expires, the server closes the SignalR connection. Reconnect with a fresh token and acquire a new lock when available.

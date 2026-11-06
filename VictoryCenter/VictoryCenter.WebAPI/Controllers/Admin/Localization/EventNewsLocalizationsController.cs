@@ -6,7 +6,6 @@ using VictoryCenter.BLL.Commands.Admin.Localization.EventNews.Update;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNews;
 using VictoryCenter.BLL.Interfaces.Concurrency;
 using VictoryCenter.WebAPI.Controllers.Common;
-using VictoryCenter.WebAPI.Extensions;
 using VictoryCenter.WebAPI.Filters;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin.Localization;
@@ -48,8 +47,7 @@ public class EventNewsLocalizationsController : AuthorizedApiController
                 {
                     ResourceType = ContentLockConstants.EventNewsResourceType,
                     ResourceId = entityId,
-                },
-                HttpContext.GetContentLockSessionOrDefault());
+                });
         }
 
         return HandleResult(result);

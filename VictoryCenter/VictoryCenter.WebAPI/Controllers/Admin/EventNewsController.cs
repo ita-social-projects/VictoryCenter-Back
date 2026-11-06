@@ -12,7 +12,6 @@ using VictoryCenter.BLL.Queries.Admin.EventNews.GetById;
 using VictoryCenter.BLL.Queries.Admin.EventNews.Search;
 using VictoryCenter.WebAPI.Controllers.Common;
 using VictoryCenter.WebAPI.Filters;
-using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
@@ -85,8 +84,7 @@ public class EventNewsController : AuthorizedApiController
                 {
                     ResourceType = ContentLockConstants.EventNewsResourceType,
                     ResourceId = id,
-                },
-                HttpContext.GetContentLockSessionOrDefault());
+                });
         }
 
         return HandleResult(result);
