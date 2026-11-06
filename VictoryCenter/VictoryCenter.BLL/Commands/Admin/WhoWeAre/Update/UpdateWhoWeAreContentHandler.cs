@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.WhoWeAre.Update;
 
@@ -48,7 +49,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 {
                     if (!dictEntities.TryGetValue(dto.Id, out var entity))
                     {
-                        return Result.Fail(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent)));
+                        return Result.Fail(NotFoundErrors.NotFound(dto.Id, typeof(WhoWeAreContent)));
                     }
 
                     if (entity.SectionId != sectionId)
@@ -81,7 +82,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 if (updatedSection == null)
                 {
-                    return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+                    return Result.Fail(NotFoundErrors.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
                 }
 
                 scope.Complete();
@@ -91,7 +92,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         }
         catch (ValidationException vex)
         {
-            return Result.Fail(vex.Errors.Select(x => x.ErrorMessage));
+            return Result.Fail(vex.Errors.Select(x => (IError)new ValidationError(x.PropertyName, x.ErrorMessage)));
         }
         catch (ArgumentException e)
         {

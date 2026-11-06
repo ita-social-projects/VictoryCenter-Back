@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.FeedbackReviews.Create;
 
@@ -33,7 +34,7 @@ public class CreateFeedbackReviewLocalizationHandler
                 feedbackReview => feedbackReview.Id == dto.EntityId))
         {
             return Result.Fail<FeedbackReviewLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(FeedbackReview)));
+                NotFoundErrors.NotFound(dto.EntityId, typeof(FeedbackReview)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -46,7 +47,7 @@ public class CreateFeedbackReviewLocalizationHandler
         if (language is null)
         {
             return Result.Fail<FeedbackReviewLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.FeedbackReviewLocalizationsRepository.ExistsAsync(

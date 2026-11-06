@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -28,7 +29,7 @@ internal static class WhoWeAreContentLocalizationHandlerHelper
         {
             if (!dictEntities.TryGetValue(dto.EntityId, out var whoWeAreContent))
             {
-                return Result.Fail(ErrorMessagesConstants.NotFound(dto.EntityId, typeof(WhoWeAreContent)));
+                return Result.Fail(NotFoundErrors.NotFound(dto.EntityId, typeof(WhoWeAreContent)));
             }
 
             if (whoWeAreContent.SectionId != sectionId)

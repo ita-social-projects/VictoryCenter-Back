@@ -16,6 +16,7 @@ using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyLandingPage.Update;
 
@@ -179,7 +180,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {
@@ -387,7 +388,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             {
                 if (!existingById.TryGetValue(referenceDto.Id.Value, out var existingReference))
                 {
-                    return Result.Fail(ErrorMessagesConstants.NotFound(
+                    return Result.Fail(NotFoundErrors.NotFound(
                         referenceDto.Id.Value, typeof(HippotherapyLandingPageScientificReference)));
                 }
 

@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamCategories.Update;
 
@@ -66,7 +67,7 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<TeamCategoryDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory)));
+                return Result.Fail<TeamCategoryDto>(NotFoundErrors.NotFound(request.Id, typeof(TeamCategory)));
             }
 
             SetTranslationsToOutdated(request, entityToUpdate);
@@ -93,7 +94,7 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<TeamCategoryDto>(ex.Message);
+            return Result.Fail<TeamCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 

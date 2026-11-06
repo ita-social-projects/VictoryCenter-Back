@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Reorder;
 
@@ -37,7 +38,7 @@ public class ReorderEventNewsHandler(
 
             if (existingEventNews.Count() != orderedIds.Count)
             {
-                return Result.Fail(ErrorMessagesConstants.NotFound(categoryId, typeof(EventNewsEntity)));
+                return Result.Fail(NotFoundErrors.NotFound(categoryId, typeof(EventNewsEntity)));
             }
 
             await reorderService.SwapElementsAsync<EventNewsEntity>(
@@ -49,7 +50,7 @@ public class ReorderEventNewsHandler(
         }
         catch (ValidationException e)
         {
-            return Result.Fail(e.Message);
+            return Result.Fail(e.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {

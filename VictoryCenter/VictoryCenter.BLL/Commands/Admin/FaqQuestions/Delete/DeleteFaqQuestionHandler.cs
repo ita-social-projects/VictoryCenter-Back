@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 namespace VictoryCenter.BLL.Commands.Admin.FaqQuestions.Delete;
 
 public class DeleteFaqQuestionHandler : IRequestHandler<DeleteFaqQuestionCommand, Result<long>>
@@ -34,7 +35,7 @@ public class DeleteFaqQuestionHandler : IRequestHandler<DeleteFaqQuestionCommand
 
             if (questionToDelete is null)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(FaqQuestion)));
             }
 
             var placementsToDelete = questionToDelete.Placements.ToList();

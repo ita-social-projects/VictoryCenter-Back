@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Services.Search.Helpers;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
 
 namespace VictoryCenter.BLL.Queries.Admin.EventNews.Search;
@@ -83,7 +84,7 @@ public class SearchEventNewsHandler : IRequestHandler<SearchEventNewsQuery, Resu
         }
         catch (ValidationException vex)
         {
-            return Result.Fail(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

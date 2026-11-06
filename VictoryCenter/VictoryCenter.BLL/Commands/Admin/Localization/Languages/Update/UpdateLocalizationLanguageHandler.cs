@@ -9,6 +9,7 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.Languages.Update;
 
@@ -42,7 +43,7 @@ public class UpdateLocalizationLanguageHandler : IRequestHandler<UpdateLocalizat
 
             if (existingEntity is null)
             {
-                return Result.Fail<LocalizationLanguageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(LocalizationLanguage)));
+                return Result.Fail<LocalizationLanguageDto>(NotFoundErrors.NotFound(request.Id, typeof(LocalizationLanguage)));
             }
 
             var entityToUpdate = _mapper.Map<UpdateLocalizationLanguageDto, LocalizationLanguage>(request.UpdateLocalizationLanguageDto);
@@ -61,7 +62,7 @@ public class UpdateLocalizationLanguageHandler : IRequestHandler<UpdateLocalizat
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<LocalizationLanguageDto>(ex.Message);
+            return Result.Fail<LocalizationLanguageDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

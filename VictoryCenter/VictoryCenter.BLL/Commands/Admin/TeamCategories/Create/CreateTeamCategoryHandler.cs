@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamCategories.Create;
 
@@ -78,7 +79,7 @@ public class CreateTeamCategoryHandler : IRequestHandler<CreateTeamCategoryComma
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<TeamCategoryDto>(ex.Message);
+            return Result.Fail<TeamCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Partners.UpdateBanner;
 
@@ -44,7 +45,7 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
 
                 if (existingImage == null)
                 {
-                    return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.NotFound(request.Dto.ImageId, typeof(Image)));
+                    return Result.Fail<PartnersPageBannerDto>(NotFoundErrors.NotFound(request.Dto.ImageId, typeof(Image)));
                 }
             }
 
@@ -85,7 +86,7 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnersPageBannerDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnersPageBannerDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresCategories.Update;
 
@@ -53,7 +54,7 @@ public class UpdateReportFundsExpendituresCategoryHandler
             if (categoryToUpdate is null)
             {
                 return Result.Fail<ReportFundsExpendituresCategoryDto>(
-                    ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
+                    NotFoundErrors.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
             }
 
             if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(categoryToUpdate.Name, categoryToUpdate.Type))
@@ -94,7 +95,7 @@ public class UpdateReportFundsExpendituresCategoryHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresCategoryDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

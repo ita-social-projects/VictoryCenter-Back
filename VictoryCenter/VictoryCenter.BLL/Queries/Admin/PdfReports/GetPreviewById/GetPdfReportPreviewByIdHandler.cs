@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewById;
 
@@ -37,7 +38,7 @@ public class GetPdfReportPreviewByIdHandler : IRequestHandler<GetPdfReportPrevie
 
         if (pdfReport == null)
         {
-            return Result.Fail<PdfReportFileDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+            return Result.Fail<PdfReportFileDto>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
 
         try
@@ -56,7 +57,7 @@ public class GetPdfReportPreviewByIdHandler : IRequestHandler<GetPdfReportPrevie
         }
         catch (BlobNotFoundException)
         {
-            return Result.Fail<PdfReportFileDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+            return Result.Fail<PdfReportFileDto>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
         catch (BlobFileSystemException)
         {

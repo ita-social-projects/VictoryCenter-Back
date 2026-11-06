@@ -2,12 +2,12 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.HippotherapyPrograms.GetById;
 
@@ -49,7 +49,7 @@ public class GetHippotherapyProgramByIdHandler
         if (program is null)
         {
             return Result.Fail<HippotherapyProgramDto>(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(HippotherapyProgram)));
+                NotFoundErrors.NotFound(request.Id, typeof(HippotherapyProgram)));
         }
 
         var assignImagesResult = await ImageValidationHelper

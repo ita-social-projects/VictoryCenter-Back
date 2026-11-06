@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Hubs;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.PdfReports.Reorder;
 
@@ -45,7 +46,7 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
             var languageExists = await _repositoryWrapper.LocalizationLanguagesRepository.ExistsAsync(l => l.Id == languageId);
             if (!languageExists)
             {
-                return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(languageId, typeof(LocalizationLanguage)));
+                return Result.Fail<Unit>(NotFoundErrors.NotFound(languageId, typeof(LocalizationLanguage)));
             }
 
             var reportsToReorderCount = await _repositoryWrapper.PdfReportRepository.CountAsync(
@@ -56,7 +57,7 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
 
             if (reportsToReorderCount == 0)
             {
-                return Result.Fail<Unit>(PdfReportConstants.PdfNotFound);
+                return Result.Fail<Unit>(new NotFoundError(PdfReportConstants.PdfNotFound));
             }
 
             if (reportsToReorderCount != orderedIds.Count)
@@ -74,7 +75,7 @@ public class ReorderPdfReportsHandler : IRequestHandler<ReorderPdfReportsCommand
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<Unit>(ex.Message);
+            return Result.Fail<Unit>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {

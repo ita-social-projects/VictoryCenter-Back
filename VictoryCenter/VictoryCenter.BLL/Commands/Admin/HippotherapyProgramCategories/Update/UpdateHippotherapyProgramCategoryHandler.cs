@@ -7,6 +7,7 @@ using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.HippotherapyProgramCategories.Update;
 
@@ -55,7 +56,7 @@ public class UpdateHippotherapyProgramCategoryHandler : IRequestHandler<UpdateHi
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HippotherapyProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

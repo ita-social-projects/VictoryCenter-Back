@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.ReportFundsExpendituresSettings;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.ReportFundsExpendituresSettings.Create;
@@ -51,7 +52,7 @@ public class CreateReportFundsExpendituresSettingsLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ReportFundsExpendituresSettingsLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ReportFundsExpendituresSettingsLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

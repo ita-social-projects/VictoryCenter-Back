@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.TeamCategories;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.TeamCategories.Update;
 public class UpdateTeamCategoryLocalizationHandler : IRequestHandler<UpdateTeamCategoryLocalizationCommand, Result<TeamCategoryLocalizationDto>>
@@ -49,7 +50,7 @@ public class UpdateTeamCategoryLocalizationHandler : IRequestHandler<UpdateTeamC
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<TeamCategoryLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamCategoryLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

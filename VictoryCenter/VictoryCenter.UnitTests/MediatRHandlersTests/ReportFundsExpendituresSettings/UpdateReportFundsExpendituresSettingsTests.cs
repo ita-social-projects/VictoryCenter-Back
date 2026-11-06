@@ -12,6 +12,7 @@ using VictoryCenter.DAL.Repositories.Interfaces.Localization.ReportFundsExpendit
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresSettings;
 using VictoryCenter.DAL.Repositories.Options;
 using MediatR;
+using VictoryCenter.BLL.Errors;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresSettings;
@@ -104,7 +105,7 @@ public class UpdateReportFundsExpendituresSettingsTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]

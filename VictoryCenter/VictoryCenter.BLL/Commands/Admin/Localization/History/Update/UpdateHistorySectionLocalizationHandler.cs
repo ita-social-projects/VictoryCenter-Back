@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.History.Update;
 
@@ -53,7 +54,7 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
             if (section is null)
             {
                 return Result.Fail<HistorySectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
+                    NotFoundErrors.NotFound(sectionDto.EntityId, typeof(HistorySection)));
             }
 
             HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
@@ -140,7 +141,7 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HistorySectionLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresCategories;
 
@@ -89,7 +90,7 @@ public class UpdateReportFundsExpendituresCategoryTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]
