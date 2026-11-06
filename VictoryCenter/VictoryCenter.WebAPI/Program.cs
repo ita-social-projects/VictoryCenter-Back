@@ -18,6 +18,7 @@ builder.Services.AddForwardedHeadersConfiguration(builder.Configuration);
 
 var app = builder.Build();
 app.Lifetime.ApplicationStopped.Register(configurationFileProvider.Dispose);
+app.InitializeStorage();
 
 await app.ApplyMigrationsAsync();
 await app.CreateInitialDataAsync();

@@ -50,6 +50,7 @@ public class DeletePdfReportTests : BaseTestClass
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        await Fixture.ProcessPendingStorageOperationsAsync();
         Assert.False(File.Exists(filePath), $"File should be removed after delete: {filePath}");
     }
 
