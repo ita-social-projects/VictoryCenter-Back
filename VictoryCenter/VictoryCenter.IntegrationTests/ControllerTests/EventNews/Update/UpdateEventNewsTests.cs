@@ -39,7 +39,7 @@ public class UpdateEventNewsTests : BaseTestClass
                 Localization(2, "Updated Community Workshop", "Updated community workshop description"),
             ]);
 
-        var firstResponse = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", firstDto);
+        var firstResponse = await PutWithContentLockAsync(1, firstDto);
         var firstContent = await firstResponse.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
 
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
@@ -58,8 +58,8 @@ public class UpdateEventNewsTests : BaseTestClass
                 Localization(2, "Community Charity Day", "Final details for the community charity day"),
             ]);
 
-        var secondResponse = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", secondDto);
-        var repeatResponse = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", secondDto);
+        var secondResponse = await PutWithContentLockAsync(1, secondDto);
+        var repeatResponse = await PutWithContentLockAsync(1, secondDto);
         var secondContent = await secondResponse.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
 
         Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
@@ -94,7 +94,7 @@ public class UpdateEventNewsTests : BaseTestClass
             ResourceEn = "https://example.com/en/integration-update",
         };
 
-        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var response = await PutWithContentLockAsync(1, dto);
         var content = await response.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -151,7 +151,7 @@ public class UpdateEventNewsTests : BaseTestClass
             ]
         };
 
-        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var response = await PutWithContentLockAsync(1, dto);
         var content = await response.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -179,7 +179,7 @@ public class UpdateEventNewsTests : BaseTestClass
             Localizations = [new CreateEventNewsLocalizationDto { LanguageId = 1 }]
         };
 
-        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/2", dto);
+        var response = await PutWithContentLockAsync(2, dto);
         var content = await response.Content.ReadFromJsonAsync<EventNewsDto>(JsonOptions);
         var publicResponse = await Fixture.HttpClient.GetAsync(
             $"/api/EventNews/published?limit={EventNewsConstants.PublishedTakeMaxValue}");
@@ -200,8 +200,8 @@ public class UpdateEventNewsTests : BaseTestClass
     [Fact]
     public async Task UpdateEventNews_WhenEntityDoesNotExist_ShouldReturnNotFound()
     {
-        var response = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{EndpointUri}/{long.MaxValue}",
+        var response = await PutWithContentLockAsync(
+            long.MaxValue,
             new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 });
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -210,9 +210,7 @@ public class UpdateEventNewsTests : BaseTestClass
     [Fact]
     public async Task UpdateEventNews_WhenIdIsInvalid_ShouldReturnBadRequest()
     {
-        var response = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{EndpointUri}/0",
-            new UpdateEventNewsDto { Status = Status.Draft });
+        var response = await PutWithContentLockAsync(0, new UpdateEventNewsDto { Status = Status.Draft });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -220,9 +218,7 @@ public class UpdateEventNewsTests : BaseTestClass
     [Fact]
     public async Task UpdatePublishedEventNews_WhenRequiredFieldsAreMissing_ShouldReturnBadRequest()
     {
-        var response = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{EndpointUri}/1",
-            new UpdateEventNewsDto { Status = Status.Published });
+        var response = await PutWithContentLockAsync(1, new UpdateEventNewsDto { Status = Status.Published });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -232,7 +228,7 @@ public class UpdateEventNewsTests : BaseTestClass
     {
         var dto = PublishedDto(categoryId: long.MaxValue);
 
-        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var response = await PutWithContentLockAsync(1, dto);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -242,7 +238,7 @@ public class UpdateEventNewsTests : BaseTestClass
     {
         var dto = PublishedDto() with { PreviewImageId = long.MaxValue };
 
-        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var response = await PutWithContentLockAsync(1, dto);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -255,7 +251,7 @@ public class UpdateEventNewsTests : BaseTestClass
             Localization(long.MaxValue, "Missing Language Event", "Missing language description"),
         ]);
 
-        var response = await Fixture.HttpClient.PutAsJsonAsync($"{EndpointUri}/1", dto);
+        var response = await PutWithContentLockAsync(1, dto);
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
@@ -304,5 +300,15 @@ public class UpdateEventNewsTests : BaseTestClass
             Title = title,
             Description = description
         };
+    }
+
+    private Task<HttpResponseMessage> PutWithContentLockAsync(long eventNewsId, UpdateEventNewsDto dto)
+    {
+        return ContentLockTestHelper.PutEventNewsAsync(
+            Fixture.HttpClient,
+            Fixture.Factory.Services,
+            eventNewsId,
+            $"{EndpointUri}/{eventNewsId}",
+            dto);
     }
 }

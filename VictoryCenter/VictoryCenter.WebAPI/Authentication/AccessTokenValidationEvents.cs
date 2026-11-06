@@ -19,6 +19,18 @@ public class AccessTokenValidationEvents : JwtBearerEvents
         _tokenService = tokenService;
     }
 
+    public override Task MessageReceived(MessageReceivedContext context)
+    {
+        if (context.Request.Path.StartsWithSegments("/hubs/admin-content")
+            && context.Request.Query.TryGetValue("access_token", out var accessToken)
+            && !string.IsNullOrWhiteSpace(accessToken))
+        {
+            context.Token = accessToken;
+        }
+
+        return Task.CompletedTask;
+    }
+
     public override async Task TokenValidated(TokenValidatedContext context)
     {
         var email = context.Principal?.FindFirstValue(ClaimTypes.Email);
