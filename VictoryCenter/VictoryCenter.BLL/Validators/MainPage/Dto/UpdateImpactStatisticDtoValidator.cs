@@ -11,6 +11,16 @@ public class UpdateImpactStatisticDtoValidator
     public UpdateImpactStatisticDtoValidator()
         : base(dto => dto.Metrics)
     {
+        RuleFor(x => x.Metrics)
+            .Cascade(CascadeMode.Stop)
+            .Must(metrics => metrics.Count <= MainPageConstants.ImpactStatistic.ExactMetricCount)
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                nameof(UpdateImpactStatisticDto.Metrics), MainPageConstants.ImpactStatistic.ExactMetricCount))
+            .Must(metrics => metrics.Where(metric => metric is not null).Select(metric => metric.Type).Distinct().Count()
+                == metrics.Count(metric => metric is not null))
+            .WithMessage(ErrorMessagesConstants.MetricTypesMustBeUnique())
+            .When(x => x.Metrics is not null);
+
         RuleFor(x => x.Id)
             .GreaterThan(0)
             .When(x => x.Id.HasValue)

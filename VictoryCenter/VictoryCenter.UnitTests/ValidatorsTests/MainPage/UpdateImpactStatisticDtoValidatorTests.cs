@@ -145,9 +145,10 @@ public class UpdateImpactStatisticDtoValidatorTests
     [Theory]
     [InlineData(0)]
     [InlineData(1)]
+    [InlineData(2)]
     [InlineData(3)]
-    [InlineData(5)]
-    public void Validate_ShouldRejectIncorrectMetricCount(int count)
+    [InlineData(4)]
+    public void Validate_ShouldAllowIncompleteMetricCollections(int count)
     {
         var metrics = Enumerable.Range(0, count)
             .Select(index => new UpdateMetricDto { Name = "metric", Type = (MetricType)(index % 4) })
@@ -155,8 +156,19 @@ public class UpdateImpactStatisticDtoValidatorTests
 
         var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
 
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectMoreThanFourMetrics()
+    {
+        var metrics = GetValidDto().Metrics.ToList();
+        metrics.Add(new UpdateMetricDto { Name = "extra metric", Type = MetricType.Partners });
+
+        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
+
         result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(4));
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan("Metrics", 4));
     }
 
     [Fact]

@@ -201,6 +201,64 @@ public class UpdateMainPageCommandValidatorTests
         result.ShouldHaveValidationErrorFor(x => x);
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public async Task Validate_ShouldAllowUnchangedPersistedMetricSet(int count)
+    {
+        var entity = GetExistingMainPage();
+        entity.ImpactStatistics!.Metrics = [.. Enum.GetValues<MetricType>().Take(count)
+            .Select((type, index) => new Metric { Id = index + 1, Type = type, Name = type.ToString() })];
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+        var dto = GetValidDto();
+        var command = new UpdateMainPageCommand(dto with
+        {
+            ImpactStatistics = dto.ImpactStatistics! with
+            {
+                Metrics = [.. entity.ImpactStatistics.Metrics.Select(metric => new UpdateMetricDto
+                {
+                    Id = metric.Id,
+                    Type = metric.Type,
+                    Name = metric.Name,
+                })],
+            },
+        });
+
+        (await CreateValidator().TestValidateAsync(command)).ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(3, false)]
+    [InlineData(4, true)]
+    public async Task Validate_NewStatisticsRequiresFourTypesWithoutIds(int count, bool valid)
+    {
+        var entity = GetExistingMainPage();
+        entity.ImpactStatistics = null;
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+        var dto = GetValidDto();
+        var command = new UpdateMainPageCommand(dto with
+        {
+            ImpactStatistics = dto.ImpactStatistics! with
+            {
+                Id = null,
+                Metrics = [.. Enum.GetValues<MetricType>().Take(count)
+                    .Select(type => new UpdateMetricDto { Type = type, Name = type.ToString() })],
+            },
+        });
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        Assert.Equal(valid, result.IsValid);
+    }
+
     private UpdateMainPageCommandValidator CreateValidator() =>
         new(_repositoryWrapperMock.Object);
 

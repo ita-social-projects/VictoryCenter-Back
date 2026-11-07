@@ -61,6 +61,12 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return true;
         }
 
+        if (existingMainPage.ImpactStatistics is null &&
+            statDto.Metrics.Count != MainPageConstants.ImpactStatistic.ExactMetricCount)
+        {
+            return false;
+        }
+
         return MetricsMatchExistingStatistics(statDto.Metrics, existingMainPage.ImpactStatistics?.Metrics ?? []);
     }
 

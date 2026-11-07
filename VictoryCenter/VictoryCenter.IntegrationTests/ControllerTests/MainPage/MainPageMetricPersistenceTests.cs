@@ -24,6 +24,41 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         _fixture = fixture;
     }
 
+    public static TheoryData<int, string> InvalidMetricUpdates => new()
+    {
+        { 0, "null" },
+        { 0, "nullElement" },
+        { 0, "duplicateNewType" },
+        { 0, "unknownNewId" },
+        { 0, "invalidNewType" },
+        { 0, "wrongStatisticsId" },
+        { 3, "incomplete" },
+        { 3, "empty" },
+        { 3, "null" },
+        { 3, "nullElement" },
+        { 3, "duplicateType" },
+        { 3, "invalidType" },
+        { 3, "duplicateId" },
+        { 3, "unknownId" },
+        { 3, "missingId" },
+        { 3, "swappedIds" },
+        { 3, "replaceType" },
+        { 3, "replaceWithNewType" },
+        { 3, "unknownNewId" },
+        { 3, "wrongStatisticsId" },
+        { 4, "incomplete" },
+        { 4, "empty" },
+        { 4, "null" },
+        { 4, "nullElement" },
+        { 4, "duplicateType" },
+        { 4, "invalidType" },
+        { 4, "duplicateId" },
+        { 4, "unknownId" },
+        { 4, "missingId" },
+        { 4, "swappedIds" },
+        { 4, "wrongStatisticsId" },
+    };
+
     public async Task InitializeAsync()
     {
         using var scope = _fixture.Services.CreateScope();
@@ -67,11 +102,15 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
     }
 
     [SqlServerTheory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task Publish_TitleChangePreservesMetricsAndTranslations(bool includeStatistics)
+    [InlineData(0, true)]
+    [InlineData(0, false)]
+    [InlineData(3, true)]
+    [InlineData(3, false)]
+    [InlineData(4, true)]
+    [InlineData(4, false)]
+    public async Task Publish_TitleChangePreservesMetricsAndTranslations(int existingCount, bool includeStatistics)
     {
-        var page = await SeedAsync();
+        var page = await SeedAsync(existingCount);
         var before = await SnapshotAsync();
         var dto = ToUpdate(page);
         dto = includeStatistics
@@ -82,27 +121,42 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(before, await SnapshotAsync());
+        using var scope = _fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var persisted = await db.MainPages.Include(p => p.ImpactStatistics).SingleAsync();
+        Assert.Equal(dto.Title, persisted.Title);
+        Assert.Equal(includeStatistics ? dto.ImpactStatistics!.Title : page.ImpactStatistics!.Title, persisted.ImpactStatistics!.Title);
     }
 
     [SqlServerTheory]
-    [InlineData("incomplete")]
-    [InlineData("empty")]
-    [InlineData("null")]
-    [InlineData("duplicateType")]
-    [InlineData("invalidType")]
-    [InlineData("duplicateId")]
-    [InlineData("unknownId")]
-    [InlineData("missingId")]
-    [InlineData("swappedIds")]
-    [InlineData("wrongStatisticsId")]
-    public async Task Publish_InvalidMetricsRejectedWithoutDatabaseChanges(string invalidCase)
+    [MemberData(nameof(InvalidMetricUpdates))]
+    public async Task Publish_InvalidMetricsRejectedWithoutDatabaseChanges(int existingCount, string invalidCase)
     {
-        var page = await SeedAsync();
+        var page = await SeedAsync(existingCount);
         var before = await SnapshotAsync();
         var dto = ToUpdate(page);
         var metrics = dto.ImpactStatistics!.Metrics.ToList();
         switch (invalidCase)
         {
+            case "nullElement":
+                metrics.Add(null!);
+                break;
+            case "duplicateNewType":
+                metrics.Add(new UpdateMetricDto { Name = "Partners", Type = MetricType.Partners });
+                metrics.Add(new UpdateMetricDto { Name = "Partners again", Type = MetricType.Partners });
+                break;
+            case "unknownNewId":
+                metrics.Add(new UpdateMetricDto { Id = long.MaxValue, Name = "Hours", Type = MetricType.TherapyHours });
+                break;
+            case "invalidNewType":
+                metrics.Add(new UpdateMetricDto { Name = "Invalid type", Type = (MetricType)999 });
+                break;
+            case "replaceType":
+                metrics[0] = metrics[0] with { Type = MetricType.TherapyHours };
+                break;
+            case "replaceWithNewType":
+                metrics[0] = metrics[0] with { Id = null, Type = MetricType.TherapyHours };
+                break;
             case "incomplete":
                 metrics.RemoveAll(m => m.Type == MetricType.Programs);
                 break;
@@ -152,18 +206,20 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
     }
 
     [SqlServerTheory]
-    [InlineData(0)]
-    [InlineData(3)]
-    public async Task Publish_IncompleteStatisticsCanBeInitializedExplicitly(int existingCount)
+    [InlineData(0, 1)]
+    [InlineData(0, 4)]
+    [InlineData(3, 4)]
+    public async Task Publish_IncompleteStatisticsCanBeInitializedExplicitly(int existingCount, int requestedCount)
     {
         var page = await SeedAsync(existingCount);
         var ids = page.ImpactStatistics!.Metrics.Select(m => m.Id).ToArray();
+        var before = await SnapshotAsync();
         var dto = ToUpdate(page);
         dto = dto with
         {
             ImpactStatistics = dto.ImpactStatistics! with
             {
-                Metrics = [.. Enum.GetValues<MetricType>().Select(type =>
+                Metrics = [.. Enum.GetValues<MetricType>().Take(requestedCount).Select(type =>
                     dto.ImpactStatistics.Metrics.SingleOrDefault(m => m.Type == type) ??
                     new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 })],
             },
@@ -175,9 +231,18 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var metrics = await db.Metrics.ToListAsync();
-        Assert.Equal(4, metrics.Count);
+        Assert.Equal(requestedCount, metrics.Count);
         Assert.All(ids, id => Assert.Contains(metrics, m => m.Id == id));
-        Assert.Equal(4, metrics.Select(m => m.Type).Distinct().Count());
+        Assert.Equal(requestedCount, metrics.Select(m => m.Type).Distinct().Count());
+        Assert.Equal(before, (await SnapshotAsync()).Where(row => ids.Any(id => row.StartsWith($"{id}|"))).ToArray());
+        Assert.All(metrics.Where(m => !ids.Contains(m.Id)), metric =>
+        {
+            Assert.True(metric.Id > 0);
+            Assert.Equal(page.ImpactStatistics.Id, metric.StatisticId);
+            Assert.Equal(123, metric.Value);
+            Assert.Equal(metric.Type.ToString(), metric.Name);
+            Assert.False(metric.IsHidden);
+        });
     }
 
     [SqlServerFact]
@@ -210,6 +275,41 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         Assert.Equal(4, await persisted.Metrics.CountAsync());
     }
 
+    [SqlServerTheory]
+    [InlineData(0)]
+    [InlineData(3)]
+    public async Task Publish_NewStatisticsBlockRejectsIncompleteMetricsWithoutDatabaseChanges(int requestedCount)
+    {
+        var page = await SeedAsync(0);
+        var dto = ToUpdate(page);
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            db.ImpactStatistics.Remove(await db.ImpactStatistics.SingleAsync());
+            await db.SaveChangesAsync();
+        }
+
+        dto = dto with
+        {
+            Title = "Must not be persisted",
+            ImpactStatistics = dto.ImpactStatistics! with
+            {
+                Id = null,
+                Metrics = [.. Enum.GetValues<MetricType>().Take(requestedCount)
+                    .Select(type => new UpdateMetricDto { Name = type.ToString(), Type = type })],
+            },
+        };
+
+        var response = await _fixture.Client.PutAsJsonAsync("/api/MainPage", dto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        using var verificationScope = _fixture.Services.CreateScope();
+        var persisted = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        Assert.Equal(page.Title, (await persisted.MainPages.SingleAsync()).Title);
+        Assert.Empty(await persisted.ImpactStatistics.ToListAsync());
+        Assert.Empty(await persisted.Metrics.ToListAsync());
+    }
+
     [SqlServerFact]
     public async Task Publish_ExplicitMetricEditPreservesIdentityVisibilityAndPriority()
     {
@@ -236,14 +336,23 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         Assert.Equal(TranslationStatus.Outdated, updated.Localizations.Single().TranslationStatus);
     }
 
-    [SqlServerFact]
-    public async Task Publish_LocalizationSaveFailureRollsBackPreviouslySavedFields()
+    [SqlServerTheory]
+    [InlineData(0)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public async Task Publish_LocalizationSaveFailureRollsBackPreviouslySavedFields(int existingCount)
     {
-        var page = await SeedAsync();
+        var page = await SeedAsync(existingCount);
         var before = await SnapshotAsync();
         var dto = ToUpdate(page);
         var metrics = dto.ImpactStatistics!.Metrics.ToList();
-        metrics[0] = metrics[0] with
+        var missingType = Enum.GetValues<MetricType>().FirstOrDefault(type => metrics.All(m => m.Type != type));
+        if (existingCount < 4)
+        {
+            metrics.Add(new UpdateMetricDto { Name = missingType.ToString(), Type = missingType });
+        }
+
+        metrics[^1] = metrics[^1] with
         {
             Value = 999,
             Localization = new UpdateMetricLocalizationDto { LanguageId = long.MaxValue, Name = "Invalid language" },
@@ -365,7 +474,8 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var metrics = await db.Metrics.Include(m => m.Localizations).OrderBy(m => m.Id).ToListAsync();
-        return [.. metrics.Select(m => $"{m.Id}|{m.Name}|{m.Value}|{m.Type}|{m.Prefix}|{m.Priority}|{m.IsHidden}|{m.IsAutoSynced}|" +
+        return [.. metrics.Select(m => $"{m.Id}|{m.StatisticId}|{m.CreatedAt:O}|{Convert.ToHexString(m.RowVersion)}|" +
+            $"{m.Name}|{m.Value}|{m.Type}|{m.Prefix}|{m.Priority}|{m.IsHidden}|{m.IsAutoSynced}|" +
             string.Join(";", m.Localizations.OrderBy(l => l.LanguageId)
                 .Select(l => $"{l.EntityId}|{l.LanguageId}|{l.Name}|{l.Value}|{l.TranslationStatus}")))];
     }
