@@ -41,9 +41,9 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
             using var transaction = _repositoryWrapper.BeginTransaction();
+
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var entity = await GetMainPageAggregateAsync();
             if (entity is null)
@@ -257,15 +257,6 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
     private void SyncMetrics(ImpactStatisticsEntity stat, ICollection<UpdateMetricDto> metricsDto)
     {
         var existingMetricsById = stat.Metrics.ToDictionary(m => m.Id);
-        var requestMetricIds = metricsDto.Where(m => m.Id.HasValue).Select(m => m.Id!.Value).ToHashSet();
-
-        foreach (var existingMetric in stat.Metrics.ToList())
-        {
-            if (!requestMetricIds.Contains(existingMetric.Id))
-            {
-                stat.Metrics.Remove(existingMetric);
-            }
-        }
 
         long nextPriority = stat.Metrics.Any()
             ? stat.Metrics.Max(m => m.Priority) + 1

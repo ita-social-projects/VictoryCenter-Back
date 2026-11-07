@@ -6,12 +6,21 @@ using VictoryCenter.BLL.Commands.Admin.MainPage.Create;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
+using VictoryCenter.BLL.Queries.Public.MainPage.GetMainPage;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
 
 public class MainPageController : AuthorizedApiController
 {
+    [HttpGet("admin")]
+    [ProducesResponseType(typeof(MainPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetMainPage()
+    {
+        return HandleResult(await Mediator.Send(new GetMainPageQuery(IncludeHiddenMetrics: true)));
+    }
+
     [HttpPost]
     [ProducesResponseType(typeof(MainPageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
