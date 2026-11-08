@@ -3,7 +3,6 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
@@ -78,7 +77,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var session = await _repositoryWrapper.RefreshTokenSessionRepository.GetByTokenHashAsync(tokenHash, cancellationToken);
         var now = _timeProvider.GetUtcNow();
 
-        if (session is null)
+        if (session is null || session.AdminUserId != admin.Id)
         {
             DeleteRefreshTokenCookie();
             return Result.Fail(AuthConstants.Unauthorized);
@@ -86,6 +85,18 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (session.IsRevoked)
         {
+            if (session.RevocationReason == AuthConstants.RevocationReasons.Rotated
+                && session.RevokedAt.HasValue
+                && now - session.RevokedAt.Value <= AuthConstants.RotationGracePeriod)
+            {
+                _logger.LogInformation(
+                    "Refresh token was recently rotated within grace period for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}",
+                    session.AdminUserId,
+                    session.FamilyId);
+
+                return Result.Fail(AuthConstants.Unauthorized);
+            }
+
             _logger.LogWarning(
                 "Suspected refresh token reuse detected for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}, Reason: {RevocationReason}",
                 session.AdminUserId,
@@ -110,13 +121,6 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             session.RevokedAt = now;
             session.RevocationReason = AuthConstants.RevocationReasons.Expired;
 
-            if (admin.RefreshToken == tokenHash)
-            {
-                admin.RefreshToken = null;
-                admin.RefreshTokenValidTo = null;
-                await _userManager.UpdateAsync(admin);
-            }
-
             await _repositoryWrapper.SaveChangesAsync();
 
             DeleteRefreshTokenCookie();
@@ -126,7 +130,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var familyId = session.FamilyId;
         var newRefreshToken = _tokenService.CreateRefreshToken([
             new Claim(ClaimTypes.Email, admin.Email!),
-            new Claim("family_id", familyId.ToString())
+            new Claim(AuthConstants.FamilyIdClaimType, familyId.ToString())
         ]);
         var newTokenHash = _tokenService.HashRefreshToken(newRefreshToken);
         var newRefreshTokenExpires = now.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
@@ -170,19 +174,6 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
                 string.Join("; ", updateResult.Errors.Select(e => e.Description)));
 
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
-        }
-
-        try
-        {
-            await _repositoryWrapper.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            _logger.LogInformation(
-                "Concurrent refresh collision detected for session in FamilyId: {FamilyId}",
-                session.FamilyId);
-
             return Result.Fail(AuthConstants.Unauthorized);
         }
 

@@ -7,7 +7,6 @@ using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Auth.Logout;
 using VictoryCenter.BLL.Constants;
-using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.RefreshTokenSessions;
@@ -21,7 +20,6 @@ public class LogoutTests
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
     private readonly Mock<IRefreshTokenSessionRepository> _mockRefreshTokenSessionRepository;
-    private readonly Mock<ITokenService> _mockTokenService;
 
     public LogoutTests()
     {
@@ -41,13 +39,11 @@ public class LogoutTests
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
         _mockRepositoryWrapper.Setup(x => x.RefreshTokenSessionRepository)
             .Returns(_mockRefreshTokenSessionRepository.Object);
-        _mockTokenService = new Mock<ITokenService>();
 
         _commandHandler = new LogoutCommandHandler(
             _mockHttpContextAccessor.Object,
             _mockUserManager.Object,
             _mockRepositoryWrapper.Object,
-            _mockTokenService.Object,
             TimeProvider.System);
     }
 
@@ -119,17 +115,7 @@ public class LogoutTests
         var claims = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "admin@gmail.com") }));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
         var mockHttpRequest = new Mock<HttpRequest>();
-        var mockRequestCookies = new Mock<IRequestCookieCollection>();
-        string cookieValue = "active_refresh_token";
-        mockRequestCookies.Setup(c => c.TryGetValue(AuthConstants.RefreshTokenCookieName, out cookieValue!)).Returns(true);
-        mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
-
-        var familyId = Guid.NewGuid();
-        var session = new RefreshTokenSession { AdminUserId = 1, FamilyId = familyId, TokenHash = "active_hash", IsRevoked = false };
-        _mockTokenService.Setup(x => x.HashRefreshToken("active_refresh_token")).Returns("active_hash");
-        _mockRepositoryWrapper.Setup(x => x.RefreshTokenSessionRepository.GetByTokenHashAsync("active_hash", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(session);
 
         var mockResponseCookies = new Mock<IResponseCookies>();
         var mockHttpResponse = new Mock<HttpResponse>();
@@ -145,9 +131,8 @@ public class LogoutTests
         Assert.Equal(Unit.Value, result.Value);
         Assert.Null(admin.RefreshToken);
         Assert.Null(admin.RefreshTokenValidTo);
-        _mockRepositoryWrapper.Verify(x => x.RefreshTokenSessionRepository.RevokeFamilyAsync(familyId, "Logout", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
-        _mockRepositoryWrapper.Verify(x => x.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(admin.Id, "Logout", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
-        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _mockRefreshTokenSessionRepository.Verify(x => x.RevokeAdminSessionsAsync(admin.Id, "Logout", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
         _mockUserManager.Verify(x => x.FindByEmailAsync("admin@gmail.com"), Times.Once);
         _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Once);
         mockResponseCookies.Verify(
@@ -158,25 +143,15 @@ public class LogoutTests
     }
 
     [Fact]
-    public async Task Handle_GivenSessionOfDifferentAdmin_DoesNotRevokeFamily()
+    public async Task Handle_ValidData_RevokesAdminSessionsForCurrentAdmin()
     {
         var cmd = new LogoutCommand();
-        var admin = new AdminUser { Id = 1, Email = "admin@gmail.com" };
+        var admin = new AdminUser { Id = 42, Email = "admin@gmail.com" };
         var mockHttpContext = new Mock<HttpContext>();
         var claims = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "admin@gmail.com")]));
         mockHttpContext.SetupGet(c => c.User).Returns(claims);
         var mockHttpRequest = new Mock<HttpRequest>();
-        var mockRequestCookies = new Mock<IRequestCookieCollection>();
-        string cookieValue = "other_admin_refresh_token";
-        mockRequestCookies.Setup(c => c.TryGetValue(AuthConstants.RefreshTokenCookieName, out cookieValue!)).Returns(true);
-        mockHttpRequest.SetupGet(r => r.Cookies).Returns(mockRequestCookies.Object);
         mockHttpContext.SetupGet(c => c.Request).Returns(mockHttpRequest.Object);
-
-        var familyId = Guid.NewGuid();
-        var sessionOfOtherAdmin = new RefreshTokenSession { AdminUserId = 2, FamilyId = familyId, TokenHash = "other_hash", IsRevoked = false };
-        _mockTokenService.Setup(x => x.HashRefreshToken("other_admin_refresh_token")).Returns("other_hash");
-        _mockRepositoryWrapper.Setup(x => x.RefreshTokenSessionRepository.GetByTokenHashAsync("other_hash", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(sessionOfOtherAdmin);
 
         var mockResponseCookies = new Mock<IResponseCookies>();
         var mockHttpResponse = new Mock<HttpResponse>();
@@ -190,20 +165,13 @@ public class LogoutTests
 
         Assert.True(result.IsSuccess);
         _mockRefreshTokenSessionRepository.Verify(
-            x => x.RevokeFamilyAsync(
-                It.IsAny<Guid>(),
-                It.IsAny<string>(),
-                It.IsAny<DateTimeOffset>(),
-                It.IsAny<CancellationToken>()),
-            Times.Never);
-        _mockRefreshTokenSessionRepository.Verify(
             x => x.RevokeAdminSessionsAsync(
-                admin.Id,
+                42,
                 "Logout",
                 It.IsAny<DateTimeOffset>(),
                 It.IsAny<CancellationToken>()),
             Times.Once);
-        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
     }
 
     [Fact]
@@ -239,7 +207,14 @@ public class LogoutTests
         Assert.True(result.IsSuccess);
         _mockUserManager.Verify(x => x.UpdateSecurityStampAsync(admin), Times.Exactly(2));
         _mockRepositoryWrapper.Verify(x => x.ReloadAsync(admin, It.IsAny<CancellationToken>()), Times.Once);
-        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _mockRefreshTokenSessionRepository.Verify(
+            x => x.RevokeAdminSessionsAsync(
+                admin.Id,
+                "Logout",
+                It.IsAny<DateTimeOffset>(),
+                It.IsAny<CancellationToken>()),
+            Times.Exactly(2));
+        _mockRepositoryWrapper.Verify(x => x.SaveChangesAsync(), Times.Never);
         mockResponseCookies.Verify(
             c => c.Delete(
                 It.Is<string>(s => s == AuthConstants.RefreshTokenCookieName),

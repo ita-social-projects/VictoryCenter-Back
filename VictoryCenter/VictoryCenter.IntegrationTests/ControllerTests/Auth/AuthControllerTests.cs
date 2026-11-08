@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.RefreshTokenSessions;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
@@ -145,6 +147,17 @@ public class AuthControllerTests : BaseTestClass
         firstRefreshResponse.EnsureSuccessStatusCode();
         var rotatedCookie = GetRefreshTokenCookie(firstRefreshResponse);
 
+        using (var scope = Fixture.Factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+            var originalToken = originalCookie.Split(';')[0].Split('=', 2)[1];
+            var tokenHash = tokenService.HashRefreshToken(originalToken);
+            var session = await dbContext.RefreshTokenSessions.SingleAsync(s => s.TokenHash == tokenHash);
+            session.RevokedAt = DateTimeOffset.UtcNow - AuthConstants.RotationGracePeriod - TimeSpan.FromSeconds(5);
+            await dbContext.SaveChangesAsync();
+        }
+
         using var replayRequest = CreateRefreshRequest(originalCookie);
         using var replayResponse = await Fixture.HttpClient.SendAsync(replayRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
@@ -152,6 +165,31 @@ public class AuthControllerTests : BaseTestClass
         using var rotatedTokenRequest = CreateRefreshRequest(rotatedCookie);
         using var rotatedTokenResponse = await Fixture.HttpClient.SendAsync(rotatedTokenRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, rotatedTokenResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ReplayedWithinGracePeriod_DoesNotRevokeFamily()
+    {
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+        var originalCookie = GetRefreshTokenCookie(loginResponse);
+
+        using var firstRefreshRequest = CreateRefreshRequest(originalCookie);
+        using var firstRefreshResponse = await Fixture.HttpClient.SendAsync(firstRefreshRequest);
+        firstRefreshResponse.EnsureSuccessStatusCode();
+        var rotatedCookie = GetRefreshTokenCookie(firstRefreshResponse);
+
+        // Immediate replay within grace period returns Unauthorized but preserves the family
+        using var replayRequest = CreateRefreshRequest(originalCookie);
+        using var replayResponse = await Fixture.HttpClient.SendAsync(replayRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
+
+        // Rotated cookie remains valid because the family was not revoked
+        using var rotatedTokenRequest = CreateRefreshRequest(rotatedCookie);
+        using var rotatedTokenResponse = await Fixture.HttpClient.SendAsync(rotatedTokenRequest);
+        rotatedTokenResponse.EnsureSuccessStatusCode();
     }
 
     [Fact]
@@ -379,6 +417,7 @@ public class AuthControllerTests : BaseTestClass
         private static bool _shouldSimulate;
         private readonly IServiceProvider _serviceProvider;
         private int _simulationExecuted;
+        private IRefreshTokenSessionRepository? _simulatedSessionRepository;
 
         public ConcurrencySimulatingRepositoryWrapper(
             VictoryCenterDbContext context,
@@ -394,19 +433,66 @@ public class AuthControllerTests : BaseTestClass
             set => _shouldSimulate = value;
         }
 
-        async Task<int> IRepositoryWrapper.SaveChangesAsync()
+        IRefreshTokenSessionRepository IRepositoryWrapper.RefreshTokenSessionRepository
         {
-            var result = await SaveChangesAsync();
-            if (ShouldSimulate && Interlocked.Exchange(ref _simulationExecuted, 1) == 0)
+            get
             {
-                using var scope = _serviceProvider.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-                var adminInDb = await dbContext.Users.FirstAsync(u => u.Email == TestEmail);
-                adminInDb.ConcurrencyStamp = Guid.NewGuid().ToString();
-                await dbContext.SaveChangesAsync();
+                if (_simulatedSessionRepository != null)
+                {
+                    return _simulatedSessionRepository;
+                }
+
+                var target = RefreshTokenSessionRepository;
+                var proxy = DispatchProxy.Create<IRefreshTokenSessionRepository, SessionRepoDispatchProxy>();
+                ((SessionRepoDispatchProxy)(object)proxy).Initialize(target, () =>
+                {
+                    if (ShouldSimulate && Interlocked.Exchange(ref _simulationExecuted, 1) == 0)
+                    {
+                        using var scope = _serviceProvider.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+                        var adminInDb = dbContext.Users.First(u => u.Email == TestEmail);
+                        adminInDb.ConcurrencyStamp = Guid.NewGuid().ToString();
+                        dbContext.SaveChanges();
+                    }
+                });
+
+                _simulatedSessionRepository = proxy;
+                return _simulatedSessionRepository;
+            }
+        }
+
+        public class SessionRepoDispatchProxy : DispatchProxy
+        {
+            private IRefreshTokenSessionRepository _target = null!;
+            private Action _onRevoke = null!;
+
+            public void Initialize(IRefreshTokenSessionRepository target, Action onRevoke)
+            {
+                _target = target;
+                _onRevoke = onRevoke;
             }
 
-            return result;
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
+            protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+#pragma warning restore SA1011
+            {
+                var result = targetMethod!.Invoke(_target, args);
+                if (targetMethod.Name == nameof(IRefreshTokenSessionRepository.RevokeAdminSessionsAsync))
+                {
+                    if (result is Task task)
+                    {
+                        return InterceptAsync(task);
+                    }
+                }
+
+                return result;
+            }
+
+            private async Task InterceptAsync(Task task)
+            {
+                await task;
+                _onRevoke();
+            }
         }
     }
 }

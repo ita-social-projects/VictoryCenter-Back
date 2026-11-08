@@ -111,7 +111,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
         var refreshToken = _tokenService.CreateRefreshToken([
             new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
-            new Claim("family_id", familyId.ToString())
+            new Claim(AuthConstants.FamilyIdClaimType, familyId.ToString())
         ]);
 
         var refreshTokenExpires = now.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
@@ -137,8 +137,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         {
             return Result.Fail(updateResult.Errors.Select(x => x.Description));
         }
-
-        await _repositoryWrapper.SaveChangesAsync();
 
         AppendRefreshTokenCookie(refreshToken, refreshTokenExpires);
         return Result.Ok(new AuthResponseDto(accessToken));
