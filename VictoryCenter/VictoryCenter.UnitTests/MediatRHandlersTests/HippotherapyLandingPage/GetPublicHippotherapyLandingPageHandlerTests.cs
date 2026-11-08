@@ -46,7 +46,8 @@ public class GetPublicHippotherapyLandingPageHandlerTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Same(expectedDto, result.Value);
+        Assert.Empty(result.Value.TranslationStatuses);
+        Assert.Equal(expectedDto.Localizations, result.Value.Localizations);
         _responseFactoryMock.Verify(x => x.Create(entity), Times.Once);
     }
 

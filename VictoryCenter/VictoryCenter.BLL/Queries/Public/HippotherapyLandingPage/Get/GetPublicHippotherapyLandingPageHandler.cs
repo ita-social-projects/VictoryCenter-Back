@@ -38,6 +38,7 @@ public class GetPublicHippotherapyLandingPageHandler : IRequestHandler<GetPublic
             return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
         }
 
-        return Result.Ok(_responseFactory.Create(entity));
+        var dto = _responseFactory.Create(entity);
+        return Result.Ok(dto with { TranslationStatuses = [] });
     }
 }
