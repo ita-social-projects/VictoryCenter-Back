@@ -34,6 +34,9 @@ public class FeedbackHistoryConfig : IEntityTypeConfiguration<FeedbackHistory>
             .IsRequired();
 
         entity
+            .HasIndex(e => new { e.Status, e.PublishedAt });
+
+        entity
             .HasOne(e => e.Image)
             .WithMany()
             .HasForeignKey(e => e.ImageId)

@@ -3,6 +3,7 @@ using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Constants;
@@ -38,6 +39,8 @@ public class CreatePdfReportHandlerTests
         _validator = new CreatePdfReportValidator();
         _mockPdfService = new Mock<IPdfService>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockRepositoryWrapper.Setup(repository => repository.PdfReportRepository.GetAllAsync(It.IsAny<QueryOptions<PdfReport>>()))
+            .ReturnsAsync([]);
         _mockMapper = new Mock<IMapper>();
         _mockReorderService = new Mock<IReorderService>();
         _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();
@@ -175,6 +178,57 @@ public class CreatePdfReportHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Contains(ErrorMessagesConstants.BlobStorageError("Failed to save PDF file"), result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_UnknownLanguage_ShouldNotUploadOrCreateMetadata()
+    {
+        _mockRepositoryWrapper.Setup(repository => repository.LocalizationLanguagesRepository
+            .GetFirstOrDefaultAsync(It.IsAny<QueryOptions<LocalizationLanguage>>())).ReturnsAsync((LocalizationLanguage?)null);
+
+        var result = await CreateHandler().Handle(
+            new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 999 }), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        _mockPdfService.Verify(service => service.UploadPdfAsync(It.IsAny<IFormFile>(), It.IsAny<string>()), Times.Never);
+        _mockRepositoryWrapper.Verify(repository => repository.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_MetadataSaveThrows_ShouldLeaveCleanupToReservationAndNotNotify()
+    {
+        _mockPdfService.Setup(service => service.UploadPdfAsync(It.IsAny<IFormFile>(), It.IsAny<string>())).ReturnsAsync("uploaded.pdf");
+        _mockRepositoryWrapper.Setup(repository => repository.BeginTransaction())
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        _mockRepositoryWrapper.Setup(repository => repository.SaveChangesAsync()).ThrowsAsync(new DbUpdateException("Simulated database failure"));
+
+        var result = await CreateHandler().Handle(
+            new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 }), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        _mockPdfService.Verify(service => service.DeletePdf(It.IsAny<string>()), Times.Never);
+        _mockHubContext.Verify(
+            hub => hub.Clients.All.SendCoreAsync(It.IsAny<string>(), It.IsAny<object[]>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_Success_ShouldCommitBeforeNotifyingClients()
+    {
+        _mockPdfService.Setup(service => service.UploadPdfAsync(It.IsAny<IFormFile>(), It.IsAny<string>())).ReturnsAsync("uploaded.pdf");
+        _mockRepositoryWrapper.Setup(repository => repository.BeginTransaction())
+            .Returns(() => new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+        _mockRepositoryWrapper.Setup(repository => repository.SaveChangesAsync()).ReturnsAsync(1);
+        _mockMapper.Setup(mapper => mapper.Map<PdfReportDto>(It.IsAny<PdfReport>())).Returns(_testPdfReportDto);
+        Mock.Get(_mockHubContext.Object.Clients.All)
+            .Setup(proxy => proxy.SendCoreAsync("PdfReportCreated", It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
+            .Callback(() => Assert.Null(Transaction.Current)).Returns(Task.CompletedTask);
+
+        var result = await CreateHandler().Handle(
+            new CreatePdfReportCommand(new CreatePdfReportDto { File = _testFile, LanguageId = 1 }), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _mockHubContext.Verify(
+            hub => hub.Clients.All.SendCoreAsync("PdfReportCreated", It.IsAny<object[]>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private CreatePdfReportHandler CreateHandler() =>

@@ -12,6 +12,7 @@ public class FeedbackHistory : BaseEntity, IOrderableEntity, ITranslatedEntity<F
     public long? ImageId { get; set; }
     public Image? Image { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? PublishedAt { get; set; }
     public long Priority { get; set; }
     public Status Status { get; set; }
     public ICollection<FeedbackHistoryLocalization> Localizations { get; set; } = [];

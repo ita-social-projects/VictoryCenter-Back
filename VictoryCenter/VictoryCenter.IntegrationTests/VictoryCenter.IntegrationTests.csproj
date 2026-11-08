@@ -28,6 +28,10 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="..\..\scripts\storage\*.sql" Link="StorageScripts\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\VictoryCenter.BLL\VictoryCenter.BLL.csproj" />
         <ProjectReference Include="..\VictoryCenter.DAL\VictoryCenter.DAL.csproj" />
         <ProjectReference Include="..\VictoryCenter.WebAPI\VictoryCenter.WebAPI.csproj" />
