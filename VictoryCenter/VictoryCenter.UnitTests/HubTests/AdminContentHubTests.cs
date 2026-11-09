@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Concurrency.WebSocket;
@@ -72,6 +73,50 @@ public class AdminContentHubTests
     }
 
     [Fact]
+    public async Task AcquireLock_WhenNotificationFails_ReturnsAcquiredLock()
+    {
+        var lockManager = new Mock<IContentLockManager>();
+        var policy = SupportedPolicy();
+        var clients = CreateClients(out var groupClient, out _);
+        var groups = CreateGroups();
+        var acquisition = new ContentLockAcquisitionDto
+        {
+            Acquired = true,
+            LockId = "lock-id",
+            ResourceType = Resource.ResourceType,
+            ResourceId = Resource.ResourceId,
+        };
+        groupClient
+            .Setup(item => item.SendCoreAsync(It.IsAny<string>(), It.IsAny<object?[]>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("SignalR is unavailable."));
+        lockManager.Setup(item => item.Acquire(Resource, OwnerIdentity, ConnectionId)).Returns(acquisition);
+        var hub = CreateHub(lockManager.Object, policy.Object, clients.Object, groups.Object);
+
+        var result = await hub.AcquireLock(Resource);
+
+        Assert.Same(acquisition, result);
+    }
+
+    [Fact]
+    public async Task AcquireLock_WhenDeniedNotificationFails_ReturnsDeniedResult()
+    {
+        var lockManager = new Mock<IContentLockManager>();
+        var policy = SupportedPolicy();
+        var clients = CreateClients(out _, out var callerClient);
+        var groups = CreateGroups();
+        callerClient
+            .Setup(item => item.SendCoreAsync(It.IsAny<string>(), It.IsAny<object?[]>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("SignalR is unavailable."));
+        lockManager.Setup(item => item.Acquire(Resource, OwnerIdentity, ConnectionId)).Returns(new ContentLockAcquisitionDto { Acquired = false });
+        lockManager.Setup(item => item.GetStatus(Resource)).Returns(new ContentLockStatusDto { IsLocked = true });
+        var hub = CreateHub(lockManager.Object, policy.Object, clients.Object, groups.Object);
+
+        var result = await hub.AcquireLock(Resource);
+
+        Assert.False(result.Acquired);
+    }
+
+    [Fact]
     public async Task RenewLock_DelegatesToLockManagerForCurrentConnection()
     {
         var lockManager = new Mock<IContentLockManager>();
@@ -115,6 +160,33 @@ public class AdminContentHubTests
                 It.Is<object?[]>(arguments => arguments.Length == 1 && ReferenceEquals(arguments[0], released)),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task ReleaseLock_WhenNotificationFails_ReturnsSuccessfulRelease()
+    {
+        var lockManager = new Mock<IContentLockManager>();
+        var policy = SupportedPolicy();
+        var clients = CreateClients(out var groupClient, out _);
+        var groups = CreateGroups();
+        var released = new ContentLockLifecycleDto
+        {
+            ResourceType = Resource.ResourceType,
+            ResourceId = Resource.ResourceId,
+            LockId = "lock-id",
+            OwnerIdentity = OwnerIdentity,
+        };
+        groupClient
+            .Setup(item => item.SendCoreAsync(It.IsAny<string>(), It.IsAny<object?[]>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("SignalR is unavailable."));
+        lockManager
+            .Setup(item => item.Release("lock-id", Resource, OwnerIdentity, ConnectionId))
+            .Returns(new ContentLockReleaseResult { Accepted = true, ReleasedLock = released });
+        var hub = CreateHub(lockManager.Object, policy.Object, clients.Object, groups.Object);
+
+        var result = await hub.ReleaseLock(Resource, "lock-id");
+
+        Assert.True(result);
     }
 
     [Fact]
@@ -162,6 +234,50 @@ public class AdminContentHubTests
     }
 
     [Fact]
+    public async Task OnDisconnectedAsync_WhenOneNotificationFails_ContinuesWithRemainingLocks()
+    {
+        var secondResource = new ContentLockResourceDto
+        {
+            ResourceType = Resource.ResourceType,
+            ResourceId = 2,
+        };
+        var firstReleased = new ContentLockLifecycleDto
+        {
+            ResourceType = Resource.ResourceType,
+            ResourceId = Resource.ResourceId,
+            LockId = "first-lock-id",
+            OwnerIdentity = OwnerIdentity,
+        };
+        var secondReleased = new ContentLockLifecycleDto
+        {
+            ResourceType = secondResource.ResourceType,
+            ResourceId = secondResource.ResourceId,
+            LockId = "second-lock-id",
+            OwnerIdentity = OwnerIdentity,
+        };
+        var firstGroupClient = ClientProxy();
+        firstGroupClient
+            .Setup(item => item.SendCoreAsync(It.IsAny<string>(), It.IsAny<object?[]>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("SignalR is unavailable."));
+        var secondGroupClient = ClientProxy();
+        var clients = new Mock<IHubCallerClients>();
+        clients.Setup(item => item.Group(Resource.Key)).Returns(firstGroupClient.Object);
+        clients.Setup(item => item.Group(secondResource.Key)).Returns(secondGroupClient.Object);
+        var lockManager = new Mock<IContentLockManager>();
+        lockManager.Setup(item => item.ReleaseAllForConnection(ConnectionId)).Returns([firstReleased, secondReleased]);
+        var hub = CreateHub(lockManager.Object, SupportedPolicy().Object, clients.Object, CreateGroups().Object);
+
+        await hub.OnDisconnectedAsync(null);
+
+        secondGroupClient.Verify(
+            item => item.SendCoreAsync(
+                ContentLockEvents.Released,
+                It.Is<object?[]>(arguments => arguments.Length == 1 && ReferenceEquals(arguments[0], secondReleased)),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
     public async Task AcquireLock_WhenResourceIsUnsupported_ThrowsHubException()
     {
         var lockManager = new Mock<IContentLockManager>();
@@ -187,7 +303,7 @@ public class AdminContentHubTests
         context.SetupGet(item => item.ConnectionId).Returns(ConnectionId);
         context.SetupGet(item => item.User).Returns(new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, OwnerIdentity)])));
 
-        return new AdminContentHub(lockManager, resourcePolicy)
+        return new AdminContentHub(lockManager, resourcePolicy, Mock.Of<ILogger<AdminContentHub>>())
         {
             Context = context.Object,
             Clients = clients,

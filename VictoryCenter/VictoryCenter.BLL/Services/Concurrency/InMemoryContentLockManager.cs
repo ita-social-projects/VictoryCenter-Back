@@ -32,18 +32,20 @@ public sealed class InMemoryContentLockManager : IContentLockManager
 
     public ContentLockAcquisitionDto Renew(string lockId, ContentLockResourceDto resource, string ownerIdentity, string connectionId)
     {
-        var now = _timeProvider.GetUtcNow();
-        if (!_locksByResource.TryGetValue(resource.Key, out var contentLock)
-            || IsExpired(contentLock, now)
-            || !Matches(contentLock, lockId, ownerIdentity, connectionId))
+        while (_locksByResource.TryGetValue(resource.Key, out var contentLock))
         {
-            return Denied(resource);
-        }
+            var now = _timeProvider.GetUtcNow();
+            if (IsExpired(contentLock, now)
+                || !Matches(contentLock, lockId, ownerIdentity, connectionId))
+            {
+                return Denied(resource);
+            }
 
-        var renewed = contentLock with { ExpiresAtUtc = now.Add(_options.Ttl) };
-        if (_locksByResource.TryUpdate(resource.Key, renewed, contentLock))
-        {
-            return ToAcquisition(renewed, true);
+            var renewed = contentLock with { ExpiresAtUtc = now.Add(_options.Ttl) };
+            if (_locksByResource.TryUpdate(resource.Key, renewed, contentLock))
+            {
+                return ToAcquisition(renewed, true);
+            }
         }
 
         return Denied(resource);
@@ -87,21 +89,28 @@ public sealed class InMemoryContentLockManager : IContentLockManager
 
     public bool TryBeginUpdate(string lockId, ContentLockResourceDto resource, string ownerIdentity, string connectionId)
     {
-        var now = _timeProvider.GetUtcNow();
-        if (!_locksByResource.TryGetValue(resource.Key, out var contentLock)
-            || IsExpired(contentLock, now)
-            || contentLock.IsUpdateInProgress
-            || !Matches(contentLock, lockId, ownerIdentity, connectionId))
+        while (_locksByResource.TryGetValue(resource.Key, out var contentLock))
         {
-            return false;
+            var now = _timeProvider.GetUtcNow();
+            if (IsExpired(contentLock, now)
+                || contentLock.IsUpdateInProgress
+                || !Matches(contentLock, lockId, ownerIdentity, connectionId))
+            {
+                return false;
+            }
+
+            var updateLock = contentLock with
+            {
+                IsUpdateInProgress = true,
+                ExpiresAtUtc = now.Add(_options.Ttl)
+            };
+            if (_locksByResource.TryUpdate(resource.Key, updateLock, contentLock))
+            {
+                return true;
+            }
         }
 
-        var updateLock = contentLock with
-        {
-            IsUpdateInProgress = true,
-            ExpiresAtUtc = now.Add(_options.Ttl)
-        };
-        return _locksByResource.TryUpdate(resource.Key, updateLock, contentLock);
+        return false;
     }
 
     public ContentLockLifecycleDto? EndUpdate(string lockId, ContentLockResourceDto resource, string ownerIdentity, string connectionId)

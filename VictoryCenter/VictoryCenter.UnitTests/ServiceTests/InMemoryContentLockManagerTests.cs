@@ -134,6 +134,40 @@ public class InMemoryContentLockManagerTests
     }
 
     [Fact]
+    public void TryBeginUpdate_WhenRenewalChangesLockBetweenReadAndUpdate_RetriesWithCurrentLockVersion()
+    {
+        var timeProvider = new TestTimeProvider(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        var manager = new InMemoryContentLockManager(timeProvider, Options.Create(new ContentLockOptions { TtlMinutes = 3 }));
+        var acquired = manager.Acquire(_resource, "admin@example.test", "connection-a");
+        ContentLockAcquisitionDto? renewed = null;
+        timeProvider.OnNextGetUtcNow = () => renewed = manager.Renew(acquired.LockId!, _resource, "admin@example.test", "connection-a");
+
+        var begun = manager.TryBeginUpdate(acquired.LockId!, _resource, "admin@example.test", "connection-a");
+
+        Assert.NotNull(renewed);
+        Assert.True(renewed.Acquired);
+        Assert.True(begun);
+        Assert.True(manager.GetStatus(_resource).IsUpdateInProgress);
+    }
+
+    [Fact]
+    public void Renew_WhenAnotherRenewalChangesLockBetweenReadAndUpdate_RetriesWithCurrentLockVersion()
+    {
+        var timeProvider = new TestTimeProvider(new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+        var manager = new InMemoryContentLockManager(timeProvider, Options.Create(new ContentLockOptions { TtlMinutes = 3 }));
+        var acquired = manager.Acquire(_resource, "admin@example.test", "connection-a");
+        ContentLockAcquisitionDto? concurrentRenewal = null;
+        timeProvider.OnNextGetUtcNow = () => concurrentRenewal = manager.Renew(acquired.LockId!, _resource, "admin@example.test", "connection-a");
+
+        var renewed = manager.Renew(acquired.LockId!, _resource, "admin@example.test", "connection-a");
+
+        Assert.NotNull(concurrentRenewal);
+        Assert.True(concurrentRenewal.Acquired);
+        Assert.True(renewed.Acquired);
+        Assert.True(manager.GetStatus(_resource).IsLocked);
+    }
+
+    [Fact]
     public void EndUpdate_ReturnsLockToNormalEditLease()
     {
         var acquired = _manager.Acquire(_resource, "admin@example.test", "connection-a");
@@ -185,7 +219,15 @@ public class InMemoryContentLockManagerTests
 
         public TestTimeProvider(DateTimeOffset utcNow) => _utcNow = utcNow;
 
-        public override DateTimeOffset GetUtcNow() => _utcNow;
+        public Action? OnNextGetUtcNow { get; set; }
+
+        public override DateTimeOffset GetUtcNow()
+        {
+            var callback = OnNextGetUtcNow;
+            OnNextGetUtcNow = null;
+            callback?.Invoke();
+            return _utcNow;
+        }
 
         public void Advance(TimeSpan duration) => _utcNow = _utcNow.Add(duration);
     }

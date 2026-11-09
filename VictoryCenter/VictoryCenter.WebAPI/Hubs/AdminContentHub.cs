@@ -12,11 +12,16 @@ public sealed class AdminContentHub : Hub
 {
     private readonly IContentLockManager _lockManager;
     private readonly IContentLockResourcePolicy _resourcePolicy;
+    private readonly ILogger<AdminContentHub> _logger;
 
-    public AdminContentHub(IContentLockManager lockManager, IContentLockResourcePolicy resourcePolicy)
+    public AdminContentHub(
+        IContentLockManager lockManager,
+        IContentLockResourcePolicy resourcePolicy,
+        ILogger<AdminContentHub> logger)
     {
         _lockManager = lockManager;
         _resourcePolicy = resourcePolicy;
+        _logger = logger;
     }
 
     public async Task<ContentLockAcquisitionDto> AcquireLock(ContentLockResourceDto resource)
@@ -27,11 +32,11 @@ public sealed class AdminContentHub : Hub
         var result = _lockManager.Acquire(resource, ownerIdentity, Context.ConnectionId);
         if (result.Acquired)
         {
-            await Clients.Group(resource.Key).SendAsync(ContentLockEvents.Acquired, ToLifecycle(result, ownerIdentity));
+            await NotifyGroupSafelyAsync(resource.Key, ContentLockEvents.Acquired, ToLifecycle(result, ownerIdentity));
         }
         else
         {
-            await Clients.Caller.SendAsync(ContentLockEvents.Denied, _lockManager.GetStatus(resource));
+            await NotifyCallerSafelyAsync(ContentLockEvents.Denied, _lockManager.GetStatus(resource));
         }
 
         return result;
@@ -50,9 +55,7 @@ public sealed class AdminContentHub : Hub
         var releaseResult = _lockManager.Release(lockId, resource, ownerIdentity, Context.ConnectionId);
         if (releaseResult.ReleasedLock is { } releasedLock)
         {
-            await Clients.Group(resource.Key).SendAsync(
-                ContentLockEvents.Released,
-                releasedLock);
+            await NotifyGroupSafelyAsync(resource.Key, ContentLockEvents.Released, releasedLock);
         }
 
         return releaseResult.Accepted;
@@ -69,12 +72,12 @@ public sealed class AdminContentHub : Hub
     {
         foreach (var released in _lockManager.ReleaseAllForConnection(Context.ConnectionId))
         {
-            await Clients.Group(new ContentLockResourceDto
+            var resourceKey = new ContentLockResourceDto
             {
                 ResourceType = released.ResourceType,
                 ResourceId = released.ResourceId,
-            }.Key)
-                .SendAsync(ContentLockEvents.Released, released);
+            }.Key;
+            await NotifyGroupSafelyAsync(resourceKey, ContentLockEvents.Released, released);
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -99,6 +102,28 @@ public sealed class AdminContentHub : Hub
         if (!_resourcePolicy.IsSupported(resource))
         {
             throw new HubException(ContentLockConstants.UnsupportedResourceMessage);
+        }
+    }
+
+    private Task NotifyGroupSafelyAsync(string resourceKey, string eventName, object payload)
+        => NotifySafelyAsync(Clients.Group(resourceKey), eventName, payload, $"resource group {resourceKey}");
+
+    private Task NotifyCallerSafelyAsync(string eventName, object payload)
+        => NotifySafelyAsync(Clients.Caller, eventName, payload, "calling client");
+
+    private async Task NotifySafelyAsync(IClientProxy client, string eventName, object payload, string recipient)
+    {
+        try
+        {
+            await client.SendAsync(eventName, payload);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(
+                exception,
+                "Unable to publish content-lock event {EventName} for {Recipient}.",
+                eventName,
+                recipient);
         }
     }
 }
