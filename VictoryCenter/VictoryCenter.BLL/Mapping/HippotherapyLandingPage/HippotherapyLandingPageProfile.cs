@@ -33,7 +33,9 @@ public class HippotherapyLandingPageProfile : Profile
             .ForMember(d => d.ScientificReferences, o => o.MapFrom(s => s.ScientificReferences));
 
         CreateMap<HippotherapyLandingPageEthicsSection, EthicsSectionDto>()
-            .ForMember(d => d.Principles, o => o.MapFrom(s => s.EthicsPrinciples.Select(p => p.Text)));
+            .ForMember(d => d.Principles, o => o.MapFrom(s => s.EthicsPrinciples
+            .OrderBy(p => p.Priority)
+            .Select(p => new EthicsPrincipleDto { Id = p.Id, Text = p.Text })));
 
         CreateMap<DAL.Entities.HippotherapyLandingPage, HippotherapyLandingPageDto>();
 

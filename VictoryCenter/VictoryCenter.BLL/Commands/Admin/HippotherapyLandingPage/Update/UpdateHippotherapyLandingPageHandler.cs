@@ -114,8 +114,24 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     MarkHippoventionCenterSectionLocalizationsOutdated(entity.HippoventionCenterSection);
 
                     _mapper.Map(dto.AdvantagesSection, entity.AdvantagesSection);
-                    var changedAdvantageCards = UpdateGalleryCards(entity.AdvantagesSection!.AdvantageCards, dto.AdvantagesSection.Cards, imageIdsToDelete);
-                    MarkAdvantagesSectionLocalizationsOutdated(entity.AdvantagesSection, changedAdvantageCards);
+                    var advantageCardsResult = UpdateGalleryCards(
+                        entity.AdvantagesSection!.AdvantageCards,
+                        dto.AdvantagesSection.Cards,
+                        imageIdsToDelete,
+                        c => c.Id,
+                        d => new HippotherapyLandingPageAdvantageCard
+                        {
+                            Description = d.Description,
+                            ImageId = d.ImageId,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                        },
+                        removed => _repositoryWrapper.HippotherapyLandingPageAdvantageCardsRepository.DeleteRange(removed));
+                    if (advantageCardsResult.IsFailed)
+                    {
+                        return Result.Fail<HippotherapyLandingPageDto>(advantageCardsResult.Errors);
+                    }
+
+                    MarkAdvantagesSectionLocalizationsOutdated(entity.AdvantagesSection, advantageCardsResult.Value);
 
                     _mapper.Map(dto.AnalysisSection, entity.AnalysisSection);
                     if (entity.AnalysisSection is not null)
@@ -137,13 +153,34 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                     MarkAnotherQuoteSectionLocalizationsOutdated(entity.AnotherQuoteSection);
 
                     _mapper.Map(dto.ParticipantsSection, entity.ParticipantsSection);
-                    var changedParticipantCards = UpdateGalleryCards(entity.ParticipantsSection!.ParticipantCards, dto.ParticipantsSection.Cards, imageIdsToDelete);
-                    MarkParticipantsSectionLocalizationsOutdated(entity.ParticipantsSection, changedParticipantCards);
+                    var participantCardsResult = UpdateGalleryCards(
+                        entity.ParticipantsSection!.ParticipantCards,
+                        dto.ParticipantsSection.Cards,
+                        imageIdsToDelete,
+                        c => c.Id,
+                        d => new HippotherapyLandingPageParticipantCard
+                        {
+                            Description = d.Description,
+                            ImageId = d.ImageId,
+                            CreatedAt = DateTimeOffset.UtcNow,
+                        },
+                        removed => _repositoryWrapper.HippotherapyLandingPageParticipantCardsRepository.DeleteRange(removed));
+                    if (participantCardsResult.IsFailed)
+                    {
+                        return Result.Fail<HippotherapyLandingPageDto>(participantCardsResult.Errors);
+                    }
+
+                    MarkParticipantsSectionLocalizationsOutdated(entity.ParticipantsSection, participantCardsResult.Value);
 
                     TrackImageChange(entity.EthicsSection!.ImageId, dto.EthicsSection.ImageId, imageIdsToDelete);
                     _mapper.Map(dto.EthicsSection, entity.EthicsSection);
-                    var changedEthicsPrinciples = UpdateEthicsPrinciples(entity.EthicsSection.EthicsPrinciples, dto.EthicsSection.Principles);
-                    MarkEthicsSectionLocalizationsOutdated(entity.EthicsSection, changedEthicsPrinciples);
+                    var principlesResult = UpdateEthicsPrinciples(entity.EthicsSection, dto.EthicsSection.Principles);
+                    if (principlesResult.IsFailed)
+                    {
+                        return Result.Fail<HippotherapyLandingPageDto>(principlesResult.Errors);
+                    }
+
+                    MarkEthicsSectionLocalizationsOutdated(entity.EthicsSection, principlesResult.Value);
 
                     _repositoryWrapper.HippotherapyLandingPagesRepository.Update(entity);
                 }
@@ -335,29 +372,126 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         return changedPrinciples;
     }
 
-    private static List<TCard> UpdateGalleryCards<TCard>(
-        ICollection<TCard> existing,
-        List<UpdateGalleryCardDto> incoming,
-        List<long> imageIdsToDelete)
-        where TCard : IGalleryCard
+    private Result<List<TCard>> UpdateGalleryCards<TCard>(
+    ICollection<TCard> existing,
+    List<UpdateGalleryCardDto> incoming,
+    List<long> imageIdsToDelete,
+    Func<TCard, long> idSelector,
+    Func<UpdateGalleryCardDto, TCard> create,
+    Action<List<TCard>> deleteRange)
+    where TCard : class, IGalleryCard
     {
-        var changedCards = new List<TCard>();
-        var existingList = existing.OrderBy(c => c.Priority).ToList();
-        for (var i = 0; i < existingList.Count && i < incoming.Count; i++)
-        {
-            var card = existingList[i];
-            var cardDto = incoming[i];
-            TrackImageChange(card.ImageId, cardDto.ImageId, imageIdsToDelete);
-            if (!string.Equals(card.Description, cardDto.Description, StringComparison.Ordinal))
+        return SyncOrderedItems(
+            existing,
+            incoming,
+            d => d.Id,
+            idSelector,
+            (card, d) =>
             {
-                changedCards.Add(card);
-            }
+                TrackImageChange(card.ImageId, d.ImageId, imageIdsToDelete);
+                var changed = !string.Equals(card.Description, d.Description, StringComparison.Ordinal);
+                card.ImageId = d.ImageId;
+                card.Description = d.Description;
+                return changed;
+            },
+            create,
+            (card, priority) => card.Priority = priority,
+            removed =>
+            {
+                foreach (var card in removed)
+                {
+                    if (card.ImageId.HasValue)
+                    {
+                        imageIdsToDelete.Add(card.ImageId.Value);
+                    }
+                }
 
-            card.ImageId = cardDto.ImageId;
-            card.Description = cardDto.Description;
+                deleteRange(removed);
+            });
+    }
+
+    private Result<List<HippotherapyLandingPageEthicsPrinciple>> UpdateEthicsPrinciples(
+        HippotherapyLandingPageEthicsSection section,
+        List<UpdateEthicsPrincipleDto> incoming)
+    {
+        return SyncOrderedItems(
+            section.EthicsPrinciples,
+            incoming,
+            d => d.Id,
+            p => p.Id,
+            (principle, d) =>
+            {
+                var changed = !string.Equals(principle.Text, d.Text, StringComparison.Ordinal);
+                principle.Text = d.Text;
+                return changed;
+            },
+            d => new HippotherapyLandingPageEthicsPrinciple { Text = d.Text, CreatedAt = DateTimeOffset.UtcNow },
+            (principle, priority) => principle.Priority = priority,
+            removed => _repositoryWrapper.HippotherapyLandingPageEthicsPrinciplesRepository.DeleteRange(removed));
+    }
+
+    private static Result<List<TItem>> SyncOrderedItems<TItem, TDto>(
+        ICollection<TItem> existing,
+        IReadOnlyList<TDto> incoming,
+        Func<TDto, long?> dtoId,
+        Func<TItem, long> itemId,
+        Func<TItem, TDto, bool> update,
+        Func<TDto, TItem> create,
+        Action<TItem, int> setPriority,
+        Action<List<TItem>> deleteRange)
+        where TItem : class
+    {
+        var requestedIds = incoming
+            .Select(dtoId)
+            .Where(id => id.HasValue)
+            .Select(id => id!.Value)
+            .ToList();
+
+        if (requestedIds.Count != requestedIds.Distinct().Count())
+        {
+            return Result.Fail<List<TItem>>(ErrorMessagesConstants.DuplicateItemIds(typeof(TItem)));
         }
 
-        return changedCards;
+        var existingById = existing.ToDictionary(itemId);
+        foreach (var id in requestedIds)
+        {
+            if (!existingById.ContainsKey(id))
+            {
+                return Result.Fail<List<TItem>>(ErrorMessagesConstants.NotFound(id, typeof(TItem)));
+            }
+        }
+
+        var changedItems = new List<TItem>();
+        for (var index = 0; index < incoming.Count; index++)
+        {
+            var dto = incoming[index];
+            var id = dtoId(dto);
+            TItem item;
+
+            if (id.HasValue)
+            {
+                item = existingById[id.Value];
+                if (update(item, dto))
+                {
+                    changedItems.Add(item);
+                }
+            }
+            else
+            {
+                item = create(dto);
+                existing.Add(item);
+            }
+
+            setPriority(item, index + 1);
+        }
+
+        var removed = existing.Where(item => !requestedIds.Contains(itemId(item)) && existingById.ContainsKey(itemId(item))).ToList();
+        if (removed.Count > 0)
+        {
+            deleteRange(removed);
+        }
+
+        return Result.Ok(changedItems);
     }
 
     private Result<List<HippotherapyLandingPageScientificReference>> UpdateScientificReferences(
@@ -474,8 +608,13 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         var ethicsSection = _mapper.Map<HippotherapyLandingPageEthicsSection>(dto.EthicsSection);
         ethicsSection.CreatedAt = now;
         ethicsSection.EthicsPrinciples = dto.EthicsSection.Principles
-            .Select((text, index) => new HippotherapyLandingPageEthicsPrinciple { Text = text, Priority = index + 1, CreatedAt = now })
-            .ToList();
+        .Select((principle, index) => new HippotherapyLandingPageEthicsPrinciple
+        {
+            Text = principle.Text,
+            Priority = index + 1,
+            CreatedAt = now,
+        })
+        .ToList();
 
         return new DAL.Entities.HippotherapyLandingPage
         {

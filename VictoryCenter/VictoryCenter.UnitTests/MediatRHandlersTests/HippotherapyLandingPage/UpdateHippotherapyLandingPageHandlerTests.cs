@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
+using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
@@ -235,7 +236,7 @@ public class UpdateHippotherapyLandingPageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_WhenFixedListCountsMatch_ShouldUpdateCardsAndPrinciplesInPlaceByPosition()
+    public async Task Handle_WhenFixedListCountsMatch_ShouldUpdateCardsAndPrinciplesInPlaceById()
     {
         // Arrange
         var existing = GetExistingEntity();
@@ -259,7 +260,7 @@ public class UpdateHippotherapyLandingPageHandlerTests
 
         var updatedPrinciples = existing.EthicsSection.EthicsPrinciples.OrderBy(p => p.Priority).ToList();
         Assert.Equal(originalPrincipleIds, updatedPrinciples.Select(p => p.Id).ToList());
-        Assert.Equal(dto.EthicsSection.Principles, updatedPrinciples.Select(p => p.Text).ToList());
+        Assert.Equal(dto.EthicsSection.Principles.Select(p => p.Text), updatedPrinciples.Select(p => p.Text));
     }
 
     [Fact]
@@ -597,7 +598,8 @@ public class UpdateHippotherapyLandingPageHandlerTests
         }
 
         var dto = GetValidUpdateDto(existing);
-        dto.EthicsSection.Principles[0] = existing.EthicsSection.EthicsPrinciples.OrderBy(p => p.Priority).First().Text;
+        var first = existing.EthicsSection.EthicsPrinciples.OrderBy(p => p.Priority).First();
+        dto.EthicsSection.Principles[0] = new UpdateEthicsPrincipleDto { Id = first.Id, Text = first.Text };
         SetUpRepositoryWrapper(existing);
         var handler = CreateHandler();
 
@@ -718,8 +720,8 @@ public class UpdateHippotherapyLandingPageHandlerTests
         }
 
         var dto = GetValidUpdateDto(existing);
-        dto.ParticipantsSection.Cards[0] = new UpdateGalleryCardDto { Description = "Old participant 1", ImageId = null };
-        dto.ParticipantsSection.Cards[2] = new UpdateGalleryCardDto { Description = "Old participant 3", ImageId = null };
+        dto.ParticipantsSection.Cards[0] = new UpdateGalleryCardDto { Id = 201, Description = "Old participant 1", ImageId = null };
+        dto.ParticipantsSection.Cards[2] = new UpdateGalleryCardDto { Id = 203, Description = "Old participant 3", ImageId = null };
         SetUpRepositoryWrapper(existing);
         var handler = CreateHandler();
 
@@ -813,8 +815,8 @@ public class UpdateHippotherapyLandingPageHandlerTests
         }
 
         var dto = GetValidUpdateDto(existing);
-        dto.AdvantagesSection.Cards[0] = new UpdateGalleryCardDto { Description = "Old card 1", ImageId = null };
-        dto.AdvantagesSection.Cards[2] = new UpdateGalleryCardDto { Description = "Old card 3", ImageId = null };
+        dto.AdvantagesSection.Cards[0] = new UpdateGalleryCardDto { Id = 161, Description = "Old card 1", ImageId = null };
+        dto.AdvantagesSection.Cards[2] = new UpdateGalleryCardDto { Id = 163, Description = "Old card 3", ImageId = null };
         SetUpRepositoryWrapper(existing);
         var handler = CreateHandler();
 
@@ -949,6 +951,15 @@ public class UpdateHippotherapyLandingPageHandlerTests
         _repositoryWrapperMock
             .Setup(x => x.HippotherapyLandingPageScientificReferencesRepository.DeleteRange(
                 It.IsAny<IEnumerable<HippotherapyLandingPageScientificReference>>()));
+        _repositoryWrapperMock
+            .Setup(x => x.HippotherapyLandingPageAdvantageCardsRepository.DeleteRange(
+                It.IsAny<IEnumerable<HippotherapyLandingPageAdvantageCard>>()));
+        _repositoryWrapperMock
+            .Setup(x => x.HippotherapyLandingPageParticipantCardsRepository.DeleteRange(
+                It.IsAny<IEnumerable<HippotherapyLandingPageParticipantCard>>()));
+        _repositoryWrapperMock
+            .Setup(x => x.HippotherapyLandingPageEthicsPrinciplesRepository.DeleteRange(
+                It.IsAny<IEnumerable<HippotherapyLandingPageEthicsPrinciple>>()));
 
         _repositoryWrapperMock
             .Setup(x => x.ImageRepository.GetAllAsync(It.IsAny<QueryOptions<Image>>()))
@@ -1109,13 +1120,10 @@ public class UpdateHippotherapyLandingPageHandlerTests
         AdvantagesSection = new UpdateGallerySectionDto
         {
             Title = "New advantages title",
-            Cards =
-            [
-                new UpdateGalleryCardDto { Description = "New card 1", ImageId = null },
-                new UpdateGalleryCardDto { Description = "New card 2", ImageId = null },
-                new UpdateGalleryCardDto { Description = "New card 3", ImageId = null },
-                new UpdateGalleryCardDto { Description = "New card 4", ImageId = null },
-            ],
+            Cards = existing.AdvantagesSection!.AdvantageCards
+                .OrderBy(c => c.Priority)
+                .Select((c, i) => new UpdateGalleryCardDto { Id = c.Id, Description = $"New card {i + 1}", ImageId = null })
+                .ToList(),
         },
         AnalysisSection = new UpdateTextSectionDto { Title = "New analysis title", Description = "New analysis description" },
         ScientificReferencesSection = new UpdateScientificReferencesSectionDto
@@ -1131,19 +1139,19 @@ public class UpdateHippotherapyLandingPageHandlerTests
         ParticipantsSection = new UpdateGallerySectionDto
         {
             Title = "New participants title",
-            Cards =
-            [
-                new UpdateGalleryCardDto { Description = "New participant 1", ImageId = null },
-                new UpdateGalleryCardDto { Description = "New participant 2", ImageId = null },
-                new UpdateGalleryCardDto { Description = "New participant 3", ImageId = null },
-                new UpdateGalleryCardDto { Description = "New participant 4", ImageId = null },
-            ],
+            Cards = existing.ParticipantsSection!.ParticipantCards
+                .OrderBy(c => c.Priority)
+                .Select((c, i) => new UpdateGalleryCardDto { Id = c.Id, Description = $"New participant {i + 1}", ImageId = null })
+                .ToList(),
         },
         EthicsSection = new UpdateEthicsSectionDto
         {
             Title = "New ethics title",
             Description = "New ethics description",
-            Principles = ["New principle 1", "New principle 2", "New principle 3", "New principle 4"],
+            Principles = existing.EthicsSection!.EthicsPrinciples
+                .OrderBy(p => p.Priority)
+                .Select((p, i) => new UpdateEthicsPrincipleDto { Id = p.Id, Text = $"New principle {i + 1}" })
+                .ToList(),
             ImageId = null,
         },
     };

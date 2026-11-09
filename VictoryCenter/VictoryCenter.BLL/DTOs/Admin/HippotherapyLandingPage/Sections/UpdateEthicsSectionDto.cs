@@ -6,7 +6,7 @@ public record UpdateEthicsSectionDto
 
     public string Description { get; init; } = null!;
 
-    public List<string> Principles { get; init; } = [];
+    public List<UpdateEthicsPrincipleDto> Principles { get; init; } = [];
 
     public long? ImageId { get; init; }
 }
