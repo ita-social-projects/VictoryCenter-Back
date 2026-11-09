@@ -153,6 +153,17 @@ public class GetHippotherapyLandingPageTests : BaseTestClass
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
+    [Fact]
+    public async Task Get_ShouldReturnIdsForCardsAndPrinciples()
+    {
+        var (_, content) = await GetPageAsync();
+
+        Assert.NotNull(content);
+        Assert.All(content.AdvantagesSection.Cards, c => Assert.True(c.Id > 0));
+        Assert.All(content.ParticipantsSection.Cards, c => Assert.True(c.Id > 0));
+        Assert.All(content.EthicsSection.Principles, p => Assert.True(p.Id > 0));
+    }
+
     private async Task<(HttpResponseMessage Response, HippotherapyLandingPageDto? Content)> GetPageAsync()
     {
         var response = await Fixture.HttpClient.GetAsync(_endpointUri);

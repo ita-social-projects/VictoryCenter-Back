@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using System.Transactions;
 using AutoMapper;
-using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
@@ -931,6 +930,177 @@ public class UpdateHippotherapyLandingPageHandlerTests
         _responseFactoryMock.Verify(f => f.Create(It.IsAny<EntityHippotherapyLandingPage>()), Times.Never);
     }
 
+    [Fact]
+    public async Task Handle_WhenCardsAreReordered_ShouldKeepEntitiesAndTheirLocalizationsAndReassignPriority()
+    {
+        var existing = GetExistingEntity();
+        var cards = existing.AdvantagesSection!.AdvantageCards.OrderBy(c => c.Priority).ToList();
+        var localization = new HippotherapyLandingPageAdvantageCardLocalization
+        {
+            EntityId = cards[0].Id,
+            LanguageId = 2,
+            Description = "EN",
+            TranslationStatus = TranslationStatus.Relevant,
+        };
+        cards[0].Localizations = [localization];
+        var dto = GetValidUpdateDto(existing);
+        dto.AdvantagesSection.Cards.Reverse();
+        dto.AdvantagesSection.Cards[^1] = dto.AdvantagesSection.Cards[^1] with { Description = cards[0].Description };
+        SetUpRepositoryWrapper(existing);
+
+        var result = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1, existing.AdvantagesSection.AdvantageCards.Single(c => c.Id == 164).Priority);
+        Assert.Equal(4, existing.AdvantagesSection.AdvantageCards.Single(c => c.Id == 161).Priority);
+        Assert.Same(localization, cards[0].Localizations.Single());
+        Assert.Equal(TranslationStatus.Relevant, localization.TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_WhenCardHasNoId_ShouldCreateNewCardWithPriorityFromRequestOrder()
+    {
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        dto.ParticipantsSection.Cards.Insert(
+            0,
+            new UpdateGalleryCardDto { Id = null, Description = "Brand new participant", ImageId = null });
+        SetUpRepositoryWrapper(existing);
+
+        var result = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var added = existing.ParticipantsSection!.ParticipantCards.Single(c => c.Description == "Brand new participant");
+        Assert.Equal(1, added.Priority);
+        Assert.Equal(5, existing.ParticipantsSection.ParticipantCards.Count);
+    }
+
+    [Fact]
+    public async Task Handle_WhenCardOmittedFromRequest_ShouldDeleteItAndItsImage()
+    {
+        var existing = GetExistingEntity();
+        var omitted = existing.AdvantagesSection!.AdvantageCards.Single(c => c.Id == 164);
+
+        omitted.ImageId = NewImageId;
+
+        var dto = GetValidUpdateDto(existing);
+        dto.AdvantagesSection.Cards.RemoveAll(c => c.Id == 164);
+        SetUpRepositoryWrapper(existing);
+
+        var result = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _repositoryWrapperMock.Verify(
+            x => x.HippotherapyLandingPageAdvantageCardsRepository.DeleteRange(
+                It.Is<IEnumerable<HippotherapyLandingPageAdvantageCard>>(list => list.Single().Id == 164)),
+            Times.Once);
+
+        _repositoryWrapperMock.Verify(
+            x => x.ImageRepository.DeleteRange(It.Is<IEnumerable<Image>>(images => images.Any(i => i.Id == NewImageId))),
+            Times.Once);
+    }
+
+    [Theory]
+    [InlineData(9999)]
+    [InlineData(201)] // id картки Participants, але надіслано в Advantages
+    public async Task Handle_WhenCardIdIsUnknownOrForeign_ShouldReturnNotFoundAndSkipSave(long foreignId)
+    {
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        dto.AdvantagesSection.Cards[0] = new UpdateGalleryCardDto { Id = foreignId, Description = "x", ImageId = null };
+        SetUpRepositoryWrapper(existing);
+
+        var result = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(foreignId, typeof(HippotherapyLandingPageAdvantageCard)),
+            result.Errors.Select(e => e.Message));
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenCardIdsAreDuplicated_ShouldReturnFailAndSkipSave()
+    {
+        var existing = GetExistingEntity();
+        var dto = GetValidUpdateDto(existing);
+        dto.AdvantagesSection.Cards[1] = dto.AdvantagesSection.Cards[1] with { Id = dto.AdvantagesSection.Cards[0].Id };
+        SetUpRepositoryWrapper(existing);
+
+        var result = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        Assert.Contains(
+            ErrorMessagesConstants.DuplicateItemIds(typeof(HippotherapyLandingPageAdvantageCard)),
+            result.Errors.Select(e => e.Message));
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_WhenPrinciplesAreReordered_ShouldKeepTranslationsOnTheSamePrincipleAndMarkOnlyChangedOutdated()
+    {
+        var existing = GetExistingEntity();
+        foreach (var principle in existing.EthicsSection!.EthicsPrinciples)
+        {
+            principle.Localizations =
+            [
+                new HippotherapyLandingPageEthicsPrincipleLocalization
+                {
+                    EntityId = principle.Id,
+                    LanguageId = 2,
+                    Text = $"EN {principle.Id}",
+                    TranslationStatus = TranslationStatus.Relevant,
+                },
+            ];
+        }
+
+        var dto = GetValidUpdateDto(
+            existing,
+            [
+                new UpdateEthicsPrincipleDto { Id = 212, Text = "Old principle 2" },
+                new UpdateEthicsPrincipleDto { Id = 211, Text = "Old principle 1" },
+                new UpdateEthicsPrincipleDto { Id = 213, Text = "Changed principle 3" },
+                new UpdateEthicsPrincipleDto { Id = 214, Text = "Old principle 4" },
+            ]);
+        SetUpRepositoryWrapper(existing);
+
+        var result = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(dto), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        var byId = existing.EthicsSection.EthicsPrinciples.ToDictionary(p => p.Id);
+
+        Assert.Equal([2, 1, 3, 4], new[] { 211L, 212L, 213L, 214L }.Select(id => (int)byId[id].Priority).ToArray());
+
+        Assert.Equal(TranslationStatus.Relevant, byId[211].Localizations.Single().TranslationStatus);
+        Assert.Equal(TranslationStatus.Relevant, byId[212].Localizations.Single().TranslationStatus);
+        Assert.Equal(TranslationStatus.Outdated, byId[213].Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_WhenPrincipleIdIsForeignOrDuplicated_ShouldReturnFail()
+    {
+        var existing = GetExistingEntity();
+        var unknown = GetValidUpdateDto(existing);
+        unknown.EthicsSection.Principles[0] = new UpdateEthicsPrincipleDto { Id = 9999, Text = "x" };
+        var duplicate = GetValidUpdateDto(existing);
+        duplicate.EthicsSection.Principles[1] = new UpdateEthicsPrincipleDto
+        {
+            Id = duplicate.EthicsSection.Principles[0].Id,
+            Text = "x",
+        };
+        SetUpRepositoryWrapper(existing);
+
+        var unknownResult = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(unknown), CancellationToken.None);
+        var duplicateResult = await CreateHandler().Handle(new UpdateHippotherapyLandingPageCommand(duplicate), CancellationToken.None);
+
+        Assert.Contains(
+            ErrorMessagesConstants.NotFound(9999L, typeof(HippotherapyLandingPageEthicsPrinciple)),
+            unknownResult.Errors.Select(e => e.Message));
+        Assert.Contains(
+            ErrorMessagesConstants.DuplicateItemIds(typeof(HippotherapyLandingPageEthicsPrinciple)),
+            duplicateResult.Errors.Select(e => e.Message));
+    }
+
     private UpdateHippotherapyLandingPageHandler CreateHandler() => new(
         _repositoryWrapperMock.Object,
         _mapperMock.Object,
@@ -1107,7 +1277,7 @@ public class UpdateHippotherapyLandingPageHandlerTests
         };
     }
 
-    private static UpdateHippotherapyLandingPageDto GetValidUpdateDto(EntityHippotherapyLandingPage existing) => new()
+    private static UpdateHippotherapyLandingPageDto GetValidUpdateDto(EntityHippotherapyLandingPage existing, List<UpdateEthicsPrincipleDto>? customPrinciples = null) => new()
     {
         IntroSection = new UpdateIntroSectionDto { Title = "New intro title", Description = "New intro description", ImageId = ExistingImageId1 },
         DescriptionSection = new UpdateTextSectionDto { Title = "New description title", Description = "New description text" },
@@ -1148,10 +1318,10 @@ public class UpdateHippotherapyLandingPageHandlerTests
         {
             Title = "New ethics title",
             Description = "New ethics description",
-            Principles = existing.EthicsSection!.EthicsPrinciples
-                .OrderBy(p => p.Priority)
-                .Select((p, i) => new UpdateEthicsPrincipleDto { Id = p.Id, Text = $"New principle {i + 1}" })
-                .ToList(),
+            Principles = customPrinciples ?? existing.EthicsSection!.EthicsPrinciples
+            .OrderBy(p => p.Priority)
+            .Select((p, i) => new UpdateEthicsPrincipleDto { Id = p.Id, Text = $"New principle {i + 1}" })
+            .ToList(),
             ImageId = null,
         },
     };
