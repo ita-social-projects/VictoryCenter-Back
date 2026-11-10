@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0.14-noble AS base
 WORKDIR /app
 
 # adding curl and gpg for healthcheck
@@ -10,10 +10,11 @@ RUN apt-get update \
 EXPOSE 5000
 EXPOSE 5001
 EXPOSE 80
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.403-noble AS build
 ARG Configuration=debug
 
 #restoring dependencies
+COPY global.json ./
 COPY ./VictoryCenter/*.sln ./
 COPY ./VictoryCenter/VictoryCenter.WebAPI/*.csproj ./VictoryCenter.WebAPI/
 COPY ./VictoryCenter/VictoryCenter.BLL/*.csproj ./VictoryCenter.BLL/

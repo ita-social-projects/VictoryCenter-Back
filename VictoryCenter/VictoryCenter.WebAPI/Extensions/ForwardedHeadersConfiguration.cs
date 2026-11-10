@@ -26,7 +26,7 @@ public static class ForwardedHeadersConfiguration
                         $"Invalid CIDR value '{knownNetwork}' in '{KnownNetworksConfigurationKey}'.");
                 }
 
-                options.KnownNetworks.Add(new IPNetwork(network.BaseAddress, network.PrefixLength));
+                options.KnownIPNetworks.Add(network);
             }
         });
 

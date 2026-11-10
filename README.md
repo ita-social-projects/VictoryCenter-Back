@@ -375,10 +375,10 @@ VictoryCenter-Back/
 
 ### Required to install
 
-- MS Visual Studio (2022 or later)
+- An IDE with .NET 10 support (Visual Studio, VS Code or Rider)
   https://visualstudio.microsoft.com/ru/downloads
-- .NET SDK (v 9.0)
-  https://dotnet.microsoft.com/en-us/download/dotnet/9.0
+- .NET 10 SDK (the version is specified in `global.json`)
+  https://dotnet.microsoft.com/en-us/download/dotnet/10.0
 
 ### Environment
 
@@ -462,6 +462,7 @@ environment variables.
 
 If migrations are missing or need to be created, here is an example:
 ```bash
+dotnet tool restore
 dotnet ef migrations add InitialCreate --project VictoryCenter.DAL --startup-project VictoryCenter.WebAPI
 dotnet run --project VictoryCenter.DbUpdate
 ```
