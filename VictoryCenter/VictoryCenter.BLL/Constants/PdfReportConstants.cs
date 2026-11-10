@@ -1,3 +1,5 @@
+using VictoryCenter.DAL.Constants;
+
 namespace VictoryCenter.BLL.Constants;
 
 public static class PdfReportConstants
@@ -6,8 +8,8 @@ public static class PdfReportConstants
     public static readonly int BytesPerMb = 1024 * 1024;
     public static readonly int MaxPdfSizeInBytes = MaxPdfSizeInMb * BytesPerMb;
 
-    public static readonly string PdfMimeType = "application/pdf";
-    public static readonly string PdfExtension = "pdf";
+    public static readonly string PdfMimeType = FileMimeTypes.Pdf;
+    public static readonly string PdfExtension = FileExtensions.Pdf;
 
     public static readonly byte[] PdfSignature = [0x25, 0x50, 0x44, 0x46]; // %PDF
 

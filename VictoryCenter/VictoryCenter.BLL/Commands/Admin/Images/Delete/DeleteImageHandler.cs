@@ -1,11 +1,8 @@
-using System.Transactions;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Errors;
-using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
-using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -14,13 +11,11 @@ namespace VictoryCenter.BLL.Commands.Admin.Images.Delete;
 
 public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<long>>
 {
-    private readonly IBlobService _blobService;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public DeleteImageHandler(IRepositoryWrapper repositoryWrapper, IBlobService blobService)
+    public DeleteImageHandler(IRepositoryWrapper repositoryWrapper)
     {
         _repositoryWrapper = repositoryWrapper;
-        _blobService = blobService;
     }
 
     public async Task<Result<long>> Handle(DeleteImageCommand request, CancellationToken cancellationToken)
@@ -38,8 +33,6 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
                 return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(Image))));
             }
 
-            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
-
             _repositoryWrapper.ImageRepository.Delete(entityToDelete);
 
             if (await _repositoryWrapper.SaveChangesAsync() <= 0)
@@ -47,18 +40,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
                 return Result.Fail<long>(ErrorMessagesConstants.FailedToDeleteEntity(typeof(Image)));
             }
 
-            if (!string.IsNullOrEmpty(entityToDelete.BlobName))
-            {
-                _blobService.DeleteFileInStorage(entityToDelete.BlobName, entityToDelete.MimeType);
-            }
-
-            transaction.Complete();
-
             return Result.Ok(entityToDelete.Id);
-        }
-        catch (BlobStorageException e)
-        {
-            return Result.Fail<long>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
         catch (DbUpdateException)
         {

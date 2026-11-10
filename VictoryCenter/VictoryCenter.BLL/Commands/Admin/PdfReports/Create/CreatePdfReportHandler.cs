@@ -45,8 +45,6 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
 
     public async Task<Result<PdfReportDto>> Handle(CreatePdfReportCommand request, CancellationToken cancellationToken)
     {
-        string? blobName = null;
-        bool committed = false;
         try
         {
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
@@ -64,40 +62,42 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
                 return Result.Fail<PdfReportDto>(new NotFoundError("Language not found"));
             }
 
-            blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
-            using var transaction = _repositoryWrapper.BeginTransaction();
-
-            var existingReports = await _repositoryWrapper.PdfReportRepository.GetAllAsync(new QueryOptions<PdfReport>
+            var blobName = await _pdfService.UploadPdfAsync(dto.File, fileName);
+            PdfReport pdfReport;
+            using (var transaction = _repositoryWrapper.BeginTransaction())
             {
-                Filter = p => p.LanguageId == dto.LanguageId,
-                AsNoTracking = false
-            });
+                var existingReports = await _repositoryWrapper.PdfReportRepository.GetAllAsync(new QueryOptions<PdfReport>
+                {
+                    Filter = p => p.LanguageId == dto.LanguageId,
+                    AsNoTracking = false
+                });
 
-            foreach (var report in existingReports)
-            {
-                report.Priority++;
-                _repositoryWrapper.PdfReportRepository.Update(report);
+                foreach (var report in existingReports)
+                {
+                    report.Priority++;
+                    _repositoryWrapper.PdfReportRepository.Update(report);
+                }
+
+                pdfReport = new PdfReport
+                {
+                    Name = Path.GetFileNameWithoutExtension(dto.File.FileName),
+                    BlobName = blobName,
+                    FileSizeBytes = dto.File.Length,
+                    Priority = 1,
+                    LanguageId = dto.LanguageId,
+                    CreatedAt = DateTimeOffset.UtcNow
+                };
+
+                await _repositoryWrapper.PdfReportRepository.CreateAsync(pdfReport);
+
+                if (await _repositoryWrapper.SaveChangesAsync() <= 0)
+                {
+                    return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(PdfReport)));
+                }
+
+                transaction.Complete();
             }
 
-            var pdfReport = new PdfReport
-            {
-                Name = Path.GetFileNameWithoutExtension(dto.File.FileName),
-                BlobName = blobName,
-                FileSizeBytes = dto.File.Length,
-                Priority = 1,
-                LanguageId = dto.LanguageId,
-                CreatedAt = DateTimeOffset.UtcNow
-            };
-
-            await _repositoryWrapper.PdfReportRepository.CreateAsync(pdfReport);
-
-            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
-            {
-                return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntity(typeof(PdfReport)));
-            }
-
-            transaction.Complete();
-            committed = true;
             var result = _mapper.Map<PdfReportDto>(pdfReport);
             await _hubContext.Clients.All.SendAsync("PdfReportCreated", result, cancellationToken: cancellationToken);
             return Result.Ok(result);
@@ -117,24 +117,6 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
         catch (DbUpdateException)
         {
             return Result.Fail<PdfReportDto>(ErrorMessagesConstants.FailedToCreateEntityInDatabase(typeof(PdfReport)));
-        }
-        finally
-        {
-            if (!committed && blobName != null)
-            {
-                TryDeleteBlob(blobName);
-            }
-        }
-    }
-
-    private void TryDeleteBlob(string blobName)
-    {
-        try
-        {
-            _pdfService.DeletePdf(blobName);
-        }
-        catch
-        {
         }
     }
 }

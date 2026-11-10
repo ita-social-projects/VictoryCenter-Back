@@ -1,4 +1,3 @@
-using System.Transactions;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -35,7 +34,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
 
             var fileName = Guid.NewGuid().ToString().Replace("-", "");
 
-            using TransactionScope transaction = _repositoryWrapper.BeginTransaction();
+            await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
 
             Image image = _mapper.Map<Image>(request.CreateImageDto);
             image.BlobName = fileName;
@@ -48,11 +47,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
                 return Result.Fail<ImageDto>(ImageConstants.FailToSaveImageInDatabase);
             }
 
-            await _blobService.SaveFileInStorageAsync(request.CreateImageDto.Base64, fileName, request.CreateImageDto.MimeType);
-
             ImageDto? response = _mapper.Map<ImageDto>(createdImage);
-
-            transaction.Complete();
 
             return Result.Ok(response);
         }

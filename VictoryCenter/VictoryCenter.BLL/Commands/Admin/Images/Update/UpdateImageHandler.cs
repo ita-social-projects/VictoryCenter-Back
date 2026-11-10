@@ -4,6 +4,7 @@ using FluentResults;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Errors;
@@ -48,7 +49,8 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             Image? imageEntity = await _repositoryWrapper.ImageRepository.GetFirstOrDefaultAsync(new QueryOptions<Image>
             {
-                Filter = entity => entity.Id == request.Id
+                Filter = entity => entity.Id == request.Id,
+                AsNoTracking = false
             });
 
             if (imageEntity is null)
@@ -56,8 +58,6 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 return Result.Fail<ImageDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(Image))));
             }
 
-            var previousBlobName = imageEntity.BlobName;
-            var previousType = imageEntity.MimeType;
             var replacementBlobName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
 
             await _blobService.SaveFileInStorageAsync(
@@ -65,31 +65,14 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
                 replacementBlobName,
                 request.UpdateImageDto.MimeType!);
 
-            var databaseUpdated = false;
-            try
+            imageEntity.BlobName = replacementBlobName;
+            imageEntity.MimeType = request.UpdateImageDto.MimeType!;
+            imageEntity.UpdatedAt = _timeProvider.GetUtcNow();
+
+            if (await _repositoryWrapper.SaveChangesAsync() <= 0)
             {
-                imageEntity.BlobName = replacementBlobName;
-                imageEntity.MimeType = request.UpdateImageDto.MimeType!;
-                imageEntity.UpdatedAt = _timeProvider.GetUtcNow();
-
-                _repositoryWrapper.ImageRepository.Update(imageEntity);
-
-                if (await _repositoryWrapper.SaveChangesAsync() <= 0)
-                {
-                    return Result.Fail<ImageDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)));
-                }
-
-                databaseUpdated = true;
+                return Result.Fail<ImageDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)));
             }
-            finally
-            {
-                if (!databaseUpdated)
-                {
-                    TryDeleteBlob(replacementBlobName, request.UpdateImageDto.MimeType!);
-                }
-            }
-
-            TryDeleteBlob(previousBlobName, previousType);
 
             ImageDto resultDto = _mapper.Map<Image, ImageDto>(imageEntity);
 
@@ -103,20 +86,10 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         {
             return Result.Fail<ImageDto>(ErrorMessagesConstants.BlobStorageError(e.Message));
         }
-    }
-
-    private void TryDeleteBlob(string blobName, string mimeType)
-    {
-        try
+        catch (DbUpdateException exception)
         {
-            _blobService.DeleteFileInStorage(blobName, mimeType);
-        }
-        catch (BlobStorageException exception)
-        {
-            _logger.LogWarning(
-                exception,
-                "Failed to delete obsolete image blob {BlobName} during image replacement cleanup",
-                blobName);
+            _logger.LogWarning(exception, "Image metadata update failed for {ImageId}", request.Id);
+            return Result.Fail<ImageDto>(ErrorMessagesConstants.FailedToUpdateEntity(typeof(Image)));
         }
     }
 }
