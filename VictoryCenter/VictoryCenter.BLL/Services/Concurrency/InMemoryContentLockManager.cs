@@ -20,14 +20,34 @@ public sealed class InMemoryContentLockManager : IContentLockManager
 
     public ContentLockAcquisitionDto Acquire(ContentLockResourceDto resource, string ownerIdentity, string connectionId)
     {
-        var now = _timeProvider.GetUtcNow();
-        var contentLock = new ContentLock(Guid.NewGuid().ToString("N"), resource, ownerIdentity, connectionId, now, now.Add(_options.Ttl));
-        if (_locksByResource.TryAdd(resource.Key, contentLock))
+        while (true)
         {
-            return ToAcquisition(contentLock, true);
-        }
+            var now = _timeProvider.GetUtcNow();
+            var contentLock = new ContentLock(Guid.NewGuid().ToString("N"), resource, ownerIdentity, connectionId, now, now.Add(_options.Ttl));
+            if (_locksByResource.TryAdd(resource.Key, contentLock))
+            {
+                return ToAcquisition(contentLock, true);
+            }
 
-        return Denied(resource);
+            if (!_locksByResource.TryGetValue(resource.Key, out var existingLock))
+            {
+                continue;
+            }
+
+            if (IsExpired(existingLock, now)
+                || existingLock.IsUpdateInProgress
+                || existingLock.OwnerIdentity != ownerIdentity
+                || existingLock.ConnectionId != connectionId)
+            {
+                return Denied(resource);
+            }
+
+            var renewedLock = existingLock with { ExpiresAtUtc = now.Add(_options.Ttl) };
+            if (_locksByResource.TryUpdate(resource.Key, renewedLock, existingLock))
+            {
+                return ToAcquisition(renewedLock, true);
+            }
+        }
     }
 
     public ContentLockAcquisitionDto Renew(string lockId, ContentLockResourceDto resource, string ownerIdentity, string connectionId)

@@ -60,6 +60,19 @@ public class InMemoryContentLockManagerTests
     }
 
     [Fact]
+    public void Acquire_WhenSameOwnerRetriesFromSameConnection_ReturnsExistingLockAndRenewsIt()
+    {
+        var acquired = _manager.Acquire(_resource, "admin@example.test", "connection-a");
+        _timeProvider.Advance(TimeSpan.FromMinutes(1));
+
+        var retried = _manager.Acquire(_resource, "admin@example.test", "connection-a");
+
+        Assert.True(retried.Acquired);
+        Assert.Equal(acquired.LockId, retried.LockId);
+        Assert.True(retried.ExpiresAtUtc > acquired.ExpiresAtUtc);
+    }
+
+    [Fact]
     public void RenewAndRelease_RequireSameOwnerAndConnection()
     {
         var acquired = _manager.Acquire(_resource, "admin@example.test", "connection-a");
