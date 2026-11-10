@@ -3,16 +3,13 @@ using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
 using VictoryCenter.BLL.Helpers;
-using VictoryCenter.DAL.Entities;
-using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 
 namespace VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
 
 public class UpdateReportProgramExpendituresRecordCommandValidator
     : AbstractValidator<UpdateReportProgramExpendituresRecordCommand>
 {
-    public UpdateReportProgramExpendituresRecordCommandValidator(IRepositoryWrapper repositoryWrapper)
+    public UpdateReportProgramExpendituresRecordCommandValidator()
     {
         RuleFor(x => x.ReportProgramExpendituresRecordId)
             .MustBeValidId(
@@ -23,21 +20,8 @@ public class UpdateReportProgramExpendituresRecordCommandValidator
             .DependentRules(() =>
             {
                 RuleFor(x => x.Dto.HippotherapyProgramCategoryId)
-                    .Cascade(CascadeMode.Stop)
                     .MustBeValidId(
-                        nameof(UpdateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId))
-                    .MustAsync(async (categoryId, cancellationToken) =>
-                    {
-                        var category = await repositoryWrapper
-                            .HippotherapyProgramCategoriesRepository
-                            .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
-                            {
-                                Filter = e => e.Id == categoryId,
-                                AsNoTracking = true
-                            });
-                        return category is not null;
-                    })
-                    .WithMessage(ErrorMessagesConstants.NotFound());
+                        nameof(UpdateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId));
                 RuleFor(x => x.Dto.AmountUah)
                     .MustBeValidAmountOfMoney(
                         nameof(UpdateReportProgramExpendituresRecordDto.AmountUah),

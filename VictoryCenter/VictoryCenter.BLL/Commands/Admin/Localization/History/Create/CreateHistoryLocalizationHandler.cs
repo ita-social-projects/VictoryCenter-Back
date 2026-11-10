@@ -102,7 +102,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(knfex.Message);
+            return Result.Fail<List<HistorySectionLocalizationDto>>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

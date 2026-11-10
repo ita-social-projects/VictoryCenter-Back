@@ -45,6 +45,21 @@ public class UpdateReportProgramExpendituresRecordHandler
             return Result.Fail(validationResult.Errors.Select(error => error.ErrorMessage));
         }
 
+        var programCategory = await _repositoryWrapper
+            .HippotherapyProgramCategoriesRepository
+            .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
+            {
+                Filter = category => category.Id == request.Dto.HippotherapyProgramCategoryId
+            });
+
+        if (programCategory is null)
+        {
+            return Result.Fail(new NotFoundError(
+                ErrorMessagesConstants.NotFound(
+                    request.Dto.HippotherapyProgramCategoryId,
+                    typeof(HippotherapyProgramCategory))));
+        }
+
         var recordToUpdate = await _repositoryWrapper
             .ReportProgramExpendituresRecordsRepository
             .GetFirstOrDefaultAsync(new QueryOptions<ReportProgramExpendituresRecord>

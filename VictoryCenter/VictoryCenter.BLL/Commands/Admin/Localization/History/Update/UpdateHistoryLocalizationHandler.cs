@@ -150,7 +150,7 @@ public class UpdateHistoryLocalizationHandler : IRequestHandler<UpdateHistoryLoc
         }
         catch (KeyNotFoundException ex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(ex.Message);
+            return Result.Fail<List<HistorySectionLocalizationDto>>(new NotFoundError(ex.Message));
         }
         catch (InvalidOperationException)
         {

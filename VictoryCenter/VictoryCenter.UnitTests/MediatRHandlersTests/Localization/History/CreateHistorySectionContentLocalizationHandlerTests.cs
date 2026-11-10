@@ -6,6 +6,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.History.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History.Create;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HistoryContents;
@@ -144,6 +145,7 @@ public class CreateHistorySectionContentLocalizationHandlerTests
         var result = await _handler.Handle(command, CancellationToken.None);
 
         Assert.True(result.IsFailed);
+        Assert.IsType<NotFoundError>(result.Errors[0]);
     }
 
     [Fact]
