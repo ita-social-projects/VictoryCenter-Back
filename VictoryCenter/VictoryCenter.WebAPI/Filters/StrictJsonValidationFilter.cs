@@ -13,8 +13,6 @@ namespace VictoryCenter.WebAPI.Filters;
 
 public class StrictJsonValidationFilter : IAsyncResourceFilter
 {
-    private const string UnknownBodyName = "RequestBody";
-
     private static readonly JsonSerializerOptions StrictOptions = new()
     {
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
@@ -64,8 +62,7 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
             return;
         }
 
-        var validationErrors = new List<string>();
-        string? bodyParameterName = null;
+        var errorsByParameter = new Dictionary<string, List<string>>();
 
         foreach (var parameter in actionDescriptor.Parameters)
         {
@@ -77,17 +74,19 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
             var errors = JsonValidationHelper.ValidateJsonAgainstType(json, parameter.ParameterType, StrictOptions);
             if (errors.Count > 0)
             {
-                validationErrors.AddRange(errors);
-                bodyParameterName ??= parameter.ParameterType.Name;
+                errorsByParameter[parameter.ParameterType.Name] = errors;
             }
         }
 
-        if (validationErrors.Count > 0)
+        if (errorsByParameter.Count > 0)
         {
             var modelState = new ModelStateDictionary();
-            foreach (var error in validationErrors)
+            foreach (var (parameterName, errors) in errorsByParameter)
             {
-                modelState.AddModelError(bodyParameterName ?? UnknownBodyName, error);
+                foreach (var error in errors)
+                {
+                    modelState.AddModelError(parameterName, error);
+                }
             }
 
             var problemDetails = _problemsFactory.CreateValidationProblemDetails(

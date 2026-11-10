@@ -27,10 +27,12 @@ public class BaseApiController : ControllerBase
             detail: detail);
     }
 
-    // Field-grouped shape (errors: { field: [messages] }) for validation failures that carry a
-    // FluentValidation property name (see ValidationError). Mirrors the shape the framework already
-    // produces for model-binding/data-annotation failures via CreateValidationProblemDetails.
-    protected ValidationProblemDetails CreateValidationProblemDetails(IEnumerable<ValidationError> errors)
+    // Field-grouped shape (errors: { field: [messages] }) for validation failures. Errors that carry a
+    // FluentValidation property name (see ValidationError) are grouped under that field; any other error
+    // mixed into the same Result is grouped under the empty key, so it is still represented in the response
+    // instead of being silently dropped. Mirrors the shape the framework already produces for
+    // model-binding/data-annotation failures via CreateValidationProblemDetails.
+    protected ValidationProblemDetails CreateValidationProblemDetails(IEnumerable<IError> errors)
     {
         var problemsFactory = HttpContext.RequestServices
             .GetRequiredService<ProblemDetailsFactory>();
@@ -38,7 +40,8 @@ public class BaseApiController : ControllerBase
         var modelState = new ModelStateDictionary();
         foreach (var error in errors)
         {
-            modelState.AddModelError(error.PropertyName, error.Message);
+            var key = error is ValidationError validationError ? validationError.PropertyName : string.Empty;
+            modelState.AddModelError(key, error.Message);
         }
 
         return problemsFactory.CreateValidationProblemDetails(
@@ -56,7 +59,7 @@ public class BaseApiController : ControllerBase
 
         // Typed checks come first; the string-matching fallbacks below exist only because
         // not every "not found"/"unauthorized" Result.Fail(...) call site has been migrated
-        // to the typed errors yet (see docs/121-Issue-4652-Standardize-API-Error-Responses.md).
+        // to the typed errors yet.
         if (result.HasError<NotFoundError>() || result.HasError(error
             => error.Message.Contains("not found", StringComparison.CurrentCultureIgnoreCase)))
         {
@@ -83,7 +86,7 @@ public class BaseApiController : ControllerBase
 
         if (result.HasError<ValidationError>())
         {
-            return BadRequest(CreateValidationProblemDetails(result.Errors.OfType<ValidationError>()));
+            return BadRequest(CreateValidationProblemDetails(result.Errors));
         }
 
         var errorDetail = string.Join("; ", result.Errors.Select(e => e.Message));
