@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.WhoWeAreContents.Update;
 
@@ -91,7 +92,7 @@ public class UpdateWhoWeAreContentLocalizationHandler : IRequestHandler<UpdateWh
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

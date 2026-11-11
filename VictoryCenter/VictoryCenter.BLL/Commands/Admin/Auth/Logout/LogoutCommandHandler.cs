@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 
@@ -24,13 +25,13 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         var email = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
         if (email == null)
         {
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var admin = await _userManager.FindByEmailAsync(email);
         if (admin == null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            return Result.Fail(new NotFoundError(AuthConstants.AdminWithGivenEmailWasNotFound));
         }
 
         admin.RefreshToken = null;

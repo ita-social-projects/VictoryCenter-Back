@@ -11,6 +11,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.TeamMembers.Create;
 
@@ -55,7 +56,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
             if (category == null)
             {
                 return Result.Fail<TeamMemberDto>(
-                    ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(TeamCategory)));
+                    NotFoundErrors.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(TeamCategory)));
             }
 
             var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);
@@ -92,7 +93,7 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (BlobStorageException e)
         {

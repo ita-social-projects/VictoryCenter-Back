@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Services.Search.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.VideoReviews.Search;
 
@@ -83,7 +84,7 @@ public class SearchVideoReviewHandler
         }
         catch (ValidationException exception)
         {
-            return Result.Fail(exception.Errors.Select(error => error.ErrorMessage));
+            return Result.Fail(exception.Errors.Select(error => (IError)new ValidationError(error.PropertyName, error.ErrorMessage)));
         }
     }
 }

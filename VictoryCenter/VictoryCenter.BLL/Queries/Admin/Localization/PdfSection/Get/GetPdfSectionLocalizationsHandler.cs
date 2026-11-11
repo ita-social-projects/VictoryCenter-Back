@@ -2,12 +2,12 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.Localization.PdfSection.Get;
 
@@ -37,7 +37,7 @@ public class GetPdfSectionLocalizationsHandler
         if (section is null)
         {
             return Result.Fail<List<PdfSectionLocalizationDto>>(
-                ErrorMessagesConstants.NotFound());
+                NotFoundErrors.NotFound());
         }
 
         var queryOptions = new QueryOptions<PdfSectionLocalization>

@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.VideoReviews.Restore;
 
@@ -33,7 +34,7 @@ public class RestoreVideoReviewHandler : IRequestHandler<RestoreVideoReviewComma
 
         if (entity is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(VideoReview)));
         }
 
         if (!entity.IsArchived)

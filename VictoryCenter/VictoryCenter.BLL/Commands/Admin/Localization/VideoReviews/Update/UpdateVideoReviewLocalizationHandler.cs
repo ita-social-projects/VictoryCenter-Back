@@ -8,6 +8,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.VideoReviews.Update;
 
@@ -37,7 +38,7 @@ public class UpdateVideoReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<VideoReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(VideoReviewLocalization)));
         }
@@ -62,7 +63,7 @@ public class UpdateVideoReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<VideoReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(VideoReviewLocalization)));
         }

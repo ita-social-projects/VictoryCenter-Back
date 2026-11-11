@@ -9,6 +9,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNewsCategories.Update;
 
@@ -38,7 +39,7 @@ public class UpdateEventNewsCategoryLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(EventNewsCategoryLocalization)));
         }
@@ -71,7 +72,7 @@ public class UpdateEventNewsCategoryLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<AdminEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(EventNewsCategoryLocalization)));
         }

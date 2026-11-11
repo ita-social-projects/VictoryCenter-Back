@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.MainPage.Update;
 
@@ -56,7 +57,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
 
             if (mainPage is null)
             {
-                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+                return Result.Fail<MainPageLocalizationDto>(NotFoundErrors.NotFound());
             }
 
             var dto = request.Dto;
@@ -94,7 +95,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<MainPageLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<MainPageLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

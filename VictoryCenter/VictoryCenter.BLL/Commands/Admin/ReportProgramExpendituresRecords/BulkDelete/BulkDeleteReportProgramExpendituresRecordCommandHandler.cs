@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.BulkDelete;
 
@@ -43,7 +44,7 @@ public class BulkDeleteReportProgramExpendituresRecordCommandHandler
 
             if (nonExistingRecordIds.Any())
             {
-                return Result.Fail(ErrorMessagesConstants.NotFound(
+                return Result.Fail(NotFoundErrors.NotFound(
                     nonExistingRecordIds,
                     typeof(ReportProgramExpendituresRecord)));
             }
@@ -63,7 +64,7 @@ public class BulkDeleteReportProgramExpendituresRecordCommandHandler
         catch (ValidationException validationException)
         {
             return Result.Fail(
-                validationException.Errors.Select(error => error.ErrorMessage));
+                validationException.Errors.Select(error => (IError)new ValidationError(error.PropertyName, error.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

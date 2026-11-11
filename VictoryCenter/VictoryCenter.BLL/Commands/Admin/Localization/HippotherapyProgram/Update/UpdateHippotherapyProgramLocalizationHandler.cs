@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgramSection.Update;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
 using VictoryCenter.BLL.Interfaces.Localization;
@@ -54,7 +55,7 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
 
             if (program is null)
             {
-                return Result.Fail<HippotherapyProgramLocalizationDto>("Not found programEntity");
+                return Result.Fail<HippotherapyProgramLocalizationDto>(new NotFoundError("Not found programEntity"));
             }
 
             var contentTypesById = await _programSectionContentService.GetContentTypesByProgramIdAsync(request.EntityId);
@@ -106,7 +107,7 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HippotherapyProgramLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

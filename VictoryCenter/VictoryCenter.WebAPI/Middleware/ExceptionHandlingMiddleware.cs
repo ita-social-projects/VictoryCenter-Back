@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace VictoryCenter.WebAPI.Middleware;
 
@@ -28,13 +29,16 @@ public class ExceptionHandlingMiddleware
         }
         catch (ValidationException validationException)
         {
-            var errorDetail = string.Join(
-                "; ", validationException.Errors.Select(e => e.ErrorMessage));
+            var modelState = new ModelStateDictionary();
+            foreach (var failure in validationException.Errors)
+            {
+                modelState.AddModelError(failure.PropertyName ?? string.Empty, failure.ErrorMessage);
+            }
 
-            var problemDetails = _problemsFactory.CreateProblemDetails(
+            var problemDetails = _problemsFactory.CreateValidationProblemDetails(
                 context,
-                statusCode: StatusCodes.Status400BadRequest,
-                detail: errorDetail);
+                modelState,
+                statusCode: StatusCodes.Status400BadRequest);
 
             context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = StatusCodes.Status400BadRequest;

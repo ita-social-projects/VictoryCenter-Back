@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
@@ -11,6 +10,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Services.MainPage;
 
@@ -43,7 +43,7 @@ public class MainPageBlocksLocalizationUpdater : IMainPageBlocksLocalizationUpda
     {
         if (!ValidateBlocksExist(dto, mainPage))
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound());
+            return Result.Fail(NotFoundErrors.NotFound());
         }
 
         MainAboutUsLocalizationDto? mainAboutUsDto = null;

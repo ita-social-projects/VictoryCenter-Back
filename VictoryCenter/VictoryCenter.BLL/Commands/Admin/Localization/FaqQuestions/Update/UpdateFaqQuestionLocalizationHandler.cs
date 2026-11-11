@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.FaqQuestions;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.FaqQuestions.Update;
 
@@ -51,7 +52,7 @@ public class UpdateFaqQuestionLocalizationHandler : IRequestHandler<UpdateFaqQue
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<FaqQuestionLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FaqQuestionLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

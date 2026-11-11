@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Images.Create;
 
@@ -53,7 +54,7 @@ public class CreateImageHandler : IRequestHandler<CreateImageCommand, Result<Ima
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ImageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ImageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (BlobStorageException e)
         {

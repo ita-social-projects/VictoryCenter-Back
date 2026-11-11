@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Delete;
 
@@ -45,7 +46,7 @@ public class DeleteReportProgramExpendituresRecordHandler
             if (recordToBeDeleted is null)
             {
                 return Result.Fail(
-                    ErrorMessagesConstants.NotFound(
+                    NotFoundErrors.NotFound(
                         request.ReportProgramExpendituresRecordId,
                         typeof(ReportProgramExpendituresRecord)));
             }
@@ -65,7 +66,7 @@ public class DeleteReportProgramExpendituresRecordHandler
         catch (ValidationException validationException)
         {
             return Result.Fail(
-                validationException.Errors.Select(error => error.ErrorMessage));
+                validationException.Errors.Select(error => (IError)new ValidationError(error.PropertyName, error.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

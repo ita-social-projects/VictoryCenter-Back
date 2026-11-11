@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.PartnerSections.Create;
 
@@ -54,7 +55,7 @@ public class CreatePartnerSectionLocalizationHandler
 
             if (section is null)
             {
-                return Result.Fail<PartnerSectionLocalizationDto>(ErrorMessagesConstants.NotFound(dto.EntityId, typeof(PartnerSection)));
+                return Result.Fail<PartnerSectionLocalizationDto>(NotFoundErrors.NotFound(dto.EntityId, typeof(PartnerSection)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -87,7 +88,7 @@ public class CreatePartnerSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnerSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnerSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

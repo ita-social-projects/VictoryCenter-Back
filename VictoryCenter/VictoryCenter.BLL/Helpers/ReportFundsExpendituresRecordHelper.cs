@@ -7,6 +7,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -56,7 +57,7 @@ public class ReportFundsExpendituresRecordHelper : IReportFundsExpendituresRecor
 
         if (category is null)
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound(newCategoryId, typeof(ReportFundsExpendituresCategory)));
+            return Result.Fail(NotFoundErrors.NotFound(newCategoryId, typeof(ReportFundsExpendituresCategory)));
         }
 
         if (category.Type != entityToUpdate.Type)

@@ -13,6 +13,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.BatchSave;
 
@@ -169,7 +170,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (nonExistingRecordIds.Count > 0)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingRecordIds,
                 typeof(ReportFundsExpendituresRecord)));
         }
@@ -189,7 +190,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (nonExistingCategoryIds.Count > 0)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingCategoryIds,
                 typeof(ReportFundsExpendituresCategory)));
         }

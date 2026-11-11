@@ -12,6 +12,7 @@ using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.History.Create;
 
@@ -49,7 +50,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
 
                 if (section is null)
                 {
-                    return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
+                    return Result.Fail<List<HistorySectionLocalizationDto>>(NotFoundErrors.NotFound(sectionDto.EntityId, typeof(HistorySection)));
                 }
 
                 HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
@@ -108,7 +109,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<List<HistorySectionLocalizationDto>>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

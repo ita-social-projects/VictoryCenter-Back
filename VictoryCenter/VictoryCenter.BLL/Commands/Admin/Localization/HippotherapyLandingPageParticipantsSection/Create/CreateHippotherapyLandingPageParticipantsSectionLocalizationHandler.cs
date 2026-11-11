@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Options;
 using HippotherapyLandingPageParticipantsSectionEntity =
     VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageParticipantsSection;
@@ -51,7 +52,7 @@ public class CreateHippotherapyLandingPageParticipantsSectionLocalizationHandler
             if (section is null)
             {
                 return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageParticipantsSectionEntity)));
+                    NotFoundErrors.NotFound(dto.EntityId, typeof(HippotherapyLandingPageParticipantsSectionEntity)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -82,7 +83,7 @@ public class CreateHippotherapyLandingPageParticipantsSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

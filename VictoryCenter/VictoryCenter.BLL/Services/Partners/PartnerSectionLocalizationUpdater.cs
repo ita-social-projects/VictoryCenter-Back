@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnerSections;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.Partners;
@@ -9,6 +8,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Services.Partners;
 
@@ -41,7 +41,7 @@ public class PartnerSectionLocalizationUpdater : IPartnerSectionLocalizationUpda
 
         if (invalidPartnerIds.Count > 0)
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound(invalidPartnerIds, typeof(Partner)));
+            return Result.Fail(NotFoundErrors.NotFound(invalidPartnerIds, typeof(Partner)));
         }
 
         if (partners.Count == 0)

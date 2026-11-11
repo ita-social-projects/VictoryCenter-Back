@@ -2,12 +2,12 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.Localization.MainPage.GetByLanguageId;
 
@@ -41,7 +41,7 @@ public class GetMainPageLocalizationByLanguageIdHandler
         if (mainPage is null)
         {
             return Result.Fail<MainPageLocalizationDto>(
-                ErrorMessagesConstants.NotFound(request.EntityId, typeof(MainPageEntity)));
+                NotFoundErrors.NotFound(request.EntityId, typeof(MainPageEntity)));
         }
 
         var mainPageLocalization = await _repositoryWrapper.MainPageLocalizationsRepository
@@ -55,7 +55,7 @@ public class GetMainPageLocalizationByLanguageIdHandler
         if (mainPageLocalization is null)
         {
             return Result.Fail<MainPageLocalizationDto>(
-                ErrorMessagesConstants.NotFound(
+                NotFoundErrors.NotFound(
                     (request.EntityId, request.LanguageId),
                     typeof(MainPageLocalization)));
         }

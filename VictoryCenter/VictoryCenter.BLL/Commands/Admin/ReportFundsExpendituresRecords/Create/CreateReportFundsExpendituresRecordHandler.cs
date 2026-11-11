@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Create;
 
@@ -58,7 +59,7 @@ public class CreateReportFundsExpendituresRecordHandler
             if (category is null)
             {
                 return Result.Fail<ReportFundsExpendituresRecordDto>(
-                    ErrorMessagesConstants.NotFound(
+                    NotFoundErrors.NotFound(
                         request.CreateReportFundsExpendituresRecordDto.CategoryId,
                         typeof(ReportFundsExpendituresCategory)));
             }
@@ -105,7 +106,7 @@ public class CreateReportFundsExpendituresRecordHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

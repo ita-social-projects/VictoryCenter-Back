@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.EventNews.Delete;
 
@@ -38,7 +39,7 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
 
         if (eventNews is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(EventNewsEntity)));
         }
 
         var categoryId = eventNews.CategoryId;
@@ -71,7 +72,7 @@ public class DeleteEventNewsHandler : IRequestHandler<DeleteEventNewsCommand, Re
             if (!await _repositoryWrapper.EventNewsRepository.ExistsAsync(
                     entity => entity.Id == request.Id))
             {
-                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(EventNewsEntity)));
             }
 
             throw;

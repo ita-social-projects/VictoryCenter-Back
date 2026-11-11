@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.Languages.Create;
 
@@ -44,7 +45,7 @@ public class CreateLocalizationLanguageHandler : IRequestHandler<CreateLocalizat
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<LocalizationLanguageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<LocalizationLanguageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

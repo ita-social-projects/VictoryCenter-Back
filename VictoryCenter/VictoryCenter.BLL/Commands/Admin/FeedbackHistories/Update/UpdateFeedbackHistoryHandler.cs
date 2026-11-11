@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.FeedbackHistories.Update;
 
@@ -99,7 +100,7 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 

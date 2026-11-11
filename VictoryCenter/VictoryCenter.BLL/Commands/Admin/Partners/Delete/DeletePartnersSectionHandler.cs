@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Partners.Delete;
 
@@ -35,7 +36,7 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
 
             if (sectionToDelete is null)
             {
-                return Result.Fail<long>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(PartnerSection)));
             }
 
             using var scope = _repositoryWrapper.BeginTransaction();

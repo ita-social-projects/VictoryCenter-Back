@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.TeamMembers.Create;
 
@@ -47,7 +48,7 @@ public class CreateTeamMemberLocalizationHandler : IRequestHandler<CreateTeamMem
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<TeamMemberLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamMemberLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

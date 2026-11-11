@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using VictoryCenter.BLL.Helpers;
 
@@ -19,6 +20,13 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
         AllowTrailingCommas = false,
         PropertyNameCaseInsensitive = true
     };
+
+    private readonly ProblemDetailsFactory _problemsFactory;
+
+    public StrictJsonValidationFilter(ProblemDetailsFactory problemsFactory)
+    {
+        _problemsFactory = problemsFactory;
+    }
 
     public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
@@ -54,7 +62,7 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
             return;
         }
 
-        var validationErrors = new List<string>();
+        var errorsByParameter = new Dictionary<string, List<string>>();
 
         foreach (var parameter in actionDescriptor.Parameters)
         {
@@ -66,24 +74,26 @@ public class StrictJsonValidationFilter : IAsyncResourceFilter
             var errors = JsonValidationHelper.ValidateJsonAgainstType(json, parameter.ParameterType, StrictOptions);
             if (errors.Count > 0)
             {
-                validationErrors.AddRange(errors);
+                errorsByParameter[parameter.ParameterType.Name] = errors;
             }
         }
 
-        if (validationErrors.Count > 0)
+        if (errorsByParameter.Count > 0)
         {
-            var problemDetails = new ProblemDetails
+            var modelState = new ModelStateDictionary();
+            foreach (var (parameterName, errors) in errorsByParameter)
             {
-                Title = "Invalid JSON format",
-                Status = StatusCodes.Status400BadRequest,
-                Detail = validationErrors.Count == 1
-                    ? validationErrors[0]
-                    : "The request contains multiple JSON validation errors. See the 'errors' property for details.",
-                Extensions =
+                foreach (var error in errors)
                 {
-                    ["errors"] = validationErrors
+                    modelState.AddModelError(parameterName, error);
                 }
-            };
+            }
+
+            var problemDetails = _problemsFactory.CreateValidationProblemDetails(
+                context.HttpContext,
+                modelState,
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Invalid JSON format");
 
             context.Result = new BadRequestObjectResult(problemDetails);
             return;

@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 
@@ -41,7 +42,7 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
 
         if (pdfReport == null)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
 
         try

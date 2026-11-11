@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.FaqQuestions.Update;
 
@@ -51,7 +52,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
+                return Result.Fail<FaqQuestionDto>(NotFoundErrors.NotFound(request.Id, typeof(FaqQuestion)));
             }
 
             using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
@@ -91,7 +92,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     var missingPageIds = addedPageIds.Except(allPageIds).ToList();
                     if (missingPageIds.Any())
                     {
-                        return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
+                        return Result.Fail<FaqQuestionDto>(new NotFoundError(FaqConstants.SomePagesNotFound));
                     }
 
                     var newPlacements = new List<FaqPlacement>();
@@ -133,7 +134,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbUpdateException)
         {
