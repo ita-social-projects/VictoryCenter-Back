@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -66,7 +67,7 @@ public class UpdateTeamCategoryHandler : IRequestHandler<UpdateTeamCategoryComma
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<TeamCategoryDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory)));
+                return Result.Fail<TeamCategoryDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory))));
             }
 
             SetTranslationsToOutdated(request, entityToUpdate);

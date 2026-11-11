@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -44,7 +45,7 @@ public class UpdatePartnersPageBannerHandler : IRequestHandler<UpdatePartnersPag
 
                 if (existingImage == null)
                 {
-                    return Result.Fail<PartnersPageBannerDto>(ErrorMessagesConstants.NotFound(request.Dto.ImageId, typeof(Image)));
+                    return Result.Fail<PartnersPageBannerDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Dto.ImageId, typeof(Image))));
                 }
             }
 

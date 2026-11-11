@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -45,7 +46,7 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
 
             if (questionsToReorderCount == 0)
             {
-                return Result.Fail<Unit>(FaqConstants.PageNotFoundOrContainsNoFaqQuestions);
+                return Result.Fail<Unit>(new NotFoundError(FaqConstants.PageNotFoundOrContainsNoFaqQuestions));
             }
 
             await _reorderService.SwapElementsAsync<FaqPlacement>(

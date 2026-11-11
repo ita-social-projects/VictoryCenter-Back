@@ -140,12 +140,8 @@ public static class ProgramSectionContentLocalizationValidationHelper
 
                 if (!contentTypesById.TryGetValue(entityId, out var contentType))
                 {
-                    throw new ValidationException(
-                    [
-                        new ValidationFailure(
-                            "EntityId",
-                            ErrorMessagesConstants.NotFound(entityId, typeof(ProgramSectionContent)))
-                    ]);
+                    throw new KeyNotFoundException(
+                        ErrorMessagesConstants.NotFound(entityId, typeof(ProgramSectionContent)));
                 }
 
                 if (!expectedTypeByContentId.TryGetValue(entityId, out var expectedType))

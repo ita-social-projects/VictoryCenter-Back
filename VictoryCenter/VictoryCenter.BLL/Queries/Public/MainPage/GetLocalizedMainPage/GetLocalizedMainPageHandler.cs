@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.MainPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -49,7 +50,7 @@ public class GetLocalizedMainPageHandler : IRequestHandler<GetLocalizedMainPageQ
 
         if (mainPageEntity is null)
         {
-            return Result.Fail<LocalizedMainPageDto>(ErrorMessagesConstants.NotFound());
+            return Result.Fail<LocalizedMainPageDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
         }
 
         return Result.Ok(MapLocalizedMainPage(mainPageEntity, request.LanguageId));

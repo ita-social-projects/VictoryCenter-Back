@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportMediaSettings;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -50,8 +51,8 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
 
                 if (collectedFundsImageExists == null)
                 {
-                    return Result.Fail<ReportMediaSettingsDto>(
-                        ErrorMessagesConstants.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image)));
+                    return Result.Fail<ReportMediaSettingsDto>(new NotFoundError(
+                        ErrorMessagesConstants.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image))));
                 }
             }
 
@@ -67,8 +68,8 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
 
                 if (changedLivesImageExists == null)
                 {
-                    return Result.Fail<ReportMediaSettingsDto>(
-                        ErrorMessagesConstants.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image)));
+                    return Result.Fail<ReportMediaSettingsDto>(new NotFoundError(
+                        ErrorMessagesConstants.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image))));
                 }
             }
 

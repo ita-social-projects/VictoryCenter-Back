@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.DAL.Entities;
 
@@ -25,7 +26,7 @@ public class ToggleMetricVisibilityHandler : IRequestHandler<ToggleMetricVisibil
         }
         catch (KeyNotFoundException ex)
         {
-            return Result.Fail<Unit>(ex.Message);
+            return Result.Fail<Unit>(new NotFoundError(ex.Message));
         }
         catch (InvalidOperationException ex)
         {

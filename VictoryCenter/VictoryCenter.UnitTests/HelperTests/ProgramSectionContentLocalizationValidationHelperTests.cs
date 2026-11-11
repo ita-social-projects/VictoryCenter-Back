@@ -186,7 +186,7 @@ public class ProgramSectionContentLocalizationValidationHelperTests
     }
 
     [Fact]
-    public void ValidateSections_InvalidContentId_ThrowsNotFoundValidationException()
+    public void ValidateSections_InvalidContentId_ThrowsKeyNotFoundException()
     {
         var sections = new List<CreateHippotherapyProgramSectionLocalizationDto>
         {
@@ -203,7 +203,7 @@ public class ProgramSectionContentLocalizationValidationHelperTests
         var contentTypesById = new Dictionary<long, ContentType>();
         var program = CreateProgram(CreateSection(1, (10, ContentType.Title)));
 
-        var ex = Assert.Throws<ValidationException>(() =>
+        var ex = Assert.Throws<KeyNotFoundException>(() =>
             ProgramSectionContentLocalizationValidationHelper.ValidateSections<
             CreateHippotherapyProgramSectionLocalizationDto,
             CreateHippotherapyProgramSectionContentLocalizationDto

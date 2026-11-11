@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Commands.Admin.Localization.History.Create;
 using VictoryCenter.BLL.Commands.Admin.Localization.History.Update;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History.Update;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.WebAPI.Controllers.Admin.Localization;
 
 namespace VictoryCenter.UnitTests.ControllersTests;
@@ -48,6 +49,22 @@ public class HistoryLocalizationsControllerTests
         var result = await _sut.CreateHistoryLocalization([]);
 
         Assert.IsType<OkObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task CreateHistoryLocalization_NotFoundError_ReturnsNotFound()
+    {
+        _mediatorMock.Setup(m => m.Send(It.IsAny<CreateHistoryLocalizationCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Fail<List<HistorySectionLocalizationDto>>(new NotFoundError("Resource was not found")));
+        _problemDetailsFactoryMock.Setup(p => p.CreateProblemDetails(
+            It.IsAny<HttpContext>(), StatusCodes.Status404NotFound, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns(new ProblemDetails { Status = StatusCodes.Status404NotFound });
+
+        var result = await _sut.CreateHistoryLocalization([]);
+
+        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+        Assert.Equal(StatusCodes.Status404NotFound, notFoundResult.StatusCode);
+        Assert.Equal(StatusCodes.Status404NotFound, Assert.IsType<ProblemDetails>(notFoundResult.Value).Status);
     }
 
     [Fact]

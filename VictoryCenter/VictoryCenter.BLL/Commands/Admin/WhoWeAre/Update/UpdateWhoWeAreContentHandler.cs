@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
@@ -48,7 +49,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 {
                     if (!dictEntities.TryGetValue(dto.Id, out var entity))
                     {
-                        return Result.Fail(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent)));
+                        return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent))));
                     }
 
                     if (entity.SectionId != sectionId)
@@ -81,7 +82,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 if (updatedSection == null)
                 {
-                    return Result.Fail(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
+                    return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection))));
                 }
 
                 scope.Complete();
