@@ -9,15 +9,18 @@ public class ExceptionHandlingMiddleware
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
     private readonly RequestDelegate _next;
     private readonly ProblemDetailsFactory _problemsFactory;
+    private readonly IRequestLogSanitizer _sanitizer;
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
         ILogger<ExceptionHandlingMiddleware> logger,
-        ProblemDetailsFactory problemsFactory)
+        ProblemDetailsFactory problemsFactory,
+        IRequestLogSanitizer sanitizer)
     {
         _next = next;
         _logger = logger;
         _problemsFactory = problemsFactory;
+        _sanitizer = sanitizer;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -64,7 +67,7 @@ public class ExceptionHandlingMiddleware
                 exception,
                 "Unhandled exception occured while processing request: {Method} {Path}",
                 context.Request.Method,
-                context.Request.Path + context.Request.QueryString);
+                _sanitizer.GetSafePathAndQuery(context.Request));
 
             var problem = _problemsFactory.CreateProblemDetails(
                 context,
