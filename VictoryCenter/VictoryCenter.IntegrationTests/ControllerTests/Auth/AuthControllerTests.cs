@@ -372,11 +372,103 @@ public class AuthControllerTests : BaseTestClass
             var updatedAdmin = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
             Assert.NotEqual(initialSecurityStamp, updatedAdmin.SecurityStamp);
             Assert.Null(updatedAdmin.RefreshToken);
+
+            var sessions = await dbContext.RefreshTokenSessions.AsNoTracking()
+                .Where(s => s.AdminUserId == updatedAdmin.Id)
+                .ToListAsync();
+            Assert.NotEmpty(sessions);
+            Assert.All(sessions, s =>
+            {
+                Assert.True(s.IsRevoked);
+                Assert.Equal(AuthConstants.RevocationReasons.Logout, s.RevocationReason);
+            });
         }
+
+        using var refreshAfterLogout = CreateRefreshRequest(refreshTokenCookie);
+        using var refreshAfterLogoutResponse = await client.SendAsync(refreshAfterLogout);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshAfterLogoutResponse.StatusCode);
 
         using var subsequentRequest = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
         using var subsequentResponse = await client.SendAsync(subsequentRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, subsequentResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_WhenUpdateSecurityStampFailsPermanently_StillPersistsRevokedSessions()
+    {
+        var customFactory = Fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.Single(d => d.ServiceType == typeof(IRepositoryWrapper));
+                services.Remove(descriptor);
+                services.AddScoped<IRepositoryWrapper, ConcurrencySimulatingRepositoryWrapper>();
+            });
+        });
+        using var client = customFactory.CreateClient();
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AdminUser>>();
+            var existing = await userManager.FindByEmailAsync(TestEmail);
+            if (existing == null)
+            {
+                var admin = new AdminUser
+                {
+                    UserName = TestEmail,
+                    Email = TestEmail,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    RefreshToken = "refresh_token",
+                    RefreshTokenValidTo = DateTimeOffset.MaxValue
+                };
+                var createResult = await userManager.CreateAsync(admin, TestPassword);
+                Assert.True(createResult.Succeeded);
+            }
+        }
+
+        var loginResponse = await client.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse!.AccessToken;
+        var refreshTokenCookie = GetRefreshTokenCookie(loginResponse);
+
+        ConcurrencySimulatingRepositoryWrapper.AlwaysSimulate = true;
+        try
+        {
+            using var logoutRequest = CreateAuthorizedRequest(HttpMethod.Post, LogoutPath, accessToken);
+            logoutRequest.Headers.Add("Cookie", refreshTokenCookie);
+            using var logoutResponse = await client.SendAsync(logoutRequest);
+
+            Assert.Equal(HttpStatusCode.BadRequest, logoutResponse.StatusCode);
+        }
+        finally
+        {
+            ConcurrencySimulatingRepositoryWrapper.AlwaysSimulate = false;
+        }
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var adminInDb = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
+
+            var sessions = await dbContext.RefreshTokenSessions.AsNoTracking()
+                .Where(s => s.AdminUserId == adminInDb.Id)
+                .ToListAsync();
+            Assert.NotEmpty(sessions);
+            Assert.All(sessions, s =>
+            {
+                Assert.True(s.IsRevoked);
+                Assert.Equal(AuthConstants.RevocationReasons.Logout, s.RevocationReason);
+            });
+        }
+
+        using var refreshAfterFailedLogout = CreateRefreshRequest(refreshTokenCookie);
+        using var refreshResponse = await client.SendAsync(refreshAfterFailedLogout);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
     }
 
     [Fact]
@@ -415,6 +507,7 @@ public class AuthControllerTests : BaseTestClass
     private sealed class ConcurrencySimulatingRepositoryWrapper : RepositoryWrapper, IRepositoryWrapper
     {
         private static bool _shouldSimulate;
+        private static bool _alwaysSimulate;
         private readonly IServiceProvider _serviceProvider;
         private int _simulationExecuted;
         private IRefreshTokenSessionRepository? _simulatedSessionRepository;
@@ -433,6 +526,12 @@ public class AuthControllerTests : BaseTestClass
             set => _shouldSimulate = value;
         }
 
+        public static bool AlwaysSimulate
+        {
+            get => _alwaysSimulate;
+            set => _alwaysSimulate = value;
+        }
+
         IRefreshTokenSessionRepository IRepositoryWrapper.RefreshTokenSessionRepository
         {
             get
@@ -446,7 +545,7 @@ public class AuthControllerTests : BaseTestClass
                 var proxy = DispatchProxy.Create<IRefreshTokenSessionRepository, SessionRepoDispatchProxy>();
                 ((SessionRepoDispatchProxy)(object)proxy).Initialize(target, () =>
                 {
-                    if (ShouldSimulate && Interlocked.Exchange(ref _simulationExecuted, 1) == 0)
+                    if (AlwaysSimulate || (ShouldSimulate && Interlocked.Exchange(ref _simulationExecuted, 1) == 0))
                     {
                         using var scope = _serviceProvider.CreateScope();
                         var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();

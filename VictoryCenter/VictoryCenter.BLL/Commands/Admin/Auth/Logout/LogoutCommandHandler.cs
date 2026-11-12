@@ -77,6 +77,9 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 
         if (!updateAdmin.Succeeded)
         {
+            await _repositoryWrapper.ReloadAsync(admin, cancellationToken);
+            await _repositoryWrapper.SaveChangesAsync();
+
             return Result.Fail(AuthConstants.NotUpdated);
         }
 
