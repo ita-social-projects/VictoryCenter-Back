@@ -187,6 +187,11 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
 
                 await _repositoryWrapper.SaveChangesAsync();
 
+                if (ApplyFinalPriorities(entity))
+                {
+                    await _repositoryWrapper.SaveChangesAsync();
+                }
+
                 sectionIdForReorder = entity.ScientificReferencesSection!.Id;
                 await _reorderService.RenumberPriorityAsync<HippotherapyLandingPageScientificReference>(
                     groupSelector: r => r.ScientificReferencesSectionId == sectionIdForReorder);
@@ -353,25 +358,6 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
     }
 
-    private static List<HippotherapyLandingPageEthicsPrinciple> UpdateEthicsPrinciples(
-        ICollection<HippotherapyLandingPageEthicsPrinciple> existing,
-        List<string> incoming)
-    {
-        var changedPrinciples = new List<HippotherapyLandingPageEthicsPrinciple>();
-        var existingList = existing.OrderBy(p => p.Priority).ToList();
-        for (var i = 0; i < existingList.Count && i < incoming.Count; i++)
-        {
-            if (!string.Equals(existingList[i].Text, incoming[i], StringComparison.Ordinal))
-            {
-                changedPrinciples.Add(existingList[i]);
-            }
-
-            existingList[i].Text = incoming[i];
-        }
-
-        return changedPrinciples;
-    }
-
     private Result<List<TCard>> UpdateGalleryCards<TCard>(
     ICollection<TCard> existing,
     List<UpdateGalleryCardDto> incoming,
@@ -452,6 +438,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             return Result.Fail<List<TItem>>(ErrorMessagesConstants.DuplicateItemIds(typeof(TItem)));
         }
 
+        var requestedIdSet = requestedIds.ToHashSet();
         var existingById = existing.ToDictionary(itemId);
         foreach (var id in requestedIds)
         {
@@ -460,6 +447,8 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                 return Result.Fail<List<TItem>>(ErrorMessagesConstants.NotFound(id, typeof(TItem)));
             }
         }
+
+        var removed = existing.Where(item => !requestedIdSet.Contains(itemId(item))).ToList();
 
         var changedItems = new List<TItem>();
         for (var index = 0; index < incoming.Count; index++)
@@ -482,10 +471,9 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
                 existing.Add(item);
             }
 
-            setPriority(item, index + 1);
+            setPriority(item, -(index + 1));
         }
 
-        var removed = existing.Where(item => !requestedIds.Contains(itemId(item)) && existingById.ContainsKey(itemId(item))).ToList();
         if (removed.Count > 0)
         {
             deleteRange(removed);
@@ -631,5 +619,41 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             ParticipantsSection = participantsSection,
             EthicsSection = ethicsSection,
         };
+    }
+
+    private static bool ApplyFinalPriorities(DAL.Entities.HippotherapyLandingPage entity)
+    {
+        var changed = FinalizePriorities(
+            entity.AdvantagesSection?.AdvantageCards,
+            c => c.Priority,
+            (c, priority) => c.Priority = priority);
+        changed |= FinalizePriorities(
+            entity.ParticipantsSection?.ParticipantCards,
+            c => c.Priority,
+            (c, priority) => c.Priority = priority);
+        changed |= FinalizePriorities(
+            entity.EthicsSection?.EthicsPrinciples,
+            p => p.Priority,
+            (p, priority) => p.Priority = priority);
+        return changed;
+    }
+
+    private static bool FinalizePriorities<TItem>(
+        IEnumerable<TItem>? items,
+        Func<TItem, long> getPriority,
+        Action<TItem, long> setPriority)
+    {
+        var changed = false;
+        foreach (var item in items ?? Enumerable.Empty<TItem>())
+        {
+            var temporary = getPriority(item);
+            if (temporary < 0)
+            {
+                setPriority(item, -temporary);
+                changed = true;
+            }
+        }
+
+        return changed;
     }
 }

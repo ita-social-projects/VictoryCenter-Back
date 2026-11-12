@@ -199,6 +199,40 @@ public class UpdateEthicsSectionDtoValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_PrincipleIdIsNotPositive_ShouldHaveError(long id)
+    {
+        // Arrange
+        var principles = GetValidPrinciples(HippotherapyLandingPageConstants.EthicsPrinciplesCount);
+        principles[0] = principles[0] with { Id = id };
+        var dto = GetValidDto() with { Principles = principles };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor("Principles[0].Id")
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateEthicsPrincipleDto.Id)));
+    }
+
+    [Fact]
+    public void Validate_PrincipleElementIsNull_ShouldHaveError()
+    {
+        // Arrange
+        var principles = GetValidPrinciples(HippotherapyLandingPageConstants.EthicsPrinciplesCount);
+        principles[0] = null!;
+        var dto = GetValidDto() with { Principles = principles };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor("Principles[0]")
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEthicsSectionDto.Principles)));
+    }
+
     private static List<UpdateEthicsPrincipleDto> GetValidPrinciples(int count) =>
         Enumerable.Range(1, count)
             .Select(i => new UpdateEthicsPrincipleDto

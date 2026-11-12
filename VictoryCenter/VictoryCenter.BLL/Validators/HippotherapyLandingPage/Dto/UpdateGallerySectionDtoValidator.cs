@@ -27,6 +27,10 @@ public class UpdateGallerySectionDtoValidator : AbstractValidator<UpdateGalleryS
             .WithMessage(ErrorMessagesConstants.CollectionMustContainExactlyNItems(
                 nameof(UpdateGallerySectionDto.Cards), HippotherapyLandingPageConstants.GalleryCardsCount));
 
+        RuleForEach(x => x.Cards)
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateGallerySectionDto.Cards)));
+
         RuleForEach(x => x.Cards).SetValidator(cardValidator);
     }
 }

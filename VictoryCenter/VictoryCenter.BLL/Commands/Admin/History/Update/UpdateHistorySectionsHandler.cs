@@ -163,22 +163,24 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
 
                         if (existingContent is TitleHistoryContent thc)
                         {
-                            if (thc.Title != newContentDto.Title?.Trim())
+                            var trimmedTitle = newContentDto.Title?.Trim() ?? string.Empty;
+                            if (thc.Title != trimmedTitle)
                             {
                                 textChanged = true;
                             }
 
-                            thc.Title = newContentDto.Title?.Trim();
+                            thc.Title = trimmedTitle;
                             thc.Order = newContentDto.Order;
                         }
                         else if (existingContent is DescriptionHistoryContent dhc)
                         {
-                            if (dhc.Description != newContentDto.Description?.Trim())
+                            var trimmedDescription = newContentDto.Description?.Trim() ?? string.Empty;
+                            if (dhc.Description != trimmedDescription)
                             {
                                 textChanged = true;
                             }
 
-                            dhc.Description = newContentDto.Description?.Trim();
+                            dhc.Description = trimmedDescription;
                             dhc.Order = newContentDto.Order;
                         }
                         else if (existingContent is ImageHistoryContent ihc)
@@ -281,7 +283,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
             {
                 ContentType = ContentType.Title,
                 Order = dto.Order,
-                Title = dto.Title?.Trim()
+                Title = dto.Title?.Trim() ?? string.Empty
             };
         }
 
@@ -291,7 +293,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
             {
                 ContentType = ContentType.Description,
                 Order = dto.Order,
-                Description = dto.Description?.Trim()
+                Description = dto.Description?.Trim() ?? string.Empty
             };
         }
 

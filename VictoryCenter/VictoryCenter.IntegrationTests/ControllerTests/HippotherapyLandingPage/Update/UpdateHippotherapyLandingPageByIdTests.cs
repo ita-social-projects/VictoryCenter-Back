@@ -4,6 +4,7 @@ using System.Text.Json;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
+using VictoryCenter.IntegrationTests.StorageLifecycle;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -18,8 +19,8 @@ public class UpdateHippotherapyLandingPageByIdTests : BaseTestClass
     {
     }
 
-    [Fact]
-    public async Task Put_WhenCardsAreReordered_ShouldKeepIdsAndReturnNewOrder()
+    [StorageSqlServerFact]
+    public async Task Put_WhenCardsAreReordered_ShouldKeepIdsAndReturnNewOrder_OnSqlServer()
     {
         var current = await GetPageAsync();
         var dto = ToUpdateDto(current);
@@ -31,6 +32,21 @@ public class UpdateHippotherapyLandingPageByIdTests : BaseTestClass
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(expectedIds, updated.AdvantagesSection.Cards.Select(c => c.Id).ToArray());
+    }
+
+    [StorageSqlServerFact]
+    public async Task Put_WhenPrinciplesAreReordered_ShouldKeepIdsAndReturnNewOrder_OnSqlServer()
+    {
+        var current = await GetPageAsync();
+        var dto = ToUpdateDto(current);
+        dto.EthicsSection.Principles.Reverse();
+        var expectedIds = dto.EthicsSection.Principles.Select(p => p.Id!.Value).ToArray();
+
+        var response = await PutAsync(dto);
+        var updated = Deserialize(await response.Content.ReadAsStringAsync());
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(expectedIds, updated.EthicsSection.Principles.Select(p => p.Id).ToArray());
     }
 
     [Fact]
