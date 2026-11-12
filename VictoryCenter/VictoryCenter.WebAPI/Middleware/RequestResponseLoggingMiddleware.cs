@@ -1,4 +1,4 @@
-using VictoryCenter.WebAPI.Middleware;
+namespace VictoryCenter.WebAPI.Middleware;
 
 public class RequestResponseLoggingMiddleware
 {
