@@ -70,7 +70,6 @@ public sealed class RequestLogSanitizer : IRequestLogSanitizer
         var separator = part.IndexOf('=');
         var rawName = separator < 0 ? part : part[..separator];
 
-        // Decode so "%74icket" or "ticket" variants can't dodge the match.
         var name = Uri.UnescapeDataString(rawName.Replace('+', ' '));
 
         return _sensitive.Contains(name)
