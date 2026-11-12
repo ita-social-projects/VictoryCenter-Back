@@ -100,6 +100,7 @@ public static class ServicesConfiguration
 
         services.AddSingleton<IRichTextSanitizer, RichTextSanitizer>();
         services.AddSingleton<RichTextSanitizationInterceptor>();
+        services.AddSingleton<AuditInterceptor>();
 
         services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
         {
@@ -108,7 +109,9 @@ public static class ServicesConfiguration
                 opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
                 opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
             });
-            options.AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
+            options.AddInterceptors(
+                serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>(),
+                serviceProvider.GetRequiredService<AuditInterceptor>());
         });
 
         services.AddIdentity<AdminUser, IdentityRole<int>>()

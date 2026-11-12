@@ -136,7 +136,9 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
                 .UseInternalServiceProvider(efServiceProvider)
                 .ConfigureWarnings(warnings =>
                     warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
-                .AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
+                .AddInterceptors(
+                    serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>(),
+                    serviceProvider.GetRequiredService<AuditInterceptor>());
         });
     }
 

@@ -76,6 +76,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
             email,
+            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
         var newRefreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, admin.Email!)]);
