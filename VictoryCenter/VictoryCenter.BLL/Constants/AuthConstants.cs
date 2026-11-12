@@ -5,6 +5,8 @@ public static class AuthConstants
     public static readonly string RefreshTokenCookieName = "refreshToken";
     public static readonly string RefreshTokenCookiePath = "/api/auth/refresh-token";
     public static readonly string SecurityStampHashClaimType = "security_stamp_hash";
+    public static readonly string FamilyIdClaimType = "family_id";
+    public static readonly TimeSpan RotationGracePeriod = TimeSpan.FromSeconds(30);
     public static readonly string AdminWithGivenEmailWasNotFound = "Admin with given email was not found";
     public static readonly string InvalidCredentials = "Invalid email or password";
     public static readonly string RefreshTokenIsNotPresent = "Refresh token is not present";
@@ -15,4 +17,13 @@ public static class AuthConstants
     public static readonly string AccessTokenRevoked = "Access token has been revoked";
     public static readonly string NotUpdated = "Not updated";
     public static readonly string Unauthorized = "Unauthorized";
+
+    public static class RevocationReasons
+    {
+        public static readonly string Rotated = "Rotated";
+        public static readonly string Logout = "Logout";
+        public static readonly string SupersededByNewLogin = "SupersededByNewLogin";
+        public static readonly string SuspectedTokenReuse = "SuspectedTokenReuse";
+        public static readonly string Expired = "Expired";
+    }
 }

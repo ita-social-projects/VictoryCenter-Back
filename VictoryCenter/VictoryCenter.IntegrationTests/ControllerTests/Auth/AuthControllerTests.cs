@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,6 +9,11 @@ using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
+using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.RefreshTokenSessions;
+using VictoryCenter.DAL.Repositories.Realizations.Base;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -141,10 +147,46 @@ public class AuthControllerTests : BaseTestClass
         firstRefreshResponse.EnsureSuccessStatusCode();
         var rotatedCookie = GetRefreshTokenCookie(firstRefreshResponse);
 
+        using (var scope = Fixture.Factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+            var originalToken = originalCookie.Split(';')[0].Split('=', 2)[1];
+            var tokenHash = tokenService.HashRefreshToken(originalToken);
+            var session = await dbContext.RefreshTokenSessions.SingleAsync(s => s.TokenHash == tokenHash);
+            session.RevokedAt = DateTimeOffset.UtcNow - AuthConstants.RotationGracePeriod - TimeSpan.FromSeconds(5);
+            await dbContext.SaveChangesAsync();
+        }
+
         using var replayRequest = CreateRefreshRequest(originalCookie);
         using var replayResponse = await Fixture.HttpClient.SendAsync(replayRequest);
         Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
 
+        using var rotatedTokenRequest = CreateRefreshRequest(rotatedCookie);
+        using var rotatedTokenResponse = await Fixture.HttpClient.SendAsync(rotatedTokenRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, rotatedTokenResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ReplayedWithinGracePeriod_DoesNotRevokeFamily()
+    {
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+        var originalCookie = GetRefreshTokenCookie(loginResponse);
+
+        using var firstRefreshRequest = CreateRefreshRequest(originalCookie);
+        using var firstRefreshResponse = await Fixture.HttpClient.SendAsync(firstRefreshRequest);
+        firstRefreshResponse.EnsureSuccessStatusCode();
+        var rotatedCookie = GetRefreshTokenCookie(firstRefreshResponse);
+
+        // Immediate replay within grace period returns Unauthorized but preserves the family
+        using var replayRequest = CreateRefreshRequest(originalCookie);
+        using var replayResponse = await Fixture.HttpClient.SendAsync(replayRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, replayResponse.StatusCode);
+
+        // Rotated cookie remains valid because the family was not revoked
         using var rotatedTokenRequest = CreateRefreshRequest(rotatedCookie);
         using var rotatedTokenResponse = await Fixture.HttpClient.SendAsync(rotatedTokenRequest);
         rotatedTokenResponse.EnsureSuccessStatusCode();
@@ -215,6 +257,29 @@ public class AuthControllerTests : BaseTestClass
     }
 
     [Fact]
+    public async Task RefreshToken_AfterLogout_ReturnsUnauthorized()
+    {
+        var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse!.AccessToken;
+        var refreshTokenCookie = GetRefreshTokenCookie(loginResponse);
+
+        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
+        logoutRequest.Headers.Add("Cookie", refreshTokenCookie);
+        logoutRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        var logoutResponse = await Fixture.HttpClient.SendAsync(logoutRequest);
+        logoutResponse.EnsureSuccessStatusCode();
+
+        using var refreshRequest = CreateRefreshRequest(refreshTokenCookie);
+        using var refreshResponse = await Fixture.HttpClient.SendAsync(refreshRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task Logout_RevokesAccessTokenIssuedBeforeLogout()
     {
         var loginResponse = await Fixture.HttpClient.PostAsJsonAsync(LoginPath, new LoginRequestDto(TestEmail, TestPassword));
@@ -232,6 +297,178 @@ public class AuthControllerTests : BaseTestClass
         using var requestAfterLogout = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
         using var responseAfterLogout = await Fixture.HttpClient.SendAsync(requestAfterLogout);
         Assert.Equal(HttpStatusCode.Unauthorized, responseAfterLogout.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_WithStaleConcurrencyStamp_RetriesAndRotatesSecurityStamp()
+    {
+        var customFactory = Fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.Single(d => d.ServiceType == typeof(IRepositoryWrapper));
+                services.Remove(descriptor);
+                services.AddScoped<IRepositoryWrapper, ConcurrencySimulatingRepositoryWrapper>();
+            });
+        });
+        using var client = customFactory.CreateClient();
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AdminUser>>();
+            var existing = await userManager.FindByEmailAsync(TestEmail);
+            if (existing == null)
+            {
+                var admin = new AdminUser
+                {
+                    UserName = TestEmail,
+                    Email = TestEmail,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    RefreshToken = "refresh_token",
+                    RefreshTokenValidTo = DateTimeOffset.MaxValue
+                };
+                var createResult = await userManager.CreateAsync(admin, TestPassword);
+                Assert.True(createResult.Succeeded);
+            }
+        }
+
+        var loginResponse = await client.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse!.AccessToken;
+        var refreshTokenCookie = GetRefreshTokenCookie(loginResponse);
+
+        string? initialSecurityStamp;
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var initialAdmin = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
+            initialSecurityStamp = initialAdmin.SecurityStamp;
+        }
+
+        Assert.NotNull(initialSecurityStamp);
+
+        ConcurrencySimulatingRepositoryWrapper.ShouldSimulate = true;
+        try
+        {
+            using var logoutRequest = CreateAuthorizedRequest(HttpMethod.Post, LogoutPath, accessToken);
+            logoutRequest.Headers.Add("Cookie", refreshTokenCookie);
+            using var logoutResponse = await client.SendAsync(logoutRequest);
+
+            Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        }
+        finally
+        {
+            ConcurrencySimulatingRepositoryWrapper.ShouldSimulate = false;
+        }
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var updatedAdmin = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
+            Assert.NotEqual(initialSecurityStamp, updatedAdmin.SecurityStamp);
+            Assert.Null(updatedAdmin.RefreshToken);
+
+            var sessions = await dbContext.RefreshTokenSessions.AsNoTracking()
+                .Where(s => s.AdminUserId == updatedAdmin.Id)
+                .ToListAsync();
+            Assert.NotEmpty(sessions);
+            Assert.All(sessions, s =>
+            {
+                Assert.True(s.IsRevoked);
+                Assert.Equal(AuthConstants.RevocationReasons.Logout, s.RevocationReason);
+            });
+        }
+
+        using var refreshAfterLogout = CreateRefreshRequest(refreshTokenCookie);
+        using var refreshAfterLogoutResponse = await client.SendAsync(refreshAfterLogout);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshAfterLogoutResponse.StatusCode);
+
+        using var subsequentRequest = CreateAuthorizedRequest(HttpMethod.Get, AdminEndpointPath, accessToken);
+        using var subsequentResponse = await client.SendAsync(subsequentRequest);
+        Assert.Equal(HttpStatusCode.Unauthorized, subsequentResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Logout_WhenUpdateSecurityStampFailsPermanently_StillPersistsRevokedSessions()
+    {
+        var customFactory = Fixture.Factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureServices(services =>
+            {
+                var descriptor = services.Single(d => d.ServiceType == typeof(IRepositoryWrapper));
+                services.Remove(descriptor);
+                services.AddScoped<IRepositoryWrapper, ConcurrencySimulatingRepositoryWrapper>();
+            });
+        });
+        using var client = customFactory.CreateClient();
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<AdminUser>>();
+            var existing = await userManager.FindByEmailAsync(TestEmail);
+            if (existing == null)
+            {
+                var admin = new AdminUser
+                {
+                    UserName = TestEmail,
+                    Email = TestEmail,
+                    EmailConfirmed = true,
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    RefreshToken = "refresh_token",
+                    RefreshTokenValidTo = DateTimeOffset.MaxValue
+                };
+                var createResult = await userManager.CreateAsync(admin, TestPassword);
+                Assert.True(createResult.Succeeded);
+            }
+        }
+
+        var loginResponse = await client.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        loginResponse.EnsureSuccessStatusCode();
+
+        var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
+        var accessToken = authResponse!.AccessToken;
+        var refreshTokenCookie = GetRefreshTokenCookie(loginResponse);
+
+        ConcurrencySimulatingRepositoryWrapper.AlwaysSimulate = true;
+        try
+        {
+            using var logoutRequest = CreateAuthorizedRequest(HttpMethod.Post, LogoutPath, accessToken);
+            logoutRequest.Headers.Add("Cookie", refreshTokenCookie);
+            using var logoutResponse = await client.SendAsync(logoutRequest);
+
+            Assert.Equal(HttpStatusCode.BadRequest, logoutResponse.StatusCode);
+        }
+        finally
+        {
+            ConcurrencySimulatingRepositoryWrapper.AlwaysSimulate = false;
+        }
+
+        using (var scope = customFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var adminInDb = await dbContext.Users.AsNoTracking().SingleAsync(u => u.Email == TestEmail);
+
+            var sessions = await dbContext.RefreshTokenSessions.AsNoTracking()
+                .Where(s => s.AdminUserId == adminInDb.Id)
+                .ToListAsync();
+            Assert.NotEmpty(sessions);
+            Assert.All(sessions, s =>
+            {
+                Assert.True(s.IsRevoked);
+                Assert.Equal(AuthConstants.RevocationReasons.Logout, s.RevocationReason);
+            });
+        }
+
+        using var refreshAfterFailedLogout = CreateRefreshRequest(refreshTokenCookie);
+        using var refreshResponse = await client.SendAsync(refreshAfterFailedLogout);
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
     }
 
     [Fact]
@@ -265,5 +502,96 @@ public class AuthControllerTests : BaseTestClass
         var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
         request.Headers.Add("Cookie", refreshTokenCookie);
         return request;
+    }
+
+    private sealed class ConcurrencySimulatingRepositoryWrapper : RepositoryWrapper, IRepositoryWrapper
+    {
+        private static bool _shouldSimulate;
+        private static bool _alwaysSimulate;
+        private readonly IServiceProvider _serviceProvider;
+        private int _simulationExecuted;
+        private IRefreshTokenSessionRepository? _simulatedSessionRepository;
+
+        public ConcurrencySimulatingRepositoryWrapper(
+            VictoryCenterDbContext context,
+            IServiceProvider serviceProvider)
+            : base(context)
+        {
+            _serviceProvider = serviceProvider;
+        }
+
+        public static bool ShouldSimulate
+        {
+            get => _shouldSimulate;
+            set => _shouldSimulate = value;
+        }
+
+        public static bool AlwaysSimulate
+        {
+            get => _alwaysSimulate;
+            set => _alwaysSimulate = value;
+        }
+
+        IRefreshTokenSessionRepository IRepositoryWrapper.RefreshTokenSessionRepository
+        {
+            get
+            {
+                if (_simulatedSessionRepository != null)
+                {
+                    return _simulatedSessionRepository;
+                }
+
+                var target = RefreshTokenSessionRepository;
+                var proxy = DispatchProxy.Create<IRefreshTokenSessionRepository, SessionRepoDispatchProxy>();
+                ((SessionRepoDispatchProxy)(object)proxy).Initialize(target, () =>
+                {
+                    if (AlwaysSimulate || (ShouldSimulate && Interlocked.Exchange(ref _simulationExecuted, 1) == 0))
+                    {
+                        using var scope = _serviceProvider.CreateScope();
+                        var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+                        var adminInDb = dbContext.Users.First(u => u.Email == TestEmail);
+                        adminInDb.ConcurrencyStamp = Guid.NewGuid().ToString();
+                        dbContext.SaveChanges();
+                    }
+                });
+
+                _simulatedSessionRepository = proxy;
+                return _simulatedSessionRepository;
+            }
+        }
+
+        public class SessionRepoDispatchProxy : DispatchProxy
+        {
+            private IRefreshTokenSessionRepository _target = null!;
+            private Action _onRevoke = null!;
+
+            public void Initialize(IRefreshTokenSessionRepository target, Action onRevoke)
+            {
+                _target = target;
+                _onRevoke = onRevoke;
+            }
+
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
+            protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
+#pragma warning restore SA1011
+            {
+                var result = targetMethod!.Invoke(_target, args);
+                if (targetMethod.Name == nameof(IRefreshTokenSessionRepository.RevokeAdminSessionsAsync))
+                {
+                    if (result is Task task)
+                    {
+                        return InterceptAsync(task);
+                    }
+                }
+
+                return result;
+            }
+
+            private async Task InterceptAsync(Task task)
+            {
+                await task;
+                _onRevoke();
+            }
+        }
     }
 }

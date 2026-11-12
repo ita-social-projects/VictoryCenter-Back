@@ -248,6 +248,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<VideoReviewLocalization> VideoReviewLocalizations { get; set; }
 
+    public DbSet<RefreshTokenSession> RefreshTokenSessions { get; set; }
+
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
         foreach (var (kind, name) in PrepareStorageChanges())
