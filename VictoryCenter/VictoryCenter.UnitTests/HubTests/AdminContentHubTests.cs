@@ -293,6 +293,22 @@ public class AdminContentHubTests
         lockManager.Verify(item => item.Acquire(It.IsAny<ContentLockResourceDto>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
+    [Fact]
+    public async Task AcquireLock_WhenResourceIsNull_ThrowsHubExceptionWithoutCallingPolicyOrLockManager()
+    {
+        var lockManager = new Mock<IContentLockManager>();
+        var policy = new Mock<IContentLockResourcePolicy>();
+        var clients = CreateClients(out _, out _);
+        var groups = CreateGroups();
+        var hub = CreateHub(lockManager.Object, policy.Object, clients.Object, groups.Object);
+
+        var exception = await Assert.ThrowsAsync<HubException>(() => hub.AcquireLock(null!));
+
+        Assert.Equal(ContentLockConstants.UnsupportedResourceMessage, exception.Message);
+        policy.Verify(item => item.IsSupported(It.IsAny<ContentLockResourceDto>()), Times.Never);
+        lockManager.Verify(item => item.Acquire(It.IsAny<ContentLockResourceDto>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
     private static AdminContentHub CreateHub(
         IContentLockManager lockManager,
         IContentLockResourcePolicy resourcePolicy,

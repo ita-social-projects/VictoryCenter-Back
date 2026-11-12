@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Concurrency.WebSocket;
 using VictoryCenter.BLL.Interfaces.Concurrency;
 using VictoryCenter.WebAPI.Controllers.Common;
@@ -32,7 +34,11 @@ public sealed class ContentLockStatusController : AuthorizedApiController
         };
         if (!_resourcePolicy.IsSupported(resource))
         {
-            return BadRequest();
+            var problemDetailsFactory = HttpContext.RequestServices.GetRequiredService<ProblemDetailsFactory>();
+            return BadRequest(problemDetailsFactory.CreateProblemDetails(
+                HttpContext,
+                statusCode: StatusCodes.Status400BadRequest,
+                detail: ContentLockConstants.UnsupportedResourceMessage));
         }
 
         return Ok(_contentLockManager.GetStatus(resource));

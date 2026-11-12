@@ -97,9 +97,9 @@ public sealed class AdminContentHub : Hub
             ExpiresAtUtc = result.ExpiresAtUtc,
         };
 
-    private void EnsureSupported(ContentLockResourceDto resource)
+    private void EnsureSupported(ContentLockResourceDto? resource)
     {
-        if (!_resourcePolicy.IsSupported(resource))
+        if (resource is null || !_resourcePolicy.IsSupported(resource))
         {
             throw new HubException(ContentLockConstants.UnsupportedResourceMessage);
         }

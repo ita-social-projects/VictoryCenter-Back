@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Concurrency.WebSocket;
@@ -31,12 +34,35 @@ public class ContentLockStatusControllerTests
     {
         var lockManager = new Mock<IContentLockManager>();
         var policy = new Mock<IContentLockResourcePolicy>();
+        var problemDetailsFactory = new Mock<ProblemDetailsFactory>();
+        var problemDetails = new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Detail = ContentLockConstants.UnsupportedResourceMessage,
+        };
         policy.Setup(item => item.IsSupported(It.IsAny<ContentLockResourceDto>())).Returns(false);
-        var controller = new ContentLockStatusController(lockManager.Object, policy.Object);
+        problemDetailsFactory.Setup(item => item.CreateProblemDetails(
+                It.IsAny<HttpContext>(),
+                StatusCodes.Status400BadRequest,
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                ContentLockConstants.UnsupportedResourceMessage,
+                It.IsAny<string>()))
+            .Returns(problemDetails);
+        var services = new ServiceCollection();
+        services.AddSingleton(problemDetailsFactory.Object);
+        var controller = new ContentLockStatusController(lockManager.Object, policy.Object)
+        {
+            ControllerContext = new ControllerContext
+            {
+                HttpContext = new DefaultHttpContext { RequestServices = services.BuildServiceProvider() }
+            }
+        };
 
         var result = controller.GetStatus("UnknownResource", 1);
 
-        Assert.IsType<BadRequestResult>(result);
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Same(problemDetails, badRequestResult.Value);
         lockManager.Verify(item => item.GetStatus(It.IsAny<ContentLockResourceDto>()), Times.Never);
     }
 }
