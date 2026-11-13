@@ -271,6 +271,7 @@ public class RefreshTokenTests
         var cmd = new RefreshTokenCommand();
         var admin = new AdminUser
         {
+            Id = 7,
             RefreshToken = "refresh_token",
             RefreshTokenValidTo = FixedTestTime.AddHours(24),
             Email = "test@email.com",
@@ -312,6 +313,10 @@ public class RefreshTokenTests
         _mockTokenService.Verify(
             x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
                 claim.Type == AuthConstants.SecurityStampHashClaimType && claim.Value == "security_stamp_hash"))),
+            Times.Once);
+        _mockTokenService.Verify(
+            x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
+                claim.Type == ClaimTypes.NameIdentifier && claim.Value == "7"))),
             Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(

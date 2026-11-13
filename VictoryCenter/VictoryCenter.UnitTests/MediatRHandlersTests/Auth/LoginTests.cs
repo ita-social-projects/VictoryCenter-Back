@@ -179,7 +179,7 @@ public class LoginTests
     public async Task Handle_GivenValidData_UpdatesSuccessfully()
     {
         var cmd = new LoginCommand(new LoginRequestDto("admin@gmail.com", "Pa$$w0rd!"));
-        var admin = new AdminUser { SecurityStamp = "security_stamp" };
+        var admin = new AdminUser { Id = 7, SecurityStamp = "security_stamp" };
 
         _mockUserManager.Setup(x => x.FindByEmailAsync("admin@gmail.com")).ReturnsAsync(admin);
         _mockUserManager.Setup(x => x.CheckPasswordAsync(admin, "Pa$$w0rd!")).ReturnsAsync(true);
@@ -207,6 +207,10 @@ public class LoginTests
         _mockTokenService.Verify(
             x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
                 claim.Type == AuthConstants.SecurityStampHashClaimType && claim.Value == "security_stamp_hash"))),
+            Times.Once);
+        _mockTokenService.Verify(
+            x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
+                claim.Type == ClaimTypes.NameIdentifier && claim.Value == "7"))),
             Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(
