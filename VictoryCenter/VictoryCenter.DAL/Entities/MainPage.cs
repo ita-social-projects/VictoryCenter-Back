@@ -5,19 +5,28 @@ using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities;
 
+[Auditable]
 public class MainPage : BaseEntity, ITranslatedEntity<MainPageLocalization>
 {
+    [Audited]
     [RichText]
     public string Title { get; set; } = null!;
+
+    [Audited]
     [RichText]
     public string Description { get; set; } = null!;
 
+    [Audited]
     public long? ImageId { get; set; }
+
     public Image? Image { get; set; }
 
     public MainAboutUs? MainAboutUs { get; set; }
+
     public MainPartners? MainPartners { get; set; }
+
     public MainDonations? MainDonations { get; set; }
+
     public ImpactStatistics? ImpactStatistics { get; set; }
 
     public ICollection<MainPageLocalization> Localizations { get; set; } = [];

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using FluentResults;
 using MediatR;
@@ -180,6 +181,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
             email,
+            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
 

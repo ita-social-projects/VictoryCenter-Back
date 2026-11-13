@@ -5,6 +5,7 @@ namespace VictoryCenter.DAL.Entities.Localization;
 
 public class HippotherapyLandingPageEthicsPrincipleLocalization : LocalizationBase<HippotherapyLandingPageEthicsPrinciple>
 {
+    [Audited]
     [RichText]
     public string Text { get; set; } = null!;
 }

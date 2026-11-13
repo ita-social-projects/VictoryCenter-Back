@@ -1,5 +1,6 @@
 using System.Transactions;
 using Microsoft.EntityFrameworkCore.Storage;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
 using VictoryCenter.DAL.Repositories.Interfaces.Donate;
@@ -191,6 +192,10 @@ public interface IRepositoryWrapper
 
     IRepositoryBase<TEntity> GetRepository<TEntity>()
         where TEntity : class;
+
+    /// <summary>Adds an audit log entry. Audit entries are append-only and cannot be updated or deleted.</summary>
+    /// <param name="auditLog">The audit log entry to add.</param>
+    void AddAuditLog(AuditLog auditLog);
 
     int SaveChanges();
 
