@@ -137,37 +137,37 @@ public class UpdateEthicsSectionDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_PrincipleIsTooShort_ShouldHaveError()
+    public void Validate_PrincipleTextIsTooShort_ShouldHaveError()
     {
         // Arrange
         var principles = GetValidPrinciples(HippotherapyLandingPageConstants.EthicsPrinciplesCount);
-        principles[0] = new string('A', HippotherapyLandingPageConstants.TextMinLength - 1);
+        principles[0] = principles[0] with { Text = new string('A', HippotherapyLandingPageConstants.TextMinLength - 1) };
         var dto = GetValidDto() with { Principles = principles };
 
         // Act
         var result = _validator.TestValidate(dto);
 
         // Assert
-        result.ShouldHaveValidationErrorFor("Principles[0]")
+        result.ShouldHaveValidationErrorFor("Principles[0].Text")
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
-                  nameof(UpdateEthicsSectionDto.Principles), HippotherapyLandingPageConstants.TextMinLength));
+                  nameof(UpdateEthicsPrincipleDto.Text), HippotherapyLandingPageConstants.TextMinLength));
     }
 
     [Fact]
-    public void Validate_PrincipleIsTooLong_ShouldHaveError()
+    public void Validate_PrincipleTextIsTooLong_ShouldHaveError()
     {
         // Arrange
         var principles = GetValidPrinciples(HippotherapyLandingPageConstants.EthicsPrinciplesCount);
-        principles[0] = new string('A', HippotherapyLandingPageConstants.EthicsPrincipleMaxLength + 1);
+        principles[0] = principles[0] with { Text = new string('A', HippotherapyLandingPageConstants.EthicsPrincipleMaxLength + 1) };
         var dto = GetValidDto() with { Principles = principles };
 
         // Act
         var result = _validator.TestValidate(dto);
 
         // Assert
-        result.ShouldHaveValidationErrorFor("Principles[0]")
+        result.ShouldHaveValidationErrorFor("Principles[0].Text")
               .WithErrorMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
-                  nameof(UpdateEthicsSectionDto.Principles), HippotherapyLandingPageConstants.EthicsPrincipleMaxLength));
+                  nameof(UpdateEthicsPrincipleDto.Text), HippotherapyLandingPageConstants.EthicsPrincipleMaxLength));
     }
 
     [Theory]
@@ -199,9 +199,47 @@ public class UpdateEthicsSectionDtoValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
-    private static List<string> GetValidPrinciples(int count) =>
-        Enumerable.Range(0, count)
-            .Select(_ => new string('A', HippotherapyLandingPageConstants.TextMinLength))
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public void Validate_PrincipleIdIsNotPositive_ShouldHaveError(long id)
+    {
+        // Arrange
+        var principles = GetValidPrinciples(HippotherapyLandingPageConstants.EthicsPrinciplesCount);
+        principles[0] = principles[0] with { Id = id };
+        var dto = GetValidDto() with { Principles = principles };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor("Principles[0].Id")
+              .WithErrorMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateEthicsPrincipleDto.Id)));
+    }
+
+    [Fact]
+    public void Validate_PrincipleElementIsNull_ShouldHaveError()
+    {
+        // Arrange
+        var principles = GetValidPrinciples(HippotherapyLandingPageConstants.EthicsPrinciplesCount);
+        principles[0] = null!;
+        var dto = GetValidDto() with { Principles = principles };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor("Principles[0]")
+              .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEthicsSectionDto.Principles)));
+    }
+
+    private static List<UpdateEthicsPrincipleDto> GetValidPrinciples(int count) =>
+        Enumerable.Range(1, count)
+            .Select(i => new UpdateEthicsPrincipleDto
+            {
+                Id = i,
+                Text = new string('A', HippotherapyLandingPageConstants.TextMinLength),
+            })
             .ToList();
 
     private static UpdateEthicsSectionDto GetValidDto() => new()

@@ -4,6 +4,7 @@ namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
 
 public record GalleryCardDto
 {
+    public long Id { get; init; }
     public string Description { get; init; } = null!;
 
     public ImageDto? Image { get; init; }

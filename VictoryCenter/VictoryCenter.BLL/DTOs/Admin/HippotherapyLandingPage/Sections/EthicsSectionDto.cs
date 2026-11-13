@@ -8,7 +8,7 @@ public record EthicsSectionDto
 
     public string Description { get; init; } = null!;
 
-    public IReadOnlyList<string> Principles { get; init; } = [];
+    public IReadOnlyList<EthicsPrincipleDto> Principles { get; init; } = [];
 
     public ImageDto? Image { get; init; }
 }

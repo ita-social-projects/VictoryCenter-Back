@@ -38,12 +38,24 @@ public class UpdateEthicsSectionDtoValidator : AbstractValidator<UpdateEthicsSec
                 nameof(UpdateEthicsSectionDto.Principles), HippotherapyLandingPageConstants.EthicsPrinciplesCount));
 
         RuleForEach(x => x.Principles)
-            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length >= HippotherapyLandingPageConstants.TextMinLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
-                nameof(UpdateEthicsSectionDto.Principles), HippotherapyLandingPageConstants.TextMinLength))
-            .Must(v => HtmlContentHelper.StripHtmlTags(v).Length <= HippotherapyLandingPageConstants.EthicsPrincipleMaxLength)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
-                nameof(UpdateEthicsSectionDto.Principles), HippotherapyLandingPageConstants.EthicsPrincipleMaxLength));
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateEthicsSectionDto.Principles)));
+
+        RuleForEach(x => x.Principles).ChildRules(principle =>
+        {
+            principle.RuleFor(p => p.Id)
+                .GreaterThan(0)
+                .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateEthicsPrincipleDto.Id)))
+                .When(p => p.Id.HasValue);
+
+            principle.RuleFor(p => p.Text)
+                .Must(text => HtmlContentHelper.StripHtmlTags(text ?? string.Empty).Length >= HippotherapyLandingPageConstants.TextMinLength)
+                .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
+                    nameof(UpdateEthicsPrincipleDto.Text), HippotherapyLandingPageConstants.TextMinLength))
+                .Must(text => HtmlContentHelper.StripHtmlTags(text ?? string.Empty).Length <= HippotherapyLandingPageConstants.EthicsPrincipleMaxLength)
+                .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
+                    nameof(UpdateEthicsPrincipleDto.Text), HippotherapyLandingPageConstants.EthicsPrincipleMaxLength));
+        });
 
         RuleFor(x => x.ImageId)
             .GreaterThan(0)
