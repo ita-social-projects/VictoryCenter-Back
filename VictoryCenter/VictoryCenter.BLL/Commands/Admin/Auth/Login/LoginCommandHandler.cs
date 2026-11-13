@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using FluentResults;
 using FluentValidation;
@@ -106,7 +107,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
             new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
-            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
 

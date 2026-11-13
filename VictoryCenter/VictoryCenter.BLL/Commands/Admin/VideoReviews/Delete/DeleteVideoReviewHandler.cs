@@ -1,3 +1,4 @@
+using System.Globalization;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -59,7 +60,7 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
 
             _repositoryWrapper.AddAuditLog(_auditLogFactory.Create(
                 nameof(VideoReview),
-                request.Id.ToString(),
+                request.Id.ToString(CultureInfo.InvariantCulture),
                 AuditOperation.Delete,
                 new Dictionary<string, AuditChange>
                 {

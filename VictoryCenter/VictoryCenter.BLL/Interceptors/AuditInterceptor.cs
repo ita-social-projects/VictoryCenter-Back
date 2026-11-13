@@ -17,7 +17,7 @@ public class AuditInterceptor : SaveChangesInterceptor
     private static readonly ConcurrentDictionary<Type, string[]> AuditedPropertiesByType = new();
 
     private readonly IAuditLogFactory _auditLogFactory;
-    private readonly ConditionalWeakTable<DbContext, PendingCreates> _pendingCreates = new();
+    private readonly ConditionalWeakTable<DbContext, PendingCreates> _pendingCreates = [];
 
     public AuditInterceptor(IAuditLogFactory auditLogFactory)
     {
@@ -142,11 +142,13 @@ public class AuditInterceptor : SaveChangesInterceptor
 
     private static string[] GetAuditedProperties(EntityEntry entry)
     {
-        return AuditedPropertiesByType.GetOrAdd(entry.Metadata.ClrType, _ => entry.Metadata
-            .GetProperties()
-            .Where(p => p.PropertyInfo?.IsDefined(typeof(AuditedAttribute), inherit: true) == true)
-            .Select(p => p.Name)
-            .ToArray());
+        return AuditedPropertiesByType.GetOrAdd(entry.Metadata.ClrType, _ =>
+        [
+            .. entry.Metadata
+                .GetProperties()
+                .Where(p => p.PropertyInfo?.IsDefined(typeof(AuditedAttribute), inherit: true) == true)
+                .Select(p => p.Name),
+        ]);
     }
 
     private static string GetEntityId(EntityEntry entry)
