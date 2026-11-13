@@ -5,9 +5,11 @@ namespace VictoryCenter.DAL.Entities.Localization;
 
 public class HippotherapyLandingPageAnotherQuoteSectionLocalization : LocalizationBase<HippotherapyLandingPageAnotherQuoteSection>
 {
+    [Audited]
     [RichText]
     public string QuoteText { get; set; } = null!;
 
+    [Audited]
     [RichText]
     public string? AuthorName { get; set; }
 }
