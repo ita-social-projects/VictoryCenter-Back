@@ -1,7 +1,8 @@
 using dotenv.net;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using VictoryCenter.WebAPI.Extensions;
 using VictoryCenter.BLL.Hubs;
+using VictoryCenter.WebAPI.Extensions;
+using VictoryCenter.WebAPI.Hubs;
 
 DotEnv.Load();
 
@@ -44,6 +45,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
 app.MapHub<PdfReportsHub>("/hubs/reports");
+app.MapHub<AdminContentHub>("/hubs/admin-content", options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();
 
