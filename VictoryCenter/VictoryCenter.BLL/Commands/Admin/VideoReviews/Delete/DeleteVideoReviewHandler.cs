@@ -3,8 +3,10 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Errors;
+using VictoryCenter.BLL.Interfaces.Audit;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 
@@ -15,24 +17,28 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly TimeProvider _timeProvider;
     private readonly IReorderService _reorderService;
+    private readonly IAuditLogFactory _auditLogFactory;
 
     public DeleteVideoReviewHandler(
         IRepositoryWrapper repositoryWrapper,
         TimeProvider timeProvider,
-        IReorderService reorderService)
+        IReorderService reorderService,
+        IAuditLogFactory auditLogFactory)
     {
         _repositoryWrapper = repositoryWrapper;
         _timeProvider = timeProvider;
         _reorderService = reorderService;
+        _auditLogFactory = auditLogFactory;
     }
 
     public async Task<Result<long>> Handle(DeleteVideoReviewCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var archivedRows = await _repositoryWrapper.VideoReviewsRepository.ArchiveAsync(
-                request.Id,
-                _timeProvider.GetUtcNow());
+            await using var transaction = await _repositoryWrapper.BeginTransactionAsync(cancellationToken);
+
+            var archivedAt = _timeProvider.GetUtcNow();
+            var archivedRows = await _repositoryWrapper.VideoReviewsRepository.ArchiveAsync(request.Id, archivedAt);
 
             if (archivedRows == 0)
             {
@@ -51,7 +57,19 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
                 return Result.Ok(entity.Id);
             }
 
+            _repositoryWrapper.AddAuditLog(_auditLogFactory.Create(
+                nameof(VideoReview),
+                request.Id.ToString(),
+                AuditOperation.Delete,
+                new Dictionary<string, AuditChange>
+                {
+                    [nameof(VideoReview.IsArchived)] = new AuditChange(false, true),
+                    [nameof(VideoReview.ArchivedAt)] = new AuditChange(null, archivedAt),
+                }));
+            await _repositoryWrapper.SaveChangesAsync();
+
             await _reorderService.RenumberPriorityAsync<VideoReview>(videoReview => !videoReview.IsArchived);
+            await transaction.CommitAsync(cancellationToken);
 
             return Result.Ok(request.Id);
         }

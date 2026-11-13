@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.Enums;
+using VictoryCenter.BLL.Interfaces.Audit;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 using VictoryCenter.DAL.Entities;
@@ -33,6 +34,7 @@ public class VideoReviewHandlersTests
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly Mock<IReorderService> _reorderService = new();
     private readonly Mock<IDbContextTransaction> _transaction = new();
+    private readonly Mock<IAuditLogFactory> _auditLogFactory = new();
 
     public VideoReviewHandlersTests()
     {
@@ -442,7 +444,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync((VideoReview?)null);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -466,7 +468,7 @@ public class VideoReviewHandlersTests
                 entity.ArchivedAt = archivedAt;
             })
             .ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -487,7 +489,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -541,7 +543,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.ArchiveAsync(10, TestNow))
             .ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -562,7 +564,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.ArchiveAsync(10, TestNow))
             .ThrowsAsync(new DbUpdateException());
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 

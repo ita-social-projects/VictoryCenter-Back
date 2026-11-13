@@ -1,15 +1,11 @@
 using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
-using System.Security.Claims;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Transactions;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Storage;
+using VictoryCenter.BLL.Interfaces.Audit;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Enums;
@@ -20,22 +16,12 @@ public class AuditInterceptor : SaveChangesInterceptor
 {
     private static readonly ConcurrentDictionary<Type, string[]> AuditedPropertiesByType = new();
 
-    private static readonly JsonSerializerOptions ChangesJsonOptions = new()
-    {
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        Converters = { new JsonStringEnumConverter() },
-    };
-
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly TimeProvider _timeProvider;
+    private readonly IAuditLogFactory _auditLogFactory;
     private readonly ConditionalWeakTable<DbContext, PendingCreates> _pendingCreates = new();
 
-    public AuditInterceptor(
-        IHttpContextAccessor httpContextAccessor,
-        TimeProvider timeProvider)
+    public AuditInterceptor(IAuditLogFactory auditLogFactory)
     {
-        _httpContextAccessor = httpContextAccessor;
-        _timeProvider = timeProvider;
+        _auditLogFactory = auditLogFactory;
     }
 
     public override InterceptionResult<int> SavingChanges(
@@ -152,7 +138,7 @@ public class AuditInterceptor : SaveChangesInterceptor
     }
 
     private static bool IsAuditable(EntityEntry entry) =>
-    entry.Metadata.ClrType.IsDefined(typeof(AuditableAttribute), inherit: true);
+        entry.Metadata.ClrType.IsDefined(typeof(AuditableAttribute), inherit: true);
 
     private static string[] GetAuditedProperties(EntityEntry entry)
     {
@@ -171,9 +157,9 @@ public class AuditInterceptor : SaveChangesInterceptor
             : string.Join(";", keys.Select(k => $"{k.Name}={entry.Property(k.Name).CurrentValue}"));
     }
 
-    private static string? BuildChanges(EntityEntry entry, AuditOperation operation, PropertyValues? databaseValues)
+    private static Dictionary<string, AuditChange> BuildChanges(EntityEntry entry, AuditOperation operation, PropertyValues? databaseValues)
     {
-        var changes = new Dictionary<string, object?>();
+        var changes = new Dictionary<string, AuditChange>();
         var auditedProperties = GetAuditedProperties(entry);
 
         foreach (var propertyName in auditedProperties)
@@ -181,13 +167,21 @@ public class AuditInterceptor : SaveChangesInterceptor
             var property = entry.Property(propertyName);
             if (operation == AuditOperation.Create)
             {
-                changes[propertyName] = new { Old = (object?)null, New = property.CurrentValue };
+                if (property.CurrentValue is not null)
+                {
+                    changes[propertyName] = new AuditChange(null, property.CurrentValue);
+                }
+
                 continue;
             }
 
             if (operation == AuditOperation.Delete)
             {
-                changes[propertyName] = new { Old = property.OriginalValue, New = (object?)null };
+                if (property.OriginalValue is not null)
+                {
+                    changes[propertyName] = new AuditChange(property.OriginalValue, null);
+                }
+
                 continue;
             }
 
@@ -197,10 +191,10 @@ public class AuditInterceptor : SaveChangesInterceptor
                 continue;
             }
 
-            changes[propertyName] = new { Old = oldValue, New = property.CurrentValue };
+            changes[propertyName] = new AuditChange(oldValue, property.CurrentValue);
         }
 
-        return changes.Count > 0 ? JsonSerializer.Serialize(changes, ChangesJsonOptions) : null;
+        return changes;
     }
 
     private static List<EntityEntry> GetUpdatedOrDeletedEntries(DbContext context)
@@ -265,20 +259,12 @@ public class AuditInterceptor : SaveChangesInterceptor
     private AuditLog CreateAuditLog(
         EntityEntry entry,
         AuditOperation operation,
-        PropertyValues? databaseValues = null)
-    {
-        var httpContext = _httpContextAccessor.HttpContext;
-        return new AuditLog
-        {
-            ActorId = httpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier),
-            Operation = operation,
-            EntityType = entry.Metadata.ClrType.Name,
-            EntityId = GetEntityId(entry),
-            Timestamp = _timeProvider.GetUtcNow(),
-            CorrelationId = httpContext?.TraceIdentifier,
-            Changes = BuildChanges(entry, operation, databaseValues),
-        };
-    }
+        PropertyValues? databaseValues = null) =>
+        _auditLogFactory.Create(
+            entry.Metadata.ClrType.Name,
+            GetEntityId(entry),
+            operation,
+            BuildChanges(entry, operation, databaseValues));
 
     private async Task TrackCreatesAsync(DbContext context, CancellationToken cancellationToken)
     {
