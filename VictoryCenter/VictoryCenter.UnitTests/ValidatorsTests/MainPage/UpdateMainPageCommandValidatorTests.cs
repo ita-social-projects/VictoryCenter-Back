@@ -79,7 +79,7 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
     }
 
     [Fact]
@@ -139,12 +139,9 @@ public class UpdateMainPageCommandValidatorTests
                         Name = "updated-name",
                         Type = MetricType.Raised,
                     },
-                    new UpdateMetricDto
-                    {
-                        Value = 123,
-                        Name = "new-metric",
-                        Type = MetricType.Partners,
-                    },
+                    new UpdateMetricDto { Value = 123, Name = "new-metric", Type = MetricType.Partners },
+                    new UpdateMetricDto { Value = 123, Name = "programs", Type = MetricType.Programs },
+                    new UpdateMetricDto { Value = 123, Name = "hours", Type = MetricType.TherapyHours },
                 ],
             },
         });
@@ -160,6 +157,106 @@ public class UpdateMainPageCommandValidatorTests
 
         // Assert
         result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData(null, MetricType.Raised)]
+    [InlineData(9999L, MetricType.Raised)]
+    [InlineData(14L, MetricType.Partners)]
+    public async Task Validate_ShouldRejectReplacementOfPersistedMetric(long? id, MetricType type)
+    {
+        var dto = GetValidDto();
+        var metrics = dto.ImpactStatistics!.Metrics.ToList();
+        metrics[0] = metrics[0] with { Id = id, Type = type };
+        var command = new UpdateMainPageCommand(dto with
+        {
+            ImpactStatistics = dto.ImpactStatistics with { Metrics = metrics },
+        });
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(GetExistingMainPage());
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        result.ShouldHaveValidationErrorFor(x => x)
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
+    }
+
+    [Fact]
+    public async Task Validate_ShouldRejectMetricIds_WhenStatisticsDoNotExist()
+    {
+        var entity = GetExistingMainPage();
+        entity.ImpactStatistics = null;
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+        var dto = GetValidDto();
+        var command = new UpdateMainPageCommand(dto with
+        {
+            ImpactStatistics = dto.ImpactStatistics! with { Id = null },
+        });
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        result.ShouldHaveValidationErrorFor(x => x);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public async Task Validate_ShouldAllowUnchangedPersistedMetricSet(int count)
+    {
+        var entity = GetExistingMainPage();
+        entity.ImpactStatistics!.Metrics = [.. Enum.GetValues<MetricType>().Take(count)
+            .Select((type, index) => new Metric { Id = index + 1, Type = type, Name = type.ToString() })];
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+        var dto = GetValidDto();
+        var command = new UpdateMainPageCommand(dto with
+        {
+            ImpactStatistics = dto.ImpactStatistics! with
+            {
+                Metrics = [.. entity.ImpactStatistics.Metrics.Select(metric => new UpdateMetricDto
+                {
+                    Id = metric.Id,
+                    Type = metric.Type,
+                    Name = metric.Name,
+                })],
+            },
+        });
+
+        (await CreateValidator().TestValidateAsync(command)).ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(3, false)]
+    [InlineData(4, true)]
+    public async Task Validate_NewStatisticsRequiresFourTypesWithoutIds(int count, bool valid)
+    {
+        var entity = GetExistingMainPage();
+        entity.ImpactStatistics = null;
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(entity);
+        var dto = GetValidDto();
+        var command = new UpdateMainPageCommand(dto with
+        {
+            ImpactStatistics = dto.ImpactStatistics! with
+            {
+                Id = null,
+                Metrics = [.. Enum.GetValues<MetricType>().Take(count)
+                    .Select(type => new UpdateMetricDto { Type = type, Name = type.ToString() })],
+            },
+        });
+
+        var result = await CreateValidator().TestValidateAsync(command);
+
+        Assert.Equal(valid, result.IsValid);
     }
 
     private UpdateMainPageCommandValidator CreateValidator() =>
@@ -184,6 +281,9 @@ public class UpdateMainPageCommandValidatorTests
                     Name = "children",
                     Type = MetricType.Raised,
                 },
+                new UpdateMetricDto { Value = 100, Name = "partners", Type = MetricType.Partners },
+                new UpdateMetricDto { Value = 100, Name = "programs", Type = MetricType.Programs },
+                new UpdateMetricDto { Value = 100, Name = "hours", Type = MetricType.TherapyHours },
             ],
         },
     };

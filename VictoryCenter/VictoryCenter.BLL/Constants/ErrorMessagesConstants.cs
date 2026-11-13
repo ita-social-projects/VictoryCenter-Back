@@ -12,6 +12,11 @@ public static class ErrorMessagesConstants
     public static readonly string UnknownStatusValue = "Unknown status value";
     public static readonly string OnlyDigitsExpression = "^[0-9]+$";
 
+    public static string MetricsMustMatchExistingStatistics { get; } =
+        "ImpactStatistics.Id must match the existing statistics block. " +
+        "Metrics must include every persisted metric with its original ID and type; omit IDs only for new metric types. " +
+        "New statistics blocks require all four metric types; existing incomplete blocks may keep their current types or add missing types.";
+
     public static string NotFound()
     {
         return "Not Found";
@@ -260,7 +265,7 @@ public static class ErrorMessagesConstants
 
     public static string MetricTypesMustBeUnique()
     {
-        return "Each of the four metric types must appear exactly once: Partners, Programs, Raised, TherapyHours.";
+        return "Each metric type may appear at most once: Partners, Programs, Raised, TherapyHours.";
     }
 
     public static string PropertyMustBeValidEmail(string property)
