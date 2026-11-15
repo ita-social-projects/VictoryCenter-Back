@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore;
@@ -56,9 +57,8 @@ public class AuditInterceptor : SaveChangesInterceptor
         int result,
         CancellationToken cancellationToken = default)
     {
-        if (eventData.Context is { } context && _pendingCreates.TryGetValue(context, out var pending))
+        if (eventData.Context is { } context && TryTakePending(context, out var pending))
         {
-            _pendingCreates.Remove(context);
             try
             {
                 foreach (var entry in pending.Entries)
@@ -87,9 +87,8 @@ public class AuditInterceptor : SaveChangesInterceptor
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
-        if (eventData.Context is { } context && _pendingCreates.TryGetValue(context, out var pending))
+        if (eventData.Context is { } context && TryTakePending(context, out var pending))
         {
-            _pendingCreates.Remove(context);
             try
             {
                 foreach (var entry in pending.Entries)
@@ -114,27 +113,45 @@ public class AuditInterceptor : SaveChangesInterceptor
         DbContextErrorEventData eventData,
         CancellationToken cancellationToken = default)
     {
-        if (eventData.Context is { } context && _pendingCreates.TryGetValue(context, out var pending))
-        {
-            _pendingCreates.Remove(context);
-            if (pending.OwnTransaction is not null)
-            {
-                await pending.OwnTransaction.DisposeAsync();
-            }
-        }
-
+        await ReleasePendingAsync(eventData.Context);
         await base.SaveChangesFailedAsync(eventData, cancellationToken);
     }
 
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
-        if (eventData.Context is { } context && _pendingCreates.TryGetValue(context, out var pending))
-        {
-            _pendingCreates.Remove(context);
-            pending.OwnTransaction?.Dispose();
-        }
-
+        ReleasePending(eventData.Context);
         base.SaveChangesFailed(eventData);
+    }
+
+    public override async Task SaveChangesCanceledAsync(
+        DbContextEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        await ReleasePendingAsync(eventData.Context);
+        await base.SaveChangesCanceledAsync(eventData, cancellationToken);
+    }
+
+    public override void SaveChangesCanceled(DbContextEventData eventData)
+    {
+        ReleasePending(eventData.Context);
+        base.SaveChangesCanceled(eventData);
+    }
+
+    public override async ValueTask<InterceptionResult> ThrowingConcurrencyExceptionAsync(
+        ConcurrencyExceptionEventData eventData,
+        InterceptionResult result,
+        CancellationToken cancellationToken = default)
+    {
+        await ReleasePendingAsync(eventData.Context);
+        return await base.ThrowingConcurrencyExceptionAsync(eventData, result, cancellationToken);
+    }
+
+    public override InterceptionResult ThrowingConcurrencyException(
+        ConcurrencyExceptionEventData eventData,
+        InterceptionResult result)
+    {
+        ReleasePending(eventData.Context);
+        return base.ThrowingConcurrencyException(eventData, result);
     }
 
     private static bool IsAuditable(EntityEntry entry) =>
@@ -304,6 +321,33 @@ public class AuditInterceptor : SaveChangesInterceptor
         }
 
         _pendingCreates.AddOrUpdate(context, new PendingCreates(created, ownTransaction));
+    }
+
+    private bool TryTakePending(DbContext context, [NotNullWhen(true)] out PendingCreates? pending)
+    {
+        if (_pendingCreates.TryGetValue(context, out pending))
+        {
+            _pendingCreates.Remove(context);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ReleasePending(DbContext? context)
+    {
+        if (context is not null && TryTakePending(context, out var pending))
+        {
+            pending.OwnTransaction?.Dispose();
+        }
+    }
+
+    private async Task ReleasePendingAsync(DbContext? context)
+    {
+        if (context is not null && TryTakePending(context, out var pending) && pending.OwnTransaction is not null)
+        {
+            await pending.OwnTransaction.DisposeAsync();
+        }
     }
 
     private sealed record PendingCreates(List<EntityEntry> Entries, IDbContextTransaction? OwnTransaction);
