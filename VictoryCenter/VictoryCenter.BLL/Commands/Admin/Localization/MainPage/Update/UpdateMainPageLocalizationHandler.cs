@@ -75,12 +75,12 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
 
             transaction.Complete();
 
-            var blocks = blocksUpdateResult.Value;
+            var (mainAboutUs, mainPartners, mainDonations) = blocksUpdateResult.Value;
             var response = _mapper.Map<MainPageLocalizationDto>(updatedMainPageLocalization) with
             {
-                MainAboutUs = blocks.MainAboutUs,
-                MainPartners = blocks.MainPartners,
-                MainDonations = blocks.MainDonations
+                MainAboutUs = mainAboutUs,
+                MainPartners = mainPartners,
+                MainDonations = mainDonations
             };
 
             return Result.Ok(response);

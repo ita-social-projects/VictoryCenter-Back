@@ -9,6 +9,11 @@ public class UpdateGalleryCardDtoValidator : AbstractValidator<UpdateGalleryCard
 {
     public UpdateGalleryCardDtoValidator()
     {
+        RuleFor(x => x.Id)
+            .GreaterThan(0)
+            .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateGalleryCardDto.Id)))
+            .When(x => x.Id.HasValue);
+
         RuleFor(x => x.Description)
             .NotEmpty()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateGalleryCardDto.Description)))
