@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -29,7 +30,8 @@ public class ReportFundsExpendituresRecordHelper : IReportFundsExpendituresRecor
 
         if (settingsEntity is null)
         {
-            return Result.Fail<ReportFundsExpendituresSettingsDto>(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage);
+            return Result.Fail<ReportFundsExpendituresSettingsDto>(
+                new NotFoundError(ReportFundsExpendituresSettingsConstants.CouldNotFindSettingsErrorMessage));
         }
 
         var settingsDto = _mapper.Map<ReportFundsExpendituresSettingsDto>(settingsEntity);

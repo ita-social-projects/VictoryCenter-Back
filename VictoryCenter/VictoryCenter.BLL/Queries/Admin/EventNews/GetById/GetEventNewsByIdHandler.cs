@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;

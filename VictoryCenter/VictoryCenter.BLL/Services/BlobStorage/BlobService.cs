@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
+using VictoryCenter.DAL.Constants;
 using VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Services.BlobStorage;
@@ -17,14 +18,11 @@ public class BlobService : IBlobService
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BlobService"/> class.
-    /// Ensures that the storage directory exists during initialization.
+    /// Storage directories are initialized once during application startup.
     /// </summary>
     /// <param name="environment">Configuration settings for the blob storage.</param>
     /// <param name="httpContextAccessor">Provides access to <see cref="HttpContext"/> for building absolute URLs.</param>
     /// <param name="logger">The logger used to report best-effort cleanup failures.</param>
-    /// <exception cref="BlobFileSystemException">
-    /// Thrown if the local storage directory could not be created.
-    /// </exception>
     public BlobService(
         IOptions<BlobEnvironmentVariables> environment,
         IHttpContextAccessor httpContextAccessor,
@@ -33,14 +31,6 @@ public class BlobService : IBlobService
         _blobEnv = environment.Value;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
-        try
-        {
-            Directory.CreateDirectory(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath));
-        }
-        catch (Exception ex)
-        {
-            throw new BlobFileSystemException(Path.Combine(_blobEnv.RootPath, _blobEnv.ImagesSubPath), ImageConstants.FailToCreateDirectory, ex);
-        }
     }
 
     /// <summary>
@@ -197,11 +187,10 @@ public class BlobService : IBlobService
     {
         return mimeType.ToLower() switch
         {
-            ImageMimeTypes.Jpeg => "jpg",
-            ImageMimeTypes.Jpg => "jpg",
-            ImageMimeTypes.Png => "png",
-            ImageMimeTypes.Webp => "webp",
-            _ => "jpg"
+            ImageMimeTypes.Jpeg or ImageMimeTypes.Jpg => FileExtensions.Jpg,
+            ImageMimeTypes.Png => FileExtensions.Png,
+            ImageMimeTypes.Webp => FileExtensions.Webp,
+            _ => FileExtensions.Jpg
         };
     }
 
@@ -212,7 +201,7 @@ public class BlobService : IBlobService
         var filePath = Path.Combine(_blobEnv.FullPath, $"{name}.{type}");
         var temporaryFilePath = Path.Combine(
             _blobEnv.FullPath,
-            $".{name}.{Guid.NewGuid():N}.tmp");
+            $".{name}.{type}.{Guid.NewGuid():N}{FileExtensions.TemporaryWithDot}");
 
         try
         {
@@ -283,7 +272,8 @@ public class BlobService : IBlobService
     {
         if (string.IsNullOrWhiteSpace(name)
             || name.Contains("..")
-            || Path.GetInvalidFileNameChars().Any(name.Contains))
+            || name.IndexOfAny(['/', '\\']) >= 0
+            || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
         {
             throw new BlobFileNameException(name, ImageConstants.WrongFileName(name));
         }

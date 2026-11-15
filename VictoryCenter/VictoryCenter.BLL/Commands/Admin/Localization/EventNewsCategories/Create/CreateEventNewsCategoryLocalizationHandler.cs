@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;

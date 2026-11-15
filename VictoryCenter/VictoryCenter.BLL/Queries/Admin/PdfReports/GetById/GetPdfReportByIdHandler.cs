@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.DAL.Entities;

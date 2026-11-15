@@ -57,11 +57,7 @@ public class BaseApiController : ControllerBase
             return Ok(result.Value);
         }
 
-        // Typed checks come first; the string-matching fallbacks below exist only because
-        // not every "not found"/"unauthorized" Result.Fail(...) call site has been migrated
-        // to the typed errors yet.
-        if (result.HasError<NotFoundError>() || result.HasError(error
-            => error.Message.Contains("not found", StringComparison.CurrentCultureIgnoreCase)))
+        if (result.HasError<NotFoundError>())
         {
             return NotFound(CreateProblemDetails(StatusCodes.Status404NotFound));
         }

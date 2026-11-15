@@ -20,12 +20,13 @@ public class DeleteImageTests : BaseTestClass
         var id = image!.Id;
 
         string extension = image.MimeType.Split("/")[1];
-        string path = Fixture.BlobEnvironmentVariables.FullPath + image.BlobName + "." + extension;
+        string path = Path.Combine(Fixture.BlobEnvironmentVariables.FullPath, image.BlobName + "." + extension);
 
         HttpResponseMessage response = await Fixture.HttpClient.DeleteAsync($"api/Image/{id}");
 
         Assert.True(response.IsSuccessStatusCode);
         Assert.Null(await Fixture.DbContext.Images.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id));
+        await Fixture.ProcessPendingStorageOperationsAsync();
         Assert.False(File.Exists(path));
     }
 

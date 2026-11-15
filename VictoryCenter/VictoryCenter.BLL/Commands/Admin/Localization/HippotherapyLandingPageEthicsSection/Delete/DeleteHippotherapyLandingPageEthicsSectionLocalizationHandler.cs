@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageEthicsSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.Localization;
@@ -57,7 +58,7 @@ public class DeleteHippotherapyLandingPageEthicsSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<DeleteHippotherapyLandingPageEthicsSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<DeleteHippotherapyLandingPageEthicsSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

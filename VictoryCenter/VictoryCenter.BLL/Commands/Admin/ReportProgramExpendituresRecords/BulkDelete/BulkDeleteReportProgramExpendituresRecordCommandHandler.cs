@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -46,7 +47,7 @@ public class BulkDeleteReportProgramExpendituresRecordCommandHandler
             {
                 return Result.Fail(NotFoundErrors.NotFound(
                     nonExistingRecordIds,
-                    typeof(ReportProgramExpendituresRecord)));
+                    typeof(ReportProgramExpendituresRecord))));
             }
 
             _repositoryWrapper

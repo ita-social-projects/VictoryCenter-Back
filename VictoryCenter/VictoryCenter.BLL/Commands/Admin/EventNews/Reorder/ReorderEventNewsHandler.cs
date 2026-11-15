@@ -3,6 +3,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

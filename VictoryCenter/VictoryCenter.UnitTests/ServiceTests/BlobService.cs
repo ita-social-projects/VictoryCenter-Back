@@ -32,6 +32,7 @@ public class BlobServiceTests : IDisposable
             ImagesSubPath = _subDir
         };
         _blobEnv = env;
+        Directory.CreateDirectory(env.FullPath);
         _mockHttpContext = new Mock<IHttpContextAccessor>();
         _mockLogger = new Mock<ILogger<BlobService>>();
 

@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnerSections;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.DAL.Entities;
@@ -81,7 +82,7 @@ public class UpdatePartnerSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<PartnerSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<PartnerSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

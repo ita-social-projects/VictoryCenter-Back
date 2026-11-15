@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

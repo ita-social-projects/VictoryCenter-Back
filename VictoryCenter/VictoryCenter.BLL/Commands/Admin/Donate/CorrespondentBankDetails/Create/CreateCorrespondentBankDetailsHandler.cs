@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.CorrespondentBankDetails;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using VictoryCenter.BLL.Errors;
@@ -39,8 +40,8 @@ public class CreateCorrespondentBankDetailsHandler : IRequestHandler<CreateCorre
 
             if (foreignBankDetailsEntity is null)
             {
-                return Result.Fail<CorrespondentBankDetailsDto>(ErrorMessagesConstants
-                    .NotFound(request.CreateCorrespondentBankDetailsDto.ForeignBankDetailsId, typeof(Entities.ForeignBankDetails)));
+                return Result.Fail<CorrespondentBankDetailsDto>(new NotFoundError(ErrorMessagesConstants
+                    .NotFound(request.CreateCorrespondentBankDetailsDto.ForeignBankDetailsId, typeof(Entities.ForeignBankDetails))));
             }
 
             Entities.CorrespondentBankDetails entity = _mapper.Map<Entities.CorrespondentBankDetails>(request.CreateCorrespondentBankDetailsDto);

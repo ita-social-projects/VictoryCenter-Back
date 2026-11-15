@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Images.Update;
 using VictoryCenter.BLL.Constants;
@@ -62,7 +63,7 @@ public class UpdateImageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ValidRequest_ShouldPersistReplacementBeforeDeletingPreviousBlob()
+    public async Task Handle_ValidRequest_ShouldPersistReplacementWithoutInlineDeletion()
     {
         var operations = new List<string>();
         SetupExistingImage();
@@ -89,7 +90,7 @@ public class UpdateImageHandlerTests
         Assert.NotEqual(PreviousBlobName, result.Value.BlobName);
         Assert.Equal(_testUpdateImageDto.MimeType, result.Value.MimeType);
         Assert.Equal(TestNow, result.Value.UpdatedAt);
-        Assert.Equal(["save-new", "update-database", "delete-old"], operations);
+        Assert.Equal(["save-new", "update-database"], operations);
         _mockBlobService.Verify(
             service => service.SaveFileInStorageAsync(
                 _testUpdateImageDto.Base64!,
@@ -98,7 +99,7 @@ public class UpdateImageHandlerTests
             Times.Once);
         _mockBlobService.Verify(
             service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
-            Times.Once);
+            Times.Never);
     }
 
     [Fact]
@@ -163,7 +164,7 @@ public class UpdateImageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_DatabaseUpdateFails_ShouldDeleteReplacementAndPreservePreviousBlob()
+    public async Task Handle_DatabaseUpdateFails_ShouldLeaveCleanupToUploadReservation()
     {
         string? replacementBlobName = null;
         SetupExistingImage();
@@ -184,14 +185,14 @@ public class UpdateImageHandlerTests
         Assert.NotNull(replacementBlobName);
         _mockBlobService.Verify(
             service => service.DeleteFileInStorage(replacementBlobName, _testUpdateImageDto.MimeType!),
-            Times.Once);
+            Times.Never);
         _mockBlobService.Verify(
             service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
             Times.Never);
     }
 
     [Fact]
-    public async Task Handle_DatabaseUpdateThrows_ShouldDeleteReplacementAndPreservePreviousBlob()
+    public async Task Handle_DatabaseUpdateThrows_ShouldNotDeleteFilesInline()
     {
         string? replacementBlobName = null;
         SetupExistingImage();
@@ -212,10 +213,26 @@ public class UpdateImageHandlerTests
         Assert.NotNull(replacementBlobName);
         _mockBlobService.Verify(
             service => service.DeleteFileInStorage(replacementBlobName, _testUpdateImageDto.MimeType!),
-            Times.Once);
+            Times.Never);
         _mockBlobService.Verify(
             service => service.DeleteFileInStorage(PreviousBlobName, PreviousMimeType),
             Times.Never);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Handle_DatabaseException_ShouldReturnFailureWithoutInlineDeletion(bool concurrencyConflict)
+    {
+        SetupExistingImage();
+        DbUpdateException exception = concurrencyConflict
+            ? new DbUpdateConcurrencyException("Competing replacement") : new DbUpdateException("Database save failed");
+        _mockRepositoryWrapper.Setup(repository => repository.SaveChangesAsync()).ThrowsAsync(exception);
+
+        var result = await CreateHandler().Handle(new UpdateImageCommand(_testUpdateImageDto, _testImage.Id), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        _mockBlobService.Verify(service => service.DeleteFileInStorage(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]

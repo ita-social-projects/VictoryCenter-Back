@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
+using VictoryCenter.DAL.Constants;
 
 namespace VictoryCenter.BLL.Services.PdfStorage;
 
@@ -13,15 +14,6 @@ public class PdfService : IPdfService
     public PdfService(IOptions<PdfEnvironmentVariables> environment, IHttpContextAccessor httpContextAccessor)
     {
         _pdfEnv = environment.Value;
-
-        try
-        {
-            Directory.CreateDirectory(_pdfEnv.FullPath);
-        }
-        catch (Exception ex)
-        {
-            throw new BlobFileSystemException(_pdfEnv.FullPath, PdfReportConstants.FailedToCreateDirectory, ex);
-        }
     }
 
     public async Task<string> UploadPdfAsync(IFormFile file, string? fileName = null)
@@ -57,28 +49,40 @@ public class PdfService : IPdfService
             $"{normalizedFileName}.{PdfReportConstants.PdfExtension}";
 
         var filePath = Path.Combine(_pdfEnv.FullPath, fileNameWithExtension);
+        var temporaryPath = Path.Combine(_pdfEnv.FullPath, $".{fileNameWithExtension}.{Guid.NewGuid():N}{FileExtensions.TemporaryWithDot}");
 
         try
         {
-            using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None);
-            await file.CopyToAsync(fileStream);
+            await using (var fileStream = new FileStream(temporaryPath, new FileStreamOptions
+            {
+                Mode = FileMode.CreateNew,
+                Access = FileAccess.Write,
+                Share = FileShare.None,
+                Options = FileOptions.Asynchronous | FileOptions.WriteThrough
+            }))
+            {
+                await file.CopyToAsync(fileStream);
+                await fileStream.FlushAsync();
+            }
+
+            File.Move(temporaryPath, filePath, overwrite: true);
 
             return fileNameWithExtension;
         }
         catch (Exception ex)
         {
+            throw new BlobFileSystemException(fileNameWithExtension, PdfReportConstants.FailedToSavePdf, ex);
+        }
+        finally
+        {
             try
             {
-                if (File.Exists(filePath))
-                {
-                    File.Delete(filePath);
-                }
+                File.Delete(temporaryPath);
             }
-            catch
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
+                // Reconciliation can find a leftover temporary file; preserve the primary result.
             }
-
-            throw new BlobFileSystemException(fileNameWithExtension, PdfReportConstants.FailedToSavePdf, ex);
         }
     }
 

@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.MainPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

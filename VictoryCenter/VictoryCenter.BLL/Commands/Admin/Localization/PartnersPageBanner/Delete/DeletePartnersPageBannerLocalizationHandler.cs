@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnersPageBanner;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using PartnersPageBannerEntity = VictoryCenter.DAL.Entities.PartnersPageBanner;
@@ -28,7 +29,7 @@ public class DeletePartnersPageBannerLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<DeletePartnersPageBannerLocalizationDto>(knfex.Message);
+            return Result.Fail<DeletePartnersPageBannerLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

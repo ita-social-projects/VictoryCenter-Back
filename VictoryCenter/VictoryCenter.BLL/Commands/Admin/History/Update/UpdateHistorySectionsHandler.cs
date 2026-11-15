@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HistorySection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -40,7 +41,7 @@ public class UpdateFeedbackHistoryLocalizationHandler
         {
             return Result.Fail<FeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization)));
+                typeof(FeedbackHistoryLocalization))));
         }
 
         var normalizedTitle = request.Localization.Title.Trim();
@@ -68,7 +69,7 @@ public class UpdateFeedbackHistoryLocalizationHandler
         {
             return Result.Fail<FeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization)));
+                typeof(FeedbackHistoryLocalization))));
         }
 
         return Result.Fail<FeedbackHistoryLocalizationDto>(

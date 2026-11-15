@@ -53,6 +53,7 @@ public class UpdateImageTest : BaseTestClass
         Assert.Equal(updateImageDto.MimeType, responseContext.MimeType);
         Assert.NotEqual(previousBlobName, responseContext.BlobName);
         Assert.NotEqual(oldHash, newHash);
+        await Fixture.ProcessPendingStorageOperationsAsync();
         Assert.False(File.Exists(filePath));
         Assert.True(File.Exists(newFilePath));
     }

@@ -30,6 +30,7 @@ public class PdfServiceTests : IDisposable
         };
 
         _mockHttpContext = new Mock<IHttpContextAccessor>();
+        Directory.CreateDirectory(_pdfEnv.FullPath);
         _pdfService = new PdfService(Options.Create(_pdfEnv), _mockHttpContext.Object);
     }
 

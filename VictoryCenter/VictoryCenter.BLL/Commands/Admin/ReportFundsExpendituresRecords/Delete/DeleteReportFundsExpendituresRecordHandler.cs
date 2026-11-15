@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
@@ -52,7 +53,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
         {
             return Result.Fail<EventNewsDto>(NotFoundErrors.NotFound(
                 request.CreateEventNewsDto.CategoryId,
-                typeof(EventNewsCategory)));
+                typeof(EventNewsCategory))));
         }
 
         var previewImageResult = await ImageValidationHelper.ValidateAndGetImageAsync(

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;

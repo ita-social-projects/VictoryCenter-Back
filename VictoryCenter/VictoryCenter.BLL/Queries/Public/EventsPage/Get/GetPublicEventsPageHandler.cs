@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.BLL.DTOs.Public.EventsPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;

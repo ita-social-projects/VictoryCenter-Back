@@ -98,7 +98,7 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         }
         catch (KeyNotFoundException ex)
         {
-            return Result.Fail<HippotherapyProgramLocalizationDto>(ex.Message);
+            return Result.Fail<HippotherapyProgramLocalizationDto>(new NotFoundError(ex.Message));
         }
         catch (InvalidOperationException)
         {

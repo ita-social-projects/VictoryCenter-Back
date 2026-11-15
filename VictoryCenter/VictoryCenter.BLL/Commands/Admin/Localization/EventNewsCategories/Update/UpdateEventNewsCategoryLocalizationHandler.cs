@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
@@ -41,7 +42,7 @@ public class UpdateEventNewsCategoryLocalizationHandler
         {
             return Result.Fail<AdminEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(EventNewsCategoryLocalization)));
+                typeof(EventNewsCategoryLocalization))));
         }
 
         var normalizedName = request.Localization.Name.Trim();
@@ -74,7 +75,7 @@ public class UpdateEventNewsCategoryLocalizationHandler
         {
             return Result.Fail<AdminEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(EventNewsCategoryLocalization)));
+                typeof(EventNewsCategoryLocalization))));
         }
         catch (DbUpdateException exception) when (exception.IsUniqueConstraintException())
         {

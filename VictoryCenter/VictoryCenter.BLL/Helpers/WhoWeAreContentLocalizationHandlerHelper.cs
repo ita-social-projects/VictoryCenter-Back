@@ -2,6 +2,7 @@ using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.WhoWeAreContents;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;

@@ -13,4 +13,6 @@ public class Image : BaseEntity
     public string MimeType { get; set; } = null!;
 
     public DateTimeOffset UpdatedAt { get; set; }
+
+    public Guid StorageVersion { get; set; } = Guid.NewGuid();
 }

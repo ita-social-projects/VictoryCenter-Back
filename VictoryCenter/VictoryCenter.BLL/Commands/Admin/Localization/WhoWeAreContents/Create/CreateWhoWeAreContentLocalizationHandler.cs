@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.WhoWeAreContents;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
@@ -47,7 +48,7 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
 
             if (sanitizedDtosResult.IsFailed)
             {
-                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors.Select(e => e.Message));
+                return Result.Fail<List<WhoWeAreContentLocalizationDto>>(sanitizedDtosResult.Errors);
             }
 
             var createdLocalizations = new List<WhoWeAreContentLocalizationDto>();
@@ -65,7 +66,7 @@ public class CreateWhoWeAreContentLocalizationHandler : IRequestHandler<CreateWh
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(knfex.Message);
+            return Result.Fail<List<WhoWeAreContentLocalizationDto>>(new NotFoundError(knfex.Message));
         }
         catch (ArgumentException aex)
         {

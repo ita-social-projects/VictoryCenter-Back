@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageParticipantsSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
@@ -76,7 +77,7 @@ public class UpdateHippotherapyLandingPageParticipantsSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

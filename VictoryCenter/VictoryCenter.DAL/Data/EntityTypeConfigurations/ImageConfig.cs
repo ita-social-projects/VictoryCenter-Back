@@ -30,5 +30,7 @@ public class ImageConfig : IEntityTypeConfiguration<Image>
             .IsRequired();
 
         entity.Ignore(e => e.Url);
+
+        entity.Property(e => e.StorageVersion).IsConcurrencyToken();
     }
 }

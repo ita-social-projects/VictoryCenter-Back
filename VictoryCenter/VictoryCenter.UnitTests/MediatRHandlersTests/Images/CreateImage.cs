@@ -205,5 +205,6 @@ public class CreateImageHandlerTests
         // Assert
         Assert.False(result.IsSuccess);
         Assert.Equal(ErrorMessagesConstants.BlobStorageError(ImageConstants.FailToSaveImageInStorage), result.Errors[0].Message);
+        _mockRepositoryWrapper.Verify(repository => repository.SaveChangesAsync(), Times.Never);
     }
 }

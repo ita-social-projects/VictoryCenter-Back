@@ -1,6 +1,7 @@
 using FluentResults;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

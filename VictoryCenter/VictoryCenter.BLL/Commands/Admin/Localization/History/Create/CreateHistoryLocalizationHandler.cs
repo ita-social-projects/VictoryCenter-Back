@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
@@ -101,7 +102,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(knfex.Message);
+            return Result.Fail<List<HistorySectionLocalizationDto>>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
@@ -12,9 +13,12 @@ namespace VictoryCenter.DAL.Data;
 
 public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<int>, int>
 {
-    public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options)
+    private readonly TimeProvider _clock;
+
+    public VictoryCenterDbContext(DbContextOptions<VictoryCenterDbContext> options, TimeProvider? clock = null)
         : base(options)
     {
+        _clock = clock ?? TimeProvider.System;
     }
 
     public DbSet<TeamCategory> TeamCategories { get; set; }
@@ -28,6 +32,10 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     public DbSet<Image> Images { get; set; }
+
+    public DbSet<StorageOperation> StorageOperations { get; set; }
+
+    public DbSet<StorageReconciliationFinding> StorageReconciliationFindings { get; set; }
 
     public DbSet<PdfSection> PdfSections { get; set; }
 
@@ -240,9 +248,136 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
 
     public DbSet<VideoReviewLocalization> VideoReviewLocalizations { get; set; }
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        foreach (var (kind, name) in PrepareStorageChanges())
+        {
+            CompleteUploadIntent(StorageOperations.SingleOrDefault(operation => operation.FileKind == kind
+                && operation.FileName == name && operation.Kind == StorageOperationKind.UploadCleanup));
+        }
+
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var (kind, name) in PrepareStorageChanges())
+        {
+            var operation = await StorageOperations.SingleOrDefaultAsync(
+                operation => operation.FileKind == kind && operation.FileName == name
+                    && operation.Kind == StorageOperationKind.UploadCleanup, cancellationToken);
+            CompleteUploadIntent(operation);
+        }
+
+        return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(typeof(VictoryCenterDbContext).Assembly);
+    }
+
+    private List<(StorageFileKind Kind, string Name)> PrepareStorageChanges()
+    {
+        List<(StorageFileKind Kind, string Name)> uploads = [];
+        ChangeTracker.DetectChanges();
+        foreach (var entry in ChangeTracker.Entries<Image>().ToArray())
+        {
+            var upload = PrepareImageChange(entry);
+            if (upload != null)
+            {
+                uploads.Add((StorageFileKind.Image, upload));
+            }
+        }
+
+        foreach (var entry in ChangeTracker.Entries<PdfReport>().ToArray())
+        {
+            if (entry.State == EntityState.Deleted)
+            {
+                QueueStorageDeletion(StorageFileKind.Pdf, entry.Entity.BlobName);
+            }
+
+            if (entry.State == EntityState.Added)
+            {
+                uploads.Add((StorageFileKind.Pdf, entry.Entity.BlobName));
+            }
+        }
+
+        foreach (var entry in ChangeTracker.Entries<StorageOperation>().Where(entry => entry.State == EntityState.Added
+            && entry.Entity.CreatedAt == default))
+        {
+            entry.Entity.CreatedAt = _clock.GetUtcNow();
+        }
+
+        return [.. uploads.Distinct()];
+    }
+
+    private string? PrepareImageChange(EntityEntry<Image> entry)
+    {
+        if (entry.State == EntityState.Added)
+        {
+            return StorageFileNames.Image(entry.Entity.BlobName, entry.Entity.MimeType);
+        }
+
+        if (entry.State is EntityState.Unchanged or EntityState.Detached)
+        {
+            return null;
+        }
+
+        var previous = StorageFileNames.Image(
+            entry.OriginalValues.GetValue<string>(nameof(Image.BlobName)),
+            entry.OriginalValues.GetValue<string>(nameof(Image.MimeType)));
+        if (entry.State == EntityState.Deleted)
+        {
+            QueueStorageDeletion(StorageFileKind.Image, previous);
+            return null;
+        }
+
+        entry.Entity.StorageVersion = Guid.NewGuid();
+        var current = StorageFileNames.Image(entry.Entity.BlobName, entry.Entity.MimeType);
+        if (previous == current)
+        {
+            return null;
+        }
+
+        QueueStorageDeletion(StorageFileKind.Image, previous);
+        return current;
+    }
+
+    private void QueueStorageDeletion(StorageFileKind fileKind, string fileName)
+    {
+        if (!StorageOperations.Local.Any(operation => operation.FileKind == fileKind
+            && operation.FileName == fileName && operation.Kind == StorageOperationKind.Delete
+            && operation.Status == StorageOperationStatus.Pending))
+        {
+            StorageOperations.Add(new StorageOperation
+            {
+                FileKind = fileKind,
+                FileName = fileName,
+                Kind = StorageOperationKind.Delete,
+                NextAttemptAt = _clock.GetUtcNow()
+            });
+        }
+    }
+
+    private void CompleteUploadIntent(StorageOperation? operation)
+    {
+        if (operation == null)
+        {
+            // Existing files and database-only seed data predate upload intents.
+            return;
+        }
+
+        if (operation.Status != StorageOperationStatus.Pending)
+        {
+            throw new DbUpdateConcurrencyException("The upload reservation is no longer available.");
+        }
+
+        operation.Status = StorageOperationStatus.Completed;
+        operation.CompletedAt = _clock.GetUtcNow();
+        operation.Version = Guid.NewGuid();
     }
 }

@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageEthicsSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;

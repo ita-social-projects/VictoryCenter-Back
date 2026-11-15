@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreContent;
 using VictoryCenter.BLL.DTOs.Admin.WhoWeAreSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;

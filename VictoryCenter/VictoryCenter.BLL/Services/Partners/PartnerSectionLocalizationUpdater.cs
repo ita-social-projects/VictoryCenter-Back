@@ -1,6 +1,7 @@
 using AutoMapper;
 using FluentResults;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnerSections;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.DAL.Entities;

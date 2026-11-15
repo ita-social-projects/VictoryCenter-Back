@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Services.ReportExpendituresCategorySwapService;
@@ -127,7 +128,7 @@ public class BatchSaveReportProgramExpendituresRecordHandler
         {
             return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingRecordIds,
-                typeof(ReportProgramExpendituresRecord)));
+                typeof(ReportProgramExpendituresRecord))));
         }
 
         return Result.Ok(Unit.Value);
@@ -187,7 +188,7 @@ public class BatchSaveReportProgramExpendituresRecordHandler
         {
             return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingCategoryIds,
-                typeof(HippotherapyProgramCategory)));
+                typeof(HippotherapyProgramCategory))));
         }
 
         if (duplicateRecordsInCategory.Any())

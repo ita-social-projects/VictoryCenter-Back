@@ -1,6 +1,7 @@
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;

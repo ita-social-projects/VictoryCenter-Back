@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -57,7 +58,7 @@ public class GetMainPageLocalizationByLanguageIdHandler
             return Result.Fail<MainPageLocalizationDto>(
                 NotFoundErrors.NotFound(
                     (request.EntityId, request.LanguageId),
-                    typeof(MainPageLocalization)));
+                    typeof(MainPageLocalization))));
         }
 
         var response = _mapper.Map<MainPageLocalizationDto>(mainPageLocalization) with

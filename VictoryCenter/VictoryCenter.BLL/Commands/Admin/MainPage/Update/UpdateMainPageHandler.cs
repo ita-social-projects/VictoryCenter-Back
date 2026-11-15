@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;

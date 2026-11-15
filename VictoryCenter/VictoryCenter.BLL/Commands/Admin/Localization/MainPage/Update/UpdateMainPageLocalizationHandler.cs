@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.DAL.Entities.Localization;
@@ -87,7 +88,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<MainPageLocalizationDto>(knfex.Message);
+            return Result.Fail<MainPageLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

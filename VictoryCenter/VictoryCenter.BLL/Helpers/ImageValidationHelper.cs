@@ -2,6 +2,7 @@ using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Admin.HistorySection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
@@ -177,6 +178,6 @@ public static class ImageValidationHelper
             imageId,
             typeof(Image));
 
-        return Result.Fail<Image?>(errorMessage);
+        return Result.Fail<Image?>(new NotFoundError(errorMessage));
     }
 }

@@ -1,4 +1,5 @@
 using System.Net;
+using System.Globalization;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -55,6 +56,23 @@ public class CreatePdfReportTests : BaseTestClass
         // Assert
         Assert.False(response.IsSuccessStatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Theory]
+    [InlineData(0, HttpStatusCode.BadRequest)]
+    [InlineData(-1, HttpStatusCode.BadRequest)]
+    [InlineData(int.MaxValue, HttpStatusCode.NotFound)]
+    public async Task CreatePdfReport_InvalidLanguage_ShouldNotWriteFilesOrQueueCleanup(long languageId, HttpStatusCode expected)
+    {
+        var filesBefore = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+        var operationsBefore = await Fixture.DbContext.StorageOperations.CountAsync();
+        using var form = CreatePdfFormData(languageId: languageId);
+
+        using var response = await Fixture.HttpClient.PostAsync("api/PdfReports", form);
+
+        Assert.Equal(expected, response.StatusCode);
+        Assert.Equal(filesBefore, Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length);
+        Assert.Equal(operationsBefore, await Fixture.DbContext.StorageOperations.CountAsync());
     }
 
     [Fact]
@@ -133,6 +151,8 @@ public class CreatePdfReportTests : BaseTestClass
     [Fact]
     public async Task CreatePdfReport_CorruptedPdfWithValidMimeType_ShouldReturnBadRequest()
     {
+        var filesBeforeTest = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
+
         // Arrange
         var corruptedContent = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0 }; // JPEG magic bytes
         using var form = CreatePdfFormData(content: corruptedContent);
@@ -145,11 +165,7 @@ public class CreatePdfReportTests : BaseTestClass
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         // Verify no file was saved
-        var files = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf");
-        var filesBeforeTest = files.Length;
-
-        files = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf");
-        Assert.Equal(filesBeforeTest, files.Length);
+        Assert.Equal(filesBeforeTest, Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length);
     }
 
     [Fact]
@@ -169,6 +185,8 @@ public class CreatePdfReportTests : BaseTestClass
 
         // Act
         pdfService.DeletePdf(blobName);
+        Assert.True(File.Exists(Path.Combine(Fixture.PdfEnvironmentVariables.FullPath, blobName)));
+        await Fixture.ProcessPendingStorageOperationsAsync();
 
         // Assert
         var finalFileCount = Directory.GetFiles(Fixture.PdfEnvironmentVariables.FullPath, "*.pdf").Length;
@@ -230,7 +248,7 @@ public class CreatePdfReportTests : BaseTestClass
         var fileContent = new ByteArrayContent(pdfContent);
         fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
         form.Add(fileContent, "File", fileName);
-        form.Add(new StringContent("1"), "LanguageId");
+        form.Add(new StringContent(languageId.ToString(CultureInfo.InvariantCulture)), "LanguageId");
         return form;
     }
 

@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
