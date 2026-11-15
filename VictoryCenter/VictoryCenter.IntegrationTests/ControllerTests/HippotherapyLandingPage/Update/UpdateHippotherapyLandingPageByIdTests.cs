@@ -73,34 +73,25 @@ public class UpdateHippotherapyLandingPageByIdTests : BaseTestClass
 
     [Fact]
     public Task Put_WhenCardIsAddedWithoutId_ShouldReturnItWithGeneratedId() =>
-        WithRestoredPageAsync(async page =>
+    WithRestoredPageAsync(async page =>
+    {
+        var dto = ToValidUpdateDto(page);
+        var newDescription = ValidDescription("_NEW");
+
+        dto.ParticipantsSection.Cards[0] = new UpdateGalleryCardDto
         {
-            var dto = ToValidUpdateDto(page);
-            var newDescription = ValidDescription("_NEW");
+            Id = null,
+            Description = newDescription,
+            ImageId = null,
+        };
 
-            var newCard = new UpdateGalleryCardDto
-            {
-                Id = null,
-                Description = newDescription,
-                ImageId = null,
-            };
+        var response = await PutAsync(dto);
+        await AssertStatusCodeAsync(HttpStatusCode.OK, response);
 
-            if (dto.ParticipantsSection.Cards.Count > 0)
-            {
-                dto.ParticipantsSection.Cards[0] = newCard;
-            }
-            else
-            {
-                dto.ParticipantsSection.Cards.Add(newCard);
-            }
-
-            var response = await PutAsync(dto);
-            await AssertStatusCodeAsync(HttpStatusCode.OK, response);
-
-            var updated = Deserialize(await response.Content.ReadAsStringAsync());
-            var added = updated.ParticipantsSection.Cards.Single(c => c.Description == newDescription);
-            Assert.True(added.Id > 0);
-        });
+        var updated = Deserialize(await response.Content.ReadAsStringAsync());
+        var added = updated.ParticipantsSection.Cards.Single(c => c.Description == newDescription);
+        Assert.True(added.Id > 0);
+    });
 
     [Fact]
     public async Task Put_WhenCardIdIsUnknown_ShouldReturnNotFound()
@@ -108,7 +99,7 @@ public class UpdateHippotherapyLandingPageByIdTests : BaseTestClass
         var dto = ToValidUpdateDto(await GetPageAsync());
         var unknownCard = new UpdateGalleryCardDto
         {
-            Id = 999999,
+            Id = 9999999,
             Description = ValidDescription(),
             ImageId = null,
         };
@@ -152,7 +143,62 @@ public class UpdateHippotherapyLandingPageByIdTests : BaseTestClass
         }
         finally
         {
-            await PutAsync(ToValidUpdateDto(original));
+            await RestoreAsync(original);
+        }
+    }
+
+    private async Task RestoreAsync(HippotherapyLandingPageDto original)
+    {
+        var current = await GetPageAsync();
+        var dto = ToValidUpdateDto(original);
+
+        var advantageIds = current.AdvantagesSection.Cards.Select(c => (long?)c.Id).ToHashSet();
+        DetachMissing(
+            dto.AdvantagesSection.Cards,
+            c => c.Id,
+            advantageIds,
+            c => c with { Id = null, ImageId = null });
+
+        var participantIds = current.ParticipantsSection.Cards.Select(c => (long?)c.Id).ToHashSet();
+        DetachMissing(
+            dto.ParticipantsSection.Cards,
+            c => c.Id,
+            participantIds,
+            c => c with { Id = null, ImageId = null });
+
+        var principleIds = current.EthicsSection.Principles.Select(p => (long?)p.Id).ToHashSet();
+        DetachMissing(
+            dto.EthicsSection.Principles,
+            p => p.Id,
+            principleIds,
+            p => new UpdateEthicsPrincipleDto { Id = null, Text = p.Text });
+
+        var referenceIds = current.ScientificReferencesSection.ScientificReferences
+            .Select(r => (long?)r.Id)
+            .ToHashSet();
+        DetachMissing(
+            dto.ScientificReferencesSection.ScientificReferences,
+            r => r.Id,
+            referenceIds,
+            r => new UpdateScientificReferenceDto { Id = null, Name = r.Name, Url = r.Url });
+
+        var response = await PutAsync(dto);
+        await AssertStatusCodeAsync(HttpStatusCode.OK, response);
+    }
+
+    private static void DetachMissing<T>(
+        List<T> items,
+        Func<T, long?> getId,
+        HashSet<long?> existingIds,
+        Func<T, T> withoutId)
+    {
+        for (var i = 0; i < items.Count; i++)
+        {
+            var id = getId(items[i]);
+            if (id.HasValue && !existingIds.Contains(id))
+            {
+                items[i] = withoutId(items[i]);
+            }
         }
     }
 
