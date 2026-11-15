@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -444,7 +445,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         {
             if (!existingById.ContainsKey(id))
             {
-                return Result.Fail<List<TItem>>(ErrorMessagesConstants.NotFound(id, typeof(TItem)));
+                return Result.Fail<List<TItem>>(new NotFoundError(ErrorMessagesConstants.NotFound(id, typeof(TItem))));
             }
         }
 
@@ -509,8 +510,9 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             {
                 if (!existingById.TryGetValue(referenceDto.Id.Value, out var existingReference))
                 {
-                    return Result.Fail(ErrorMessagesConstants.NotFound(
-                        referenceDto.Id.Value, typeof(HippotherapyLandingPageScientificReference)));
+                    return Result.Fail<List<HippotherapyLandingPageScientificReference>>(
+                        new NotFoundError(ErrorMessagesConstants.NotFound(
+                        referenceDto.Id.Value, typeof(HippotherapyLandingPageScientificReference))));
                 }
 
                 if (!string.Equals(existingReference.Name, referenceDto.Name, StringComparison.Ordinal))
