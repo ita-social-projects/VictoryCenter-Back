@@ -10,7 +10,6 @@ using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 using EventsIntroSectionEntity = VictoryCenter.DAL.Entities.EventsIntroSection;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventsIntroSection.Update;

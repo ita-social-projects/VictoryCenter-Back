@@ -9,7 +9,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.FeedbackHistories.Update;
 
@@ -41,7 +40,7 @@ public class UpdateFeedbackHistoryLocalizationHandler
         {
             return Result.Fail<FeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization))));
+                typeof(FeedbackHistoryLocalization)));
         }
 
         var normalizedTitle = request.Localization.Title.Trim();
@@ -69,7 +68,7 @@ public class UpdateFeedbackHistoryLocalizationHandler
         {
             return Result.Fail<FeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization))));
+                typeof(FeedbackHistoryLocalization)));
         }
 
         return Result.Fail<FeedbackHistoryLocalizationDto>(

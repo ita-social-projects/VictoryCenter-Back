@@ -14,7 +14,6 @@ using VictoryCenter.DAL.Entities.HistoryContents;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.History.Update;
 

@@ -8,7 +8,6 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageQuoteSect
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.BLL.Errors;
 using HippotherapyLandingPageQuoteSectionEntity =
     VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageQuoteSection;
 

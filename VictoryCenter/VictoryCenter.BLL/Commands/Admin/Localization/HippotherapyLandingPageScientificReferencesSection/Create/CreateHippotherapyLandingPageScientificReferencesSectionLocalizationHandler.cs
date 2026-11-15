@@ -10,7 +10,6 @@ using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Options;
 using HippotherapyLandingPageScientificReferencesSectionEntity =
     VictoryCenter.DAL.Entities.HippotherapyLandingPageContents.HippotherapyLandingPageScientificReferencesSection;

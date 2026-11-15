@@ -16,7 +16,6 @@ using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using ImpactStatisticsEntity = VictoryCenter.DAL.Entities.ImpactStatistics;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 

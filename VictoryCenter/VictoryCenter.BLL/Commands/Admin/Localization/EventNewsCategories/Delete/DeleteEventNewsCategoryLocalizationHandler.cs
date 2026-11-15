@@ -7,7 +7,6 @@ using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventNewsCategories.Delete;
 
@@ -35,7 +34,7 @@ public class DeleteEventNewsCategoryLocalizationHandler
         {
             return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(EventNewsCategoryLocalization))));
+                typeof(EventNewsCategoryLocalization)));
         }
 
         _repositoryWrapper.EventNewsCategoryLocalizationsRepository.Delete(localization);
@@ -51,7 +50,7 @@ public class DeleteEventNewsCategoryLocalizationHandler
         {
             return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(EventNewsCategoryLocalization))));
+                typeof(EventNewsCategoryLocalization)));
         }
     }
 }

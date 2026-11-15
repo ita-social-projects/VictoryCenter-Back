@@ -17,7 +17,6 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.ReportFundsExpendituresRecords;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.ReportFundsExpendituresRecords;
 

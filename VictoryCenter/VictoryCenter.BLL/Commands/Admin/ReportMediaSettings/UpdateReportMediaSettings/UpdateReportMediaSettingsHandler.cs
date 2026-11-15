@@ -11,7 +11,6 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Image = VictoryCenter.DAL.Entities.Image;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportMediaSettings.UpdateReportMediaSettings;
 

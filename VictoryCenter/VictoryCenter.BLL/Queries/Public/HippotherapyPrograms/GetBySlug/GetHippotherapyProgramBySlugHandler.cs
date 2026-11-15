@@ -8,7 +8,6 @@ using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Public.HippotherapyPrograms.GetBySlug;
 

@@ -9,7 +9,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.FeedbackReviews.Update;
 
@@ -41,7 +40,7 @@ public class UpdateFeedbackReviewLocalizationHandler
         {
             return Result.Fail<FeedbackReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackReviewLocalization))));
+                typeof(FeedbackReviewLocalization)));
         }
 
         var normalizedAuthorName = request.Localization.AuthorName.Trim();
@@ -69,7 +68,7 @@ public class UpdateFeedbackReviewLocalizationHandler
         {
             return Result.Fail<FeedbackReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackReviewLocalization))));
+                typeof(FeedbackReviewLocalization)));
         }
 
         return Result.Fail<FeedbackReviewLocalizationDto>(

@@ -8,7 +8,6 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.EventsIntroSection;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.BLL.Errors;
 using EventsIntroSectionEntity = VictoryCenter.DAL.Entities.EventsIntroSection;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.EventsIntroSection.Create;

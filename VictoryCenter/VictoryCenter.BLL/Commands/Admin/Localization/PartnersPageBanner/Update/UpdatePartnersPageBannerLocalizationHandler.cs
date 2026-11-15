@@ -8,7 +8,6 @@ using VictoryCenter.BLL.DTOs.Admin.Localization.PartnersPageBanner;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
-using VictoryCenter.BLL.Errors;
 using PartnersPageBannerEntity = VictoryCenter.DAL.Entities.PartnersPageBanner;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.PartnersPageBanner.Update;

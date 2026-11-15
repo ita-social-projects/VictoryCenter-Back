@@ -8,7 +8,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.Localization.MainPage.GetByLanguageId;
 
@@ -58,7 +57,7 @@ public class GetMainPageLocalizationByLanguageIdHandler
             return Result.Fail<MainPageLocalizationDto>(
                 NotFoundErrors.NotFound(
                     (request.EntityId, request.LanguageId),
-                    typeof(MainPageLocalization))));
+                    typeof(MainPageLocalization)));
         }
 
         var response = _mapper.Map<MainPageLocalizationDto>(mainPageLocalization) with

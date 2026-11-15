@@ -11,7 +11,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Services.MainPage;
 

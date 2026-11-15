@@ -9,7 +9,6 @@ using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Admin.Localization.MainPage.GetStatuses;
 

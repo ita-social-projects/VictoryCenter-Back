@@ -11,7 +11,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.PdfSection.Create;
 

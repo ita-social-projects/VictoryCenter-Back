@@ -10,7 +10,6 @@ using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Create;
 
@@ -49,7 +48,7 @@ public class CreateReportProgramExpendituresRecordHandler :
             return Result.Fail(
                 NotFoundErrors.NotFound(
                     request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
-                    typeof(HippotherapyProgramCategory))));
+                    typeof(HippotherapyProgramCategory)));
         }
 
         var reportProgramExpendituresRecord =

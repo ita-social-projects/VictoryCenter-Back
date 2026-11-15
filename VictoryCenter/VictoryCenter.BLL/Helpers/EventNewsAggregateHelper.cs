@@ -7,7 +7,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Helpers;
 

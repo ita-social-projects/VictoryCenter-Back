@@ -16,7 +16,6 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using HippotherapyProgramEntity = VictoryCenter.DAL.Entities.HippotherapyProgram;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.Localization.HippotherapyProgram.Create;
 

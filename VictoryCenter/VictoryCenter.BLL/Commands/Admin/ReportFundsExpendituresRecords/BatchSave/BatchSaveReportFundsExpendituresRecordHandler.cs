@@ -14,7 +14,6 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.BatchSave;
 
@@ -173,7 +172,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
         {
             return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingRecordIds,
-                typeof(ReportFundsExpendituresRecord))));
+                typeof(ReportFundsExpendituresRecord)));
         }
 
         return Result.Ok(Unit.Value);
@@ -193,7 +192,7 @@ public class BatchSaveReportFundsExpendituresRecordHandler
         {
             return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingCategoryIds,
-                typeof(ReportFundsExpendituresCategory))));
+                typeof(ReportFundsExpendituresCategory)));
         }
 
         foreach(var record in recordsToValidate)

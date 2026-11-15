@@ -6,7 +6,6 @@ using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
-using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Queries.Public.HippotherapyLandingPage.Get;
 
