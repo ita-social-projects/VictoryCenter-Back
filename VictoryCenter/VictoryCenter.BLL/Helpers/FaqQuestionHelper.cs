@@ -1,5 +1,6 @@
 using FluentResults;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -38,7 +39,7 @@ public static class FaqQuestionHelper
 
         if (missingIds.Count > 0)
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound(missingIds, typeof(FaqQuestion)));
+            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(missingIds, typeof(FaqQuestion))));
         }
 
         foreach (var content in (sections ?? []).SelectMany(s => s.Contents ?? []).OfType<FaqQuestionProgramContent>())

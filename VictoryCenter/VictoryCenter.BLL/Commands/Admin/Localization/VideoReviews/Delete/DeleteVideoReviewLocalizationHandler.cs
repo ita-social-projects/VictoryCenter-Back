@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -31,9 +32,9 @@ public class DeleteVideoReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteVideoReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteVideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization)));
+                typeof(VideoReviewLocalization))));
         }
 
         _repositoryWrapper.VideoReviewLocalizationsRepository.Delete(localization);
@@ -47,9 +48,9 @@ public class DeleteVideoReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteVideoReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteVideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization)));
+                typeof(VideoReviewLocalization))));
         }
     }
 }

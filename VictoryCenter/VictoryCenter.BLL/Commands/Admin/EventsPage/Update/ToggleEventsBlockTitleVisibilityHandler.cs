@@ -32,7 +32,7 @@ public class ToggleEventsBlockTitleVisibilityHandler : IRequestHandler<ToggleEve
 
             if (entity == null)
             {
-                return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
+                return Result.Fail<EventsIntroSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
             }
 
             entity.IsEventsBlockTitleHidden = !entity.IsEventsBlockTitleHidden;

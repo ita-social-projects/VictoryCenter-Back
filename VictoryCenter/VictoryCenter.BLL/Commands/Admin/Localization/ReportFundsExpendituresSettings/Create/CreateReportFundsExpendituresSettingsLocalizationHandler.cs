@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
@@ -42,7 +43,7 @@ public class CreateReportFundsExpendituresSettingsLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<ReportFundsExpendituresSettingsLocalizationDto>(knfex.Message);
+            return Result.Fail<ReportFundsExpendituresSettingsLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

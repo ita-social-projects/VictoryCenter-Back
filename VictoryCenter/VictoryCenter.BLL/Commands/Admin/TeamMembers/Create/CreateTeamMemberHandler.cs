@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -54,8 +55,8 @@ public class CreateTeamMemberHandler : IRequestHandler<CreateTeamMemberCommand, 
 
             if (category == null)
             {
-                return Result.Fail<TeamMemberDto>(
-                    ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(TeamCategory)));
+                return Result.Fail<TeamMemberDto>(new NotFoundError(
+                    ErrorMessagesConstants.NotFound(request.CreateTeamMemberDto.CategoryId, typeof(TeamCategory))));
             }
 
             var entity = _mapper.Map<TeamMember>(request.CreateTeamMemberDto);

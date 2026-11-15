@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -77,8 +78,8 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
 
                 if (nonExistingImageIds.Count > 0)
                 {
-                    return Result.Fail<MainPageDto>(
-                        ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image)));
+                    return Result.Fail<MainPageDto>(new NotFoundError(
+                        ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image))));
                 }
             }
 

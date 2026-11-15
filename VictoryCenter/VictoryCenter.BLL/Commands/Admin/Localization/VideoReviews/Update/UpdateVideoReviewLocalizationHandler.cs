@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -37,9 +38,9 @@ public class UpdateVideoReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<VideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization)));
+                typeof(VideoReviewLocalization))));
         }
 
         var normalizedTitle = request.Localization.Title.Trim();
@@ -62,9 +63,9 @@ public class UpdateVideoReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<VideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization)));
+                typeof(VideoReviewLocalization))));
         }
 
         return Result.Fail<VideoReviewLocalizationDto>(

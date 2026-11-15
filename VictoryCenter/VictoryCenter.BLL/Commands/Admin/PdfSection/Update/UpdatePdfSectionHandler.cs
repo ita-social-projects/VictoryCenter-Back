@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -37,7 +38,7 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
             var count = await _repositoryWrapper.PdfSectionRepository.CountAsync();
             if (count == 0)
             {
-                return Result.Fail<PdfSectionDto>(PdfSectionConstants.SectionNotFound);
+                return Result.Fail<PdfSectionDto>(new NotFoundError(PdfSectionConstants.SectionNotFound));
             }
 
             if (count > 1)
@@ -54,7 +55,7 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
 
             if (pdfSection == null)
             {
-                return Result.Fail<PdfSectionDto>(PdfSectionConstants.SectionNotFound);
+                return Result.Fail<PdfSectionDto>(new NotFoundError(PdfSectionConstants.SectionNotFound));
             }
 
             var normalizedTitle = NormalizeText(request.Dto.Title);

@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.ReportFundsExpendituresCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -44,7 +45,7 @@ public class UpdateReportFundsExpendituresCategoryLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<ReportFundsExpendituresCategoryLocalizationDto>(knfex.Message);
+            return Result.Fail<ReportFundsExpendituresCategoryLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -36,7 +37,7 @@ public class UpdateVideoReviewHandler : IRequestHandler<UpdateVideoReviewCommand
 
         if (entity is null)
         {
-            return Result.Fail<VideoReviewDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview)));
+            return Result.Fail<VideoReviewDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview))));
         }
 
         var normalizedDto = request.VideoReview with

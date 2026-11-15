@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresSettings;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.BLL.Validators.ReportFundsExpendituresRecords;
@@ -194,7 +195,8 @@ public class UpdateReportFundsExpendituresRecordTests
 
         _helperMock
             .Setup(h => h.ValidateCategoryChangeAsync(It.IsAny<ReportFundsExpendituresRecord>(), It.IsAny<long>(), It.IsAny<long>()))
-            .ReturnsAsync(Result.Fail(ErrorMessagesConstants.NotFound(2, typeof(ReportFundsExpendituresCategory))));
+            .ReturnsAsync(Result.Fail(new NotFoundError(
+                ErrorMessagesConstants.NotFound(2, typeof(ReportFundsExpendituresCategory)))));
 
         var handler = CreateHandler();
 
@@ -208,6 +210,7 @@ public class UpdateReportFundsExpendituresRecordTests
         Assert.Equal(
             ErrorMessagesConstants.NotFound(2, typeof(ReportFundsExpendituresCategory)),
             result.Errors[0].Message);
+        Assert.IsType<NotFoundError>(result.Errors[0]);
     }
 
     [Fact]

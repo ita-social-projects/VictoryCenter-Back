@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -32,7 +33,7 @@ public class GetImageByIdHandler : IRequestHandler<GetImageByIdQuery, Result<Ima
 
             if (image is null)
             {
-                return Result.Fail<ImageDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(Image)));
+                return Result.Fail<ImageDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(Image))));
             }
 
             if (string.IsNullOrEmpty(image.BlobName))

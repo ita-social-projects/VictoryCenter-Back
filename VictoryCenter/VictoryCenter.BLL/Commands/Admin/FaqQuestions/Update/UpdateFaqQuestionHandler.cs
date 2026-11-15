@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -51,7 +52,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
+                return Result.Fail<FaqQuestionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion))));
             }
 
             using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
@@ -91,7 +92,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
                     var missingPageIds = addedPageIds.Except(allPageIds).ToList();
                     if (missingPageIds.Any())
                     {
-                        return Result.Fail<FaqQuestionDto>(FaqConstants.SomePagesNotFound);
+                        return Result.Fail<FaqQuestionDto>(new NotFoundError(FaqConstants.SomePagesNotFound));
                     }
 
                     var newPlacements = new List<FaqPlacement>();

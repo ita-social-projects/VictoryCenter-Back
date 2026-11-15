@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -47,8 +48,8 @@ public class GetPublishedEventNewsBySlugHandler
 
         if (eventNews is null)
         {
-            return Result.Fail<PublishedEventNewsDetailsDto>(
-                $"Published event news with slug '{request.Slug}' was not found");
+            return Result.Fail<PublishedEventNewsDetailsDto>(new NotFoundError(
+                $"Published event news with slug '{request.Slug}' was not found"));
         }
 
         return Result.Ok(_mapper.Map<PublishedEventNewsDetailsDto>(eventNews));

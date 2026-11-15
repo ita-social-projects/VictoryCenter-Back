@@ -205,6 +205,10 @@ public static class ServicesConfiguration
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<LogRedactionOptions>()
+            .BindConfiguration(LogRedactionOptions.SectionName);
+        services.AddSingleton<IRequestLogSanitizer, RequestLogSanitizer>();
+
         services.AddHttpClient("Way4PayClient")
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             {

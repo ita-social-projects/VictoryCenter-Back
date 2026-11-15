@@ -49,10 +49,8 @@ public class HistorySectionContentLocalizationValidationHelper
         {
             if (!contentTypesById.TryGetValue(content.EntityId, out var contentType))
             {
-                throw new ValidationException(
-                [
-                    new ValidationFailure("EntityId", ErrorMessagesConstants.NotFound(content.EntityId, typeof(HistorySectionContent)))
-                ]);
+                throw new KeyNotFoundException(
+                    ErrorMessagesConstants.NotFound(content.EntityId, typeof(HistorySectionContent)));
             }
 
             if (!allowedTypes.Contains(contentType))

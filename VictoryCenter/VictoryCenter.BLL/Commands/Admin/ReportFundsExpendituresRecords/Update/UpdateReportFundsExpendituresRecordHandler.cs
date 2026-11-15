@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
@@ -57,7 +58,7 @@ public class UpdateReportFundsExpendituresRecordHandler
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<ReportFundsExpendituresRecordDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresRecord)));
+                return Result.Fail<ReportFundsExpendituresRecordDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresRecord))));
             }
 
             var categoryValidationResult = await _helper.ValidateCategoryChangeAsync(entityToUpdate, request.UpdateReportFundsExpendituresRecordDto.CategoryId, request.Id);

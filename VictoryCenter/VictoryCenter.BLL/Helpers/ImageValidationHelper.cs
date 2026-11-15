@@ -2,6 +2,7 @@ using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
 using VictoryCenter.BLL.DTOs.Admin.HistorySection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
@@ -65,7 +66,8 @@ public static class ImageValidationHelper
             var missingIds = ids.Where(id => !imagesById.ContainsKey(id)).ToList();
 
             return missingIds.Count != 0
-                ? Result.Fail<IReadOnlyDictionary<long, Image>>(ErrorMessagesConstants.NotFound(missingIds, typeof(Image)))
+                ? Result.Fail<IReadOnlyDictionary<long, Image>>(
+                    new NotFoundError(ErrorMessagesConstants.NotFound(missingIds, typeof(Image))))
                 : Result.Ok<IReadOnlyDictionary<long, Image>>(imagesById);
         }
         catch (BlobStorageException)
@@ -176,6 +178,6 @@ public static class ImageValidationHelper
             imageId,
             typeof(Image));
 
-        return Result.Fail<Image?>(errorMessage);
+        return Result.Fail<Image?>(new NotFoundError(errorMessage));
     }
 }

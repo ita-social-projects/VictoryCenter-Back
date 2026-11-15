@@ -2,6 +2,7 @@ using FluentResults;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Constants.Localization;
 using VictoryCenter.BLL.DTOs.Admin.Localization.WhoWeAreContents;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
@@ -28,7 +29,7 @@ internal static class WhoWeAreContentLocalizationHandlerHelper
         {
             if (!dictEntities.TryGetValue(dto.EntityId, out var whoWeAreContent))
             {
-                return Result.Fail(ErrorMessagesConstants.NotFound(dto.EntityId, typeof(WhoWeAreContent)));
+                return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(dto.EntityId, typeof(WhoWeAreContent))));
             }
 
             if (whoWeAreContent.SectionId != sectionId)

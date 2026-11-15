@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
@@ -169,9 +170,9 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (nonExistingRecordIds.Count > 0)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 nonExistingRecordIds,
-                typeof(ReportFundsExpendituresRecord)));
+                typeof(ReportFundsExpendituresRecord))));
         }
 
         return Result.Ok(Unit.Value);
@@ -189,9 +190,9 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (nonExistingCategoryIds.Count > 0)
         {
-            return Result.Fail<Unit>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(
                 nonExistingCategoryIds,
-                typeof(ReportFundsExpendituresCategory)));
+                typeof(ReportFundsExpendituresCategory))));
         }
 
         foreach(var record in recordsToValidate)

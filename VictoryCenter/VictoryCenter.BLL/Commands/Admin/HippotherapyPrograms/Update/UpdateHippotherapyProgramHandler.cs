@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
@@ -65,8 +66,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             if (program is null)
             {
-                return Result.Fail<HippotherapyProgramDto>(
-                    ErrorMessagesConstants.NotFound(request.Id, typeof(HippotherapyProgram)));
+                return Result.Fail<HippotherapyProgramDto>(new NotFoundError(
+                    ErrorMessagesConstants.NotFound(request.Id, typeof(HippotherapyProgram))));
             }
 
             var newCategoriesResult = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(

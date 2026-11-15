@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -47,7 +48,7 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
             {
                 if (!allPages.Any(p => p.Id == pageId))
                 {
-                    return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(pageId, typeof(VisitorPage)));
+                    return Result.Fail<FaqQuestionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(pageId, typeof(VisitorPage))));
                 }
 
                 var priority = await _reorderService.GetNextDisplayOrderAsync<FaqPlacement>(

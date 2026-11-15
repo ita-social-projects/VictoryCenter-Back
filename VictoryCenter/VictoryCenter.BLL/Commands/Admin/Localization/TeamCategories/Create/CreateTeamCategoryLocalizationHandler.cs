@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -39,7 +40,7 @@ public class CreateTeamCategoryLocalizationHandler : IRequestHandler<CreateTeamC
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<TeamCategoryLocalizationDto>(knfex.Message);
+            return Result.Fail<TeamCategoryLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

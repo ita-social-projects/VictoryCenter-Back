@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Hubs;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -53,7 +54,7 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
 
             if (pdfReport == null)
             {
-                return Result.Fail<PdfReportDto>(ErrorMessagesConstants.NotFound(normalizedRequest.Id, typeof(PdfReport)));
+                return Result.Fail<PdfReportDto>(new NotFoundError(ErrorMessagesConstants.NotFound(normalizedRequest.Id, typeof(PdfReport))));
             }
 
             var hasChanges = pdfReport.Name != normalizedRequest.Name;

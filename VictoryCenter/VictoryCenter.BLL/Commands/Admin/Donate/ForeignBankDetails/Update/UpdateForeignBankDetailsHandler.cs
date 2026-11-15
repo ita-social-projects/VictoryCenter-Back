@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.ForeignBankDetails;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using Entities = VictoryCenter.DAL.Entities;
@@ -38,8 +39,8 @@ public class UpdateForeignBankDetailsHandler : IRequestHandler<UpdateForeignBank
 
             if (foreignBankDetailsEntity is null)
             {
-                return Result.Fail<ForeignBankDetailsDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(Entities.ForeignBankDetails)));
+                return Result.Fail<ForeignBankDetailsDto>(new NotFoundError(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(Entities.ForeignBankDetails))));
             }
 
             Entities.ForeignBankDetails entityToUpdate = _mapper.Map(request.UpdateForeignBankDetailsDto, foreignBankDetailsEntity);

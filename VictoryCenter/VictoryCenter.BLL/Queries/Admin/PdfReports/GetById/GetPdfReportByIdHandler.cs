@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.DAL.Entities;
@@ -36,7 +37,7 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
 
         if (pdfReport == null)
         {
-            return Result.Fail<Stream>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+            return Result.Fail<Stream>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
         }
 
         try
@@ -46,7 +47,7 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
         }
         catch (BlobNotFoundException)
         {
-            return Result.Fail<Stream>(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport)));
+            return Result.Fail<Stream>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
         }
         catch (BlobFileSystemException)
         {

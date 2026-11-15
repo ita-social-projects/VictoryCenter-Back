@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
@@ -51,7 +52,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
             if (section is null)
             {
-                return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection)));
+                return Result.Fail<PartnersSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection))));
             }
 
             // Step 2: Validate that there are no overlapping IDs in update and delete lists
@@ -145,7 +146,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         if (nonExistingIds.Count > 0)
         {
-            return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(nonExistingIds, typeof(Partner)));
+            return Result.Fail<PartnersSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(nonExistingIds, typeof(Partner))));
         }
 
         return Result.Ok();
@@ -172,7 +173,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         if (nonExistingImageIds.Count > 0)
         {
-            return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image)));
+            return Result.Fail<PartnersSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image))));
         }
 
         return Result.Ok();

@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageScientificReferencesSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
@@ -50,8 +51,8 @@ public class CreateHippotherapyLandingPageScientificReferencesSectionLocalizatio
             var section = await GetSectionWithReferencesAsync(dto.EntityId);
             if (section is null)
             {
-                return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageScientificReferencesSectionEntity)));
+                return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(new NotFoundError(
+                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageScientificReferencesSectionEntity))));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -73,7 +74,7 @@ public class CreateHippotherapyLandingPageScientificReferencesSectionLocalizatio
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
