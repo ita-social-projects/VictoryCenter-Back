@@ -1,4 +1,8 @@
 using System.Text.Json;
+using FluentValidation;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using VictoryCenter.WebAPI.Middleware;
 
 namespace VictoryCenter.WebAPI.ErrorHandling;
 
@@ -13,7 +17,13 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         ILogger<ApiExceptionHandler> logger,
         ProblemDetailsFactory problemsFactory,
         IProblemDetailsService problemDetailsService,
-        IRequestLogSanitizer sanitizer);
+        IRequestLogSanitizer sanitizer)
+    {
+        _logger = logger;
+        _problemsFactory = problemsFactory;
+        _problemDetailsService = problemDetailsService;
+        _sanitizer = sanitizer;
+    }
 
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
     {
