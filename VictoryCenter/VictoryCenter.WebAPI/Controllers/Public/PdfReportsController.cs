@@ -21,10 +21,9 @@ public class PdfReportsController : PublicApiController
 
     [HttpGet("{id:long}/file")]
     [EnableRateLimiting(RateLimitingPolicyNameConstants.FileDownload)]
-    [Produces("application/pdf")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests, "application/problem+json")]
     public async Task<IActionResult> GetPdfFile(long id)
     {
         var result = await Mediator.Send(new GetPdfReportByIdQuery(id));
