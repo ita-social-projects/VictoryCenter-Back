@@ -31,6 +31,11 @@ public sealed class RateLimitingOptions
     public FixedWindowPolicyOptions FileDownload { get; set; } = new() { PermitLimit = 20, WindowSeconds = 60 };
 
     /// <summary>
+    /// Gets or sets the limit for anonymous SignalR hub requests (negotiate, connect, and long-polling polls).
+    /// </summary>
+    public FixedWindowPolicyOptions RealtimeConnect { get; set; } = new() { PermitLimit = 30, WindowSeconds = 60 };
+
+    /// <summary>
     /// Gets or sets the limit for the admin login endpoint.
     /// </summary>
     public FixedWindowPolicyOptions AdminLogin { get; set; } = new() { PermitLimit = 5, WindowSeconds = 60 };
@@ -62,6 +67,7 @@ public sealed class RateLimitingOptions
             [nameof(Swagger)] = Swagger,
             [nameof(PublicRead)] = PublicRead,
             [nameof(FileDownload)] = FileDownload,
+            [nameof(RealtimeConnect)] = RealtimeConnect,
             [nameof(AdminLogin)] = AdminLogin,
             [nameof(AuthRefresh)] = AuthRefresh,
             [nameof(InitiateDonation)] = InitiateDonation,

@@ -102,6 +102,7 @@ public static class RateLimiterConfiguration
 
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.PublicRead, limits.PublicRead);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.FileDownload, limits.FileDownload);
+        options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.RealtimeConnect, limits.RealtimeConnect);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.SubmitContactUsForm, limits.SubmitContactUsForm);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.InitiateDonation, limits.InitiateDonation);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AdminLogin, limits.AdminLogin);
@@ -135,6 +136,7 @@ public static class RateLimitingPolicyNameConstants
 {
     public const string PublicRead = "public-read-rate-limiting-policy";
     public const string FileDownload = "file-download-rate-limiting-policy";
+    public const string RealtimeConnect = "realtime-connect-rate-limiting-policy";
     public const string SubmitContactUsForm = "submit-contact-us-form-rate-limiting-policy";
     public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     public const string AdminLogin = "admin-login-rate-limiting-policy";
