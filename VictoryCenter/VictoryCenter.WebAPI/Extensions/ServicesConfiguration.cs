@@ -136,6 +136,8 @@ public static class ServicesConfiguration
         });
 
         var corsSettings = SettingsExtractor.GetCorsSettings(configuration);
+
+        string[] exposedHeaders = [.. corsSettings.ExposedHeaders, Microsoft.Net.Http.Headers.HeaderNames.RetryAfter];
         services.AddCors(opt =>
         {
             opt.AddDefaultPolicy(policy =>
@@ -143,7 +145,7 @@ public static class ServicesConfiguration
                 policy.WithOrigins(corsSettings.AllowedOrigins)
                     .WithHeaders(corsSettings.AllowedHeaders)
                     .WithMethods(corsSettings.AllowedMethods)
-                    .WithExposedHeaders(corsSettings.ExposedHeaders)
+                    .WithExposedHeaders(exposedHeaders)
                     .AllowCredentials()
                     .SetPreflightMaxAge(TimeSpan.FromSeconds(corsSettings.PreflightMaxAge));
             });
