@@ -16,7 +16,7 @@ Every create, update and delete of an audited entity adds one row to the `audit.
 | `CorrelationId` | ASP.NET Core request id (`HttpContext.TraceIdentifier`). All rows written by one request share it. It is the same value as `RequestId` in the application logs. |
 | `Changes` | JSON with old and new values of the changed audited fields, for example `{"Status":{"Old":"Draft","New":"Published"}}`. `NULL` when none of the changed fields may be recorded. |
 
-Publishing, unpublishing and reordering are recorded as `Update`. They are visible in `Changes` as a change of `Status` or `Priority`.
+Publishing, unpublishing and reordering are recorded as `Update`. They are visible in `Changes` as a change of `Status` or `Priority`. Publishing the funds report is recorded as a `Create` of `PublishedReportFundsExpendituresSnapshot`, with the published values and `PublishedAt`. Every publish creates a new snapshot, so a repeated publish is recorded too.
 
 ## How it works
 
@@ -53,7 +53,7 @@ These entities are not audited:
 | `AuditLog` | The audit records themselves. |
 | `StorageOperation`, `StorageReconciliationFinding` | Internal storage bookkeeping, not changed by admins. |
 | `VisitorPage` | Seeded data, admins cannot change it. |
-| `Backup*`, `Published*` report entities | Technical copies made by the publish and cancel commands. The publish itself is visible as an `Update` of `ReportFundsExpendituresSettings.HasUnpublishedChanges`. |
+| `Backup*` report entities, `PublishedReportFundsExpendituresRecord`, `PublishedReportProgramExpendituresRecord` | Technical copies made by the publish and cancel commands. The publish itself is recorded through `PublishedReportFundsExpendituresSnapshot`. |
 
 ## Masking policy
 

@@ -232,6 +232,28 @@ public class AuditInterceptorTests
         Assert.Single(_context.AuditLogs.ToList(), l => l.Operation == AuditOperation.Create);
     }
 
+    [Fact]
+    public async Task SaveChangesAsync_RepeatedReportPublish_ShouldWriteCreateLogForEachSnapshot()
+    {
+        // Arrange
+        var publishedAt = new DateTimeOffset(2026, 11, 1, 0, 0, 0, TimeSpan.Zero);
+        _context.PublishedSnapshots.Add(new PublishedReportFundsExpendituresSnapshot { DisclaimerTitle = "Report", PublishedAt = publishedAt });
+        await _context.SaveChangesAsync();
+        _context.PublishedSnapshots.Add(new PublishedReportFundsExpendituresSnapshot { DisclaimerTitle = "Report", PublishedAt = publishedAt.AddDays(1) });
+
+        // Act
+        await _context.SaveChangesAsync();
+
+        // Assert
+        var logs = await _context.AuditLogs
+            .Where(l => l.EntityType == nameof(PublishedReportFundsExpendituresSnapshot))
+            .OrderBy(l => l.Id)
+            .ToListAsync();
+        Assert.Equal(2, logs.Count);
+        Assert.All(logs, l => Assert.Equal(AuditOperation.Create, l.Operation));
+        Assert.Contains("\"PublishedAt\":{\"Old\":null,\"New\":\"2026-11-02T00:00:00+00:00\"}", logs[1].Changes);
+    }
+
     private async Task<AuditedTestEntity> CreateEntityAsync()
     {
         var entity = new AuditedTestEntity { Name = "Old name", Status = Status.Draft, Secret = "old-secret" };
@@ -268,5 +290,7 @@ public class AuditInterceptorTests
         public DbSet<NotAuditedTestEntity> NotAuditedEntities => Set<NotAuditedTestEntity>();
 
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+        public DbSet<PublishedReportFundsExpendituresSnapshot> PublishedSnapshots => Set<PublishedReportFundsExpendituresSnapshot>();
     }
 }
