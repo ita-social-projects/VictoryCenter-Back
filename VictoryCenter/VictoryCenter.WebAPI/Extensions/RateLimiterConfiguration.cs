@@ -132,7 +132,7 @@ public static class RateLimiterConfiguration
     }
 }
 
-public static class RateLimitingPolicyNameConstants
+internal static class RateLimitingPolicyNameConstants
 {
     public const string PublicRead = "public-read-rate-limiting-policy";
     public const string FileDownload = "file-download-rate-limiting-policy";
@@ -141,5 +141,5 @@ public static class RateLimitingPolicyNameConstants
     public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     public const string AdminLogin = "admin-login-rate-limiting-policy";
     public const string AuthRefresh = "auth-refresh-rate-limiting-policy";
-    internal const string ImageUpload = "image-upload-rate-limiting-policy";
+    public const string ImageUpload = "image-upload-rate-limiting-policy";
 }

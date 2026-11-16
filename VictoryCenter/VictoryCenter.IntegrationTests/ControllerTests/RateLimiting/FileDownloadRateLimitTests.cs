@@ -88,7 +88,7 @@ public class FileDownloadRateLimitTests
     private static int CountHandledFileRequests(Mock<IMediator> mediatorMock)
     {
         return mediatorMock.Invocations.Count(invocation =>
-            invocation.Arguments.FirstOrDefault() is GetPdfReportByIdQuery or GetPdfPreviewTicketQuery);
+            invocation.Arguments is [GetPdfReportByIdQuery or GetPdfPreviewTicketQuery, ..]);
     }
 
     private static async Task<WebApplication> CreateApplicationAsync(Mock<IMediator> mediatorMock)

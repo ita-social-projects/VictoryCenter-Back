@@ -13,51 +13,78 @@ public sealed class RateLimitingOptions
     /// <summary>
     /// The configuration section name.
     /// </summary>
-    public const string SectionName = "RateLimiting";
+    public static readonly string SectionName = "RateLimiting";
 
     /// <summary>
     /// Gets or sets the limit for Swagger UI and documents outside Development.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 60 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions Swagger { get; set; } = new() { PermitLimit = 60, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the default limit for anonymous public read endpoints.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 60 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions PublicRead { get; set; } = new() { PermitLimit = 60, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the limit for anonymous endpoints that stream a file from storage.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 20 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions FileDownload { get; set; } = new() { PermitLimit = 20, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the limit for anonymous SignalR hub requests (negotiate, connect, and long-polling polls).
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 30 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions RealtimeConnect { get; set; } = new() { PermitLimit = 30, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the limit for the admin login endpoint.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 5 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions AdminLogin { get; set; } = new() { PermitLimit = 5, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the limit for the anonymous refresh-token endpoint.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 30 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions AuthRefresh { get; set; } = new() { PermitLimit = 30, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the limit for starting a donation through the payment provider.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 10 requests per 60 seconds.
+    /// </value>
     public FixedWindowPolicyOptions InitiateDonation { get; set; } = new() { PermitLimit = 10, WindowSeconds = 60 };
 
     /// <summary>
     /// Gets or sets the limit for submitting the contact-us form, which sends an email.
     /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 10 requests per 24 hours.
+    /// </value>
     public FixedWindowPolicyOptions SubmitContactUsForm { get; set; } = new() { PermitLimit = 10, WindowSeconds = 24 * 60 * 60 };
 
     /// <summary>
     /// Gets or sets the concurrency limit for image uploads.
     /// </summary>
+    /// <value>
+    /// The concurrency policy settings. Defaults to 2 concurrent uploads with a queue of 64.
+    /// </value>
     public ConcurrencyPolicyOptions ImageUpload { get; set; } = new() { PermitLimit = 2, QueueLimit = 64 };
 
     internal IEnumerable<string> GetValidationErrors()
@@ -89,9 +116,6 @@ public sealed class RateLimitingOptions
     }
 }
 
-/// <summary>
-/// Fails startup when a rate-limiting policy has a non-positive limit or window.
-/// </summary>
 public sealed class RateLimitingOptionsValidator : IValidateOptions<RateLimitingOptions>
 {
     public ValidateOptionsResult Validate(string? name, RateLimitingOptions options)
@@ -104,39 +128,15 @@ public sealed class RateLimitingOptionsValidator : IValidateOptions<RateLimiting
     }
 }
 
-/// <summary>
-/// Settings for a fixed-window policy partitioned by client IP.
-/// </summary>
 public sealed class FixedWindowPolicyOptions
 {
-    /// <summary>
-    /// Gets or sets the number of requests a client may make per window.
-    /// </summary>
     public int PermitLimit { get; set; }
-
-    /// <summary>
-    /// Gets or sets the window length in seconds.
-    /// </summary>
     public int WindowSeconds { get; set; }
-
-    /// <summary>
-    /// Gets the window length.
-    /// </summary>
     public TimeSpan Window => TimeSpan.FromSeconds(WindowSeconds);
 }
 
-/// <summary>
-/// Settings for a concurrency policy.
-/// </summary>
 public sealed class ConcurrencyPolicyOptions
 {
-    /// <summary>
-    /// Gets or sets the number of requests processed at the same time.
-    /// </summary>
     public int PermitLimit { get; set; }
-
-    /// <summary>
-    /// Gets or sets the number of requests that wait for a free permit before new ones are rejected.
-    /// </summary>
     public int QueueLimit { get; set; }
 }

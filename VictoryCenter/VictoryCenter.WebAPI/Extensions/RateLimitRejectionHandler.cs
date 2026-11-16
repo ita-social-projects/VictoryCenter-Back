@@ -13,10 +13,10 @@ namespace VictoryCenter.WebAPI.Extensions;
 /// </summary>
 public static class RateLimitRejectionHandler
 {
-    public const string Title = "Too Many Requests";
-    public const string GlobalLimiterName = "global";
-    private const string ProblemJsonContentType = "application/problem+json";
-    private const string LoggerCategory = "VictoryCenter.WebAPI.RateLimiting";
+    public static readonly string Title = "Too Many Requests";
+    public static readonly string GlobalLimiterName = "global";
+    private static readonly string ProblemJsonContentType = "application/problem+json";
+    private static readonly string LoggerCategory = "VictoryCenter.WebAPI.RateLimiting";
 
     public static async ValueTask OnRejectedAsync(OnRejectedContext context, CancellationToken cancellationToken)
     {

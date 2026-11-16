@@ -89,10 +89,12 @@ public class AnonymousEndpointRateLimitCoverageTests(IntegrationTestDbFixture fi
 
     private List<RouteEndpoint> GetRouteEndpoints()
     {
-        return fixture.Factory.Services
-            .GetRequiredService<EndpointDataSource>()
-            .Endpoints
-            .OfType<RouteEndpoint>()
-            .ToList();
+        return
+        [
+            .. fixture.Factory.Services
+                .GetRequiredService<EndpointDataSource>()
+                .Endpoints
+                .OfType<RouteEndpoint>(),
+        ];
     }
 }
