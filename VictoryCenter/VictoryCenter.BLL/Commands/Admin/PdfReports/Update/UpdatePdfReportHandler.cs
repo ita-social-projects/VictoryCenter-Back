@@ -54,7 +54,7 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
 
             if (pdfReport == null)
             {
-                return Result.Fail<PdfReportDto>(new NotFoundError(ErrorMessagesConstants.NotFound(normalizedRequest.Id, typeof(PdfReport))));
+                return Result.Fail<PdfReportDto>(NotFoundErrors.NotFound(normalizedRequest.Id, typeof(PdfReport)));
             }
 
             var hasChanges = pdfReport.Name != normalizedRequest.Name;
@@ -77,7 +77,7 @@ public class UpdatePdfReportHandler : IRequestHandler<UpdatePdfReportCommand, Re
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PdfReportDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PdfReportDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

@@ -66,8 +66,7 @@ public static class ImageValidationHelper
             var missingIds = ids.Where(id => !imagesById.ContainsKey(id)).ToList();
 
             return missingIds.Count != 0
-                ? Result.Fail<IReadOnlyDictionary<long, Image>>(
-                    new NotFoundError(ErrorMessagesConstants.NotFound(missingIds, typeof(Image))))
+                ? Result.Fail<IReadOnlyDictionary<long, Image>>(NotFoundErrors.NotFound(missingIds, typeof(Image)))
                 : Result.Ok<IReadOnlyDictionary<long, Image>>(imagesById);
         }
         catch (BlobStorageException)

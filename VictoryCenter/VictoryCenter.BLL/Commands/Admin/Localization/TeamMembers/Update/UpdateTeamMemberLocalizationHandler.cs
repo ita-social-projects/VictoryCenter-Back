@@ -52,7 +52,7 @@ public class UpdateTeamMemberLocalizationHandler : IRequestHandler<UpdateTeamMem
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<TeamMemberLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamMemberLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

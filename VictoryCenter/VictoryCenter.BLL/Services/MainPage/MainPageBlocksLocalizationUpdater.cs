@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
@@ -44,7 +43,7 @@ public class MainPageBlocksLocalizationUpdater : IMainPageBlocksLocalizationUpda
     {
         if (!ValidateBlocksExist(dto, mainPage))
         {
-            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound()));
+            return Result.Fail(NotFoundErrors.NotFound());
         }
 
         MainAboutUsLocalizationDto? mainAboutUsDto = null;

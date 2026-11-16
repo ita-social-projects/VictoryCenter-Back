@@ -36,7 +36,7 @@ public class DeletePartnersSectionHandler : IRequestHandler<DeletePartnersSectio
 
             if (sectionToDelete is null)
             {
-                return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection))));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(PartnerSection)));
             }
 
             using var scope = _repositoryWrapper.BeginTransaction();

@@ -56,7 +56,7 @@ public class UpdateHippotherapyProgramCategoryHandler : IRequestHandler<UpdateHi
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HippotherapyProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

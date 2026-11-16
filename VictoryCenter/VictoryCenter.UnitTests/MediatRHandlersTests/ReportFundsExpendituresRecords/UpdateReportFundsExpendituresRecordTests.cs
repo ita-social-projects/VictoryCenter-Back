@@ -145,7 +145,7 @@ public class UpdateReportFundsExpendituresRecordTests
 
         // Assert
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]

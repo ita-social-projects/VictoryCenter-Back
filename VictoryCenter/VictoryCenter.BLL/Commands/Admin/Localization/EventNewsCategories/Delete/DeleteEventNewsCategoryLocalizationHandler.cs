@@ -32,9 +32,9 @@ public class DeleteEventNewsCategoryLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(EventNewsCategoryLocalization))));
+                typeof(EventNewsCategoryLocalization)));
         }
 
         _repositoryWrapper.EventNewsCategoryLocalizationsRepository.Delete(localization);
@@ -48,9 +48,9 @@ public class DeleteEventNewsCategoryLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(EventNewsCategoryLocalization))));
+                typeof(EventNewsCategoryLocalization)));
         }
     }
 }

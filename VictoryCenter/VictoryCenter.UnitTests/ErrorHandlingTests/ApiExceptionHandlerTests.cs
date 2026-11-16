@@ -23,8 +23,8 @@ public class ApiExceptionHandlerTests
     private readonly Mock<IProblemDetailsService> _writer = new();
 
     [Theory]
-    [InlineData("validation", 400, "Bad Request", "Name is required; Amount must be positive")]
-    [InlineData("empty-validation", 400, "Bad Request", "")]
+    [InlineData("validation", 400, "Bad Request", "One or more validation errors occurred.")]
+    [InlineData("empty-validation", 400, "Bad Request", "One or more validation errors occurred.")]
     [InlineData("payload", 413, "Payload Too Large", "The request body exceeds the allowed size.")]
     [InlineData("unexpected", 500, "Internal Server Error", "An error occurred while processing your request. Please try again!")]
     [InlineData("unrelated-cancellation", 500, "Internal Server Error", "An error occurred while processing your request. Please try again!")]
@@ -52,10 +52,37 @@ public class ApiExceptionHandlerTests
         Assert.Equal(status, json.RootElement.GetProperty("status").GetInt32());
         Assert.Equal(title, json.RootElement.GetProperty("title").GetString());
         Assert.Equal(detail, json.RootElement.GetProperty("detail").GetString());
+        if (scenario == "validation")
+        {
+            Assert.Equal("Name is required", json.RootElement.GetProperty("errors").GetProperty("Name")[0].GetString());
+            Assert.Equal("Amount must be positive", json.RootElement.GetProperty("errors").GetProperty("Amount")[0].GetString());
+        }
+
         Assert.Equal("test-trace", json.RootElement.GetProperty("traceId").GetString());
         Assert.False(json.RootElement.TryGetProperty("type", out _));
         Assert.DoesNotContain("private", json.RootElement.ToString());
         VerifyCriticalLogs(status == 500 ? Times.Once() : Times.Never());
+    }
+
+    [Fact]
+    public async Task TryHandleAsync_ValidationFallback_PreservesMultipleErrorsPerFieldAndEmptyProperty()
+    {
+        var context = CreateContext();
+        var exception = new ValidationException([
+            new ValidationFailure("Name", "Name is required"),
+            new ValidationFailure("Name", "Name is too short"),
+            new ValidationFailure(string.Empty, "Invalid request"),
+        ]);
+
+        await CreateHandler().TryHandleAsync(context, exception, CancellationToken.None);
+
+        context.Response.Body.Position = 0;
+        using var json = await JsonDocument.ParseAsync(context.Response.Body);
+        var errors = json.RootElement.GetProperty("errors");
+        Assert.Equal(2, errors.GetProperty("Name").GetArrayLength());
+        Assert.Equal("Name is too short", errors.GetProperty("Name")[1].GetString());
+        Assert.Equal("Invalid request", errors.GetProperty(string.Empty)[0].GetString());
+        _logger.VerifyNoOtherCalls();
     }
 
     [Fact]

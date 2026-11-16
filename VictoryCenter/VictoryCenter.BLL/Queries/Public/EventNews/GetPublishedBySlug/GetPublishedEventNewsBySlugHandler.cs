@@ -48,8 +48,8 @@ public class GetPublishedEventNewsBySlugHandler
 
         if (eventNews is null)
         {
-            return Result.Fail<PublishedEventNewsDetailsDto>(new NotFoundError(
-                $"Published event news with slug '{request.Slug}' was not found"));
+            return Result.Fail<PublishedEventNewsDetailsDto>(
+                new NotFoundError($"Published event news with slug '{request.Slug}' was not found"));
         }
 
         return Result.Ok(_mapper.Map<PublishedEventNewsDetailsDto>(eventNews));

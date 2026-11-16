@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
@@ -49,28 +50,28 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
         if (principalResult.IsFailed)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var admin = await _userManager.FindByEmailAsync(email.Value);
         if (admin is null)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var tokenHash = _tokenService.HashRefreshToken(refreshToken);
@@ -80,7 +81,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         if (session is null || session.AdminUserId != admin.Id)
         {
             DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         if (session.IsRevoked)

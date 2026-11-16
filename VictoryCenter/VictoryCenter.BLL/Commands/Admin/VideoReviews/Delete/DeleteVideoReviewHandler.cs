@@ -45,7 +45,7 @@ public class DeleteVideoReviewHandler : IRequestHandler<DeleteVideoReviewCommand
 
                 if (entity is null)
                 {
-                    return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview))));
+                    return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(VideoReview)));
                 }
 
                 return Result.Ok(entity.Id);

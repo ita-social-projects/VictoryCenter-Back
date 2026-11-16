@@ -69,10 +69,10 @@ public class UpdateReportProgramExpendituresRecordHandler
 
         if (recordToUpdate is null)
         {
-            return Result.Fail(new NotFoundError(
-                ErrorMessagesConstants.NotFound(
+            return Result.Fail(
+                NotFoundErrors.NotFound(
                     request.ReportProgramExpendituresRecordId,
-                    typeof(ReportProgramExpendituresRecord))));
+                    typeof(ReportProgramExpendituresRecord)));
         }
 
         var recordWasMovedToDifferentCategory =

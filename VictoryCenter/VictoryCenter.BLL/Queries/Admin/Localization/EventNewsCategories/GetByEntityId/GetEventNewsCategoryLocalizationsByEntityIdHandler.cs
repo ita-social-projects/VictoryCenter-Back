@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
@@ -34,7 +33,7 @@ public class GetEventNewsCategoryLocalizationsByEntityIdHandler
                 category => category.Id == request.EntityId))
         {
             return Result.Fail<List<AdminEventNewsCategoryLocalizationDto>>(
-                new NotFoundError(ErrorMessagesConstants.NotFound(request.EntityId, typeof(EventNewsCategory))));
+                NotFoundErrors.NotFound(request.EntityId, typeof(EventNewsCategory)));
         }
 
         var localizations = await _repositoryWrapper.EventNewsCategoryLocalizationsRepository.GetAllAsync(

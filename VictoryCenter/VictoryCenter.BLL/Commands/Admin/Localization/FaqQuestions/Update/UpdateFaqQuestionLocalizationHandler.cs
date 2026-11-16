@@ -52,7 +52,7 @@ public class UpdateFaqQuestionLocalizationHandler : IRequestHandler<UpdateFaqQue
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<FaqQuestionLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FaqQuestionLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

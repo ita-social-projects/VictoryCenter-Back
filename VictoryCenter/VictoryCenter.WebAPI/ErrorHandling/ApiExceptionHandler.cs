@@ -1,7 +1,9 @@
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using VictoryCenter.WebAPI.Middleware;
 
 namespace VictoryCenter.WebAPI.ErrorHandling;
@@ -32,42 +34,47 @@ public sealed class ApiExceptionHandler : IExceptionHandler
             return false;
         }
 
-        int status;
-        string? title;
-        string detail;
+        ProblemDetails problem;
         switch (exception)
         {
             case ValidationException validationException:
-                status = StatusCodes.Status400BadRequest;
-                title = null;
-                detail = string.Join("; ", validationException.Errors.Select(error => error.ErrorMessage));
+                var modelState = new ModelStateDictionary();
+                foreach (var failure in validationException.Errors)
+                {
+                    modelState.AddModelError(failure.PropertyName ?? string.Empty, failure.ErrorMessage);
+                }
+
+                problem = _problemsFactory.CreateValidationProblemDetails(context, modelState, statusCode: StatusCodes.Status400BadRequest);
                 break;
             case BadHttpRequestException badRequestException when badRequestException.StatusCode == StatusCodes.Status413PayloadTooLarge:
-                status = StatusCodes.Status413PayloadTooLarge;
-                title = "Payload Too Large";
-                detail = "The request body exceeds the allowed size.";
+                problem = _problemsFactory.CreateProblemDetails(
+                    context,
+                    statusCode: StatusCodes.Status413PayloadTooLarge,
+                    title: "Payload Too Large",
+                    detail: "The request body exceeds the allowed size.");
                 break;
             default:
-                status = StatusCodes.Status500InternalServerError;
-                title = "Internal Server Error";
-                detail = "An error occurred while processing your request. Please try again!";
                 _logger.LogCritical(
                     exception,
                     "Unhandled exception occured while processing request: {Method} {Path}",
                     context.Request.Method,
                     _sanitizer.GetSafePathAndQuery(context.Request));
+                problem = _problemsFactory.CreateProblemDetails(
+                    context,
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    title: "Internal Server Error",
+                    detail: "An error occurred while processing your request. Please try again!");
                 break;
         }
 
-        var problem = _problemsFactory.CreateProblemDetails(context, statusCode: status, title: title, detail: detail);
-        context.Response.StatusCode = status;
+        context.Response.StatusCode = problem.Status ?? StatusCodes.Status500InternalServerError;
         if (!await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = context,
             ProblemDetails = problem,
         }))
         {
-            await context.Response.WriteAsJsonAsync(problem, JsonSerializerOptions.Web, "application/problem+json", cancellationToken);
+            await context.Response.WriteAsJsonAsync(problem, problem.GetType(), JsonSerializerOptions.Web, "application/problem+json", cancellationToken);
         }
 
         return true;

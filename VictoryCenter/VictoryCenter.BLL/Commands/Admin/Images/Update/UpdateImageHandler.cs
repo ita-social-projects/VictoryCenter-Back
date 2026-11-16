@@ -55,7 +55,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
 
             if (imageEntity is null)
             {
-                return Result.Fail<ImageDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(Image))));
+                return Result.Fail<ImageDto>(NotFoundErrors.NotFound(request.Id, typeof(Image)));
             }
 
             var replacementBlobName = Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture);
@@ -80,7 +80,7 @@ public class UpdateImageHandler : IRequestHandler<UpdateImageCommand, Result<Ima
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ImageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ImageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (BlobStorageException e)
         {

@@ -54,7 +54,7 @@ public class CreateHippotherapyLandingPageQuoteSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageQuoteSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageQuoteSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

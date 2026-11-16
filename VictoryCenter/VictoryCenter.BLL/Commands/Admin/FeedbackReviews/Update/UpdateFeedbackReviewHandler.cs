@@ -37,8 +37,8 @@ public class UpdateFeedbackReviewHandler : IRequestHandler<UpdateFeedbackReviewC
 
         if (feedbackReview is null)
         {
-            return Result.Fail<FeedbackReviewDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview))));
+            return Result.Fail<FeedbackReviewDto>(
+                NotFoundErrors.NotFound(request.Id, typeof(FeedbackReview)));
         }
 
         var normalizedDto = request.FeedbackReview with

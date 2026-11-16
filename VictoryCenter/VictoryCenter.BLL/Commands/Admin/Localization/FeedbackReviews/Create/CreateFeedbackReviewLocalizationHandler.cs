@@ -33,8 +33,8 @@ public class CreateFeedbackReviewLocalizationHandler
         if (!await _repositoryWrapper.FeedbackReviewsRepository.ExistsAsync(
                 feedbackReview => feedbackReview.Id == dto.EntityId))
         {
-            return Result.Fail<FeedbackReviewLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(FeedbackReview))));
+            return Result.Fail<FeedbackReviewLocalizationDto>(
+                NotFoundErrors.NotFound(dto.EntityId, typeof(FeedbackReview)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -46,8 +46,8 @@ public class CreateFeedbackReviewLocalizationHandler
 
         if (language is null)
         {
-            return Result.Fail<FeedbackReviewLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage))));
+            return Result.Fail<FeedbackReviewLocalizationDto>(
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.FeedbackReviewLocalizationsRepository.ExistsAsync(

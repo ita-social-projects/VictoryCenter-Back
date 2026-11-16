@@ -29,7 +29,7 @@ public class DeleteTeamCategoryHandler : IRequestHandler<DeleteTeamCategoryComma
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamCategory))));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(TeamCategory)));
         }
 
         if (entityToDelete.TeamMembers.Count != 0)

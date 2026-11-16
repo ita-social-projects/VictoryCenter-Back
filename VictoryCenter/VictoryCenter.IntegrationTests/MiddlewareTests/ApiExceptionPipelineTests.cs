@@ -140,7 +140,7 @@ public class ApiExceptionPipelineTests : IAsyncLifetime
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal("Name is required", body.RootElement.GetProperty("detail").GetString());
+        Assert.Equal("Name is required", body.RootElement.GetProperty("errors").GetProperty("Name")[0].GetString());
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class ApiExceptionPipelineTests : IAsyncLifetime
             using var response = await _client.GetAsync($"/test/validation/{expected}");
             using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-            Assert.Equal(expected, json.RootElement.GetProperty("detail").GetString());
+            Assert.Equal(expected, json.RootElement.GetProperty("errors").GetProperty("value")[0].GetString());
             return json.RootElement.GetProperty("traceId").GetString();
         }));
 

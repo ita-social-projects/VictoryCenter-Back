@@ -52,7 +52,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<FaqQuestionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion))));
+                return Result.Fail<FaqQuestionDto>(NotFoundErrors.NotFound(request.Id, typeof(FaqQuestion)));
             }
 
             using (TransactionScope scope = _repositoryWrapper.BeginTransaction())
@@ -134,7 +134,7 @@ public class UpdateFaqQuestionHandler : IRequestHandler<UpdateFaqQuestionCommand
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbUpdateException)
         {

@@ -32,7 +32,7 @@ public class ToggleEventsPageDescriptionVisibilityHandler : IRequestHandler<Togg
 
             if (entity == null)
             {
-                return Result.Fail<EventsIntroSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
+                return Result.Fail<EventsIntroSectionDto>(NotFoundErrors.NotFound());
             }
 
             entity.IsPageDescriptionHidden = !entity.IsPageDescriptionHidden;

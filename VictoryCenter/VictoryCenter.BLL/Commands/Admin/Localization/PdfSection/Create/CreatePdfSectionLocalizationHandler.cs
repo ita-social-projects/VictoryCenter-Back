@@ -47,8 +47,8 @@ public class CreatePdfSectionLocalizationHandler
 
             if (section is null)
             {
-                return Result.Fail<PdfSectionLocalizationDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound()));
+                return Result.Fail<PdfSectionLocalizationDto>(
+                    NotFoundErrors.NotFound());
             }
 
             PdfSectionLocalization entity = _mapper.Map<PdfSectionLocalization>(request.Dto);
@@ -69,7 +69,7 @@ public class CreatePdfSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PdfSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PdfSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

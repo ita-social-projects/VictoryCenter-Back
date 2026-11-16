@@ -66,8 +66,8 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
 
             if (program is null)
             {
-                return Result.Fail<HippotherapyProgramDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(request.Id, typeof(HippotherapyProgram))));
+                return Result.Fail<HippotherapyProgramDto>(
+                    NotFoundErrors.NotFound(request.Id, typeof(HippotherapyProgram)));
             }
 
             var newCategoriesResult = await CategoryValidationHelper.ValidateAndGetCategoriesAsync(
@@ -178,7 +178,7 @@ public class UpdateHippotherapyProgramHandler : IRequestHandler<UpdateHippothera
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 

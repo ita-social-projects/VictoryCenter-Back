@@ -6,6 +6,7 @@ using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.VideoReviews.Reorder;
 
@@ -38,7 +39,7 @@ public class ReorderVideoReviewsHandler : IRequestHandler<ReorderVideoReviewsCom
         }
         catch (ValidationException ex)
         {
-            return Result.Fail(ex.Message);
+            return Result.Fail(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {

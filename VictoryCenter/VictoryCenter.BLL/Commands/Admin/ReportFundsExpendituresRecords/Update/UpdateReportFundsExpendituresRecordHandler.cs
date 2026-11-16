@@ -58,7 +58,7 @@ public class UpdateReportFundsExpendituresRecordHandler
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<ReportFundsExpendituresRecordDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresRecord))));
+                return Result.Fail<ReportFundsExpendituresRecordDto>(NotFoundErrors.NotFound(request.Id, typeof(ReportFundsExpendituresRecord)));
             }
 
             var categoryValidationResult = await _helper.ValidateCategoryChangeAsync(entityToUpdate, request.UpdateReportFundsExpendituresRecordDto.CategoryId, request.Id);
@@ -89,7 +89,7 @@ public class UpdateReportFundsExpendituresRecordHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

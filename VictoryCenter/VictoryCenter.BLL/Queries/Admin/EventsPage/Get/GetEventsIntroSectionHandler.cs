@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
@@ -32,7 +31,7 @@ public class GetEventsIntroSectionHandler : IRequestHandler<GetEventsIntroSectio
 
         var entity = await _repositoryWrapper.EventsIntroSectionsRepository.GetFirstOrDefaultAsync(queryOptions);
         return entity == null
-            ? Result.Fail<EventsIntroSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound()))
+            ? Result.Fail<EventsIntroSectionDto>(NotFoundErrors.NotFound())
             : Result.Ok(_mapper.Map<EventsIntroSectionDto>(entity));
     }
 }

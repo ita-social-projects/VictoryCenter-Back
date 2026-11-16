@@ -33,8 +33,8 @@ public class CreateFeedbackHistoryLocalizationHandler
         if (!await _repositoryWrapper.FeedbackHistoriesRepository.ExistsAsync(
                 feedbackHistory => feedbackHistory.Id == dto.EntityId))
         {
-            return Result.Fail<FeedbackHistoryLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(FeedbackHistory))));
+            return Result.Fail<FeedbackHistoryLocalizationDto>(
+                NotFoundErrors.NotFound(dto.EntityId, typeof(FeedbackHistory)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -46,8 +46,8 @@ public class CreateFeedbackHistoryLocalizationHandler
 
         if (language is null)
         {
-            return Result.Fail<FeedbackHistoryLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage))));
+            return Result.Fail<FeedbackHistoryLocalizationDto>(
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.FeedbackHistoryLocalizationsRepository.ExistsAsync(

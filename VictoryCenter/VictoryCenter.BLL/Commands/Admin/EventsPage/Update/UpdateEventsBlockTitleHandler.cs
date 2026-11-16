@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
@@ -34,7 +33,7 @@ public class UpdateEventsBlockTitleHandler : IRequestHandler<UpdateEventsBlockTi
             });
         if (entity == null)
         {
-            return Result.Fail<EventsIntroSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
+            return Result.Fail<EventsIntroSectionDto>(NotFoundErrors.NotFound());
         }
 
         entity.EventsBlockTitle = HtmlContentHelper.NormalizeHtmlContent(request.Dto.EventsBlockTitle);

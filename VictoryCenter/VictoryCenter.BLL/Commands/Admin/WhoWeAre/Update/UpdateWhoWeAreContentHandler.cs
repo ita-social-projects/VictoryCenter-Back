@@ -49,7 +49,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
                 {
                     if (!dictEntities.TryGetValue(dto.Id, out var entity))
                     {
-                        return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(dto.Id, typeof(WhoWeAreContent))));
+                        return Result.Fail(NotFoundErrors.NotFound(dto.Id, typeof(WhoWeAreContent)));
                     }
 
                     if (entity.SectionId != sectionId)
@@ -82,7 +82,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
 
                 if (updatedSection == null)
                 {
-                    return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection))));
+                    return Result.Fail(NotFoundErrors.NotFoundByIdentifier(request.SectionType, typeof(WhoWeAreSection)));
                 }
 
                 scope.Complete();
@@ -92,7 +92,7 @@ public class UpdateWhoWeAreContentHandler : IRequestHandler<UpdateWhoWeAreConten
         }
         catch (ValidationException vex)
         {
-            return Result.Fail(vex.Errors.Select(x => x.ErrorMessage));
+            return Result.Fail(vex.Errors.Select(x => (IError)new ValidationError(x.PropertyName, x.ErrorMessage)));
         }
         catch (ArgumentException e)
         {

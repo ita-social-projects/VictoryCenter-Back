@@ -29,7 +29,7 @@ internal static class WhoWeAreContentLocalizationHandlerHelper
         {
             if (!dictEntities.TryGetValue(dto.EntityId, out var whoWeAreContent))
             {
-                return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(dto.EntityId, typeof(WhoWeAreContent))));
+                return Result.Fail(NotFoundErrors.NotFound(dto.EntityId, typeof(WhoWeAreContent)));
             }
 
             if (whoWeAreContent.SectionId != sectionId)

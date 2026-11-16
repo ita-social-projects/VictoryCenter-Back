@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackReviews;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
@@ -34,7 +33,7 @@ public class GetFeedbackReviewLocalizationsByEntityIdHandler
                 feedbackReview => feedbackReview.Id == request.EntityId))
         {
             return Result.Fail<List<FeedbackReviewLocalizationDto>>(
-                new NotFoundError(ErrorMessagesConstants.NotFound(request.EntityId, typeof(FeedbackReview))));
+                NotFoundErrors.NotFound(request.EntityId, typeof(FeedbackReview)));
         }
 
         var localizations = await _repositoryWrapper.FeedbackReviewLocalizationsRepository.GetAllAsync(

@@ -19,7 +19,7 @@ not receive an empty error body just because they request XML or HTML.
 
 | Failure | Strategy | Response / application exception log |
 | --- | --- | --- |
-| FluentValidation `ValidationException` | Transform | 400, existing semicolon-joined validation detail; no critical log |
+| FluentValidation `ValidationException` | Transform | 400, field-grouped `ValidationProblemDetails.errors` from parent PR #4805; no critical log |
 | `BadHttpRequestException` with status 413 | Transform | 413, `Payload Too Large`, fixed safe detail; no critical log |
 | Unexpected exception, including cancellation unrelated to `RequestAborted` | Transform | 500, existing generic detail; one Critical log with sanitized path/query |
 | Request aborted and `OperationCanceledException` | Framework transport handling | Do not attempt an application error body or log an application server failure |
@@ -44,9 +44,13 @@ where already appropriate.
 - Use `application/problem+json` consistently. The old validation path assigned
   that type before a default JSON writer could replace it with `application/json`.
   This normalizes the media type without changing the validation payload schema.
-- Validation exceptions still use joined detail, not a new field-grouped schema.
-  MVC model binding already uses its own `ValidationProblemDetails` path and is
-  not replaced by this handler.
+- Validation exceptions use the parent PR's field-grouped `errors` dictionary,
+  retaining multiple messages per field and model-level errors. The fallback
+  writer uses the runtime problem type so derived validation properties are not
+  dropped when JSON negotiation is declined.
+- MVC model binding retains its own `ValidationProblemDetails` path and is not
+  replaced by this handler. The parent's typed errors, FluentResults mapping and
+  strict JSON validation changes are preserved.
 - Leave non-exception controller results, FluentResults mapping, strict JSON
   filter behavior, authentication, rate limiting and health probes unchanged.
 - Other `BadHttpRequestException` statuses retain the old generic 500 mapping.
@@ -56,9 +60,10 @@ where already appropriate.
   existing `IRequestLogSanitizer` for path/query redaction. This does not claim to
   sanitize every exception message or all other framework logging categories.
 
-PR #4805 changes validation error shape independently. If that PR merges first,
-port its agreed mapping into this handler and update the corresponding tests;
-do not silently discard it or combine that contract change with this refactor.
+This PR is stacked on #4805 (`feature/issue-4652`), whose validation schema is
+already incorporated in this handler. Merge #4805 first, then retarget this PR to
+`release/1.0.0` and recheck the diff. Synchronize further parent updates before
+merging; do not restore the old joined-detail schema.
 
 ## Lifetime and Diagnostics
 
