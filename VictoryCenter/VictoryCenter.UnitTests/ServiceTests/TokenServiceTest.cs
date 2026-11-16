@@ -3,7 +3,6 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,15 +23,6 @@ public class TokenServiceTest
     public TokenServiceTest()
     {
         _mockLogger = new Mock<ILogger<TokenService>>();
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection([
-                new("JwtOptions:Audience", "UnitTests.Client"),
-                new("JwtOptions:Issuer", "UnitTests.Tested"),
-                new("JwtOptions:LifetimeInMinutes", "15"),
-                new("JwtOptions:Secretkey", "09DF83C7-1862-4AC2-B400-7FDA46861AC2")
-            ])
-            .Build();
-
         var jwtOptions = new JwtOptions()
         {
             Audience = "UnitTests.Client",
@@ -47,7 +37,7 @@ public class TokenServiceTest
         mockJwtOptions.Setup(x => x.Value).Returns(jwtOptions);
         IOptions<JwtOptions> jwtOptions1 = mockJwtOptions.Object;
         _jwtOptions = jwtOptions;
-        _tokenService = new TokenService(jwtOptions1, configuration, _mockLogger.Object);
+        _tokenService = new TokenService(jwtOptions1, _mockLogger.Object);
         _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
     }
 

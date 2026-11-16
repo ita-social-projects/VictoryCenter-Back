@@ -838,7 +838,15 @@ public partial class StorageLifecycleTests
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             [$"StorageLifecycle:{nameof(StorageLifecycleOptions.RetryDelaySeconds)}"] = initial.ToString(CultureInfo.InvariantCulture),
-            [$"StorageLifecycle:{nameof(StorageLifecycleOptions.MaxRetryDelaySeconds)}"] = maximum.ToString(CultureInfo.InvariantCulture)
+            [$"StorageLifecycle:{nameof(StorageLifecycleOptions.MaxRetryDelaySeconds)}"] = maximum.ToString(CultureInfo.InvariantCulture),
+            ["JwtOptions:Issuer"] = "test-issuer",
+            ["JwtOptions:Audience"] = "test-audience",
+            ["JwtOptions:SecretKey"] = new string('a', 64),
+            ["JwtOptions:RefreshTokenSecretKey"] = new string('b', 64),
+            ["JwtOptions:LifetimeInMinutes"] = "15",
+            ["JwtOptions:RefreshTokenLifetimeInDays"] = "7",
+            ["AccountLockout:MaxFailedAccessAttempts"] = "5",
+            ["AccountLockout:LockoutMinutes"] = "15",
         }).Build();
         var services = new ServiceCollection();
         services.AddApplicationServices(configuration);

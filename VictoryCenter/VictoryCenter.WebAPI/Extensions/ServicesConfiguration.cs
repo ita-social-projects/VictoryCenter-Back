@@ -1,11 +1,9 @@
 using System.Reflection;
 using FluentValidation;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Resend;
 using Slugify;
@@ -31,10 +29,8 @@ using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.SlugService;
-using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
-using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Captcha;
 using VictoryCenter.BLL.Options.Email;
 using VictoryCenter.BLL.Options.Email.EmailOptions;
@@ -56,7 +52,6 @@ using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.SlugService;
-using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -66,7 +61,6 @@ using VictoryCenter.DAL.Entities.WhoWeAreContents;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Realizations.Base;
-using VictoryCenter.WebAPI.Authentication;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.HealthChecks;
@@ -111,22 +105,7 @@ public static class ServicesConfiguration
             options.AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
         });
 
-        services.AddIdentity<AdminUser, IdentityRole<int>>()
-            .AddEntityFrameworkStores<VictoryCenterDbContext>()
-            .AddDefaultTokenProviders();
-
-        services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
-        })
-            .AddJwtBearer(options =>
-            {
-                options.TokenValidationParameters = AuthHelper.GetTokenValidationParameters(configuration);
-                options.EventsType = typeof(AccessTokenValidationEvents);
-            });
-        services.AddScoped<AccessTokenValidationEvents>();
+        services.AddAdminAuthentication(configuration);
 
         services.Configure<CookiePolicyOptions>(options =>
         {
@@ -178,12 +157,6 @@ public static class ServicesConfiguration
         services.ConfigureBlob(configuration);
         services.ConfigurePdf(configuration);
         services.ConfigureEmail(configuration);
-        services.ConfigureAccountLockout();
-
-        services.AddOptions<JwtOptions>()
-            .BindConfiguration(JwtOptions.Position)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
 
         services.AddOptions<WayForPayOptions>()
             .BindConfiguration(WayForPayOptions.Position)
@@ -216,7 +189,6 @@ public static class ServicesConfiguration
             });
 
         services.AddSingleton<TimeProvider>(TimeProvider.System);
-        services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IImageContentValidator, ImageContentValidator>();
         services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages(new SlugHelperConfiguration
         {
@@ -1044,21 +1016,5 @@ public static class ServicesConfiguration
         }
 
         return services;
-    }
-
-    private static void ConfigureAccountLockout(this IServiceCollection services)
-    {
-        services.AddOptions<AccountLockoutOptions>()
-            .BindConfiguration(AccountLockoutOptions.Position)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        services.AddOptions<IdentityOptions>()
-            .Configure<IOptions<AccountLockoutOptions>>((identityOptions, lockoutOptions) =>
-            {
-                identityOptions.Lockout.AllowedForNewUsers = true;
-                identityOptions.Lockout.MaxFailedAccessAttempts = lockoutOptions.Value.MaxFailedAccessAttempts;
-                identityOptions.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(lockoutOptions.Value.LockoutMinutes);
-            });
     }
 }
