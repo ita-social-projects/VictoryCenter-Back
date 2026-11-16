@@ -14,7 +14,7 @@ The lockout uses the built-in ASP.NET Identity lockout.
 
 The response is always the same `401 Unauthorized` with the same message: for a wrong password, an unknown email and a locked account. This way a client cannot find out whether an account exists or is locked.
 
-The lockout works together with the login rate limit by IP. The rate limit slows down one client, the lockout protects one account.
+The lockout works together with the login rate limit by IP. The rate limit slows down one client, the lockout protects one account. See [108-Rate-Limiting.md](108-Rate-Limiting.md) for the rate limits.
 
 ## Configuration
 
