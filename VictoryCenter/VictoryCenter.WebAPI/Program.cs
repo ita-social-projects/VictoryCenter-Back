@@ -25,7 +25,7 @@ await app.CreateInitialDataAsync();
 
 app.UseForwardedHeaders();
 app.UseCors();
-app.UseExceptionHandling();
+app.UseExceptionHandler();
 app.UseRequestResponseLogging();
 app.UseRateLimiter();
 app.MapOpenApi();

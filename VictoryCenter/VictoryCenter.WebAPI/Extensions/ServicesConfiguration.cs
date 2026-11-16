@@ -155,6 +155,7 @@ public static class ServicesConfiguration
     public static void AddCustomServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddControllers();
+        services.AddApiExceptionHandling();
         services.AddOpenApi();
         services.AddAutoMapper(typeof(BllAssemblyMarker).Assembly);
 

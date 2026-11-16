@@ -13,11 +13,6 @@ public static class ApplicationConfiguration
         Directory.CreateDirectory(app.ApplicationServices.GetRequiredService<IOptions<PdfEnvironmentVariables>>().Value.FullPath);
     }
 
-    public static void UseExceptionHandling(this IApplicationBuilder app)
-    {
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
-    }
-
     public static void UseRequestResponseLogging(this IApplicationBuilder app)
     {
         app.UseMiddleware<RequestResponseLoggingMiddleware>();
