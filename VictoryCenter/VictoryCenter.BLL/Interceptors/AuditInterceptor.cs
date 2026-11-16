@@ -204,6 +204,11 @@ public class AuditInterceptor : SaveChangesInterceptor
                 continue;
             }
 
+            if (!property.IsModified)
+            {
+                continue;
+            }
+
             var oldValue = databaseValues is not null ? databaseValues[propertyName] : property.OriginalValue;
             if (Equals(oldValue, property.CurrentValue))
             {
@@ -241,7 +246,8 @@ public class AuditInterceptor : SaveChangesInterceptor
     }
 
     private static bool HasActualChanges(EntityEntry entry, PropertyValues databaseValues) =>
-        entry.Properties.Any(p => !p.Metadata.IsConcurrencyToken
+        entry.Properties.Any(p => p.IsModified
+        && !p.Metadata.IsConcurrencyToken
         && !Equals(databaseValues[p.Metadata.Name], p.CurrentValue));
 
     private void AddAuditLogs(DbContext context)

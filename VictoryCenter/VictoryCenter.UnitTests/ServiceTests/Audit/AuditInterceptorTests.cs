@@ -12,6 +12,7 @@ namespace VictoryCenter.UnitTests.ServiceTests.Audit;
 
 public class AuditInterceptorTests
 {
+    private readonly DbContextOptions<TestDbContext> _options;
     private readonly TestDbContext _context;
 
     public AuditInterceptorTests()
@@ -21,13 +22,13 @@ public class AuditInterceptorTests
         var interceptor = new AuditInterceptor(
             new AuditLogFactory(new Mock<IHttpContextAccessor>().Object, timeProvider.Object));
 
-        var options = new DbContextOptionsBuilder<TestDbContext>()
+        _options = new DbContextOptionsBuilder<TestDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .ConfigureWarnings(warnings => warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .AddInterceptors(interceptor)
             .Options;
 
-        _context = new TestDbContext(options);
+        _context = new TestDbContext(_options);
     }
 
     [Fact]
@@ -99,6 +100,29 @@ public class AuditInterceptorTests
 
         // Assert
         Assert.DoesNotContain(await _context.AuditLogs.ToListAsync(), l => l.Operation == AuditOperation.Update);
+    }
+
+    [Fact]
+    public async Task SaveChangesAsync_ConcurrentUpdatesOfDifferentFields_ShouldRecordOnlyModifiedField()
+    {
+        // Arrange
+        var entity = await CreateEntityAsync();
+        await using var otherContext = new TestDbContext(_options);
+        var otherEntity = await otherContext.AuditedEntities.SingleAsync(e => e.Id == entity.Id);
+        otherEntity.Status = Status.Published;
+        await otherContext.SaveChangesAsync();
+        entity.Name = "New name";
+
+        // Act
+        await _context.SaveChangesAsync();
+
+        // Assert
+        var updates = await _context.AuditLogs
+            .Where(l => l.Operation == AuditOperation.Update)
+            .OrderBy(l => l.Id)
+            .ToListAsync();
+        Assert.Equal(2, updates.Count);
+        Assert.Equal("{\"Name\":{\"Old\":\"Old name\",\"New\":\"New name\"}}", updates[1].Changes);
     }
 
     [Fact]

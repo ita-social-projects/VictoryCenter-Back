@@ -25,7 +25,7 @@ Records are written by `AuditInterceptor`, an EF Core `SaveChangesInterceptor`. 
 - `Update` and `Delete` records are added to the same `SaveChanges` as the change itself. They are saved in one database transaction: either both are saved or neither is.
 - `Create` records need the generated id, so they are saved by a second `SaveChanges` right after the first one. Both calls run in one transaction. If the handler already opened a transaction, it is used. Otherwise the interceptor opens its own.
 - If an operation fails and its transaction is rolled back, its audit records are rolled back too. A failed operation never leaves a record that says the change succeeded.
-- For `Update`, old values are read from the database, because most handlers load entities without tracking. An update that does not change any value is not recorded.
+- For `Update`, old values are read from the database, because most handlers load entities without tracking. Only properties that EF Core actually writes (`IsModified`) are compared, so a change made by another request in the meantime is not attributed to this one. An update that does not change any value is not recorded.
 
 Archiving a video review uses `ExecuteUpdateAsync`, which bypasses `SaveChanges`. `DeleteVideoReviewHandler` writes its `Delete` record explicitly through `IAuditLogFactory`, in the same transaction as the archiving.
 
