@@ -26,11 +26,11 @@ RUN dotnet restore --locked-mode
 
 # copying other neccessary data and building application
 COPY ./VictoryCenter/ ./
-RUN dotnet build -c $Configuration -o /app/build --no-restore
+RUN dotnet build -c "$Configuration" -o /app/build --no-restore
 
 # publishishing application
 FROM build AS publish
-RUN dotnet publish -c $Configuration -o /app/publish --no-restore
+RUN dotnet publish -c "$Configuration" -o /app/publish --no-restore
 
 FROM base AS final
 WORKDIR /app
