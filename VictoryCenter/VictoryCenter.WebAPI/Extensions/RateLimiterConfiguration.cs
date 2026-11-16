@@ -100,6 +100,7 @@ public static class RateLimiterConfiguration
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
             });
 
+        options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.PublicRead, limits.PublicRead);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.SubmitContactUsForm, limits.SubmitContactUsForm);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.InitiateDonation, limits.InitiateDonation);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AdminLogin, limits.AdminLogin);
@@ -130,6 +131,7 @@ public static class RateLimiterConfiguration
 
 public static class RateLimitingPolicyNameConstants
 {
+    public const string PublicRead = "public-read-rate-limiting-policy";
     public const string SubmitContactUsForm = "submit-contact-us-form-rate-limiting-policy";
     public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     public const string AdminLogin = "admin-login-rate-limiting-policy";

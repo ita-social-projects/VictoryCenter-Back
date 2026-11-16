@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class PartnersController : BaseApiController
+public class PartnersController : PublicApiController
 {
     [HttpGet("page")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PartnersPageDto))]

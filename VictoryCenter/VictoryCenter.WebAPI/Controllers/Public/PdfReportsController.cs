@@ -8,7 +8,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class PdfReportsController : BaseApiController
+public class PdfReportsController : PublicApiController
 {
     [HttpGet("languageId/{id:long}")]
     [ProducesResponseType(typeof(PaginationResult<PdfReportDto>), StatusCodes.Status200OK)]

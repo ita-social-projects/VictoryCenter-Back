@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class EventNewsController : BaseApiController
+public class EventNewsController : PublicApiController
 {
     [HttpGet("published")]
     public async Task<IActionResult> GetPublished(

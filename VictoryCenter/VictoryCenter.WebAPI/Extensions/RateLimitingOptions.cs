@@ -21,6 +21,11 @@ public sealed class RateLimitingOptions
     public FixedWindowPolicyOptions Swagger { get; set; } = new() { PermitLimit = 60, WindowSeconds = 60 };
 
     /// <summary>
+    /// Gets or sets the default limit for anonymous public read endpoints.
+    /// </summary>
+    public FixedWindowPolicyOptions PublicRead { get; set; } = new() { PermitLimit = 60, WindowSeconds = 60 };
+
+    /// <summary>
     /// Gets or sets the limit for the admin login endpoint.
     /// </summary>
     public FixedWindowPolicyOptions AdminLogin { get; set; } = new() { PermitLimit = 5, WindowSeconds = 60 };
@@ -45,6 +50,7 @@ public sealed class RateLimitingOptions
         var fixedWindowPolicies = new Dictionary<string, FixedWindowPolicyOptions?>
         {
             [nameof(Swagger)] = Swagger,
+            [nameof(PublicRead)] = PublicRead,
             [nameof(AdminLogin)] = AdminLogin,
             [nameof(InitiateDonation)] = InitiateDonation,
             [nameof(SubmitContactUsForm)] = SubmitContactUsForm,

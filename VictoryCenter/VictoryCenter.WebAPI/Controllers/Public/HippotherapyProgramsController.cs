@@ -7,7 +7,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class HippotherapyProgramsController : BaseApiController
+public class HippotherapyProgramsController : PublicApiController
 {
     [HttpGet("published")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublishedHippotherapyProgramDto>))]

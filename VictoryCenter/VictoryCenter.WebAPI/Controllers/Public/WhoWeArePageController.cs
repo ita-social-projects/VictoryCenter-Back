@@ -4,7 +4,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class WhoWeArePageController : BaseApiController
+public class WhoWeArePageController : PublicApiController
 {
     [HttpGet]
     public async Task<IActionResult> GetPage()

@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class FeedbackHistoriesController : BaseApiController
+public class FeedbackHistoriesController : PublicApiController
 {
     [HttpGet("published")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublishedFeedbackHistoryDto>))]
