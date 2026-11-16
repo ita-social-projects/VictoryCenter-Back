@@ -15,21 +15,22 @@ ARG Configuration=debug
 
 #restoring dependencies
 COPY ./VictoryCenter/*.sln ./
-COPY ./VictoryCenter/VictoryCenter.WebAPI/*.csproj ./VictoryCenter.WebAPI/
-COPY ./VictoryCenter/VictoryCenter.BLL/*.csproj ./VictoryCenter.BLL/
-COPY ./VictoryCenter/VictoryCenter.DAL/*.csproj ./VictoryCenter.DAL/
-COPY ./VictoryCenter/VictoryCenter.UnitTests/*.csproj ./VictoryCenter.UnitTests/
-COPY ./VictoryCenter/VictoryCenter.IntegrationTests/*.csproj ./VictoryCenter.IntegrationTests/
-COPY ./VictoryCenter/VictoryCenter.DbUpdate/*.csproj ./VictoryCenter.DbUpdate/
-RUN dotnet restore
+COPY ./VictoryCenter/Directory.Build.props ./
+COPY ./VictoryCenter/VictoryCenter.WebAPI/*.csproj ./VictoryCenter/VictoryCenter.WebAPI/packages.lock.json ./VictoryCenter.WebAPI/
+COPY ./VictoryCenter/VictoryCenter.BLL/*.csproj ./VictoryCenter/VictoryCenter.BLL/packages.lock.json ./VictoryCenter.BLL/
+COPY ./VictoryCenter/VictoryCenter.DAL/*.csproj ./VictoryCenter/VictoryCenter.DAL/packages.lock.json ./VictoryCenter.DAL/
+COPY ./VictoryCenter/VictoryCenter.UnitTests/*.csproj ./VictoryCenter/VictoryCenter.UnitTests/packages.lock.json ./VictoryCenter.UnitTests/
+COPY ./VictoryCenter/VictoryCenter.IntegrationTests/*.csproj ./VictoryCenter/VictoryCenter.IntegrationTests/packages.lock.json ./VictoryCenter.IntegrationTests/
+COPY ./VictoryCenter/VictoryCenter.DbUpdate/*.csproj ./VictoryCenter/VictoryCenter.DbUpdate/packages.lock.json ./VictoryCenter.DbUpdate/
+RUN dotnet restore --locked-mode
 
 # copying other neccessary data and building application
 COPY ./VictoryCenter/ ./
-RUN dotnet build -c $Configuration -o /app/build
+RUN dotnet build -c $Configuration -o /app/build --no-restore
 
 # publishishing application
 FROM build AS publish
-RUN dotnet publish -c $Configuration -o /app/publish
+RUN dotnet publish -c $Configuration -o /app/publish --no-restore
 
 FROM base AS final
 WORKDIR /app
