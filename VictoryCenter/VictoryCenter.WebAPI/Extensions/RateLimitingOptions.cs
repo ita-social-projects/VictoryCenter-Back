@@ -36,6 +36,11 @@ public sealed class RateLimitingOptions
     public FixedWindowPolicyOptions AdminLogin { get; set; } = new() { PermitLimit = 5, WindowSeconds = 60 };
 
     /// <summary>
+    /// Gets or sets the limit for the anonymous refresh-token endpoint.
+    /// </summary>
+    public FixedWindowPolicyOptions AuthRefresh { get; set; } = new() { PermitLimit = 30, WindowSeconds = 60 };
+
+    /// <summary>
     /// Gets or sets the limit for starting a donation through the payment provider.
     /// </summary>
     public FixedWindowPolicyOptions InitiateDonation { get; set; } = new() { PermitLimit = 10, WindowSeconds = 60 };
@@ -58,6 +63,7 @@ public sealed class RateLimitingOptions
             [nameof(PublicRead)] = PublicRead,
             [nameof(FileDownload)] = FileDownload,
             [nameof(AdminLogin)] = AdminLogin,
+            [nameof(AuthRefresh)] = AuthRefresh,
             [nameof(InitiateDonation)] = InitiateDonation,
             [nameof(SubmitContactUsForm)] = SubmitContactUsForm,
         };
