@@ -71,6 +71,7 @@ public static class RateLimiterConfiguration
     private static void Configure(RateLimiterOptions options, RateLimitingOptions limits)
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        options.OnRejected = RateLimitRejectionHandler.OnRejectedAsync;
 
         options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
             context =>
