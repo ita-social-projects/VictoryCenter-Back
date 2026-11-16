@@ -411,6 +411,28 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 - **Expiry:** expired access tokens are rejected after a 30-second clock skew. The client then refreshes silently on `401`.
 - **First deploy of stamp validation:** access tokens issued before the deploy have no stamp claim and are rejected once. The client refreshes them automatically.
 
+### Log redaction policy
+
+Request paths and query strings written by `RequestResponseLoggingMiddleware` and
+`ExceptionHandlingMiddleware` pass through `IRequestLogSanitizer`.
+
+**Policy:** the values of credential-like query parameters are replaced with
+`[REDACTED]`. Parameter names, order, and all other parameters are preserved so
+requests remain diagnosable. Matching is case-insensitive and applied to the
+URL-decoded parameter name.
+
+**Always redacted:** `ticket` (PDF preview), `token`, `access_token`, `id_token`,
+`refresh_token`, `api_key`, `apikey`, `key`, `signature`, `sig`, `code`,
+`password`, `secret`, `auth`, `authorization`.
+
+**Extending:** add names under `LogRedaction:AdditionalSensitiveQueryParameters`
+in configuration. New endpoints that accept credentials in the query string must
+have their parameter names added here.
+
+**Not covered:** request/response bodies and headers are not logged by these
+middlewares. Framework logs (e.g. `Microsoft.AspNetCore.Hosting.Diagnostics`) are
+set to `Warning` to avoid logging full URLs.
+
 ### Clone
 
 - Clone this repo to your local machine using `https://github.com/ita-social-projects/VictoryCenter-Back.git`

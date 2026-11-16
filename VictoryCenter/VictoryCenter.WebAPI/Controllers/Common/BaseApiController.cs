@@ -57,7 +57,8 @@ public class BaseApiController : ControllerBase
             return Ok(result.Value);
         }
 
-        if (result.HasError<NotFoundError>())
+        if (result.HasError<NotFoundError>()
+            || result.HasError(e => e.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)))
         {
             return NotFound(CreateProblemDetails(StatusCodes.Status404NotFound));
         }
