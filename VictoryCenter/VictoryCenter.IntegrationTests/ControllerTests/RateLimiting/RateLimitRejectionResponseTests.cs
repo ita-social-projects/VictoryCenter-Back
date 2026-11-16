@@ -27,7 +27,7 @@ public class RateLimitRejectionResponseTests
     [InlineData(true)]
     public async Task FixedWindowPolicy_LimitExceeded_ShouldReturnProblemDetailsWithRetryAfter(bool useMvcProblemDetailsFactory)
     {
-        await using WebApplication app = await CreateApplicationAsync(Task.CompletedTask, useMvcProblemDetailsFactory);
+        await using WebApplication app = await CreateApplicationAsync(new TaskCompletionSource(), Task.CompletedTask, useMvcProblemDetailsFactory);
         using var client = CreateClient(app);
 
         using var permittedResponse = await client.GetAsync(FixedWindowPath);
@@ -52,13 +52,15 @@ public class RateLimitRejectionResponseTests
     [Fact]
     public async Task ConcurrencyPolicy_QueueFull_ShouldReturnProblemDetailsWithoutRetryAfter()
     {
+        var permitTaken = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var gate = new TaskCompletionSource();
-        await using WebApplication app = await CreateApplicationAsync(gate.Task, useMvcProblemDetailsFactory: false);
+        await using WebApplication app = await CreateApplicationAsync(permitTaken, gate.Task, useMvcProblemDetailsFactory: false);
         using var client = CreateClient(app);
 
-        // Permit limit is 1 and queue limit is 0, so the second concurrent request is rejected.
+        // Permit limit is 1 and queue limit is 0: once the first request holds the permit, the next one is rejected.
         var blockedRequest = client.GetAsync(ConcurrencyPath);
-        using var rejectedResponse = await SendUntilRejectedAsync(client);
+        await permitTaken.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        using var rejectedResponse = await client.GetAsync(ConcurrencyPath);
         gate.SetResult();
         using var completedResponse = await blockedRequest;
 
@@ -72,25 +74,10 @@ public class RateLimitRejectionResponseTests
         Assert.Equal(RateLimitRejectionHandler.Title, problemDetails.Title);
     }
 
-    private static async Task<HttpResponseMessage> SendUntilRejectedAsync(HttpClient client)
-    {
-        // The first request may not have taken the permit yet; retry briefly until it has.
-        for (var attempt = 0; attempt < 50; attempt++)
-        {
-            var response = await client.GetAsync(ConcurrencyPath);
-            if (response.StatusCode == HttpStatusCode.TooManyRequests)
-            {
-                return response;
-            }
-
-            response.Dispose();
-            await Task.Delay(TimeSpan.FromMilliseconds(100));
-        }
-
-        throw new TimeoutException("The concurrency limiter never rejected a request.");
-    }
-
-    private static async Task<WebApplication> CreateApplicationAsync(Task gate, bool useMvcProblemDetailsFactory)
+    private static async Task<WebApplication> CreateApplicationAsync(
+        TaskCompletionSource permitTaken,
+        Task gate,
+        bool useMvcProblemDetailsFactory)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
@@ -120,6 +107,7 @@ public class RateLimitRejectionResponseTests
             .RequireRateLimiting(RateLimitingPolicyNameConstants.AdminLogin);
         app.MapGet($"/{ConcurrencyPath}", async () =>
         {
+            permitTaken.TrySetResult();
             await gate;
             return Results.Ok();
         }).RequireRateLimiting(RateLimitingPolicyNameConstants.ImageUpload);

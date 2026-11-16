@@ -26,6 +26,11 @@ public sealed class RateLimitingOptions
     public FixedWindowPolicyOptions PublicRead { get; set; } = new() { PermitLimit = 60, WindowSeconds = 60 };
 
     /// <summary>
+    /// Gets or sets the limit for anonymous endpoints that stream a file from storage.
+    /// </summary>
+    public FixedWindowPolicyOptions FileDownload { get; set; } = new() { PermitLimit = 20, WindowSeconds = 60 };
+
+    /// <summary>
     /// Gets or sets the limit for the admin login endpoint.
     /// </summary>
     public FixedWindowPolicyOptions AdminLogin { get; set; } = new() { PermitLimit = 5, WindowSeconds = 60 };
@@ -51,6 +56,7 @@ public sealed class RateLimitingOptions
         {
             [nameof(Swagger)] = Swagger,
             [nameof(PublicRead)] = PublicRead,
+            [nameof(FileDownload)] = FileDownload,
             [nameof(AdminLogin)] = AdminLogin,
             [nameof(InitiateDonation)] = InitiateDonation,
             [nameof(SubmitContactUsForm)] = SubmitContactUsForm,
