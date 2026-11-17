@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -31,7 +32,7 @@ public class DeleteFeedbackReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(FeedbackReviewLocalization)));
         }
@@ -47,7 +48,7 @@ public class DeleteFeedbackReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(FeedbackReviewLocalization)));
         }

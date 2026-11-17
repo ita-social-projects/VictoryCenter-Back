@@ -2,8 +2,8 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using EventNewsEntity = VictoryCenter.DAL.Entities.EventNews;
@@ -42,7 +42,7 @@ public class GetEventNewsByIdHandler : IRequestHandler<GetEventNewsByIdQuery, Re
             });
 
         return eventNews is null
-            ? Result.Fail<EventNewsDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)))
+            ? Result.Fail<EventNewsDto>(NotFoundErrors.NotFound(request.Id, typeof(EventNewsEntity)))
             : Result.Ok(_mapper.Map<EventNewsDto>(eventNews));
     }
 }

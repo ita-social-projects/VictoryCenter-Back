@@ -5,6 +5,7 @@ namespace VictoryCenter.DAL.Entities.Localization;
 
 public class HippotherapyLandingPageAdvantageCardLocalization : LocalizationBase<HippotherapyLandingPageAdvantageCard>
 {
+    [Audited]
     [RichText]
     public string Description { get; set; } = null!;
 }

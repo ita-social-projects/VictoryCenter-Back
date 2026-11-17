@@ -1,7 +1,7 @@
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -35,7 +35,7 @@ public class GetHippotherapyLandingPageHandler
 
         if (entity == null || !entity.HasAllSections())
         {
-            return Result.Fail<HippotherapyLandingPageDto>(ErrorMessagesConstants.NotFound());
+            return Result.Fail<HippotherapyLandingPageDto>(NotFoundErrors.NotFound());
         }
 
         return Result.Ok(_responseFactory.Create(entity));

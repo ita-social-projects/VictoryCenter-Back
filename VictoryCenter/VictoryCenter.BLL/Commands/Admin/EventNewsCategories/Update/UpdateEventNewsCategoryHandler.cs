@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNewsCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -41,7 +42,7 @@ public class UpdateEventNewsCategoryHandler
         if (category is null)
         {
             return Result.Fail<AdminEventNewsCategoryDto>(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsCategory)));
+                NotFoundErrors.NotFound(request.Id, typeof(EventNewsCategory)));
         }
 
         var normalizedName = request.Category.Name.Trim();

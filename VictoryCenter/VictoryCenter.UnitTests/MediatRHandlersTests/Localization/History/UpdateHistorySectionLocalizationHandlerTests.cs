@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Commands.Admin.Localization.History.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History.Update;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HistoryContents;
@@ -222,6 +223,7 @@ public class UpdateHistorySectionLocalizationHandlerTests
 
         Assert.True(result.IsFailed);
         Assert.Contains(result.Errors, e => e.Message == "Key not found");
+        Assert.IsType<NotFoundError>(result.Errors[0]);
     }
 
     [Fact]

@@ -31,7 +31,7 @@ public class HistorySectionContentLocalizationHelperTests
     }
 
     [Fact]
-    public void ValidateHistoryContents_InvalidContentId_ThrowsNotFoundValidationException()
+    public void ValidateHistoryContents_InvalidContentId_ThrowsKeyNotFoundException()
     {
         var contents = new List<CreateHistorySectionContentLocalizationDto>
         {
@@ -40,7 +40,7 @@ public class HistorySectionContentLocalizationHelperTests
 
         var contentTypesById = new Dictionary<long, ContentType>();
 
-        var ex = Assert.Throws<ValidationException>(() =>
+        var ex = Assert.Throws<KeyNotFoundException>(() =>
             HistorySectionContentLocalizationValidationHelper.ValidateHistoryContents(contents, contentTypesById));
 
         Assert.Contains(

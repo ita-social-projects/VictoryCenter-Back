@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.CompanyProfiles;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -58,7 +59,7 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
             if (entity is null)
             {
                 return Result.Fail<CompanyProfileDto>(
-                    ErrorMessagesConstants.NotFound());
+                    NotFoundErrors.NotFound());
             }
 
             using (var scope = _repositoryWrapper.BeginTransaction())
@@ -144,7 +145,7 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<CompanyProfileDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<CompanyProfileDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

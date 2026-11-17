@@ -8,6 +8,7 @@ using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresCategories.Create;
 
@@ -66,7 +67,7 @@ public class CreateReportFundsExpendituresCategoryHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresCategoryDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

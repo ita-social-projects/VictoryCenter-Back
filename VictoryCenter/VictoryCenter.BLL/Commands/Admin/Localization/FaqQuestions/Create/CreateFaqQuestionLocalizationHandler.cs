@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FaqQuestions;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -39,7 +40,7 @@ public class CreateFaqQuestionLocalizationHandler : IRequestHandler<CreateFaqQue
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<FaqQuestionLocalizationDto>(knfex.Message);
+            return Result.Fail<FaqQuestionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -47,7 +48,7 @@ public class CreateFaqQuestionLocalizationHandler : IRequestHandler<CreateFaqQue
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<FaqQuestionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FaqQuestionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

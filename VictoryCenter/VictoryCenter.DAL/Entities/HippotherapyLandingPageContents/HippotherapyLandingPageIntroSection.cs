@@ -5,17 +5,22 @@ using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 
+[Auditable]
 public class HippotherapyLandingPageIntroSection
     : BaseEntity, ITranslatedEntity<HippotherapyLandingPageIntroSectionLocalization>
 {
+    [Audited]
     public long HippotherapyLandingPageId { get; set; }
 
+    [Audited]
     [RichText]
     public string Title { get; set; } = null!;
 
+    [Audited]
     [RichText]
     public string Description { get; set; } = null!;
 
+    [Audited]
     public long? ImageId { get; set; }
 
     public Image? Image { get; set; }

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
@@ -46,7 +47,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         if (eventNews is null)
         {
             return Result.Fail<EventNewsDto>(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity)));
+                NotFoundErrors.NotFound(request.Id, typeof(EventNewsEntity)));
         }
 
         var dto = request.EventNews;
@@ -67,7 +68,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         if (category is null)
         {
             return Result.Fail<EventNewsDto>(
-                ErrorMessagesConstants.NotFound(dto.CategoryId, typeof(EventNewsCategory)));
+                NotFoundErrors.NotFound(dto.CategoryId, typeof(EventNewsCategory)));
         }
 
         var imagesResult = await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
@@ -424,7 +425,7 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
                     entity => entity.Id == eventNews.Id))
             {
                 return Result.Fail<EventNewsDto>(
-                    ErrorMessagesConstants.NotFound(eventNews.Id, typeof(EventNewsEntity)));
+                    NotFoundErrors.NotFound(eventNews.Id, typeof(EventNewsEntity)));
             }
 
             throw;
