@@ -4,7 +4,9 @@ using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using VictoryCenter.WebAPI.Middleware;
 
@@ -14,11 +16,16 @@ public class ExceptionHandlingMiddlewareTests
 {
     private readonly Mock<ILogger<ExceptionHandlingMiddleware>> _loggerMock;
     private readonly Mock<ProblemDetailsFactory> _factoryMock;
+    private readonly Mock<IRequestLogSanitizer> _sanitizerMock;
 
     public ExceptionHandlingMiddlewareTests()
     {
         _loggerMock = new();
         _factoryMock = new();
+        _sanitizerMock = new();
+        _sanitizerMock
+            .Setup(s => s.GetSafePathAndQuery(It.IsAny<HttpRequest>()))
+            .Returns("/test");
     }
 
     [Fact]
@@ -35,7 +42,8 @@ public class ExceptionHandlingMiddlewareTests
                 return Task.CompletedTask;
             },
             _loggerMock.Object,
-            _factoryMock.Object);
+            _factoryMock.Object,
+            _sanitizerMock.Object);
 
         await middleware.InvokeAsync(context);
 
@@ -43,6 +51,7 @@ public class ExceptionHandlingMiddlewareTests
         context.Response.Body.Seek(0, SeekOrigin.Begin);
         Assert.True(string.IsNullOrEmpty(await new StreamReader(context.Response.Body).ReadToEndAsync()));
         _loggerMock.VerifyNoOtherCalls();
+        _sanitizerMock.Verify(s => s.GetSafePathAndQuery(It.IsAny<HttpRequest>()), Times.Never);
     }
 
     [Fact]
@@ -74,7 +83,8 @@ public class ExceptionHandlingMiddlewareTests
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw exception,
             _loggerMock.Object,
-            _factoryMock.Object);
+            _factoryMock.Object,
+            _sanitizerMock.Object);
 
         await middleware.InvokeAsync(context);
 
@@ -86,6 +96,7 @@ public class ExceptionHandlingMiddlewareTests
                 It.IsAny<NotImplementedException>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
+        _sanitizerMock.Verify(s => s.GetSafePathAndQuery(context.Request), Times.Once);
 
         Assert.Equal("application/problem+json", context.Response.ContentType);
         Assert.Equal(StatusCodes.Status500InternalServerError, context.Response.StatusCode);
@@ -101,7 +112,71 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_ShouldReturn400WithJoinedErrors_WhenValidationExceptionThrown()
+    public async Task InvokeAsync_ShouldLogSanitizedPathAndQuery_WhenUnhandledExceptionThrown()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Method = "GET";
+        context.Request.Path = "/test";
+        context.Request.QueryString = new QueryString("?ticket=secret-value");
+        context.Response.Body = new MemoryStream();
+
+        SetupInternalServerError(context);
+
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new InvalidOperationException("boom"),
+            _loggerMock.Object,
+            _factoryMock.Object,
+            _sanitizerMock.Object);
+
+        await middleware.InvokeAsync(context);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state.ToString()!.Contains("GET /test") &&
+                    !state.ToString()!.Contains("secret-value")),
+                It.IsAny<InvalidOperationException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ShouldNotLogRawTicket_WhenUsingRealSanitizer()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Method = "GET";
+        context.Request.Path = "/api/pdf/preview";
+        context.Request.QueryString = new QueryString("?ticket=secret-value&id=5");
+        context.Response.Body = new MemoryStream();
+
+        SetupInternalServerError(context);
+
+        var realSanitizer = new RequestLogSanitizer(Options.Create(new LogRedactionOptions()));
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new InvalidOperationException("boom"),
+            _loggerMock.Object,
+            _factoryMock.Object,
+            realSanitizer);
+
+        await middleware.InvokeAsync(context);
+
+        _loggerMock.Verify(
+            x => x.Log(
+                LogLevel.Critical,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state.ToString()!.Contains("ticket=[REDACTED]") &&
+                    state.ToString()!.Contains("id=5") &&
+                    !state.ToString()!.Contains("secret-value")),
+                It.IsAny<InvalidOperationException>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ShouldReturn400WithFieldGroupedErrors_WhenValidationExceptionThrown()
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
@@ -112,28 +187,30 @@ public class ExceptionHandlingMiddlewareTests
             new("Amount", "Amount must be positive")
         };
         var validationException = new ValidationException(failures);
-        var expectedDetail = "Name is required; Amount must be positive";
 
-        var problemDetails = new ProblemDetails
+        var problemDetails = new ValidationProblemDetails
         {
-            Status = StatusCodes.Status400BadRequest,
-            Detail = expectedDetail
+            Status = StatusCodes.Status400BadRequest
         };
 
         _factoryMock
-            .Setup(f => f.CreateProblemDetails(
+            .Setup(f => f.CreateValidationProblemDetails(
                 context,
+                It.Is<ModelStateDictionary>(ms =>
+                    (ms["Name"] !).Errors.Single().ErrorMessage == "Name is required" &&
+                    (ms["Amount"] !).Errors.Single().ErrorMessage == "Amount must be positive"),
                 StatusCodes.Status400BadRequest,
                 null,
                 null,
-                expectedDetail,
+                null,
                 null))
             .Returns(problemDetails);
 
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw validationException,
             _loggerMock.Object,
-            _factoryMock.Object);
+            _factoryMock.Object,
+            _sanitizerMock.Object);
 
         await middleware.InvokeAsync(context);
 
@@ -151,23 +228,26 @@ public class ExceptionHandlingMiddlewareTests
         var validationException = new ValidationException([failure]);
 
         _factoryMock
-            .Setup(f => f.CreateProblemDetails(
+            .Setup(f => f.CreateValidationProblemDetails(
                 context,
+                It.IsAny<ModelStateDictionary>(),
                 StatusCodes.Status400BadRequest,
                 null,
                 null,
-                "E",
+                null,
                 null))
-            .Returns(new ProblemDetails { Status = StatusCodes.Status400BadRequest });
+            .Returns(new ValidationProblemDetails { Status = StatusCodes.Status400BadRequest });
 
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw validationException,
             _loggerMock.Object,
-            _factoryMock.Object);
+            _factoryMock.Object,
+            _sanitizerMock.Object);
 
         await middleware.InvokeAsync(context);
 
         _loggerMock.VerifyNoOtherCalls();
+        _sanitizerMock.Verify(s => s.GetSafePathAndQuery(It.IsAny<HttpRequest>()), Times.Never);
     }
 
     [Fact]
@@ -198,7 +278,8 @@ public class ExceptionHandlingMiddlewareTests
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw exception,
             _loggerMock.Object,
-            _factoryMock.Object);
+            _factoryMock.Object,
+            _sanitizerMock.Object);
 
         await middleware.InvokeAsync(context);
 
@@ -212,7 +293,7 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_MultipleValidationErrors_ShouldJoinWithSemicolon()
+    public async Task InvokeAsync_MultipleValidationErrors_ShouldGroupByPropertyName()
     {
         var context = new DefaultHttpContext();
         context.Response.Body = new MemoryStream();
@@ -224,37 +305,56 @@ public class ExceptionHandlingMiddlewareTests
             new("C", "Error C")
         };
         var validationException = new ValidationException(failures);
-        var expectedDetail = "Error A; Error B; Error C";
 
-        var problemDetails = new ProblemDetails
+        var problemDetails = new ValidationProblemDetails
         {
             Status = StatusCodes.Status400BadRequest,
-            Detail = expectedDetail
+            Errors =
+            {
+                ["A"] = ["Error A"],
+                ["B"] = ["Error B"],
+                ["C"] = ["Error C"]
+            }
         };
 
         _factoryMock
-            .Setup(f => f.CreateProblemDetails(
+            .Setup(f => f.CreateValidationProblemDetails(
                 context,
+                It.IsAny<ModelStateDictionary>(),
                 StatusCodes.Status400BadRequest,
                 null,
                 null,
-                expectedDetail,
+                null,
                 null))
             .Returns(problemDetails);
 
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw validationException,
             _loggerMock.Object,
-            _factoryMock.Object);
+            _factoryMock.Object,
+            _sanitizerMock.Object);
 
         await middleware.InvokeAsync(context);
 
         context.Response.Body.Seek(0, SeekOrigin.Begin);
-        var body = JsonSerializer.Deserialize<ProblemDetails>(
+        var body = JsonSerializer.Deserialize<ValidationProblemDetails>(
             await new StreamReader(context.Response.Body).ReadToEndAsync());
 
         Assert.NotNull(body);
-        Assert.Equal(expectedDetail, body.Detail);
         Assert.Equal(StatusCodes.Status400BadRequest, body.Status);
+        Assert.Equal(["Error A"], body.Errors["A"]);
+        Assert.Equal(["Error B"], body.Errors["B"]);
+        Assert.Equal(["Error C"], body.Errors["C"]);
     }
+
+    private void SetupInternalServerError(HttpContext context) =>
+        _factoryMock
+            .Setup(f => f.CreateProblemDetails(
+                context,
+                StatusCodes.Status500InternalServerError,
+                "Internal Server Error",
+                null,
+                "An error occurred while processing your request. Please try again!",
+                null))
+            .Returns(new ProblemDetails { Status = StatusCodes.Status500InternalServerError });
 }

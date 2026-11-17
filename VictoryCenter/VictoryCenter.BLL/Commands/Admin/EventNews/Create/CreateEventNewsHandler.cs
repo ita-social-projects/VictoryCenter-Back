@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventNews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Interfaces.SlugService;
@@ -49,7 +50,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
 
         if (category is null)
         {
-            return Result.Fail<EventNewsDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<EventNewsDto>(NotFoundErrors.NotFound(
                 request.CreateEventNewsDto.CategoryId,
                 typeof(EventNewsCategory)));
         }
@@ -157,7 +158,7 @@ public class CreateEventNewsHandler : IRequestHandler<CreateEventNewsCommand, Re
             if (!languagesById.TryGetValue(localizationDto.LanguageId, out var language))
             {
                 return Result.Fail(
-                    ErrorMessagesConstants.NotFound(localizationDto.LanguageId, typeof(LocalizationLanguage)));
+                    NotFoundErrors.NotFound(localizationDto.LanguageId, typeof(LocalizationLanguage)));
             }
 
             var localization = new EventNewsLocalization

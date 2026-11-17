@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using FluentResults;
 using FluentValidation;
@@ -6,11 +7,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Login;
 
@@ -28,6 +31,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly ILogger<LoginCommandHandler> _logger;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
 
     public LoginCommandHandler(
         ITokenService tokenService,
@@ -35,7 +40,9 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         IValidator<LoginCommand> validator,
         IHttpContextAccessor httpContextAccessor,
         IOptions<JwtOptions> jwtOptions,
-        ILogger<LoginCommandHandler> logger)
+        ILogger<LoginCommandHandler> logger,
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider)
     {
         _tokenService = tokenService;
         _userManager = userManager;
@@ -43,6 +50,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         _httpContextAccessor = httpContextAccessor;
         _jwtOptions = jwtOptions;
         _logger = logger;
+        _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -58,14 +67,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         {
             PerformDummyPasswordCheck(request.LoginRequestDto.Password);
             LogFailedLoginAttempt();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         if (await _userManager.IsLockedOutAsync(admin))
         {
             PerformDummyPasswordCheck(request.LoginRequestDto.Password);
             LogLockedOutLoginAttempt(admin.Id);
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
@@ -78,7 +87,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             }
 
             LogFailedLoginAttempt();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var resetResult = await _userManager.ResetAccessFailedCountAsync(admin);
@@ -87,15 +96,44 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(resetResult.Errors.Select(x => x.Description));
         }
 
+        var now = _timeProvider.GetUtcNow();
+        var familyId = Guid.NewGuid();
+
+        await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
+            admin.Id,
+            AuthConstants.RevocationReasons.SupersededByNewLogin,
+            now,
+            cancellationToken);
+
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
             new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
+            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
-        var refreshToken = _tokenService.CreateRefreshToken([new Claim(ClaimTypes.Email, request.LoginRequestDto.Email)]);
-        var refreshTokenExpires = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
-        admin.RefreshToken = _tokenService.HashRefreshToken(refreshToken);
+
+        var refreshToken = _tokenService.CreateRefreshToken([
+            new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
+            new Claim(AuthConstants.FamilyIdClaimType, familyId.ToString())
+        ]);
+
+        var refreshTokenExpires = now.Add(TimeSpan.FromDays(_jwtOptions.Value.RefreshTokenLifetimeInDays));
+        var tokenHash = _tokenService.HashRefreshToken(refreshToken);
+
+        admin.RefreshToken = tokenHash;
         admin.RefreshTokenValidTo = refreshTokenExpires;
+
+        var sessionRecord = new RefreshTokenSession
+        {
+            AdminUserId = admin.Id,
+            FamilyId = familyId,
+            TokenHash = tokenHash,
+            ExpiresAt = refreshTokenExpires,
+            CreatedAt = now,
+            IsRevoked = false
+        };
+
+        await _repositoryWrapper.RefreshTokenSessionRepository.CreateAsync(sessionRecord);
 
         var updateResult = await _userManager.UpdateAsync(admin);
         if (!updateResult.Succeeded)

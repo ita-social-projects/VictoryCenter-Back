@@ -194,8 +194,12 @@ public class UpdateHippotherapyLandingPageCommandValidatorTests
         {
             Title = new string('A', HippotherapyLandingPageConstants.TitleMinLength),
             Description = new string('A', HippotherapyLandingPageConstants.TextMinLength),
-            Principles = Enumerable.Range(0, HippotherapyLandingPageConstants.EthicsPrinciplesCount)
-                .Select(_ => new string('A', HippotherapyLandingPageConstants.TextMinLength))
+            Principles = Enumerable.Range(1, HippotherapyLandingPageConstants.EthicsPrinciplesCount)
+                .Select(i => new UpdateEthicsPrincipleDto
+                {
+                    Id = i,
+                    Text = new string('A', HippotherapyLandingPageConstants.TextMinLength)
+                })
                 .ToList(),
             ImageId = 1,
         },

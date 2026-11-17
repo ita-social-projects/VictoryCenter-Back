@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackHistories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -62,8 +63,8 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
 
             if (entity == null)
             {
-                return Result.Fail<FeedbackHistoryDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(FeedbackHistory)));
+                return Result.Fail<FeedbackHistoryDto>(new NotFoundError(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(FeedbackHistory))));
             }
 
             var previousStatus = entity.Status;
@@ -99,7 +100,7 @@ public class UpdateFeedbackHistoryHandler : IRequestHandler<UpdateFeedbackHistor
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FeedbackHistoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 

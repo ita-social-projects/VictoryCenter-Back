@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.MainPage;
 using VictoryCenter.DAL.Entities.Localization;
@@ -56,7 +57,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
 
             if (mainPage is null)
             {
-                return Result.Fail<MainPageLocalizationDto>(ErrorMessagesConstants.NotFound());
+                return Result.Fail<MainPageLocalizationDto>(NotFoundErrors.NotFound());
             }
 
             var dto = request.Dto;
@@ -74,19 +75,19 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
 
             transaction.Complete();
 
-            var blocks = blocksUpdateResult.Value;
+            var (mainAboutUs, mainPartners, mainDonations) = blocksUpdateResult.Value;
             var response = _mapper.Map<MainPageLocalizationDto>(updatedMainPageLocalization) with
             {
-                MainAboutUs = blocks.MainAboutUs,
-                MainPartners = blocks.MainPartners,
-                MainDonations = blocks.MainDonations
+                MainAboutUs = mainAboutUs,
+                MainPartners = mainPartners,
+                MainDonations = mainDonations
             };
 
             return Result.Ok(response);
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<MainPageLocalizationDto>(knfex.Message);
+            return Result.Fail<MainPageLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -94,7 +95,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<MainPageLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<MainPageLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

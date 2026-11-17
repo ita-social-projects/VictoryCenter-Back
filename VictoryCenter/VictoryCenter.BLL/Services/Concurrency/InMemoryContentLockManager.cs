@@ -195,32 +195,14 @@ public sealed class InMemoryContentLockManager : IContentLockManager
     public IReadOnlyCollection<ContentLockLifecycleDto> ReleaseAllForConnection(string connectionId)
     {
         var releasedLocks = new List<ContentLockLifecycleDto>();
-        foreach (var item in _locksByResource.Where(item => item.Value.ConnectionId == connectionId))
+        foreach (var resourceKey in _locksByResource
+                     .Where(item => item.Value.ConnectionId == connectionId)
+                     .Select(item => item.Key))
         {
-            while (_locksByResource.TryGetValue(item.Key, out var contentLock) && contentLock.ConnectionId == connectionId)
+            var releasedLock = ReleaseForConnection(resourceKey, connectionId);
+            if (releasedLock is not null)
             {
-                if (contentLock.IsUpdateInProgress)
-                {
-                    if (contentLock.ReleaseAfterUpdate)
-                    {
-                        break;
-                    }
-
-                    var releaseAfterUpdate = contentLock with { ReleaseAfterUpdate = true };
-                    if (_locksByResource.TryUpdate(item.Key, releaseAfterUpdate, contentLock))
-                    {
-                        break;
-                    }
-
-                    continue;
-                }
-
-                if (_locksByResource.TryRemove(new KeyValuePair<string, ContentLock>(item.Key, contentLock)))
-                {
-                    releasedLocks.Add(ToLifecycle(contentLock));
-                }
-
-                break;
+                releasedLocks.Add(releasedLock);
             }
         }
 
@@ -244,6 +226,35 @@ public sealed class InMemoryContentLockManager : IContentLockManager
 
     private static bool IsExpired(ContentLock contentLock, DateTimeOffset now)
         => !contentLock.IsUpdateInProgress && contentLock.ExpiresAtUtc <= now;
+
+    private ContentLockLifecycleDto? ReleaseForConnection(string resourceKey, string connectionId)
+    {
+        while (_locksByResource.TryGetValue(resourceKey, out var contentLock) && contentLock.ConnectionId == connectionId)
+        {
+            if (!contentLock.IsUpdateInProgress)
+            {
+                if (_locksByResource.TryRemove(new KeyValuePair<string, ContentLock>(resourceKey, contentLock)))
+                {
+                    return ToLifecycle(contentLock);
+                }
+
+                continue;
+            }
+
+            if (contentLock.ReleaseAfterUpdate)
+            {
+                return null;
+            }
+
+            var releaseAfterUpdate = contentLock with { ReleaseAfterUpdate = true };
+            if (_locksByResource.TryUpdate(resourceKey, releaseAfterUpdate, contentLock))
+            {
+                return null;
+            }
+        }
+
+        return null;
+    }
 
     private static ContentLockAcquisitionDto Denied(ContentLockResourceDto resource)
         => new()

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.EventNewsCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -31,7 +32,7 @@ public class DeleteEventNewsCategoryLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(EventNewsCategoryLocalization)));
         }
@@ -47,7 +48,7 @@ public class DeleteEventNewsCategoryLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteEventNewsCategoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
                 typeof(EventNewsCategoryLocalization)));
         }

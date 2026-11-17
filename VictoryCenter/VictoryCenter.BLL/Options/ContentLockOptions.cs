@@ -4,7 +4,7 @@ namespace VictoryCenter.BLL.Options;
 
 public sealed class ContentLockOptions
 {
-    public const string Position = "ContentLock";
+    public static readonly string Position = "ContentLock";
 
     [Range(1, 60)]
     public int TtlMinutes { get; init; } = 3;

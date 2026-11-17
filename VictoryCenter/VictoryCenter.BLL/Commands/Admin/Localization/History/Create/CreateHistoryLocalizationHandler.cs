@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
@@ -49,7 +50,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
 
                 if (section is null)
                 {
-                    return Result.Fail<List<HistorySectionLocalizationDto>>(ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection)));
+                    return Result.Fail<List<HistorySectionLocalizationDto>>(NotFoundErrors.NotFound(sectionDto.EntityId, typeof(HistorySection)));
                 }
 
                 HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
@@ -100,7 +101,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(knfex.Message);
+            return Result.Fail<List<HistorySectionLocalizationDto>>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -108,7 +109,7 @@ public class CreateHistoryLocalizationHandler : IRequestHandler<CreateHistoryLoc
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<List<HistorySectionLocalizationDto>>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<List<HistorySectionLocalizationDto>>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

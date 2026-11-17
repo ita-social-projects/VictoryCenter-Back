@@ -1,0 +1,350 @@
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+using System.Transactions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
+using VictoryCenter.BLL.Interfaces.Audit;
+using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Attributes;
+using VictoryCenter.DAL.Enums;
+
+namespace VictoryCenter.BLL.Interceptors;
+
+public class AuditInterceptor : SaveChangesInterceptor
+{
+    private static readonly ConcurrentDictionary<Type, string[]> AuditedPropertiesByType = new();
+
+    private readonly IAuditLogFactory _auditLogFactory;
+    private readonly ConditionalWeakTable<DbContext, PendingCreates> _pendingCreates = [];
+
+    public AuditInterceptor(IAuditLogFactory auditLogFactory)
+    {
+        _auditLogFactory = auditLogFactory;
+    }
+
+    public override InterceptionResult<int> SavingChanges(
+        DbContextEventData eventData,
+        InterceptionResult<int> result)
+    {
+        if (eventData.Context is { } context)
+        {
+            AddAuditLogs(context);
+            TrackCreates(context);
+        }
+
+        return base.SavingChanges(eventData, result);
+    }
+
+    public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
+        DbContextEventData eventData,
+        InterceptionResult<int> result,
+        CancellationToken cancellationToken = default)
+    {
+        if (eventData.Context is { } context)
+        {
+            await AddAuditLogsAsync(context, cancellationToken);
+            await TrackCreatesAsync(context, cancellationToken);
+        }
+
+        return await base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
+
+    public override async ValueTask<int> SavedChangesAsync(
+        SaveChangesCompletedEventData eventData,
+        int result,
+        CancellationToken cancellationToken = default)
+    {
+        if (eventData.Context is { } context && TryTakePending(context, out var pending))
+        {
+            try
+            {
+                foreach (var entry in pending.Entries)
+                {
+                    context.Set<AuditLog>().Add(CreateAuditLog(entry, AuditOperation.Create));
+                }
+
+                await context.SaveChangesAsync(cancellationToken);
+
+                if (pending.OwnTransaction is not null)
+                {
+                    await pending.OwnTransaction.CommitAsync(cancellationToken);
+                }
+            }
+            finally
+            {
+                if (pending.OwnTransaction is not null)
+                {
+                    await pending.OwnTransaction.DisposeAsync();
+                }
+            }
+        }
+
+        return await base.SavedChangesAsync(eventData, result, cancellationToken);
+    }
+
+    public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
+    {
+        if (eventData.Context is { } context && TryTakePending(context, out var pending))
+        {
+            try
+            {
+                foreach (var entry in pending.Entries)
+                {
+                    context.Set<AuditLog>().Add(CreateAuditLog(entry, AuditOperation.Create));
+                }
+
+                context.SaveChanges();
+
+                pending.OwnTransaction?.Commit();
+            }
+            finally
+            {
+                pending.OwnTransaction?.Dispose();
+            }
+        }
+
+        return base.SavedChanges(eventData, result);
+    }
+
+    public override async Task SaveChangesFailedAsync(
+        DbContextErrorEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        await ReleasePendingAsync(eventData.Context);
+        await base.SaveChangesFailedAsync(eventData, cancellationToken);
+    }
+
+    public override void SaveChangesFailed(DbContextErrorEventData eventData)
+    {
+        ReleasePending(eventData.Context);
+        base.SaveChangesFailed(eventData);
+    }
+
+    public override async Task SaveChangesCanceledAsync(
+        DbContextEventData eventData,
+        CancellationToken cancellationToken = default)
+    {
+        await ReleasePendingAsync(eventData.Context);
+        await base.SaveChangesCanceledAsync(eventData, cancellationToken);
+    }
+
+    public override void SaveChangesCanceled(DbContextEventData eventData)
+    {
+        ReleasePending(eventData.Context);
+        base.SaveChangesCanceled(eventData);
+    }
+
+    public override async ValueTask<InterceptionResult> ThrowingConcurrencyExceptionAsync(
+        ConcurrencyExceptionEventData eventData,
+        InterceptionResult result,
+        CancellationToken cancellationToken = default)
+    {
+        await ReleasePendingAsync(eventData.Context);
+        return await base.ThrowingConcurrencyExceptionAsync(eventData, result, cancellationToken);
+    }
+
+    public override InterceptionResult ThrowingConcurrencyException(
+        ConcurrencyExceptionEventData eventData,
+        InterceptionResult result)
+    {
+        ReleasePending(eventData.Context);
+        return base.ThrowingConcurrencyException(eventData, result);
+    }
+
+    private static bool IsAuditable(EntityEntry entry) =>
+        entry.Metadata.ClrType.IsDefined(typeof(AuditableAttribute), inherit: true);
+
+    private static string[] GetAuditedProperties(EntityEntry entry)
+    {
+        return AuditedPropertiesByType.GetOrAdd(entry.Metadata.ClrType, _ =>
+        [
+            .. entry.Metadata
+                .GetProperties()
+                .Where(p => p.PropertyInfo?.IsDefined(typeof(AuditedAttribute), inherit: true) == true)
+                .Select(p => p.Name),
+        ]);
+    }
+
+    private static string GetEntityId(EntityEntry entry)
+    {
+        var keys = entry.Metadata.FindPrimaryKey()!.Properties;
+        return keys.Count == 1
+            ? entry.Property(keys[0].Name).CurrentValue?.ToString() ?? string.Empty
+            : string.Join(";", keys.Select(k => $"{k.Name}={entry.Property(k.Name).CurrentValue}"));
+    }
+
+    private static Dictionary<string, AuditChange> BuildChanges(EntityEntry entry, AuditOperation operation, PropertyValues? databaseValues)
+    {
+        var changes = new Dictionary<string, AuditChange>();
+
+        foreach (var propertyName in GetAuditedProperties(entry))
+        {
+            var change = BuildChange(entry.Property(propertyName), operation, databaseValues);
+            if (change is not null)
+            {
+                changes[propertyName] = change;
+            }
+        }
+
+        return changes;
+    }
+
+    private static AuditChange? BuildChange(PropertyEntry property, AuditOperation operation, PropertyValues? databaseValues) =>
+        operation switch
+        {
+            AuditOperation.Create => property.CurrentValue is null ? null : new AuditChange(null, property.CurrentValue),
+            AuditOperation.Delete => property.OriginalValue is null ? null : new AuditChange(property.OriginalValue, null),
+            _ => BuildUpdateChange(property, databaseValues),
+        };
+
+    private static AuditChange? BuildUpdateChange(PropertyEntry property, PropertyValues? databaseValues)
+    {
+        if (!property.IsModified)
+        {
+            return null;
+        }
+
+        var oldValue = databaseValues is not null ? databaseValues[property.Metadata.Name] : property.OriginalValue;
+        return Equals(oldValue, property.CurrentValue) ? null : new AuditChange(oldValue, property.CurrentValue);
+    }
+
+    private static List<EntityEntry> GetUpdatedOrDeletedEntries(DbContext context)
+    {
+        var entries = new List<EntityEntry>();
+        foreach (var entry in context.ChangeTracker.Entries())
+        {
+            if (entry.Entity is AuditLog)
+            {
+                if (entry.State is EntityState.Modified or EntityState.Deleted)
+                {
+                    throw new InvalidOperationException("Audit log entries cannot be modified or deleted.");
+                }
+
+                continue;
+            }
+
+            if (IsAuditable(entry) && entry.State is EntityState.Modified or EntityState.Deleted)
+            {
+                entries.Add(entry);
+            }
+        }
+
+        return entries;
+    }
+
+    private static bool HasActualChanges(EntityEntry entry, PropertyValues databaseValues) =>
+        entry.Properties.Any(p => p.IsModified
+        && !p.Metadata.IsConcurrencyToken
+        && !Equals(databaseValues[p.Metadata.Name], p.CurrentValue));
+
+    private void AddAuditLogs(DbContext context)
+    {
+        foreach (var entry in GetUpdatedOrDeletedEntries(context))
+        {
+            var databaseValues = entry.State == EntityState.Modified ? entry.GetDatabaseValues() : null;
+            AddAuditLog(context, entry, databaseValues);
+        }
+    }
+
+    private async Task AddAuditLogsAsync(DbContext context, CancellationToken cancellationToken)
+    {
+        foreach (var entry in GetUpdatedOrDeletedEntries(context))
+        {
+            var databaseValues = entry.State == EntityState.Modified
+                ? await entry.GetDatabaseValuesAsync(cancellationToken)
+                : null;
+            AddAuditLog(context, entry, databaseValues);
+        }
+    }
+
+    private void AddAuditLog(DbContext context, EntityEntry entry, PropertyValues? databaseValues)
+    {
+        if (databaseValues is not null && !HasActualChanges(entry, databaseValues))
+        {
+            return;
+        }
+
+        var operation = entry.State == EntityState.Modified ? AuditOperation.Update : AuditOperation.Delete;
+        context.Set<AuditLog>().Add(CreateAuditLog(entry, operation, databaseValues));
+    }
+
+    private AuditLog CreateAuditLog(
+        EntityEntry entry,
+        AuditOperation operation,
+        PropertyValues? databaseValues = null) =>
+        _auditLogFactory.Create(
+            entry.Metadata.ClrType.Name,
+            GetEntityId(entry),
+            operation,
+            BuildChanges(entry, operation, databaseValues));
+
+    private async Task TrackCreatesAsync(DbContext context, CancellationToken cancellationToken)
+    {
+        var created = context.ChangeTracker.Entries()
+            .Where(entry => entry.State == EntityState.Added && IsAuditable(entry))
+            .ToList();
+        if (created.Count == 0)
+        {
+            return;
+        }
+
+        IDbContextTransaction? ownTransaction = null;
+        if (context.Database.CurrentTransaction is null && Transaction.Current is null)
+        {
+            ownTransaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        }
+
+        _pendingCreates.AddOrUpdate(context, new PendingCreates(created, ownTransaction));
+    }
+
+    private void TrackCreates(DbContext context)
+    {
+        var created = context.ChangeTracker.Entries()
+            .Where(entry => entry.State == EntityState.Added && IsAuditable(entry))
+            .ToList();
+        if (created.Count == 0)
+        {
+            return;
+        }
+
+        IDbContextTransaction? ownTransaction = null;
+        if (context.Database.CurrentTransaction is null && Transaction.Current is null)
+        {
+            ownTransaction = context.Database.BeginTransaction();
+        }
+
+        _pendingCreates.AddOrUpdate(context, new PendingCreates(created, ownTransaction));
+    }
+
+    private bool TryTakePending(DbContext context, [NotNullWhen(true)] out PendingCreates? pending)
+    {
+        if (_pendingCreates.TryGetValue(context, out pending))
+        {
+            _pendingCreates.Remove(context);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ReleasePending(DbContext? context)
+    {
+        if (context is not null && TryTakePending(context, out var pending))
+        {
+            pending.OwnTransaction?.Dispose();
+        }
+    }
+
+    private async Task ReleasePendingAsync(DbContext? context)
+    {
+        if (context is not null && TryTakePending(context, out var pending) && pending.OwnTransaction is not null)
+        {
+            await pending.OwnTransaction.DisposeAsync();
+        }
+    }
+
+    private sealed record PendingCreates(List<EntityEntry> Entries, IDbContextTransaction? OwnTransaction);
+}

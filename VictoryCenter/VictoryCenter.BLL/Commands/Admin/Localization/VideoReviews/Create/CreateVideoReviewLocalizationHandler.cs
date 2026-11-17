@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.VideoReviews;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -33,7 +34,7 @@ public class CreateVideoReviewLocalizationHandler
                 videoReview => videoReview.Id == dto.EntityId))
         {
             return Result.Fail<VideoReviewLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(VideoReview)));
+                NotFoundErrors.NotFound(dto.EntityId, typeof(VideoReview)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -46,7 +47,7 @@ public class CreateVideoReviewLocalizationHandler
         if (language is null)
         {
             return Result.Fail<VideoReviewLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.VideoReviewLocalizationsRepository.ExistsAsync(

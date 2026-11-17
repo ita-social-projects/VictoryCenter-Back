@@ -20,7 +20,7 @@ public class PaymentsController : BaseApiController
     [HttpPost("donate")]
     [EnableRateLimiting(RateLimitingPolicyNameConstants.InitiateDonation)]
     [ProducesResponseType(StatusCodes.Status302Found)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Donate([FromForm] PaymentRequestDto request, CancellationToken cancellationToken)
     {
@@ -29,12 +29,12 @@ public class PaymentsController : BaseApiController
         {
             if (string.IsNullOrWhiteSpace(result.Value.PaymentUrl))
             {
-                return BadRequest(PaymentConstants.PaymentUrlIsNotAvailable);
+                return BadRequest(CreateProblemDetails(StatusCodes.Status400BadRequest, PaymentConstants.PaymentUrlIsNotAvailable));
             }
 
             return Redirect(result.Value.PaymentUrl);
         }
 
-        return BadRequest(result.Errors[0].Message ?? PaymentConstants.UnableToConductDonation);
+        return HandleResult(result);
     }
 }

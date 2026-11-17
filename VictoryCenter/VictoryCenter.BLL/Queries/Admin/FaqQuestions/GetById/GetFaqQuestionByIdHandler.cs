@@ -2,8 +2,8 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FaqQuestions;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -36,7 +36,7 @@ public class GetFaqQuestionByIdHandler : IRequestHandler<GetFaqQuestionByIdQuery
 
         if (faqQuestion == null)
         {
-            return Result.Fail<FaqQuestionDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion)));
+            return Result.Fail<FaqQuestionDto>(NotFoundErrors.NotFound(request.Id, typeof(FaqQuestion)));
         }
 
         return Result.Ok(_mapper.Map<FaqQuestionDto>(faqQuestion));

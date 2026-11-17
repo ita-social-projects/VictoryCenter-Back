@@ -8,6 +8,7 @@ using VictoryCenter.BLL.Validators.TeamCategories;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.TeamCategories;
 
@@ -78,7 +79,7 @@ public class CreateTeamCategoryTests
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Theory]
@@ -103,7 +104,7 @@ public class CreateTeamCategoryTests
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]
@@ -115,7 +116,7 @@ public class CreateTeamCategoryTests
         var result = await handler.Handle(new CreateTeamCategoryCommand(null!), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]
@@ -152,7 +153,7 @@ public class CreateTeamCategoryTests
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]
@@ -169,7 +170,7 @@ public class CreateTeamCategoryTests
             }), CancellationToken.None);
 
         Assert.False(result.IsSuccess);
-        Assert.Contains("Validation failed", result.Errors[0].Message);
+        Assert.IsType<ValidationError>(result.Errors[0]);
     }
 
     [Fact]

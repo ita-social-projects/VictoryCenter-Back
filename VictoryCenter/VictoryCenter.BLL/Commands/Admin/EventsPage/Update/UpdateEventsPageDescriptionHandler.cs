@@ -2,8 +2,8 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
@@ -33,7 +33,7 @@ public class UpdateEventsPageDescriptionHandler : IRequestHandler<UpdateEventsPa
             });
         if (entity == null)
         {
-            return Result.Fail<EventsIntroSectionDto>(ErrorMessagesConstants.NotFound());
+            return Result.Fail<EventsIntroSectionDto>(NotFoundErrors.NotFound());
         }
 
         entity.PageDescription = HtmlContentHelper.NormalizeHtmlContent(request.Dto.PageDescription);

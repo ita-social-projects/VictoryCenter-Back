@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.FeedbackReviews;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -37,7 +38,7 @@ public class UpdateFeedbackReviewHandler : IRequestHandler<UpdateFeedbackReviewC
         if (feedbackReview is null)
         {
             return Result.Fail<FeedbackReviewDto>(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview)));
+                NotFoundErrors.NotFound(request.Id, typeof(FeedbackReview)));
         }
 
         var normalizedDto = request.FeedbackReview with

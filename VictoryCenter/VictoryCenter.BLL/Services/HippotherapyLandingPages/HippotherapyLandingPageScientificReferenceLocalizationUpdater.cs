@@ -1,7 +1,7 @@
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageScientificReferencesSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
@@ -41,7 +41,7 @@ public class HippotherapyLandingPageScientificReferenceLocalizationUpdater : IHi
 
         if (invalidReferenceIds.Count > 0)
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound(invalidReferenceIds, typeof(HippotherapyLandingPageScientificReference)));
+            return Result.Fail(NotFoundErrors.NotFound(invalidReferenceIds, typeof(HippotherapyLandingPageScientificReference)));
         }
 
         if (references.Count == 0)

@@ -200,6 +200,39 @@ public class UpdateHippotherapyLandingPageTests : BaseTestClass
             .Select(r => (long?)r.Id)
             .ToList() ?? [null, null];
 
+        var advantageCards = existing.AdvantagesSection?.AdvantageCards
+            .OrderBy(c => c.Priority)
+            .Select((c, i) => new UpdateGalleryCardDto { Id = c.Id, Description = $"Updated advantage {i + 1}", ImageId = c.ImageId })
+            .ToList() ?? [];
+        while (advantageCards.Count < 4)
+        {
+            advantageCards.Add(new UpdateGalleryCardDto { Description = $"Updated advantage {advantageCards.Count + 1}", ImageId = null });
+        }
+
+        advantageCards = advantageCards.Take(4).ToList();
+
+        var participantCards = existing.ParticipantsSection?.ParticipantCards
+            .OrderBy(c => c.Priority)
+            .Select((c, i) => new UpdateGalleryCardDto { Id = c.Id, Description = $"Updated participant {i + 1}", ImageId = c.ImageId })
+            .ToList() ?? [];
+        while (participantCards.Count < 4)
+        {
+            participantCards.Add(new UpdateGalleryCardDto { Description = $"Updated participant {participantCards.Count + 1}", ImageId = null });
+        }
+
+        participantCards = participantCards.Take(4).ToList();
+
+        var ethicsPrinciples = existing.EthicsSection?.EthicsPrinciples
+            .OrderBy(p => p.Priority)
+            .Select((p, i) => new UpdateEthicsPrincipleDto { Id = p.Id, Text = $"New principle {i + 1}" })
+            .ToList() ?? [];
+        while (ethicsPrinciples.Count < 4)
+        {
+            ethicsPrinciples.Add(new UpdateEthicsPrincipleDto { Text = $"New principle {ethicsPrinciples.Count + 1}" });
+        }
+
+        ethicsPrinciples = ethicsPrinciples.Take(4).ToList();
+
         return new UpdateHippotherapyLandingPageDto
         {
             IntroSection = new UpdateIntroSectionDto { Title = "Updated intro title", Description = "Updated intro description", ImageId = imageId },
@@ -216,13 +249,7 @@ public class UpdateHippotherapyLandingPageTests : BaseTestClass
             AdvantagesSection = new UpdateGallerySectionDto
             {
                 Title = "Updated advantages title",
-                Cards =
-                [
-                    new UpdateGalleryCardDto { Description = "Updated advantage 1" },
-                    new UpdateGalleryCardDto { Description = "Updated advantage 2" },
-                    new UpdateGalleryCardDto { Description = "Updated advantage 3" },
-                    new UpdateGalleryCardDto { Description = "Updated advantage 4" },
-                ],
+                Cards = advantageCards,
             },
             AnalysisSection = new UpdateTextSectionDto { Title = "Updated analysis title", Description = "Updated analysis description" },
             ScientificReferencesSection = new UpdateScientificReferencesSectionDto
@@ -233,23 +260,18 @@ public class UpdateHippotherapyLandingPageTests : BaseTestClass
                     .Select((id, i) => new UpdateScientificReferenceDto { Id = id, Name = $"Updated reference {i + 1}", Url = $"https://example.com/updated-{i + 1}" })
                     .ToList(),
             },
-            AnotherQuoteSection = new UpdateQuoteSectionDto { QuoteText = "Updated another quote", AuthorName = "Updated author two" },
+            AnotherQuoteSection = new UpdateQuoteSectionDto { QuoteText = "Updated another quote", AuthorName = "Updated author two", ImageId = null },
             ParticipantsSection = new UpdateGallerySectionDto
             {
                 Title = "Updated participants title",
-                Cards =
-                [
-                    new UpdateGalleryCardDto { Description = "Updated participant 1" },
-                    new UpdateGalleryCardDto { Description = "Updated participant 2" },
-                    new UpdateGalleryCardDto { Description = "Updated participant 3" },
-                    new UpdateGalleryCardDto { Description = "Updated participant 4" },
-                ],
+                Cards = participantCards,
             },
             EthicsSection = new UpdateEthicsSectionDto
             {
                 Title = "Updated ethics title",
                 Description = "Updated ethics description",
-                Principles = ["Updated principle 1", "Updated principle 2", "Updated principle 3", "Updated principle 4"],
+                Principles = ethicsPrinciples,
+                ImageId = existing.EthicsSection?.ImageId,
             },
         };
     }
@@ -257,7 +279,17 @@ public class UpdateHippotherapyLandingPageTests : BaseTestClass
     private async Task<EntityHippotherapyLandingPage> GetSeededPageAsync()
     {
         return await Fixture.DbContext.HippotherapyLandingPages
+            .Include(p => p.IntroSection)
+            .Include(p => p.DescriptionSection)
+            .Include(p => p.QuoteSection)
+            .Include(p => p.HippoventionSection)
+            .Include(p => p.HippoventionCenterSection)
+            .Include(p => p.AdvantagesSection).ThenInclude(s => s!.AdvantageCards)
+            .Include(p => p.AnalysisSection)
             .Include(p => p.ScientificReferencesSection).ThenInclude(s => s!.ScientificReferences)
+            .Include(p => p.AnotherQuoteSection)
+            .Include(p => p.ParticipantsSection).ThenInclude(s => s!.ParticipantCards)
+            .Include(p => p.EthicsSection).ThenInclude(s => s!.EthicsPrinciples)
             .SingleAsync();
     }
 

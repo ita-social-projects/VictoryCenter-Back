@@ -2,9 +2,9 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ContentLockEvents
 {
-    public const string Acquired = "LockAcquired";
-    public const string Denied = "LockDenied";
-    public const string Released = "LockReleased";
-    public const string Expired = "LockExpired";
-    public const string EntityChanged = "EntityChanged";
+    public static readonly string Acquired = "LockAcquired";
+    public static readonly string Denied = "LockDenied";
+    public static readonly string Released = "LockReleased";
+    public static readonly string Expired = "LockExpired";
+    public static readonly string EntityChanged = "EntityChanged";
 }

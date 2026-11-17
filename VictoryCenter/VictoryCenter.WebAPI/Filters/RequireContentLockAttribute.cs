@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Options;
 
 namespace VictoryCenter.WebAPI.Filters;
 
+[AttributeUsage(AttributeTargets.Method)]
 public sealed class RequireContentLockAttribute : TypeFilterAttribute
 {
     public RequireContentLockAttribute(string resourceType, string routeValueName)
@@ -52,7 +53,7 @@ public sealed class RequireContentLockFilter : IAsyncActionFilter
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
-        context.HttpContext.Response.Headers["X-Content-Lock-Enforced"] = _options.EnforcementEnabled.ToString().ToLowerInvariant();
+        context.HttpContext.Response.Headers["X-Content-Lock-Enforced"] = _options.EnforcementEnabled ? "true" : "false";
         if (!_options.EnforcementEnabled)
         {
             await next();
@@ -89,18 +90,31 @@ public sealed class RequireContentLockFilter : IAsyncActionFilter
     }
 
     private bool TryGetSession(
-        ActionExecutingContext context,
+        ActionContext context,
         out ContentLockResourceDto resource,
         out ContentLockSessionDto session)
     {
         resource = default!;
         session = default!;
-        if (!long.TryParse(context.RouteData.Values.GetValueOrDefault(_routeValueName)?.ToString(), out var resourceId)
-            || !context.HttpContext.Request.Headers.TryGetValue(ContentLockConstants.LockIdHeader, out var lockId)
-            || !context.HttpContext.Request.Headers.TryGetValue(ContentLockConstants.ConnectionIdHeader, out var connectionId)
-            || string.IsNullOrWhiteSpace(lockId)
-            || string.IsNullOrWhiteSpace(connectionId)
-            || string.IsNullOrWhiteSpace(context.HttpContext.User.FindFirstValue(ClaimTypes.Email)))
+        if (!long.TryParse(context.RouteData.Values.GetValueOrDefault(_routeValueName)?.ToString(), out var resourceId))
+        {
+            return false;
+        }
+
+        if (!context.HttpContext.Request.Headers.TryGetValue(ContentLockConstants.LockIdHeader, out var lockId)
+            || string.IsNullOrWhiteSpace(lockId))
+        {
+            return false;
+        }
+
+        if (!context.HttpContext.Request.Headers.TryGetValue(ContentLockConstants.ConnectionIdHeader, out var connectionId)
+            || string.IsNullOrWhiteSpace(connectionId))
+        {
+            return false;
+        }
+
+        var ownerIdentity = context.HttpContext.User.FindFirstValue(ClaimTypes.Email);
+        if (string.IsNullOrWhiteSpace(ownerIdentity))
         {
             return false;
         }
@@ -118,7 +132,7 @@ public sealed class RequireContentLockFilter : IAsyncActionFilter
         session = new ContentLockSessionDto
         {
             LockId = lockId.ToString(),
-            OwnerIdentity = context.HttpContext.User.FindFirstValue(ClaimTypes.Email)!,
+            OwnerIdentity = ownerIdentity,
             ConnectionId = connectionId.ToString(),
         };
         return true;

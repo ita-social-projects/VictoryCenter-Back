@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace VictoryCenter.WebAPI.Middleware;
 
@@ -9,15 +10,18 @@ public class ExceptionHandlingMiddleware
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
     private readonly RequestDelegate _next;
     private readonly ProblemDetailsFactory _problemsFactory;
+    private readonly IRequestLogSanitizer _sanitizer;
 
     public ExceptionHandlingMiddleware(
         RequestDelegate next,
         ILogger<ExceptionHandlingMiddleware> logger,
-        ProblemDetailsFactory problemsFactory)
+        ProblemDetailsFactory problemsFactory,
+        IRequestLogSanitizer sanitizer)
     {
         _next = next;
         _logger = logger;
         _problemsFactory = problemsFactory;
+        _sanitizer = sanitizer;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -28,13 +32,16 @@ public class ExceptionHandlingMiddleware
         }
         catch (ValidationException validationException)
         {
-            var errorDetail = string.Join(
-                "; ", validationException.Errors.Select(e => e.ErrorMessage));
+            var modelState = new ModelStateDictionary();
+            foreach (var failure in validationException.Errors)
+            {
+                modelState.AddModelError(failure.PropertyName ?? string.Empty, failure.ErrorMessage);
+            }
 
-            var problemDetails = _problemsFactory.CreateProblemDetails(
+            var problemDetails = _problemsFactory.CreateValidationProblemDetails(
                 context,
-                statusCode: StatusCodes.Status400BadRequest,
-                detail: errorDetail);
+                modelState,
+                statusCode: StatusCodes.Status400BadRequest);
 
             context.Response.ContentType = "application/problem+json";
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
@@ -64,7 +71,7 @@ public class ExceptionHandlingMiddleware
                 exception,
                 "Unhandled exception occured while processing request: {Method} {Path}",
                 context.Request.Method,
-                context.Request.Path + context.Request.QueryString);
+                _sanitizer.GetSafePathAndQuery(context.Request));
 
             var problem = _problemsFactory.CreateProblemDetails(
                 context,

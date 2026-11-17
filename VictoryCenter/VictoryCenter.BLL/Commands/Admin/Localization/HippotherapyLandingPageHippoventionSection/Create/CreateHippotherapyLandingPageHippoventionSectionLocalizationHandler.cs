@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageHippoventionSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using HippotherapyLandingPageHippoventionSectionEntity =
@@ -44,7 +45,7 @@ public class CreateHippotherapyLandingPageHippoventionSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageHippoventionSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageHippoventionSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -53,7 +54,7 @@ public class CreateHippotherapyLandingPageHippoventionSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageHippoventionSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageHippoventionSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

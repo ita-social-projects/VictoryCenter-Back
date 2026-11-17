@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Donate.UahBankDetails;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Errors;
 using Entities = VictoryCenter.DAL.Entities;
 
 namespace VictoryCenter.BLL.Commands.Admin.Donate.UahBankDetails.Create;
@@ -42,7 +43,7 @@ public class CreateUahBankDetailsHandler : IRequestHandler<CreateUahBankDetailsC
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<UahBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<UahBankDetailsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

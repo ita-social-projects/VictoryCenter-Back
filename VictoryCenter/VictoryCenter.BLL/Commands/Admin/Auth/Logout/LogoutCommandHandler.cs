@@ -3,20 +3,32 @@ using FluentResults;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Repositories.Interfaces.Base;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Logout;
 
 public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 {
+    private static readonly string ConcurrencyFailureCode = new IdentityErrorDescriber().ConcurrencyFailure().Code;
+
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly UserManager<AdminUser> _userManager;
+    private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly TimeProvider _timeProvider;
 
-    public LogoutCommandHandler(IHttpContextAccessor httpContextAccessor, UserManager<AdminUser> userManager)
+    public LogoutCommandHandler(
+        IHttpContextAccessor httpContextAccessor,
+        UserManager<AdminUser> userManager,
+        IRepositoryWrapper repositoryWrapper,
+        TimeProvider timeProvider)
     {
         _httpContextAccessor = httpContextAccessor;
         _userManager = userManager;
+        _repositoryWrapper = repositoryWrapper;
+        _timeProvider = timeProvider;
     }
 
     public async Task<Result<Unit>> Handle(LogoutCommand request, CancellationToken cancellationToken)
@@ -24,27 +36,61 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         var email = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
         if (email == null)
         {
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var admin = await _userManager.FindByEmailAsync(email);
         if (admin == null)
         {
-            return Result.Fail(AuthConstants.AdminWithGivenEmailWasNotFound);
+            return Result.Fail(new NotFoundError(AuthConstants.AdminWithGivenEmailWasNotFound));
         }
+
+        var now = _timeProvider.GetUtcNow();
+
+        await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
+            admin.Id,
+            AuthConstants.RevocationReasons.Logout,
+            now,
+            cancellationToken);
 
         admin.RefreshToken = null;
         admin.RefreshTokenValidTo = null;
 
-        // Rotating the stamp revokes every access token issued before logout; the call also persists the cleared refresh token.
+        // Rotating the stamp revokes every access token issued before logout; the call also persists session revocations and the cleared refresh token.
         var updateAdmin = await _userManager.UpdateSecurityStampAsync(admin);
+        if (!updateAdmin.Succeeded && updateAdmin.Errors.Any(e => e.Code == ConcurrencyFailureCode))
+        {
+            await _repositoryWrapper.ReloadAsync(admin, cancellationToken);
+
+            var retryNow = _timeProvider.GetUtcNow();
+            await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
+                admin.Id,
+                AuthConstants.RevocationReasons.Logout,
+                retryNow,
+                cancellationToken);
+
+            admin.RefreshToken = null;
+            admin.RefreshTokenValidTo = null;
+            updateAdmin = await _userManager.UpdateSecurityStampAsync(admin);
+        }
+
+        DeleteRefreshTokenCookie();
 
         if (!updateAdmin.Succeeded)
         {
+            await _repositoryWrapper.ReloadAsync(admin, cancellationToken);
+            await _repositoryWrapper.SaveChangesAsync();
+
             return Result.Fail(AuthConstants.NotUpdated);
         }
 
-        _httpContextAccessor.HttpContext!.Response.Cookies.Delete(
+        return Result.Ok(Unit.Value);
+    }
+
+    private void DeleteRefreshTokenCookie()
+    {
+        var response = _httpContextAccessor.HttpContext?.Response;
+        response?.Cookies.Delete(
             AuthConstants.RefreshTokenCookieName,
             new CookieOptions
             {
@@ -53,6 +99,5 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
                 SameSite = SameSiteMode.Strict,
                 Path = AuthConstants.RefreshTokenCookiePath
             });
-        return Result.Ok(Unit.Value);
     }
 }

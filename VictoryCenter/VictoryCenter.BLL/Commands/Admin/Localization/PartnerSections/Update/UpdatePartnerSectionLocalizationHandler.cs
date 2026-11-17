@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnerSections;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Interfaces.Partners;
 using VictoryCenter.DAL.Entities;
@@ -52,7 +53,7 @@ public class UpdatePartnerSectionLocalizationHandler
 
             if (section is null)
             {
-                return Result.Fail<PartnerSectionLocalizationDto>(ErrorMessagesConstants.NotFound(request.EntityId, typeof(PartnerSection)));
+                return Result.Fail<PartnerSectionLocalizationDto>(NotFoundErrors.NotFound(request.EntityId, typeof(PartnerSection)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -80,7 +81,7 @@ public class UpdatePartnerSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<PartnerSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<PartnerSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -88,7 +89,7 @@ public class UpdatePartnerSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnerSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnerSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

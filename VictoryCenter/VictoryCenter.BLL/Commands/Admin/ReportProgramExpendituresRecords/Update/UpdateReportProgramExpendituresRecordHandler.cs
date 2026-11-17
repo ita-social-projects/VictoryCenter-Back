@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
@@ -44,6 +45,21 @@ public class UpdateReportProgramExpendituresRecordHandler
             return Result.Fail(validationResult.Errors.Select(error => error.ErrorMessage));
         }
 
+        var programCategory = await _repositoryWrapper
+            .HippotherapyProgramCategoriesRepository
+            .GetFirstOrDefaultAsync(new QueryOptions<HippotherapyProgramCategory>
+            {
+                Filter = category => category.Id == request.Dto.HippotherapyProgramCategoryId
+            });
+
+        if (programCategory is null)
+        {
+            return Result.Fail(new NotFoundError(
+                ErrorMessagesConstants.NotFound(
+                    request.Dto.HippotherapyProgramCategoryId,
+                    typeof(HippotherapyProgramCategory))));
+        }
+
         var recordToUpdate = await _repositoryWrapper
             .ReportProgramExpendituresRecordsRepository
             .GetFirstOrDefaultAsync(new QueryOptions<ReportProgramExpendituresRecord>
@@ -54,7 +70,7 @@ public class UpdateReportProgramExpendituresRecordHandler
         if (recordToUpdate is null)
         {
             return Result.Fail(
-                ErrorMessagesConstants.NotFound(
+                NotFoundErrors.NotFound(
                     request.ReportProgramExpendituresRecordId,
                     typeof(ReportProgramExpendituresRecord)));
         }

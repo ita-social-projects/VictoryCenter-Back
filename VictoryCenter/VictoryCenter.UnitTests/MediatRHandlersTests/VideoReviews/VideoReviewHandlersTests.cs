@@ -10,6 +10,7 @@ using VictoryCenter.BLL.Commands.Admin.VideoReviews.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.VideoReviews;
 using VictoryCenter.BLL.Enums;
+using VictoryCenter.BLL.Interfaces.Audit;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.BLL.Queries.Admin.VideoReviews.GetAll;
 using VictoryCenter.DAL.Entities;
@@ -33,6 +34,7 @@ public class VideoReviewHandlersTests
     private readonly Mock<TimeProvider> _timeProvider = new();
     private readonly Mock<IReorderService> _reorderService = new();
     private readonly Mock<IDbContextTransaction> _transaction = new();
+    private readonly Mock<IAuditLogFactory> _auditLogFactory = new();
 
     public VideoReviewHandlersTests()
     {
@@ -442,7 +444,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync((VideoReview?)null);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -466,7 +468,7 @@ public class VideoReviewHandlersTests
                 entity.ArchivedAt = archivedAt;
             })
             .ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -487,7 +489,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
             .ReturnsAsync(entity);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -541,7 +543,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.ArchiveAsync(10, TestNow))
             .ReturnsAsync(1);
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -562,7 +564,7 @@ public class VideoReviewHandlersTests
         _repository
             .Setup(repository => repository.ArchiveAsync(10, TestNow))
             .ThrowsAsync(new DbUpdateException());
-        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
 
         var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
 
@@ -570,6 +572,74 @@ public class VideoReviewHandlersTests
         Assert.Equal(
             ErrorMessagesConstants.FailedToDeleteEntityInDatabase(typeof(VideoReview)),
             result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldWriteDeleteAuditLogAndCommit_WhenEntityIsArchived()
+    {
+        var auditLog = new AuditLog();
+        IReadOnlyDictionary<string, AuditChange>? capturedChanges = null;
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .ReturnsAsync(1);
+        _auditLogFactory
+            .Setup(factory => factory.Create(
+                nameof(VideoReview),
+                "10",
+                AuditOperation.Delete,
+                It.IsAny<IReadOnlyDictionary<string, AuditChange>?>()))
+            .Callback<string, string, AuditOperation, IReadOnlyDictionary<string, AuditChange>?>(
+                (_, _, _, changes) => capturedChanges = changes)
+            .Returns(auditLog);
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _wrapper.Verify(wrapper => wrapper.AddAuditLog(auditLog), Times.Once);
+        _wrapper.Verify(wrapper => wrapper.SaveChangesAsync(), Times.Once);
+        _transaction.Verify(transaction => transaction.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+        Assert.NotNull(capturedChanges);
+        Assert.Equal(new AuditChange(false, true), capturedChanges[nameof(VideoReview.IsArchived)]);
+        Assert.Equal(new AuditChange(null, TestNow), capturedChanges[nameof(VideoReview.ArchivedAt)]);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldNotWriteAuditLog_WhenEntityIsAlreadyArchived()
+    {
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .ReturnsAsync(0);
+        _repository
+            .Setup(repository => repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<VideoReview>>()))
+            .ReturnsAsync(new VideoReview { Id = 10, IsArchived = true, ArchivedAt = TestNow });
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsSuccess);
+        _wrapper.Verify(wrapper => wrapper.AddAuditLog(It.IsAny<AuditLog>()), Times.Never);
+        _transaction.Verify(transaction => transaction.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Delete_ShouldNotCommit_WhenRenumberingFailsAfterAuditLogIsAdded()
+    {
+        _repository
+            .Setup(repository => repository.ArchiveAsync(10, TestNow))
+            .ReturnsAsync(1);
+        _reorderService
+            .Setup(service => service.RenumberPriorityAsync<VideoReview>(
+                It.IsAny<Expression<Func<VideoReview, bool>>>()))
+            .ThrowsAsync(new DbUpdateException());
+        var handler = new DeleteVideoReviewHandler(_wrapper.Object, _timeProvider.Object, _reorderService.Object, _auditLogFactory.Object);
+
+        var result = await handler.Handle(new DeleteVideoReviewCommand(10), CancellationToken.None);
+
+        Assert.True(result.IsFailed);
+        _wrapper.Verify(wrapper => wrapper.AddAuditLog(It.IsAny<AuditLog>()), Times.Once);
+        _transaction.Verify(transaction => transaction.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _transaction.Verify(transaction => transaction.DisposeAsync(), Times.Once);
     }
 
     [Fact]

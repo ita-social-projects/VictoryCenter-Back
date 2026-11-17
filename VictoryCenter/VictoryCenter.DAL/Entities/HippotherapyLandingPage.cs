@@ -1,8 +1,10 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Entities.HippotherapyLandingPageContents;
 
 namespace VictoryCenter.DAL.Entities;
 
+[Auditable]
 public class HippotherapyLandingPage : BaseEntity
 {
     public HippotherapyLandingPageIntroSection? IntroSection { get; set; }

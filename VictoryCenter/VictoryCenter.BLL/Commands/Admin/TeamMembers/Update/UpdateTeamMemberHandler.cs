@@ -6,6 +6,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.BLL.Interfaces.ReorderService;
@@ -50,7 +51,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
             if (entityToUpdate is null)
             {
-                return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember)));
+                return Result.Fail<TeamMemberDto>(NotFoundErrors.NotFound(request.Id, typeof(TeamMember)));
             }
 
             var oldCategoryId = entityToUpdate.CategoryId;
@@ -67,7 +68,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
 
                 if (newCategory == null)
                 {
-                    return Result.Fail<TeamMemberDto>(ErrorMessagesConstants.NotFound(newCategoryId, typeof(TeamCategory)));
+                    return Result.Fail<TeamMemberDto>(NotFoundErrors.NotFound(newCategoryId, typeof(TeamCategory)));
                 }
             }
 
@@ -120,7 +121,7 @@ public class UpdateTeamMemberHandler : IRequestHandler<UpdateTeamMemberCommand, 
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamMemberDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (BlobStorageException e)
         {
