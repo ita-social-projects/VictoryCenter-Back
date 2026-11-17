@@ -5,12 +5,20 @@ using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities;
 
+[Auditable]
 public class PartnersPageBanner : BaseEntity, ITranslatedEntity<PartnersPageBannerLocalization>
 {
+    [Audited]
     [RichText]
     public string Title { get; set; } = null!;
+
+    [Audited]
     public string Description { get; set; } = null!;
+
+    [Audited]
     public long? ImageId { get; set; }
+
     public Image? Image { get; set; }
+
     public ICollection<PartnersPageBannerLocalization> Localizations { get; set; } = [];
 }

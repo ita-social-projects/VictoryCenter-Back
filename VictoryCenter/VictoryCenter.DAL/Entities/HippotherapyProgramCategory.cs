@@ -1,12 +1,16 @@
 using VictoryCenter.DAL.Data.BaseEntity;
+using VictoryCenter.DAL.Entities.Attributes;
 using VictoryCenter.DAL.Entities.Interfaces;
 using VictoryCenter.DAL.Entities.Localization;
 
 namespace VictoryCenter.DAL.Entities;
 
+[Auditable]
 public class HippotherapyProgramCategory : BaseEntity, ITranslatedEntity<HippotherapyProgramCategoryLocalization>
 {
+    [Audited]
     public string Name { get; set; } = null!;
+
     public ICollection<HippotherapyProgram> Programs { get; set; } = new List<HippotherapyProgram>();
 
     public ICollection<ReportProgramExpendituresRecord> ReportProgramExpendituresRecords { get; set; } =
