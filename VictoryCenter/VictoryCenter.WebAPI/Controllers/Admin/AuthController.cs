@@ -37,10 +37,9 @@ public class AuthController : BaseApiController
             AuthConstants.RefreshTokenIsInvalid);
     }
 
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("logout")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> LogoutAsync()
     {
         return HandleResult(await Mediator.Send(new LogoutCommand()));
