@@ -35,8 +35,8 @@ public class DeleteReportFundsExpendituresRecordHandler
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresRecord))));
+            return Result.Fail<long>(
+                NotFoundErrors.NotFound(request.Id, typeof(ReportFundsExpendituresRecord)));
         }
 
         _repositoryWrapper.ReportFundsExpendituresRecordsRepository.Delete(entityToDelete);

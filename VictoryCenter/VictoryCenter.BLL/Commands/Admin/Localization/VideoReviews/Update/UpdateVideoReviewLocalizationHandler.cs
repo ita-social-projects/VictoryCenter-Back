@@ -38,9 +38,9 @@ public class UpdateVideoReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<VideoReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization))));
+                typeof(VideoReviewLocalization)));
         }
 
         var normalizedTitle = request.Localization.Title.Trim();
@@ -63,9 +63,9 @@ public class UpdateVideoReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<VideoReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization))));
+                typeof(VideoReviewLocalization)));
         }
 
         return Result.Fail<VideoReviewLocalizationDto>(

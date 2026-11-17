@@ -34,7 +34,7 @@ public class RestoreVideoReviewHandler : IRequestHandler<RestoreVideoReviewComma
 
         if (entity is null)
         {
-            return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview))));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(VideoReview)));
         }
 
         if (!entity.IsArchived)

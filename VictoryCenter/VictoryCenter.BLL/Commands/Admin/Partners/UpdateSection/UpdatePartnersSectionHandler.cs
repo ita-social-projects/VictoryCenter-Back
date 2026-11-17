@@ -52,7 +52,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
             if (section is null)
             {
-                return Result.Fail<PartnersSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PartnerSection))));
+                return Result.Fail<PartnersSectionDto>(NotFoundErrors.NotFound(request.Id, typeof(PartnerSection)));
             }
 
             // Step 2: Validate that there are no overlapping IDs in update and delete lists
@@ -108,7 +108,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnersSectionDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnersSectionDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {
@@ -146,7 +146,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         if (nonExistingIds.Count > 0)
         {
-            return Result.Fail<PartnersSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(nonExistingIds, typeof(Partner))));
+            return Result.Fail<PartnersSectionDto>(NotFoundErrors.NotFound(nonExistingIds, typeof(Partner)));
         }
 
         return Result.Ok();
@@ -173,7 +173,7 @@ public class UpdatePartnersSectionHandler : IRequestHandler<UpdatePartnersSectio
 
         if (nonExistingImageIds.Count > 0)
         {
-            return Result.Fail<PartnersSectionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image))));
+            return Result.Fail<PartnersSectionDto>(NotFoundErrors.NotFound(nonExistingImageIds, typeof(Image)));
         }
 
         return Result.Ok();

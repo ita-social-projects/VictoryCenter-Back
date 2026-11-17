@@ -58,7 +58,7 @@ public class ReorderFaqQuestionsHandler : IRequestHandler<ReorderFaqQuestionsCom
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<Unit>(ex.Message);
+            return Result.Fail<Unit>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {

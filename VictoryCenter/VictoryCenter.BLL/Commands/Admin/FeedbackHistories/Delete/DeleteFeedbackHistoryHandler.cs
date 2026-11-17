@@ -34,7 +34,7 @@ public class DeleteFeedbackHistoryHandler : IRequestHandler<DeleteFeedbackHistor
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackHistory))));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(FeedbackHistory)));
             }
 
             using var scope = _repositoryWrapper.BeginTransaction();

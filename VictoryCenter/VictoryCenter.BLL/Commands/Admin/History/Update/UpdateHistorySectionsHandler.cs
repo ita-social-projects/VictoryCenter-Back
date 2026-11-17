@@ -62,7 +62,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
             if (unknownIds.Count > 0)
             {
                 return Result.Fail<List<HistorySectionDto>>(
-                    new NotFoundError(ErrorMessagesConstants.NotFound(unknownIds, typeof(HistorySection))));
+                    NotFoundErrors.NotFound(unknownIds, typeof(HistorySection)));
             }
 
             var contentMismatches = incomingSections
@@ -116,7 +116,7 @@ public class UpdateHistorySectionsHandler : IRequestHandler<UpdateHistorySection
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<List<HistorySectionDto>>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<List<HistorySectionDto>>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 

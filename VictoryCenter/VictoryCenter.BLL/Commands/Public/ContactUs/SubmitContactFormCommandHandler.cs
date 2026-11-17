@@ -82,7 +82,7 @@ public class SubmitContactFormCommandHandler : IRequestHandler<SubmitContactForm
         }
         catch (ValidationException validationException)
         {
-            return Result.Fail(validationException.Errors.Select(error => error.ErrorMessage));
+            return Result.Fail(validationException.Errors.Select(error => (IError)new ValidationError(error.PropertyName, error.ErrorMessage)));
         }
     }
 

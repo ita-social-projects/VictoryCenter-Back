@@ -58,10 +58,10 @@ public class CreateReportFundsExpendituresRecordHandler
 
             if (category is null)
             {
-                return Result.Fail<ReportFundsExpendituresRecordDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(
+                return Result.Fail<ReportFundsExpendituresRecordDto>(
+                    NotFoundErrors.NotFound(
                         request.CreateReportFundsExpendituresRecordDto.CategoryId,
-                        typeof(ReportFundsExpendituresCategory))));
+                        typeof(ReportFundsExpendituresCategory)));
             }
 
             if (category.Type != request.CreateReportFundsExpendituresRecordDto.Type)
@@ -106,7 +106,7 @@ public class CreateReportFundsExpendituresRecordHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

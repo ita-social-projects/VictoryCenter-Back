@@ -32,9 +32,9 @@ public class DeleteVideoReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteVideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteVideoReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization))));
+                typeof(VideoReviewLocalization)));
         }
 
         _repositoryWrapper.VideoReviewLocalizationsRepository.Delete(localization);
@@ -48,9 +48,9 @@ public class DeleteVideoReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteVideoReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteVideoReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(VideoReviewLocalization))));
+                typeof(VideoReviewLocalization)));
         }
     }
 }

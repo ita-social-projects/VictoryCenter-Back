@@ -104,7 +104,7 @@ public class CreatePdfReportHandler : IRequestHandler<CreatePdfReportCommand, Re
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PdfReportDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PdfReportDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (InvalidPdfFormatException ex)
         {

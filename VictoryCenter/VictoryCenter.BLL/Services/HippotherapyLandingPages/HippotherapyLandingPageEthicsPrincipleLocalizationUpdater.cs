@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageEthicsSection;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
@@ -42,7 +41,7 @@ public class HippotherapyLandingPageEthicsPrincipleLocalizationUpdater : IHippot
 
         if (invalidPrincipleIds.Count > 0)
         {
-            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(invalidPrincipleIds, typeof(HippotherapyLandingPageEthicsPrinciple))));
+            return Result.Fail(NotFoundErrors.NotFound(invalidPrincipleIds, typeof(HippotherapyLandingPageEthicsPrinciple)));
         }
 
         if (principles.Count == 0)

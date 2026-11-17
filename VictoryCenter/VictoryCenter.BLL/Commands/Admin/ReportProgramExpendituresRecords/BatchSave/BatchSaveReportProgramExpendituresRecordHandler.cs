@@ -125,9 +125,9 @@ public class BatchSaveReportProgramExpendituresRecordHandler
 
         if (nonExistingRecordIds.Count > 0)
         {
-            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingRecordIds,
-                typeof(ReportProgramExpendituresRecord))));
+                typeof(ReportProgramExpendituresRecord)));
         }
 
         return Result.Ok(Unit.Value);
@@ -185,9 +185,9 @@ public class BatchSaveReportProgramExpendituresRecordHandler
 
         if (nonExistingCategoryIds.Count > 0)
         {
-            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingCategoryIds,
-                typeof(HippotherapyProgramCategory))));
+                typeof(HippotherapyProgramCategory)));
         }
 
         if (duplicateRecordsInCategory.Any())

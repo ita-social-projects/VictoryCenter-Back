@@ -45,10 +45,10 @@ public class DeleteReportProgramExpendituresRecordHandler
 
             if (recordToBeDeleted is null)
             {
-                return Result.Fail(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(
+                return Result.Fail(
+                    NotFoundErrors.NotFound(
                         request.ReportProgramExpendituresRecordId,
-                        typeof(ReportProgramExpendituresRecord))));
+                        typeof(ReportProgramExpendituresRecord)));
             }
 
             _repositoryWrapper.ReportProgramExpendituresRecordsRepository.Delete(recordToBeDeleted);
@@ -66,7 +66,7 @@ public class DeleteReportProgramExpendituresRecordHandler
         catch (ValidationException validationException)
         {
             return Result.Fail(
-                validationException.Errors.Select(error => error.ErrorMessage));
+                validationException.Errors.Select(error => (IError)new ValidationError(error.PropertyName, error.ErrorMessage)));
         }
         catch (DbUpdateException)
         {
