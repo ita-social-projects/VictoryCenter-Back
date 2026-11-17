@@ -4,6 +4,8 @@ namespace VictoryCenter.BLL.DTOs.Admin.HippotherapyLandingPage.Sections;
 
 public record QuoteSectionDto
 {
+    public long Id { get; init; }
+
     public string QuoteText { get; init; } = null!;
 
     public string? AuthorName { get; init; }
