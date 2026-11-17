@@ -18,6 +18,7 @@ using VictoryCenter.BLL.Interceptors;
 using VictoryCenter.BLL.Interfaces.Audit;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Captcha;
+using VictoryCenter.BLL.Interfaces.Concurrency;
 using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
@@ -43,6 +44,7 @@ using VictoryCenter.BLL.Options.Payment;
 using VictoryCenter.BLL.Services.Audit;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
+using VictoryCenter.BLL.Services.Concurrency;
 using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
@@ -75,6 +77,7 @@ using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.HealthChecks;
 using VictoryCenter.WebAPI.Middleware;
 using VictoryCenter.WebAPI.Services;
+using VictoryCenter.WebAPI.Services.Concurrency;
 using VictoryCenter.WebAPI.Utils;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
@@ -222,6 +225,15 @@ public static class ServicesConfiguration
             });
 
         services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddOptions<ContentLockOptions>()
+            .BindConfiguration(ContentLockOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddSingleton<IContentLockManager, InMemoryContentLockManager>();
+        services.AddSingleton<IContentLockResourcePolicy, ContentLockResourcePolicy>();
+        services.AddScoped<IContentLockUpdateCompletionService, ContentLockUpdateCompletionService>();
+        services.AddSingleton<IContentLockNotifier, SignalRContentLockNotifier>();
+        services.AddHostedService<ContentLockExpirationService>();
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IImageContentValidator, ImageContentValidator>();
         services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages(new SlugHelperConfiguration
@@ -893,6 +905,7 @@ public static class ServicesConfiguration
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
+            c.OperationFilter<ContentLockOperationFilter>();
             c.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "VictoryCenter API",

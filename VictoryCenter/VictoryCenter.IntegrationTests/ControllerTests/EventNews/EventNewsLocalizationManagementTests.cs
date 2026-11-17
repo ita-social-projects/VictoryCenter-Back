@@ -58,9 +58,7 @@ public class EventNewsLocalizationManagementTests : BaseTestClass
             Description = "Updated Description",
             AdditionalDescription = "Updated Info"
         };
-        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{BaseUri}/{eventNews.Id}/{language.Id}",
-            updateDto);
+        var updateResponse = await PutWithContentLockAsync(eventNews.Id, language.Id, updateDto);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
 
         var updatedLocalization = await updateResponse.Content.ReadFromJsonAsync<AdminEventNewsLocalizationDto>();
@@ -114,8 +112,9 @@ public class EventNewsLocalizationManagementTests : BaseTestClass
         Assert.Equal(HttpStatusCode.NotFound, createMissingLangResponse.StatusCode);
 
         // Update missing localization
-        var updateResponse = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{BaseUri}/{missingId}/{language.Id}",
+        var updateResponse = await PutWithContentLockAsync(
+            missingId,
+            language.Id,
             new UpdateEventNewsLocalizationDto { Title = "Update Missing" });
         Assert.Equal(HttpStatusCode.NotFound, updateResponse.StatusCode);
 
@@ -133,14 +132,16 @@ public class EventNewsLocalizationManagementTests : BaseTestClass
         Assert.Equal(HttpStatusCode.BadRequest, deleteInvalidResponse.StatusCode);
 
         // PUT with entityId=0 or languageId=0
-        var updateInvalidRouteResponse = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{BaseUri}/0/0",
+        var updateInvalidRouteResponse = await PutWithContentLockAsync(
+            0,
+            0,
             new UpdateEventNewsLocalizationDto { Title = "Valid Title" });
         Assert.Equal(HttpStatusCode.BadRequest, updateInvalidRouteResponse.StatusCode);
 
         // PUT with empty Title
-        var updateInvalidBodyResponse = await Fixture.HttpClient.PutAsJsonAsync(
-            $"{BaseUri}/1/1",
+        var updateInvalidBodyResponse = await PutWithContentLockAsync(
+            1,
+            1,
             new UpdateEventNewsLocalizationDto { Title = string.Empty });
         Assert.Equal(HttpStatusCode.BadRequest, updateInvalidBodyResponse.StatusCode);
 
@@ -189,5 +190,18 @@ public class EventNewsLocalizationManagementTests : BaseTestClass
 
         var deleteResponse = await anonymousClient.DeleteAsync($"{BaseUri}/1/1");
         Assert.Equal(HttpStatusCode.Unauthorized, deleteResponse.StatusCode);
+    }
+
+    private Task<HttpResponseMessage> PutWithContentLockAsync(
+        long entityId,
+        long languageId,
+        UpdateEventNewsLocalizationDto dto)
+    {
+        return ContentLockTestHelper.PutEventNewsAsync(
+            Fixture.HttpClient,
+            Fixture.Factory.Services,
+            entityId,
+            $"{BaseUri}/{entityId}/{languageId}",
+            dto);
     }
 }
