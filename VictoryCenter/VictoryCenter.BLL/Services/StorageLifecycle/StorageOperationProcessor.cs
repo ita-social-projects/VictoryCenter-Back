@@ -122,7 +122,20 @@ public class StorageOperationProcessor(
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            operation.LastErrorCode = exception is StorageRootUnavailableException
+            var rootUnavailable = exception is StorageRootUnavailableException;
+            if (!rootUnavailable && exception is not ArgumentException)
+            {
+                try
+                {
+                    files.EnsureAvailable(operation.FileKind);
+                }
+                catch (StorageRootUnavailableException)
+                {
+                    rootUnavailable = true;
+                }
+            }
+
+            operation.LastErrorCode = rootUnavailable
                 ? StorageRootUnavailableException.StableErrorCode
                 : $"{exception.GetType().Name}:{exception.HResult:X8}";
             operation.Status = operation.Attempts >= options.Value.MaxAttempts

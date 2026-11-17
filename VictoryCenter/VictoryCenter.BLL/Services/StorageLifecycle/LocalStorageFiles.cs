@@ -15,7 +15,28 @@ public class LocalStorageFiles(
     private readonly string _imageRoot = GetExistingRoot(images.Value.FullPath, StorageFileKind.Image);
     private readonly string _pdfRoot = GetExistingRoot(pdfs.Value.FullPath, StorageFileKind.Pdf);
 
-    public void EnsureAvailable(StorageFileKind fileKind) => GetExistingRoot(GetRoot(fileKind), fileKind);
+    public void EnsureAvailable(StorageFileKind fileKind)
+    {
+        var root = GetExistingRoot(GetRoot(fileKind), fileKind);
+        try
+        {
+            using var entries = Directory.EnumerateFileSystemEntries(root).GetEnumerator();
+            _ = entries.MoveNext();
+            try
+            {
+                // A non-writing lookup checks search/traverse access even on an empty Unix directory.
+                _ = File.GetAttributes(Path.Combine(root, Path.GetRandomFileName()));
+            }
+            catch (FileNotFoundException)
+            {
+                // The randomly named probe is expected not to exist.
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
+        }
+    }
 
     public string GetPath(StorageFileKind fileKind, string fileName)
     {
@@ -53,14 +74,31 @@ public class LocalStorageFiles(
             EnsureAvailable(fileKind);
             return false;
         }
+        catch (IOException exception) when (exception is not StorageRootUnavailableException)
+        {
+            EnsureAvailable(fileKind);
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            EnsureAvailable(fileKind);
+            throw;
+        }
     }
 
     public IEnumerable<string> Enumerate(StorageFileKind fileKind)
     {
         var root = GetExistingRoot(GetRoot(fileKind), fileKind);
 
-        return Directory.EnumerateFiles(root, "*", SearchOption.TopDirectoryOnly)
-            .Select(Path.GetFileName).OfType<string>().Where(name => IsManagedFile(fileKind, name));
+        using var entries = OpenEnumeration(root, fileKind);
+        while (MoveNext(entries, fileKind))
+        {
+            var name = Path.GetFileName(entries.Current);
+            if (IsManagedFile(fileKind, name))
+            {
+                yield return name;
+            }
+        }
     }
 
     internal static void ValidateFileName(string fileName)
@@ -73,6 +111,30 @@ public class LocalStorageFiles(
         if (fileName.Contains('/') || fileName.Contains('\\') || fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
         {
             throw new ArgumentException("Invalid storage file name.", nameof(fileName));
+        }
+    }
+
+    private static IEnumerator<string> OpenEnumeration(string root, StorageFileKind fileKind)
+    {
+        try
+        {
+            return Directory.EnumerateFiles(root, "*", SearchOption.TopDirectoryOnly).GetEnumerator();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
+        }
+    }
+
+    private static bool MoveNext(IEnumerator<string> entries, StorageFileKind fileKind)
+    {
+        try
+        {
+            return entries.MoveNext();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
         }
     }
 

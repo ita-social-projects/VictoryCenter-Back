@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,63 @@ namespace VictoryCenter.UnitTests.ServiceTests;
 
 public partial class StorageLifecycleTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void EnumerationIterationFailure_PreservesRootKindAndCause(bool denied)
+    {
+        Exception cause = denied ? new UnauthorizedAccessException("private path") : new IOException("private path");
+        var enumerator = new Mock<IEnumerator<string>>();
+        enumerator.Setup(value => value.MoveNext()).Throws(cause);
+        var method = typeof(LocalStorageFiles).GetMethod("MoveNext", BindingFlags.Static | BindingFlags.NonPublic)!;
+
+        var invocation = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, [enumerator.Object, StorageFileKind.Pdf]));
+
+        var exception = Assert.IsType<StorageRootUnavailableException>(invocation.InnerException);
+        Assert.Equal(StorageFileKind.Pdf, exception.FileKind);
+        Assert.Same(cause, exception.InnerException);
+        Assert.DoesNotContain("private path", exception.Message);
+    }
+
+    [UnixFileSystemFact]
+    public void RootPermissions_DistinguishRootOutageFromIndividualFileAccess()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return;
+        }
+
+        var files = Files();
+        var root = Path.Combine(_root, "images");
+        var path = Path.Combine(root, "existing.png");
+        File.WriteAllText(path, "image");
+        var original = File.GetUnixFileMode(root);
+        try
+        {
+            foreach (var mode in new[] { UnixFileMode.UserRead, UnixFileMode.UserExecute })
+            {
+                File.SetUnixFileMode(root, mode);
+                Assert.Throws<StorageRootUnavailableException>(() => files.EnsureAvailable(StorageFileKind.Image));
+                if (mode == UnixFileMode.UserRead)
+                {
+                    Assert.Throws<StorageRootUnavailableException>(() => files.Exists(StorageFileKind.Image, "existing.png"));
+                }
+                else
+                {
+                    Assert.Throws<StorageRootUnavailableException>(() => files.Enumerate(StorageFileKind.Image).ToList());
+                }
+            }
+        }
+        finally
+        {
+            File.SetUnixFileMode(root, original);
+        }
+
+        File.SetUnixFileMode(path, UnixFileMode.None);
+        Assert.True(files.Exists(StorageFileKind.Image, "existing.png"));
+        files.EnsureAvailable(StorageFileKind.Image);
+    }
+
     [Theory]
     [InlineData(StorageFileKind.Image)]
     [InlineData(StorageFileKind.Pdf)]
