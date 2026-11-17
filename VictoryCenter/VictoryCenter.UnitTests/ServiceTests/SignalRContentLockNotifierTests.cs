@@ -18,8 +18,8 @@ public class SignalRContentLockNotifierTests
     };
 
     [Theory]
-    [InlineData(ContentLockEvents.Released)]
-    [InlineData(ContentLockEvents.Expired)]
+    [InlineData("LockReleased")]
+    [InlineData("LockExpired")]
     public async Task LifecycleNotification_SendsEventToResourceGroup(string eventName)
     {
         var hubContext = CreateHubContext(out var clients, out var client);
