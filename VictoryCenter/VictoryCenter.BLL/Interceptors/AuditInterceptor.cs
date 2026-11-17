@@ -179,46 +179,36 @@ public class AuditInterceptor : SaveChangesInterceptor
     private static Dictionary<string, AuditChange> BuildChanges(EntityEntry entry, AuditOperation operation, PropertyValues? databaseValues)
     {
         var changes = new Dictionary<string, AuditChange>();
-        var auditedProperties = GetAuditedProperties(entry);
 
-        foreach (var propertyName in auditedProperties)
+        foreach (var propertyName in GetAuditedProperties(entry))
         {
-            var property = entry.Property(propertyName);
-            if (operation == AuditOperation.Create)
+            var change = BuildChange(entry.Property(propertyName), operation, databaseValues);
+            if (change is not null)
             {
-                if (property.CurrentValue is not null)
-                {
-                    changes[propertyName] = new AuditChange(null, property.CurrentValue);
-                }
-
-                continue;
+                changes[propertyName] = change;
             }
-
-            if (operation == AuditOperation.Delete)
-            {
-                if (property.OriginalValue is not null)
-                {
-                    changes[propertyName] = new AuditChange(property.OriginalValue, null);
-                }
-
-                continue;
-            }
-
-            if (!property.IsModified)
-            {
-                continue;
-            }
-
-            var oldValue = databaseValues is not null ? databaseValues[propertyName] : property.OriginalValue;
-            if (Equals(oldValue, property.CurrentValue))
-            {
-                continue;
-            }
-
-            changes[propertyName] = new AuditChange(oldValue, property.CurrentValue);
         }
 
         return changes;
+    }
+
+    private static AuditChange? BuildChange(PropertyEntry property, AuditOperation operation, PropertyValues? databaseValues) =>
+        operation switch
+        {
+            AuditOperation.Create => property.CurrentValue is null ? null : new AuditChange(null, property.CurrentValue),
+            AuditOperation.Delete => property.OriginalValue is null ? null : new AuditChange(property.OriginalValue, null),
+            _ => BuildUpdateChange(property, databaseValues),
+        };
+
+    private static AuditChange? BuildUpdateChange(PropertyEntry property, PropertyValues? databaseValues)
+    {
+        if (!property.IsModified)
+        {
+            return null;
+        }
+
+        var oldValue = databaseValues is not null ? databaseValues[property.Metadata.Name] : property.OriginalValue;
+        return Equals(oldValue, property.CurrentValue) ? null : new AuditChange(oldValue, property.CurrentValue);
     }
 
     private static List<EntityEntry> GetUpdatedOrDeletedEntries(DbContext context)
