@@ -47,15 +47,14 @@ public class UpdateMainPageTests : BaseTestClass
         var image1 = await EnsureImageExistsAsync();
         var image2 = await EnsureSecondImageExistsAsync(image1.Id);
 
-        var existingStat = mainPage.ImpactStatistics;
-        var existingMetric = existingStat?.Metrics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics!;
 
         var updateDto = CreateUpdateDto(
             title: "Updated MainPage title",
             mainImageId: image1.Id,
             statImageId: image2.Id,
-            statId: existingStat?.Id,
-            metricId: existingMetric?.Id);
+            statId: existingStat.Id,
+            metrics: existingStat.Metrics);
 
         var response = await PutRaw(updateDto);
 
@@ -83,15 +82,14 @@ public class UpdateMainPageTests : BaseTestClass
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var image1 = await EnsureImageExistsAsync();
-        var existingStat = mainPage.ImpactStatistics;
-        var existingMetric = existingStat?.Metrics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics!;
 
         var updateDto = CreateUpdateDto(
             title: string.Empty,
             mainImageId: image1.Id,
             statImageId: image1.Id,
-            statId: existingStat?.Id,
-            metricId: existingMetric?.Id);
+            statId: existingStat.Id,
+            metrics: existingStat.Metrics);
 
         var response = await PutRaw(updateDto);
 
@@ -102,8 +100,7 @@ public class UpdateMainPageTests : BaseTestClass
     public async Task Update_NonExistentImageId_ShouldReturnNotFound()
     {
         var mainPage = await EnsureMainPageExistsAsync();
-        var existingStat = mainPage.ImpactStatistics;
-        var existingMetric = existingStat?.Metrics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics!;
 
         var nonExistentId = (await Fixture.DbContext.Images.MaxAsync(i => (long?)i.Id) ?? 0) + 1000;
 
@@ -111,8 +108,8 @@ public class UpdateMainPageTests : BaseTestClass
             title: "Updated title",
             mainImageId: nonExistentId,
             statImageId: nonExistentId,
-            statId: existingStat?.Id,
-            metricId: existingMetric?.Id);
+            statId: existingStat.Id,
+            metrics: existingStat.Metrics);
 
         var response = await PutRaw(updateDto);
 
@@ -124,15 +121,14 @@ public class UpdateMainPageTests : BaseTestClass
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var image = await EnsureImageExistsAsync();
-        var existingStat = mainPage.ImpactStatistics;
-        var existingMetric = existingStat?.Metrics.FirstOrDefault();
+        var existingStat = mainPage.ImpactStatistics!;
 
         var updateDto = CreateUpdateDto(
             title: "Updated title",
             mainImageId: image.Id,
             statImageId: image.Id,
-            statId: existingStat?.Id,
-            metricId: existingMetric?.Id) with
+            statId: existingStat.Id,
+            metrics: existingStat.Metrics) with
         {
             MainDonations = new UpdateMainDonationsDto
             {
@@ -145,6 +141,77 @@ public class UpdateMainPageTests : BaseTestClass
         var response = await PutRaw(updateDto);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Update_MetricWithoutId_ShouldReturnBadRequestAndKeepExistingMetrics()
+    {
+        var mainPage = await EnsureMainPageExistsAsync();
+        var image = await EnsureImageExistsAsync();
+        var existingStat = mainPage.ImpactStatistics!;
+        var existingMetricIds = existingStat.Metrics.Select(m => m.Id).OrderBy(id => id).ToList();
+
+        var updateDto = CreateUpdateDto(
+            title: "Updated title",
+            mainImageId: image.Id,
+            statImageId: image.Id,
+            statId: existingStat.Id,
+            metrics: existingStat.Metrics);
+        var metrics = updateDto.ImpactStatistics!.Metrics.ToList();
+        metrics[^1] = metrics[^1] with { Id = null, Name = "replacement-metric" };
+        updateDto = updateDto with { ImpactStatistics = updateDto.ImpactStatistics with { Metrics = metrics } };
+
+        var response = await PutRaw(updateDto);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        Fixture.DbContext.ChangeTracker.Clear();
+        var storedMetricIds = await Fixture.DbContext.Set<Metric>()
+            .Where(m => m.StatisticId == existingStat.Id)
+            .Select(m => m.Id)
+            .OrderBy(id => id)
+            .ToListAsync();
+        Assert.Equal(existingMetricIds, storedMetricIds);
+    }
+
+    [Fact]
+    public async Task Update_DifferentMetricKinds_ShouldKeepStoredKindsAndApplyOtherChanges()
+    {
+        var mainPage = await EnsureMainPageExistsAsync();
+        var image = await EnsureImageExistsAsync();
+        var existingStat = mainPage.ImpactStatistics!;
+        var storedKinds = existingStat.Metrics.ToDictionary(m => m.Id, m => m.Kind);
+
+        var updateDto = CreateUpdateDto(
+            title: "Updated title",
+            mainImageId: image.Id,
+            statImageId: image.Id,
+            statId: existingStat.Id,
+            metrics: existingStat.Metrics);
+
+        // Move the RaisedFunds kind onto a Standard metric (the 3 + 1 composition stays valid).
+        var kinds = updateDto.ImpactStatistics!.Metrics.Select(m => m.Kind).ToList();
+        var rotatedKinds = kinds.Skip(1).Append(kinds[0]).ToList();
+        var metrics = updateDto.ImpactStatistics.Metrics
+            .Select((m, index) => m with { Kind = rotatedKinds[index], Name = $"renamed-{index}" })
+            .ToList();
+        updateDto = updateDto with { ImpactStatistics = updateDto.ImpactStatistics with { Metrics = metrics } };
+
+        var response = await PutRaw(updateDto);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        Fixture.DbContext.ChangeTracker.Clear();
+        var storedMetrics = await Fixture.DbContext.Set<Metric>()
+            .Where(m => m.StatisticId == existingStat.Id)
+            .ToListAsync();
+
+        Assert.Equal(storedKinds.Count, storedMetrics.Count);
+        Assert.All(storedMetrics, m =>
+        {
+            Assert.Equal(storedKinds[m.Id], m.Kind);
+            Assert.StartsWith("renamed-", m.Name);
+        });
     }
 
     [Fact]
@@ -204,7 +271,12 @@ public class UpdateMainPageTests : BaseTestClass
             new StringContent(serialized, Encoding.UTF8, "application/json"));
     }
 
-    private static UpdateMainPageDto CreateUpdateDto(string title, long mainImageId, long statImageId, long? statId = null, long? metricId = null)
+    private static UpdateMainPageDto CreateUpdateDto(
+        string title,
+        long mainImageId,
+        long statImageId,
+        long statId,
+        IEnumerable<Metric> metrics)
     {
         return new UpdateMainPageDto
         {
@@ -224,11 +296,17 @@ public class UpdateMainPageTests : BaseTestClass
                 Id = statId,
                 Title = "Updated existing stat",
                 ImageId = statImageId,
-                Metrics =
-                [
-                    new UpdateMetricDto { Id = metricId, Value = 999, Name = "updated-name", Type = MetricType.Raised },
-                    new UpdateMetricDto { Value = 123, Name = "new-metric", Type = MetricType.Partners },
-                ],
+                Metrics = metrics
+                    .Select(m => new UpdateMetricDto
+                    {
+                        Id = m.Id,
+                        Value = m.Value + 1,
+                        Name = $"updated-{m.Name}",
+                        Kind = m.Kind,
+                        Prefix = m.Prefix,
+                        IsAutoSynced = m.IsAutoSynced,
+                    })
+                    .ToList(),
             },
         };
     }
@@ -255,8 +333,10 @@ public class UpdateMainPageTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new Metric { Value = 100, Name = "children", Type = MetricType.Raised, IsHidden = false, RowVersion = new byte[] { 1 } },
-                    new Metric { Value = 200, Name = "families", Type = MetricType.Partners, IsHidden = false, RowVersion = new byte[] { 1 } }
+                    new Metric { Value = 100, Name = "children", Kind = MetricKind.RaisedFunds, Priority = 0, IsHidden = false, RowVersion = new byte[] { 1 } },
+                    new Metric { Value = 200, Name = "families", Kind = MetricKind.Standard, Priority = 1, IsHidden = false, RowVersion = new byte[] { 1 } },
+                    new Metric { Value = 300, Name = "programs", Kind = MetricKind.Standard, Priority = 2, IsHidden = false, RowVersion = new byte[] { 1 } },
+                    new Metric { Value = 400, Name = "hours", Kind = MetricKind.Standard, Priority = 3, IsHidden = false, RowVersion = new byte[] { 1 } }
                 ],
             },
         };

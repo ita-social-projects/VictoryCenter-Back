@@ -80,7 +80,7 @@ public class UpdateSingleMetricTests : BaseTestClass
     public async Task UpdateMetric_SequentialUpdatesWithoutReload_ShouldSucceed()
     {
         var mainPage = await EnsureMainPageExistsAsync();
-        var raisedMetric = mainPage.ImpactStatistics!.Metrics.First(m => m.Type == MetricType.Raised);
+        var raisedMetric = mainPage.ImpactStatistics!.Metrics.First(m => m.Kind == MetricKind.RaisedFunds);
 
         var firstDto = new UpdateSingleMetricDto
         {
@@ -114,7 +114,7 @@ public class UpdateSingleMetricTests : BaseTestClass
     public async Task UpdateMetric_ToggleAutoSync_ShouldUpdateEntityAndReturnResultWithRowVersion()
     {
         var mainPage = await EnsureMainPageExistsAsync();
-        var raisedMetric = mainPage.ImpactStatistics!.Metrics.First(m => m.Type == MetricType.Raised);
+        var raisedMetric = mainPage.ImpactStatistics!.Metrics.First(m => m.Kind == MetricKind.RaisedFunds);
 
         var dto = new UpdateSingleMetricDto
         {
@@ -261,8 +261,8 @@ public class UpdateSingleMetricTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new Metric { Value = 100, Name = "children", Type = MetricType.Raised, IsAutoSynced = false, IsHidden = false, RowVersion = [1, 0, 0, 0] },
-                    new Metric { Value = 200, Name = "families", Type = MetricType.Partners, IsAutoSynced = false, IsHidden = false, RowVersion = [2, 0, 0, 0] }
+                    new Metric { Value = 100, Name = "children", Kind = MetricKind.RaisedFunds, IsAutoSynced = false, IsHidden = false, RowVersion = [1, 0, 0, 0] },
+                    new Metric { Value = 200, Name = "families", Kind = MetricKind.Standard, IsAutoSynced = false, IsHidden = false, RowVersion = [2, 0, 0, 0] }
                 ],
             },
         };

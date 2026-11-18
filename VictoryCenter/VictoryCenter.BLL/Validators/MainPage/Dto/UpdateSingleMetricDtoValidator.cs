@@ -24,10 +24,6 @@ public class UpdateSingleMetricDtoValidator : AbstractValidator<UpdateSingleMetr
                 nameof(UpdateSingleMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen))
             .When(x => x.Name != null);
 
-        RuleFor(x => x.Type)
-            .IsInEnum()
-            .When(x => x.Type.HasValue);
-
         RuleFor(x => x.Prefix)
             .IsInEnum()
             .When(x => x.Prefix.HasValue);

@@ -24,9 +24,9 @@ public abstract class BaseMetricDtoValidator<TDto> : AbstractValidator<TDto>
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
                 nameof(BaseMetricDto.Name), MainPageConstants.Metric.ValidationNameRules.MaxLen));
 
-        RuleFor(x => x.Type)
+        RuleFor(x => x.Kind)
             .IsInEnum()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Type)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(BaseMetricDto.Kind)));
 
         RuleFor(x => x.Prefix)
             .IsInEnum()

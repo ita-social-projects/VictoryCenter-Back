@@ -73,7 +73,7 @@ public class CreateImpactStatisticDtoValidatorTests
     {
         var dto = GetValidDto() with
         {
-            Metrics = [new CreateMetricDto { Value = 100, Name = "kids", Type = MetricType.Partners }],
+            Metrics = [new CreateMetricDto { Value = 100, Name = "kids", Kind = MetricKind.Standard }],
         };
 
         var result = _validator.TestValidate(dto);
@@ -82,27 +82,53 @@ public class CreateImpactStatisticDtoValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount));
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenMetricTypesAreNotUnique()
+    [Theory]
+    [InlineData(MetricKind.Standard, MetricKind.Standard, MetricKind.Standard, MetricKind.Standard)]
+    [InlineData(MetricKind.Standard, MetricKind.Standard, MetricKind.RaisedFunds, MetricKind.RaisedFunds)]
+    [InlineData(MetricKind.RaisedFunds, MetricKind.RaisedFunds, MetricKind.RaisedFunds, MetricKind.RaisedFunds)]
+    public void Validate_ShouldHaveError_WhenMetricKindCompositionIsInvalid(
+        MetricKind first, MetricKind second, MetricKind third, MetricKind fourth)
     {
         var dto = GetValidDto() with
         {
             Metrics =
             [
-                new CreateMetricDto { Value = 100, Name = "a", Type = MetricType.Partners },
-                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Partners },
-                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+                new CreateMetricDto { Value = 100, Name = "a", Kind = first },
+                new CreateMetricDto { Value = 200, Name = "b", Kind = second },
+                new CreateMetricDto { Value = 300, Name = "c", Kind = third },
+                new CreateMetricDto { Value = 400, Name = "d", Kind = fourth },
             ],
         };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Metrics);
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.MetricKindsMustMatchRequiredComposition(
+                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
+                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount));
     }
 
     [Fact]
-    public void Validate_ShouldNotHaveError_WhenLocalizationsSetOnAllMetricTypes()
+    public void Validate_ShouldNotHaveError_WhenRaisedFundsMetricIsInAnyPosition()
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics =
+            [
+                new CreateMetricDto { Value = 100, Name = "aa", Kind = MetricKind.RaisedFunds },
+                new CreateMetricDto { Value = 200, Name = "bb", Kind = MetricKind.Standard },
+                new CreateMetricDto { Value = 300, Name = "cc", Kind = MetricKind.Standard },
+                new CreateMetricDto { Value = 400, Name = "dd", Kind = MetricKind.Standard },
+            ],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldNotHaveError_WhenLocalizationsSetOnAllMetrics()
     {
         var dto = GetValidDto() with
         {
@@ -110,22 +136,22 @@ public class CreateImpactStatisticDtoValidatorTests
             [
                 new CreateMetricDto
                 {
-                    Value = 100, Name = "aa", Type = MetricType.Partners,
+                    Value = 100, Name = "aa", Kind = MetricKind.Standard,
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Партнери" },
                 },
                 new CreateMetricDto
                 {
-                    Value = 200, Name = "bb", Type = MetricType.Programs,
+                    Value = 200, Name = "bb", Kind = MetricKind.Standard,
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Програми" },
                 },
                 new CreateMetricDto
                 {
-                    Value = 300, Name = "cc", Type = MetricType.Raised,
+                    Value = 300, Name = "cc", Kind = MetricKind.RaisedFunds,
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
                 },
                 new CreateMetricDto
                 {
-                    Value = 400, Name = "dd", Type = MetricType.TherapyHours,
+                    Value = 400, Name = "dd", Kind = MetricKind.Standard,
                     Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Терапія" },
                 },
             ],
@@ -143,10 +169,10 @@ public class CreateImpactStatisticDtoValidatorTests
         {
             Metrics =
             [
-                new CreateMetricDto { Value = -1, Name = "a", Type = MetricType.Partners },
-                new CreateMetricDto { Value = 200, Name = "b", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 300, Name = "c", Type = MetricType.Raised },
-                new CreateMetricDto { Value = 400, Name = "d", Type = MetricType.TherapyHours },
+                new CreateMetricDto { Value = -1, Name = "a", Kind = MetricKind.Standard },
+                new CreateMetricDto { Value = 200, Name = "b", Kind = MetricKind.Standard },
+                new CreateMetricDto { Value = 300, Name = "c", Kind = MetricKind.RaisedFunds },
+                new CreateMetricDto { Value = 400, Name = "d", Kind = MetricKind.Standard },
             ],
         };
 
@@ -174,10 +200,10 @@ public class CreateImpactStatisticDtoValidatorTests
         ImageId = 1,
         Metrics =
         [
-            new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
-            new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
-            new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            new CreateMetricDto { Value = 100, Name = "Partners", Kind = MetricKind.Standard },
+            new CreateMetricDto { Value = 200, Name = "Programs", Kind = MetricKind.Standard },
+            new CreateMetricDto { Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds },
+            new CreateMetricDto { Value = 400, Name = "Therapy", Kind = MetricKind.Standard },
         ],
     };
 }

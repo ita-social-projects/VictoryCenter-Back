@@ -16,6 +16,9 @@ namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
 public class UpdateMainPageCommandValidatorTests
 {
+    private const long ImpactStatisticsId = 13;
+    private static readonly long[] ExistingMetricIds = [14, 15, 16, 17];
+
     private readonly Mock<IRepositoryWrapper> _repositoryWrapperMock = new();
     private readonly Mock<IMainPageRepository> _mainPageRepositoryMock = new();
 
@@ -31,10 +34,7 @@ public class UpdateMainPageCommandValidatorTests
     {
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto());
-
-        _mainPageRepositoryMock
-            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
-            .ReturnsAsync((DAL.Entities.MainPage?)null);
+        SetupExistingMainPage(null);
 
         var validator = CreateValidator();
 
@@ -51,26 +51,9 @@ public class UpdateMainPageCommandValidatorTests
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto() with
         {
-            ImpactStatistics = new UpdateImpactStatisticDto
-            {
-                Id = 9999,
-                Title = "Updated stat",
-                Metrics =
-                [
-                    new UpdateMetricDto
-                    {
-                        Id = 14,
-                        Value = 123,
-                        Name = "kids",
-                        Type = MetricType.Raised,
-                    },
-                ],
-            },
+            ImpactStatistics = GetValidImpactStatisticDto() with { Id = 9999 },
         });
-
-        _mainPageRepositoryMock
-            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
-            .ReturnsAsync(GetExistingMainPage());
+        SetupExistingMainPage(GetExistingMainPage());
 
         var validator = CreateValidator();
 
@@ -78,8 +61,7 @@ public class UpdateMainPageCommandValidatorTests
         var result = await validator.TestValidateAsync(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+        AssertHasNestedIdsError(result);
     }
 
     [Fact]
@@ -88,26 +70,9 @@ public class UpdateMainPageCommandValidatorTests
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto() with
         {
-            ImpactStatistics = new UpdateImpactStatisticDto
-            {
-                Id = 13,
-                Title = "Updated stat",
-                Metrics =
-                [
-                    new UpdateMetricDto
-                    {
-                        Id = 9999,
-                        Value = 123,
-                        Name = "kids",
-                        Type = MetricType.Raised,
-                    },
-                ],
-            },
+            ImpactStatistics = GetValidImpactStatisticDto(metricIds: [14, 15, 16, 9999]),
         });
-
-        _mainPageRepositoryMock
-            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
-            .ReturnsAsync(GetExistingMainPage());
+        SetupExistingMainPage(GetExistingMainPage());
 
         var validator = CreateValidator();
 
@@ -115,43 +80,53 @@ public class UpdateMainPageCommandValidatorTests
         var result = await validator.TestValidateAsync(command);
 
         // Assert
-        result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+        AssertHasNestedIdsError(result);
     }
 
     [Fact]
-    public async Task Validate_ShouldNotHaveErrors_WhenIdsMatchExistingMainPage()
+    public async Task Validate_ShouldHaveError_WhenMetricWithoutIdIsSentForExistingImpactStatistics()
     {
         // Arrange
         var command = new UpdateMainPageCommand(GetValidDto() with
         {
-            ImpactStatistics = new UpdateImpactStatisticDto
-            {
-                Id = 13,
-                Title = "Updated existing stat",
-                ImageId = 2,
-                Metrics =
-                [
-                    new UpdateMetricDto
-                    {
-                        Id = 14,
-                        Value = 999,
-                        Name = "updated-name",
-                        Type = MetricType.Raised,
-                    },
-                    new UpdateMetricDto
-                    {
-                        Value = 123,
-                        Name = "new-metric",
-                        Type = MetricType.Partners,
-                    },
-                ],
-            },
+            ImpactStatistics = GetValidImpactStatisticDto(metricIds: [14, 15, 16, null]),
         });
+        SetupExistingMainPage(GetExistingMainPage());
 
-        _mainPageRepositoryMock
-            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
-            .ReturnsAsync(GetExistingMainPage());
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        AssertHasNestedIdsError(result);
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveError_WhenExistingMetricIsOmitted()
+    {
+        // Arrange
+        var existingMainPage = GetExistingMainPage();
+        existingMainPage.ImpactStatistics!.Metrics.Add(new Metric { Id = 18, Name = "extra", Kind = MetricKind.Standard });
+
+        var command = new UpdateMainPageCommand(GetValidDto());
+        SetupExistingMainPage(existingMainPage);
+
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        AssertHasNestedIdsError(result);
+    }
+
+    [Fact]
+    public async Task Validate_ShouldNotHaveErrors_WhenAllExistingMetricIdsAreSent()
+    {
+        // Arrange
+        var command = new UpdateMainPageCommand(GetValidDto());
+        SetupExistingMainPage(GetExistingMainPage());
 
         var validator = CreateValidator();
 
@@ -162,6 +137,41 @@ public class UpdateMainPageCommandValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Fact]
+    public async Task Validate_ShouldNotHaveErrors_WhenImpactStatisticsDoesNotExistAndMetricsHaveNoIds()
+    {
+        // Arrange
+        var existingMainPage = GetExistingMainPage();
+        existingMainPage.ImpactStatistics = null;
+
+        var command = new UpdateMainPageCommand(GetValidDto() with
+        {
+            ImpactStatistics = GetValidImpactStatisticDto(metricIds: [null, null, null, null]) with { Id = null },
+        });
+        SetupExistingMainPage(existingMainPage);
+
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    private static void AssertHasNestedIdsError(TestValidationResult<UpdateMainPageCommand> result)
+    {
+        result.ShouldHaveValidationErrorFor(x => x)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+    }
+
+    private void SetupExistingMainPage(DAL.Entities.MainPage? mainPage)
+    {
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(mainPage);
+    }
+
     private UpdateMainPageCommandValidator CreateValidator() =>
         new(_repositoryWrapperMock.Object);
 
@@ -170,23 +180,29 @@ public class UpdateMainPageCommandValidatorTests
         Title = "Main page title",
         Description = "Main page description",
         ImageId = 1,
-        ImpactStatistics = new UpdateImpactStatisticDto
+        ImpactStatistics = GetValidImpactStatisticDto(),
+    };
+
+    private static UpdateImpactStatisticDto GetValidImpactStatisticDto(IReadOnlyList<long?>? metricIds = null)
+    {
+        metricIds ??= ExistingMetricIds.Select(id => (long?)id).ToArray();
+
+        return new UpdateImpactStatisticDto
         {
-            Id = 13,
+            Id = ImpactStatisticsId,
             Title = "Impact statistic",
             ImageId = 2,
-            Metrics =
-            [
-                new UpdateMetricDto
+            Metrics = metricIds
+                .Select((id, index) => new UpdateMetricDto
                 {
-                    Id = 14,
-                    Value = 100,
-                    Name = "children",
-                    Type = MetricType.Raised,
-                },
-            ],
-        },
-    };
+                    Id = id,
+                    Value = 100 * (index + 1),
+                    Name = $"metric-{index}",
+                    Kind = index == 0 ? MetricKind.RaisedFunds : MetricKind.Standard,
+                })
+                .ToList(),
+        };
+    }
 
     private static DAL.Entities.MainPage GetExistingMainPage() => new()
     {
@@ -208,19 +224,18 @@ public class UpdateMainPageCommandValidatorTests
         },
         ImpactStatistics = new ImpactStatistics
         {
-            Id = 13,
+            Id = ImpactStatisticsId,
             Title = "Old stat",
             ImageId = 2,
-            Metrics =
-            [
-                new Metric
+            Metrics = ExistingMetricIds
+                .Select((id, index) => new Metric
                 {
-                    Id = 14,
+                    Id = id,
                     Value = 100,
-                    Name = "children",
-                    Type = MetricType.Raised,
-                },
-            ],
+                    Name = $"old-metric-{index}",
+                    Kind = index == 0 ? MetricKind.RaisedFunds : MetricKind.Standard,
+                })
+                .ToList(),
         },
     };
 }

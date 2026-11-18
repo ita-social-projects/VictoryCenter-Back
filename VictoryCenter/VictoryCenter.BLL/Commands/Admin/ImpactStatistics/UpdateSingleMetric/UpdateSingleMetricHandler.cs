@@ -107,13 +107,6 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
                     result.WasModified = true;
                 }
 
-                if (request.Dto.Type.HasValue && metric.Type != request.Dto.Type.Value)
-                {
-                    metric.Type = request.Dto.Type.Value;
-                    result.UpdatedFields.Add(nameof(request.Dto.Type));
-                    result.WasModified = true;
-                }
-
                 if (request.Dto.Prefix.HasValue && metric.Prefix != request.Dto.Prefix.Value)
                 {
                     metric.Prefix = request.Dto.Prefix.Value;
@@ -171,7 +164,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
                     }
                 }
 
-                if (metric.Type == MetricType.Raised && metric.IsAutoSynced)
+                if (metric.Kind == MetricKind.RaisedFunds && metric.IsAutoSynced)
                 {
                     var syncApplied = await _raisedFundsSyncService.ApplySyncAsync(metric, cancellationToken);
                     if (syncApplied)
@@ -197,7 +190,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
             result.Value = metric.Value;
             result.LocalizationValue = GetLocalizationValue(metric, englishLanguage?.Id);
 
-            if (metric.Type == MetricType.Raised && metric.IsAutoSynced)
+            if (metric.Kind == MetricKind.RaisedFunds && metric.IsAutoSynced)
             {
                 await PublishReportFundsChangedSafelyAsync(metric.Id);
             }

@@ -157,7 +157,7 @@ public class GetLocalizedMainPageHandler : IRequestHandler<GetLocalizedMainPageQ
             Id = metric.Id,
             Value = Resolve(localization?.Value, metric.Value.ToString(CultureInfo.InvariantCulture)),
             Name = Resolve(localization?.Name, metric.Name),
-            Type = metric.Type,
+            Kind = metric.Kind,
             Prefix = metric.Prefix,
             IsAutoSynced = metric.IsAutoSynced,
             IsHidden = metric.IsHidden,

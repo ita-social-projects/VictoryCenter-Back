@@ -125,27 +125,15 @@ public class GetMainPageTranslationStatusesHandler
             yield break;
         }
 
-        foreach (var metric in metrics.OrderBy(m => m.Type))
+        foreach (var metric in metrics.OrderBy(m => m.Priority).ThenBy(m => m.Id))
         {
             yield return BuildStatus(
-                ToLocalizationBlock(metric.Type),
+                MainPageLocalizationBlock.Metric,
                 metric.Id,
                 languageId,
                 metric.Localizations,
                 l => l.LanguageId,
                 l => l.TranslationStatus);
         }
-    }
-
-    private static MainPageLocalizationBlock ToLocalizationBlock(MetricType metricType)
-    {
-        return metricType switch
-        {
-            MetricType.Partners => MainPageLocalizationBlock.MetricPartners,
-            MetricType.Programs => MainPageLocalizationBlock.MetricPrograms,
-            MetricType.Raised => MainPageLocalizationBlock.MetricRaised,
-            MetricType.TherapyHours => MainPageLocalizationBlock.MetricTherapyHours,
-            _ => throw new ArgumentOutOfRangeException(nameof(metricType), metricType, null)
-        };
     }
 }

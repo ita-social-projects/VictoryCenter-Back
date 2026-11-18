@@ -157,7 +157,7 @@ public class UpdateMainPageDtoValidatorTests
             ImpactStatistics = new UpdateImpactStatisticDto
             {
                 Title = string.Empty,
-                Metrics = [new UpdateMetricDto { Value = 10, Name = "kids", Type = MetricType.Raised }],
+                Metrics = [new UpdateMetricDto { Value = 10, Name = "kids", Kind = MetricKind.RaisedFunds }],
             },
         };
 
@@ -210,6 +210,12 @@ public class UpdateMainPageDtoValidatorTests
         Id = 1,
         Title = "Impact statistic title",
         ImageId = 2,
-        Metrics = [new UpdateMetricDto { Id = 1, Value = 100, Name = "children", Type = MetricType.Raised }],
+        Metrics =
+        [
+            new UpdateMetricDto { Id = 1, Value = 100, Name = "children", Kind = MetricKind.RaisedFunds },
+            new UpdateMetricDto { Id = 2, Value = 200, Name = "families", Kind = MetricKind.Standard },
+            new UpdateMetricDto { Id = 3, Value = 300, Name = "programs", Kind = MetricKind.Standard },
+            new UpdateMetricDto { Id = 4, Value = 400, Name = "hours", Kind = MetricKind.Standard },
+        ],
     };
 }

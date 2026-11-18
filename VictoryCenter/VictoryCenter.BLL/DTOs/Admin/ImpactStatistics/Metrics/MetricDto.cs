@@ -8,7 +8,7 @@ public record MetricDto
     public long Id { get; init; }
     public int Value { get; init; }
     public string Name { get; init; } = null!;
-    public MetricType Type { get; init; }
+    public MetricKind Kind { get; init; }
     public MetricPrefix? Prefix { get; init; }
     public bool IsAutoSynced { get; init; }
     public bool IsHidden { get; init; }
