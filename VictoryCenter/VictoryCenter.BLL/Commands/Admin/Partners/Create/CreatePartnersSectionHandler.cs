@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Partners;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReorderService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -54,7 +55,7 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
 
             if (nonExistingImageIds.Any())
             {
-                return Result.Fail<PartnersSectionDto>(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image)));
+                return Result.Fail<PartnersSectionDto>(NotFoundErrors.NotFound(nonExistingImageIds, typeof(Image)));
             }
 
             var partnersSectionEntity = _mapper.Map<PartnerSection>(request.CreatePartnersSectionDto);
@@ -84,7 +85,7 @@ public class CreatePartnersSectionHandler : IRequestHandler<CreatePartnersSectio
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnersSectionDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnersSectionDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException ex)
         {

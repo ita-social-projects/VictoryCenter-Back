@@ -5,6 +5,7 @@ using Moq;
 using VictoryCenter.BLL.Commands.Admin.ReportProgramExpendituresRecords.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportProgramExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Validators.ReportProgramExpendituresRecords;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -60,7 +61,7 @@ public class UpdateReportProgramExpendituresRecordTests
         _hippotherapyProgramCategoriesRepositoryMock = new Mock<IHippotherapyProgramCategoriesRepository>();
         _recordsRepositoryMock = new Mock<IReportProgramExpendituresRecordsRepository>();
         _mediatorMock = new Mock<IMediator>();
-        _validator = new UpdateReportProgramExpendituresRecordCommandValidator(_repositoryWrapperMock.Object);
+        _validator = new UpdateReportProgramExpendituresRecordCommandValidator();
     }
 
     [Fact]
@@ -154,6 +155,41 @@ public class UpdateReportProgramExpendituresRecordTests
                 1,
                 typeof(ReportProgramExpendituresRecord)),
             result.Errors[0].Message);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldFailWithNotFoundError_WhenCategoryNotFound()
+    {
+        // Arrange
+        SetupDependencies(_recordEntity, 1);
+        _hippotherapyProgramCategoriesRepositoryMock
+            .Setup(repository =>
+                repository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<HippotherapyProgramCategory>>()))
+            .ReturnsAsync((HippotherapyProgramCategory)null!);
+
+        var handler = new UpdateReportProgramExpendituresRecordHandler(
+            _validator,
+            _repositoryWrapperMock.Object,
+            _mapperMock.Object,
+            _mediatorMock.Object);
+
+        // Act
+        var result = await handler.Handle(
+            new UpdateReportProgramExpendituresRecordCommand(1, _updateDto),
+            CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsFailed);
+        Assert.IsType<NotFoundError>(result.Errors[0]);
+        Assert.Equal(
+            ErrorMessagesConstants.NotFound(
+                _updateDto.HippotherapyProgramCategoryId,
+                typeof(HippotherapyProgramCategory)),
+            result.Errors[0].Message);
+        _recordsRepositoryMock.Verify(
+            repository => repository.GetFirstOrDefaultAsync(
+                It.IsAny<QueryOptions<ReportProgramExpendituresRecord>>()),
+            Times.Never);
     }
 
     [Fact]

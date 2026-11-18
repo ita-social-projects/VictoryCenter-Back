@@ -2,6 +2,7 @@ using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.HippotherapyProgramContents;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -31,8 +32,8 @@ public class DeleteHippotherapyProgramHandler : IRequestHandler<DeleteHippothera
 
         if (entityToDelete is null)
         {
-            return Result.Fail<long>(ErrorMessagesConstants
-                .NotFound(request.Id, typeof(HippotherapyProgram)));
+            return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants
+                .NotFound(request.Id, typeof(HippotherapyProgram))));
         }
 
         var faqQuestionIds = entityToDelete.Sections

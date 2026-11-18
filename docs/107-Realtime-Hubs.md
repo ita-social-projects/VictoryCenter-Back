@@ -11,6 +11,7 @@ This document describes the SignalR hubs in the API, who can connect to them, an
 | Audience | Visitors of the public website |
 | Authorization | **None. Anonymous connections are allowed on purpose.** |
 | Direction | Server → client only. The hub has no methods that clients can call. |
+| Rate limit | `RealtimeConnect` policy, 30 requests per minute per client by default. See [108-Rate-Limiting.md](108-Rate-Limiting.md). |
 
 ### Purpose
 

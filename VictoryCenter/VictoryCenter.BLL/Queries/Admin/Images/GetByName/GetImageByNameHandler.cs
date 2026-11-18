@@ -3,6 +3,7 @@ using FluentResults;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.DAL.Entities;
@@ -33,7 +34,7 @@ public class GetImageByNameHandler : IRequestHandler<GetImageByNameQuery, Result
 
             if (image is null)
             {
-                return Result.Fail<ImageDto>(ImageConstants.ImageNotFoundGeneric);
+                return Result.Fail<ImageDto>(new NotFoundError(ImageConstants.ImageNotFoundGeneric));
             }
 
             if (string.IsNullOrEmpty(image.BlobName))

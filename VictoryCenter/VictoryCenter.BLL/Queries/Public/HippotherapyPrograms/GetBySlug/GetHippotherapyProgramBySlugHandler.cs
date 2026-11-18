@@ -1,8 +1,8 @@
 using AutoMapper;
 using FluentResults;
 using MediatR;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyPrograms;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.DAL.Entities;
@@ -34,7 +34,7 @@ public class GetHippotherapyProgramBySlugHandler
         if (program is null || program.Status != Status.Published)
         {
             return Result.Fail<HippotherapyProgramDto>(
-                ErrorMessagesConstants.NotFound(request.Slug, typeof(HippotherapyProgram)));
+                NotFoundErrors.NotFound(request.Slug, typeof(HippotherapyProgram)));
         }
 
         var assignImagesResult = await ImageValidationHelper

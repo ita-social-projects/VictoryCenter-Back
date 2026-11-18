@@ -411,6 +411,28 @@ WAY4PAY_API_URL="<WAY4PAY_API_URL>"
 - **Expiry:** expired access tokens are rejected after a 30-second clock skew. The client then refreshes silently on `401`.
 - **First deploy of stamp validation:** access tokens issued before the deploy have no stamp claim and are rejected once. The client refreshes them automatically.
 
+### Log redaction policy
+
+Request paths and query strings written by `RequestResponseLoggingMiddleware` and
+`ExceptionHandlingMiddleware` pass through `IRequestLogSanitizer`.
+
+**Policy:** the values of credential-like query parameters are replaced with
+`[REDACTED]`. Parameter names, order, and all other parameters are preserved so
+requests remain diagnosable. Matching is case-insensitive and applied to the
+URL-decoded parameter name.
+
+**Always redacted:** `ticket` (PDF preview), `token`, `access_token`, `id_token`,
+`refresh_token`, `api_key`, `apikey`, `key`, `signature`, `sig`, `code`,
+`password`, `secret`, `auth`, `authorization`.
+
+**Extending:** add names under `LogRedaction:AdditionalSensitiveQueryParameters`
+in configuration. New endpoints that accept credentials in the query string must
+have their parameter names added here.
+
+**Not covered:** request/response bodies and headers are not logged by these
+middlewares. Framework logs (e.g. `Microsoft.AspNetCore.Hosting.Diagnostics`) are
+set to `Warning` to avoid logging full URLs.
+
 ### Clone
 
 - Clone this repo to your local machine using `https://github.com/ita-social-projects/VictoryCenter-Back.git`
@@ -488,6 +510,40 @@ Once started, the app will be accessible at:
 ```bash
 dotnet restore
 ```
+
+### Reproducible NuGet restores
+
+All six solution projects track `packages.lock.json`. Shared settings in
+`VictoryCenter/Directory.Build.props` enable lock-file generation and enforce
+locked mode when `CI=true`. CI and Docker also request locked restore explicitly;
+their subsequent build, test and publish commands do not restore implicitly.
+
+From the repository root, verify the reviewed dependency graph with:
+
+```bash
+dotnet restore VictoryCenter/VictoryCenter.sln --locked-mode
+dotnet build VictoryCenter/VictoryCenter.sln --no-restore
+```
+
+For an intentional dependency update, edit the relevant project reference, then
+regenerate the affected dependency graphs locally:
+
+```bash
+dotnet restore VictoryCenter/VictoryCenter.sln --force-evaluate
+dotnet restore VictoryCenter/VictoryCenter.sln --locked-mode
+```
+
+Review and commit the project changes together with every affected lock file,
+including consuming applications and test projects. Do not delete lock files or
+disable locked mode to make CI pass. A target-framework upgrade, including the
+pending .NET 10 migration, must regenerate and verify these lock files as well.
+When restoring manually in an environment with `CI=true`, lock regeneration is
+an explicit maintenance operation, not a normal build step.
+
+The lock files describe NuGet dependencies, not SDK/runtime images, operating
+system packages or globally installed tools. They do not remediate package
+vulnerabilities. Library lock files support consistent solution development;
+they do not override the dependency resolution of an external consumer.
 
 ### How to run Docker
 

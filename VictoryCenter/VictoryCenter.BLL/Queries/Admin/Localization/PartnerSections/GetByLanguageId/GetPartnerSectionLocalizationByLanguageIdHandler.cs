@@ -2,8 +2,8 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnerSections;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -38,7 +38,7 @@ public class GetPartnerSectionLocalizationByLanguageIdHandler
         if (section is null)
         {
             return Result.Fail<PartnerSectionLocalizationDto>(
-                ErrorMessagesConstants.NotFound(request.EntityId, typeof(PartnerSection)));
+                NotFoundErrors.NotFound(request.EntityId, typeof(PartnerSection)));
         }
 
         var sectionLocalization = await _repositoryWrapper.PartnerSectionLocalizationsRepository
@@ -52,7 +52,7 @@ public class GetPartnerSectionLocalizationByLanguageIdHandler
         if (sectionLocalization is null)
         {
             return Result.Fail<PartnerSectionLocalizationDto>(
-                ErrorMessagesConstants.NotFound((request.EntityId, request.LanguageId), typeof(PartnerSectionLocalization)));
+                NotFoundErrors.NotFound((request.EntityId, request.LanguageId), typeof(PartnerSectionLocalization)));
         }
 
         var partnerIds = section.Partners.Select(p => p.Id).ToList();

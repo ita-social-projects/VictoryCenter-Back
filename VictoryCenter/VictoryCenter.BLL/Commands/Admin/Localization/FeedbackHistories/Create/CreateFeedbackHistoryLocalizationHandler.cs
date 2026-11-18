@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FeedbackHistories;
 using VictoryCenter.BLL.DTOs.Common;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -33,7 +34,7 @@ public class CreateFeedbackHistoryLocalizationHandler
                 feedbackHistory => feedbackHistory.Id == dto.EntityId))
         {
             return Result.Fail<FeedbackHistoryLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(FeedbackHistory)));
+                NotFoundErrors.NotFound(dto.EntityId, typeof(FeedbackHistory)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -46,7 +47,7 @@ public class CreateFeedbackHistoryLocalizationHandler
         if (language is null)
         {
             return Result.Fail<FeedbackHistoryLocalizationDto>(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.FeedbackHistoryLocalizationsRepository.ExistsAsync(

@@ -4,7 +4,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class UahBankDetailsController : BaseApiController
+public class UahBankDetailsController : PublicApiController
 {
     [HttpGet("published")]
     public async Task<IActionResult> GetPublishedUahBankDetails()

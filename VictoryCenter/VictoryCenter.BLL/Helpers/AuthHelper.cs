@@ -1,6 +1,6 @@
 using System.Text;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using VictoryCenter.BLL.Options;
 
 namespace VictoryCenter.BLL.Helpers;
 
@@ -8,7 +8,7 @@ public static class AuthHelper
 {
     private static readonly TimeSpan ClockSkew = TimeSpan.FromSeconds(30);
 
-    public static TokenValidationParameters GetTokenValidationParameters(IConfiguration configuration)
+    public static TokenValidationParameters GetTokenValidationParameters(JwtOptions options)
     {
         return new TokenValidationParameters
         {
@@ -16,11 +16,13 @@ public static class AuthHelper
             ValidateIssuer = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
+            RequireSignedTokens = true,
+            RequireExpirationTime = true,
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
             ClockSkew = ClockSkew,
-            ValidAudience = configuration.GetValue<string>("JwtOptions:Audience") ?? throw new InvalidOperationException("Audience for jwt options is not specified"),
-            ValidIssuer = configuration.GetValue<string>("JwtOptions:Issuer") ?? throw new InvalidOperationException("Issuer for jwt options is not specified"),
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("JwtOptions:SecretKey") ??
-                                                                               throw new InvalidOperationException("Secret Key for jwt options is not specified")))
+            ValidAudience = options.Audience,
+            ValidIssuer = options.Issuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(options.SecretKey))
         };
     }
 }

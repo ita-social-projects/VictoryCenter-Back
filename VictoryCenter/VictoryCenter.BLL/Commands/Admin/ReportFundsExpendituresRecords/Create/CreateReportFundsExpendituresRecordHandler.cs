@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ReportFundsExpendituresRecords;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Notifications.ReportFunds;
 using VictoryCenter.DAL.Entities;
@@ -58,7 +59,7 @@ public class CreateReportFundsExpendituresRecordHandler
             if (category is null)
             {
                 return Result.Fail<ReportFundsExpendituresRecordDto>(
-                    ErrorMessagesConstants.NotFound(
+                    NotFoundErrors.NotFound(
                         request.CreateReportFundsExpendituresRecordDto.CategoryId,
                         typeof(ReportFundsExpendituresCategory)));
             }
@@ -105,7 +106,7 @@ public class CreateReportFundsExpendituresRecordHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresRecordDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

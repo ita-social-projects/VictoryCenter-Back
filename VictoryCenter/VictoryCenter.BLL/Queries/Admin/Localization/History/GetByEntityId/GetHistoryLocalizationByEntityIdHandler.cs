@@ -2,8 +2,8 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.History;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -34,7 +34,7 @@ public class GetHistoryLocalizationByEntityIdHandler : IRequestHandler<GetHistor
 
         if (section is null)
         {
-            return Result.Fail(ErrorMessagesConstants.NotFound(request.EntityId, typeof(HistorySection)));
+            return Result.Fail(NotFoundErrors.NotFound(request.EntityId, typeof(HistorySection)));
         }
 
         var result = section.Contents

@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
-using VictoryCenter.WebAPI.Middleware;
+using VictoryCenter.WebAPI.ErrorHandling;
 
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
@@ -54,7 +54,7 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal("Internal Server Error", pd.Title);
         Assert.Contains("error occurred", pd.Detail);
 
-        var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
+        var categoryName = typeof(ApiExceptionHandler).FullName;
         var log = _loggerProvider.Entries.Last(e => e.Category == categoryName);
 
         Assert.Equal(LogLevel.Critical, log.LogLevel);
@@ -62,21 +62,21 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_ShouldReturn400WithValidationErrors_WhenValidationExceptionThrown()
+    public async Task InvokeAsync_ShouldReturn400WithFieldGroupedErrors_WhenValidationExceptionThrown()
     {
         var response = await _client.GetAsync("/api/Test/ThrowValidationException");
         var content = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(400, (int)response.StatusCode);
 
-        var pd = JsonSerializer.Deserialize<ProblemDetails>(content);
+        var pd = JsonSerializer.Deserialize<ValidationProblemDetails>(content);
 
         Assert.NotNull(pd);
         Assert.Equal(400, pd.Status);
         Assert.Equal("Bad Request", pd.Title);
-        Assert.Contains("Name is required", pd.Detail);
+        Assert.Contains("Name is required", pd.Errors["Name"]);
 
-        var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
+        var categoryName = typeof(ApiExceptionHandler).FullName;
         Assert.DoesNotContain(_loggerProvider.Entries, e => e.Category == categoryName);
     }
 }

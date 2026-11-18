@@ -7,7 +7,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class MainPageController : BaseApiController
+public class MainPageController : PublicApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(MainPageDto), StatusCodes.Status200OK)]

@@ -7,7 +7,7 @@ using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class ContactUsController : BaseApiController
+public class ContactUsController : PublicApiController
 {
     [HttpPost]
     [EnableRateLimiting(RateLimitingPolicyNameConstants.SubmitContactUsForm)]

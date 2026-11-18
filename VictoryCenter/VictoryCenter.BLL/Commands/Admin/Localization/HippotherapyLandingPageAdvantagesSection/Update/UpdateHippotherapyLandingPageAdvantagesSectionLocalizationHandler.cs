@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageAdvantagesSection;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
@@ -51,7 +52,7 @@ public class UpdateHippotherapyLandingPageAdvantagesSectionLocalizationHandler
             if (section is null)
             {
                 return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(
-                    ErrorMessagesConstants.NotFound(request.EntityId, typeof(HippotherapyLandingPageAdvantagesSectionEntity)));
+                    NotFoundErrors.NotFound(request.EntityId, typeof(HippotherapyLandingPageAdvantagesSectionEntity)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -75,7 +76,7 @@ public class UpdateHippotherapyLandingPageAdvantagesSectionLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(knfex.Message);
+            return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -84,7 +85,7 @@ public class UpdateHippotherapyLandingPageAdvantagesSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageAdvantagesSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

@@ -12,6 +12,7 @@ public class CorsMiddlewareOrderTests
     private const string DisallowedOrigin = "https://evil.example.com";
     private const string AllowOriginHeader = "Access-Control-Allow-Origin";
     private const string AllowCredentialsHeader = "Access-Control-Allow-Credentials";
+    private const string ExposeHeadersHeader = "Access-Control-Expose-Headers";
 
     private readonly HttpClient _client;
 
@@ -68,6 +69,16 @@ public class CorsMiddlewareOrderTests
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(AllowedOrigin, response.Headers.GetValues(AllowOriginHeader).Single());
+    }
+
+    [Fact]
+    public async Task Response_WithAllowedOrigin_ShouldExposeRetryAfterHeaderExplicitly()
+    {
+        var response = await SendAsync("/health/live", AllowedOrigin);
+
+        var exposedHeaders = response.Headers.GetValues(ExposeHeadersHeader)
+            .SelectMany(value => value.Split(',', StringSplitOptions.TrimEntries));
+        Assert.Contains("Retry-After", exposedHeaders, StringComparer.OrdinalIgnoreCase);
     }
 
     private Task<HttpResponseMessage> SendAsync(string path, string origin)

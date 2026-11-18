@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnersPageBanner;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using PartnersPageBannerEntity = VictoryCenter.DAL.Entities.PartnersPageBanner;
@@ -44,7 +45,7 @@ public class UpdatePartnersPageBannerLocalizationHandler
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<PartnersPageBannerLocalizationDto>(knfex.Message);
+            return Result.Fail<PartnersPageBannerLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {
@@ -52,7 +53,7 @@ public class UpdatePartnersPageBannerLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnersPageBannerLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnersPageBannerLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

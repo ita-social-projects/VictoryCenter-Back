@@ -28,7 +28,9 @@ public class AuthController : BaseApiController
     }
 
     [HttpPost("refresh-token")]
+    [EnableRateLimiting(RateLimitingPolicyNameConstants.AuthRefresh)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthResponseDto))]
     public async Task<IActionResult> RefreshTokenAsync()
     {

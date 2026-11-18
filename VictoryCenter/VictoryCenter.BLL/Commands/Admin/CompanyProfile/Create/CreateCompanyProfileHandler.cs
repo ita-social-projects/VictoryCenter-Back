@@ -10,6 +10,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.CompanyProfile.Create;
 
@@ -94,7 +95,7 @@ public class CreateCompanyProfileHandler : IRequestHandler<CreateCompanyProfileC
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<CompanyProfileDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<CompanyProfileDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

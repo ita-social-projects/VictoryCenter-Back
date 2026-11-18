@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VictoryCenter.BLL.DTOs.Admin.Common;
 using VictoryCenter.BLL.DTOs.Admin.PdfReports;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
 using VictoryCenter.BLL.Queries.Public.PdfReports.GetByLanguageId;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class PdfReportsController : BaseApiController
+public class PdfReportsController : PublicApiController
 {
     [HttpGet("languageId/{id:long}")]
     [ProducesResponseType(typeof(PaginationResult<PdfReportDto>), StatusCodes.Status200OK)]
@@ -18,9 +20,10 @@ public class PdfReportsController : BaseApiController
     }
 
     [HttpGet("{id:long}/file")]
-    [Produces("application/pdf")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [EnableRateLimiting(RateLimitingPolicyNameConstants.FileDownload)]
+    [ProducesResponseType(typeof(FileStreamResult), StatusCodes.Status200OK, "application/pdf")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound, "application/problem+json")]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests, "application/problem+json")]
     public async Task<IActionResult> GetPdfFile(long id)
     {
         var result = await Mediator.Send(new GetPdfReportByIdQuery(id));

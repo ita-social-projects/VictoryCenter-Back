@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.HippotherapyProgramCategories;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -37,8 +38,8 @@ public class UpdateHippotherapyProgramCategoryHandler : IRequestHandler<UpdateHi
 
             if (programCategoryEntity is null)
             {
-                return Result.Fail<HippotherapyProgramCategoryDto>(ErrorMessagesConstants
-                    .NotFound(request.Id, typeof(HippotherapyProgramCategory)));
+                return Result.Fail<HippotherapyProgramCategoryDto>(new NotFoundError(ErrorMessagesConstants
+                    .NotFound(request.Id, typeof(HippotherapyProgramCategory))));
             }
 
             HippotherapyProgramCategory entityToUpdate = _mapper.Map(request.UpdateProgramCategoryDto, programCategoryEntity);
@@ -55,7 +56,7 @@ public class UpdateHippotherapyProgramCategoryHandler : IRequestHandler<UpdateHi
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HippotherapyProgramCategoryDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
     }
 }

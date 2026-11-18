@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamMembers;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
@@ -27,7 +28,7 @@ public class DeleteTeamMemberLocalizationHandler : IRequestHandler<DeleteTeamMem
         }
         catch (KeyNotFoundException knfex)
         {
-            return Result.Fail<DeleteTeamMemberLocalizationDto>(knfex.Message);
+            return Result.Fail<DeleteTeamMemberLocalizationDto>(new NotFoundError(knfex.Message));
         }
         catch (InvalidOperationException)
         {

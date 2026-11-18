@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class TeamController : BaseApiController
+public class TeamController : PublicApiController
 {
     [HttpGet("published")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<CategoryWithPublishedTeamMembersDto>))]

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 
@@ -121,7 +122,22 @@ public class StorageOperationProcessor(
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
         {
-            operation.LastErrorCode = $"{exception.GetType().Name}:{exception.HResult:X8}";
+            var rootUnavailable = exception is StorageRootUnavailableException;
+            if (!rootUnavailable && exception is not ArgumentException)
+            {
+                try
+                {
+                    files.EnsureAvailable(operation.FileKind);
+                }
+                catch (StorageRootUnavailableException)
+                {
+                    rootUnavailable = true;
+                }
+            }
+
+            operation.LastErrorCode = rootUnavailable
+                ? StorageRootUnavailableException.StableErrorCode
+                : $"{exception.GetType().Name}:{exception.HResult:X8}";
             operation.Status = operation.Attempts >= options.Value.MaxAttempts
                 ? StorageOperationStatus.Failed : StorageOperationStatus.Pending;
             operation.NextAttemptAt = clock.GetUtcNow().AddSeconds(Math.Min(
