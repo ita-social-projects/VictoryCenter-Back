@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -18,6 +19,31 @@ namespace VictoryCenter.UnitTests.ServiceTests;
 public partial class StorageOperationWorkerTests
 {
     private readonly Mock<ILogger<StorageReconciliationWorker>> _reconciliationLogger = new();
+
+    [Fact]
+    public async Task ReconciliationWorker_RootFailureLogsKindAndStableCodeWithoutPath()
+    {
+        using var provider = Services();
+        Directory.Delete(Path.Combine(_root, "images"));
+        var clock = new ControlledScanClock();
+        using var worker = ReconciliationWorker(provider, clock);
+        try
+        {
+            await worker.StartAsync(CancellationToken.None);
+            await clock.Waits.Reader.ReadAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(15));
+            var error = Assert.Single(
+                _reconciliationLogger.Invocations,
+                invocation => invocation.Method.Name == "Log" && (LogLevel)invocation.Arguments[0] == LogLevel.Error);
+            Assert.Contains(nameof(StorageFileKind.Image), error.Arguments[2].ToString());
+            Assert.Contains(StorageRootUnavailableException.StableErrorCode, error.Arguments[2].ToString());
+            Assert.DoesNotContain(_root, error.Arguments[2].ToString());
+            Assert.Null(error.Arguments[3]);
+        }
+        finally
+        {
+            await worker.StopAsync(CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(5));
+        }
+    }
 
     [Fact]
     public async Task Workers_BlockedScanDoesNotDelaySubsequentCleanupBatches()

@@ -659,7 +659,7 @@ public partial class StorageLifecycleTests
         Directory.Delete(Path.Combine(_root, "images"));
         var reconciliation = new StorageReconciliation(context, files, _clock.Object, NullLogger<StorageReconciliation>.Instance);
 
-        await Assert.ThrowsAsync<DirectoryNotFoundException>(() => reconciliation.ScanAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<VictoryCenter.BLL.Exceptions.BlobStorageExceptions.StorageRootUnavailableException>(() => reconciliation.ScanAsync(CancellationToken.None));
         Assert.Empty(await context.StorageReconciliationFindings.ToListAsync());
     }
 
