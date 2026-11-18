@@ -51,8 +51,8 @@ public class CreateHippotherapyLandingPageScientificReferencesSectionLocalizatio
             var section = await GetSectionWithReferencesAsync(dto.EntityId);
             if (section is null)
             {
-                return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageScientificReferencesSectionEntity))));
+                return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(
+                    NotFoundErrors.NotFound(dto.EntityId, typeof(HippotherapyLandingPageScientificReferencesSectionEntity)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -83,7 +83,7 @@ public class CreateHippotherapyLandingPageScientificReferencesSectionLocalizatio
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageScientificReferencesSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

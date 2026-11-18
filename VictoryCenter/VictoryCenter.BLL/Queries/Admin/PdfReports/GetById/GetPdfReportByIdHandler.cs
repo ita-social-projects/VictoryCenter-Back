@@ -37,7 +37,7 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
 
         if (pdfReport == null)
         {
-            return Result.Fail<Stream>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
+            return Result.Fail<Stream>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
 
         try
@@ -47,7 +47,7 @@ public class GetPdfReportByIdHandler : IRequestHandler<GetPdfReportByIdQuery, Re
         }
         catch (BlobNotFoundException)
         {
-            return Result.Fail<Stream>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
+            return Result.Fail<Stream>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
         catch (BlobFileSystemException)
         {

@@ -45,10 +45,10 @@ public class CreateReportProgramExpendituresRecordHandler :
 
         if (programCategory is null)
         {
-            return Result.Fail(new NotFoundError(
-                ErrorMessagesConstants.NotFound(
+            return Result.Fail(
+                NotFoundErrors.NotFound(
                     request.CreateReportProgramExpendituresRecordDto.HippotherapyProgramCategoryId,
-                    typeof(HippotherapyProgramCategory))));
+                    typeof(HippotherapyProgramCategory)));
         }
 
         var reportProgramExpendituresRecord =

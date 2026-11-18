@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
 [Route("api/HippotherapyPage")]
-public class HippotherapyLandingPageController : BaseApiController
+public class HippotherapyLandingPageController : PublicApiController
 {
     [HttpGet("public")]
     [ProducesResponseType(typeof(HippotherapyLandingPageDto), StatusCodes.Status200OK)]

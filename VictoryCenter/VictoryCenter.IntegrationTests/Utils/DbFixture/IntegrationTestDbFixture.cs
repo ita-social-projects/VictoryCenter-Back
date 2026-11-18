@@ -81,6 +81,7 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
         var accessToken = tokenService.CreateAccessToken([
             new Claim(ClaimTypes.Email, admin.Email!),
+            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString()),
             new Claim(AuthConstants.SecurityStampHashClaimType, tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
 

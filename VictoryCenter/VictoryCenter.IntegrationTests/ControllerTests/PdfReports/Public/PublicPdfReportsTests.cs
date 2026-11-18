@@ -104,6 +104,30 @@ public class PublicPdfReportsTests : BaseTestClass
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 
+    [Theory]
+    [InlineData("200", "application/pdf")]
+    [InlineData("404", "application/problem+json")]
+    [InlineData("429", "application/problem+json")]
+    public async Task GetPdfFile_SwaggerDocument_ShouldAdvertiseContentTypePerStatusCode(
+        string statusCode,
+        string expectedContentType)
+    {
+        // Act
+        var response = await Fixture.HttpClient.GetAsync("/swagger/v1/swagger.json");
+        using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+        var content = document.RootElement
+            .GetProperty("paths")
+            .GetProperty("/api/PdfReports/{id}/file")
+            .GetProperty("get")
+            .GetProperty("responses")
+            .GetProperty(statusCode)
+            .GetProperty("content");
+
+        // Assert
+        var contentTypes = content.EnumerateObject().Select(property => property.Name).ToList();
+        Assert.Equal([expectedContentType], contentTypes);
+    }
+
     private async Task ClearPdfReportsAsync()
     {
         var all = await Fixture.DbContext.PdfReports.ToListAsync();

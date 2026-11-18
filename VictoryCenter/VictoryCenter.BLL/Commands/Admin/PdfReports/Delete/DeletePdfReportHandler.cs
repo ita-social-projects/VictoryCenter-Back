@@ -42,7 +42,7 @@ public class DeletePdfReportHandler : IRequestHandler<DeletePdfReportCommand, Re
 
         if (pdfReport == null)
         {
-            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
 
         try

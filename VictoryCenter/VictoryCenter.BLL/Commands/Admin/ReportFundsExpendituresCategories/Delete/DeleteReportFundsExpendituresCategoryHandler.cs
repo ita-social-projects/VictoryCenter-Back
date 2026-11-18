@@ -31,7 +31,7 @@ public class DeleteReportFundsExpendituresCategoryHandler
 
         if (categoryToDelete is null)
         {
-            return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory))));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
         }
 
         if (categoryToDelete.Records.Count > 0)

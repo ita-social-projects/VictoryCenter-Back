@@ -170,9 +170,9 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (nonExistingRecordIds.Count > 0)
         {
-            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingRecordIds,
-                typeof(ReportFundsExpendituresRecord))));
+                typeof(ReportFundsExpendituresRecord)));
         }
 
         return Result.Ok(Unit.Value);
@@ -190,9 +190,9 @@ public class BatchSaveReportFundsExpendituresRecordHandler
 
         if (nonExistingCategoryIds.Count > 0)
         {
-            return Result.Fail<Unit>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<Unit>(NotFoundErrors.NotFound(
                 nonExistingCategoryIds,
-                typeof(ReportFundsExpendituresCategory))));
+                typeof(ReportFundsExpendituresCategory)));
         }
 
         foreach(var record in recordsToValidate)

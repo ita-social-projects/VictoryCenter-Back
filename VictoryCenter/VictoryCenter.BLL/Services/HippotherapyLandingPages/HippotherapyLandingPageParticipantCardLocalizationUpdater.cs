@@ -1,6 +1,5 @@
 using AutoMapper;
 using FluentResults;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyLandingPageParticipantsSection;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
@@ -42,7 +41,7 @@ public class HippotherapyLandingPageParticipantCardLocalizationUpdater : IHippot
 
         if (invalidCardIds.Count > 0)
         {
-            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(invalidCardIds, typeof(HippotherapyLandingPageParticipantCard))));
+            return Result.Fail(NotFoundErrors.NotFound(invalidCardIds, typeof(HippotherapyLandingPageParticipantCard)));
         }
 
         if (cards.Count == 0)

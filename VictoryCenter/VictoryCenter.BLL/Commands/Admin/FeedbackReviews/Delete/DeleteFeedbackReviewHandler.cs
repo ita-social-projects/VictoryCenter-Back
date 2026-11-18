@@ -35,7 +35,7 @@ public class DeleteFeedbackReviewHandler : IRequestHandler<DeleteFeedbackReviewC
 
             if (reviewToDelete is null)
             {
-                return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(FeedbackReview))));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(FeedbackReview)));
             }
 
             using var transactionScope = _repositoryWrapper.BeginTransaction();

@@ -49,7 +49,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             var entity = await GetMainPageAggregateAsync();
             if (entity is null)
             {
-                return Result.Fail<MainPageDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
+                return Result.Fail<MainPageDto>(NotFoundErrors.NotFound());
             }
 
             var imageValidationResult = await ValidateImagesExistAsync(request.UpdateMainPageDto);
@@ -83,7 +83,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<MainPageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<MainPageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {
@@ -150,7 +150,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         var nonExistingImageIds = requestedImageIds.Except(existingImageIds).ToList();
         if (nonExistingImageIds.Count > 0)
         {
-            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image))));
+            return Result.Fail(NotFoundErrors.NotFound(nonExistingImageIds, typeof(Image)));
         }
 
         return Result.Ok();

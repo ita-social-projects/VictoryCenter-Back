@@ -15,6 +15,9 @@
 *.userprefs
 
 # Build results
+**/[Bb]in/
+**/[Oo]bj/
+.tmp/
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

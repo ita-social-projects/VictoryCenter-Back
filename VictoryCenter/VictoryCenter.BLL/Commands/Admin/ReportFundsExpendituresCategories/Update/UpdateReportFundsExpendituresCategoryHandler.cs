@@ -53,8 +53,8 @@ public class UpdateReportFundsExpendituresCategoryHandler
 
             if (categoryToUpdate is null)
             {
-                return Result.Fail<ReportFundsExpendituresCategoryDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(request.Id, typeof(ReportFundsExpendituresCategory))));
+                return Result.Fail<ReportFundsExpendituresCategoryDto>(
+                    NotFoundErrors.NotFound(request.Id, typeof(ReportFundsExpendituresCategory)));
             }
 
             if (ReportFundsExpendituresCategoryValidationHelper.IsReservedCategoryName(categoryToUpdate.Name, categoryToUpdate.Type))
@@ -95,7 +95,7 @@ public class UpdateReportFundsExpendituresCategoryHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresCategoryDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresCategoryDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

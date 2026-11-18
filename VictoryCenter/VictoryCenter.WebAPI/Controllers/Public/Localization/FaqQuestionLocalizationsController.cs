@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 
-public class FaqQuestionLocalizationsController : BaseApiController
+public class FaqQuestionLocalizationsController : PublicApiController
 {
     [HttpGet("entityId/{id:long}")]
     [ProducesResponseType(typeof(IEnumerable<FaqQuestionLocalizationDto>), StatusCodes.Status200OK)]

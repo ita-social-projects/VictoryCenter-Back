@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Transactions;
 using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.BackupReportFundsExpenditures;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Interfaces.CompanyProfile;
@@ -606,6 +607,11 @@ public class RepositoryWrapper : IRepositoryWrapper
     public IRefreshTokenSessionRepository RefreshTokenSessionRepository =>
         _refreshTokenSessionRepository ??=
             new RefreshTokenSessionRepository(_victoryCenterDbContext);
+
+    public void AddAuditLog(AuditLog auditLog)
+    {
+        _victoryCenterDbContext.AuditLogs.Add(auditLog);
+    }
 
     public int SaveChanges()
     {

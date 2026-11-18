@@ -38,7 +38,7 @@ public class ReorderEventNewsHandler(
 
             if (existingEventNews.Count() != orderedIds.Count)
             {
-                return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(categoryId, typeof(EventNewsEntity))));
+                return Result.Fail(NotFoundErrors.NotFound(categoryId, typeof(EventNewsEntity)));
             }
 
             await reorderService.SwapElementsAsync<EventNewsEntity>(
@@ -50,7 +50,7 @@ public class ReorderEventNewsHandler(
         }
         catch (ValidationException e)
         {
-            return Result.Fail(e.Message);
+            return Result.Fail(e.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {

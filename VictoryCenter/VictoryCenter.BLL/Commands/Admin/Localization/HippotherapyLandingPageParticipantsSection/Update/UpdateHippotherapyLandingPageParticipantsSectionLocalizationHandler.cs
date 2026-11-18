@@ -51,8 +51,8 @@ public class UpdateHippotherapyLandingPageParticipantsSectionLocalizationHandler
             var section = await GetSectionWithCardsAsync(request.EntityId);
             if (section is null)
             {
-                return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(request.EntityId, typeof(HippotherapyLandingPageParticipantsSectionEntity))));
+                return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(
+                    NotFoundErrors.NotFound(request.EntityId, typeof(HippotherapyLandingPageParticipantsSectionEntity)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -85,7 +85,7 @@ public class UpdateHippotherapyLandingPageParticipantsSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageParticipantsSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

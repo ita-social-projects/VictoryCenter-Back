@@ -32,7 +32,7 @@ public class DeleteTeamMemberHandler : IRequestHandler<DeleteTeamMemberCommand, 
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(TeamMember))));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(TeamMember)));
             }
 
             using (var transactionScope = _repositoryWrapper.BeginTransaction())

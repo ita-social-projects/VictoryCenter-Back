@@ -47,8 +47,8 @@ public class UpdatePdfSectionLocalizationHandler
 
             if (section is null)
             {
-                return Result.Fail<PdfSectionLocalizationDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound()));
+                return Result.Fail<PdfSectionLocalizationDto>(
+                    NotFoundErrors.NotFound());
             }
 
             var dto = request.UpdatePdfSectionLocalizationDto;
@@ -71,7 +71,7 @@ public class UpdatePdfSectionLocalizationHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<PdfSectionLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PdfSectionLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

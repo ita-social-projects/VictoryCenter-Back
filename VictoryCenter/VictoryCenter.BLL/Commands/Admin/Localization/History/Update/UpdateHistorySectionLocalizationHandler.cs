@@ -53,8 +53,8 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
 
             if (section is null)
             {
-                return Result.Fail<HistorySectionLocalizationDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(sectionDto.EntityId, typeof(HistorySection))));
+                return Result.Fail<HistorySectionLocalizationDto>(
+                    NotFoundErrors.NotFound(sectionDto.EntityId, typeof(HistorySection)));
             }
 
             HistorySectionContentLocalizationValidationHelper.ValidateSectionContents(
@@ -141,7 +141,7 @@ public class UpdateHistorySectionLocalizationHandler : IRequestHandler<UpdateHis
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HistorySectionLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HistorySectionLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

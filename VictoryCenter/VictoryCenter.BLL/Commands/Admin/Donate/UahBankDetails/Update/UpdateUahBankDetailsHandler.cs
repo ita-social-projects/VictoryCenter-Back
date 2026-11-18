@@ -57,7 +57,7 @@ public class UpdateUahBankDetailsHandler : IRequestHandler<UpdateUahBankDetailsC
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<UahBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<UahBankDetailsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

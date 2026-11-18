@@ -57,7 +57,7 @@ public class UpdateForeignBankDetailsHandler : IRequestHandler<UpdateForeignBank
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ForeignBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ForeignBankDetailsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

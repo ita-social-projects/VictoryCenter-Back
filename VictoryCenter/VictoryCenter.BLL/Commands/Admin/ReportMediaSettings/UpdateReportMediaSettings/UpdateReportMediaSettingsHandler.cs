@@ -51,8 +51,8 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
 
                 if (collectedFundsImageExists == null)
                 {
-                    return Result.Fail<ReportMediaSettingsDto>(new NotFoundError(
-                        ErrorMessagesConstants.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image))));
+                    return Result.Fail<ReportMediaSettingsDto>(
+                        NotFoundErrors.NotFound(request.Dto.CollectedFundsBlock.ImageId.Value, typeof(Image)));
                 }
             }
 
@@ -68,8 +68,8 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
 
                 if (changedLivesImageExists == null)
                 {
-                    return Result.Fail<ReportMediaSettingsDto>(new NotFoundError(
-                        ErrorMessagesConstants.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image))));
+                    return Result.Fail<ReportMediaSettingsDto>(
+                        NotFoundErrors.NotFound(request.Dto.ChangedLivesBlock.ImageId.Value, typeof(Image)));
                 }
             }
 
@@ -145,7 +145,7 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ReportMediaSettingsDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ReportMediaSettingsDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

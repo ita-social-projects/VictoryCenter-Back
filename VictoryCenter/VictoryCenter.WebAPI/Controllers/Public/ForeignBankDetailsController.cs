@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class ForeignBankDetailsController : BaseApiController
+public class ForeignBankDetailsController : PublicApiController
 {
     [HttpGet("published")]
     public async Task<IActionResult> GetPublishedForeignBankDetails(BankCurrency currency)

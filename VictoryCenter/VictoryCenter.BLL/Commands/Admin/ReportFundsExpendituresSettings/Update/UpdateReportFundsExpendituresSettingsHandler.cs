@@ -11,6 +11,7 @@ using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 using ReportFundsExpendituresSettingsEntity = VictoryCenter.DAL.Entities.ReportFundsExpendituresSettings;
 
 namespace VictoryCenter.BLL.Commands.Admin.ReportFundsExpendituresSettings.Update;
@@ -89,7 +90,7 @@ public class UpdateReportFundsExpendituresSettingsHandler
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<ReportFundsExpendituresSettingsDto>(ex.Message);
+            return Result.Fail<ReportFundsExpendituresSettingsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

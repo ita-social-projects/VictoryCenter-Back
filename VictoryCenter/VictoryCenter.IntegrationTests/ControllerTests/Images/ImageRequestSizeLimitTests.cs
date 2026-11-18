@@ -48,9 +48,10 @@ public class ImageRequestSizeLimitTests
         builder.Services.AddControllers().AddApplicationPart(typeof(ImageController).Assembly);
         builder.Services.AddOptions<LogRedactionOptions>();
         builder.Services.AddSingleton<IRequestLogSanitizer, RequestLogSanitizer>();
+        builder.Services.AddApiExceptionHandling();
 
         await using WebApplication app = builder.Build();
-        app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseExceptionHandler();
         app.UseAuthentication();
         app.UseAuthorization();
         app.MapControllers();

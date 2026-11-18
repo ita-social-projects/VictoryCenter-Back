@@ -221,6 +221,10 @@ public class LoginTests
             x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
                 claim.Type == AuthConstants.SecurityStampHashClaimType && claim.Value == "security_stamp_hash"))),
             Times.Once);
+        _mockTokenService.Verify(
+            x => x.CreateAccessToken(It.Is<Claim[]>(claims => claims.Any(claim =>
+                claim.Type == ClaimTypes.NameIdentifier && claim.Value == "1"))),
+            Times.Once);
         mockResponseCookies.Verify(
             c => c.Append(
             It.Is<string>(s => s == "refreshToken"),

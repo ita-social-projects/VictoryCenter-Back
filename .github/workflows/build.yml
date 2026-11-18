@@ -18,7 +18,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Set up JDK 17
-        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           java-version: 17
           distribution: 'zulu' # Alternative distribution options are available.
@@ -41,7 +41,16 @@ jobs:
         run: dotnet tool install --global GitVersion.Tool --version 5.12.0
 
       - name: Restore NuGet packages
-        run: dotnet restore VictoryCenter/VictoryCenter.sln
+        shell: bash
+        run: |
+          for project in VictoryCenter/*/*.csproj; do
+            lock_file="$(dirname "$project")/packages.lock.json"
+            if [[ ! -f "$lock_file" ]]; then
+              echo "Missing committed NuGet lock file: $lock_file" >&2
+              exit 1
+            fi
+          done
+          dotnet restore VictoryCenter/VictoryCenter.sln --locked-mode
 
       - name: Cache SonarQube Cloud packages
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
@@ -79,15 +88,15 @@ jobs:
             /d:sonar.coverage.exclusions="**/VictoryCenter.DbUpdate/Program.cs"
 
       - name: Build the solution
-        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental
+        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental --no-restore
 
       - name: Run unit tests and generate coverage
-        run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release" -f xml -o "coverage1.xml"
+        run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release --no-restore" -f xml -o "coverage1.xml"
 
       - name: Run integration tests and generate coverage
         env:
           INTEGRATION_TESTS_DB_CONNECTION_STRING: ${{ vars.INTEGRATION_TESTS_DB_CONNECTION_STRING }}
-        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release" -f xml -o "coverage2.xml"
+        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release --no-restore" -f xml -o "coverage2.xml"
 
       - name: Merge coverage reports
         run:  dotnet-coverage merge coverage1.xml coverage2.xml -f xml -o coverage.xml

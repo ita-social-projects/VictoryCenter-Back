@@ -222,7 +222,7 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {
@@ -510,9 +510,8 @@ public class UpdateHippotherapyLandingPageHandler : IRequestHandler<UpdateHippot
             {
                 if (!existingById.TryGetValue(referenceDto.Id.Value, out var existingReference))
                 {
-                    return Result.Fail<List<HippotherapyLandingPageScientificReference>>(
-                        new NotFoundError(ErrorMessagesConstants.NotFound(
-                        referenceDto.Id.Value, typeof(HippotherapyLandingPageScientificReference))));
+                    return Result.Fail(NotFoundErrors.NotFound(
+                        referenceDto.Id.Value, typeof(HippotherapyLandingPageScientificReference)));
                 }
 
                 if (!string.Equals(existingReference.Name, referenceDto.Name, StringComparison.Ordinal))

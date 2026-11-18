@@ -57,7 +57,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
 
             if (mainPage is null)
             {
-                return Result.Fail<MainPageLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
+                return Result.Fail<MainPageLocalizationDto>(NotFoundErrors.NotFound());
             }
 
             var dto = request.Dto;
@@ -95,7 +95,7 @@ public class UpdateMainPageLocalizationHandler : IRequestHandler<UpdateMainPageL
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<MainPageLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<MainPageLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

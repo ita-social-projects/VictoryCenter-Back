@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class VideoReviewsController : BaseApiController
+public class VideoReviewsController : PublicApiController
 {
     [HttpGet("published")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublishedVideoReviewDto>))]

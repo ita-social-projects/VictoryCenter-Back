@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.DAL.Constants;
@@ -11,15 +12,36 @@ public class LocalStorageFiles(
     IOptions<BlobEnvironmentVariables> images,
     IOptions<PdfEnvironmentVariables> pdfs)
 {
-    private readonly string _imageRoot = GetExistingRoot(images.Value.FullPath);
-    private readonly string _pdfRoot = GetExistingRoot(pdfs.Value.FullPath);
+    private readonly string _imageRoot = GetExistingRoot(images.Value.FullPath, StorageFileKind.Image);
+    private readonly string _pdfRoot = GetExistingRoot(pdfs.Value.FullPath, StorageFileKind.Pdf);
 
-    public void EnsureAvailable(StorageFileKind fileKind) => GetExistingRoot(GetRoot(fileKind));
+    public void EnsureAvailable(StorageFileKind fileKind)
+    {
+        var root = GetExistingRoot(GetRoot(fileKind), fileKind);
+        try
+        {
+            using var entries = Directory.EnumerateFileSystemEntries(root).GetEnumerator();
+            _ = entries.MoveNext();
+            try
+            {
+                // A non-writing lookup checks search/traverse access even on an empty Unix directory.
+                _ = File.GetAttributes(Path.Combine(root, Path.GetRandomFileName()));
+            }
+            catch (FileNotFoundException)
+            {
+                // The randomly named probe is expected not to exist.
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
+        }
+    }
 
     public string GetPath(StorageFileKind fileKind, string fileName)
     {
         ValidateFileName(fileName);
-        var root = GetExistingRoot(GetRoot(fileKind));
+        var root = GetExistingRoot(GetRoot(fileKind), fileKind);
         var path = Path.Combine(root, fileName);
         if (File.Exists(path) && (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0)
         {
@@ -52,14 +74,31 @@ public class LocalStorageFiles(
             EnsureAvailable(fileKind);
             return false;
         }
+        catch (IOException exception) when (exception is not StorageRootUnavailableException)
+        {
+            EnsureAvailable(fileKind);
+            throw;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            EnsureAvailable(fileKind);
+            throw;
+        }
     }
 
     public IEnumerable<string> Enumerate(StorageFileKind fileKind)
     {
-        var root = GetExistingRoot(GetRoot(fileKind));
+        var root = GetExistingRoot(GetRoot(fileKind), fileKind);
 
-        return Directory.EnumerateFiles(root, "*", SearchOption.TopDirectoryOnly)
-            .Select(Path.GetFileName).OfType<string>().Where(name => IsManagedFile(fileKind, name));
+        using var entries = OpenEnumeration(root, fileKind);
+        while (MoveNext(entries, fileKind))
+        {
+            var name = Path.GetFileName(entries.Current);
+            if (IsManagedFile(fileKind, name))
+            {
+                yield return name;
+            }
+        }
     }
 
     internal static void ValidateFileName(string fileName)
@@ -75,7 +114,31 @@ public class LocalStorageFiles(
         }
     }
 
-    private static string GetExistingRoot(string root)
+    private static IEnumerator<string> OpenEnumeration(string root, StorageFileKind fileKind)
+    {
+        try
+        {
+            return Directory.EnumerateFiles(root, "*", SearchOption.TopDirectoryOnly).GetEnumerator();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
+        }
+    }
+
+    private static bool MoveNext(IEnumerator<string> entries, StorageFileKind fileKind)
+    {
+        try
+        {
+            return entries.MoveNext();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
+        }
+    }
+
+    private static string GetExistingRoot(string root, StorageFileKind fileKind)
     {
         try
         {
@@ -83,13 +146,13 @@ public class LocalStorageFiles(
             {
                 throw new IOException("The storage root is not a directory.");
             }
-        }
-        catch (FileNotFoundException exception)
-        {
-            throw new DirectoryNotFoundException("The storage root is unavailable.", exception);
-        }
 
-        return Path.GetFullPath(root);
+            return Path.GetFullPath(root);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            throw new StorageRootUnavailableException(fileKind, exception);
+        }
     }
 
     private static bool IsManagedFile(StorageFileKind fileKind, string fileName)

@@ -30,7 +30,7 @@ public class DeleteImageHandler : IRequestHandler<DeleteImageCommand, Result<lon
 
             if (entityToDelete is null)
             {
-                return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(Image))));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(Image)));
             }
 
             _repositoryWrapper.ImageRepository.Delete(entityToDelete);

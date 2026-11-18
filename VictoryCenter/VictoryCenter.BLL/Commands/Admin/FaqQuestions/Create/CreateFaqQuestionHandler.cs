@@ -48,7 +48,7 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
             {
                 if (!allPages.Any(p => p.Id == pageId))
                 {
-                    return Result.Fail<FaqQuestionDto>(new NotFoundError(ErrorMessagesConstants.NotFound(pageId, typeof(VisitorPage))));
+                    return Result.Fail<FaqQuestionDto>(NotFoundErrors.NotFound(pageId, typeof(VisitorPage)));
                 }
 
                 var priority = await _reorderService.GetNextDisplayOrderAsync<FaqPlacement>(
@@ -76,7 +76,7 @@ public class CreateFaqQuestionHandler : IRequestHandler<CreateFaqQuestionCommand
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<FaqQuestionDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

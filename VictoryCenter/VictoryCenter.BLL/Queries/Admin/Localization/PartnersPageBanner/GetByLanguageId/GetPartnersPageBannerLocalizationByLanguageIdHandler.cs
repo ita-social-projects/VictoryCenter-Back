@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PartnersPageBanner;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
@@ -37,8 +36,8 @@ public class GetPartnersPageBannerLocalizationByLanguageIdHandler
 
         if (localization is null)
         {
-            return Result.Fail<PartnersPageBannerLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound((request.EntityId, request.LanguageId), typeof(PartnersPageBannerLocalization))));
+            return Result.Fail<PartnersPageBannerLocalizationDto>(
+                NotFoundErrors.NotFound((request.EntityId, request.LanguageId), typeof(PartnersPageBannerLocalization)));
         }
 
         return Result.Ok(_mapper.Map<PartnersPageBannerLocalizationDto>(localization));

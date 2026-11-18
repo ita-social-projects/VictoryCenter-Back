@@ -5,13 +5,16 @@ using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Options;
+using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 
 namespace VictoryCenter.UnitTests.FiltersTests;
 
 public class StrictJsonValidationFilterTests
 {
-    private readonly StrictJsonValidationFilter _filter = new();
+    private readonly StrictJsonValidationFilter _filter =
+        new(new CustomProblemDetailsFactory(Options.Create(new ApiBehaviorOptions())));
 
     [Theory]
     [InlineData(null)]
@@ -75,7 +78,7 @@ public class StrictJsonValidationFilterTests
 
         Assert.False(nextCalled);
         var badRequest = Assert.IsType<BadRequestObjectResult>(context.Result);
-        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
+        var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
         Assert.Equal("Invalid JSON format", problemDetails.Title);
         Assert.Equal(400, problemDetails.Status);
         Assert.NotNull(problemDetails.Detail);
@@ -89,9 +92,9 @@ public class StrictJsonValidationFilterTests
 
         Assert.False(nextCalled);
         var badRequest = Assert.IsType<BadRequestObjectResult>(context.Result);
-        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
-        Assert.Contains("Unknown property", problemDetails.Detail);
-        Assert.Contains("extraProperty", problemDetails.Detail);
+        var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
+        var messages = Assert.Single(problemDetails.Errors).Value;
+        Assert.Contains(messages, m => m.Contains("Unknown property") && m.Contains("extraProperty"));
     }
 
     [Fact]
@@ -102,12 +105,10 @@ public class StrictJsonValidationFilterTests
 
         Assert.False(nextCalled);
         var badRequest = Assert.IsType<BadRequestObjectResult>(context.Result);
-        var problemDetails = Assert.IsType<ProblemDetails>(badRequest.Value);
+        var problemDetails = Assert.IsType<ValidationProblemDetails>(badRequest.Value);
 
-        Assert.True(problemDetails.Extensions.ContainsKey("errors"));
-        var errors = problemDetails.Extensions["errors"] as List<string>;
-        Assert.NotNull(errors);
-        Assert.True(errors.Count > 0);
+        var messages = problemDetails.Errors.SelectMany(kvp => kvp.Value).ToList();
+        Assert.True(messages.Count > 0);
     }
 
     [Theory]

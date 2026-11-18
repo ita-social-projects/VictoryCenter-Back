@@ -57,7 +57,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
 
             if(program is null)
             {
-                return Result.Fail<HippotherapyProgramLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.CreateHippotherapyProgramLocalizationDto.EntityId, typeof(HippotherapyProgramEntity))));
+                return Result.Fail<HippotherapyProgramLocalizationDto>(NotFoundErrors.NotFound(request.CreateHippotherapyProgramLocalizationDto.EntityId, typeof(HippotherapyProgramEntity)));
             }
 
             var contentTypesById = await _programSectionContentService
@@ -108,7 +108,7 @@ public class CreateHippotherapyProgramLocalizationHandler : IRequestHandler<Crea
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyProgramLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {
