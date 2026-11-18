@@ -510,6 +510,40 @@ Once started, the app will be accessible at:
 dotnet restore
 ```
 
+### Reproducible NuGet restores
+
+All six solution projects track `packages.lock.json`. Shared settings in
+`VictoryCenter/Directory.Build.props` enable lock-file generation and enforce
+locked mode when `CI=true`. CI and Docker also request locked restore explicitly;
+their subsequent build, test and publish commands do not restore implicitly.
+
+From the repository root, verify the reviewed dependency graph with:
+
+```bash
+dotnet restore VictoryCenter/VictoryCenter.sln --locked-mode
+dotnet build VictoryCenter/VictoryCenter.sln --no-restore
+```
+
+For an intentional dependency update, edit the relevant project reference, then
+regenerate the affected dependency graphs locally:
+
+```bash
+dotnet restore VictoryCenter/VictoryCenter.sln --force-evaluate
+dotnet restore VictoryCenter/VictoryCenter.sln --locked-mode
+```
+
+Review and commit the project changes together with every affected lock file,
+including consuming applications and test projects. Do not delete lock files or
+disable locked mode to make CI pass. A target-framework upgrade, including the
+pending .NET 10 migration, must regenerate and verify these lock files as well.
+When restoring manually in an environment with `CI=true`, lock regeneration is
+an explicit maintenance operation, not a normal build step.
+
+The lock files describe NuGet dependencies, not SDK/runtime images, operating
+system packages or globally installed tools. They do not remediate package
+vulnerabilities. Library lock files support consistent solution development;
+they do not override the dependency resolution of an external consumer.
+
 ### How to run Docker
 
 ### how to connect to db via docker
