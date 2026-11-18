@@ -44,7 +44,8 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
-app.MapHub<PdfReportsHub>("/hubs/reports");
+app.MapHub<PdfReportsHub>("/hubs/reports")
+    .RequireRateLimiting(RateLimitingPolicyNameConstants.RealtimeConnect);
 app.MapHub<AdminContentHub>("/hubs/admin-content", options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();

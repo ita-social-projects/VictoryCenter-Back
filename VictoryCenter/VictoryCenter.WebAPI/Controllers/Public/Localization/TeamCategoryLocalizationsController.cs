@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 
-public class TeamCategoryLocalizationsController : BaseApiController
+public class TeamCategoryLocalizationsController : PublicApiController
 {
     [HttpGet("entityId/{id:long}")]
     [ProducesResponseType(typeof(List<TeamCategoryLocalizationDto>), StatusCodes.Status200OK)]

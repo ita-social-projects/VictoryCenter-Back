@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class FaqController : BaseApiController
+public class FaqController : PublicApiController
 {
     [HttpGet("published/{slug}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<PublishedFaqQuestionDto>))]

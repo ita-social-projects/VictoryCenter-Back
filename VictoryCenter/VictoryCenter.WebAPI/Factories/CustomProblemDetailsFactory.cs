@@ -78,6 +78,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
             403 => "Forbidden",
             404 => "Not Found",
             409 => "Conflict",
+            429 => "Too Many Requests",
             _ => "Internal Server Error"
         };
 
@@ -89,6 +90,7 @@ public class CustomProblemDetailsFactory : ProblemDetailsFactory
             403 => "You do not have permission to access this resource.",
             404 => "Resource was not found.",
             409 => "A conflict occurred with the current state of the resource.",
+            429 => "Too many requests. Please try again later.",
             _ => "Please, try again."
         };
 }

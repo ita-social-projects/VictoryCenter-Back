@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 
-public class LocalizationLanguageController : BaseApiController
+public class LocalizationLanguageController : PublicApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<LocalizationLanguageDto>), StatusCodes.Status200OK)]

@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class EventsPageController : BaseApiController
+public class EventsPageController : PublicApiController
 {
     [HttpGet("public")]
     [ProducesResponseType(typeof(PublicEventsPageDto), StatusCodes.Status200OK)]
