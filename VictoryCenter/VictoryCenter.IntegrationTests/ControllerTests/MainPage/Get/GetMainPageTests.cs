@@ -88,7 +88,7 @@ public class GetMainPageTests : BaseTestClass
                     {
                         Name = "Партнерів",
                         Value = 20,
-                        Type = MetricType.Partners,
+                        Kind = MetricKind.Standard,
                         Priority = 1,
                         Localizations = [new MetricLocalization { LanguageId = english.Id, Name = "Partners" }],
                     },

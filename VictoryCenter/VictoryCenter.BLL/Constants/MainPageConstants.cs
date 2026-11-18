@@ -59,6 +59,10 @@ public static class MainPageConstants
         public static readonly (int MinLen, int MaxLen) ValidationTitleRules = new(5, CalculateHighestCharactersLimitForRichInput(100));
 
         public static int ExactMetricCount => 4;
+
+        public static int ExactStandardMetricCount => 3;
+
+        public static int ExactRaisedFundsMetricCount => 1;
     }
 
     public static class Metric

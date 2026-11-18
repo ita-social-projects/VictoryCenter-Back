@@ -21,7 +21,7 @@ public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>, IOrdera
     public string Name { get; set; } = null!;
 
     [Audited]
-    public MetricType Type { get; set; }
+    public MetricKind Kind { get; set; }
 
     [Audited]
     public MetricPrefix? Prefix { get; set; }

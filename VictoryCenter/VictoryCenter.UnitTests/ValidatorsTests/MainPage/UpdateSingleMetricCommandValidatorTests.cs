@@ -1,7 +1,6 @@
 using FluentValidation.TestHelper;
 using VictoryCenter.BLL.Commands.Admin.ImpactStatistics.UpdateSingleMetric;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
-using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.UnitTests.ValidatorsTests.MainPage;
 
@@ -45,6 +44,5 @@ public class UpdateSingleMetricCommandValidatorTests
     {
         Value = 100,
         Name = "kids",
-        Type = MetricType.Raised,
     };
 }

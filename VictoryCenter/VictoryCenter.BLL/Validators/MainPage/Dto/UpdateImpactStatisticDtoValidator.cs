@@ -1,6 +1,7 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 
@@ -25,8 +26,15 @@ public class UpdateImpactStatisticDtoValidator : AbstractValidator<UpdateImpactS
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateImpactStatisticDto.Id)));
 
         RuleFor(x => x.Metrics)
+            .Cascade(CascadeMode.Stop)
             .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)))
+            .Must(m => m.Count == MainPageConstants.ImpactStatistic.ExactMetricCount)
+            .WithMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount))
+            .Must(metrics => MetricValidationHelper.HasRequiredKindComposition(metrics))
+            .WithMessage(ErrorMessagesConstants.MetricKindsMustMatchRequiredComposition(
+                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
+                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount));
 
         RuleForEach(x => x.Metrics)
             .NotNull()

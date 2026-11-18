@@ -103,7 +103,7 @@ public class GetLocalizedMainPageHandlerTests
                         Id = 14,
                         Name = "Зібрано",
                         Value = 100,
-                        Type = MetricType.Raised,
+                        Kind = MetricKind.RaisedFunds,
                         Priority = 1,
                         Localizations =
                         [
@@ -121,7 +121,7 @@ public class GetLocalizedMainPageHandlerTests
                         Id = 15,
                         Name = "Партнери",
                         Value = 5,
-                        Type = MetricType.Partners,
+                        Kind = MetricKind.Standard,
                         Priority = 2,
                         Localizations = [],
                     },

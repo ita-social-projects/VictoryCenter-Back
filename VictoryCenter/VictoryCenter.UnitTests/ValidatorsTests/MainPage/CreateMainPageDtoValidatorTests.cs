@@ -160,10 +160,10 @@ public class CreateMainPageDtoValidatorTests
                 Title = string.Empty,
                 Metrics =
                 [
-                    new CreateMetricDto { Value = 10, Name = "a", Type = MetricType.Partners },
-                    new CreateMetricDto { Value = 20, Name = "b", Type = MetricType.Programs },
-                    new CreateMetricDto { Value = 30, Name = "c", Type = MetricType.Raised },
-                    new CreateMetricDto { Value = 40, Name = "d", Type = MetricType.TherapyHours },
+                    new CreateMetricDto { Value = 10, Name = "a", Kind = MetricKind.Standard },
+                    new CreateMetricDto { Value = 20, Name = "b", Kind = MetricKind.Standard },
+                    new CreateMetricDto { Value = 30, Name = "c", Kind = MetricKind.RaisedFunds },
+                    new CreateMetricDto { Value = 40, Name = "d", Kind = MetricKind.Standard },
                 ],
             },
         };
@@ -241,10 +241,10 @@ public class CreateMainPageDtoValidatorTests
         ImageId = 2,
         Metrics =
         [
-            new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
-            new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-            new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
-            new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+            new CreateMetricDto { Value = 100, Name = "Partners", Kind = MetricKind.Standard },
+            new CreateMetricDto { Value = 200, Name = "Programs", Kind = MetricKind.Standard },
+            new CreateMetricDto { Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds },
+            new CreateMetricDto { Value = 400, Name = "Therapy", Kind = MetricKind.Standard },
         ],
     };
 }

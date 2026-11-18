@@ -31,7 +31,7 @@ public class SyncRaisedFundsMetricHandler : INotificationHandler<ReportFundsChan
             new QueryOptions<Metric>
             {
                 AsNoTracking = false,
-                Filter = metric => metric.Type == MetricType.Raised,
+                Filter = metric => metric.Kind == MetricKind.RaisedFunds,
                 Include = query => query
                     .Include(metric => metric.Localizations)
                     .ThenInclude(localization => localization.Language)

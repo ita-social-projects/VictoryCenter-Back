@@ -66,7 +66,6 @@ public class UpdateSingleMetricDtoValidatorTests
     {
         Value = 100,
         Name = "kids",
-        Type = MetricType.Raised,
         Prefix = MetricPrefix.Plus,
         IsAutoSynced = true,
     };

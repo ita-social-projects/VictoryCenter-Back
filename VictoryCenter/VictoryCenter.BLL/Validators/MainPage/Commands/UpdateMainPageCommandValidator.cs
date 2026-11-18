@@ -59,20 +59,16 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return true;
         }
 
+        // Requiring every existing Id prevents replacing a metric to change its kind.
+        if (statDto.Metrics.Any(m => m?.Id is null))
+        {
+            return false;
+        }
+
         var existingMetricIds = existingMainPage.ImpactStatistics.Metrics
             .Select(m => m.Id)
             .ToHashSet();
 
-        foreach (var metricId in statDto.Metrics
-                     .Where(m => m.Id.HasValue)
-                     .Select(m => m.Id!.Value))
-        {
-            if (!existingMetricIds.Contains(metricId))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return existingMetricIds.SetEquals(statDto.Metrics.Select(m => m.Id!.Value));
     }
 }

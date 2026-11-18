@@ -258,9 +258,9 @@ public static class ErrorMessagesConstants
         return $"Metrics must contain exactly {count} items.";
     }
 
-    public static string MetricTypesMustBeUnique()
+    public static string MetricKindsMustMatchRequiredComposition(int standardCount, int raisedFundsCount)
     {
-        return "Each of the four metric types must appear exactly once: Partners, Programs, Raised, TherapyHours.";
+        return $"Metrics must contain exactly {standardCount} Standard and {raisedFundsCount} RaisedFunds metrics.";
     }
 
     public static string PropertyMustBeValidEmail(string property)

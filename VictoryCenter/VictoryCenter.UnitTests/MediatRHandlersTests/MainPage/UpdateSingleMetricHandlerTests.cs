@@ -105,7 +105,7 @@ public class UpdateSingleMetricHandlerTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = false,
             Value = 100,
             RowVersion = [1],
@@ -140,7 +140,7 @@ public class UpdateSingleMetricHandlerTests
     [Fact]
     public async Task Handle_ShouldNotCallSync_NorPublishNotification_WhenIsAutoSyncedIsFalse()
     {
-        var metric = new Metric { Id = 1, Type = MetricType.Raised, IsAutoSynced = false, Value = 100, RowVersion = [1] };
+        var metric = new Metric { Id = 1, Kind = MetricKind.RaisedFunds, IsAutoSynced = false, Value = 100, RowVersion = [1] };
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto { Value = 200, IsAutoSynced = false, ExpectedVersion = [1] });
 
         SetupValidationSuccess();
@@ -196,7 +196,7 @@ public class UpdateSingleMetricHandlerTests
         {
             Id = 1,
             Name = "old",
-            Type = MetricType.Partners,
+            Kind = MetricKind.Standard,
             Prefix = MetricPrefix.None,
             Localizations = [
                 new() { LanguageId = LocalizationLanguageConstants.PrimaryLanguageId, TranslationStatus = TranslationStatus.Outdated },
@@ -207,7 +207,6 @@ public class UpdateSingleMetricHandlerTests
         var command = new UpdateSingleMetricCommand(1, new UpdateSingleMetricDto
         {
             Name = "new",
-            Type = MetricType.Raised,
             Prefix = MetricPrefix.Plus
         });
 
@@ -221,10 +220,9 @@ public class UpdateSingleMetricHandlerTests
         Assert.True(result.IsSuccess);
         Assert.True(result.Value.WasModified);
         Assert.Equal("new", metric.Name);
-        Assert.Equal(MetricType.Raised, metric.Type);
+        Assert.Equal(MetricKind.Standard, metric.Kind);
         Assert.Equal(MetricPrefix.Plus, metric.Prefix);
         Assert.Contains(nameof(UpdateSingleMetricDto.Name), result.Value.UpdatedFields);
-        Assert.Contains(nameof(UpdateSingleMetricDto.Type), result.Value.UpdatedFields);
         Assert.Contains(nameof(UpdateSingleMetricDto.Prefix), result.Value.UpdatedFields);
 
         var primaryLoc = metric.Localizations.First(l => l.LanguageId == LocalizationLanguageConstants.PrimaryLanguageId);

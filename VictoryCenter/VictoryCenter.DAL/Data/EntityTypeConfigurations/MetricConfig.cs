@@ -24,7 +24,7 @@ internal class MetricConfig : IEntityTypeConfiguration<Metric>
             .IsRequired();
 
         entity
-            .Property(e => e.Type)
+            .Property(e => e.Kind)
             .IsRequired();
 
         entity

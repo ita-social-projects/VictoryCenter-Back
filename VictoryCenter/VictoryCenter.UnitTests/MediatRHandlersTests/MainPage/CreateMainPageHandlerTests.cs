@@ -194,10 +194,10 @@ public class CreateMainPageHandlerTests
                 ImageId = null,
                 Metrics =
                 [
-                    new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
-                    new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-                    new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
-                    new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                    new CreateMetricDto { Value = 100, Name = "Partners", Kind = MetricKind.Standard },
+                    new CreateMetricDto { Value = 200, Name = "Programs", Kind = MetricKind.Standard },
+                    new CreateMetricDto { Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds },
+                    new CreateMetricDto { Value = 400, Name = "Therapy", Kind = MetricKind.Standard },
                 ],
             },
         };
@@ -362,22 +362,22 @@ public class CreateMainPageHandlerTests
                 [
                     new CreateMetricDto
                     {
-                        Value = 100, Name = "Partners", Type = MetricType.Partners,
+                        Value = 100, Name = "Partners", Kind = MetricKind.Standard,
                         Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Партнери" },
                     },
                     new CreateMetricDto
                     {
-                        Value = 200, Name = "Programs", Type = MetricType.Programs,
+                        Value = 200, Name = "Programs", Kind = MetricKind.Standard,
                         Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Програми" },
                     },
                     new CreateMetricDto
                     {
-                        Value = 300, Name = "Raised", Type = MetricType.Raised,
+                        Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds,
                         Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Зібрано" },
                     },
                     new CreateMetricDto
                     {
-                        Value = 400, Name = "Therapy", Type = MetricType.TherapyHours,
+                        Value = 400, Name = "Therapy", Kind = MetricKind.Standard,
                         Localization = new CreateMetricLocalizationDto { LanguageId = 1, Name = "Терапія" },
                     },
                 ],
@@ -501,10 +501,10 @@ public class CreateMainPageHandlerTests
             ImageId = 6,
             Metrics =
             [
-                new CreateMetricDto { Value = 100, Name = "Partners", Type = MetricType.Partners },
-                new CreateMetricDto { Value = 200, Name = "Programs", Type = MetricType.Programs },
-                new CreateMetricDto { Value = 300, Name = "Raised", Type = MetricType.Raised },
-                new CreateMetricDto { Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                new CreateMetricDto { Value = 100, Name = "Partners", Kind = MetricKind.Standard },
+                new CreateMetricDto { Value = 200, Name = "Programs", Kind = MetricKind.Standard },
+                new CreateMetricDto { Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds },
+                new CreateMetricDto { Value = 400, Name = "Therapy", Kind = MetricKind.Standard },
             ],
         },
     };
@@ -541,10 +541,10 @@ public class CreateMainPageHandlerTests
             ImageId = 6,
             Metrics =
             [
-                new Metric { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
-                new Metric { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
-                new Metric { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raised },
-                new Metric { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                new Metric { Id = 14, Value = 100, Name = "Partners", Kind = MetricKind.Standard },
+                new Metric { Id = 15, Value = 200, Name = "Programs", Kind = MetricKind.Standard },
+                new Metric { Id = 16, Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds },
+                new Metric { Id = 17, Value = 400, Name = "Therapy", Kind = MetricKind.Standard },
             ],
         },
     };
@@ -578,10 +578,10 @@ public class CreateMainPageHandlerTests
             Title = "Impact statistic",
             Metrics =
             [
-                new MetricDto { Id = 14, Value = 100, Name = "Partners", Type = MetricType.Partners },
-                new MetricDto { Id = 15, Value = 200, Name = "Programs", Type = MetricType.Programs },
-                new MetricDto { Id = 16, Value = 300, Name = "Raised", Type = MetricType.Raised },
-                new MetricDto { Id = 17, Value = 400, Name = "Therapy", Type = MetricType.TherapyHours },
+                new MetricDto { Id = 14, Value = 100, Name = "Partners", Kind = MetricKind.Standard },
+                new MetricDto { Id = 15, Value = 200, Name = "Programs", Kind = MetricKind.Standard },
+                new MetricDto { Id = 16, Value = 300, Name = "Raised", Kind = MetricKind.RaisedFunds },
+                new MetricDto { Id = 17, Value = 400, Name = "Therapy", Kind = MetricKind.Standard },
             ],
         },
     };

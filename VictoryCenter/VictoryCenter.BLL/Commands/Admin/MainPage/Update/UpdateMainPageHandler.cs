@@ -58,15 +58,17 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 return Result.Fail<MainPageDto>(imageValidationResult.Errors);
             }
 
+            var isNewImpactStatistics = entity.ImpactStatistics is null && request.UpdateMainPageDto.ImpactStatistics is not null;
+
             UpdateBaseFields(entity, request.UpdateMainPageDto);
             UpdateSections(entity, request.UpdateMainPageDto);
             SyncImpactStatistics(entity, request.UpdateMainPageDto.ImpactStatistics);
 
             await _repositoryWrapper.SaveChangesAsync();
 
-            await SyncLocalizationsAsync(entity, request.UpdateMainPageDto.ImpactStatistics);
+            await SyncLocalizationsAsync(entity, request.UpdateMainPageDto.ImpactStatistics, isNewImpactStatistics);
 
-            if (ShouldSyncRaisedFunds(request.UpdateMainPageDto.ImpactStatistics))
+            if (ShouldSyncRaisedFunds(entity, request.UpdateMainPageDto.ImpactStatistics))
             {
                 await _mediator.Publish(new ReportFundsChangedNotification(), CancellationToken.None);
             }
@@ -250,56 +252,57 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
         SyncMetrics(entity.ImpactStatistics, statDto.Metrics);
     }
 
-    private static bool ShouldSyncRaisedFunds(UpdateImpactStatisticDto? statDto)
+    private static bool ShouldSyncRaisedFunds(MainPageEntity entity, UpdateImpactStatisticDto? statDto)
     {
-        return statDto?.Metrics.Any(metric => metric.Type == MetricType.Raised && metric.IsAutoSynced) == true;
+        return statDto is not null
+            && entity.ImpactStatistics?.Metrics.Any(metric => metric.Kind == MetricKind.RaisedFunds && metric.IsAutoSynced) == true;
     }
 
-    private void SyncMetrics(ImpactStatisticsEntity stat, ICollection<UpdateMetricDto> metricsDto)
+    private static void SyncMetrics(ImpactStatisticsEntity stat, ICollection<UpdateMetricDto> metricsDto)
     {
         var existingMetricsById = stat.Metrics.ToDictionary(m => m.Id);
-        var requestMetricIds = metricsDto.Where(m => m.Id.HasValue).Select(m => m.Id!.Value).ToHashSet();
-
-        foreach (var existingMetric in stat.Metrics.ToList())
-        {
-            if (!requestMetricIds.Contains(existingMetric.Id))
-            {
-                stat.Metrics.Remove(existingMetric);
-            }
-        }
-
-        long nextPriority = stat.Metrics.Any()
-            ? stat.Metrics.Max(m => m.Priority) + 1
-            : 1;
 
         foreach (var metricDto in metricsDto)
         {
-            if (metricDto.Id.HasValue && existingMetricsById.TryGetValue(metricDto.Id.Value, out var existingMetric))
+            if (!metricDto.Id.HasValue || !existingMetricsById.TryGetValue(metricDto.Id.Value, out var existingMetric))
             {
-                if (IsChanged(existingMetric.Name, metricDto.Name) || existingMetric.Value != metricDto.Value)
-                {
-                    SetLocalizationsToOutdated<Metric>(existingMetric.Localizations);
-                }
-
-                existingMetric.Value = metricDto.Value;
-                existingMetric.Name = metricDto.Name;
-                existingMetric.Type = metricDto.Type;
-                existingMetric.Prefix = metricDto.Prefix;
-                existingMetric.IsAutoSynced = metricDto.IsAutoSynced;
+                continue;
             }
-            else
+
+            if (IsChanged(existingMetric.Name, metricDto.Name) || existingMetric.Value != metricDto.Value)
             {
-                var newMetric = _mapper.Map<Metric>(metricDto);
-                newMetric.Statistics = stat;
-
-                newMetric.Priority = nextPriority++;
-
-                stat.Metrics.Add(newMetric);
+                SetLocalizationsToOutdated<Metric>(existingMetric.Localizations);
             }
+
+            existingMetric.Value = metricDto.Value;
+            existingMetric.Name = metricDto.Name;
+            existingMetric.Prefix = metricDto.Prefix;
+            existingMetric.IsAutoSynced = metricDto.IsAutoSynced;
         }
     }
 
-    private async Task SyncLocalizationsAsync(MainPageEntity entity, UpdateImpactStatisticDto? statDto)
+    private static IEnumerable<(UpdateMetricDto Dto, Metric Entity)> PairMetricsWithEntities(
+        ImpactStatisticsEntity impactEntity,
+        ICollection<UpdateMetricDto> metricsDto,
+        bool isNewImpactStatistics)
+    {
+        if (isNewImpactStatistics)
+        {
+            // The block was just mapped from this request, so its metrics are in request order.
+            return metricsDto.Zip(impactEntity.Metrics, (dto, metric) => (dto, metric));
+        }
+
+        var metricsById = impactEntity.Metrics.ToDictionary(m => m.Id);
+
+        return metricsDto
+            .Where(dto => dto.Id.HasValue && metricsById.ContainsKey(dto.Id.Value))
+            .Select(dto => (dto, metricsById[dto.Id!.Value]));
+    }
+
+    private async Task SyncLocalizationsAsync(
+        MainPageEntity entity,
+        UpdateImpactStatisticDto? statDto,
+        bool isNewImpactStatistics)
     {
         var impactEntity = entity.ImpactStatistics;
         if (impactEntity is null || statDto is null)
@@ -339,11 +342,9 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
             hasChanges = true;
         }
 
-        var metricsByType = impactEntity.Metrics.ToDictionary(m => m.Type);
-
-        foreach (var metricDto in statDto.Metrics)
+        foreach (var (metricDto, metricEntity) in PairMetricsWithEntities(impactEntity, statDto.Metrics, isNewImpactStatistics))
         {
-            if (metricDto.Localization is null || !metricsByType.TryGetValue(metricDto.Type, out var metricEntity))
+            if (metricDto.Localization is null)
             {
                 continue;
             }

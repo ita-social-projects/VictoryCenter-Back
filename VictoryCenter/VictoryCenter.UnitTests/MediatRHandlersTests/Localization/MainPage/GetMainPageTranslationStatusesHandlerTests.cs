@@ -87,7 +87,7 @@ public class GetMainPageTranslationStatusesHandlerTests
                     new Metric
                     {
                         Id = 14,
-                        Type = MetricType.Raised,
+                        Kind = MetricKind.RaisedFunds,
                         Localizations =
                         [
                             new MetricLocalization
@@ -130,7 +130,66 @@ public class GetMainPageTranslationStatusesHandlerTests
             result.Value.Single(s => s.Block == MainPageLocalizationBlock.ImpactStatistics).TranslationStatus);
         Assert.Equal(
             TranslationStatus.Relevant,
-            result.Value.Single(s => s.Block == MainPageLocalizationBlock.MetricRaised).TranslationStatus);
+            result.Value.Single(s => s.Block == MainPageLocalizationBlock.Metric && s.EntityId == 14).TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldReturnMetricStatusPerMetricId_OrderedByPriority_WhenMetricsShareKind()
+    {
+        // Arrange
+        const long languageId = 2;
+        var mainPage = new DAL.Entities.MainPage
+        {
+            Id = 1,
+            ImpactStatistics = new ImpactStatistics
+            {
+                Id = 13,
+                Metrics =
+                [
+                    CreateMetric(id: 21, MetricKind.Standard, priority: 2, TranslationStatus.Outdated),
+                    CreateMetric(id: 22, MetricKind.RaisedFunds, priority: 0, TranslationStatus.Relevant),
+                    CreateMetric(id: 23, MetricKind.Standard, priority: 1, translationStatus: null),
+                    CreateMetric(id: 24, MetricKind.Standard, priority: 3, TranslationStatus.Relevant),
+                ],
+            },
+        };
+
+        _mainPageRepositoryMock
+            .Setup(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
+            .ReturnsAsync(mainPage);
+
+        var handler = new GetMainPageTranslationStatusesHandler(_repositoryWrapperMock.Object);
+
+        // Act
+        var result = await handler.Handle(new GetMainPageTranslationStatusesQuery(1, languageId), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+
+        var metricStatuses = result.Value.Where(s => s.Block == MainPageLocalizationBlock.Metric).ToList();
+        Assert.Equal(new long?[] { 22, 23, 21, 24 }, metricStatuses.Select(s => s.EntityId));
+        Assert.Equal(
+            new TranslationStatus?[] { TranslationStatus.Relevant, null, TranslationStatus.Outdated, TranslationStatus.Relevant },
+            metricStatuses.Select(s => s.TranslationStatus));
+
+        static Metric CreateMetric(long id, MetricKind kind, long priority, TranslationStatus? translationStatus) => new()
+        {
+            Id = id,
+            Kind = kind,
+            Priority = priority,
+            Localizations = translationStatus is null
+                ?
+                []
+                :
+                [
+                    new MetricLocalization
+                    {
+                        EntityId = id,
+                        LanguageId = languageId,
+                        TranslationStatus = translationStatus.Value,
+                    },
+                ],
+        };
     }
 
     [Fact]
