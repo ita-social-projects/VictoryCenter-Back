@@ -3,7 +3,7 @@ namespace VictoryCenter.BLL.Constants;
 public static class AuthConstants
 {
     public static readonly string RefreshTokenCookieName = "refreshToken";
-    public static readonly string RefreshTokenCookiePath = "/api/auth/refresh-token";
+    public static readonly string RefreshTokenCookiePath = "/api/auth/";
     public static readonly string SecurityStampHashClaimType = "security_stamp_hash";
     public static readonly string FamilyIdClaimType = "family_id";
     public static readonly TimeSpan RotationGracePeriod = TimeSpan.FromSeconds(30);
