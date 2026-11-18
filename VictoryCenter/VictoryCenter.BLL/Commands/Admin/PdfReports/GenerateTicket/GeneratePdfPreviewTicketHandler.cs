@@ -13,12 +13,12 @@ public class GeneratePdfPreviewTicketHandler : IRequestHandler<GeneratePdfPrevie
         _cache = cache;
     }
 
-    public async Task<Result<string>> Handle(GeneratePdfPreviewTicketCommand request, CancellationToken cancellationToken)
+    public Task<Result<string>> Handle(GeneratePdfPreviewTicketCommand request, CancellationToken cancellationToken)
     {
         var ticketId = Guid.NewGuid().ToString();
 
         _cache.Set($"PdfTicket_{ticketId}", request.Id, TimeSpan.FromSeconds(300));
 
-        return Result.Ok(ticketId);
+        return Task.FromResult(Result.Ok(ticketId));
     }
 }

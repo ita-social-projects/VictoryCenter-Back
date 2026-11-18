@@ -7,6 +7,7 @@ using VictoryCenter.BLL.Exceptions.ReorderExceptions;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.BLL.Errors;
 
 namespace VictoryCenter.BLL.Commands.Admin.ImpactStatistics.ReorderMetrics;
 
@@ -76,7 +77,7 @@ public class ReorderMetricsHandler : IRequestHandler<ReorderMetricsCommand, Resu
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<Unit>(ex.Message);
+            return Result.Fail<Unit>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (ReorderException ex)
         {

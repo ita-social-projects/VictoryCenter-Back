@@ -38,7 +38,7 @@ public class GetPdfReportPreviewByIdHandler : IRequestHandler<GetPdfReportPrevie
 
         if (pdfReport == null)
         {
-            return Result.Fail<PdfReportFileDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
+            return Result.Fail<PdfReportFileDto>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
 
         try
@@ -57,7 +57,7 @@ public class GetPdfReportPreviewByIdHandler : IRequestHandler<GetPdfReportPrevie
         }
         catch (BlobNotFoundException)
         {
-            return Result.Fail<PdfReportFileDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(PdfReport))));
+            return Result.Fail<PdfReportFileDto>(NotFoundErrors.NotFound(request.Id, typeof(PdfReport)));
         }
         catch (BlobFileSystemException)
         {

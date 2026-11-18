@@ -58,7 +58,7 @@ public class ReportFundsExpendituresRecordHelper : IReportFundsExpendituresRecor
 
         if (category is null)
         {
-            return Result.Fail(new NotFoundError(ErrorMessagesConstants.NotFound(newCategoryId, typeof(ReportFundsExpendituresCategory))));
+            return Result.Fail(NotFoundErrors.NotFound(newCategoryId, typeof(ReportFundsExpendituresCategory)));
         }
 
         if (category.Type != entityToUpdate.Type)

@@ -54,7 +54,7 @@ public class UpdateHippotherapyProgramCategoryLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyProgramCategoryLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramCategoryLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

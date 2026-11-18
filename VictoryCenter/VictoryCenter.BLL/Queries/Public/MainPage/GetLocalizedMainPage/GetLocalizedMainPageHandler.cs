@@ -3,7 +3,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.DTOs.Public.MainPage;
 using VictoryCenter.BLL.Errors;
@@ -50,7 +49,7 @@ public class GetLocalizedMainPageHandler : IRequestHandler<GetLocalizedMainPageQ
 
         if (mainPageEntity is null)
         {
-            return Result.Fail<LocalizedMainPageDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
+            return Result.Fail<LocalizedMainPageDto>(NotFoundErrors.NotFound());
         }
 
         return Result.Ok(MapLocalizedMainPage(mainPageEntity, request.LanguageId));

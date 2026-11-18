@@ -78,8 +78,8 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
 
                 if (nonExistingImageIds.Count > 0)
                 {
-                    return Result.Fail<MainPageDto>(new NotFoundError(
-                        ErrorMessagesConstants.NotFound(nonExistingImageIds, typeof(Image))));
+                    return Result.Fail<MainPageDto>(
+                        NotFoundErrors.NotFound(nonExistingImageIds, typeof(Image)));
                 }
             }
 
@@ -129,7 +129,7 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<MainPageDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<MainPageDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

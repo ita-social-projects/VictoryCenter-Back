@@ -35,7 +35,7 @@ public class DeleteFaqQuestionHandler : IRequestHandler<DeleteFaqQuestionCommand
 
             if (questionToDelete is null)
             {
-                return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(FaqQuestion))));
+                return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(FaqQuestion)));
             }
 
             var placementsToDelete = questionToDelete.Placements.ToList();

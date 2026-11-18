@@ -41,8 +41,8 @@ public class UpdateEventNewsCategoryHandler
 
         if (category is null)
         {
-            return Result.Fail<AdminEventNewsCategoryDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsCategory))));
+            return Result.Fail<AdminEventNewsCategoryDto>(
+                NotFoundErrors.NotFound(request.Id, typeof(EventNewsCategory)));
         }
 
         var normalizedName = request.Category.Name.Trim();

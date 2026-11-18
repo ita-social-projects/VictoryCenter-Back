@@ -107,7 +107,7 @@ public class UpdateHippotherapyProgramLocalizationHandler : IRequestHandler<Upda
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<HippotherapyProgramLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyProgramLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

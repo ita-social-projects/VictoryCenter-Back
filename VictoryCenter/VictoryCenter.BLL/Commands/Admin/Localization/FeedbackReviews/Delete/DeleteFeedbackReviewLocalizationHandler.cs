@@ -32,9 +32,9 @@ public class DeleteFeedbackReviewLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackReviewLocalization))));
+                typeof(FeedbackReviewLocalization)));
         }
 
         _repositoryWrapper.FeedbackReviewLocalizationsRepository.Delete(localization);
@@ -48,9 +48,9 @@ public class DeleteFeedbackReviewLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<DeleteFeedbackReviewLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackReviewLocalization))));
+                typeof(FeedbackReviewLocalization)));
         }
     }
 }

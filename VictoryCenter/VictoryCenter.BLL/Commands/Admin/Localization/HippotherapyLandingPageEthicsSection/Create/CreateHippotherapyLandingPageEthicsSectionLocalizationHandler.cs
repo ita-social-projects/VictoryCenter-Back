@@ -51,8 +51,8 @@ public class CreateHippotherapyLandingPageEthicsSectionLocalizationHandler
             var section = await GetSectionWithPrinciplesAsync(dto.EntityId);
             if (section is null)
             {
-                return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(dto.EntityId, typeof(HippotherapyLandingPageEthicsSectionEntity))));
+                return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(
+                    NotFoundErrors.NotFound(dto.EntityId, typeof(HippotherapyLandingPageEthicsSectionEntity)));
             }
 
             using var transaction = _repositoryWrapper.BeginTransaction();
@@ -83,7 +83,7 @@ public class CreateHippotherapyLandingPageEthicsSectionLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<HippotherapyLandingPageEthicsSectionLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

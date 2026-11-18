@@ -46,8 +46,8 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
         var eventNews = await GetEventNewsAsync(request.Id);
         if (eventNews is null)
         {
-            return Result.Fail<EventNewsDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsEntity))));
+            return Result.Fail<EventNewsDto>(
+                NotFoundErrors.NotFound(request.Id, typeof(EventNewsEntity)));
         }
 
         var dto = request.EventNews;
@@ -67,8 +67,8 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
 
         if (category is null)
         {
-            return Result.Fail<EventNewsDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.CategoryId, typeof(EventNewsCategory))));
+            return Result.Fail<EventNewsDto>(
+                NotFoundErrors.NotFound(dto.CategoryId, typeof(EventNewsCategory)));
         }
 
         var imagesResult = await ImageValidationHelper.ValidateAndGetImagesByIdsAsync(
@@ -424,8 +424,8 @@ public class UpdateEventNewsHandler : IRequestHandler<UpdateEventNewsCommand, Re
             if (!await _repositoryWrapper.EventNewsRepository.ExistsAsync(
                     entity => entity.Id == eventNews.Id))
             {
-                return Result.Fail<EventNewsDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound(eventNews.Id, typeof(EventNewsEntity))));
+                return Result.Fail<EventNewsDto>(
+                    NotFoundErrors.NotFound(eventNews.Id, typeof(EventNewsEntity)));
             }
 
             throw;

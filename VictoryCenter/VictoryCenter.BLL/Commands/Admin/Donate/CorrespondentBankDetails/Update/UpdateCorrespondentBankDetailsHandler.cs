@@ -57,7 +57,7 @@ public class UpdateCorrespondentBankDetailsHandler : IRequestHandler<UpdateCorre
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<CorrespondentBankDetailsDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<CorrespondentBankDetailsDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

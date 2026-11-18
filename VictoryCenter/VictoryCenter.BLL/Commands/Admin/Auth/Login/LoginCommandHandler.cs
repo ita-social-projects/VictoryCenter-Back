@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using FluentResults;
 using FluentValidation;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Auth;
 using VictoryCenter.BLL.Interfaces.TokenService;
@@ -65,14 +67,14 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         {
             PerformDummyPasswordCheck(request.LoginRequestDto.Password);
             LogFailedLoginAttempt();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         if (await _userManager.IsLockedOutAsync(admin))
         {
             PerformDummyPasswordCheck(request.LoginRequestDto.Password);
             LogLockedOutLoginAttempt(admin.Id);
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var result = await _userManager.CheckPasswordAsync(admin, request.LoginRequestDto.Password);
@@ -85,7 +87,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             }
 
             LogFailedLoginAttempt();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
         var resetResult = await _userManager.ResetAccessFailedCountAsync(admin);
@@ -106,6 +108,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
         var accessToken = _tokenService.CreateAccessToken([
             .. await _userManager.GetClaimsAsync(admin),
             new Claim(ClaimTypes.Email, request.LoginRequestDto.Email),
+            new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
 

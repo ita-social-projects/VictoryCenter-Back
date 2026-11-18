@@ -38,9 +38,9 @@ public class UpdateFeedbackHistoryLocalizationHandler
 
         if (localization is null)
         {
-            return Result.Fail<FeedbackHistoryLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<FeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization))));
+                typeof(FeedbackHistoryLocalization)));
         }
 
         var normalizedTitle = request.Localization.Title.Trim();
@@ -66,9 +66,9 @@ public class UpdateFeedbackHistoryLocalizationHandler
         }
         catch (DbUpdateConcurrencyException)
         {
-            return Result.Fail<FeedbackHistoryLocalizationDto>(new NotFoundError(ErrorMessagesConstants.NotFound(
+            return Result.Fail<FeedbackHistoryLocalizationDto>(NotFoundErrors.NotFound(
                 (request.EntityId, request.LanguageId),
-                typeof(FeedbackHistoryLocalization))));
+                typeof(FeedbackHistoryLocalization)));
         }
 
         return Result.Fail<FeedbackHistoryLocalizationDto>(

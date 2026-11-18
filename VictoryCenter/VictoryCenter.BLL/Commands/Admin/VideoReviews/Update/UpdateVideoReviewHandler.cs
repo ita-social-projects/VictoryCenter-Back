@@ -37,7 +37,7 @@ public class UpdateVideoReviewHandler : IRequestHandler<UpdateVideoReviewCommand
 
         if (entity is null)
         {
-            return Result.Fail<VideoReviewDto>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(VideoReview))));
+            return Result.Fail<VideoReviewDto>(NotFoundErrors.NotFound(request.Id, typeof(VideoReview)));
         }
 
         var normalizedDto = request.VideoReview with

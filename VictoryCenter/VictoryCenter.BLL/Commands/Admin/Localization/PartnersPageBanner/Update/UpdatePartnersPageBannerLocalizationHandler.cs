@@ -53,7 +53,7 @@ public class UpdatePartnersPageBannerLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<PartnersPageBannerLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<PartnersPageBannerLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

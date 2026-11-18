@@ -58,8 +58,8 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
 
             if (entity is null)
             {
-                return Result.Fail<CompanyProfileDto>(new NotFoundError(
-                    ErrorMessagesConstants.NotFound()));
+                return Result.Fail<CompanyProfileDto>(
+                    NotFoundErrors.NotFound());
             }
 
             using (var scope = _repositoryWrapper.BeginTransaction())
@@ -145,7 +145,7 @@ public class UpdateCompanyProfileHandler : IRequestHandler<UpdateCompanyProfileC
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<CompanyProfileDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<CompanyProfileDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

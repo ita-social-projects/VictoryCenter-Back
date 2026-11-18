@@ -50,7 +50,7 @@ public class UpdateTeamCategoryLocalizationHandler : IRequestHandler<UpdateTeamC
         }
         catch (ValidationException ex)
         {
-            return Result.Fail<TeamCategoryLocalizationDto>(ex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<TeamCategoryLocalizationDto>(ex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {

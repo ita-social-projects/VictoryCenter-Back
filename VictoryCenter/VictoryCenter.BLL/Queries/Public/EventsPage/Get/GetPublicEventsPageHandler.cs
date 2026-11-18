@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentResults;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.EventsPage;
 using VictoryCenter.BLL.DTOs.Public.EventNews;
 using VictoryCenter.BLL.DTOs.Public.EventsPage;
@@ -38,7 +37,7 @@ public class GetPublicEventsPageHandler : IRequestHandler<GetPublicEventsPageQue
 
         if (intro == null)
         {
-            return Result.Fail<PublicEventsPageDto>(new NotFoundError(ErrorMessagesConstants.NotFound()));
+            return Result.Fail<PublicEventsPageDto>(NotFoundErrors.NotFound());
         }
 
         var categories = await _repositoryWrapper.EventNewsCategoryRepository.GetAllAsync(

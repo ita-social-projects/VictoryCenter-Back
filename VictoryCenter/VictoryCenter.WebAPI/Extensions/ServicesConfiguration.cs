@@ -15,8 +15,10 @@ using VictoryCenter.BLL.Commands.Public.Payment.Common;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interceptors;
+using VictoryCenter.BLL.Interfaces.Audit;
 using VictoryCenter.BLL.Interfaces.BlobStorage;
 using VictoryCenter.BLL.Interfaces.Captcha;
+using VictoryCenter.BLL.Interfaces.Concurrency;
 using VictoryCenter.BLL.Interfaces.Email;
 using VictoryCenter.BLL.Interfaces.HippotherapyLandingPages;
 using VictoryCenter.BLL.Interfaces.HippotherapyPrograms;
@@ -29,18 +31,20 @@ using VictoryCenter.BLL.Interfaces.PaymentService;
 using VictoryCenter.BLL.Interfaces.PdfReports;
 using VictoryCenter.BLL.Interfaces.PdfStorage;
 using VictoryCenter.BLL.Interfaces.ReorderService;
+using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Interfaces.SlugService;
 using VictoryCenter.BLL.Interfaces.TokenService;
-using VictoryCenter.BLL.Interfaces.ReportFundsExpendituresRecordHelper;
 using VictoryCenter.BLL.Interfaces.WhoWeAreContentFactory;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.BLL.Options.Captcha;
 using VictoryCenter.BLL.Options.Email;
 using VictoryCenter.BLL.Options.Email.EmailOptions;
 using VictoryCenter.BLL.Options.Payment;
+using VictoryCenter.BLL.Services.Audit;
 using VictoryCenter.BLL.Services.BlobStorage;
 using VictoryCenter.BLL.Services.Captcha;
+using VictoryCenter.BLL.Services.Concurrency;
 using VictoryCenter.BLL.Services.Email;
 using VictoryCenter.BLL.Services.FundsMetricSync;
 using VictoryCenter.BLL.Services.HippotherapyLandingPages;
@@ -56,6 +60,7 @@ using VictoryCenter.BLL.Services.PdfStorage;
 using VictoryCenter.BLL.Services.ReorderService;
 using VictoryCenter.BLL.Services.Search;
 using VictoryCenter.BLL.Services.SlugService;
+using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.BLL.Services.TokenService;
 using VictoryCenter.BLL.Services.WhoWeAreContentFactory;
 using VictoryCenter.DAL.Data;
@@ -70,10 +75,10 @@ using VictoryCenter.WebAPI.Authentication;
 using VictoryCenter.WebAPI.Factories;
 using VictoryCenter.WebAPI.Filters;
 using VictoryCenter.WebAPI.HealthChecks;
-using VictoryCenter.WebAPI.Utils;
-using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.WebAPI.Middleware;
 using VictoryCenter.WebAPI.Services;
+using VictoryCenter.WebAPI.Services.Concurrency;
+using VictoryCenter.WebAPI.Utils;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.WebAPI.Extensions;
@@ -100,6 +105,8 @@ public static class ServicesConfiguration
 
         services.AddSingleton<IRichTextSanitizer, RichTextSanitizer>();
         services.AddSingleton<RichTextSanitizationInterceptor>();
+        services.AddSingleton<IAuditLogFactory, AuditLogFactory>();
+        services.AddSingleton<AuditInterceptor>();
 
         services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
         {
@@ -108,7 +115,9 @@ public static class ServicesConfiguration
                 opt.MigrationsAssembly(typeof(VictoryCenterDbContext).Assembly.GetName().Name);
                 opt.MigrationsHistoryTable("__EFMigrationsHistory", schema: "entity_framework");
             });
-            options.AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>());
+            options.AddInterceptors(
+                serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>(),
+                serviceProvider.GetRequiredService<AuditInterceptor>());
         });
 
         services.AddIdentity<AdminUser, IdentityRole<int>>()
@@ -218,6 +227,15 @@ public static class ServicesConfiguration
             });
 
         services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddOptions<ContentLockOptions>()
+            .BindConfiguration(ContentLockOptions.Position)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        services.AddSingleton<IContentLockManager, InMemoryContentLockManager>();
+        services.AddSingleton<IContentLockResourcePolicy, ContentLockResourcePolicy>();
+        services.AddScoped<IContentLockUpdateCompletionService, ContentLockUpdateCompletionService>();
+        services.AddSingleton<IContentLockNotifier, SignalRContentLockNotifier>();
+        services.AddHostedService<ContentLockExpirationService>();
         services.AddSingleton<ITokenService, TokenService>();
         services.AddSingleton<IImageContentValidator, ImageContentValidator>();
         services.AddSingleton<ISlugHelper>(new SlugHelperForNonAsciiLanguages(new SlugHelperConfiguration
@@ -889,6 +907,7 @@ public static class ServicesConfiguration
         services.AddEndpointsApiExplorer();
         services.AddSwaggerGen(c =>
         {
+            c.OperationFilter<ContentLockOperationFilter>();
             c.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "VictoryCenter API",

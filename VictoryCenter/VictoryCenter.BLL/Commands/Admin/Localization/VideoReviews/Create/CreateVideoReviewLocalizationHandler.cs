@@ -33,8 +33,8 @@ public class CreateVideoReviewLocalizationHandler
         if (!await _repositoryWrapper.VideoReviewsRepository.ExistsAsync(
                 videoReview => videoReview.Id == dto.EntityId))
         {
-            return Result.Fail<VideoReviewLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.EntityId, typeof(VideoReview))));
+            return Result.Fail<VideoReviewLocalizationDto>(
+                NotFoundErrors.NotFound(dto.EntityId, typeof(VideoReview)));
         }
 
         var language = await _repositoryWrapper.LocalizationLanguagesRepository.GetFirstOrDefaultAsync(
@@ -46,8 +46,8 @@ public class CreateVideoReviewLocalizationHandler
 
         if (language is null)
         {
-            return Result.Fail<VideoReviewLocalizationDto>(new NotFoundError(
-                ErrorMessagesConstants.NotFound(dto.LanguageId, typeof(LocalizationLanguage))));
+            return Result.Fail<VideoReviewLocalizationDto>(
+                NotFoundErrors.NotFound(dto.LanguageId, typeof(LocalizationLanguage)));
         }
 
         if (await _repositoryWrapper.VideoReviewLocalizationsRepository.ExistsAsync(

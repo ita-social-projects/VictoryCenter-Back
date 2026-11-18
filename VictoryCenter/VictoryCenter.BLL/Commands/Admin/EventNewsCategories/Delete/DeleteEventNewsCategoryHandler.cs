@@ -34,7 +34,7 @@ public class DeleteEventNewsCategoryHandler
 
         if (category is null)
         {
-            return Result.Fail<long>(new NotFoundError(ErrorMessagesConstants.NotFound(request.Id, typeof(EventNewsCategory))));
+            return Result.Fail<long>(NotFoundErrors.NotFound(request.Id, typeof(EventNewsCategory)));
         }
 
         var isInUse = await _repositoryWrapper.EventNewsRepository.ExistsAsync(

@@ -52,7 +52,7 @@ public class CreateReportFundsExpendituresCategoryLocalizationHandler
         }
         catch (ValidationException vex)
         {
-            return Result.Fail<ReportFundsExpendituresCategoryLocalizationDto>(vex.Errors.Select(e => e.ErrorMessage));
+            return Result.Fail<ReportFundsExpendituresCategoryLocalizationDto>(vex.Errors.Select(e => (IError)new ValidationError(e.PropertyName, e.ErrorMessage)));
         }
         catch (DbUpdateException)
         {
