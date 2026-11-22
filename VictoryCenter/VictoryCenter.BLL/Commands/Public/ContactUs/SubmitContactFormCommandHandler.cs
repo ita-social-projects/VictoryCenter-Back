@@ -53,7 +53,7 @@ public class SubmitContactFormCommandHandler : IRequestHandler<SubmitContactForm
             await _validator.ValidateAndThrowAsync(trimmedRequest, cancellationToken);
 
             var captchaValidationResult =
-                await _captchaResponseTokenValidationService.ValidateTokenAsync(trimmedDto.CaptchaResponseToken);
+                await _captchaResponseTokenValidationService.ValidateTokenAsync(trimmedDto.CaptchaResponseToken, cancellationToken: cancellationToken);
 
             if (captchaValidationResult.IsFailed)
             {
