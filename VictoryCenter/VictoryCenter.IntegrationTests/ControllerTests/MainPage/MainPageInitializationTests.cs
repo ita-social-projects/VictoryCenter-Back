@@ -1,3 +1,4 @@
+using System.Data.Common;
 using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
@@ -101,26 +102,20 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         await AssertSingleAggregateAsync();
     }
 
-    [SqlServerTheory]
-    [InlineData(4)]
-    [InlineData(3)]
-    [InlineData(0)]
-    public async Task Initialize_ExistingCompleteOrIncompletePage_PreservesAllData(int metricCount)
+    [SqlServerFact]
+    public async Task Initialize_IncompletePage_AddsOnlyMissingMetricAndPreservesExistingMetrics()
     {
         await InitializeMainPageAsync();
         using (var scope = _fixture.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            var page = await db.MainPages.Include(p => p.ImpactStatistics)!.ThenInclude(s => s!.Metrics).SingleAsync();
-            page.Title = "Existing main page";
-            page.ImpactStatistics!.Title = "Existing statistics";
-            var metrics = page.ImpactStatistics.Metrics.OrderBy(m => m.Priority).ToList();
+            var metrics = await db.Metrics.ToListAsync();
             var english = await db.LocalizationLanguages.SingleAsync(l => l.Code == "en");
-            foreach (var metric in metrics.Take(metricCount))
+            foreach (var metric in metrics.Where(m => m.Type != MetricType.Partners))
             {
                 metric.Name = $"Existing {metric.Type}";
                 metric.Value = 123;
-                metric.Priority = 10 - metric.Priority;
+                metric.Priority += 10;
                 metric.Prefix = MetricPrefix.Plus;
                 metric.IsHidden = true;
                 metric.IsAutoSynced = true;
@@ -133,22 +128,50 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
                 });
             }
 
-            db.Metrics.RemoveRange(metrics.Skip(metricCount));
+            db.Metrics.Remove(metrics.Single(m => m.Type == MetricType.Partners));
             await db.SaveChangesAsync();
         }
 
-        var before = await SnapshotAsync();
-
+        var before = await MetricsSnapshotAsync(excludePartners: true);
         await InitializeMainPageAsync();
+        var completePageBefore = await MetricsSnapshotAsync();
         await InitializeMainPageAsync();
-        await _fixture.Client.GetAsync("/api/MainPage");
-        await _fixture.Client.GetAsync("/api/MainPage/admin");
 
-        Assert.Equal(before, await SnapshotAsync());
+        Assert.Equal(before, await MetricsSnapshotAsync(excludePartners: true));
+        Assert.Equal(completePageBefore, await MetricsSnapshotAsync());
         using var verificationScope = _fixture.Services.CreateScope();
-        var verificationDb = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        Assert.Equal(metricCount, await verificationDb.Metrics.CountAsync());
-        Assert.Equal("Existing main page", (await verificationDb.MainPages.SingleAsync()).Title);
+        var dbAfter = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var metricsAfter = await dbAfter.Metrics.Include(m => m.Localizations).ToListAsync();
+        Assert.Equal(4, metricsAfter.Count);
+        var partner = Assert.Single(metricsAfter, m => m.Type == MetricType.Partners);
+        Assert.Equal("Партнерів", partner.Name);
+        Assert.Equal(14, partner.Priority);
+        Assert.Equal(0, partner.Value);
+        Assert.False(partner.IsHidden);
+        Assert.False(partner.IsAutoSynced);
+        Assert.Null(partner.Prefix);
+        Assert.Empty(partner.Localizations);
+    }
+
+    [SqlServerFact]
+    public async Task Initialize_ConcurrentIncompletePage_DoesNotDuplicateMetrics()
+    {
+        await InitializeMainPageAsync();
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            db.Metrics.Remove(await db.Metrics.SingleAsync(m => m.Type == MetricType.Partners));
+            await db.SaveChangesAsync();
+        }
+
+        var barrier = new ConcurrentReadInterceptor();
+        await Task.WhenAll(InitializeMainPageAsync(barrier), InitializeMainPageAsync(barrier));
+
+        using var verificationScope = _fixture.Services.CreateScope();
+        var dbAfter = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var types = await dbAfter.Metrics.Select(m => m.Type).ToListAsync();
+        Assert.Equal(4, types.Count);
+        Assert.Equal(Enum.GetValues<MetricType>(), types.OrderBy(t => t));
     }
 
     [SqlServerFact]
@@ -216,7 +239,7 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         await AssertSingleAggregateAsync();
     }
 
-    private async Task InitializeMainPageAsync(SaveChangesInterceptor? interceptor = null)
+    private async Task InitializeMainPageAsync(IInterceptor? interceptor = null)
     {
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
@@ -252,6 +275,61 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
     {
         var page = await _fixture.Client.GetFromJsonAsync<MainPageDto>("/api/MainPage/admin");
         return JsonSerializer.Serialize(page);
+    }
+
+    private async Task<string> MetricsSnapshotAsync(bool excludePartners = false)
+    {
+        using var scope = _fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var metrics = await db.Metrics
+            .Where(m => !excludePartners || m.Type != MetricType.Partners).OrderBy(m => m.Id)
+            .Select(m => new
+            {
+                m.Id,
+                m.Type,
+                m.Name,
+                m.Value,
+                m.Priority,
+                m.IsHidden,
+                m.IsAutoSynced,
+                m.Prefix,
+                m.CreatedAt,
+                m.RowVersion,
+                Localizations = m.Localizations.OrderBy(l => l.LanguageId).Select(l => new
+                {
+                    l.LanguageId,
+                    l.Name,
+                    l.Value,
+                    l.TranslationStatus,
+                }).ToList(),
+            })
+            .ToListAsync();
+        return JsonSerializer.Serialize(metrics);
+    }
+
+    private sealed class ConcurrentReadInterceptor : DbCommandInterceptor
+    {
+        private readonly TaskCompletionSource _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private int _arrivals;
+
+        public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(
+            DbCommand command,
+            CommandEventData eventData,
+            InterceptionResult<DbDataReader> result,
+            CancellationToken cancellationToken = default)
+        {
+            if (command.CommandText.Contains("SELECT * FROM MainPages", StringComparison.Ordinal))
+            {
+                if (Interlocked.Increment(ref _arrivals) == 2)
+                {
+                    _ready.SetResult();
+                }
+
+                await _ready.Task.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            }
+
+            return result;
+        }
     }
 
     private sealed class ConcurrentSaveInterceptor : SaveChangesInterceptor
