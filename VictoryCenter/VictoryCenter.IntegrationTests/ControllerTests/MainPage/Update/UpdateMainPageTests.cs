@@ -197,6 +197,8 @@ public class UpdateMainPageTests : BaseTestClass
             .ToList();
         updateDto = updateDto with { ImpactStatistics = updateDto.ImpactStatistics with { Metrics = metrics } };
 
+        var expectedNames = metrics.ToDictionary(m => m.Id!.Value, m => m.Name);
+
         var response = await PutRaw(updateDto);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -210,7 +212,7 @@ public class UpdateMainPageTests : BaseTestClass
         Assert.All(storedMetrics, m =>
         {
             Assert.Equal(storedKinds[m.Id], m.Kind);
-            Assert.StartsWith("renamed-", m.Name);
+            Assert.Equal(expectedNames[m.Id], m.Name);
         });
     }
 

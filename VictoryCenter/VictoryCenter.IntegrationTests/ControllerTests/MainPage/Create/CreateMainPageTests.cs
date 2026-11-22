@@ -93,6 +93,7 @@ public class CreateMainPageTests : BaseTestClass
             .Include(m => m.MainPartners)
             .Include(m => m.MainDonations)
             .Include(m => m.ImpactStatistics)
+                .ThenInclude(s => s!.Metrics)
             .FirstOrDefaultAsync(m => m.Title == createDto.Title);
 
         Assert.NotNull(createdMainPage);
@@ -103,6 +104,10 @@ public class CreateMainPageTests : BaseTestClass
         Assert.NotNull(createdMainPage.MainDonations);
         Assert.Equal(createDto.MainDonations.ImageId, createdMainPage.MainDonations.ImageId);
         Assert.NotNull(createdMainPage.ImpactStatistics);
+
+        var expectedKinds = createDto.ImpactStatistics.Metrics.ToDictionary(m => m.Name, m => m.Kind);
+        Assert.Equal(expectedKinds.Count, createdMainPage.ImpactStatistics.Metrics.Count);
+        Assert.All(createdMainPage.ImpactStatistics.Metrics, m => Assert.Equal(expectedKinds[m.Name], m.Kind));
     }
 
     [Fact]
