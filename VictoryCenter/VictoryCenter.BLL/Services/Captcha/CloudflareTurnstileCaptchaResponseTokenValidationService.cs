@@ -13,6 +13,7 @@ namespace VictoryCenter.BLL.Services.Captcha;
 public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptchaResponseTokenValidationService
 {
     private const int MaximumResponseBytes = 16 * 1024;
+    private const int MaximumServerErrorStatusCode = 599;
     private const string VerificationFailed = "Cloudflare Turnstile API verification failed.";
     private readonly HttpClient _httpClient;
     private readonly ILogger<CloudflareTurnstileCaptchaResponseTokenValidationService> _logger;
@@ -164,7 +165,7 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
 
     private static bool IsTransient(HttpStatusCode statusCode) =>
         statusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests
-        || ((int)statusCode >= 500 && (int)statusCode <= 599);
+        || (statusCode >= HttpStatusCode.InternalServerError && (int)statusCode <= MaximumServerErrorStatusCode);
 
     private sealed class CaptchaVerificationResponse
     {

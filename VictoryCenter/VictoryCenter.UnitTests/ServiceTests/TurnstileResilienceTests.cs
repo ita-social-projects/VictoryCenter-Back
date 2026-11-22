@@ -23,6 +23,7 @@ public class TurnstileResilienceTests
     [InlineData(500)]
     [InlineData(502)]
     [InlineData(503)]
+    [InlineData(599)]
     public async Task TransientStatus_RetriesWithStableKeyAndFreshRequests(int status)
     {
         var forms = new List<string>();
@@ -54,6 +55,7 @@ public class TurnstileResilienceTests
     [InlineData(400)]
     [InlineData(401)]
     [InlineData(403)]
+    [InlineData(600)]
     public async Task PermanentHttpFailure_IsNotRetried(int status)
     {
         var calls = 0;
