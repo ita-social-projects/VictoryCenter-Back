@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -45,7 +46,7 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
             { "response", token },
 
             // Keep one key across retries, including ambiguous network failures after token consumption.
-            { "idempotency_key", Guid.NewGuid().ToString("D") }
+            { "idempotency_key", Guid.NewGuid().ToString("D", CultureInfo.InvariantCulture) }
         };
         if (!string.IsNullOrEmpty(remoteIp))
         {
@@ -54,57 +55,8 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
 
         try
         {
-            for (var attempt = 1; attempt <= _options.MaxAttempts; attempt++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                if (_timeProvider.GetElapsedTime(started) >= timeout)
-                {
-                    return Fail("Verification deadline exceeded");
-                }
-
-                var delay = TimeSpan.FromMilliseconds(_options.RetryDelayMilliseconds);
-                try
-                {
-                    using var request = new HttpRequestMessage(HttpMethod.Post, _options.SiteVerifyUrl)
-                    {
-                        Content = new FormUrlEncodedContent(parameters)
-                    };
-                    using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, budget.Token);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var result = await ReadResultAsync(response.Content, budget.Token);
-                        return _timeProvider.GetElapsedTime(started) >= timeout ? Fail("Verification deadline exceeded") : result;
-                    }
-
-                    if (!IsTransient(response.StatusCode) || attempt == _options.MaxAttempts)
-                    {
-                        return Fail("HTTP status", (int)response.StatusCode);
-                    }
-
-                    delay = response.Headers.RetryAfter?.Delta
-                        ?? (response.Headers.RetryAfter?.Date is { } date ? date - _timeProvider.GetUtcNow() : delay);
-                    if (delay < TimeSpan.Zero)
-                    {
-                        delay = TimeSpan.Zero;
-                    }
-                }
-                catch (Exception exception) when (exception is HttpRequestException or IOException)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-                    if (attempt == _options.MaxAttempts)
-                    {
-                        return Fail("Transport failure");
-                    }
-                }
-
-                // Timer callbacks can be delayed by scheduler load; enforce the remaining budget independently.
-                if (delay >= timeout - _timeProvider.GetElapsedTime(started))
-                {
-                    return Fail("Retry delay exceeds remaining verification budget");
-                }
-
-                await Task.Delay(delay, _timeProvider, budget.Token);
-            }
+            var endpoint = new Uri(_options.SiteVerifyUrl, UriKind.Absolute);
+            return await ValidateWithRetriesAsync(endpoint, parameters, started, timeout, budget.Token);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -114,8 +66,77 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
         {
             return Fail("Invalid verification endpoint or request configuration");
         }
+    }
+
+    private async Task<Result> ValidateWithRetriesAsync(
+        Uri endpoint,
+        Dictionary<string, string> parameters,
+        long started,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
+    {
+        for (var attempt = 1; attempt <= _options.MaxAttempts; attempt++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_timeProvider.GetElapsedTime(started) >= timeout)
+            {
+                return Fail("Verification deadline exceeded");
+            }
+
+            var (result, delay) = await VerifyAttemptAsync(endpoint, parameters, attempt == _options.MaxAttempts, cancellationToken);
+            if (result is not null)
+            {
+                return _timeProvider.GetElapsedTime(started) >= timeout ? Fail("Verification deadline exceeded") : result;
+            }
+
+            // Timer callbacks can be delayed by scheduler load; enforce the remaining budget independently.
+            if (delay >= timeout - _timeProvider.GetElapsedTime(started))
+            {
+                return Fail("Retry delay exceeds remaining verification budget");
+            }
+
+            await Task.Delay(delay, _timeProvider, cancellationToken);
+        }
 
         return Fail("Attempts exhausted");
+    }
+
+    private async Task<(Result? CompletedResult, TimeSpan RetryDelay)> VerifyAttemptAsync(
+        Uri endpoint,
+        Dictionary<string, string> parameters,
+        bool lastAttempt,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = new FormUrlEncodedContent(parameters)
+            };
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (response.IsSuccessStatusCode)
+            {
+                return (await ReadResultAsync(response.Content, cancellationToken), TimeSpan.Zero);
+            }
+
+            return !IsTransient(response.StatusCode) || lastAttempt
+                ? (Fail("HTTP status", (int)response.StatusCode), TimeSpan.Zero)
+                : (null, GetRetryDelay(response));
+        }
+        catch (Exception exception) when (exception is HttpRequestException or IOException)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return lastAttempt
+                ? (Fail("Transport failure"), TimeSpan.Zero)
+                : (null, TimeSpan.FromMilliseconds(_options.RetryDelayMilliseconds));
+        }
+    }
+
+    private TimeSpan GetRetryDelay(HttpResponseMessage response)
+    {
+        var delay = response.Headers.RetryAfter?.Delta
+            ?? (response.Headers.RetryAfter?.Date is { } date ? date - _timeProvider.GetUtcNow() : TimeSpan.FromMilliseconds(_options.RetryDelayMilliseconds));
+        return delay < TimeSpan.Zero ? TimeSpan.Zero : delay;
     }
 
     private async Task<Result> ReadResultAsync(HttpContent content, CancellationToken cancellationToken)
