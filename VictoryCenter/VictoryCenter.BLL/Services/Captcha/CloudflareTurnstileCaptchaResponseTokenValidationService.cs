@@ -37,10 +37,14 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
         {
             { "secret", _options.SecretKey },
             { "response", token },
+
             // Keep one key across retries, including ambiguous network failures after token consumption.
             { "idempotency_key", Guid.NewGuid().ToString("D") }
         };
-        if (!string.IsNullOrEmpty(remoteIp)) parameters.Add("remoteip", remoteIp);
+        if (!string.IsNullOrEmpty(remoteIp))
+        {
+            parameters.Add("remoteip", remoteIp);
+        }
 
         try
         {
@@ -66,7 +70,11 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
 
                     delay = response.Headers.RetryAfter?.Delta
                         ?? (response.Headers.RetryAfter?.Date is { } date ? date - DateTimeOffset.UtcNow : delay);
-                    if (delay < TimeSpan.Zero) delay = TimeSpan.Zero;
+                    if (delay < TimeSpan.Zero)
+                    {
+                        delay = TimeSpan.Zero;
+                    }
+
                     // Do not retry earlier than requested or wait beyond the total deadline.
                     if (delay > TimeSpan.FromMilliseconds(_options.VerificationTimeoutMilliseconds))
                     {
@@ -75,7 +83,10 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
                 }
                 catch (Exception exception) when (exception is HttpRequestException or IOException)
                 {
-                    if (attempt == _options.MaxAttempts) return Fail("Transport failure");
+                    if (attempt == _options.MaxAttempts)
+                    {
+                        return Fail("Transport failure");
+                    }
                 }
 
                 await Task.Delay(delay, budget.Token);
@@ -95,24 +106,44 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
 
     private async Task<Result> ReadResultAsync(HttpContent content, CancellationToken cancellationToken)
     {
-        if (content.Headers.ContentLength > MaximumResponseBytes) return Fail("Response too large");
+        if (content.Headers.ContentLength > MaximumResponseBytes)
+        {
+            return Fail("Response too large");
+        }
+
         await using var stream = await content.ReadAsStreamAsync(cancellationToken);
         var buffer = new byte[MaximumResponseBytes + 1];
         var count = 0;
         while (count < buffer.Length)
         {
             var read = await stream.ReadAsync(buffer.AsMemory(count), cancellationToken);
-            if (read == 0) break;
+            if (read == 0)
+            {
+                break;
+            }
+
             count += read;
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        if (count > MaximumResponseBytes) return Fail("Response too large");
+        if (count > MaximumResponseBytes)
+        {
+            return Fail("Response too large");
+        }
+
         try
         {
             var result = JsonSerializer.Deserialize<CaptchaVerificationResponse>(buffer.AsSpan(0, count));
-            if (result is null) return Fail("Empty verification response");
-            if (result.Success) return Result.Ok();
+            if (result is null)
+            {
+                return Fail("Empty verification response");
+            }
+
+            if (result.Success)
+            {
+                return Result.Ok();
+            }
+
             var errors = result.ErrorCodes?.Where(code => !string.IsNullOrWhiteSpace(code)).ToList();
             return errors is { Count: > 0 }
                 ? Result.Fail(errors)
@@ -133,7 +164,7 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
 
     private static bool IsTransient(HttpStatusCode statusCode) =>
         statusCode is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests
-        || (int)statusCode >= 500 && (int)statusCode <= 599;
+        || ((int)statusCode >= 500 && (int)statusCode <= 599);
 
     private sealed class CaptchaVerificationResponse
     {

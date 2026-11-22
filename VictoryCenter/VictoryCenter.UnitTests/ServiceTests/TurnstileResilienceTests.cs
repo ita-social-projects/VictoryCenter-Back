@@ -285,8 +285,14 @@ public class TurnstileResilienceTests
             await context.Response.WriteAsync("{", context.RequestAborted);
             await context.Response.Body.FlushAsync(context.RequestAborted);
             startedReading.TrySetResult();
-            try { await Task.Delay(Timeout.Infinite, context.RequestAborted); }
-            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested) { }
+            try
+            {
+                await Task.Delay(Timeout.Infinite, context.RequestAborted);
+            }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+            {
+                // The client deadline intentionally aborts this response.
+            }
         });
         await app.StartAsync();
         var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
