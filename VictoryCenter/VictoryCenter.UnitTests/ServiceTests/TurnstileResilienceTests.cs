@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Moq;
 using VictoryCenter.BLL.Options.Captcha;
 using VictoryCenter.BLL.Services.Captcha;
 
@@ -211,20 +212,30 @@ public class TurnstileResilienceTests
         Assert.Equal(1, calls);
     }
 
-    [Fact]
-    public async Task RetryDelay_IsInsideTotalBudget()
+    [Theory]
+    [InlineData(100)]
+    [InlineData(1100)]
+    public async Task RetryDelay_IsInsideTotalBudget(int elapsedMilliseconds)
     {
         var calls = 0;
-        using var handler = new StubHandler(async (_, cancellation) =>
+        var elapsed = TimeSpan.Zero;
+        var clock = new Mock<TimeProvider>();
+        clock.SetupGet(provider => provider.TimestampFrequency).Returns(TimeSpan.TicksPerSecond);
+        clock.Setup(provider => provider.GetTimestamp()).Returns(() => elapsed.Ticks);
+
+        // Deliberately suppress timer callbacks: the elapsed-time guard must still prevent retries.
+        clock.Setup(provider => provider.CreateTimer(It.IsAny<TimerCallback>(), It.IsAny<object?>(), It.IsAny<TimeSpan>(), It.IsAny<TimeSpan>()))
+            .Returns(Mock.Of<ITimer>());
+        using var handler = new StubHandler((_, _) =>
         {
             calls++;
-            await Task.Delay(100, cancellation);
+            elapsed += TimeSpan.FromMilliseconds(elapsedMilliseconds);
             var response = Reply(503, "");
             response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(1));
-            return response;
+            return Task.FromResult(response);
         });
         using var client = new HttpClient(handler);
-        Assert.True((await Create(client, timeout: 1000).ValidateTokenAsync("token").WaitAsync(TimeSpan.FromSeconds(5))).IsFailed);
+        Assert.True((await Create(client, timeout: 1000, timeProvider: clock.Object).ValidateTokenAsync("token").WaitAsync(TimeSpan.FromSeconds(5))).IsFailed);
         Assert.Equal(1, calls);
     }
 
@@ -326,11 +337,11 @@ public class TurnstileResilienceTests
         Assert.All(streams, stream => Assert.True(stream.Disposed));
     }
 
-    private static CloudflareTurnstileCaptchaResponseTokenValidationService Create(HttpClient client, int timeout = 10000, string url = "https://turnstile.test/siteverify") =>
+    private static CloudflareTurnstileCaptchaResponseTokenValidationService Create(HttpClient client, int timeout = 10000, string url = "https://turnstile.test/siteverify", TimeProvider? timeProvider = null) =>
         new(client, Options.Create(new CloudflareTurnstileCaptchaOptions
         {
             SecretKey = "test-secret", SiteVerifyUrl = url, VerificationTimeoutMilliseconds = timeout, RetryDelayMilliseconds = 0
-        }), NullLogger<CloudflareTurnstileCaptchaResponseTokenValidationService>.Instance);
+        }), NullLogger<CloudflareTurnstileCaptchaResponseTokenValidationService>.Instance, timeProvider);
 
     private static HttpResponseMessage Reply(int status, string body) => new((HttpStatusCode)status) { Content = new StringContent(body) };
 

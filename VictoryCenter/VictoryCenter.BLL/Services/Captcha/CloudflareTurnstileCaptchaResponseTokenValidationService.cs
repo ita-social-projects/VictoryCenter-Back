@@ -18,22 +18,27 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
     private readonly HttpClient _httpClient;
     private readonly ILogger<CloudflareTurnstileCaptchaResponseTokenValidationService> _logger;
     private readonly CloudflareTurnstileCaptchaOptions _options;
+    private readonly TimeProvider _timeProvider;
 
     public CloudflareTurnstileCaptchaResponseTokenValidationService(
         HttpClient httpClient,
         IOptions<CloudflareTurnstileCaptchaOptions> turnstileCaptchaOptions,
-        ILogger<CloudflareTurnstileCaptchaResponseTokenValidationService> logger)
+        ILogger<CloudflareTurnstileCaptchaResponseTokenValidationService> logger,
+        TimeProvider? timeProvider = null)
     {
         _httpClient = httpClient;
         _logger = logger;
         _options = turnstileCaptchaOptions.Value;
+        _timeProvider = timeProvider ?? TimeProvider.System;
     }
 
     public async Task<Result> ValidateTokenAsync(string token, string? remoteIp = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        budget.CancelAfter(_options.VerificationTimeoutMilliseconds);
+        var timeout = TimeSpan.FromMilliseconds(_options.VerificationTimeoutMilliseconds);
+        var started = _timeProvider.GetTimestamp();
+        using var deadline = new CancellationTokenSource(timeout, _timeProvider);
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, deadline.Token);
         var parameters = new Dictionary<string, string>
         {
             { "secret", _options.SecretKey },
@@ -51,6 +56,12 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
         {
             for (var attempt = 1; attempt <= _options.MaxAttempts; attempt++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (_timeProvider.GetElapsedTime(started) >= timeout)
+                {
+                    return Fail("Verification deadline exceeded");
+                }
+
                 var delay = TimeSpan.FromMilliseconds(_options.RetryDelayMilliseconds);
                 try
                 {
@@ -61,7 +72,8 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
                     using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, budget.Token);
                     if (response.IsSuccessStatusCode)
                     {
-                        return await ReadResultAsync(response.Content, budget.Token);
+                        var result = await ReadResultAsync(response.Content, budget.Token);
+                        return _timeProvider.GetElapsedTime(started) >= timeout ? Fail("Verification deadline exceeded") : result;
                     }
 
                     if (!IsTransient(response.StatusCode) || attempt == _options.MaxAttempts)
@@ -70,27 +82,28 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationService : ICaptcha
                     }
 
                     delay = response.Headers.RetryAfter?.Delta
-                        ?? (response.Headers.RetryAfter?.Date is { } date ? date - DateTimeOffset.UtcNow : delay);
+                        ?? (response.Headers.RetryAfter?.Date is { } date ? date - _timeProvider.GetUtcNow() : delay);
                     if (delay < TimeSpan.Zero)
                     {
                         delay = TimeSpan.Zero;
                     }
-
-                    // Do not retry earlier than requested or wait beyond the total deadline.
-                    if (delay > TimeSpan.FromMilliseconds(_options.VerificationTimeoutMilliseconds))
-                    {
-                        return Fail("Retry-After exceeds verification budget");
-                    }
                 }
                 catch (Exception exception) when (exception is HttpRequestException or IOException)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     if (attempt == _options.MaxAttempts)
                     {
                         return Fail("Transport failure");
                     }
                 }
 
-                await Task.Delay(delay, budget.Token);
+                // Timer callbacks can be delayed by scheduler load; enforce the remaining budget independently.
+                if (delay >= timeout - _timeProvider.GetElapsedTime(started))
+                {
+                    return Fail("Retry delay exceeds remaining verification budget");
+                }
+
+                await Task.Delay(delay, _timeProvider, budget.Token);
             }
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
