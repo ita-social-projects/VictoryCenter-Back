@@ -15,7 +15,8 @@ jobs:
   build:
     name: Build and analyze
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Diagnostic branch only: leave time to analyze and upload after stopping tests.
+    timeout-minutes: 75
     steps:
       - name: Set up JDK 17
         uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
@@ -39,6 +40,23 @@ jobs:
 
       - name: Install gitversion
         run: dotnet tool install --global GitVersion.Tool --version 5.12.0
+
+      - name: Prepare integration diagnostics
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/m1-diagnostics/public"
+          for tool in dotnet-stack dotnet-dump dotnet-counters; do
+            dotnet tool install "$tool" --version 9.0.661903 --allow-roll-forward --tool-path "$RUNNER_TEMP/m1-tools"
+          done
+          echo "$RUNNER_TEMP/m1-tools" >> "$GITHUB_PATH"
+          {
+            printf 'SHA=%s\nRun=%s\nAttempt=%s\nImage=%s\nImageVersion=%s\n' \
+              "$GITHUB_SHA" "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "${ImageOS:-unknown}" "${ImageVersion:-unknown}"
+            dotnet --info
+            dotnet --list-runtimes
+            uname -a
+            free -m
+          } > "$RUNNER_TEMP/m1-diagnostics/public/environment.txt"
 
       - name: Restore NuGet packages
         shell: bash
@@ -94,9 +112,24 @@ jobs:
         run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release --no-restore" -f xml -o "coverage1.xml"
 
       - name: Run integration tests and generate coverage
+        timeout-minutes: 55
         env:
           INTEGRATION_TESTS_DB_CONNECTION_STRING: ${{ vars.INTEGRATION_TESTS_DB_CONNECTION_STRING }}
-        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release --no-restore" -f xml -o "coverage2.xml"
+          M1_DIAGNOSTICS_DIR: ${{ runner.temp }}/m1-diagnostics
+        shell: bash
+        run: bash scripts/ci/diagnose-integration-tests.sh
+
+      - name: Upload integration diagnostics (no raw dumps)
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: integration-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/m1-diagnostics/public/
+            ${{ runner.temp }}/m1-diagnostics/results/
+            !${{ runner.temp }}/m1-diagnostics/results/**/*.dmp
+          if-no-files-found: warn
+          retention-days: 3
 
       - name: Merge coverage reports
         run:  dotnet-coverage merge coverage1.xml coverage2.xml -f xml -o coverage.xml
