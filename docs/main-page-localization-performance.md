@@ -33,6 +33,14 @@ with no skipped tests when the connection variable was configured. A broader
 MainPage/SQL-compatibility unit run passed 301 tests (the four SQL tests explicitly
 skip without the connection variable); the complete solution built with analyzers.
 
+Regular CI additionally runs 59 `MainPageRepositoryTests` on the existing EF
+InMemory provider, including the 54 combinations, missing-page boundaries, unknown
+language and cancellation. These execute the production projection without an
+external database, rather than relying on the opt-in SQL tests for coverage.
+The focused Release coverage run passed 63 tests and measured 100% line/branch
+coverage for both the handler and repository. InMemory checks do not replace the
+SQL Server translation, command-count or performance checks described below.
+
 An additional real HTTP check launched the compiled WebAPI on Kestrel with a
 fresh SQL Server container and an isolated configuration directory (no project
 `.env`). Standard startup migrations/seeding completed and a test admin logged in
