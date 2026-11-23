@@ -4,10 +4,13 @@ public static class AuthConstants
 {
     public static readonly string RefreshTokenCookieName = "refreshToken";
     public static readonly string RefreshTokenCookiePath = "/api/auth/";
+
+    // TODO: remove together with RefreshTokenCookies' legacy handling after RefreshTokenLifetimeInDays has passed since deploy.
+    public static readonly string LegacyRefreshTokenCookiePath = "/api/auth/refresh-token";
+
     public static readonly string SecurityStampHashClaimType = "security_stamp_hash";
     public static readonly string FamilyIdClaimType = "family_id";
     public static readonly TimeSpan RotationGracePeriod = TimeSpan.FromSeconds(30);
-    public static readonly string AdminWithGivenEmailWasNotFound = "Admin with given email was not found";
     public static readonly string InvalidCredentials = "Invalid email or password";
     public static readonly string RefreshTokenIsNotPresent = "Refresh token is not present";
     public static readonly string InvalidToken = "Invalid Token";

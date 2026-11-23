@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,7 @@ public class AuthControllerTests : BaseTestClass
         response.EnsureSuccessStatusCode();
         var authResponse = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
         Assert.False(string.IsNullOrEmpty(authResponse!.AccessToken));
-        var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
+        var setCookie = response.Headers.GetValues("Set-Cookie").FirstOrDefault(IsIssuedRefreshCookie);
         Assert.False(string.IsNullOrEmpty(setCookie));
 
         var issuedRefreshToken = setCookie!.Split(';')[0].Split('=', 2)[1];
@@ -88,7 +89,7 @@ public class AuthControllerTests : BaseTestClass
         loginResponse.EnsureSuccessStatusCode();
 
         var setCookieHeaders = loginResponse.Headers.TryGetValues("Set-Cookie", out var values) ? values : null;
-        var refreshTokenCookie = setCookieHeaders?.FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
+        var refreshTokenCookie = setCookieHeaders?.FirstOrDefault(IsIssuedRefreshCookie);
         Assert.False(string.IsNullOrEmpty(refreshTokenCookie));
 
         var cookieHeader = refreshTokenCookie!.Split(';')[0];
@@ -147,16 +148,7 @@ public class AuthControllerTests : BaseTestClass
         firstRefreshResponse.EnsureSuccessStatusCode();
         var rotatedCookie = GetRefreshTokenCookie(firstRefreshResponse);
 
-        using (var scope = Fixture.Factory.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
-            var originalToken = originalCookie.Split(';')[0].Split('=', 2)[1];
-            var tokenHash = tokenService.HashRefreshToken(originalToken);
-            var session = await dbContext.RefreshTokenSessions.SingleAsync(s => s.TokenHash == tokenHash);
-            session.RevokedAt = DateTimeOffset.UtcNow - AuthConstants.RotationGracePeriod - TimeSpan.FromSeconds(5);
-            await dbContext.SaveChangesAsync();
-        }
+        await AgeRotationBeyondGracePeriodAsync(originalCookie);
 
         using var replayRequest = CreateRefreshRequest(originalCookie);
         using var replayResponse = await Fixture.HttpClient.SendAsync(replayRequest);
@@ -225,12 +217,7 @@ public class AuthControllerTests : BaseTestClass
 
         var authResponse = await loginResponse.Content.ReadFromJsonAsync<AuthResponseDto>();
         var accessToken = authResponse!.AccessToken;
-
-        var setCookieHeaders = loginResponse.Headers.TryGetValues("Set-Cookie", out var values) ? values : null;
-        var refreshTokenCookie = setCookieHeaders?.FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
-        Assert.False(string.IsNullOrEmpty(refreshTokenCookie));
-
-        var cookieHeader = refreshTokenCookie!.Split(';')[0];
+        var cookieHeader = GetRefreshTokenCookie(loginResponse);
 
         var logoutRequest = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
         logoutRequest.Headers.Add("Cookie", cookieHeader);
@@ -240,20 +227,106 @@ public class AuthControllerTests : BaseTestClass
 
         Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
 
-        var logoutSetCookieHeaders = logoutResponse.Headers.TryGetValues("Set-Cookie", out var logoutValues) ? logoutValues : null;
-        var logoutRefreshTokenCookie = logoutSetCookieHeaders?.FirstOrDefault(h => h.StartsWith($"{AuthConstants.RefreshTokenCookieName}="));
+        var logoutRefreshTokenCookie = logoutResponse.Headers.GetValues("Set-Cookie")
+            .FirstOrDefault(c => IsDeletedCookieForPath(c, AuthConstants.RefreshTokenCookiePath));
         Assert.NotNull(logoutRefreshTokenCookie);
         Assert.Contains("expires=Thu, 01 Jan 1970", logoutRefreshTokenCookie);
     }
 
     [Fact]
-    public async Task Logout_WithoutAuthorization_ReturnsUnauthorized()
+    public async Task Logout_WithoutAuthorizationAndCookie_ReturnsOkAndClearsRefreshCookies()
     {
-        using var anonymousClient = Fixture.Factory.CreateClient();
-        var logoutRequest = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
-        var logoutResponse = await anonymousClient.SendAsync(logoutRequest);
+        using var logoutResponse = await SendAnonymousLogoutAsync();
 
-        Assert.Equal(HttpStatusCode.Unauthorized, logoutResponse.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        AssertBothCookiePathsCleared(logoutResponse);
+    }
+
+    [Fact]
+    public async Task Logout_WithOnlyRefreshCookie_RevokesSession()
+    {
+        var (_, cookie) = await LoginAsync();
+
+        using var logoutResponse = await SendAnonymousLogoutAsync(cookie);
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        AssertBothCookiePathsCleared(logoutResponse);
+        await AssertRefreshRejectedAsync(cookie);
+    }
+
+    [Fact]
+    public async Task Logout_WithExpiredAccessTokenAndRefreshCookie_RevokesSession()
+    {
+        var (_, cookie) = await LoginAsync();
+
+        using var logoutResponse = await SendAnonymousLogoutAsync(cookie, "expired.invalid.token");
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        await AssertRefreshRejectedAsync(cookie);
+    }
+
+    [Fact]
+    public async Task Logout_WithTamperedRefreshCookie_ReturnsOkAndKeepsRealSession()
+    {
+        var (_, cookie) = await LoginAsync();
+        var tampered = cookie[..^3] + "xyz";
+
+        using var logoutResponse = await SendAnonymousLogoutAsync(tampered);
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        using var refreshRequest = CreateRefreshRequest(cookie);
+        using var refreshResponse = await Fixture.HttpClient.SendAsync(refreshRequest);
+        refreshResponse.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task Logout_WithRevokedSessionCookie_DoesNotRevokeCurrentSession()
+    {
+        var (_, deviceACookie) = await LoginAsync();
+        var (_, deviceBCookie) = await LoginAsync();
+
+        using var logoutResponse = await SendAnonymousLogoutAsync(deviceACookie);
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        using var refreshRequest = CreateRefreshRequest(deviceBCookie);
+        using var refreshResponse = await Fixture.HttpClient.SendAsync(refreshRequest);
+        refreshResponse.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task Logout_WithCookieRotatedWithinGracePeriod_RevokesRotatedSession()
+    {
+        var (_, originalCookie) = await LoginAsync();
+
+        using var refreshRequest = CreateRefreshRequest(originalCookie);
+        using var refreshResponse = await Fixture.HttpClient.SendAsync(refreshRequest);
+        refreshResponse.EnsureSuccessStatusCode();
+        var rotatedCookie = GetRefreshTokenCookie(refreshResponse);
+
+        using var logoutResponse = await SendAnonymousLogoutAsync(originalCookie);
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        await AssertRefreshRejectedAsync(rotatedCookie);
+    }
+
+    [Fact]
+    public async Task Logout_WithCookieRotatedBeyondGracePeriod_DoesNotRevokeCurrentSession()
+    {
+        var (_, originalCookie) = await LoginAsync();
+
+        using var refreshRequest = CreateRefreshRequest(originalCookie);
+        using var refreshResponse = await Fixture.HttpClient.SendAsync(refreshRequest);
+        refreshResponse.EnsureSuccessStatusCode();
+        var rotatedCookie = GetRefreshTokenCookie(refreshResponse);
+
+        await AgeRotationBeyondGracePeriodAsync(originalCookie);
+
+        using var logoutResponse = await SendAnonymousLogoutAsync(originalCookie);
+
+        Assert.Equal(HttpStatusCode.OK, logoutResponse.StatusCode);
+        using var rotatedRefresh = CreateRefreshRequest(rotatedCookie);
+        using var rotatedResponse = await Fixture.HttpClient.SendAsync(rotatedRefresh);
+        rotatedResponse.EnsureSuccessStatusCode();
     }
 
     [Fact]
@@ -493,8 +566,7 @@ public class AuthControllerTests : BaseTestClass
     private static string GetRefreshTokenCookie(HttpResponseMessage response)
     {
         var setCookieHeaders = response.Headers.GetValues("Set-Cookie");
-        return setCookieHeaders.Single(header => header.StartsWith($"{AuthConstants.RefreshTokenCookieName}="))
-            .Split(';')[0];
+        return setCookieHeaders.Single(IsIssuedRefreshCookie).Split(';')[0];
     }
 
     private static HttpRequestMessage CreateRefreshRequest(string refreshTokenCookie)
@@ -502,6 +574,75 @@ public class AuthControllerTests : BaseTestClass
         var request = new HttpRequestMessage(HttpMethod.Post, RefreshTokenPath);
         request.Headers.Add("Cookie", refreshTokenCookie);
         return request;
+    }
+
+    private async Task<HttpResponseMessage> SendAnonymousLogoutAsync(string? cookie = null, string? accessToken = null)
+    {
+        using var client = Fixture.Factory.CreateClient(new() { HandleCookies = false });
+        using var request = CreateLogoutRequest(cookie, accessToken);
+        return await client.SendAsync(request);
+    }
+
+    private static bool IsIssuedRefreshCookie(string setCookie) =>
+        setCookie.StartsWith($"{AuthConstants.RefreshTokenCookieName}=", StringComparison.Ordinal)
+        && !setCookie.StartsWith($"{AuthConstants.RefreshTokenCookieName}=;", StringComparison.Ordinal);
+
+    private static bool IsDeletedCookieForPath(string setCookie, string path) =>
+        setCookie.StartsWith($"{AuthConstants.RefreshTokenCookieName}=;", StringComparison.Ordinal)
+        && setCookie.Split(';').Select(part => part.Trim())
+            .Any(part => string.Equals(part, $"path={path}", StringComparison.OrdinalIgnoreCase));
+
+    private static void AssertBothCookiePathsCleared(HttpResponseMessage response)
+    {
+        var setCookies = response.Headers.GetValues("Set-Cookie").ToList();
+        Assert.Contains(setCookies, c => IsDeletedCookieForPath(c, AuthConstants.RefreshTokenCookiePath));
+        Assert.Contains(setCookies, c => IsDeletedCookieForPath(c, AuthConstants.LegacyRefreshTokenCookiePath));
+    }
+
+    private static HttpRequestMessage CreateLogoutRequest(string? cookie = null, string? accessToken = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, LogoutPath);
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", cookie);
+        }
+
+        if (accessToken is not null)
+        {
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        }
+
+        return request;
+    }
+
+    private async Task<(string AccessToken, string Cookie)> LoginAsync()
+    {
+        using var response = await Fixture.HttpClient.PostAsJsonAsync(
+            LoginPath,
+            new LoginRequestDto(TestEmail, TestPassword));
+        response.EnsureSuccessStatusCode();
+
+        var auth = await response.Content.ReadFromJsonAsync<AuthResponseDto>();
+        return (auth!.AccessToken, GetRefreshTokenCookie(response));
+    }
+
+    private async Task AssertRefreshRejectedAsync(string cookie)
+    {
+        using var request = CreateRefreshRequest(cookie);
+        using var response = await Fixture.HttpClient.SendAsync(request);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private async Task AgeRotationBeyondGracePeriodAsync(string cookie)
+    {
+        using var scope = Fixture.Factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var tokenService = scope.ServiceProvider.GetRequiredService<ITokenService>();
+        var token = cookie.Split(';')[0].Split('=', 2)[1];
+        var tokenHash = tokenService.HashRefreshToken(token);
+        var session = await dbContext.RefreshTokenSessions.SingleAsync(s => s.TokenHash == tokenHash);
+        session.RevokedAt = DateTimeOffset.UtcNow - AuthConstants.RotationGracePeriod - TimeSpan.FromSeconds(5);
+        await dbContext.SaveChangesAsync();
     }
 
     private sealed class ConcurrencySimulatingRepositoryWrapper : RepositoryWrapper, IRepositoryWrapper
@@ -571,7 +712,7 @@ public class AuthControllerTests : BaseTestClass
                 _onRevoke = onRevoke;
             }
 
-#pragma warning disable SA1011 // Closing square bracket should be followed by a space
+#pragma warning disable SA1011
             protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
 #pragma warning restore SA1011
             {

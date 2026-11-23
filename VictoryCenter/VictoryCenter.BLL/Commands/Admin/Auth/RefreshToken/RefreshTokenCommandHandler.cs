@@ -48,6 +48,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
     public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
+        var httpContext = _httpContextAccessor.HttpContext!;
         var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
@@ -57,22 +58,22 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
         if (principalResult.IsFailed)
         {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
         if (email is null)
         {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         var admin = await _userManager.FindByEmailAsync(email.Value);
         if (admin is null)
         {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         var tokenHash = _tokenService.HashRefreshToken(refreshToken);
@@ -81,8 +82,8 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (session is null || session.AdminUserId != admin.Id)
         {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
         if (session.IsRevoked)
@@ -113,7 +114,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
             await _repositoryWrapper.SaveChangesAsync();
 
-            DeleteRefreshTokenCookie();
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
@@ -125,7 +126,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
             await _repositoryWrapper.SaveChangesAsync();
 
-            DeleteRefreshTokenCookie();
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
@@ -175,7 +176,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
                 admin.Id,
                 string.Join("; ", updateResult.Errors.Select(e => e.Description)));
 
-            DeleteRefreshTokenCookie();
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
@@ -185,38 +186,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
-
-        AppendRefreshTokenCookie(newRefreshToken, newRefreshTokenExpires);
+        RefreshTokenCookies.Append(httpContext.Response.Cookies, newRefreshToken, newRefreshTokenExpires);
         return Result.Ok(new AuthResponseDto(accessToken));
-    }
-
-    private void AppendRefreshTokenCookie(string refreshToken, DateTimeOffset expires)
-    {
-        var response = _httpContextAccessor.HttpContext?.Response;
-        response?.Cookies.Append(
-            AuthConstants.RefreshTokenCookieName,
-            refreshToken,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = expires,
-                Path = AuthConstants.RefreshTokenCookiePath
-            });
-    }
-
-    private void DeleteRefreshTokenCookie()
-    {
-        var response = _httpContextAccessor.HttpContext?.Response;
-        response?.Cookies.Delete(
-            AuthConstants.RefreshTokenCookieName,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Path = AuthConstants.RefreshTokenCookiePath
-            });
     }
 }
