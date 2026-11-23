@@ -10,6 +10,7 @@ public static class RateLimiterConfiguration
     private const int DonationRequestPermitLimit = 10;
     private const int AdminLoginRequestPermitLimit = 5;
     private const int SwaggerRequestPermitLimit = 60;
+    private const int AdminLogoutRequestPermitLimit = 20;
 
     public static IServiceCollection AddRateLimiterConfiguration(this IServiceCollection services)
     {
@@ -81,6 +82,18 @@ public static class RateLimiterConfiguration
                         QueueLimit = 0,
                     });
             });
+
+            options.AddPolicy(RateLimitingPolicyNameConstants.AdminLogout, httpContext =>
+            {
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = AdminLogoutRequestPermitLimit,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 0,
+                    });
+            });
         });
 
         return services;
@@ -92,5 +105,6 @@ public static class RateLimitingPolicyNameConstants
     public const string SubmitContactUsForm = "submit-contact-us-form-rate-limiting-policy";
     public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     public const string AdminLogin = "admin-login-rate-limiting-policy";
+    public const string AdminLogout = "admin-logout-rate-limiting-policy";
     internal const string ImageUpload = "image-upload-rate-limiting-policy";
 }

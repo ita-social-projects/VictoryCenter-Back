@@ -39,7 +39,10 @@ public class AuthController : BaseApiController
 
     [AllowAnonymous]
     [HttpPost("logout")]
+    [EnableRateLimiting(RateLimitingPolicyNameConstants.AdminLogout)]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> LogoutAsync()
     {
         return HandleResult(await Mediator.Send(new LogoutCommand()));
