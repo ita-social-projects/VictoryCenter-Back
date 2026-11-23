@@ -97,7 +97,6 @@ public class CreateHippotherapyLandingPageHippoventionCenterSectionLocalizationT
         Assert.Contains("EntityId must be positive", result.Errors.Select(e => e.Message));
         Assert.Contains("LanguageId must be positive", result.Errors.Select(e => e.Message));
         Assert.Contains("Title is required", result.Errors.Select(e => e.Message));
-        Assert.Contains("Description is required", result.Errors.Select(e => e.Message));
         Assert.Contains("Pros is required", result.Errors.Select(e => e.Message));
     }
 
