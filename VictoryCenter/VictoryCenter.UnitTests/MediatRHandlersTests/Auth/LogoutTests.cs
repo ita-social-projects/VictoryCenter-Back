@@ -21,6 +21,7 @@ public class LogoutTests
     private const string RawRefreshToken = "raw_refresh_token";
     private const string HashedRefreshToken = "hashed_refresh_token";
 
+    private static readonly DateTimeOffset Now = DateTimeOffset.UtcNow;
     private readonly Mock<UserManager<AdminUser>> _mockUserManager;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ITokenService> _mockTokenService;
@@ -104,7 +105,7 @@ public class LogoutTests
     public async Task Handle_NoClaimAndValidRefreshCookie_RevokesSessionsAndDeletesCookie()
     {
         var admin = CreateAdmin(id: 42);
-        SetupCookieSession(RawRefreshToken, admin, hashMatches: true);
+        SetupCookieSession(RawRefreshToken, admin, CreateSession(admin));
         _mockUserManager.Setup(x => x.UpdateSecurityStampAsync(admin)).ReturnsAsync(IdentityResult.Success);
 
         var result = await _commandHandler.Handle(new LogoutCommand(), CancellationToken.None);
@@ -117,10 +118,10 @@ public class LogoutTests
     }
 
     [Fact]
-    public async Task Handle_NoClaimAndRefreshCookieHashMismatch_ReturnsOkWithoutRevokingAndDeletesCookie()
+    public async Task Handle_NoClaimAndSessionNotFound_ReturnsOkWithoutRevokingAndDeletesCookie()
     {
         var admin = CreateAdmin();
-        SetupCookieSession(RawRefreshToken, admin, hashMatches: false);
+        SetupCookieSession(RawRefreshToken, admin, session: null);
 
         var result = await _commandHandler.Handle(new LogoutCommand(), CancellationToken.None);
 
@@ -305,16 +306,35 @@ public class LogoutTests
             .Returns(cookieValue is not null);
     }
 
-    private void SetupCookieSession(string rawToken, AdminUser admin, bool hashMatches)
+    private static RefreshTokenSession CreateSession(
+        AdminUser admin,
+        bool isRevoked = false,
+        string? revocationReason = null,
+        DateTimeOffset? revokedAt = null,
+        DateTimeOffset? expiresAt = null,
+        int? adminUserId = null) =>
+        new()
+    {
+        AdminUserId = adminUserId ?? admin.Id,
+        TokenHash = HashedRefreshToken,
+        IsRevoked = isRevoked,
+        RevocationReason = revocationReason,
+        RevokedAt = revokedAt,
+        ExpiresAt = expiresAt ?? DateTimeOffset.UtcNow.AddDays(1),
+        CreatedAt = DateTimeOffset.UtcNow
+    };
+
+    private void SetupCookieSession(string rawToken, AdminUser admin, RefreshTokenSession? session)
     {
         SetupRefreshCookie(rawToken);
         _mockTokenService
             .Setup(x => x.GetClaimsFromExpiredToken(rawToken))
             .Returns(Result.Ok(CreatePrincipal(admin.Email)));
         _mockUserManager.Setup(x => x.FindByEmailAsync(admin.Email!)).ReturnsAsync(admin);
-        _mockTokenService
-            .Setup(x => x.VerifyRefreshTokenHash(rawToken, admin.RefreshToken))
-            .Returns(hashMatches);
+        _mockTokenService.Setup(x => x.HashRefreshToken(rawToken)).Returns(HashedRefreshToken);
+        _mockRefreshTokenSessionRepository
+            .Setup(x => x.GetByTokenHashAsync(HashedRefreshToken, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
     }
 
     private static void AssertSuccess(Result<Unit> result)
