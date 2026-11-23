@@ -62,13 +62,13 @@ public class SwaggerBasicAuthMiddleware(
                     else if (await userManager.CheckPasswordAsync(admin, password))
                     {
                         var resetResult = await userManager.ResetAccessFailedCountAsync(admin);
-                        if (!resetResult.Succeeded)
+                        if (resetResult.Succeeded)
                         {
-                            LogIdentityFailure("Failed access count was not reset", admin.Id, resetResult);
+                            await next(context);
+                            return;
                         }
 
-                        await next(context);
-                        return;
+                        LogIdentityFailure("Failed access count was not reset", admin.Id, resetResult);
                     }
                     else
                     {

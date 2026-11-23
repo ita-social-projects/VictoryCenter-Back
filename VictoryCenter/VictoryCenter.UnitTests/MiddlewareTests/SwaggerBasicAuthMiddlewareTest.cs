@@ -332,8 +332,10 @@ public class SwaggerBasicAuthMiddlewareTest
             Times.Never);
     }
 
-    [Fact]
-    public async Task InvokeAsync_ResetAccessFailedCountFails_LogsErrorAndCallsNext()
+    [Theory]
+    [InlineData(nameof(IdentityErrorDescriber.DefaultError))]
+    [InlineData(nameof(IdentityErrorDescriber.ConcurrencyFailure))]
+    public async Task InvokeAsync_ResetAccessFailedCountFails_ReturnsUnauthorized(string errorCode)
     {
         // Arrange
         var context = CreateContext(
@@ -352,7 +354,7 @@ public class SwaggerBasicAuthMiddlewareTest
 
         _userManagerMock
             .Setup(x => x.ResetAccessFailedCountAsync(admin))
-            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed" }));
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = errorCode, Description = "Failed" }));
 
         var nextCalled = false;
         var middleware = CreateMiddleware(_ =>
@@ -365,7 +367,9 @@ public class SwaggerBasicAuthMiddlewareTest
         await middleware.InvokeAsync(context, _userManagerMock.Object);
 
         // Assert
-        Assert.True(nextCalled);
+        Assert.False(nextCalled);
+        AssertUnauthorized(context);
+        _userManagerMock.Verify(x => x.ResetAccessFailedCountAsync(admin), Times.Once);
         VerifyLogged(LogLevel.Error, "was not reset", Times.Once());
     }
 
