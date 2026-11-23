@@ -88,7 +88,7 @@ jobs:
             /d:sonar.coverage.exclusions="**/VictoryCenter.DbUpdate/Program.cs"
 
       - name: Build the solution
-        run: dotnet build VictoryCenter/VictoryCenter.sln --no-incremental --no-restore
+        run: dotnet build VictoryCenter/VictoryCenter.sln --configuration Release --no-incremental --no-restore
 
       - name: Run unit tests and generate coverage
         run:  dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.UnitTests/VictoryCenter.UnitTests.csproj --configuration Release --no-restore" -f xml -o "coverage1.xml"

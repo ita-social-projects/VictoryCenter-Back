@@ -40,6 +40,8 @@ jobs:
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}.${{ github.run_number }}
+          build-args: |
+             Configuration=Release
    
   manual_approval_deploy:
     needs: docker 
