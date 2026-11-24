@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.DTOs.Admin.Localization.TeamCategories;
-using VictoryCenter.BLL.Queries.Admin.Localization.TeamCategories.GetByEntityId;
-using VictoryCenter.BLL.Queries.Admin.Localization.TeamCategories.GetByLanguageId;
+using VictoryCenter.BLL.Queries.Public.Localization.TeamCategories.GetByEntityId;
+using VictoryCenter.BLL.Queries.Public.Localization.TeamCategories.GetByLanguageId;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
