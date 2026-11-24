@@ -125,15 +125,9 @@ public class UpdateReportMediaSettingsHandler : IRequestHandler<UpdateReportMedi
 
             await _mediator.Publish(new ReportFundsChangedNotification(), cancellationToken);
 
-            if (collectedFundsEntity != null)
-            {
-                collectedFundsEntity.Image = collectedFundsImageExists;
-            }
+            collectedFundsEntity?.Image = collectedFundsImageExists;
 
-            if (changedLivesEntity != null)
-            {
-                changedLivesEntity.Image = changedLivesImageExists;
-            }
+            changedLivesEntity?.Image = changedLivesImageExists;
 
             var resultDto = new ReportMediaSettingsDto
             {
