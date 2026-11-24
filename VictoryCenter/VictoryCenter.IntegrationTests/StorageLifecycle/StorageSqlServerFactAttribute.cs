@@ -1,6 +1,9 @@
+using Xunit.Sdk;
+
 namespace VictoryCenter.IntegrationTests.StorageLifecycle;
 
-public sealed class StorageSqlServerFactAttribute : FactAttribute
+[TraitDiscoverer("VictoryCenter.IntegrationTests.StorageLifecycle.SqlServerTraitDiscoverer", "VictoryCenter.IntegrationTests")]
+public sealed class StorageSqlServerFactAttribute : FactAttribute, ITraitAttribute
 {
     public const string ConnectionVariable = "VICTORYCENTER_STORAGE_SQL_TEST_CONNECTION";
     private const string CiVariable = "CI";
