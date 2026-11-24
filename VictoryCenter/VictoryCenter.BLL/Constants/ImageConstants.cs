@@ -4,9 +4,11 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class ImageConstants
 {
+    #pragma warning disable S2339
     public const int BytesPerMb = 1024 * 1024;
     public const int MaxImageUploadRequestSizeInMb = 7;
     public const long MaxImageUploadRequestSizeInBytes = MaxImageUploadRequestSizeInMb * BytesPerMb;
+    #pragma warning restore S2339
 
     // The upload rules define a 5 MB encoded-file limit. The remaining limits are
     // defense-in-depth bounds for decoding untrusted content and should be reviewed
