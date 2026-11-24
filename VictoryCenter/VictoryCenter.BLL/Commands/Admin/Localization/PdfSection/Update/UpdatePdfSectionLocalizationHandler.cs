@@ -2,10 +2,13 @@ using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
 using VictoryCenter.BLL.Errors;
+using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -21,17 +24,20 @@ public class UpdatePdfSectionLocalizationHandler
     private readonly IValidator<UpdatePdfSectionLocalizationCommand> _validator;
     private readonly ILocalizationService<PdfSectionEntity, PdfSectionLocalization> _localizationService;
     private readonly IRepositoryWrapper _repositoryWrapper;
+    private readonly IHubContext<PdfReportsHub> _hubContext;
 
     public UpdatePdfSectionLocalizationHandler(
         IMapper mapper,
         IValidator<UpdatePdfSectionLocalizationCommand> validator,
         ILocalizationService<PdfSectionEntity, PdfSectionLocalization> localizationService,
-        IRepositoryWrapper repositoryWrapper)
+        IRepositoryWrapper repositoryWrapper,
+        IHubContext<PdfReportsHub> hubContext)
     {
         _mapper = mapper;
         _validator = validator;
         _localizationService = localizationService;
         _repositoryWrapper = repositoryWrapper;
+        _hubContext = hubContext;
     }
 
     public async Task<Result<PdfSectionLocalizationDto>> Handle(
@@ -43,7 +49,11 @@ public class UpdatePdfSectionLocalizationHandler
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var section = await _repositoryWrapper.PdfSectionRepository
-                .GetFirstOrDefaultAsync(new QueryOptions<PdfSectionEntity> { AsNoTracking = true });
+                .GetFirstOrDefaultAsync(new QueryOptions<PdfSectionEntity>
+                {
+                    AsNoTracking = true,
+                    Include = ps => ps.Include(s => s.Localizations).ThenInclude(l => l.Language),
+                });
 
             if (section is null)
             {
@@ -57,6 +67,13 @@ public class UpdatePdfSectionLocalizationHandler
             entity.LanguageId = request.LanguageId;
 
             var result = await _localizationService.UpdateEntityLocalizationAsync(entity);
+            await PdfSectionNotificationHelper.BroadcastUpdatedAsync(
+                _hubContext,
+                _mapper,
+                section,
+                result,
+                cancellationToken);
+
             PdfSectionLocalizationDto responseDto = _mapper.Map<PdfSectionLocalizationDto>(result);
             return Result.Ok(responseDto);
         }

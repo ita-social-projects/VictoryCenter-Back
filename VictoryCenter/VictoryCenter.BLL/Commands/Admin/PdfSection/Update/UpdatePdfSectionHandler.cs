@@ -1,10 +1,14 @@
+using AutoMapper;
 using FluentResults;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
 using VictoryCenter.BLL.Errors;
+using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -15,13 +19,19 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
 {
     private readonly IRepositoryWrapper _repositoryWrapper;
     private readonly IValidator<UpdatePdfSectionCommand> _validator;
+    private readonly IMapper _mapper;
+    private readonly IHubContext<PdfReportsHub> _hubContext;
 
     public UpdatePdfSectionHandler(
         IRepositoryWrapper repositoryWrapper,
-        IValidator<UpdatePdfSectionCommand> validator)
+        IValidator<UpdatePdfSectionCommand> validator,
+        IMapper mapper,
+        IHubContext<PdfReportsHub> hubContext)
     {
         _repositoryWrapper = repositoryWrapper;
         _validator = validator;
+        _mapper = mapper;
+        _hubContext = hubContext;
     }
 
     public async Task<Result<PdfSectionDto>> Handle(
@@ -50,7 +60,7 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
                 new QueryOptions<DAL.Entities.PdfSection>
                 {
                     AsNoTracking = false,
-                    Include = ps => ps.Include(ps => ps.Localizations)
+                    Include = ps => ps.Include(ps => ps.Localizations).ThenInclude(l => l.Language)
                 });
 
             if (pdfSection == null)
@@ -74,6 +84,13 @@ public class UpdatePdfSectionHandler : IRequestHandler<UpdatePdfSectionCommand, 
                     return Result.Fail<PdfSectionDto>(
                         ErrorMessagesConstants.FailedToUpdateEntity(typeof(DAL.Entities.PdfSection)));
                 }
+
+                await PdfSectionNotificationHelper.BroadcastUpdatedAsync(
+                    _hubContext,
+                    _mapper,
+                    pdfSection,
+                    null,
+                    cancellationToken);
             }
 
             var dto = new PdfSectionDto
