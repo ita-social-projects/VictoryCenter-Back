@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Helpers;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -183,7 +184,7 @@ public class StorageReconciliation(
 
     private static bool IsEntryError(Exception exception)
     {
-        if (exception is DirectoryNotFoundException)
+        if (exception is StorageRootUnavailableException or DirectoryNotFoundException)
         {
             return false;
         }

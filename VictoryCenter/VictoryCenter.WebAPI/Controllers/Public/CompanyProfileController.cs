@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class CompanyProfileController : BaseApiController
+public class CompanyProfileController : PublicApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(CompanyProfileDto), StatusCodes.Status200OK)]

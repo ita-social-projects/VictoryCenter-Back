@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class SupportOptionsController : BaseApiController
+public class SupportOptionsController : PublicApiController
 {
     [HttpGet("published")]
     public async Task<IActionResult> GetPublishedSupportOptions(BankCurrency currency)

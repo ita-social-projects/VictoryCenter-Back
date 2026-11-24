@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 
-public class HistoryLocalizationsController : BaseApiController
+public class HistoryLocalizationsController : PublicApiController
 {
     [HttpGet("entityId/{entityId:long}")]
     [ProducesResponseType(typeof(IEnumerable<HistorySectionLocalizationDto>), StatusCodes.Status200OK)]

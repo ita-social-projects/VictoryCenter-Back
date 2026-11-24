@@ -8,7 +8,7 @@ using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class PaymentsController : BaseApiController
+public class PaymentsController : PublicApiController
 {
     private readonly IPaymentService _paymentService;
 

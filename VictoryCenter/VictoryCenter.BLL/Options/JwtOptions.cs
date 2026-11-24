@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace VictoryCenter.BLL.Options;
 
-public class JwtOptions
+public class JwtOptions : IValidatableObject
 {
-    static readonly public string Position = "JwtOptions";
+    public const string Position = "JwtOptions";
+    private const int MinimumSigningKeyBytes = 32;
 
     [Required]
     public string Audience { get; init; } = null!;
@@ -25,4 +27,21 @@ public class JwtOptions
     [Required]
     [Range(1, 30)]
     public int RefreshTokenLifetimeInDays { get; init; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (Encoding.UTF8.GetByteCount(SecretKey ?? string.Empty) < MinimumSigningKeyBytes)
+        {
+            yield return new ValidationResult(
+                $"{nameof(SecretKey)} must contain at least {MinimumSigningKeyBytes} UTF-8 bytes for HS256.",
+                [nameof(SecretKey)]);
+        }
+
+        if (Encoding.UTF8.GetByteCount(RefreshTokenSecretKey ?? string.Empty) < MinimumSigningKeyBytes)
+        {
+            yield return new ValidationResult(
+                $"{nameof(RefreshTokenSecretKey)} must contain at least {MinimumSigningKeyBytes} UTF-8 bytes for HS256.",
+                [nameof(RefreshTokenSecretKey)]);
+        }
+    }
 }

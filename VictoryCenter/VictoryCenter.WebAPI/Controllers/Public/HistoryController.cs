@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class HistoryController : BaseApiController
+public class HistoryController : PublicApiController
 {
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<HistorySectionDto>))]

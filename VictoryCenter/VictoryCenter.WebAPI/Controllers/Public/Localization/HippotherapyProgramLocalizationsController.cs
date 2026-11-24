@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 
-public class HippotherapyProgramLocalizationsController : BaseApiController
+public class HippotherapyProgramLocalizationsController : PublicApiController
 {
     [HttpGet("entityId/{id:long}")]
     [ProducesResponseType(typeof(IEnumerable<HippotherapyProgramLocalizationDto>), StatusCodes.Status200OK)]

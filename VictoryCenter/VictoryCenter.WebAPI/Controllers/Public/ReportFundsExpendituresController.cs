@@ -5,7 +5,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public;
 
-public class ReportFundsExpendituresController : BaseApiController
+public class ReportFundsExpendituresController : PublicApiController
 {
     [HttpGet]
     [ProducesResponseType(typeof(PublishedReportFundsExpendituresDto), StatusCodes.Status200OK)]
