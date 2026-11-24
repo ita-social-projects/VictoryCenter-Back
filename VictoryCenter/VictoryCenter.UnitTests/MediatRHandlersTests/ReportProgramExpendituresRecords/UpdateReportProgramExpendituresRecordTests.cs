@@ -326,10 +326,7 @@ public class UpdateReportProgramExpendituresRecordTests
                 mapper.Map(It.IsAny<UpdateReportProgramExpendituresRecordDto>(), It.IsAny<ReportProgramExpendituresRecord>()))
             .Callback<UpdateReportProgramExpendituresRecordDto, ReportProgramExpendituresRecord>((src, dest) =>
             {
-                if (dest != null)
-                {
-                    dest.HippotherapyProgramCategoryId = src.HippotherapyProgramCategoryId;
-                }
+                dest?.HippotherapyProgramCategoryId = src.HippotherapyProgramCategoryId;
             })
             .Returns((UpdateReportProgramExpendituresRecordDto src, ReportProgramExpendituresRecord dest) => dest);
 

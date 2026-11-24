@@ -3,7 +3,6 @@ using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
-using VictoryCenter.DAL.Enums;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 
@@ -30,17 +29,10 @@ public abstract class BaseImpactStatisticDtoValidator<TDto, TMetric> : AbstractV
         RuleFor(metricsSelector)
             .Cascade(CascadeMode.Stop)
             .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics"))
-            .Must(m => m.Count == MainPageConstants.ImpactStatistic.ExactMetricCount)
-            .WithMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount))
-            .Must(HasAllUniqueMetricTypes)
-            .WithMessage(ErrorMessagesConstants.MetricTypesMustBeUnique());
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics"));
 
         RuleForEach(enumerableSelector)
             .NotNull()
             .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics[]"));
     }
-
-    private static bool HasAllUniqueMetricTypes(IEnumerable<TMetric> metrics)
-        => Array.TrueForAll(Enum.GetValues<MetricType>(), t => metrics.Any(m => m is not null && m.Type == t));
 }

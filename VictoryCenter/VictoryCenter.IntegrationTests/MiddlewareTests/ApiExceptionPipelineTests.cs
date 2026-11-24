@@ -99,7 +99,7 @@ public class ApiExceptionPipelineTests : IAsyncLifetime
         Assert.False(string.IsNullOrWhiteSpace(body.RootElement.GetProperty("traceId").GetString()));
         if (expectedStatus == StatusCodes.Status413PayloadTooLarge)
         {
-            Assert.False(body.RootElement.TryGetProperty("type", out _));
+            Assert.Equal("https://tools.ietf.org/html/rfc9110#section-15.5.14", body.RootElement.GetProperty("type").GetString());
         }
         else
         {
