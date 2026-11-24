@@ -7,8 +7,8 @@ public sealed class StorageSqlServerFactAttribute : FactAttribute
 
     public StorageSqlServerFactAttribute()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ConnectionVariable))
-            && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(CiVariable)))
+        var isCi = string.Equals(Environment.GetEnvironmentVariable(CiVariable), "true", StringComparison.OrdinalIgnoreCase);
+        if (!isCi && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ConnectionVariable)))
         {
             Skip = $"Set {ConnectionVariable} to a dedicated SQL Server with CREATE DATABASE permission. Tests create and drop isolated databases.";
         }
