@@ -9,6 +9,7 @@ using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainDonations;
@@ -712,6 +713,140 @@ public class UpdateMainPageHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(TranslationStatus.Relevant, entity.ImpactStatistics.Localizations.Single().TranslationStatus);
         Assert.Equal(TranslationStatus.Outdated, metric.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateImpactStatisticsLocalization_WhenLanguageHasNoTranslation()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var sourceDto = GetSourceMatchingUpdateDto(entity);
+        var updateDto = sourceDto with
+        {
+            ImpactStatistics = sourceDto.ImpactStatistics! with
+            {
+                Localization = new UpdateImpactStatisticLocalizationDto { LanguageId = 2, Title = "Localized impact statistic" },
+            },
+        };
+
+        SetupSuccessfulUpdate(entity);
+
+        var localizationsRepositoryMock = new Mock<IImpactStatisticsLocalizationsRepository>();
+        var createdLocalizations = new List<ImpactStatisticsLocalization>();
+        localizationsRepositoryMock
+            .Setup(x => x.CreateAsync(It.IsAny<ImpactStatisticsLocalization>()))
+            .Callback<ImpactStatisticsLocalization>(createdLocalizations.Add)
+            .ReturnsAsync((ImpactStatisticsLocalization localization) => localization);
+        _repositoryWrapperMock
+            .SetupGet(x => x.ImpactStatisticsLocalizationsRepository)
+            .Returns(localizationsRepositoryMock.Object);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateMainPageCommand(updateDto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var created = Assert.Single(createdLocalizations);
+        Assert.Equal(entity.ImpactStatistics!.Id, created.EntityId);
+        Assert.Equal(2L, created.LanguageId);
+        Assert.Equal("Localized impact statistic", created.Title);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
+    }
+
+    [Theory]
+    [InlineData("Old localized title", "New localized title", TranslationStatus.Relevant)]
+    [InlineData("Same localized title", "Same localized title", TranslationStatus.Outdated)]
+    public async Task Handle_ShouldUpdateExistingImpactStatisticsLocalization_AndMarkRelevantOnlyWhenTitleChanges(
+        string currentTitle,
+        string requestedTitle,
+        TranslationStatus expectedStatus)
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var localization = new ImpactStatisticsLocalization
+        {
+            EntityId = entity.ImpactStatistics!.Id,
+            LanguageId = 2,
+            Title = currentTitle,
+            TranslationStatus = TranslationStatus.Outdated,
+        };
+        entity.ImpactStatistics.Localizations = [localization];
+
+        var sourceDto = GetSourceMatchingUpdateDto(entity);
+        var updateDto = sourceDto with
+        {
+            ImpactStatistics = sourceDto.ImpactStatistics! with
+            {
+                Localization = new UpdateImpactStatisticLocalizationDto { LanguageId = 2, Title = requestedTitle },
+            },
+        };
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateMainPageCommand(updateDto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(requestedTitle, localization.Title);
+        Assert.Equal(expectedStatus, localization.TranslationStatus);
+    }
+
+    [Theory]
+    [InlineData("old name", "100", "new name", "100", TranslationStatus.Relevant)]
+    [InlineData("same name", "100", "same name", "250", TranslationStatus.Relevant)]
+    [InlineData("same name", "100", "same name", "100", TranslationStatus.Outdated)]
+    public async Task Handle_ShouldUpdateExistingMetricLocalization_AndMarkRelevantOnlyWhenNameOrValueChanges(
+        string currentName,
+        string currentValue,
+        string requestedName,
+        string requestedValue,
+        TranslationStatus expectedStatus)
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var metric = entity.ImpactStatistics!.Metrics.Single();
+        var localization = new MetricLocalization
+        {
+            EntityId = metric.Id,
+            LanguageId = 2,
+            Name = currentName,
+            Value = currentValue,
+            TranslationStatus = TranslationStatus.Outdated,
+        };
+        metric.Localizations = [localization];
+
+        var sourceDto = GetSourceMatchingUpdateDto(entity);
+        var updateDto = sourceDto with
+        {
+            ImpactStatistics = sourceDto.ImpactStatistics! with
+            {
+                Metrics =
+                [
+                    sourceDto.ImpactStatistics.Metrics.Single() with
+                    {
+                        Localization = new UpdateMetricLocalizationDto { LanguageId = 2, Name = requestedName, Value = requestedValue },
+                    },
+                ],
+            },
+        };
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateMainPageCommand(updateDto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(requestedName, localization.Name);
+        Assert.Equal(requestedValue, localization.Value);
+        Assert.Equal(expectedStatus, localization.TranslationStatus);
     }
 
     private UpdateMainPageHandler CreateHandler() => new(
