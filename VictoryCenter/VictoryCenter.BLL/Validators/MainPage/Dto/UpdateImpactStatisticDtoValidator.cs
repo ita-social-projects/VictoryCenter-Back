@@ -1,40 +1,21 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
-using VictoryCenter.BLL.Helpers;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 
-public class UpdateImpactStatisticDtoValidator : AbstractValidator<UpdateImpactStatisticDto>
+// The metric count and kind composition rules are inherited from BaseImpactStatisticDtoValidator.
+public class UpdateImpactStatisticDtoValidator
+    : BaseImpactStatisticDtoValidator<UpdateImpactStatisticDto, UpdateMetricDto>
 {
     public UpdateImpactStatisticDtoValidator()
+        : base(dto => dto.Metrics)
     {
-        RuleFor(x => x.Title)
-            .Cascade(CascadeMode.Stop)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Title)))
-            .MinimumLength(MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen))
-            .MaximumLength(MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen));
-
         RuleFor(x => x.Id)
             .GreaterThan(0)
             .When(x => x.Id.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateImpactStatisticDto.Id)));
-
-        RuleFor(x => x.Metrics)
-            .Cascade(CascadeMode.Stop)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)))
-            .Must(m => m.Count == MainPageConstants.ImpactStatistic.ExactMetricCount)
-            .WithMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount))
-            .Must(metrics => MetricValidationHelper.HasRequiredKindComposition(metrics))
-            .WithMessage(ErrorMessagesConstants.MetricKindsMustMatchRequiredComposition(
-                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
-                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount));
 
         RuleForEach(x => x.Metrics)
             .NotNull()

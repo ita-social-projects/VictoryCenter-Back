@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VictoryCenter.IntegrationTests.Utils;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
-using VictoryCenter.WebAPI.Middleware;
+using VictoryCenter.WebAPI.ErrorHandling;
 
 namespace VictoryCenter.IntegrationTests.MiddlewareTests;
 
@@ -54,7 +54,7 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal("Internal Server Error", pd.Title);
         Assert.Contains("error occurred", pd.Detail);
 
-        var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
+        var categoryName = typeof(ApiExceptionHandler).FullName;
         var log = _loggerProvider.Entries.Last(e => e.Category == categoryName);
 
         Assert.Equal(LogLevel.Critical, log.LogLevel);
@@ -76,7 +76,7 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal("Bad Request", pd.Title);
         Assert.Contains("Name is required", pd.Errors["Name"]);
 
-        var categoryName = typeof(ExceptionHandlingMiddleware).FullName;
+        var categoryName = typeof(ApiExceptionHandler).FullName;
         Assert.DoesNotContain(_loggerProvider.Entries, e => e.Category == categoryName);
     }
 }

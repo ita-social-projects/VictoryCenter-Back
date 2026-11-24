@@ -3,9 +3,9 @@ namespace VictoryCenter.BLL.Constants;
 public static class FeedbackReviewConstants
 {
     public static readonly int AuthorNameMinLength = 5;
-    public static readonly int AuthorNameMaxLength = 200;
+    public static readonly int AuthorNameMaxLength = 20;
     public static readonly int TextMinLength = 10;
-    public static readonly int TextMaxLength = 500;
+    public static readonly int TextMaxLength = 200;
 
     public static readonly string LocalizationAlreadyExists =
         "A translation for this feedback review and language already exists";

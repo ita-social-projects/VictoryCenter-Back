@@ -175,12 +175,13 @@ public class UpdateMainPageTests : BaseTestClass
     }
 
     [Fact]
-    public async Task Update_DifferentMetricKinds_ShouldKeepStoredKindsAndApplyOtherChanges()
+    public async Task Update_DifferentMetricKinds_ShouldBeRejectedWithoutChanges()
     {
         var mainPage = await EnsureMainPageExistsAsync();
         var image = await EnsureImageExistsAsync();
         var existingStat = mainPage.ImpactStatistics!;
         var storedKinds = existingStat.Metrics.ToDictionary(m => m.Id, m => m.Kind);
+        var storedNames = existingStat.Metrics.ToDictionary(m => m.Id, m => m.Name);
 
         var updateDto = CreateUpdateDto(
             title: "Updated title",
@@ -197,11 +198,9 @@ public class UpdateMainPageTests : BaseTestClass
             .ToList();
         updateDto = updateDto with { ImpactStatistics = updateDto.ImpactStatistics with { Metrics = metrics } };
 
-        var expectedNames = metrics.ToDictionary(m => m.Id!.Value, m => m.Name);
-
         var response = await PutRaw(updateDto);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         Fixture.DbContext.ChangeTracker.Clear();
         var storedMetrics = await Fixture.DbContext.Set<Metric>()
@@ -212,7 +211,7 @@ public class UpdateMainPageTests : BaseTestClass
         Assert.All(storedMetrics, m =>
         {
             Assert.Equal(storedKinds[m.Id], m.Kind);
-            Assert.Equal(expectedNames[m.Id], m.Name);
+            Assert.Equal(storedNames[m.Id], m.Name);
         });
     }
 

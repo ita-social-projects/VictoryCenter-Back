@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.StorageLifecycle;
 
 namespace VictoryCenter.WebAPI.Services;
@@ -30,6 +31,13 @@ public class StorageReconciliationWorker(
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 return;
+            }
+            catch (StorageRootUnavailableException exception)
+            {
+                logger.LogError(
+                    "Storage reconciliation failed for {FileKind} with {ErrorCode}; the scan will be retried",
+                    exception.FileKind,
+                    StorageRootUnavailableException.StableErrorCode);
             }
             catch (Exception exception)
             {

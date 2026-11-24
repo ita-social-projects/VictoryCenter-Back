@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Create;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.Delete;
 using VictoryCenter.BLL.Commands.Admin.PdfReports.GenerateTicket;
@@ -11,6 +12,7 @@ using VictoryCenter.BLL.Queries.Admin.PdfReports.GetPreviewTicket;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetAll;
 using VictoryCenter.BLL.Queries.Admin.PdfReports.GetById;
 using VictoryCenter.WebAPI.Controllers.Common;
+using VictoryCenter.WebAPI.Extensions;
 using VictoryCenter.WebAPI.Utils.ActionResults;
 
 namespace VictoryCenter.WebAPI.Controllers.Admin;
@@ -57,6 +59,8 @@ public class PdfReportsController : AuthorizedApiController
 
     [HttpGet("preview/{fileName}")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitingPolicyNameConstants.FileDownload)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> PreviewPdfReportByTicket([FromRoute] string fileName, [FromQuery] string ticket)
     {
         var result = await Mediator.Send(new GetPdfPreviewTicketQuery(ticket));

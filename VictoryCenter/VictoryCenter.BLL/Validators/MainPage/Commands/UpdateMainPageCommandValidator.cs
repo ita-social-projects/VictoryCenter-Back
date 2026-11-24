@@ -2,7 +2,9 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
@@ -25,7 +27,7 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
         {
             RuleFor(x => x)
                 .MustAsync(ValidateNestedIdsByMembershipAsync)
-                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+                .WithMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
         });
     }
 
@@ -54,21 +56,33 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return false;
         }
 
-        if (statDto?.Metrics is null || existingMainPage.ImpactStatistics is null)
+        if (statDto?.Metrics is null || statDto.Metrics.Any(m => m is null))
         {
             return true;
         }
 
-        // Requiring every existing Id prevents replacing a metric to change its kind.
-        if (statDto.Metrics.Any(m => m?.Id is null))
+        if (existingMainPage.ImpactStatistics is null)
+        {
+            // A new statistics block cannot reference existing metrics; its composition is checked by UpdateImpactStatisticDtoValidator.
+            return statDto.Metrics.All(m => m.Id is null);
+        }
+
+        return MetricsMatchExistingStatistics(statDto.Metrics, existingMainPage.ImpactStatistics.Metrics);
+    }
+
+    private static bool MetricsMatchExistingStatistics(
+        ICollection<UpdateMetricDto> metrics,
+        ICollection<Metric> existingMetrics)
+    {
+        // Requiring every existing Id with its stored kind prevents replacing a metric to change its kind.
+        if (metrics.Any(m => m.Id is null))
         {
             return false;
         }
 
-        var existingMetricIds = existingMainPage.ImpactStatistics.Metrics
-            .Select(m => m.Id)
-            .ToHashSet();
+        var existingKindsById = existingMetrics.ToDictionary(m => m.Id, m => m.Kind);
 
-        return existingMetricIds.SetEquals(statDto.Metrics.Select(m => m.Id!.Value));
+        return existingKindsById.Keys.ToHashSet().SetEquals(metrics.Select(m => m.Id!.Value))
+            && metrics.All(m => existingKindsById[m.Id!.Value] == m.Kind);
     }
 }

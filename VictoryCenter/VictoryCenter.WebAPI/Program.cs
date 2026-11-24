@@ -26,7 +26,7 @@ await app.CreateInitialDataAsync();
 
 app.UseForwardedHeaders();
 app.UseCors();
-app.UseExceptionHandling();
+app.UseExceptionHandler();
 app.UseRequestResponseLogging();
 app.UseRateLimiter();
 app.MapOpenApi();
@@ -44,7 +44,8 @@ app.UseCookiePolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseStaticFiles();
-app.MapHub<PdfReportsHub>("/hubs/reports");
+app.MapHub<PdfReportsHub>("/hubs/reports")
+    .RequireRateLimiting(RateLimitingPolicyNameConstants.RealtimeConnect);
 app.MapHub<AdminContentHub>("/hubs/admin-content", options => options.CloseOnAuthenticationExpiration = true);
 
 app.Run();

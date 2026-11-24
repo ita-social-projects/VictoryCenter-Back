@@ -12,6 +12,10 @@ public static class ErrorMessagesConstants
     public static readonly string UnknownStatusValue = "Unknown status value";
     public static readonly string OnlyDigitsExpression = "^[0-9]+$";
 
+    public static string MetricsMustMatchExistingStatistics { get; } =
+        "ImpactStatistics.Id must match the existing statistics block. " +
+        "Metrics must include every persisted metric with its original ID and kind; metrics cannot be added, removed or replaced.";
+
     public static string NotFound()
     {
         return "Not Found";

@@ -200,6 +200,14 @@ public class UpdateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor("Metrics[0]");
     }
 
+    [Fact]
+    public void Validate_ShouldAllowAllNewMetricsWithoutIds()
+    {
+        var metrics = GetValidDto().Metrics.Select(metric => metric with { Id = null }).ToList();
+
+        _validator.TestValidate(GetValidDto() with { Metrics = metrics }).ShouldNotHaveAnyValidationErrors();
+    }
+
     private static UpdateImpactStatisticDto GetValidDto() => new()
     {
         Id = 1,

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Options;
+using VictoryCenter.BLL.Exceptions.BlobStorageExceptions;
 using VictoryCenter.BLL.Services.StorageLifecycle;
 
 namespace VictoryCenter.WebAPI.Services;
@@ -23,6 +24,13 @@ public class StorageOperationWorker(
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
                 return;
+            }
+            catch (StorageRootUnavailableException exception)
+            {
+                logger.LogError(
+                    "Storage worker batch failed for {FileKind} with {ErrorCode}; pending operations remain durable",
+                    exception.FileKind,
+                    StorageRootUnavailableException.StableErrorCode);
             }
             catch (Exception exception)
             {

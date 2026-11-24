@@ -44,9 +44,9 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
     {
         try
         {
-            await _validator.ValidateAndThrowAsync(request, cancellationToken);
-
             using var transaction = _repositoryWrapper.BeginTransaction();
+
+            await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
             var entity = await GetMainPageAggregateAsync();
             if (entity is null)

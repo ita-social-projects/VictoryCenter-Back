@@ -6,7 +6,7 @@ using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
 
-public class WhoWeAreContentLocalizationsController : BaseApiController
+public class WhoWeAreContentLocalizationsController : PublicApiController
 {
     [HttpGet("entityId/{id:long}")]
     [ProducesResponseType(typeof(List<WhoWeAreContentLocalizationDto>), StatusCodes.Status200OK)]

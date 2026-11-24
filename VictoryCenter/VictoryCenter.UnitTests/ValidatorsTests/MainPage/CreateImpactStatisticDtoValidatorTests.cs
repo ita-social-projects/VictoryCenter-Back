@@ -68,12 +68,18 @@ public class CreateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Metrics);
     }
 
-    [Fact]
-    public void Validate_ShouldHaveError_WhenMetricsCountIsNot4()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(5)]
+    public void Validate_ShouldHaveError_WhenMetricsCountIsNot4(int count)
     {
         var dto = GetValidDto() with
         {
-            Metrics = [new CreateMetricDto { Value = 100, Name = "kids", Kind = MetricKind.Standard }],
+            Metrics = [.. Enumerable.Range(0, count).Select(index =>
+                new CreateMetricDto { Value = 100, Name = "metric", Kind = index == 0 ? MetricKind.RaisedFunds : MetricKind.Standard })],
         };
 
         var result = _validator.TestValidate(dto);

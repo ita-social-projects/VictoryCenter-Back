@@ -140,7 +140,7 @@ public class UpdateMainPageHandlerTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Validation failed", result.Errors[0].Message);
 
-        _repositoryWrapperMock.Verify(x => x.BeginTransaction(), Times.Never);
+        _repositoryWrapperMock.Verify(x => x.BeginTransaction(), Times.Once);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
     }
 

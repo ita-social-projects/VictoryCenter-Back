@@ -3,7 +3,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using FluentResults;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,13 +18,11 @@ public class TokenService : ITokenService
 {
     private readonly IOptions<JwtOptions> _jwtOptions;
     private readonly JwtSecurityTokenHandler _jwtSecurityTokenHandler;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<TokenService> _logger;
 
-    public TokenService(IOptions<JwtOptions> jwtOptions, IConfiguration configuration, ILogger<TokenService> logger)
+    public TokenService(IOptions<JwtOptions> jwtOptions, ILogger<TokenService> logger)
     {
         _jwtOptions = jwtOptions;
-        _configuration = configuration;
         _logger = logger;
         _jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
     }
@@ -117,7 +114,7 @@ public class TokenService : ITokenService
             return Result.Fail(AuthConstants.RefreshTokenCannotBeNullOrEmpty);
         }
 
-        var tokenValidationParameters = AuthHelper.GetTokenValidationParameters(_configuration).Clone();
+        var tokenValidationParameters = AuthHelper.GetTokenValidationParameters(_jwtOptions.Value);
         tokenValidationParameters.ValidateLifetime = false;
         tokenValidationParameters.IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtOptions.Value.RefreshTokenSecretKey));
         try

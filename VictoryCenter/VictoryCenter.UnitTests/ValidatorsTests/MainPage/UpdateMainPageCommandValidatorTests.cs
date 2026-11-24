@@ -159,10 +159,107 @@ public class UpdateMainPageCommandValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData(9999L)]
+    public async Task Validate_ShouldHaveError_WhenPersistedMetricIsReplaced(long? replacementId)
+    {
+        // Arrange
+        var statDto = GetValidImpactStatisticDto();
+        var metrics = statDto.Metrics.ToList();
+        metrics[0] = metrics[0] with { Id = replacementId };
+
+        var command = new UpdateMainPageCommand(GetValidDto() with
+        {
+            ImpactStatistics = statDto with { Metrics = metrics },
+        });
+        SetupExistingMainPage(GetExistingMainPage());
+
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        AssertHasNestedIdsError(result);
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveError_WhenRequestedKindsDifferFromStoredKinds()
+    {
+        // Arrange
+        // Swapping kinds keeps a valid 3 Standard + 1 RaisedFunds composition, so only the stored-kind check can reject it.
+        var statDto = GetValidImpactStatisticDto();
+        var metrics = statDto.Metrics.ToList();
+        metrics[0] = metrics[0] with { Kind = MetricKind.Standard };
+        metrics[1] = metrics[1] with { Kind = MetricKind.RaisedFunds };
+
+        var command = new UpdateMainPageCommand(GetValidDto() with
+        {
+            ImpactStatistics = statDto with { Metrics = metrics },
+        });
+        SetupExistingMainPage(GetExistingMainPage());
+
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        AssertHasNestedIdsError(result);
+    }
+
+    [Fact]
+    public async Task Validate_ShouldHaveError_WhenMetricIdsAreSentForNewImpactStatistics()
+    {
+        // Arrange
+        var existingMainPage = GetExistingMainPage();
+        existingMainPage.ImpactStatistics = null;
+
+        var command = new UpdateMainPageCommand(GetValidDto() with
+        {
+            ImpactStatistics = GetValidImpactStatisticDto() with { Id = null },
+        });
+        SetupExistingMainPage(existingMainPage);
+
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        AssertHasNestedIdsError(result);
+    }
+
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(3, false)]
+    [InlineData(4, true)]
+    public async Task Validate_ShouldRequireFourMetrics_WhenImpactStatisticsIsCreated(int count, bool isValid)
+    {
+        // Arrange
+        var existingMainPage = GetExistingMainPage();
+        existingMainPage.ImpactStatistics = null;
+
+        var command = new UpdateMainPageCommand(GetValidDto() with
+        {
+            ImpactStatistics = GetValidImpactStatisticDto(metricIds: [.. Enumerable.Repeat<long?>(null, count)]) with { Id = null },
+        });
+        SetupExistingMainPage(existingMainPage);
+
+        var validator = CreateValidator();
+
+        // Act
+        var result = await validator.TestValidateAsync(command);
+
+        // Assert
+        Assert.Equal(isValid, result.IsValid);
+    }
+
     private static void AssertHasNestedIdsError(TestValidationResult<UpdateMainPageCommand> result)
     {
         result.ShouldHaveValidationErrorFor(x => x)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
     }
 
     private void SetupExistingMainPage(DAL.Entities.MainPage? mainPage)
