@@ -54,10 +54,29 @@ public class SwaggerBasicAuthMiddleware(
                     {
                         PerformDummyPasswordCheck(password);
                     }
+                    else if (await userManager.IsLockedOutAsync(admin))
+                    {
+                        PerformDummyPasswordCheck(password);
+                        LogLockedOutAttempt(admin.Id, context);
+                    }
                     else if (await userManager.CheckPasswordAsync(admin, password))
                     {
-                        await next(context);
-                        return;
+                        var resetResult = await userManager.ResetAccessFailedCountAsync(admin);
+                        if (resetResult.Succeeded)
+                        {
+                            await next(context);
+                            return;
+                        }
+
+                        LogIdentityFailure("Failed access count was not reset", admin.Id, resetResult);
+                    }
+                    else
+                    {
+                        var accessFailedResult = await userManager.AccessFailedAsync(admin);
+                        if (!accessFailedResult.Succeeded)
+                        {
+                            LogIdentityFailure("Failed Swagger access attempt was not recorded", admin.Id, accessFailedResult);
+                        }
                     }
                 }
             }
@@ -82,5 +101,22 @@ public class SwaggerBasicAuthMiddleware(
             DummyAdmin,
             DummyPasswordHash,
             password);
+    }
+
+    private void LogLockedOutAttempt(int adminId, HttpContext context)
+    {
+        logger.LogWarning(
+            "Swagger access rejected for locked out account {AdminId} from client IP {ClientIpAddress}",
+            adminId,
+            context.Connection.RemoteIpAddress);
+    }
+
+    private void LogIdentityFailure(string message, int adminId, IdentityResult identityResult)
+    {
+        logger.LogError(
+            "{Message} for account {AdminId}: {Errors}",
+            message,
+            adminId,
+            string.Join(", ", identityResult.Errors.Select(e => e.Description)));
     }
 }
