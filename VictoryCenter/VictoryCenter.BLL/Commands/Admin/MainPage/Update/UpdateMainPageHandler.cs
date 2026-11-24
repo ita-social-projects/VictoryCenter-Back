@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.BLL.Notifications.ReportFunds;
@@ -314,31 +316,7 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
 
         if (statDto.Localization is not null)
         {
-            var existingLoc = impactEntity.Localizations
-                .FirstOrDefault(l => l.LanguageId == statDto.Localization.LanguageId);
-
-            if (existingLoc is not null)
-            {
-                var localizationChanged = IsChanged(existingLoc.Title, statDto.Localization.Title);
-
-                existingLoc.Title = statDto.Localization.Title;
-
-                if (localizationChanged)
-                {
-                    existingLoc.TranslationStatus = TranslationStatus.Relevant;
-                }
-            }
-            else
-            {
-                await _repositoryWrapper.ImpactStatisticsLocalizationsRepository.CreateAsync(
-                    new ImpactStatisticsLocalization
-                    {
-                        EntityId = impactEntity.Id,
-                        LanguageId = statDto.Localization.LanguageId,
-                        Title = statDto.Localization.Title,
-                    });
-            }
-
+            await SyncImpactStatisticsLocalizationAsync(impactEntity, statDto.Localization);
             hasChanges = true;
         }
 
@@ -349,40 +327,72 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 continue;
             }
 
-            var existingMetricLoc = metricEntity.Localizations
-                .FirstOrDefault(l => l.LanguageId == metricDto.Localization.LanguageId);
-
-            if (existingMetricLoc is not null)
-            {
-                var localizationChanged = IsChanged(existingMetricLoc.Value, metricDto.Localization.Value) ||
-                    IsChanged(existingMetricLoc.Name, metricDto.Localization.Name);
-
-                existingMetricLoc.Value = metricDto.Localization.Value;
-                existingMetricLoc.Name = metricDto.Localization.Name;
-
-                if (localizationChanged)
-                {
-                    existingMetricLoc.TranslationStatus = TranslationStatus.Relevant;
-                }
-            }
-            else
-            {
-                await _repositoryWrapper.MetricLocalizationsRepository.CreateAsync(
-                    new MetricLocalization
-                    {
-                        EntityId = metricEntity.Id,
-                        LanguageId = metricDto.Localization.LanguageId,
-                        Value = metricDto.Localization.Value,
-                        Name = metricDto.Localization.Name,
-                    });
-            }
-
+            await SyncMetricLocalizationAsync(metricEntity, metricDto.Localization);
             hasChanges = true;
         }
 
         if (hasChanges)
         {
             await _repositoryWrapper.SaveChangesAsync();
+        }
+    }
+
+    private async Task SyncImpactStatisticsLocalizationAsync(
+        ImpactStatisticsEntity impactEntity,
+        UpdateImpactStatisticLocalizationDto localizationDto)
+    {
+        var existingLoc = impactEntity.Localizations
+            .FirstOrDefault(l => l.LanguageId == localizationDto.LanguageId);
+
+        if (existingLoc is null)
+        {
+            await _repositoryWrapper.ImpactStatisticsLocalizationsRepository.CreateAsync(
+                new ImpactStatisticsLocalization
+                {
+                    EntityId = impactEntity.Id,
+                    LanguageId = localizationDto.LanguageId,
+                    Title = localizationDto.Title,
+                });
+            return;
+        }
+
+        var localizationChanged = IsChanged(existingLoc.Title, localizationDto.Title);
+
+        existingLoc.Title = localizationDto.Title;
+
+        if (localizationChanged)
+        {
+            existingLoc.TranslationStatus = TranslationStatus.Relevant;
+        }
+    }
+
+    private async Task SyncMetricLocalizationAsync(Metric metricEntity, UpdateMetricLocalizationDto localizationDto)
+    {
+        var existingLoc = metricEntity.Localizations
+            .FirstOrDefault(l => l.LanguageId == localizationDto.LanguageId);
+
+        if (existingLoc is null)
+        {
+            await _repositoryWrapper.MetricLocalizationsRepository.CreateAsync(
+                new MetricLocalization
+                {
+                    EntityId = metricEntity.Id,
+                    LanguageId = localizationDto.LanguageId,
+                    Value = localizationDto.Value,
+                    Name = localizationDto.Name,
+                });
+            return;
+        }
+
+        var localizationChanged = IsChanged(existingLoc.Value, localizationDto.Value) ||
+            IsChanged(existingLoc.Name, localizationDto.Name);
+
+        existingLoc.Value = localizationDto.Value;
+        existingLoc.Name = localizationDto.Name;
+
+        if (localizationChanged)
+        {
+            existingLoc.TranslationStatus = TranslationStatus.Relevant;
         }
     }
 
