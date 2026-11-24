@@ -821,6 +821,31 @@ public static class ServicesConfiguration
 
         if (await dbContext.MainPages.AnyAsync())
         {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            var existingPage = await dbContext.MainPages
+                .FromSqlRaw("SELECT * FROM MainPages WITH (UPDLOCK, HOLDLOCK)")
+                .AsSplitQuery()
+                .Include(p => p.ImpactStatistics)!.ThenInclude(s => s!.Metrics)
+                .SingleOrDefaultAsync();
+
+            if (existingPage?.ImpactStatistics is { } statistics)
+            {
+                var missingMetrics = CreateMissingDefaultMetrics(statistics.Metrics, timeProvider);
+                if (missingMetrics.Count > 0)
+                {
+                    var priority = statistics.Metrics.Count == 0 ? -1 : statistics.Metrics.Max(m => m.Priority);
+                    foreach (var metric in missingMetrics)
+                    {
+                        priority = checked(priority + 1);
+                        metric.Priority = priority;
+                        statistics.Metrics.Add(metric);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+
+            await transaction.CommitAsync();
             return;
         }
 
@@ -854,7 +879,8 @@ public static class ServicesConfiguration
             {
                 Title = string.Empty,
                 ImageId = null,
-                CreatedAt = timeProvider.GetUtcNow()
+                CreatedAt = timeProvider.GetUtcNow(),
+                Metrics = CreateDefaultMetrics(timeProvider)
             }
         };
 
@@ -868,6 +894,37 @@ public static class ServicesConfiguration
         {
             logger.LogInformation(ex, "MainPage was already seeded by a concurrent instance; skipping.");
         }
+    }
+
+    private static List<Metric> CreateDefaultMetrics(TimeProvider timeProvider)
+    {
+        return
+        [
+            new Metric { Kind = MetricKind.Standard, Name = "Партнерів", Priority = 0, CreatedAt = timeProvider.GetUtcNow() },
+            new Metric { Kind = MetricKind.Standard, Name = "Програм", Priority = 1, CreatedAt = timeProvider.GetUtcNow() },
+            new Metric { Kind = MetricKind.RaisedFunds, Name = "Зібрано", Priority = 2, CreatedAt = timeProvider.GetUtcNow() },
+            new Metric { Kind = MetricKind.Standard, Name = "Годин терапії", Priority = 3, CreatedAt = timeProvider.GetUtcNow() },
+        ];
+    }
+
+    /// <summary>
+    /// Returns the default metrics needed to fill an existing block up to the required kind composition.
+    /// Standard metrics can be renamed, so a missing one cannot be identified exactly; default names that
+    /// are not already used in the block are preferred.
+    /// </summary>
+    private static List<Metric> CreateMissingDefaultMetrics(ICollection<Metric> existingMetrics, TimeProvider timeProvider)
+    {
+        var existingNames = existingMetrics.Select(m => m.Name).ToHashSet();
+
+        return CreateDefaultMetrics(timeProvider)
+            .GroupBy(m => m.Kind)
+            .SelectMany(defaults =>
+            {
+                var missingCount = defaults.Count() - existingMetrics.Count(m => m.Kind == defaults.Key);
+                return defaults.OrderBy(m => existingNames.Contains(m.Name)).Take(Math.Max(missingCount, 0));
+            })
+            .OrderBy(m => m.Priority)
+            .ToList();
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)
