@@ -56,6 +56,14 @@ public sealed class RateLimitingOptions
     public FixedWindowPolicyOptions AdminLogin { get; set; } = new() { PermitLimit = 5, WindowSeconds = 60 };
 
     /// <summary>
+    /// Gets or sets the limit for the admin logout endpoint.
+    /// </summary>
+    /// <value>
+    /// The fixed-window policy settings. Defaults to 20 requests per 60 seconds.
+    /// </value>
+    public FixedWindowPolicyOptions AdminLogout { get; set; } = new() { PermitLimit = 20, WindowSeconds = 60 };
+
+    /// <summary>
     /// Gets or sets the limit for the anonymous refresh-token endpoint.
     /// </summary>
     /// <value>
@@ -96,6 +104,7 @@ public sealed class RateLimitingOptions
             [nameof(FileDownload)] = FileDownload,
             [nameof(RealtimeConnect)] = RealtimeConnect,
             [nameof(AdminLogin)] = AdminLogin,
+            [nameof(AdminLogout)] = AdminLogout,
             [nameof(AuthRefresh)] = AuthRefresh,
             [nameof(InitiateDonation)] = InitiateDonation,
             [nameof(SubmitContactUsForm)] = SubmitContactUsForm,

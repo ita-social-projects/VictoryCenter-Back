@@ -86,7 +86,6 @@ public class UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationT
 
         Assert.False(result.IsSuccess);
         Assert.Contains("Title is required", result.Errors.Select(e => e.Message));
-        Assert.Contains("Description is required", result.Errors.Select(e => e.Message));
         Assert.Contains("Pros is required", result.Errors.Select(e => e.Message));
     }
 

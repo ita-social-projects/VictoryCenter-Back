@@ -58,12 +58,26 @@ public class UpdateHippoventionCenterSectionDtoValidatorTests
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
-    public void Validate_DescriptionIsNullOrEmpty_ShouldHaveError(string? description)
+    [InlineData(" ")]
+    [InlineData("<p><br></p>")]
+    public void Validate_DescriptionIsEmpty_ShouldNotHaveError(string description)
     {
         // Arrange
-        var dto = GetValidDto() with { Description = description! };
+        var dto = GetValidDto() with { Description = description };
+
+        // Act
+        var result = _validator.TestValidate(dto);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Fact]
+    public void Validate_DescriptionIsNull_ShouldHaveError()
+    {
+        // Arrange
+        var dto = GetValidDto() with { Description = null! };
 
         // Act
         var result = _validator.TestValidate(dto);

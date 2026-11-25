@@ -2,11 +2,11 @@ namespace VictoryCenter.BLL.Constants;
 
 public static class EventNewsCategoryConstants
 {
-    public const int MinNameLength = 2;
-    public const int MaxNameLength = 20;
+    public static readonly int MinNameLength = 2;
+    public static readonly int MaxNameLength = 20;
 
-    public const string DuplicateCategoryName = "An event/news category with this name already exists";
-    public const string CantDeleteCategoryWhileAssociatedWithEventNews =
+    public static readonly string DuplicateCategoryName = "An event/news category with this name already exists";
+    public static readonly string CantDeleteCategoryWhileAssociatedWithEventNews =
         "Can't delete category while it is associated with any event/news item";
 
     public static readonly string DuplicateLocalizedName =

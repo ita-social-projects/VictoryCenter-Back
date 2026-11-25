@@ -47,6 +47,26 @@ public class SubmitContactFormCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_CaptchaCancellation_PropagatesAndDoesNotSendEmail()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var dto = new SubmitContactUsFormDto
+            { CaptchaResponseToken = "token", FromEmail = "a@a.com", FromName = "a", Message = "m", Subject = "s" };
+        _mockValidator
+            .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        _mockCaptchaService
+            .Setup(c => c.ValidateTokenAsync("token", null, cancellation.Token))
+            .ThrowsAsync(new OperationCanceledException(cancellation.Token));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => _handler.Handle(new SubmitContactFormCommand(dto), cancellation.Token));
+
+        _mockCaptchaService.Verify(c => c.ValidateTokenAsync("token", null, cancellation.Token), Times.Once);
+        _mockEmailSender.Verify(e => e.SendEmailAsync(It.IsAny<EmailDto>()), Times.Never);
+        _mockRepositoryWrapper.VerifyNoOtherCalls();
+    }
+
+    [Fact]
     public async Task Handle_GivenValidationFails_ReturnsFail()
     {
         var dto = new SubmitContactUsFormDto
@@ -73,13 +93,14 @@ public class SubmitContactFormCommandHandlerTests
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _mockCaptchaService
-            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>()))
+            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Fail("Captcha error"));
 
         var result = await _handler.Handle(cmd, CancellationToken.None);
 
         Assert.False(result.IsSuccess);
         Assert.Equal("Captcha error", result.Errors[0].Message);
+        _mockEmailSender.Verify(e => e.SendEmailAsync(It.IsAny<EmailDto>()), Times.Never);
         _mockValidator.Verify(
             v =>
                 v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()),
@@ -96,7 +117,7 @@ public class SubmitContactFormCommandHandlerTests
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _mockCaptchaService
-            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>()))
+            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
         _mockRepositoryWrapper
             .Setup(r => r.CompanyProfileContactRepository.GetFirstOrDefaultProjectedAsync(
@@ -120,7 +141,7 @@ public class SubmitContactFormCommandHandlerTests
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _mockCaptchaService
-            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>()))
+            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
         _mockRepositoryWrapper
             .Setup(r => r.CompanyProfileContactRepository.GetFirstOrDefaultProjectedAsync(
@@ -147,7 +168,7 @@ public class SubmitContactFormCommandHandlerTests
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _mockCaptchaService
-            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>()))
+            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
         _mockRepositoryWrapper
             .Setup(r => r.CompanyProfileContactRepository.GetFirstOrDefaultProjectedAsync(
@@ -177,7 +198,7 @@ public class SubmitContactFormCommandHandlerTests
             .Setup(v => v.ValidateAsync(It.IsAny<IValidationContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
         _mockCaptchaService
-            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>()))
+            .Setup(c => c.ValidateTokenAsync("token", It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Ok());
         _mockRepositoryWrapper
             .Setup(r => r.CompanyProfileContactRepository.GetFirstOrDefaultProjectedAsync(
