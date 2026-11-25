@@ -9,6 +9,11 @@ namespace VictoryCenter.DAL.Entities;
 [Auditable]
 public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>, IOrderableEntity
 {
+    /// <summary>
+    /// Name of the shadow property mapped to the legacy Type column (see <see cref="LegacyMetricType"/>).
+    /// </summary>
+    public const string LegacyTypeProperty = "Type";
+
     [Audited]
     public long StatisticId { get; set; }
 
@@ -20,6 +25,7 @@ public class Metric : BaseEntity, ITranslatedEntity<MetricLocalization>, IOrdera
     [Audited]
     public string Name { get; set; } = null!;
 
+    // Computed by the database from the legacy Type column, so changes made in code are not saved.
     [Audited]
     public MetricKind Kind { get; set; }
 

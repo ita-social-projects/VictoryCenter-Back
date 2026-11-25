@@ -260,6 +260,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
                 && operation.FileName == name && operation.Kind == StorageOperationKind.UploadCleanup));
         }
 
+        LegacyMetricTypeAssigner.Assign(this);
+
         return base.SaveChanges(acceptAllChangesOnSuccess);
     }
 
@@ -274,6 +276,8 @@ public class VictoryCenterDbContext : IdentityDbContext<AdminUser, IdentityRole<
                     && operation.Kind == StorageOperationKind.UploadCleanup, cancellationToken);
             CompleteUploadIntent(operation);
         }
+
+        await LegacyMetricTypeAssigner.AssignAsync(this, cancellationToken);
 
         return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }

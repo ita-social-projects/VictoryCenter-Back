@@ -80,6 +80,14 @@ namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {
+    private static readonly (string Name, MetricKind Kind, LegacyMetricType LegacyType)[] DefaultMetrics =
+    [
+        ("Партнерів", MetricKind.Standard, LegacyMetricType.Partners),
+        ("Програм", MetricKind.Standard, LegacyMetricType.Programs),
+        ("Зібрано", MetricKind.RaisedFunds, LegacyMetricType.Raised),
+        ("Годин терапії", MetricKind.Standard, LegacyMetricType.TherapyHours),
+    ];
+
     public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<StorageLifecycleOptions>()
@@ -873,6 +881,7 @@ public static class ServicesConfiguration
         };
 
         dbContext.MainPages.Add(mainPage);
+        PreferDefaultLegacyTypes(dbContext, mainPage.ImpactStatistics.Metrics);
 
         try
         {
@@ -886,13 +895,23 @@ public static class ServicesConfiguration
 
     private static List<Metric> CreateDefaultMetrics(TimeProvider timeProvider)
     {
-        return
-        [
-            new Metric { Kind = MetricKind.Standard, Name = "Партнерів", Priority = 0, CreatedAt = timeProvider.GetUtcNow() },
-            new Metric { Kind = MetricKind.Standard, Name = "Програм", Priority = 1, CreatedAt = timeProvider.GetUtcNow() },
-            new Metric { Kind = MetricKind.RaisedFunds, Name = "Зібрано", Priority = 2, CreatedAt = timeProvider.GetUtcNow() },
-            new Metric { Kind = MetricKind.Standard, Name = "Годин терапії", Priority = 3, CreatedAt = timeProvider.GetUtcNow() },
-        ];
+        return [.. DefaultMetrics.Select((metric, index) => new Metric
+        {
+            Kind = metric.Kind,
+            Name = metric.Name,
+            Priority = index,
+            CreatedAt = timeProvider.GetUtcNow(),
+        })];
+    }
+
+    // The DbContext keeps the preferred type when it is still free in the block.
+    private static void PreferDefaultLegacyTypes(VictoryCenterDbContext dbContext, IEnumerable<Metric> metrics)
+    {
+        foreach (var metric in metrics)
+        {
+            dbContext.Entry(metric).Property(Metric.LegacyTypeProperty).CurrentValue =
+                DefaultMetrics.Single(defaultMetric => defaultMetric.Name == metric.Name).LegacyType;
+        }
     }
 
     private static async Task SeedMissingMetricsAsync(
@@ -933,6 +952,8 @@ public static class ServicesConfiguration
             statistics.Metrics.Add(metric);
         }
 
+        dbContext.ChangeTracker.DetectChanges();
+        PreferDefaultLegacyTypes(dbContext, missingMetrics);
         await dbContext.SaveChangesAsync();
     }
 

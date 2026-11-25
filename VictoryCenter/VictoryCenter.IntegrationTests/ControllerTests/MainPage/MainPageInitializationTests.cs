@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -62,6 +63,11 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         Assert.Equal([PartnersName, ProgramsName, "Зібрано", TherapyHoursName], metrics.Select(m => m.Name));
         Assert.Equal([0L, 1L, 2L, 3L], metrics.Select(m => m.Priority));
         Assert.Equal(4, metrics.Select(m => m.Id).Distinct().Count());
+        Assert.Equal(
+            [LegacyMetricType.Partners, LegacyMetricType.Programs, LegacyMetricType.Raised, LegacyMetricType.TherapyHours],
+            await db.Metrics.OrderBy(m => m.Priority)
+                .Select(m => EF.Property<LegacyMetricType>(m, Metric.LegacyTypeProperty))
+                .ToListAsync());
         Assert.All(metrics, metric =>
         {
             Assert.True(metric.Id > 0);

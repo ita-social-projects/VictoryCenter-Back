@@ -37,6 +37,9 @@ public class MainPageMetricSeedingTests
             [MetricKind.Standard, MetricKind.Standard, MetricKind.RaisedFunds, MetricKind.Standard],
             metrics.Select(m => m.Kind));
         Assert.Equal([0L, 1L, 2L, 3L], metrics.Select(m => m.Priority));
+        Assert.Equal(
+            [LegacyMetricType.Partners, LegacyMetricType.Programs, LegacyMetricType.Raised, LegacyMetricType.TherapyHours],
+            await LoadLegacyTypesAsync(db));
     }
 
     [Fact]
@@ -56,6 +59,28 @@ public class MainPageMetricSeedingTests
         Assert.Equal([ProgramsName, TherapyHoursName], added.Select(m => m.Name));
         Assert.Equal([8L, 9L], added.Select(m => m.Priority));
         Assert.All(added, metric => Assert.Equal(MetricKind.Standard, metric.Kind));
+        Assert.Equal(
+            [LegacyMetricType.Partners, LegacyMetricType.Raised, LegacyMetricType.Programs, LegacyMetricType.TherapyHours],
+            await LoadLegacyTypesAsync(db));
+    }
+
+    [Fact]
+    public async Task SeedMissingMetrics_DefaultTypeHeldByRenamedMetric_KeepsLegacyTypesUnique()
+    {
+        // The renamed metric was saved first, so it holds Partners; Програм can still get its own type.
+        await using var db = CreateContext();
+        var statistics = await SeedStatisticsAsync(
+            db,
+            ("Renamed", MetricKind.Standard, 0),
+            (RaisedName, MetricKind.RaisedFunds, 1));
+
+        await SeedMissingMetricsAsync(db, statistics);
+
+        var metrics = await LoadMetricsAsync(db);
+        Assert.Equal(["Renamed", RaisedName, PartnersName, ProgramsName], metrics.Select(m => m.Name));
+        Assert.Equal(
+            [LegacyMetricType.Partners, LegacyMetricType.Raised, LegacyMetricType.TherapyHours, LegacyMetricType.Programs],
+            await LoadLegacyTypesAsync(db));
     }
 
     [Fact]
@@ -97,7 +122,7 @@ public class MainPageMetricSeedingTests
             logger => logger.Log(
                 LogLevel.Warning,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((state, _) => state.ToString()!.Contains($"block {statistics.Id} ")),
+                It.Is<It.IsAnyType>((state, _) => $"{state}".Contains($"block {statistics.Id} ")),
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
@@ -132,4 +157,10 @@ public class MainPageMetricSeedingTests
 
     private static async Task<List<Metric>> LoadMetricsAsync(VictoryCenterDbContext db) =>
         await db.Metrics.AsNoTracking().OrderBy(m => m.Priority).ToListAsync();
+
+    private static async Task<List<LegacyMetricType>> LoadLegacyTypesAsync(VictoryCenterDbContext db) =>
+        await db.Metrics
+            .OrderBy(m => m.Priority)
+            .Select(m => EF.Property<LegacyMetricType>(m, Metric.LegacyTypeProperty))
+            .ToListAsync();
 }
