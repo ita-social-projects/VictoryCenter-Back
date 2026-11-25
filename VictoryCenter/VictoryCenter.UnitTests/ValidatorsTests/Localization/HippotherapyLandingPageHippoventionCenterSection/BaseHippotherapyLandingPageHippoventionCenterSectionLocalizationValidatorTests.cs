@@ -44,20 +44,35 @@ public class BaseHippotherapyLandingPageHippoventionCenterSectionLocalizationVal
         result.ShouldHaveValidationErrorFor(x => x.Title);
     }
 
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public void Validate_ShouldHaveError_WhenDescription_IsNullOrEmpty(string? description)
+    [Fact]
+    public void Validate_ShouldHaveError_WhenDescription_IsNull()
     {
         var model = new UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto
         {
             Title = "Valid title",
-            Description = description!,
+            Description = null!,
             Pros = "Valid pros text",
         };
         var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.Description);
+        result.ShouldHaveValidationErrorFor(x => x.Description)
+            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(
+                nameof(UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto.Description)));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("<p><br></p>")]
+    public void Validate_ShouldNotHaveError_WhenDescription_IsEmpty(string description)
+    {
+        var model = new UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto
+        {
+            Title = "Valid title",
+            Description = description,
+            Pros = "Valid pros text",
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldNotHaveValidationErrorFor(x => x.Description);
     }
 
     [Theory]
@@ -185,19 +200,6 @@ public class BaseHippotherapyLandingPageHippoventionCenterSectionLocalizationVal
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenDescription_HasNoVisibleText()
-    {
-        var model = new UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto
-        {
-            Title = "Valid title",
-            Description = "<p><br></p>",
-            Pros = "Valid pros text",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.Description);
-    }
-
-    [Fact]
     public void Validate_ShouldHaveError_WhenPros_HasNoVisibleText()
     {
         var model = new UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto
@@ -304,21 +306,6 @@ public class BaseHippotherapyLandingPageHippoventionCenterSectionLocalizationVal
         var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.Title)
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto.Title)))
-            .Only();
-    }
-
-    [Fact]
-    public void Validate_ShouldHaveOnlyRequiredError_WhenDescription_IsEmpty()
-    {
-        var model = new UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto
-        {
-            Title = "Valid title",
-            Description = string.Empty,
-            Pros = "Valid pros text",
-        };
-        var result = _validator.TestValidate(model);
-        result.ShouldHaveValidationErrorFor(x => x.Description)
-            .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippotherapyLandingPageHippoventionCenterSectionLocalizationDto.Description)))
             .Only();
     }
 
