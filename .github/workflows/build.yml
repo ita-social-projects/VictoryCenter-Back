@@ -110,6 +110,7 @@ jobs:
       - name: Run SQL Server integration tests and generate coverage
         env:
           VICTORYCENTER_STORAGE_SQL_TEST_CONNECTION: Server=localhost,1433;User Id=sa;Password=CiOnly_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False
+          VICTORYCENTER_TEST_SQLSERVER: Server=localhost,1433;User Id=sa;Password=CiOnly_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False
         run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release --no-restore --filter Category=SqlServer --logger console;verbosity=normal" -f xml -o "coverage3.xml"
 
       - name: Run integration tests and generate coverage
