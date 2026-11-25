@@ -106,6 +106,7 @@ public static class RateLimiterConfiguration
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.SubmitContactUsForm, limits.SubmitContactUsForm);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.InitiateDonation, limits.InitiateDonation);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AdminLogin, limits.AdminLogin);
+        options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AdminLogout, limits.AdminLogout);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AuthRefresh, limits.AuthRefresh);
     }
 
@@ -140,6 +141,7 @@ internal static class RateLimitingPolicyNameConstants
     public const string SubmitContactUsForm = "submit-contact-us-form-rate-limiting-policy";
     public const string InitiateDonation = "initiate-donation-rate-limiting-policy";
     public const string AdminLogin = "admin-login-rate-limiting-policy";
+    public const string AdminLogout = "admin-logout-rate-limiting-policy";
     public const string AuthRefresh = "auth-refresh-rate-limiting-policy";
     public const string ImageUpload = "image-upload-rate-limiting-policy";
 }

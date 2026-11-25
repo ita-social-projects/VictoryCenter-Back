@@ -14,6 +14,7 @@ using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.Login;
 
@@ -56,6 +57,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
 
     public async Task<Result<AuthResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        var httpContext = _httpContextAccessor.HttpContext!;
         var validationResult = await _validator.ValidateAsync(request, cancellationToken);
         if (!validationResult.IsValid)
         {
@@ -141,7 +143,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
             return Result.Fail(updateResult.Errors.Select(x => x.Description));
         }
 
-        AppendRefreshTokenCookie(refreshToken, refreshTokenExpires);
+        RefreshTokenCookies.Append(httpContext.Response.Cookies, refreshToken, refreshTokenExpires);
         return Result.Ok(new AuthResponseDto(accessToken));
     }
 
@@ -163,22 +165,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, Result<AuthResp
     private static void PerformDummyPasswordCheck(string password)
     {
         _ = DummyPasswordHasher.VerifyHashedPassword(DummyAdmin, DummyPasswordHash, password);
-    }
-
-    private void AppendRefreshTokenCookie(string refreshToken, DateTimeOffset expires)
-    {
-        var response = _httpContextAccessor.HttpContext?.Response;
-        response?.Cookies.Append(
-            AuthConstants.RefreshTokenCookieName,
-            refreshToken,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = expires,
-                Path = AuthConstants.RefreshTokenCookiePath
-            });
     }
 
     private void LogFailedAttemptNotRecorded(int adminId, IdentityResult identityResult)
