@@ -59,6 +59,24 @@ public class ReplaceMetricTypeWithMetricKindMigrationTests : IAsyncLifetime
     }
 
     [StorageSqlServerFact]
+    public async Task UpAndDown_PreserveMetricDataAndLocalizations()
+    {
+        var ids = await SeedStatisticAsync(TherapyHours, Raised, Partners, Programs);
+        await SetNonDefaultMetricDataAsync(ids);
+        var before = await SnapshotAsync();
+        Assert.Equal(8, before.Length); // 4 metrics and 4 localizations, so the comparison cannot pass vacuously.
+
+        await MigrateAsync(_target);
+        var afterUp = await SnapshotAsync();
+
+        await MigrateAsync(_previous);
+        var afterDown = await SnapshotAsync();
+
+        Assert.Equal(before, afterUp);
+        Assert.Equal(before, afterDown);
+    }
+
+    [StorageSqlServerFact]
     public async Task Down_RestoresOriginalTypesRegardlessOfPriority()
     {
         // Seeded out of the Partners/Programs/TherapyHours order, so a priority-based guess would be wrong.
@@ -160,6 +178,53 @@ public class ReplaceMetricTypeWithMetricKindMigrationTests : IAsyncLifetime
         }
 
         return ids;
+    }
+
+    private async Task SetNonDefaultMetricDataAsync(long[] ids)
+    {
+        await using var context = Context();
+        var languageId = await InsertAsync(
+            context,
+            "INSERT INTO LocalizationLanguages (Code, Name, CreatedAt) OUTPUT INSERTED.Id AS Value VALUES (N'zz', N'Test language', SYSDATETIMEOFFSET())");
+
+        for (var i = 0; i < ids.Length; i++)
+        {
+            await context.Database.ExecuteSqlRawAsync(
+                "UPDATE Metrics SET Value = {0}, Prefix = {1}, Priority = {2}, IsHidden = {3}, IsAutoSynced = {4} WHERE Id = {5}",
+                1000 + (i * 37),
+                (i % 2) + 1,
+                (long)(40 - (i * 9)),
+                i == 0,
+                i == 1,
+                ids[i]);
+            await context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO MetricLocalizations (EntityId, LanguageId, Name, Value, TranslationStatus, CreatedAt) VALUES ({0}, {1}, {2}, {3}, {4}, SYSDATETIMEOFFSET())",
+                ids[i],
+                languageId,
+                $"Translated metric {i}",
+                $"{1000 + (i * 37)} translated",
+                i % 3);
+        }
+    }
+
+    // Every metric and metric localization column except the converted Type/Kind column.
+    private async Task<string[]> SnapshotAsync()
+    {
+        await using var context = Context();
+        var metrics = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT CONCAT_WS('|', Id, StatisticId, Name, Value, COALESCE(CAST(Prefix AS nvarchar(10)), N'null'),
+                Priority, IsHidden, IsAutoSynced, CONVERT(nvarchar(40), CreatedAt, 127)) AS Value
+            FROM Metrics
+            """).ToListAsync();
+        var localizations = await context.Database.SqlQueryRaw<string>(
+            """
+            SELECT CONCAT_WS('|', EntityId, LanguageId, Name, COALESCE(Value, N'null'), TranslationStatus,
+                CONVERT(nvarchar(40), CreatedAt, 127)) AS Value
+            FROM MetricLocalizations
+            """).ToListAsync();
+
+        return [.. metrics.Order(StringComparer.Ordinal), .. localizations.Order(StringComparer.Ordinal).Select(l => "loc|" + l)];
     }
 
     private static async Task<long> InsertAsync(VictoryCenterDbContext context, string sql, params object[] parameters)

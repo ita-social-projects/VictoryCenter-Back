@@ -186,6 +186,29 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         Assert.Single(metrics, m => m.Kind == MetricKind.RaisedFunds);
     }
 
+    [SqlServerTheory]
+    [InlineData(MetricKind.Standard, MetricKind.Standard)]
+    [InlineData(MetricKind.RaisedFunds, MetricKind.RaisedFunds)]
+    public async Task Initialize_BlockWithExcessMetricsOfOneKind_IsLeftUnchanged(MetricKind firstKind, MetricKind thirdKind)
+    {
+        // Legacy data: 4 Standard metrics, or 2 Standard + 2 RaisedFunds. Seeding must not add a fifth metric.
+        await InitializeMainPageAsync();
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var metrics = await db.Metrics.OrderBy(m => m.Priority).ToListAsync();
+            metrics[0].Kind = firstKind;
+            metrics[2].Kind = thirdKind;
+            await db.SaveChangesAsync();
+        }
+
+        var before = await MetricsSnapshotAsync();
+
+        await InitializeMainPageAsync();
+
+        Assert.Equal(before, await MetricsSnapshotAsync());
+    }
+
     [SqlServerFact]
     public async Task Initialize_ConcurrentIncompletePage_DoesNotDuplicateMetrics()
     {

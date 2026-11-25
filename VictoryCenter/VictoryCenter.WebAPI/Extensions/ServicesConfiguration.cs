@@ -830,19 +830,7 @@ public static class ServicesConfiguration
 
             if (existingPage?.ImpactStatistics is { } statistics)
             {
-                var missingMetrics = CreateMissingDefaultMetrics(statistics.Metrics, timeProvider);
-                if (missingMetrics.Count > 0)
-                {
-                    var priority = statistics.Metrics.Count == 0 ? -1 : statistics.Metrics.Max(m => m.Priority);
-                    foreach (var metric in missingMetrics)
-                    {
-                        priority = checked(priority + 1);
-                        metric.Priority = priority;
-                        statistics.Metrics.Add(metric);
-                    }
-
-                    await dbContext.SaveChangesAsync();
-                }
+                await SeedMissingMetricsAsync(dbContext, statistics, timeProvider, logger);
             }
 
             await transaction.CommitAsync();
@@ -905,6 +893,47 @@ public static class ServicesConfiguration
             new Metric { Kind = MetricKind.RaisedFunds, Name = "Зібрано", Priority = 2, CreatedAt = timeProvider.GetUtcNow() },
             new Metric { Kind = MetricKind.Standard, Name = "Годин терапії", Priority = 3, CreatedAt = timeProvider.GetUtcNow() },
         ];
+    }
+
+    private static async Task SeedMissingMetricsAsync(
+        VictoryCenterDbContext dbContext,
+        ImpactStatistics statistics,
+        TimeProvider timeProvider,
+        ILogger logger)
+    {
+        var standardCount = statistics.Metrics.Count(m => m.Kind == MetricKind.Standard);
+        var raisedFundsCount = statistics.Metrics.Count(m => m.Kind == MetricKind.RaisedFunds);
+
+        // Adding to an over-full block would create a fifth metric; leave it for a manual fix.
+        if (standardCount > MainPageConstants.ImpactStatistic.ExactStandardMetricCount ||
+            raisedFundsCount > MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount)
+        {
+            logger.LogWarning(
+                "Impact statistics block {StatisticsId} has {StandardCount} Standard and {RaisedFundsCount} RaisedFunds metrics, " +
+                "but exactly {RequiredStandardCount} and {RequiredRaisedFundsCount} are required. Missing metrics were not seeded; fix the block manually.",
+                statistics.Id,
+                standardCount,
+                raisedFundsCount,
+                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
+                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount);
+            return;
+        }
+
+        var missingMetrics = CreateMissingDefaultMetrics(statistics.Metrics, timeProvider);
+        if (missingMetrics.Count == 0)
+        {
+            return;
+        }
+
+        var priority = statistics.Metrics.Count == 0 ? -1 : statistics.Metrics.Max(m => m.Priority);
+        foreach (var metric in missingMetrics)
+        {
+            priority = checked(priority + 1);
+            metric.Priority = priority;
+            statistics.Metrics.Add(metric);
+        }
+
+        await dbContext.SaveChangesAsync();
     }
 
     /// <summary>
