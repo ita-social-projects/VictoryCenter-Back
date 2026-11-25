@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using VictoryCenter.BLL.Constants;
 
+namespace VictoryCenter.BLL.Helpers;
 public static class RefreshTokenCookies
 {
     public static void Append(IResponseCookies cookies, string token, DateTimeOffset expires)

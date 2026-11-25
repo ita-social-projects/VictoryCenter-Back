@@ -11,7 +11,6 @@ public static class RateLimiterConfiguration
 {
     private const string UnknownClientPartitionKey = "unknown";
     private const int IPv6PrefixLengthInBytes = 8;
-    private const int AdminLogoutRequestPermitLimit = 20;
 
     public static IServiceCollection AddRateLimiterConfiguration(this IServiceCollection services)
     {
@@ -107,18 +106,8 @@ public static class RateLimiterConfiguration
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.SubmitContactUsForm, limits.SubmitContactUsForm);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.InitiateDonation, limits.InitiateDonation);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AdminLogin, limits.AdminLogin);
+        options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AdminLogout, limits.AdminLogout);
         options.AddIpFixedWindowPolicy(RateLimitingPolicyNameConstants.AuthRefresh, limits.AuthRefresh);
-
-        options.AddPolicy(RateLimitingPolicyNameConstants.AdminLogout, httpContext =>
-            RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: GetClientPartitionKey(httpContext),
-                factory: _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = AdminLogoutRequestPermitLimit,
-                    Window = TimeSpan.FromMinutes(1),
-                    QueueLimit = 0,
-                    AutoReplenishment = true,
-                }));
     }
 
     private static void AddIpFixedWindowPolicy(

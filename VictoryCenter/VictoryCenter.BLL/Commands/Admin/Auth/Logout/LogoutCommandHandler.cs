@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.Helpers;
 using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
@@ -75,7 +76,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         }
 
         var tokenHash = _tokenService.HashRefreshToken(token);
-        var session = await _repositoryWrapper.RefreshTokenSessionRepository.GetByTokenHashAsync(tokenHash);
+        var session = await _repositoryWrapper.RefreshTokenSessionRepository.GetByTokenHashAsync(tokenHash, cancellationToken);
 
         return session is not null
             && session.AdminUserId == admin.Id
@@ -102,7 +103,8 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
         await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
             admin.Id,
             AuthConstants.RevocationReasons.Logout,
-            now);
+            now,
+            cancellationToken);
 
         admin.RefreshToken = null;
         admin.RefreshTokenValidTo = null;
@@ -111,13 +113,14 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 
         if (!updateAdmin.Succeeded && updateAdmin.Errors.Any(error => error.Code == ConcurrencyFailureCode))
         {
-            await _repositoryWrapper.ReloadAsync(admin);
+            await _repositoryWrapper.ReloadAsync(admin, cancellationToken);
 
             var retryNow = _timeProvider.GetUtcNow();
             await _repositoryWrapper.RefreshTokenSessionRepository.RevokeAdminSessionsAsync(
                 admin.Id,
                 AuthConstants.RevocationReasons.Logout,
-                retryNow);
+                retryNow,
+                cancellationToken);
 
             admin.RefreshToken = null;
             admin.RefreshTokenValidTo = null;
@@ -126,7 +129,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result<Unit>>
 
         if (!updateAdmin.Succeeded)
         {
-            await _repositoryWrapper.ReloadAsync(admin);
+            await _repositoryWrapper.ReloadAsync(admin, cancellationToken);
             await _repositoryWrapper.SaveChangesAsync();
             return Result.Fail(AuthConstants.NotUpdated);
         }
