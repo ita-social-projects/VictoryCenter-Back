@@ -43,6 +43,7 @@ All limits are per client (see [How clients are identified](#how-clients-are-ide
 | `FileDownload` | 20 / 1 min | `GET api/PdfReports/{id}/file`, `GET api/PdfReports/preview/{fileName}?ticket=...` | Both stream a whole PDF from storage, the most expensive public read. The preview endpoint is anonymous and checks a ticket, so the limit also slows down ticket guessing. Both endpoints share one counter per client. |
 | `RealtimeConnect` | 30 / 1 min | `/hubs/reports` (all hub requests: negotiate, WebSocket / SSE connect, long-polling polls) | Each open connection uses server resources. All hub requests are limited, not only negotiate, because a client can skip negotiation and open a WebSocket directly. |
 | `AdminLogin` | 5 / 1 min | `POST api/auth/login` | Password guessing. |
+| `AdminLogout` | 20 / 1 min | `POST api/auth/logout` | Anonymous (it revokes the session from the refresh cookie when the access token is expired), so it needs its own limit. Every call reads the database, and failed or invalid calls count too. |
 | `AuthRefresh` | 30 / 1 min | `POST api/auth/refresh-token` | Anonymous; each call reads the database and rotates tokens. Failed attempts count too, so token guessing is capped. |
 | `InitiateDonation` | 10 / 1 min | `POST api/Payments/donate` | Calls the external payment provider. |
 | `SubmitContactUsForm` | 10 / 24 h | `POST api/ContactUs` | Sends an email through the external email provider. |
@@ -143,12 +144,12 @@ VICTORYCENTER_RateLimiting__PublicRead__WindowSeconds=60
 
 | Option | Values |
 |---|---|
-| `Swagger`, `PublicRead`, `FileDownload`, `RealtimeConnect`, `AdminLogin`, `AuthRefresh`, `InitiateDonation`, `SubmitContactUsForm` | `PermitLimit` (≥ 1), `WindowSeconds` (≥ 1) |
+| `Swagger`, `PublicRead`, `FileDownload`, `RealtimeConnect`, `AdminLogin`,`AdminLogout`, `AuthRefresh`, `InitiateDonation`, `SubmitContactUsForm` | `PermitLimit` (≥ 1), `WindowSeconds` (≥ 1) |
 | `ImageUpload` | `PermitLimit` (≥ 1), `QueueLimit` (≥ 0) |
 
 - The values are validated at startup (`RateLimitingOptionsValidator`). If a value is invalid, the application does not start, and the error names the option.
 - The values are read through `IOptions`, so configuration added late (for example by `WebApplicationFactory` in tests) is applied.
-- `appsettings.IntegrationTests.json` raises `PublicRead`, `FileDownload`, `RealtimeConnect`, `AdminLogin`, `AuthRefresh`, `InitiateDonation` and `SubmitContactUsForm` to `10000`. Many integration tests share one test server and one client address, so the normal limits would make them fail with `429`. The `Swagger` limit is not raised, because a test checks it. Rate-limit tests set their own small limits.
+- `appsettings.IntegrationTests.json` raises `PublicRead`, `FileDownload`, `RealtimeConnect`, `AdminLogin`, `AdminLogout`, `AuthRefresh`, `InitiateDonation` and `SubmitContactUsForm` to `10000`. Many integration tests share one test server and one client address, so the normal limits would make them fail with `429`. The `Swagger` limit is not raised, because a test checks it. Rate-limit tests set their own small limits.
 
 ## Limitations
 
