@@ -73,15 +73,20 @@ public class CloudflareTurnstileCaptchaResponseTokenValidationServiceTests
         Assert.False(result.IsSuccess);
     }
 
-    [Fact]
-    public async Task ValidateTokenAsync_InvalidOperationException_ReturnsFail()
+    [Theory]
+    [InlineData("invalid-url")]
+    [InlineData("")]
+    [InlineData("https://[invalid")]
+    public async Task ValidateTokenAsync_InvalidEndpoint_ReturnsFailWithoutSendingRequest(string endpoint)
     {
-        var badOptions = Options.Create(new CloudflareTurnstileCaptchaOptions { SiteVerifyUrl = "invalid-url", SecretKey = "secret" });
+        var badOptions = Options.Create(new CloudflareTurnstileCaptchaOptions { SiteVerifyUrl = endpoint, SecretKey = "secret" });
         var service = new CloudflareTurnstileCaptchaResponseTokenValidationService(_httpClient, badOptions, _loggerMock.Object);
 
         var result = await service.ValidateTokenAsync("token");
 
         Assert.False(result.IsSuccess);
+        _httpMessageHandlerMock.Protected().Verify(
+            "SendAsync", Times.Never(), ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>());
     }
 
     [Fact]

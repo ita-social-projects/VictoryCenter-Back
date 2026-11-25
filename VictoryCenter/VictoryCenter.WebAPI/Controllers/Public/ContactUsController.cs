@@ -15,8 +15,8 @@ public class ContactUsController : PublicApiController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
-    public async Task<IActionResult> SubmitContactFormAsync([FromBody] SubmitContactUsFormDto dto)
+    public async Task<IActionResult> SubmitContactFormAsync([FromBody] SubmitContactUsFormDto dto, CancellationToken cancellationToken)
     {
-        return HandleResult(await Mediator.Send(new SubmitContactFormCommand(dto)));
+        return HandleResult(await Mediator.Send(new SubmitContactFormCommand(dto), cancellationToken));
     }
 }

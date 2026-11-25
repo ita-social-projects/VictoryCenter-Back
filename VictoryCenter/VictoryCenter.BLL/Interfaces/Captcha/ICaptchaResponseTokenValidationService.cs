@@ -4,5 +4,5 @@ namespace VictoryCenter.BLL.Interfaces.Captcha;
 
 public interface ICaptchaResponseTokenValidationService
 {
-    Task<Result> ValidateTokenAsync(string token, string? remoteIp = null);
+    Task<Result> ValidateTokenAsync(string token, string? remoteIp = null, CancellationToken cancellationToken = default);
 }
