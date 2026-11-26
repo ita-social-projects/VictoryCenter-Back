@@ -2,7 +2,9 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.Constants;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.Validators.MainPage.Dto;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
@@ -25,7 +27,7 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
         {
             RuleFor(x => x)
                 .MustAsync(ValidateNestedIdsByMembershipAsync)
-                .WithMessage(ErrorMessagesConstants.PropertyIsRequired("ImpactStatistics.Id and ImpactStatistics.Metrics[].Id"));
+                .WithMessage(ErrorMessagesConstants.MetricsMustMatchExistingStatistics);
         });
     }
 
@@ -54,25 +56,36 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return false;
         }
 
-        if (statDto?.Metrics is null || existingMainPage.ImpactStatistics is null)
+        if (statDto?.Metrics is null || statDto.Metrics.Any(m => m is null))
         {
             return true;
         }
 
-        var existingMetricIds = existingMainPage.ImpactStatistics.Metrics
-            .Select(m => m.Id)
-            .ToHashSet();
-
-        foreach (var metricId in statDto.Metrics
-                     .Where(m => m.Id.HasValue)
-                     .Select(m => m.Id!.Value))
+        if (existingMainPage.ImpactStatistics is null &&
+            statDto.Metrics.Count != MainPageConstants.ImpactStatistic.ExactMetricCount)
         {
-            if (!existingMetricIds.Contains(metricId))
-            {
-                return false;
-            }
+            return false;
         }
 
-        return true;
+        return MetricsMatchExistingStatistics(statDto.Metrics, existingMainPage.ImpactStatistics?.Metrics ?? []);
+    }
+
+    private static bool MetricsMatchExistingStatistics(
+        ICollection<UpdateMetricDto> metrics,
+        ICollection<Metric> existingMetrics)
+    {
+        var requestedIds = metrics
+            .Where(m => m.Id.HasValue)
+            .Select(m => m.Id!.Value)
+            .ToHashSet();
+
+        if (!requestedIds.SetEquals(existingMetrics.Select(m => m.Id)))
+        {
+            return false;
+        }
+
+        return metrics.All(metric => metric.Id.HasValue
+            ? existingMetrics.Any(existing => existing.Id == metric.Id.Value && existing.Type == metric.Type)
+            : existingMetrics.All(existing => existing.Type != metric.Type));
     }
 }

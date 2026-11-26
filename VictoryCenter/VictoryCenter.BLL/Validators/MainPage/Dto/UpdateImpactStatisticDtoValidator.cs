@@ -1,32 +1,30 @@
 using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
+using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 
-public class UpdateImpactStatisticDtoValidator : AbstractValidator<UpdateImpactStatisticDto>
+public class UpdateImpactStatisticDtoValidator
+    : BaseImpactStatisticDtoValidator<UpdateImpactStatisticDto, UpdateMetricDto>
 {
     public UpdateImpactStatisticDtoValidator()
+        : base(dto => dto.Metrics)
     {
-        RuleFor(x => x.Title)
+        RuleFor(x => x.Metrics)
             .Cascade(CascadeMode.Stop)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Title)))
-            .MinimumLength(MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumLengthOfNCharacters(
-                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.ValidationTitleRules.MinLen))
-            .MaximumLength(MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen)
-            .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumLengthOfNCharacters(
-                nameof(UpdateImpactStatisticDto.Title), MainPageConstants.ImpactStatistic.ValidationTitleRules.MaxLen));
+            .Must(metrics => metrics.Count <= MainPageConstants.ImpactStatistic.ExactMetricCount)
+            .WithMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan(
+                nameof(UpdateImpactStatisticDto.Metrics), MainPageConstants.ImpactStatistic.ExactMetricCount))
+            .Must(metrics => metrics.Where(metric => metric is not null).Select(metric => metric.Type).Distinct().Count()
+                == metrics.Count(metric => metric is not null))
+            .WithMessage(ErrorMessagesConstants.MetricTypesMustBeUnique())
+            .When(x => x.Metrics is not null);
 
         RuleFor(x => x.Id)
             .GreaterThan(0)
             .When(x => x.Id.HasValue)
             .WithMessage(ErrorMessagesConstants.PropertyMustBePositive(nameof(UpdateImpactStatisticDto.Id)));
-
-        RuleFor(x => x.Metrics)
-            .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)));
 
         RuleForEach(x => x.Metrics)
             .NotNull()

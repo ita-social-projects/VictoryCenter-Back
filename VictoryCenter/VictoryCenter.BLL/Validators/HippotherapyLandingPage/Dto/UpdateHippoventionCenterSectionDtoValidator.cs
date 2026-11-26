@@ -20,14 +20,17 @@ public class UpdateHippoventionCenterSectionDtoValidator : AbstractValidator<Upd
                 nameof(UpdateHippoventionCenterSectionDto.Title), HippotherapyLandingPageConstants.HippoventionCenterTitleMaxLength));
 
         RuleFor(x => x.Description)
-            .NotEmpty()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippoventionCenterSectionDto.Description)))
+            .NotNull()
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateHippoventionCenterSectionDto.Description)));
+
+        RuleFor(x => x.Description)
             .Must(v => HtmlContentHelper.StripHtmlTags(v).Length >= HippotherapyLandingPageConstants.TextMinLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMinimumVisibleLengthOfNCharacters(
                 nameof(UpdateHippoventionCenterSectionDto.Description), HippotherapyLandingPageConstants.TextMinLength))
             .Must(v => HtmlContentHelper.StripHtmlTags(v).Length <= HippotherapyLandingPageConstants.HippoventionCenterDescriptionMaxLength)
             .WithMessage(ErrorMessagesConstants.PropertyMustHaveAMaximumVisibleLengthOfNCharacters(
-                nameof(UpdateHippoventionCenterSectionDto.Description), HippotherapyLandingPageConstants.HippoventionCenterDescriptionMaxLength));
+                nameof(UpdateHippoventionCenterSectionDto.Description), HippotherapyLandingPageConstants.HippoventionCenterDescriptionMaxLength))
+            .When(x => !string.IsNullOrWhiteSpace(HtmlContentHelper.StripHtmlTags(x.Description ?? string.Empty)));
 
         RuleFor(x => x.Pros)
             .NotEmpty()

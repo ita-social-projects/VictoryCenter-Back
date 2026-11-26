@@ -142,11 +142,61 @@ public class UpdateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor("Metrics[0]");
     }
 
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    public void Validate_ShouldAllowIncompleteMetricCollections(int count)
+    {
+        var metrics = Enumerable.Range(0, count)
+            .Select(index => new UpdateMetricDto { Name = "metric", Type = (MetricType)(index % 4) })
+            .ToList();
+
+        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectMoreThanFourMetrics()
+    {
+        var metrics = GetValidDto().Metrics.ToList();
+        metrics.Add(new UpdateMetricDto { Name = "extra metric", Type = MetricType.Partners });
+
+        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan("Metrics", 4));
+    }
+
+    [Fact]
+    public void Validate_ShouldRejectDuplicateAndMissingTypes()
+    {
+        var metrics = GetValidDto().Metrics.ToList();
+        metrics[0] = metrics[0] with { Type = metrics[1].Type };
+
+        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.MetricTypesMustBeUnique());
+    }
+
+    [Fact]
+    public void Validate_ShouldAllowAllNewMetricsWithoutIds()
+    {
+        var metrics = GetValidDto().Metrics.Select(metric => metric with { Id = null }).ToList();
+
+        _validator.TestValidate(GetValidDto() with { Metrics = metrics }).ShouldNotHaveAnyValidationErrors();
+    }
+
     private static UpdateImpactStatisticDto GetValidDto() => new()
     {
         Id = 1,
         Title = "Impact title",
         ImageId = 1,
-        Metrics = [new UpdateMetricDto { Id = 2, Value = 100, Name = "kids", Type = MetricType.Raised }],
+        Metrics = [.. Enum.GetValues<MetricType>()
+            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })],
     };
 }

@@ -240,7 +240,9 @@ public static class ServicesConfiguration
 
         services.AddScoped<IReportFundsExpendituresRecordHelper, ReportFundsExpendituresRecordHelper>();
 
-        services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>();
+        services.AddHttpClient<ICaptchaResponseTokenValidationService, CloudflareTurnstileCaptchaResponseTokenValidationService>(
+                client => client.Timeout = Timeout.InfiniteTimeSpan)
+            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentFactory), ServiceLifetime.Scoped);
         services.ScanInterfacesAndRegisterImplementations(typeof(BllAssemblyMarker).Assembly, typeof(IPaymentCommandHandler<,>), ServiceLifetime.Scoped);
@@ -821,6 +823,32 @@ public static class ServicesConfiguration
 
         if (await dbContext.MainPages.AnyAsync())
         {
+            await using var transaction = await dbContext.Database.BeginTransactionAsync();
+            var existingPage = await dbContext.MainPages
+                .FromSqlRaw("SELECT * FROM MainPages WITH (UPDLOCK, HOLDLOCK)")
+                .AsSplitQuery()
+                .Include(p => p.ImpactStatistics)!.ThenInclude(s => s!.Metrics)
+                .SingleOrDefaultAsync();
+
+            if (existingPage?.ImpactStatistics is { } statistics)
+            {
+                var existingTypes = statistics.Metrics.Select(m => m.Type).ToHashSet();
+                var missingMetrics = CreateDefaultMetrics(timeProvider).Where(m => !existingTypes.Contains(m.Type)).ToList();
+                if (missingMetrics.Count > 0)
+                {
+                    var priority = statistics.Metrics.Count == 0 ? -1 : statistics.Metrics.Max(m => m.Priority);
+                    foreach (var metric in missingMetrics)
+                    {
+                        priority = checked(priority + 1);
+                        metric.Priority = priority;
+                        statistics.Metrics.Add(metric);
+                    }
+
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+
+            await transaction.CommitAsync();
             return;
         }
 
@@ -854,7 +882,8 @@ public static class ServicesConfiguration
             {
                 Title = string.Empty,
                 ImageId = null,
-                CreatedAt = timeProvider.GetUtcNow()
+                CreatedAt = timeProvider.GetUtcNow(),
+                Metrics = CreateDefaultMetrics(timeProvider)
             }
         };
 
@@ -868,6 +897,17 @@ public static class ServicesConfiguration
         {
             logger.LogInformation(ex, "MainPage was already seeded by a concurrent instance; skipping.");
         }
+    }
+
+    private static List<Metric> CreateDefaultMetrics(TimeProvider timeProvider)
+    {
+        return
+        [
+            new Metric { Type = MetricType.Partners, Name = "Партнерів", Priority = 0, CreatedAt = timeProvider.GetUtcNow() },
+            new Metric { Type = MetricType.Programs, Name = "Програм", Priority = 1, CreatedAt = timeProvider.GetUtcNow() },
+            new Metric { Type = MetricType.Raised, Name = "Зібрано", Priority = 2, CreatedAt = timeProvider.GetUtcNow() },
+            new Metric { Type = MetricType.TherapyHours, Name = "Годин терапії", Priority = 3, CreatedAt = timeProvider.GetUtcNow() },
+        ];
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)

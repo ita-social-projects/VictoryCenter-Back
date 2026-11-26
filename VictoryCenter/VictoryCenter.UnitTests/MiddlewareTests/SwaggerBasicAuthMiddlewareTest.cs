@@ -26,6 +26,17 @@ public class SwaggerBasicAuthMiddlewareTest
             Mock.Of<ILogger<UserManager<AdminUser>>>()
         );
 
+    public SwaggerBasicAuthMiddlewareTest()
+    {
+        _userManagerMock
+            .Setup(x => x.AccessFailedAsync(It.IsAny<AdminUser>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        _userManagerMock
+            .Setup(x => x.ResetAccessFailedCountAsync(It.IsAny<AdminUser>()))
+            .ReturnsAsync(IdentityResult.Success);
+    }
+
     [Fact]
     public async Task InvokeAsync_NonSwaggerPath_CallsNext()
     {
@@ -145,6 +156,221 @@ public class SwaggerBasicAuthMiddlewareTest
                 It.IsAny<AdminUser>(),
                 It.IsAny<string>()),
             Times.Never);
+
+        _userManagerMock.Verify(
+            x => x.AccessFailedAsync(It.IsAny<AdminUser>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_LockedOutAccount_ReturnsUnauthorizedWithoutCheckingPassword()
+    {
+        // Arrange
+        var context = CreateContext(
+            "/swagger",
+            CreateBasicAuthHeader("admin@test.com", "password123"));
+
+        var admin = new AdminUser();
+
+        _userManagerMock
+            .Setup(x => x.FindByEmailAsync("admin@test.com"))
+            .ReturnsAsync(admin);
+
+        _userManagerMock
+            .Setup(x => x.IsLockedOutAsync(admin))
+            .ReturnsAsync(true);
+
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+
+        // Act
+        await middleware.InvokeAsync(context, _userManagerMock.Object);
+
+        // Assert
+        Assert.False(nextCalled);
+        AssertUnauthorized(context);
+
+        _userManagerMock.Verify(
+            x => x.CheckPasswordAsync(It.IsAny<AdminUser>(), It.IsAny<string>()),
+            Times.Never);
+        _userManagerMock.Verify(
+            x => x.AccessFailedAsync(It.IsAny<AdminUser>()),
+            Times.Never);
+        _userManagerMock.Verify(
+            x => x.ResetAccessFailedCountAsync(It.IsAny<AdminUser>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_LockedOutAccount_LogsLockedOutWarning()
+    {
+        // Arrange
+        var context = CreateContext(
+            "/swagger",
+            CreateBasicAuthHeader("admin@test.com", "password123"));
+
+        var admin = new AdminUser();
+
+        _userManagerMock
+            .Setup(x => x.FindByEmailAsync("admin@test.com"))
+            .ReturnsAsync(admin);
+
+        _userManagerMock
+            .Setup(x => x.IsLockedOutAsync(admin))
+            .ReturnsAsync(true);
+
+        var middleware = CreateMiddleware(_ => Task.CompletedTask);
+
+        // Act
+        await middleware.InvokeAsync(context, _userManagerMock.Object);
+
+        // Assert
+        VerifyLogged(LogLevel.Warning, "locked out account", Times.Once());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_InvalidPassword_RecordsFailedAccess()
+    {
+        // Arrange
+        var context = CreateContext(
+            "/swagger",
+            CreateBasicAuthHeader("admin@test.com", "wrongPassword"));
+
+        var admin = new AdminUser();
+
+        _userManagerMock
+            .Setup(x => x.FindByEmailAsync("admin@test.com"))
+            .ReturnsAsync(admin);
+
+        _userManagerMock
+            .Setup(x => x.CheckPasswordAsync(admin, "wrongPassword"))
+            .ReturnsAsync(false);
+
+        var middleware = CreateMiddleware(_ => Task.CompletedTask);
+
+        // Act
+        await middleware.InvokeAsync(context, _userManagerMock.Object);
+
+        // Assert
+        AssertUnauthorized(context);
+
+        _userManagerMock.Verify(x => x.AccessFailedAsync(admin), Times.Once);
+        _userManagerMock.Verify(
+            x => x.ResetAccessFailedCountAsync(It.IsAny<AdminUser>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_AccessFailedNotRecorded_LogsErrorAndReturnsUnauthorized()
+    {
+        // Arrange
+        var context = CreateContext(
+            "/swagger",
+            CreateBasicAuthHeader("admin@test.com", "wrongPassword"));
+
+        var admin = new AdminUser();
+
+        _userManagerMock
+            .Setup(x => x.FindByEmailAsync("admin@test.com"))
+            .ReturnsAsync(admin);
+
+        _userManagerMock
+            .Setup(x => x.CheckPasswordAsync(admin, "wrongPassword"))
+            .ReturnsAsync(false);
+
+        _userManagerMock
+            .Setup(x => x.AccessFailedAsync(admin))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "Failed" }));
+
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+
+        // Act
+        await middleware.InvokeAsync(context, _userManagerMock.Object);
+
+        // Assert
+        Assert.False(nextCalled);
+        AssertUnauthorized(context);
+        VerifyLogged(LogLevel.Error, "was not recorded", Times.Once());
+    }
+
+    [Fact]
+    public async Task InvokeAsync_ValidCredentials_ResetsAccessFailedCount()
+    {
+        // Arrange
+        var context = CreateContext(
+            "/swagger",
+            CreateBasicAuthHeader("admin@test.com", "password123"));
+
+        var admin = new AdminUser();
+
+        _userManagerMock
+            .Setup(x => x.FindByEmailAsync("admin@test.com"))
+            .ReturnsAsync(admin);
+
+        _userManagerMock
+            .Setup(x => x.CheckPasswordAsync(admin, "password123"))
+            .ReturnsAsync(true);
+
+        var middleware = CreateMiddleware(_ => Task.CompletedTask);
+
+        // Act
+        await middleware.InvokeAsync(context, _userManagerMock.Object);
+
+        // Assert
+        _userManagerMock.Verify(x => x.ResetAccessFailedCountAsync(admin), Times.Once);
+        _userManagerMock.Verify(
+            x => x.AccessFailedAsync(It.IsAny<AdminUser>()),
+            Times.Never);
+    }
+
+    [Theory]
+    [InlineData(nameof(IdentityErrorDescriber.DefaultError))]
+    [InlineData(nameof(IdentityErrorDescriber.ConcurrencyFailure))]
+    public async Task InvokeAsync_ResetAccessFailedCountFails_ReturnsUnauthorized(string errorCode)
+    {
+        // Arrange
+        var context = CreateContext(
+            "/swagger",
+            CreateBasicAuthHeader("admin@test.com", "password123"));
+
+        var admin = new AdminUser();
+
+        _userManagerMock
+            .Setup(x => x.FindByEmailAsync("admin@test.com"))
+            .ReturnsAsync(admin);
+
+        _userManagerMock
+            .Setup(x => x.CheckPasswordAsync(admin, "password123"))
+            .ReturnsAsync(true);
+
+        _userManagerMock
+            .Setup(x => x.ResetAccessFailedCountAsync(admin))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = errorCode, Description = "Failed" }));
+
+        var nextCalled = false;
+        var middleware = CreateMiddleware(_ =>
+        {
+            nextCalled = true;
+            return Task.CompletedTask;
+        });
+
+        // Act
+        await middleware.InvokeAsync(context, _userManagerMock.Object);
+
+        // Assert
+        Assert.False(nextCalled);
+        AssertUnauthorized(context);
+        _userManagerMock.Verify(x => x.ResetAccessFailedCountAsync(admin), Times.Once);
+        VerifyLogged(LogLevel.Error, "was not reset", Times.Once());
     }
 
     [Fact]
@@ -387,6 +613,19 @@ public class SwaggerBasicAuthMiddlewareTest
             Encoding.UTF8.GetBytes($"{email}:{password}"));
 
         return $"Basic {credentials}";
+    }
+
+    private void VerifyLogged(LogLevel level, string messagePart, Times times)
+    {
+        _loggerMock.Verify(
+            x => x.Log(
+                level,
+                It.IsAny<EventId>(),
+                It.Is<It.IsAnyType>((state, _) =>
+                    state.ToString()!.Contains(messagePart)),
+                It.IsAny<Exception?>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            times);
     }
 
     private static void AssertUnauthorized(HttpContext context)

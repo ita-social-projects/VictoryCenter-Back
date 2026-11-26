@@ -99,10 +99,7 @@ public class UpdateSingleMetricHandler : IRequestHandler<UpdateSingleMetricComma
                         metric.Localizations.Where(l => l.LanguageId != LocalizationLanguageConstants.PrimaryLanguageId));
 
                     var primaryLoc = metric.Localizations.FirstOrDefault(l => l.LanguageId == LocalizationLanguageConstants.PrimaryLanguageId);
-                    if (primaryLoc != null)
-                    {
-                        primaryLoc.TranslationStatus = TranslationStatus.Relevant;
-                    }
+                    primaryLoc?.TranslationStatus = TranslationStatus.Relevant;
 
                     result.WasModified = true;
                 }

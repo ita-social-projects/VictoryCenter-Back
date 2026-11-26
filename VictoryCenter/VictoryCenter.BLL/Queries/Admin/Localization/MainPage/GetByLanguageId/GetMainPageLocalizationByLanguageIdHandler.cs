@@ -1,12 +1,10 @@
-using AutoMapper;
 using FluentResults;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Errors;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
-using VictoryCenter.DAL.Repositories.Options;
 using MainPageEntity = VictoryCenter.DAL.Entities.MainPage;
 
 namespace VictoryCenter.BLL.Queries.Admin.Localization.MainPage.GetByLanguageId;
@@ -14,12 +12,10 @@ namespace VictoryCenter.BLL.Queries.Admin.Localization.MainPage.GetByLanguageId;
 public class GetMainPageLocalizationByLanguageIdHandler
     : IRequestHandler<GetMainPageLocalizationByLanguageIdQuery, Result<MainPageLocalizationDto>>
 {
-    private readonly IMapper _mapper;
     private readonly IRepositoryWrapper _repositoryWrapper;
 
-    public GetMainPageLocalizationByLanguageIdHandler(IMapper mapper, IRepositoryWrapper repositoryWrapper)
+    public GetMainPageLocalizationByLanguageIdHandler(IRepositoryWrapper repositoryWrapper)
     {
-        _mapper = mapper;
         _repositoryWrapper = repositoryWrapper;
     }
 
@@ -27,106 +23,39 @@ public class GetMainPageLocalizationByLanguageIdHandler
         GetMainPageLocalizationByLanguageIdQuery request,
         CancellationToken cancellationToken)
     {
-        var mainPage = await _repositoryWrapper.MainPageRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<MainPageEntity>
-            {
-                Filter = e => e.Id == request.EntityId,
-                Include = query => query
-                    .Include(e => e.MainAboutUs)
-                    .Include(e => e.MainPartners)
-                    .Include(e => e.MainDonations),
-                AsNoTracking = true
-            });
-
-        if (mainPage is null)
+        var row = await _repositoryWrapper.MainPageRepository.GetLocalizationAsync(request.EntityId, request.LanguageId, cancellationToken);
+        if (row is null)
         {
-            return Result.Fail<MainPageLocalizationDto>(
-                NotFoundErrors.NotFound(request.EntityId, typeof(MainPageEntity)));
+            return Result.Fail<MainPageLocalizationDto>(NotFoundErrors.NotFound(request.EntityId, typeof(MainPageEntity)));
         }
 
-        var mainPageLocalization = await _repositoryWrapper.MainPageLocalizationsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<MainPageLocalization>
-            {
-                Filter = l => l.EntityId == request.EntityId && l.LanguageId == request.LanguageId,
-                Include = query => query.Include(l => l.Language),
-                AsNoTracking = true
-            });
-
-        if (mainPageLocalization is null)
+        if (row.Translation is not { } translation)
         {
-            return Result.Fail<MainPageLocalizationDto>(
-                NotFoundErrors.NotFound(
-                    (request.EntityId, request.LanguageId),
-                    typeof(MainPageLocalization)));
+            return Result.Fail<MainPageLocalizationDto>(NotFoundErrors.NotFound((request.EntityId, request.LanguageId), typeof(MainPageLocalization)));
         }
 
-        var response = _mapper.Map<MainPageLocalizationDto>(mainPageLocalization) with
+        return Result.Ok(new MainPageLocalizationDto
         {
-            MainAboutUs = await GetMainAboutUsLocalizationAsync(mainPage, request.LanguageId),
-            MainPartners = await GetMainPartnersLocalizationAsync(mainPage, request.LanguageId),
-            MainDonations = await GetMainDonationsLocalizationAsync(mainPage, request.LanguageId)
-        };
-
-        return Result.Ok(response);
-    }
-
-    private async Task<MainAboutUsLocalizationDto?> GetMainAboutUsLocalizationAsync(
-        MainPageEntity mainPage,
-        long languageId)
-    {
-        if (mainPage.MainAboutUs is null)
-        {
-            return null;
-        }
-
-        var localization = await _repositoryWrapper.MainAboutUsLocalizationsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<MainAboutUsLocalization>
+            EntityId = translation.EntityId,
+            Title = translation.Title,
+            Description = translation.Description,
+            TranslationStatus = translation.TranslationStatus,
+            LocalizationInfoDto = new LocalizationInfoDto { Id = translation.LanguageId, Code = translation.LanguageCode },
+            MainAboutUs = row.AboutUs is not { } about ? null : new MainAboutUsLocalizationDto
             {
-                Filter = l => l.EntityId == mainPage.MainAboutUs.Id && l.LanguageId == languageId,
-                Include = query => query.Include(l => l.Language),
-                AsNoTracking = true
-            });
-
-        return _mapper.Map<MainAboutUsLocalizationDto?>(localization);
-    }
-
-    private async Task<MainPartnersLocalizationDto?> GetMainPartnersLocalizationAsync(
-        MainPageEntity mainPage,
-        long languageId)
-    {
-        if (mainPage.MainPartners is null)
-        {
-            return null;
-        }
-
-        var localization = await _repositoryWrapper.MainPartnersLocalizationsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<MainPartnersLocalization>
+                EntityId = about.EntityId, Title = about.Title, Description = about.Description, TranslationStatus = about.TranslationStatus,
+                LocalizationInfoDto = new LocalizationInfoDto { Id = about.LanguageId, Code = about.LanguageCode }
+            },
+            MainPartners = row.Partners is not { } partners ? null : new MainPartnersLocalizationDto
             {
-                Filter = l => l.EntityId == mainPage.MainPartners.Id && l.LanguageId == languageId,
-                Include = query => query.Include(l => l.Language),
-                AsNoTracking = true
-            });
-
-        return _mapper.Map<MainPartnersLocalizationDto?>(localization);
-    }
-
-    private async Task<MainDonationsLocalizationDto?> GetMainDonationsLocalizationAsync(
-        MainPageEntity mainPage,
-        long languageId)
-    {
-        if (mainPage.MainDonations is null)
-        {
-            return null;
-        }
-
-        var localization = await _repositoryWrapper.MainDonationsLocalizationsRepository
-            .GetFirstOrDefaultAsync(new QueryOptions<MainDonationsLocalization>
+                EntityId = partners.EntityId, Title = partners.Title, Description = partners.Description, TranslationStatus = partners.TranslationStatus,
+                LocalizationInfoDto = new LocalizationInfoDto { Id = partners.LanguageId, Code = partners.LanguageCode }
+            },
+            MainDonations = row.Donations is not { } donations ? null : new MainDonationsLocalizationDto
             {
-                Filter = l => l.EntityId == mainPage.MainDonations.Id && l.LanguageId == languageId,
-                Include = query => query.Include(l => l.Language),
-                AsNoTracking = true
-            });
-
-        return _mapper.Map<MainDonationsLocalizationDto?>(localization);
+                EntityId = donations.EntityId, Title = donations.Title, Description = donations.Description, TranslationStatus = donations.TranslationStatus,
+                LocalizationInfoDto = new LocalizationInfoDto { Id = donations.LanguageId, Code = donations.LanguageCode }
+            }
+        });
     }
 }

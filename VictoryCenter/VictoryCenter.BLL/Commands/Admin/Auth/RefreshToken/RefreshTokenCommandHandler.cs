@@ -13,6 +13,7 @@ using VictoryCenter.BLL.Interfaces.TokenService;
 using VictoryCenter.BLL.Options;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Commands.Admin.Auth.RefreshToken;
 
@@ -48,32 +49,20 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
     public async Task<Result<AuthResponseDto>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var refreshTokenRetrieved = _httpContextAccessor.HttpContext!.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
+        var httpContext = _httpContextAccessor.HttpContext!;
+        var refreshTokenRetrieved = httpContext.Request.Cookies.TryGetValue(AuthConstants.RefreshTokenCookieName, out var refreshToken);
         if (!refreshTokenRetrieved || string.IsNullOrWhiteSpace(refreshToken))
         {
             return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
         }
 
-        var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
-        if (principalResult.IsFailed)
+        var identity = await ResolveIdentityAsync(httpContext, refreshToken);
+        if (identity is null)
         {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
+            return Result.Fail(AuthConstants.Unauthorized);
         }
 
-        var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
-        if (email is null)
-        {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
-        }
-
-        var admin = await _userManager.FindByEmailAsync(email.Value);
-        if (admin is null)
-        {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
-        }
+        var (admin, email) = identity.Value;
 
         var tokenHash = _tokenService.HashRefreshToken(refreshToken);
         var session = await _repositoryWrapper.RefreshTokenSessionRepository.GetByTokenHashAsync(tokenHash, cancellationToken);
@@ -81,54 +70,105 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
 
         if (session is null || session.AdminUserId != admin.Id)
         {
-            DeleteRefreshTokenCookie();
-            return Result.Fail(new UnauthorizedError(AuthConstants.Unauthorized));
+            return FailAndDeleteCookie(httpContext);
         }
 
         if (session.IsRevoked)
         {
-            if (session.RevocationReason == AuthConstants.RevocationReasons.Rotated
-                && session.RevokedAt.HasValue
-                && now - session.RevokedAt.Value <= AuthConstants.RotationGracePeriod)
-            {
-                _logger.LogInformation(
-                    "Refresh token was recently rotated within grace period for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}",
-                    session.AdminUserId,
-                    session.FamilyId);
-
-                return Result.Fail(AuthConstants.Unauthorized);
-            }
-
-            _logger.LogWarning(
-                "Suspected refresh token reuse detected for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}, Reason: {RevocationReason}",
-                session.AdminUserId,
-                session.FamilyId,
-                session.RevocationReason);
-
-            await _repositoryWrapper.RefreshTokenSessionRepository.RevokeFamilyAsync(
-                session.FamilyId,
-                AuthConstants.RevocationReasons.SuspectedTokenReuse,
-                now,
-                cancellationToken);
-
-            await _repositoryWrapper.SaveChangesAsync();
-
-            DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return await HandleRevokedSessionAsync(httpContext, session, now, cancellationToken);
         }
 
         if (session.ExpiresAt <= now)
         {
-            session.IsRevoked = true;
-            session.RevokedAt = now;
-            session.RevocationReason = AuthConstants.RevocationReasons.Expired;
+            await ExpireSessionAsync(session, now);
+            return FailAndDeleteCookie(httpContext);
+        }
 
-            await _repositoryWrapper.SaveChangesAsync();
+        return await RotateSessionAsync(httpContext, admin, email, session, now);
+    }
 
-            DeleteRefreshTokenCookie();
+    private async Task<(AdminUser Admin, Claim Email)?> ResolveIdentityAsync(HttpContext httpContext, string refreshToken)
+    {
+        var principalResult = _tokenService.GetClaimsFromExpiredToken(refreshToken);
+        if (principalResult.IsFailed)
+        {
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return null;
+        }
+
+        var email = principalResult.Value.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
+        if (email is null)
+        {
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return null;
+        }
+
+        var admin = await _userManager.FindByEmailAsync(email.Value);
+        if (admin is null)
+        {
+            RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+            return null;
+        }
+
+        return (admin, email);
+    }
+
+    private async Task<Result<AuthResponseDto>> HandleRevokedSessionAsync(
+        HttpContext httpContext,
+        RefreshTokenSession session,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        if (IsRecentlyRotated(session, now))
+        {
+            _logger.LogInformation(
+                "Refresh token was recently rotated within grace period for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}",
+                session.AdminUserId,
+                session.FamilyId);
+
             return Result.Fail(AuthConstants.Unauthorized);
         }
 
+        _logger.LogWarning(
+            "Suspected refresh token reuse detected for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}, Reason: {RevocationReason}",
+            session.AdminUserId,
+            session.FamilyId,
+            session.RevocationReason);
+
+        await _repositoryWrapper.RefreshTokenSessionRepository.RevokeFamilyAsync(
+            session.FamilyId,
+            AuthConstants.RevocationReasons.SuspectedTokenReuse,
+            now,
+            cancellationToken);
+
+        await _repositoryWrapper.SaveChangesAsync();
+
+        return FailAndDeleteCookie(httpContext);
+    }
+
+    private static bool IsRecentlyRotated(RefreshTokenSession session, DateTimeOffset now)
+    {
+        return session.RevocationReason == AuthConstants.RevocationReasons.Rotated
+            && session.RevokedAt.HasValue
+            && now - session.RevokedAt.Value <= AuthConstants.RotationGracePeriod;
+    }
+
+    private async Task ExpireSessionAsync(RefreshTokenSession session, DateTimeOffset now)
+    {
+        session.IsRevoked = true;
+        session.RevokedAt = now;
+        session.RevocationReason = AuthConstants.RevocationReasons.Expired;
+
+        await _repositoryWrapper.SaveChangesAsync();
+    }
+
+    private async Task<Result<AuthResponseDto>> RotateSessionAsync(
+        HttpContext httpContext,
+        AdminUser admin,
+        Claim email,
+        RefreshTokenSession session,
+        DateTimeOffset now)
+    {
         var familyId = session.FamilyId;
         var newRefreshToken = _tokenService.CreateRefreshToken([
             new Claim(ClaimTypes.Email, admin.Email!),
@@ -160,23 +200,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
         var updateResult = await _userManager.UpdateAsync(admin);
         if (!updateResult.Succeeded)
         {
-            if (updateResult.Errors.Any(error => error.Code == ConcurrencyFailureCode))
-            {
-                _logger.LogInformation(
-                    "Concurrent refresh collision detected when updating admin user for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}",
-                    admin.Id,
-                    session.FamilyId);
-
-                return Result.Fail(AuthConstants.Unauthorized);
-            }
-
-            _logger.LogError(
-                "Failed to update admin user {AdminUserId} during refresh: {Errors}",
-                admin.Id,
-                string.Join("; ", updateResult.Errors.Select(e => e.Description)));
-
-            DeleteRefreshTokenCookie();
-            return Result.Fail(AuthConstants.Unauthorized);
+            return HandleUpdateFailure(httpContext, admin, session, updateResult);
         }
 
         var accessToken = _tokenService.CreateAccessToken([
@@ -185,38 +209,37 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
             new Claim(ClaimTypes.NameIdentifier, admin.Id.ToString(CultureInfo.InvariantCulture)),
             new Claim(AuthConstants.SecurityStampHashClaimType, _tokenService.HashSecurityStamp(admin.SecurityStamp!))
         ]);
-
-        AppendRefreshTokenCookie(newRefreshToken, newRefreshTokenExpires);
+        RefreshTokenCookies.Append(httpContext.Response.Cookies, newRefreshToken, newRefreshTokenExpires);
         return Result.Ok(new AuthResponseDto(accessToken));
     }
 
-    private void AppendRefreshTokenCookie(string refreshToken, DateTimeOffset expires)
+    private Result<AuthResponseDto> HandleUpdateFailure(
+        HttpContext httpContext,
+        AdminUser admin,
+        RefreshTokenSession session,
+        IdentityResult updateResult)
     {
-        var response = _httpContextAccessor.HttpContext?.Response;
-        response?.Cookies.Append(
-            AuthConstants.RefreshTokenCookieName,
-            refreshToken,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = expires,
-                Path = AuthConstants.RefreshTokenCookiePath
-            });
+        if (updateResult.Errors.Any(error => error.Code == ConcurrencyFailureCode))
+        {
+            _logger.LogInformation(
+                "Concurrent refresh collision detected when updating admin user for AdminUserId: {AdminUserId}, FamilyId: {FamilyId}",
+                admin.Id,
+                session.FamilyId);
+
+            return Result.Fail(AuthConstants.Unauthorized);
+        }
+
+        _logger.LogError(
+            "Failed to update admin user {AdminUserId} during refresh: {Errors}",
+            admin.Id,
+            string.Join("; ", updateResult.Errors.Select(e => e.Description)));
+
+        return FailAndDeleteCookie(httpContext);
     }
 
-    private void DeleteRefreshTokenCookie()
+    private static Result<AuthResponseDto> FailAndDeleteCookie(HttpContext httpContext)
     {
-        var response = _httpContextAccessor.HttpContext?.Response;
-        response?.Cookies.Delete(
-            AuthConstants.RefreshTokenCookieName,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Path = AuthConstants.RefreshTokenCookiePath
-            });
+        RefreshTokenCookies.Delete(httpContext.Response.Cookies);
+        return Result.Fail(AuthConstants.Unauthorized);
     }
 }
