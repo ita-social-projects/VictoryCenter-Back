@@ -113,6 +113,9 @@ jobs:
           VICTORYCENTER_TEST_SQLSERVER: Server=localhost,1433;User Id=sa;Password=CiOnly_Str0ng!Pass;TrustServerCertificate=True;Encrypt=False
         run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release --no-restore --filter Category=SqlServer --logger console;verbosity=normal" -f xml -o "coverage3.xml"
 
+      - name: Stop SQL Server container
+        run: docker stop ${{ job.services.mssql.id }}
+
       - name: Run integration tests and generate coverage
         env:
           INTEGRATION_TESTS_DB_CONNECTION_STRING: ${{ vars.INTEGRATION_TESTS_DB_CONNECTION_STRING }}
