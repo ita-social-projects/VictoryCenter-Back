@@ -255,7 +255,7 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         });
         await using var app = builder.Build();
         var initialize = typeof(ServicesConfiguration).GetMethod("CreateInitialMainPageAsync", BindingFlags.NonPublic | BindingFlags.Static)!;
-        await (Task)initialize.Invoke(null, [app])!;
+        await (Task)initialize.Invoke(null, [app.Services])!;
     }
 
     private async Task AssertSingleAggregateAsync()
