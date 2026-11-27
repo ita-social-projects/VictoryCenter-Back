@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Transactions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
@@ -632,6 +633,16 @@ public class RepositoryWrapper : IRepositoryWrapper
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         return _victoryCenterDbContext.Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(
+        System.Data.IsolationLevel isolationLevel,
+        CancellationToken cancellationToken)
+    {
+        var database = _victoryCenterDbContext.Database;
+        return database.IsRelational()
+            ? database.BeginTransactionAsync(isolationLevel, cancellationToken)
+            : BeginTransactionAsync(cancellationToken);
     }
 
     public TransactionScope BeginTransaction()

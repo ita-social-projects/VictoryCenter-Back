@@ -1,3 +1,4 @@
+using System.Data;
 using AutoMapper;
 using FluentResults;
 using FluentValidation;
@@ -42,7 +43,8 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
     {
         try
         {
-            using var transaction = _repositoryWrapper.BeginTransaction();
+            await using var transaction = await _repositoryWrapper.BeginTransactionAsync(
+                IsolationLevel.Serializable, cancellationToken);
 
             await _validator.ValidateAndThrowAsync(request, cancellationToken);
 
@@ -77,9 +79,10 @@ public class UpdateMainPageHandler : IRequestHandler<UpdateMainPageCommand, Resu
                 return Result.Fail<MainPageDto>(ErrorMessagesConstants.FailedToUpdateEntityInDatabase(typeof(MainPageEntity)));
             }
 
-            transaction.Complete();
+            var result = _mapper.Map<MainPageEntity, MainPageDto>(resultEntity);
+            await transaction.CommitAsync(cancellationToken);
 
-            return Result.Ok(_mapper.Map<MainPageEntity, MainPageDto>(resultEntity));
+            return Result.Ok(result);
         }
         catch (ValidationException vex)
         {

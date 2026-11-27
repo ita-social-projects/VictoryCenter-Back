@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
@@ -267,12 +269,19 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             },
         };
 
-        var response = await _fixture.Client.PutAsJsonAsync("/api/MainPage", dto);
+        using var response = await _fixture.PublishWithPoolInvalidationAsync(dto);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var verificationScope = _fixture.Services.CreateScope();
         var persisted = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        Assert.Equal(4, await persisted.Metrics.CountAsync());
+        var statistics = await persisted.ImpactStatistics.Include(s => s.Metrics).SingleAsync();
+        Assert.Equal(page.Id, statistics.MainPageId);
+        Assert.Equal(Enum.GetValues<MetricType>(), statistics.Metrics.Select(m => m.Type).OrderBy(type => type));
+        Assert.All(statistics.Metrics, metric =>
+        {
+            Assert.True(metric.Id > 0);
+            Assert.Equal(123, metric.Value);
+        });
     }
 
     [SqlServerTheory]
@@ -363,13 +372,129 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             ImpactStatistics = dto.ImpactStatistics with { Metrics = metrics },
         };
 
-        var response = await _fixture.Client.PutAsJsonAsync("/api/MainPage", dto);
+        var firstSaveSucceeded = false;
+        using var response = await _fixture.PublishAsync(dto, _ => firstSaveSucceeded = true);
 
+        Assert.True(firstSaveSucceeded);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(before, await SnapshotAsync());
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         Assert.Equal(page.Title, (await db.MainPages.SingleAsync()).Title);
+    }
+
+    [SqlServerFact]
+    public async Task Publish_RaisedFundsAndReportSettingsCommitOrRollBackWithMainPage()
+    {
+        const int incomeUah = 800;
+        const int incomeUsd = 20;
+        var page = await SeedAsync();
+        int auditCount;
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var settings = await db.ReportFundsExpendituresSettings.SingleAsync();
+            settings.HasUnpublishedChanges = false;
+            db.ReportFundsExpendituresRecords.Add(new ReportFundsExpendituresRecord
+            {
+                Category = new ReportFundsExpendituresCategory
+                {
+                    Name = "Main Page test income",
+                    Type = ReportFundsExpendituresType.Income,
+                },
+                Type = ReportFundsExpendituresType.Income,
+                ReportingYear = settings.ProgramExpendituresReportingYear,
+                AmountUah = incomeUah,
+                AmountUsd = incomeUsd,
+            });
+            await db.SaveChangesAsync();
+            auditCount = await db.AuditLogs.CountAsync();
+        }
+
+        var before = await SnapshotAsync();
+        var dto = ToUpdate(page);
+        dto = dto with
+        {
+            Title = "Published with Raised Funds",
+            ImpactStatistics = dto.ImpactStatistics! with
+            {
+                Metrics = [.. dto.ImpactStatistics.Metrics.Select(metric => metric.Type == MetricType.Raised
+                    ? metric with { IsAutoSynced = true }
+                    : metric)],
+            },
+        };
+
+        var fundsSaved = false;
+        using var failed = await _fixture.PublishAsync(dto, context =>
+        {
+            var raised = context.ChangeTracker.Entries<Metric>()
+                .SingleOrDefault(entry => entry.Entity.Type == MetricType.Raised)?.Entity;
+            var settings = context.ChangeTracker.Entries<DAL.Entities.ReportFundsExpendituresSettings>()
+                .SingleOrDefault()?.Entity;
+            if (raised?.Value == incomeUah && settings?.HasUnpublishedChanges == true)
+            {
+                fundsSaved = true;
+                throw new DbUpdateException("Injected failure after saving the Raised Funds changes.");
+            }
+        });
+
+        Assert.True(fundsSaved);
+        Assert.Equal(HttpStatusCode.BadRequest, failed.StatusCode);
+        Assert.Equal(before, await SnapshotAsync());
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            Assert.Equal(page.Title, (await db.MainPages.SingleAsync()).Title);
+            Assert.False((await db.ReportFundsExpendituresSettings.SingleAsync()).HasUnpublishedChanges);
+            Assert.Equal(auditCount, await db.AuditLogs.CountAsync());
+        }
+
+        using var saved = await _fixture.Client.PutAsJsonAsync("/api/MainPage", dto);
+
+        Assert.Equal(HttpStatusCode.OK, saved.StatusCode);
+        var response = (await saved.Content.ReadFromJsonAsync<MainPageDto>())!;
+        var reportedMetric = Assert.Single(response.ImpactStatistics!.Metrics, metric => metric.Type == MetricType.Raised);
+        Assert.Equal(incomeUah, reportedMetric.Value);
+        using var verificationScope = _fixture.Services.CreateScope();
+        var persisted = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        Assert.Equal(dto.Title, (await persisted.MainPages.SingleAsync()).Title);
+        var persistedMetric = await persisted.Metrics.Include(metric => metric.Localizations)
+            .SingleAsync(metric => metric.Type == MetricType.Raised);
+        Assert.Equal(reportedMetric.Id, persistedMetric.Id);
+        Assert.Equal(incomeUah, persistedMetric.Value);
+        Assert.True(persistedMetric.IsAutoSynced);
+        Assert.Equal(incomeUsd.ToString(CultureInfo.InvariantCulture), Assert.Single(persistedMetric.Localizations).Value);
+        Assert.True((await persisted.ReportFundsExpendituresSettings.SingleAsync()).HasUnpublishedChanges);
+        Assert.True(await persisted.AuditLogs.CountAsync() > auditCount);
+    }
+
+    [SqlServerFact]
+    public async Task Publish_KeepsMetricReadLocksUntilCommit()
+    {
+        var page = await SeedAsync();
+        var metricId = page.ImpactStatistics!.Metrics.First().Id;
+        var dto = ToUpdate(page) with { Title = "Updated while retaining metric locks", ImpactStatistics = null };
+
+        using var scope = _fixture.Services.CreateScope();
+        var competingDb = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        await competingDb.Database.OpenConnectionAsync();
+        await competingDb.Database.ExecuteSqlRawAsync("SET LOCK_TIMEOUT 0");
+        var competingMetric = competingDb.Metrics.Where(metric => metric.Id == metricId);
+
+        Exception? competingWriteFailure = null;
+        using var response = await _fixture.PublishAsync(dto, _ =>
+        {
+            // This publish only writes the page title. A write to a metric is blocked by the retained read locks.
+            competingWriteFailure = Record.Exception(() =>
+            {
+                competingMetric.ExecuteUpdate(setters => setters.SetProperty(metric => metric.Value, 456));
+            });
+        });
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var lockTimeout = Assert.IsType<SqlException>(competingWriteFailure?.GetBaseException());
+        Assert.Equal(1222, lockTimeout.Number);
+        Assert.Equal(1, await competingMetric.ExecuteUpdateAsync(setters => setters.SetProperty(metric => metric.Value, 456)));
     }
 
     [SqlServerTheory]

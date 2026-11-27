@@ -204,7 +204,7 @@ public interface IRepositoryWrapper
     Task ReloadAsync<TEntity>(TEntity entity, CancellationToken cancellationToken = default)
         where TEntity : class;
 
-    /// <summary>Legacy ambient-scope transaction. Prefer <see cref="BeginTransactionAsync"/> for new code.</summary>
+    /// <summary>Legacy ambient-scope transaction. Prefer <see cref="BeginTransactionAsync(CancellationToken)"/> for new code.</summary>
     /// <returns>A <see cref="TransactionScope"/> with async flow enabled.</returns>
     TransactionScope BeginTransaction();
 
@@ -212,4 +212,12 @@ public interface IRepositoryWrapper
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An <see cref="IDbContextTransaction"/> that must be committed or disposed.</returns>
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Begins an explicit EF Core transaction with the requested relational isolation level.</summary>
+    /// <param name="isolationLevel">The isolation level for the relational transaction.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>An <see cref="IDbContextTransaction"/> that must be committed or disposed.</returns>
+    Task<IDbContextTransaction> BeginTransactionAsync(
+        System.Data.IsolationLevel isolationLevel,
+        CancellationToken cancellationToken);
 }

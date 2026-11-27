@@ -219,7 +219,7 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
             },
         };
 
-        var response = await _fixture.Client.PutAsJsonAsync("/api/MainPage", update);
+        using var response = await _fixture.PublishWithPoolInvalidationAsync(update);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var scope = _fixture.Services.CreateScope();

@@ -1,9 +1,10 @@
-using System.Transactions;
+using System.Data;
 using AutoMapper;
 using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.Constants;
@@ -32,6 +33,7 @@ public class UpdateMainPageHandlerTests
     private readonly Mock<IMapper> _mapperMock = new();
     private readonly Mock<IMediator> _mediatorMock = new();
     private readonly Mock<IValidator<UpdateMainPageCommand>> _validatorMock = new();
+    private readonly Mock<IDbContextTransaction> _transactionMock = new();
 
     public UpdateMainPageHandlerTests()
     {
@@ -44,8 +46,8 @@ public class UpdateMainPageHandlerTests
             .Returns(_imageRepositoryMock.Object);
 
         _repositoryWrapperMock
-            .Setup(x => x.BeginTransaction())
-            .Returns(new TransactionScope(TransactionScopeAsyncFlowOption.Enabled));
+            .Setup(x => x.BeginTransactionAsync(IsolationLevel.Serializable, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_transactionMock.Object);
     }
 
     [Fact]
@@ -115,6 +117,8 @@ public class UpdateMainPageHandlerTests
 
         _mapperMock.Verify(x => x.Map(command.UpdateMainPageDto.MainDonations, existingEntity.MainDonations), Times.Once);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Once);
+        _transactionMock.Verify(x => x.CommitAsync(CancellationToken.None), Times.Once);
+        _transactionMock.Verify(x => x.DisposeAsync(), Times.Once);
         _imageRepositoryMock.Verify(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()), Times.Once);
         _validatorMock.Verify(
             x => x.ValidateAsync(It.IsAny<ValidationContext<UpdateMainPageCommand>>(), It.IsAny<CancellationToken>()),
@@ -137,8 +141,10 @@ public class UpdateMainPageHandlerTests
         Assert.False(result.IsSuccess);
         Assert.Equal("Validation failed", result.Errors[0].Message);
 
-        _repositoryWrapperMock.Verify(x => x.BeginTransaction(), Times.Once);
+        _repositoryWrapperMock.Verify(x => x.BeginTransactionAsync(IsolationLevel.Serializable, CancellationToken.None), Times.Once);
         _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Never);
+        _transactionMock.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _transactionMock.Verify(x => x.DisposeAsync(), Times.Once);
     }
 
     [Fact]
