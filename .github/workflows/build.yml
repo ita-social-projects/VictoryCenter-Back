@@ -119,7 +119,7 @@ jobs:
       - name: Run integration tests and generate coverage
         env:
           INTEGRATION_TESTS_DB_CONNECTION_STRING: ${{ vars.INTEGRATION_TESTS_DB_CONNECTION_STRING }}
-        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release --no-restore --filter Category!=SqlServer" -f xml -o "coverage2.xml"
+        run: dotnet-coverage collect "dotnet test VictoryCenter/VictoryCenter.IntegrationTests/VictoryCenter.IntegrationTests.csproj --configuration Release --no-restore --filter Category!=SqlServer --blame-hang-timeout 5m --blame-hang-dump-type none" -f xml -o "coverage2.xml"
 
       - name: Merge coverage reports
         run:  dotnet-coverage merge coverage1.xml coverage2.xml coverage3.xml -f xml -o coverage.xml
