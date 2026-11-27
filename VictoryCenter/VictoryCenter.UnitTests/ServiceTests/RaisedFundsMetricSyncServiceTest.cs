@@ -45,12 +45,12 @@ public class RaisedFundsMetricSyncServiceTests
     }
 
     [Fact]
-    public async Task ApplySyncAsync_ShouldReturnFalseAndDoNothing_WhenMetricTypeIsNotRaised()
+    public async Task ApplySyncAsync_ShouldReturnFalseAndDoNothing_WhenMetricKindIsNotRaisedFunds()
     {
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Partners,
+            Kind = MetricKind.Standard,
             IsAutoSynced = true,
             Value = 100
         };
@@ -68,7 +68,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = false,
             Value = 100
         };
@@ -93,7 +93,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 1000,
             Localizations = new List<MetricLocalization> { existingEnglishLoc }
@@ -124,7 +124,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 5000,
             Localizations = new List<MetricLocalization> { existingEnglishLoc }
@@ -147,7 +147,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 100,
             Localizations = new List<MetricLocalization>
@@ -182,7 +182,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 0,
             Localizations = new List<MetricLocalization>()
@@ -203,7 +203,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 0,
             Localizations = new List<MetricLocalization>()
@@ -225,7 +225,7 @@ public class RaisedFundsMetricSyncServiceTests
         var metric = new Metric
         {
             Id = 1,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 100,
             Localizations = new List<MetricLocalization>()

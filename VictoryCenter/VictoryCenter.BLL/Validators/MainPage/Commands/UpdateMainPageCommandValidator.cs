@@ -61,31 +61,28 @@ public class UpdateMainPageCommandValidator : AbstractValidator<UpdateMainPageCo
             return true;
         }
 
-        if (existingMainPage.ImpactStatistics is null &&
-            statDto.Metrics.Count != MainPageConstants.ImpactStatistic.ExactMetricCount)
+        if (existingMainPage.ImpactStatistics is null)
         {
-            return false;
+            // A new statistics block cannot reference existing metrics; its composition is checked by UpdateImpactStatisticDtoValidator.
+            return statDto.Metrics.All(m => m.Id is null);
         }
 
-        return MetricsMatchExistingStatistics(statDto.Metrics, existingMainPage.ImpactStatistics?.Metrics ?? []);
+        return MetricsMatchExistingStatistics(statDto.Metrics, existingMainPage.ImpactStatistics.Metrics);
     }
 
     private static bool MetricsMatchExistingStatistics(
         ICollection<UpdateMetricDto> metrics,
         ICollection<Metric> existingMetrics)
     {
-        var requestedIds = metrics
-            .Where(m => m.Id.HasValue)
-            .Select(m => m.Id!.Value)
-            .ToHashSet();
-
-        if (!requestedIds.SetEquals(existingMetrics.Select(m => m.Id)))
+        // Requiring every existing Id with its stored kind prevents replacing a metric to change its kind.
+        if (metrics.Any(m => m.Id is null))
         {
             return false;
         }
 
-        return metrics.All(metric => metric.Id.HasValue
-            ? existingMetrics.Any(existing => existing.Id == metric.Id.Value && existing.Type == metric.Type)
-            : existingMetrics.All(existing => existing.Type != metric.Type));
+        var existingKindsById = existingMetrics.ToDictionary(m => m.Id, m => m.Kind);
+
+        return existingKindsById.Keys.ToHashSet().SetEquals(metrics.Select(m => m.Id!.Value))
+            && metrics.All(m => existingKindsById[m.Id!.Value] == m.Kind);
     }
 }

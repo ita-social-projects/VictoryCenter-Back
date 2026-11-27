@@ -80,6 +80,14 @@ namespace VictoryCenter.WebAPI.Extensions;
 
 public static class ServicesConfiguration
 {
+    private static readonly (string Name, MetricKind Kind, LegacyMetricType LegacyType)[] DefaultMetrics =
+    [
+        ("Партнерів", MetricKind.Standard, LegacyMetricType.Partners),
+        ("Програм", MetricKind.Standard, LegacyMetricType.Programs),
+        ("Зібрано", MetricKind.RaisedFunds, LegacyMetricType.Raised),
+        ("Годин терапії", MetricKind.Standard, LegacyMetricType.TherapyHours),
+    ];
+
     public static void AddApplicationServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddOptions<StorageLifecycleOptions>()
@@ -832,20 +840,7 @@ public static class ServicesConfiguration
 
             if (existingPage?.ImpactStatistics is { } statistics)
             {
-                var existingTypes = statistics.Metrics.Select(m => m.Type).ToHashSet();
-                var missingMetrics = CreateDefaultMetrics(timeProvider).Where(m => !existingTypes.Contains(m.Type)).ToList();
-                if (missingMetrics.Count > 0)
-                {
-                    var priority = statistics.Metrics.Count == 0 ? -1 : statistics.Metrics.Max(m => m.Priority);
-                    foreach (var metric in missingMetrics)
-                    {
-                        priority = checked(priority + 1);
-                        metric.Priority = priority;
-                        statistics.Metrics.Add(metric);
-                    }
-
-                    await dbContext.SaveChangesAsync();
-                }
+                await SeedMissingMetricsAsync(dbContext, statistics, timeProvider, logger);
             }
 
             await transaction.CommitAsync();
@@ -888,6 +883,7 @@ public static class ServicesConfiguration
         };
 
         dbContext.MainPages.Add(mainPage);
+        PreferDefaultLegacyTypes(dbContext, mainPage.ImpactStatistics.Metrics);
 
         try
         {
@@ -901,13 +897,86 @@ public static class ServicesConfiguration
 
     private static List<Metric> CreateDefaultMetrics(TimeProvider timeProvider)
     {
-        return
-        [
-            new Metric { Type = MetricType.Partners, Name = "Партнерів", Priority = 0, CreatedAt = timeProvider.GetUtcNow() },
-            new Metric { Type = MetricType.Programs, Name = "Програм", Priority = 1, CreatedAt = timeProvider.GetUtcNow() },
-            new Metric { Type = MetricType.Raised, Name = "Зібрано", Priority = 2, CreatedAt = timeProvider.GetUtcNow() },
-            new Metric { Type = MetricType.TherapyHours, Name = "Годин терапії", Priority = 3, CreatedAt = timeProvider.GetUtcNow() },
-        ];
+        return [.. DefaultMetrics.Select((metric, index) => new Metric
+        {
+            Kind = metric.Kind,
+            Name = metric.Name,
+            Priority = index,
+            CreatedAt = timeProvider.GetUtcNow(),
+        })];
+    }
+
+    // The DbContext keeps the preferred type when it is still free in the block.
+    private static void PreferDefaultLegacyTypes(VictoryCenterDbContext dbContext, IEnumerable<Metric> metrics)
+    {
+        foreach (var metric in metrics)
+        {
+            dbContext.Entry(metric).Property(Metric.LegacyTypeProperty).CurrentValue =
+                DefaultMetrics.Single(defaultMetric => defaultMetric.Name == metric.Name).LegacyType;
+        }
+    }
+
+    private static async Task SeedMissingMetricsAsync(
+        VictoryCenterDbContext dbContext,
+        ImpactStatistics statistics,
+        TimeProvider timeProvider,
+        ILogger logger)
+    {
+        var standardCount = statistics.Metrics.Count(m => m.Kind == MetricKind.Standard);
+        var raisedFundsCount = statistics.Metrics.Count(m => m.Kind == MetricKind.RaisedFunds);
+
+        // Adding to an over-full block would create a fifth metric; leave it for a manual fix.
+        if (standardCount > MainPageConstants.ImpactStatistic.ExactStandardMetricCount ||
+            raisedFundsCount > MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount)
+        {
+            logger.LogWarning(
+                "Impact statistics block {StatisticsId} has {StandardCount} Standard and {RaisedFundsCount} RaisedFunds metrics, " +
+                "but exactly {RequiredStandardCount} and {RequiredRaisedFundsCount} are required. Missing metrics were not seeded; fix the block manually.",
+                statistics.Id,
+                standardCount,
+                raisedFundsCount,
+                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
+                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount);
+            return;
+        }
+
+        var missingMetrics = CreateMissingDefaultMetrics(statistics.Metrics, timeProvider);
+        if (missingMetrics.Count == 0)
+        {
+            return;
+        }
+
+        var priority = statistics.Metrics.Count == 0 ? -1 : statistics.Metrics.Max(m => m.Priority);
+        foreach (var metric in missingMetrics)
+        {
+            priority = checked(priority + 1);
+            metric.Priority = priority;
+            statistics.Metrics.Add(metric);
+        }
+
+        dbContext.ChangeTracker.DetectChanges();
+        PreferDefaultLegacyTypes(dbContext, missingMetrics);
+        await dbContext.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Returns the default metrics needed to fill an existing block up to the required kind composition.
+    /// Standard metrics can be renamed, so a missing one cannot be identified exactly; default names that
+    /// are not already used in the block are preferred.
+    /// </summary>
+    private static List<Metric> CreateMissingDefaultMetrics(ICollection<Metric> existingMetrics, TimeProvider timeProvider)
+    {
+        var existingNames = existingMetrics.Select(m => m.Name).ToHashSet();
+
+        return CreateDefaultMetrics(timeProvider)
+            .GroupBy(m => m.Kind)
+            .SelectMany(defaults =>
+            {
+                var missingCount = defaults.Count() - existingMetrics.Count(m => m.Kind == defaults.Key);
+                return defaults.OrderBy(m => existingNames.Contains(m.Name)).Take(Math.Max(missingCount, 0));
+            })
+            .OrderBy(m => m.Priority)
+            .ToList();
     }
 
     private static bool IsUniqueConstraintViolation(DbUpdateException ex)

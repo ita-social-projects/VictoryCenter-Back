@@ -3,6 +3,7 @@ using FluentValidation;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.Helpers;
 
 namespace VictoryCenter.BLL.Validators.MainPage.Dto;
 
@@ -29,7 +30,13 @@ public abstract class BaseImpactStatisticDtoValidator<TDto, TMetric> : AbstractV
         RuleFor(metricsSelector)
             .Cascade(CascadeMode.Stop)
             .NotNull()
-            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics"));
+            .WithMessage(ErrorMessagesConstants.PropertyIsRequired("Metrics"))
+            .Must(m => m.Count == MainPageConstants.ImpactStatistic.ExactMetricCount)
+            .WithMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount))
+            .Must(metrics => MetricValidationHelper.HasRequiredKindComposition(metrics))
+            .WithMessage(ErrorMessagesConstants.MetricKindsMustMatchRequiredComposition(
+                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
+                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount));
 
         RuleForEach(enumerableSelector)
             .NotNull()

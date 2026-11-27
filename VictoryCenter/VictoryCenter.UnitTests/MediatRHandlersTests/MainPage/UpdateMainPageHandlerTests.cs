@@ -9,6 +9,8 @@ using VictoryCenter.BLL.Commands.Admin.MainPage.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage;
+using VictoryCenter.BLL.DTOs.Admin.Localization.MainPage.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainAboutUs;
 using VictoryCenter.BLL.DTOs.Admin.MainDonations;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
@@ -18,6 +20,7 @@ using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
+using VictoryCenter.DAL.Repositories.Interfaces.Localization.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.MainPage;
 using VictoryCenter.DAL.Repositories.Interfaces.Media;
 using VictoryCenter.DAL.Repositories.Options;
@@ -334,81 +337,36 @@ public class UpdateMainPageHandlerTests
     }
 
     [Fact]
-    public async Task Handle_ShouldSyncMetrics_WhenMetricsAreAdded()
+    public async Task Handle_ShouldOnlyUpdateExistingMetricsAndKeepTheirKinds_WhenRequestContainsUnknownMetrics()
     {
         // Arrange
         var entity = GetExistingMainPageEntity(1);
+        var existingMetric = entity.ImpactStatistics!.Metrics.Single();
 
-        var command = new UpdateMainPageCommand(new UpdateMainPageDto
+        var command = new UpdateMainPageCommand(GetValidUpdateDto(entity) with
         {
-            Title = "Updated main page title",
-            Description = "Updated main page description long enough",
-            ImageId = 5,
-            MainAboutUs = new UpdateMainAboutUsDto
+            ImpactStatistics = GetValidUpdateDto(entity).ImpactStatistics! with
             {
-                Title = "Updated about us title",
-                Description = "Updated about us description long enough",
-            },
-            MainPartners = new UpdateMainPartnersDto
-            {
-                Title = "Updated partners title",
-                Description = "Updated partners description long enough",
-            },
-            ImpactStatistics = new UpdateImpactStatisticDto
-            {
-                Id = entity.ImpactStatistics!.Id,
-                Title = "Updated impact stat title",
-                ImageId = 6,
                 Metrics =
                 [
                     new UpdateMetricDto
                     {
-                        Id = entity.ImpactStatistics!.Metrics.First().Id,
+                        Id = existingMetric.Id,
                         Value = 999,
-                        Name = "updated-name",
-                        Type = MetricType.Raised,
+                        Name = "renamed-metric",
+                        Kind = MetricKind.Standard,
                     },
                     new UpdateMetricDto
                     {
                         Value = 123,
                         Name = "new-metric",
-                        Type = MetricType.Partners,
+                        Kind = MetricKind.Standard,
                     },
                 ],
             },
         });
 
-        SetupValidationSuccess();
-
-        _mainPageRepositoryMock
-            .SetupSequence(x => x.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<DAL.Entities.MainPage>?>()))
-            .ReturnsAsync(entity)
-            .ReturnsAsync(entity);
-
-        _imageRepositoryMock
-            .Setup(x => x.GetAllAsync(It.IsAny<QueryOptions<Image>?>()))
-            .ReturnsAsync([new Image { Id = 5 }, new Image { Id = 6 }, new Image { Id = 7 }]);
-
-        _mapperMock
-            .Setup(x => x.Map(command.UpdateMainPageDto.MainAboutUs, entity.MainAboutUs))
-            .Verifiable();
-        _mapperMock
-            .Setup(x => x.Map(command.UpdateMainPageDto.MainPartners, entity.MainPartners))
-            .Verifiable();
-        _mapperMock
-            .Setup(x => x.Map(command.UpdateMainPageDto.MainDonations, entity.MainDonations))
-            .Verifiable();
-        _mapperMock
-            .Setup(x => x.Map<Metric>(It.IsAny<UpdateMetricDto>()))
-            .Returns((UpdateMetricDto dto) => new Metric { Value = dto.Value, Name = dto.Name, Type = dto.Type });
-
-        _repositoryWrapperMock
-            .Setup(x => x.SaveChangesAsync())
-            .ReturnsAsync(1);
-
-        _mapperMock
-            .Setup(x => x.Map<DAL.Entities.MainPage, MainPageDto>(entity))
-            .Returns(new MainPageDto { Id = entity.Id });
+        SetupSuccessfulUpdate(entity);
 
         var handler = CreateHandler();
 
@@ -418,10 +376,115 @@ public class UpdateMainPageHandlerTests
         // Assert
         Assert.True(result.IsSuccess);
 
-        Assert.Equal("Updated impact stat title", entity.ImpactStatistics!.Title);
-        Assert.Equal(2, entity.ImpactStatistics.Metrics.Count);
-        Assert.Contains(entity.ImpactStatistics.Metrics, m => m.Id == 14 && m.Value == 999);
-        Assert.Contains(entity.ImpactStatistics.Metrics, m => m.Name == "new-metric" && m.Value == 123);
+        var metric = Assert.Single(entity.ImpactStatistics.Metrics);
+        Assert.Same(existingMetric, metric);
+        Assert.Equal(999, metric.Value);
+        Assert.Equal("renamed-metric", metric.Name);
+        Assert.Equal(MetricKind.RaisedFunds, metric.Kind);
+        _mapperMock.Verify(x => x.Map<Metric>(It.IsAny<UpdateMetricDto>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldNotPublishReportFundsChangedNotification_WhenRequestClaimsRaisedFundsKindForStandardMetric()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var existingMetric = entity.ImpactStatistics!.Metrics.Single();
+        existingMetric.Kind = MetricKind.Standard;
+
+        var command = new UpdateMainPageCommand(GetValidUpdateDto(entity) with
+        {
+            ImpactStatistics = GetValidUpdateDto(entity).ImpactStatistics! with
+            {
+                Metrics =
+                [
+                    new UpdateMetricDto
+                    {
+                        Id = existingMetric.Id,
+                        Value = 500,
+                        Name = "partners",
+                        Kind = MetricKind.RaisedFunds,
+                        IsAutoSynced = true,
+                    },
+                ],
+            },
+        });
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(MetricKind.Standard, existingMetric.Kind);
+        _mediatorMock.Verify(
+            mediator => mediator.Publish(
+                It.IsAny<ReportFundsChangedNotification>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateMetricLocalizationsInRequestOrder_WhenImpactStatisticsIsCreated()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        entity.ImpactStatistics = null;
+
+        var metricDtos = Enumerable.Range(0, 4)
+            .Select(index => new UpdateMetricDto
+            {
+                Value = 100 * (index + 1),
+                Name = $"metric-{index}",
+                Kind = index == 2 ? MetricKind.RaisedFunds : MetricKind.Standard,
+                Localization = new UpdateMetricLocalizationDto { LanguageId = 2, Name = $"localized-{index}" },
+            })
+            .ToList();
+
+        var command = new UpdateMainPageCommand(GetValidUpdateDto() with
+        {
+            ImpactStatistics = GetValidUpdateDto().ImpactStatistics! with { Metrics = metricDtos },
+        });
+
+        var createdImpactStatistics = new ImpactStatistics
+        {
+            Id = 13,
+            Title = "Updated impact statistic title",
+            Metrics = metricDtos
+                .Select((dto, index) => new Metric { Id = 40 + index, Value = dto.Value, Name = dto.Name, Kind = dto.Kind })
+                .ToList(),
+        };
+
+        _mapperMock
+            .Setup(x => x.Map<ImpactStatistics>(command.UpdateMainPageDto.ImpactStatistics))
+            .Returns(createdImpactStatistics);
+
+        var metricLocalizationsRepositoryMock = new Mock<IMetricLocalizationsRepository>();
+        var createdLocalizations = new List<MetricLocalization>();
+        metricLocalizationsRepositoryMock
+            .Setup(x => x.CreateAsync(It.IsAny<MetricLocalization>()))
+            .Callback<MetricLocalization>(createdLocalizations.Add)
+            .ReturnsAsync((MetricLocalization localization) => localization);
+        _repositoryWrapperMock
+            .SetupGet(x => x.MetricLocalizationsRepository)
+            .Returns(metricLocalizationsRepositoryMock.Object);
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(new long[] { 40, 41, 42, 43 }, createdLocalizations.Select(l => l.EntityId));
+        Assert.Equal(
+            new[] { "localized-0", "localized-1", "localized-2", "localized-3" },
+            createdLocalizations.Select(l => l.Name));
     }
 
     [Fact]
@@ -440,7 +503,7 @@ public class UpdateMainPageHandlerTests
                         Id = entity.ImpactStatistics!.Metrics.First().Id,
                         Value = 500,
                         Name = "raised",
-                        Type = MetricType.Raised,
+                        Kind = MetricKind.RaisedFunds,
                         IsAutoSynced = true,
                     },
                 ],
@@ -515,7 +578,7 @@ public class UpdateMainPageHandlerTests
                         Id = entity.ImpactStatistics!.Metrics.First().Id,
                         Value = 500,
                         Name = "raised",
-                        Type = MetricType.Raised,
+                        Kind = MetricKind.RaisedFunds,
                         IsAutoSynced = false,
                     },
                 ],
@@ -632,7 +695,7 @@ public class UpdateMainPageHandlerTests
                         Id = metric.Id,
                         Value = metric.Value + 1,
                         Name = metric.Name,
-                        Type = metric.Type,
+                        Kind = metric.Kind,
                     },
                 ],
             },
@@ -650,6 +713,140 @@ public class UpdateMainPageHandlerTests
         Assert.True(result.IsSuccess);
         Assert.Equal(TranslationStatus.Relevant, entity.ImpactStatistics.Localizations.Single().TranslationStatus);
         Assert.Equal(TranslationStatus.Outdated, metric.Localizations.Single().TranslationStatus);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldCreateImpactStatisticsLocalization_WhenLanguageHasNoTranslation()
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var sourceDto = GetSourceMatchingUpdateDto(entity);
+        var updateDto = sourceDto with
+        {
+            ImpactStatistics = sourceDto.ImpactStatistics! with
+            {
+                Localization = new UpdateImpactStatisticLocalizationDto { LanguageId = 2, Title = "Localized impact statistic" },
+            },
+        };
+
+        SetupSuccessfulUpdate(entity);
+
+        var localizationsRepositoryMock = new Mock<IImpactStatisticsLocalizationsRepository>();
+        var createdLocalizations = new List<ImpactStatisticsLocalization>();
+        localizationsRepositoryMock
+            .Setup(x => x.CreateAsync(It.IsAny<ImpactStatisticsLocalization>()))
+            .Callback<ImpactStatisticsLocalization>(createdLocalizations.Add)
+            .ReturnsAsync((ImpactStatisticsLocalization localization) => localization);
+        _repositoryWrapperMock
+            .SetupGet(x => x.ImpactStatisticsLocalizationsRepository)
+            .Returns(localizationsRepositoryMock.Object);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateMainPageCommand(updateDto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        var created = Assert.Single(createdLocalizations);
+        Assert.Equal(entity.ImpactStatistics!.Id, created.EntityId);
+        Assert.Equal(2L, created.LanguageId);
+        Assert.Equal("Localized impact statistic", created.Title);
+        _repositoryWrapperMock.Verify(x => x.SaveChangesAsync(), Times.Exactly(2));
+    }
+
+    [Theory]
+    [InlineData("Old localized title", "New localized title", TranslationStatus.Relevant)]
+    [InlineData("Same localized title", "Same localized title", TranslationStatus.Outdated)]
+    public async Task Handle_ShouldUpdateExistingImpactStatisticsLocalization_AndMarkRelevantOnlyWhenTitleChanges(
+        string currentTitle,
+        string requestedTitle,
+        TranslationStatus expectedStatus)
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var localization = new ImpactStatisticsLocalization
+        {
+            EntityId = entity.ImpactStatistics!.Id,
+            LanguageId = 2,
+            Title = currentTitle,
+            TranslationStatus = TranslationStatus.Outdated,
+        };
+        entity.ImpactStatistics.Localizations = [localization];
+
+        var sourceDto = GetSourceMatchingUpdateDto(entity);
+        var updateDto = sourceDto with
+        {
+            ImpactStatistics = sourceDto.ImpactStatistics! with
+            {
+                Localization = new UpdateImpactStatisticLocalizationDto { LanguageId = 2, Title = requestedTitle },
+            },
+        };
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateMainPageCommand(updateDto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(requestedTitle, localization.Title);
+        Assert.Equal(expectedStatus, localization.TranslationStatus);
+    }
+
+    [Theory]
+    [InlineData("old name", "100", "new name", "100", TranslationStatus.Relevant)]
+    [InlineData("same name", "100", "same name", "250", TranslationStatus.Relevant)]
+    [InlineData("same name", "100", "same name", "100", TranslationStatus.Outdated)]
+    public async Task Handle_ShouldUpdateExistingMetricLocalization_AndMarkRelevantOnlyWhenNameOrValueChanges(
+        string currentName,
+        string currentValue,
+        string requestedName,
+        string requestedValue,
+        TranslationStatus expectedStatus)
+    {
+        // Arrange
+        var entity = GetExistingMainPageEntity(1);
+        var metric = entity.ImpactStatistics!.Metrics.Single();
+        var localization = new MetricLocalization
+        {
+            EntityId = metric.Id,
+            LanguageId = 2,
+            Name = currentName,
+            Value = currentValue,
+            TranslationStatus = TranslationStatus.Outdated,
+        };
+        metric.Localizations = [localization];
+
+        var sourceDto = GetSourceMatchingUpdateDto(entity);
+        var updateDto = sourceDto with
+        {
+            ImpactStatistics = sourceDto.ImpactStatistics! with
+            {
+                Metrics =
+                [
+                    sourceDto.ImpactStatistics.Metrics.Single() with
+                    {
+                        Localization = new UpdateMetricLocalizationDto { LanguageId = 2, Name = requestedName, Value = requestedValue },
+                    },
+                ],
+            },
+        };
+
+        SetupSuccessfulUpdate(entity);
+
+        var handler = CreateHandler();
+
+        // Act
+        var result = await handler.Handle(new UpdateMainPageCommand(updateDto), CancellationToken.None);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(requestedName, localization.Name);
+        Assert.Equal(requestedValue, localization.Value);
+        Assert.Equal(expectedStatus, localization.TranslationStatus);
     }
 
     private UpdateMainPageHandler CreateHandler() => new(
@@ -732,7 +929,7 @@ public class UpdateMainPageHandlerTests
             ImageId = 6,
             Metrics =
             [
-                new UpdateMetricDto { Value = 250, Name = "families", Type = MetricType.Partners },
+                new UpdateMetricDto { Value = 250, Name = "families", Kind = MetricKind.Standard },
             ],
         },
     };
@@ -770,7 +967,7 @@ public class UpdateMainPageHandlerTests
                     Id = existing.ImpactStatistics!.Metrics.First().Id,
                     Value = 250,
                     Name = "families",
-                    Type = MetricType.Raised,
+                    Kind = MetricKind.Standard,
                 },
             ],
         },
@@ -813,7 +1010,7 @@ public class UpdateMainPageHandlerTests
                     Id = 14,
                     Value = 100,
                     Name = "children",
-                    Type = MetricType.Raised,
+                    Kind = MetricKind.RaisedFunds,
                 },
             ],
         },
@@ -851,7 +1048,7 @@ public class UpdateMainPageHandlerTests
                     Id = metric.Id,
                     Value = metric.Value,
                     Name = metric.Name,
-                    Type = metric.Type,
+                    Kind = metric.Kind,
                     Prefix = metric.Prefix,
                     IsAutoSynced = metric.IsAutoSynced,
                 })

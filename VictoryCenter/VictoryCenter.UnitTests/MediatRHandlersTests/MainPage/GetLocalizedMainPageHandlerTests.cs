@@ -103,7 +103,7 @@ public class GetLocalizedMainPageHandlerTests
                         Id = 14,
                         Name = "Зібрано",
                         Value = 100,
-                        Type = MetricType.Raised,
+                        Kind = MetricKind.RaisedFunds,
                         Priority = 1,
                         Localizations =
                         [
@@ -121,7 +121,7 @@ public class GetLocalizedMainPageHandlerTests
                         Id = 15,
                         Name = "Партнери",
                         Value = 5,
-                        Type = MetricType.Partners,
+                        Kind = MetricKind.Standard,
                         Priority = 2,
                         Localizations = [],
                     },
@@ -150,10 +150,12 @@ public class GetLocalizedMainPageHandlerTests
         var localizedMetric = result.Value.ImpactStatistics.Metrics.Single(m => m.Id == 14);
         Assert.Equal("Raised", localizedMetric.Name);
         Assert.Equal("$100", localizedMetric.Value);
+        Assert.Equal(MetricKind.RaisedFunds, localizedMetric.Kind);
 
         var fallbackMetric = result.Value.ImpactStatistics.Metrics.Single(m => m.Id == 15);
         Assert.Equal("Партнери", fallbackMetric.Name);
         Assert.Equal("5", fallbackMetric.Value);
+        Assert.Equal(MetricKind.Standard, fallbackMetric.Kind);
     }
 
     [Fact]

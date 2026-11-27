@@ -7,8 +7,5 @@ public enum MainPageLocalizationBlock
     Partners,
     Donations,
     ImpactStatistics,
-    MetricPartners,
-    MetricPrograms,
-    MetricRaised,
-    MetricTherapyHours
+    Metric
 }

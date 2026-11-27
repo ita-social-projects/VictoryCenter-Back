@@ -27,7 +27,7 @@ public class RaisedFundsMetricSyncService : IRaisedFundsMetricSyncService
 
     public async Task<bool> ApplySyncAsync(Metric raisedMetric, CancellationToken cancellationToken)
     {
-        if (raisedMetric.Type != MetricType.Raised || !raisedMetric.IsAutoSynced)
+        if (raisedMetric.Kind != MetricKind.RaisedFunds || !raisedMetric.IsAutoSynced)
         {
             return false;
         }

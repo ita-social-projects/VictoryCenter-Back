@@ -58,13 +58,13 @@ public class CreateMetricDtoValidatorTests
     }
 
     [Fact]
-    public void Validate_ShouldHaveError_WhenTypeIsInvalid()
+    public void Validate_ShouldHaveError_WhenKindIsInvalid()
     {
-        var dto = GetValidDto() with { Type = (MetricType)999 };
+        var dto = GetValidDto() with { Kind = (MetricKind)999 };
 
         var result = _validator.TestValidate(dto);
 
-        result.ShouldHaveValidationErrorFor(x => x.Type);
+        result.ShouldHaveValidationErrorFor(x => x.Kind);
     }
 
     [Fact]
@@ -91,6 +91,6 @@ public class CreateMetricDtoValidatorTests
     {
         Value = 100,
         Name = "children",
-        Type = MetricType.Partners,
+        Kind = MetricKind.Standard,
     };
 }

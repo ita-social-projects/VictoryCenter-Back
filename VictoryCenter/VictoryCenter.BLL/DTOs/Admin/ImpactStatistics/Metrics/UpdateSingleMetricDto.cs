@@ -7,7 +7,6 @@ public record UpdateSingleMetricDto
 {
     public int? Value { get; init; }
     public string? Name { get; init; }
-    public MetricType? Type { get; init; }
     public MetricPrefix? Prefix { get; init; }
     public bool? IsAutoSynced { get; init; }
 

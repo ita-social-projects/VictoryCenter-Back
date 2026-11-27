@@ -54,7 +54,7 @@ public class SyncRaisedFundsMetricHandlerTests
         var metric = new Metric
         {
             Id = 10,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 100
         };
@@ -91,7 +91,7 @@ public class SyncRaisedFundsMetricHandlerTests
         var metric = new Metric
         {
             Id = 10,
-            Type = MetricType.Raised,
+            Kind = MetricKind.RaisedFunds,
             IsAutoSynced = true,
             Value = 5000
         };

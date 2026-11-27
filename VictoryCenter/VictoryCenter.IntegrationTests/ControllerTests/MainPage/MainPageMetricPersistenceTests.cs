@@ -17,6 +17,15 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage;
 [Collection("SharedIntegrationTests")]
 public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFixture>, IAsyncLifetime
 {
+    // Seeded in this order; a smaller count keeps the first entries.
+    private static readonly (string Name, MetricKind Kind)[] SeedMetrics =
+    [
+        ("Partners", MetricKind.Standard),
+        ("Programs", MetricKind.Standard),
+        ("Raised", MetricKind.RaisedFunds),
+        ("TherapyHours", MetricKind.Standard),
+    ];
+
     private readonly MainPageSqlServerFixture _fixture;
 
     public MainPageMetricPersistenceTests(MainPageSqlServerFixture fixture)
@@ -28,34 +37,33 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
     {
         { 0, "null" },
         { 0, "nullElement" },
-        { 0, "duplicateNewType" },
+        { 0, "addMissing" },
         { 0, "unknownNewId" },
-        { 0, "invalidNewType" },
+        { 0, "invalidNewKind" },
         { 0, "wrongStatisticsId" },
-        { 3, "incomplete" },
+        { 3, "unchangedIncomplete" },
+        { 3, "addMissing" },
         { 3, "empty" },
         { 3, "null" },
         { 3, "nullElement" },
-        { 3, "duplicateType" },
-        { 3, "invalidType" },
+        { 3, "invalidKind" },
         { 3, "duplicateId" },
         { 3, "unknownId" },
         { 3, "missingId" },
-        { 3, "swappedIds" },
-        { 3, "replaceType" },
-        { 3, "replaceWithNewType" },
-        { 3, "unknownNewId" },
+        { 3, "swappedIdsAcrossKinds" },
         { 3, "wrongStatisticsId" },
         { 4, "incomplete" },
         { 4, "empty" },
         { 4, "null" },
         { 4, "nullElement" },
-        { 4, "duplicateType" },
-        { 4, "invalidType" },
+        { 4, "noRaisedFunds" },
+        { 4, "swappedKinds" },
+        { 4, "replaceWithNewMetric" },
+        { 4, "invalidKind" },
         { 4, "duplicateId" },
         { 4, "unknownId" },
         { 4, "missingId" },
-        { 4, "swappedIds" },
+        { 4, "swappedIdsAcrossKinds" },
         { 4, "wrongStatisticsId" },
     };
 
@@ -101,10 +109,9 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         Assert.Equal("123 translated", hidden.Localizations.Single().Value);
     }
 
+    // Incomplete blocks are completed by startup seeding, so only page fields stay editable until then.
     [SqlServerTheory]
-    [InlineData(0, true)]
     [InlineData(0, false)]
-    [InlineData(3, true)]
     [InlineData(3, false)]
     [InlineData(4, true)]
     [InlineData(4, false)]
@@ -141,33 +148,35 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             case "nullElement":
                 metrics.Add(null!);
                 break;
-            case "duplicateNewType":
-                metrics.Add(new UpdateMetricDto { Name = "Partners", Type = MetricType.Partners });
-                metrics.Add(new UpdateMetricDto { Name = "Partners again", Type = MetricType.Partners });
+            case "addMissing":
+                metrics.AddRange(SeedMetrics.Skip(existingCount)
+                    .Select(seed => new UpdateMetricDto { Name = seed.Name, Kind = seed.Kind, Value = 123 }));
                 break;
             case "unknownNewId":
-                metrics.Add(new UpdateMetricDto { Id = long.MaxValue, Name = "Hours", Type = MetricType.TherapyHours });
+                metrics.Add(new UpdateMetricDto { Id = long.MaxValue, Name = "Hours", Kind = MetricKind.Standard });
                 break;
-            case "invalidNewType":
-                metrics.Add(new UpdateMetricDto { Name = "Invalid type", Type = (MetricType)999 });
-                break;
-            case "replaceType":
-                metrics[0] = metrics[0] with { Type = MetricType.TherapyHours };
-                break;
-            case "replaceWithNewType":
-                metrics[0] = metrics[0] with { Id = null, Type = MetricType.TherapyHours };
+            case "invalidNewKind":
+                metrics.Add(new UpdateMetricDto { Name = "Invalid kind", Kind = (MetricKind)999 });
                 break;
             case "incomplete":
-                metrics.RemoveAll(m => m.Type == MetricType.Programs);
+                metrics.RemoveAll(m => m.Name == "Programs");
                 break;
             case "empty":
                 metrics.Clear();
                 break;
-            case "duplicateType":
-                metrics[0] = metrics[0] with { Type = metrics[1].Type };
+            case "noRaisedFunds":
+                metrics = [.. metrics.Select(m => m with { Kind = MetricKind.Standard })];
                 break;
-            case "invalidType":
-                metrics[0] = metrics[0] with { Type = (MetricType)999 };
+            case "swappedKinds":
+                // Keeps a valid 3 Standard + 1 RaisedFunds composition, but kinds no longer match the stored ones.
+                metrics[0] = metrics[0] with { Kind = MetricKind.RaisedFunds };
+                metrics[2] = metrics[2] with { Kind = MetricKind.Standard };
+                break;
+            case "replaceWithNewMetric":
+                metrics[0] = metrics[0] with { Id = null };
+                break;
+            case "invalidKind":
+                metrics[0] = metrics[0] with { Kind = (MetricKind)999 };
                 break;
             case "duplicateId":
                 metrics[0] = metrics[0] with { Id = metrics[1].Id };
@@ -178,8 +187,9 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             case "missingId":
                 metrics[0] = metrics[0] with { Id = null };
                 break;
-            case "swappedIds":
-                (metrics[0], metrics[1]) = (metrics[0] with { Id = metrics[1].Id }, metrics[1] with { Id = metrics[0].Id });
+            case "swappedIdsAcrossKinds":
+                // Programs (Standard) and Raised (RaisedFunds) exchange IDs.
+                (metrics[1], metrics[2]) = (metrics[1] with { Id = metrics[2].Id }, metrics[2] with { Id = metrics[1].Id });
                 break;
         }
 
@@ -205,44 +215,25 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         Assert.Equal(page.ImpactStatistics!.Title, persisted.ImpactStatistics!.Title);
     }
 
-    [SqlServerTheory]
-    [InlineData(0, 1)]
-    [InlineData(0, 4)]
-    [InlineData(3, 4)]
-    public async Task Publish_IncompleteStatisticsCanBeInitializedExplicitly(int existingCount, int requestedCount)
+    [SqlServerFact]
+    public async Task Publish_RenamingStandardMetricsKeepsTheirIdentity()
     {
-        var page = await SeedAsync(existingCount);
-        var ids = page.ImpactStatistics!.Metrics.Select(m => m.Id).ToArray();
-        var before = await SnapshotAsync();
+        var page = await SeedAsync();
         var dto = ToUpdate(page);
-        dto = dto with
-        {
-            ImpactStatistics = dto.ImpactStatistics! with
-            {
-                Metrics = [.. Enum.GetValues<MetricType>().Take(requestedCount).Select(type =>
-                    dto.ImpactStatistics.Metrics.SingleOrDefault(m => m.Type == type) ??
-                    new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 })],
-            },
-        };
+        var metrics = dto.ImpactStatistics!.Metrics.ToList();
+        (metrics[0], metrics[1]) = (metrics[0] with { Name = metrics[1].Name }, metrics[1] with { Name = metrics[0].Name });
+        dto = dto with { ImpactStatistics = dto.ImpactStatistics with { Metrics = metrics } };
 
         var response = await _fixture.Client.PutAsJsonAsync("/api/MainPage", dto);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var metrics = await db.Metrics.ToListAsync();
-        Assert.Equal(requestedCount, metrics.Count);
-        Assert.All(ids, id => Assert.Contains(metrics, m => m.Id == id));
-        Assert.Equal(requestedCount, metrics.Select(m => m.Type).Distinct().Count());
-        Assert.Equal(before, (await SnapshotAsync()).Where(row => ids.Any(id => row.StartsWith($"{id}|"))).ToArray());
-        Assert.All(metrics.Where(m => !ids.Contains(m.Id)), metric =>
-        {
-            Assert.True(metric.Id > 0);
-            Assert.Equal(page.ImpactStatistics.Id, metric.StatisticId);
-            Assert.Equal(123, metric.Value);
-            Assert.Equal(metric.Type.ToString(), metric.Name);
-            Assert.False(metric.IsHidden);
-        });
+        var persisted = await db.Metrics.ToDictionaryAsync(m => m.Id);
+        Assert.Equal(4, persisted.Count);
+        Assert.Equal("Programs", persisted[metrics[0].Id!.Value].Name);
+        Assert.Equal("Partners", persisted[metrics[1].Id!.Value].Name);
+        Assert.All(page.ImpactStatistics!.Metrics, original => Assert.Equal(original.Kind, persisted[original.Id].Kind));
     }
 
     [SqlServerFact]
@@ -250,20 +241,14 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
     {
         var page = await SeedAsync(0);
         var dto = ToUpdate(page);
-        using (var scope = _fixture.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            db.ImpactStatistics.Remove(await db.ImpactStatistics.SingleAsync());
-            await db.SaveChangesAsync();
-        }
+        await RemoveStatisticsAsync();
 
         dto = dto with
         {
             ImpactStatistics = dto.ImpactStatistics! with
             {
                 Id = null,
-                Metrics = [.. Enum.GetValues<MetricType>()
-                    .Select(type => new UpdateMetricDto { Name = type.ToString(), Type = type, Value = 123 })],
+                Metrics = [.. SeedMetrics.Select(seed => new UpdateMetricDto { Name = seed.Name, Kind = seed.Kind, Value = 123 })],
             },
         };
 
@@ -272,7 +257,10 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         using var verificationScope = _fixture.Services.CreateScope();
         var persisted = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        Assert.Equal(4, await persisted.Metrics.CountAsync());
+        var metrics = await persisted.Metrics.ToListAsync();
+        Assert.Equal(4, metrics.Count);
+        Assert.Equal(3, metrics.Count(m => m.Kind == MetricKind.Standard));
+        Assert.Single(metrics, m => m.Kind == MetricKind.RaisedFunds);
     }
 
     [SqlServerTheory]
@@ -282,12 +270,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
     {
         var page = await SeedAsync(0);
         var dto = ToUpdate(page);
-        using (var scope = _fixture.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            db.ImpactStatistics.Remove(await db.ImpactStatistics.SingleAsync());
-            await db.SaveChangesAsync();
-        }
+        await RemoveStatisticsAsync();
 
         dto = dto with
         {
@@ -295,8 +278,8 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             ImpactStatistics = dto.ImpactStatistics! with
             {
                 Id = null,
-                Metrics = [.. Enum.GetValues<MetricType>().Take(requestedCount)
-                    .Select(type => new UpdateMetricDto { Name = type.ToString(), Type = type })],
+                Metrics = [.. SeedMetrics.Take(requestedCount)
+                    .Select(seed => new UpdateMetricDto { Name = seed.Name, Kind = seed.Kind })],
             },
         };
 
@@ -331,27 +314,19 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         Assert.Equal(456, updated.Value);
         Assert.Equal("Updated programs", updated.Name);
         Assert.Equal(hidden.Priority, updated.Priority);
+        Assert.Equal(hidden.Kind, updated.Kind);
         Assert.True(updated.IsHidden);
         Assert.Equal("Translated Programs", updated.Localizations.Single().Name);
         Assert.Equal(TranslationStatus.Outdated, updated.Localizations.Single().TranslationStatus);
     }
 
-    [SqlServerTheory]
-    [InlineData(0)]
-    [InlineData(3)]
-    [InlineData(4)]
-    public async Task Publish_LocalizationSaveFailureRollsBackPreviouslySavedFields(int existingCount)
+    [SqlServerFact]
+    public async Task Publish_LocalizationSaveFailureRollsBackPreviouslySavedFields()
     {
-        var page = await SeedAsync(existingCount);
+        var page = await SeedAsync();
         var before = await SnapshotAsync();
         var dto = ToUpdate(page);
         var metrics = dto.ImpactStatistics!.Metrics.ToList();
-        var missingType = Enum.GetValues<MetricType>().FirstOrDefault(type => metrics.All(m => m.Type != type));
-        if (existingCount < 4)
-        {
-            metrics.Add(new UpdateMetricDto { Name = missingType.ToString(), Type = missingType });
-        }
-
         metrics[^1] = metrics[^1] with
         {
             Value = 999,
@@ -422,21 +397,21 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
             ImpactStatistics = new ImpactStatistics
             {
                 Title = "Statistics title",
-                Metrics = [.. Enum.GetValues<MetricType>().Take(count).Select((type, index) => new Metric
+                Metrics = [.. SeedMetrics.Take(count).Select((seed, index) => new Metric
                 {
-                    Name = type.ToString(),
+                    Name = seed.Name,
                     Value = 123,
-                    Type = type,
+                    Kind = seed.Kind,
                     Prefix = MetricPrefix.Plus,
                     Priority = 10 - index,
-                    IsHidden = hidden && type == MetricType.Programs,
-                    IsAutoSynced = type == MetricType.Partners,
+                    IsHidden = hidden && seed.Name == "Programs",
+                    IsAutoSynced = seed.Name == "Partners",
                     Localizations =
                     [
                         new MetricLocalization
                         {
                             LanguageId = english.Id,
-                            Name = $"Translated {type}",
+                            Name = $"Translated {seed.Name}",
                             Value = "123 translated",
                             TranslationStatus = TranslationStatus.Relevant,
                         },
@@ -447,6 +422,14 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         db.MainPages.Add(page);
         await db.SaveChangesAsync();
         return page;
+    }
+
+    private async Task RemoveStatisticsAsync()
+    {
+        using var scope = _fixture.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        db.ImpactStatistics.Remove(await db.ImpactStatistics.SingleAsync());
+        await db.SaveChangesAsync();
     }
 
     private static UpdateMainPageDto ToUpdate(DAL.Entities.MainPage page) => new()
@@ -462,7 +445,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
                 Id = m.Id,
                 Name = m.Name,
                 Value = m.Value,
-                Type = m.Type,
+                Kind = m.Kind,
                 Prefix = m.Prefix,
                 IsAutoSynced = m.IsAutoSynced,
             })],
@@ -475,7 +458,7 @@ public class MainPageMetricPersistenceTests : IClassFixture<MainPageSqlServerFix
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var metrics = await db.Metrics.Include(m => m.Localizations).OrderBy(m => m.Id).ToListAsync();
         return [.. metrics.Select(m => $"{m.Id}|{m.StatisticId}|{m.CreatedAt:O}|{Convert.ToHexString(m.RowVersion)}|" +
-            $"{m.Name}|{m.Value}|{m.Type}|{m.Prefix}|{m.Priority}|{m.IsHidden}|{m.IsAutoSynced}|" +
+            $"{m.Name}|{m.Value}|{m.Kind}|{m.Prefix}|{m.Priority}|{m.IsHidden}|{m.IsAutoSynced}|" +
             string.Join(";", m.Localizations.OrderBy(l => l.LanguageId)
                 .Select(l => $"{l.EntityId}|{l.LanguageId}|{l.Name}|{l.Value}|{l.TranslationStatus}")))];
     }

@@ -48,8 +48,10 @@ public class UpdateImpactStatisticDtoValidatorTests
         {
             Metrics =
             [
-                new UpdateMetricDto { Id = 10, Value = 100, Name = "kids", Type = MetricType.Raised },
-                new UpdateMetricDto { Id = 10, Value = 200, Name = "families", Type = MetricType.Partners },
+                new UpdateMetricDto { Id = 10, Value = 100, Name = "kids", Kind = MetricKind.RaisedFunds },
+                new UpdateMetricDto { Id = 10, Value = 200, Name = "families", Kind = MetricKind.Standard },
+                new UpdateMetricDto { Id = 11, Value = 300, Name = "programs", Kind = MetricKind.Standard },
+                new UpdateMetricDto { Id = 12, Value = 400, Name = "hours", Kind = MetricKind.Standard },
             ],
         };
 
@@ -116,12 +118,68 @@ public class UpdateImpactStatisticDtoValidatorTests
             .WithErrorMessage(ErrorMessagesConstants.PropertyIsRequired(nameof(UpdateImpactStatisticDto.Metrics)));
     }
 
+    [Theory]
+    [InlineData(1)]
+    [InlineData(3)]
+    [InlineData(5)]
+    public void Validate_ShouldHaveError_WhenMetricsCountIsNot4(int count)
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics = Enumerable.Range(1, count)
+                .Select(i => new UpdateMetricDto
+                {
+                    Id = i,
+                    Value = 100,
+                    Name = $"metric-{i}",
+                    Kind = i == 1 ? MetricKind.RaisedFunds : MetricKind.Standard,
+                })
+                .ToList(),
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.MetricsMustContainExactlyNItems(MainPageConstants.ImpactStatistic.ExactMetricCount));
+    }
+
+    [Theory]
+    [InlineData(MetricKind.Standard, MetricKind.Standard, MetricKind.Standard, MetricKind.Standard)]
+    [InlineData(MetricKind.RaisedFunds, MetricKind.RaisedFunds, MetricKind.Standard, MetricKind.Standard)]
+    public void Validate_ShouldHaveError_WhenMetricKindCompositionIsInvalid(
+        MetricKind first, MetricKind second, MetricKind third, MetricKind fourth)
+    {
+        var dto = GetValidDto() with
+        {
+            Metrics =
+            [
+                new UpdateMetricDto { Id = 1, Value = 100, Name = "a", Kind = first },
+                new UpdateMetricDto { Id = 2, Value = 200, Name = "b", Kind = second },
+                new UpdateMetricDto { Id = 3, Value = 300, Name = "c", Kind = third },
+                new UpdateMetricDto { Id = 4, Value = 400, Name = "d", Kind = fourth },
+            ],
+        };
+
+        var result = _validator.TestValidate(dto);
+
+        result.ShouldHaveValidationErrorFor(x => x.Metrics)
+            .WithErrorMessage(ErrorMessagesConstants.MetricKindsMustMatchRequiredComposition(
+                MainPageConstants.ImpactStatistic.ExactStandardMetricCount,
+                MainPageConstants.ImpactStatistic.ExactRaisedFundsMetricCount));
+    }
+
     [Fact]
     public void Validate_ShouldHaveError_WhenNestedMetricIsInvalid()
     {
         var dto = GetValidDto() with
         {
-            Metrics = [new UpdateMetricDto { Id = 1, Value = -1, Name = "kids", Type = MetricType.Raised }],
+            Metrics =
+            [
+                new UpdateMetricDto { Id = 1, Value = -1, Name = "kids", Kind = MetricKind.RaisedFunds },
+                new UpdateMetricDto { Id = 2, Value = 200, Name = "families", Kind = MetricKind.Standard },
+                new UpdateMetricDto { Id = 3, Value = 300, Name = "programs", Kind = MetricKind.Standard },
+                new UpdateMetricDto { Id = 4, Value = 400, Name = "hours", Kind = MetricKind.Standard },
+            ],
         };
 
         var result = _validator.TestValidate(dto);
@@ -142,47 +200,6 @@ public class UpdateImpactStatisticDtoValidatorTests
         result.ShouldHaveValidationErrorFor("Metrics[0]");
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(1)]
-    [InlineData(2)]
-    [InlineData(3)]
-    [InlineData(4)]
-    public void Validate_ShouldAllowIncompleteMetricCollections(int count)
-    {
-        var metrics = Enumerable.Range(0, count)
-            .Select(index => new UpdateMetricDto { Name = "metric", Type = (MetricType)(index % 4) })
-            .ToList();
-
-        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
-
-        result.ShouldNotHaveAnyValidationErrors();
-    }
-
-    [Fact]
-    public void Validate_ShouldRejectMoreThanFourMetrics()
-    {
-        var metrics = GetValidDto().Metrics.ToList();
-        metrics.Add(new UpdateMetricDto { Name = "extra metric", Type = MetricType.Partners });
-
-        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
-
-        result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage(ErrorMessagesConstants.CollectionCannotContainMoreThan("Metrics", 4));
-    }
-
-    [Fact]
-    public void Validate_ShouldRejectDuplicateAndMissingTypes()
-    {
-        var metrics = GetValidDto().Metrics.ToList();
-        metrics[0] = metrics[0] with { Type = metrics[1].Type };
-
-        var result = _validator.TestValidate(GetValidDto() with { Metrics = metrics });
-
-        result.ShouldHaveValidationErrorFor(x => x.Metrics)
-            .WithErrorMessage(ErrorMessagesConstants.MetricTypesMustBeUnique());
-    }
-
     [Fact]
     public void Validate_ShouldAllowAllNewMetricsWithoutIds()
     {
@@ -196,7 +213,12 @@ public class UpdateImpactStatisticDtoValidatorTests
         Id = 1,
         Title = "Impact title",
         ImageId = 1,
-        Metrics = [.. Enum.GetValues<MetricType>()
-            .Select((type, index) => new UpdateMetricDto { Id = index + 1, Value = 100, Name = type.ToString(), Type = type })],
+        Metrics =
+        [
+            new UpdateMetricDto { Id = 2, Value = 100, Name = "kids", Kind = MetricKind.RaisedFunds },
+            new UpdateMetricDto { Id = 3, Value = 200, Name = "families", Kind = MetricKind.Standard },
+            new UpdateMetricDto { Id = 4, Value = 300, Name = "programs", Kind = MetricKind.Standard },
+            new UpdateMetricDto { Id = 5, Value = 400, Name = "hours", Kind = MetricKind.Standard },
+        ],
     };
 }

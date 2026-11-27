@@ -91,6 +91,6 @@ public class UpdateMetricDtoValidatorTests
         Id = 1,
         Value = 100,
         Name = "kids",
-        Type = MetricType.Raised,
+        Kind = MetricKind.RaisedFunds,
     };
 }

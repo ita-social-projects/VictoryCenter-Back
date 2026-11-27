@@ -11,6 +11,7 @@ using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics;
 using VictoryCenter.BLL.DTOs.Admin.ImpactStatistics.Metrics;
 using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Data;
+using VictoryCenter.DAL.Entities;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.IntegrationTests.Utils;
@@ -21,6 +22,13 @@ namespace VictoryCenter.IntegrationTests.ControllerTests.MainPage;
 [Collection("SharedIntegrationTests")]
 public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixture>, IAsyncLifetime
 {
+    // Seeded defaults in priority order.
+    private const string PartnersName = "Партнерів";
+    private const string ProgramsName = "Програм";
+    private const string TherapyHoursName = "Годин терапії";
+    private static readonly MetricKind[] DefaultKinds =
+        [MetricKind.Standard, MetricKind.Standard, MetricKind.RaisedFunds, MetricKind.Standard];
+
     private readonly MainPageSqlServerFixture _fixture;
 
     public MainPageInitializationTests(MainPageSqlServerFixture fixture)
@@ -51,10 +59,15 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         var metrics = statistics.Metrics.OrderBy(m => m.Priority).ToList();
 
         Assert.Equal(4, await db.Metrics.CountAsync());
-        Assert.Equal(Enum.GetValues<MetricType>(), metrics.Select(m => m.Type));
-        Assert.Equal(["Партнерів", "Програм", "Зібрано", "Годин терапії"], metrics.Select(m => m.Name));
+        Assert.Equal(DefaultKinds, metrics.Select(m => m.Kind));
+        Assert.Equal([PartnersName, ProgramsName, "Зібрано", TherapyHoursName], metrics.Select(m => m.Name));
         Assert.Equal([0L, 1L, 2L, 3L], metrics.Select(m => m.Priority));
         Assert.Equal(4, metrics.Select(m => m.Id).Distinct().Count());
+        Assert.Equal(
+            [LegacyMetricType.Partners, LegacyMetricType.Programs, LegacyMetricType.Raised, LegacyMetricType.TherapyHours],
+            await db.Metrics.OrderBy(m => m.Priority)
+                .Select(m => EF.Property<LegacyMetricType>(m, Metric.LegacyTypeProperty))
+                .ToListAsync());
         Assert.All(metrics, metric =>
         {
             Assert.True(metric.Id > 0);
@@ -79,7 +92,7 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         var page = await _fixture.Client.GetFromJsonAsync<MainPageDto>(endpoint);
 
         Assert.NotNull(page);
-        Assert.Equal(Enum.GetValues<MetricType>(), page.ImpactStatistics!.Metrics.Select(m => m.Type));
+        Assert.Equal(DefaultKinds, page.ImpactStatistics!.Metrics.Select(m => m.Kind));
         Assert.All(page.ImpactStatistics.Metrics, metric =>
         {
             Assert.True(metric.Id > 0);
@@ -111,9 +124,9 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
             var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
             var metrics = await db.Metrics.ToListAsync();
             var english = await db.LocalizationLanguages.SingleAsync(l => l.Code == "en");
-            foreach (var metric in metrics.Where(m => m.Type != MetricType.Partners))
+            foreach (var metric in metrics.Where(m => m.Name != PartnersName))
             {
-                metric.Name = $"Existing {metric.Type}";
+                metric.Name = $"Existing {metric.Name}";
                 metric.Value = 123;
                 metric.Priority += 10;
                 metric.Prefix = MetricPrefix.Plus;
@@ -122,13 +135,13 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
                 metric.Localizations.Add(new MetricLocalization
                 {
                     LanguageId = english.Id,
-                    Name = $"Translated {metric.Type}",
+                    Name = $"Translated {metric.Name}",
                     Value = "Translated value",
                     TranslationStatus = TranslationStatus.Relevant,
                 });
             }
 
-            db.Metrics.Remove(metrics.Single(m => m.Type == MetricType.Partners));
+            db.Metrics.Remove(metrics.Single(m => m.Name == PartnersName));
             await db.SaveChangesAsync();
         }
 
@@ -143,8 +156,8 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         var dbAfter = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var metricsAfter = await dbAfter.Metrics.Include(m => m.Localizations).ToListAsync();
         Assert.Equal(4, metricsAfter.Count);
-        var partner = Assert.Single(metricsAfter, m => m.Type == MetricType.Partners);
-        Assert.Equal("Партнерів", partner.Name);
+        var partner = Assert.Single(metricsAfter, m => m.Name == PartnersName);
+        Assert.Equal(MetricKind.Standard, partner.Kind);
         Assert.Equal(14, partner.Priority);
         Assert.Equal(0, partner.Value);
         Assert.False(partner.IsHidden);
@@ -154,13 +167,62 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
     }
 
     [SqlServerFact]
+    public async Task Initialize_IncompletePage_PrefersDefaultNamesNotUsedInTheBlock()
+    {
+        await InitializeMainPageAsync();
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            db.Metrics.RemoveRange(await db.Metrics
+                .Where(m => m.Name == ProgramsName || m.Name == TherapyHoursName)
+                .ToListAsync());
+            await db.SaveChangesAsync();
+        }
+
+        await InitializeMainPageAsync();
+
+        using var verificationScope = _fixture.Services.CreateScope();
+        var dbAfter = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+        var metrics = await dbAfter.Metrics.ToListAsync();
+        Assert.Equal(4, metrics.Count);
+        Assert.Equal(
+            new[] { PartnersName, ProgramsName, "Зібрано", TherapyHoursName }.Order(),
+            metrics.Select(m => m.Name).Order());
+        Assert.Equal(3, metrics.Count(m => m.Kind == MetricKind.Standard));
+        Assert.Single(metrics, m => m.Kind == MetricKind.RaisedFunds);
+    }
+
+    [SqlServerTheory]
+    [InlineData(MetricKind.Standard, MetricKind.Standard)]
+    [InlineData(MetricKind.RaisedFunds, MetricKind.RaisedFunds)]
+    public async Task Initialize_BlockWithExcessMetricsOfOneKind_IsLeftUnchanged(MetricKind firstKind, MetricKind thirdKind)
+    {
+        // Legacy data: 4 Standard metrics, or 2 Standard + 2 RaisedFunds. Seeding must not add a fifth metric.
+        await InitializeMainPageAsync();
+        using (var scope = _fixture.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
+            var metrics = await db.Metrics.OrderBy(m => m.Priority).ToListAsync();
+            metrics[0].Kind = firstKind;
+            metrics[2].Kind = thirdKind;
+            await db.SaveChangesAsync();
+        }
+
+        var before = await MetricsSnapshotAsync();
+
+        await InitializeMainPageAsync();
+
+        Assert.Equal(before, await MetricsSnapshotAsync());
+    }
+
+    [SqlServerFact]
     public async Task Initialize_ConcurrentIncompletePage_DoesNotDuplicateMetrics()
     {
         await InitializeMainPageAsync();
         using (var scope = _fixture.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-            db.Metrics.Remove(await db.Metrics.SingleAsync(m => m.Type == MetricType.Partners));
+            db.Metrics.Remove(await db.Metrics.SingleAsync(m => m.Name == PartnersName));
             await db.SaveChangesAsync();
         }
 
@@ -169,9 +231,10 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
 
         using var verificationScope = _fixture.Services.CreateScope();
         var dbAfter = verificationScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
-        var types = await dbAfter.Metrics.Select(m => m.Type).ToListAsync();
-        Assert.Equal(4, types.Count);
-        Assert.Equal(Enum.GetValues<MetricType>(), types.OrderBy(t => t));
+        var kinds = await dbAfter.Metrics.Select(m => m.Kind).ToListAsync();
+        Assert.Equal(4, kinds.Count);
+        Assert.Equal(3, kinds.Count(kind => kind == MetricKind.Standard));
+        Assert.Single(kinds, kind => kind == MetricKind.RaisedFunds);
     }
 
     [SqlServerFact]
@@ -211,8 +274,8 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
                 {
                     Id = m.Id,
                     Name = m.Name,
-                    Type = m.Type,
-                    Value = m.Type == MetricType.Programs ? 42 : m.Value,
+                    Kind = m.Kind,
+                    Value = m.Name == ProgramsName ? 42 : m.Value,
                     Prefix = m.Prefix,
                     IsAutoSynced = m.IsAutoSynced,
                 })],
@@ -226,7 +289,7 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var persisted = await db.Metrics.OrderBy(m => m.Priority).ToListAsync();
         Assert.Equal(metrics.Select(m => m.Id), persisted.Select(m => m.Id));
-        Assert.Equal(42, persisted.Single(m => m.Type == MetricType.Programs).Value);
+        Assert.Equal(42, persisted.Single(m => m.Name == ProgramsName).Value);
     }
 
     [SqlServerFact]
@@ -268,7 +331,7 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         Assert.Equal(1, await db.MainPartners.CountAsync());
         Assert.Equal(1, await db.MainDonations.CountAsync());
         Assert.Equal(4, await db.Metrics.CountAsync());
-        Assert.Equal(Enum.GetValues<MetricType>(), await db.Metrics.OrderBy(m => m.Priority).Select(m => m.Type).ToArrayAsync());
+        Assert.Equal(DefaultKinds, await db.Metrics.OrderBy(m => m.Priority).Select(m => m.Kind).ToArrayAsync());
     }
 
     private async Task<string> SnapshotAsync()
@@ -282,11 +345,11 @@ public class MainPageInitializationTests : IClassFixture<MainPageSqlServerFixtur
         using var scope = _fixture.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var metrics = await db.Metrics
-            .Where(m => !excludePartners || m.Type != MetricType.Partners).OrderBy(m => m.Id)
+            .Where(m => !excludePartners || m.Name != PartnersName).OrderBy(m => m.Id)
             .Select(m => new
             {
                 m.Id,
-                m.Type,
+                m.Kind,
                 m.Name,
                 m.Value,
                 m.Priority,

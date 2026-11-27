@@ -14,8 +14,7 @@ public static class ErrorMessagesConstants
 
     public static string MetricsMustMatchExistingStatistics { get; } =
         "ImpactStatistics.Id must match the existing statistics block. " +
-        "Metrics must include every persisted metric with its original ID and type; omit IDs only for new metric types. " +
-        "New statistics blocks require all four metric types; existing incomplete blocks may keep their current types or add missing types.";
+        "Metrics must include every persisted metric with its original ID and kind; metrics cannot be added, removed or replaced.";
 
     public static string NotFound()
     {
@@ -263,9 +262,9 @@ public static class ErrorMessagesConstants
         return $"Metrics must contain exactly {count} items.";
     }
 
-    public static string MetricTypesMustBeUnique()
+    public static string MetricKindsMustMatchRequiredComposition(int standardCount, int raisedFundsCount)
     {
-        return "Each metric type may appear at most once: Partners, Programs, Raised, TherapyHours.";
+        return $"Metrics must contain exactly {standardCount} Standard and {raisedFundsCount} RaisedFunds metrics.";
     }
 
     public static string PropertyMustBeValidEmail(string property)

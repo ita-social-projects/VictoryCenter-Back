@@ -162,11 +162,10 @@ public class CreateMainPageHandler : IRequestHandler<CreateMainPageCommand, Resu
             hasLocalizations = true;
         }
 
-        var metricsByType = impactEntity.Metrics.ToDictionary(m => m.Type);
-
-        foreach (var metricDto in impactDto.Metrics)
+        // The entity was mapped from this request, so its metrics are in request order.
+        foreach (var (metricDto, metricEntity) in impactDto.Metrics.Zip(impactEntity.Metrics))
         {
-            if (metricDto.Localization is null || !metricsByType.TryGetValue(metricDto.Type, out var metricEntity))
+            if (metricDto.Localization is null)
             {
                 continue;
             }

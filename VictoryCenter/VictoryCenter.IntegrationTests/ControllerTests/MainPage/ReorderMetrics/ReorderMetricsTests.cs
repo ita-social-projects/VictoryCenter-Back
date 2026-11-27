@@ -57,10 +57,10 @@ public class ReorderMetricsTests : BaseTestClass
     {
         // Arrange
         var targetStatistic = await CreateImpactStatisticsAsync([
-            new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 0, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 1, IsHidden = true, RowVersion = [1] },
-            new Metric { Value = 30, Name = "Metric 3", Type = MetricType.Programs, Priority = 2, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 40, Name = "Metric 4", Type = MetricType.TherapyHours, Priority = 3, IsHidden = false, RowVersion = [1] }
+            new Metric { Value = 10, Name = "Metric 1", Kind = MetricKind.RaisedFunds, Priority = 0, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 20, Name = "Metric 2", Kind = MetricKind.Standard, Priority = 1, IsHidden = true, RowVersion = [1] },
+            new Metric { Value = 30, Name = "Metric 3", Kind = MetricKind.Standard, Priority = 2, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 40, Name = "Metric 4", Kind = MetricKind.Standard, Priority = 3, IsHidden = false, RowVersion = [1] }
         ]);
 
         var reorderDto = new ReorderMetricsDto
@@ -97,10 +97,10 @@ public class ReorderMetricsTests : BaseTestClass
     {
         // Arrange
         var targetStatistic = await CreateImpactStatisticsAsync([
-            new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 0, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 2, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 30, Name = "Metric 3", Type = MetricType.Programs, Priority = 3, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 40, Name = "Metric 4", Type = MetricType.TherapyHours, Priority = 4, IsHidden = false, RowVersion = [1] }
+            new Metric { Value = 10, Name = "Metric 1", Kind = MetricKind.RaisedFunds, Priority = 0, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 20, Name = "Metric 2", Kind = MetricKind.Standard, Priority = 2, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 30, Name = "Metric 3", Kind = MetricKind.Standard, Priority = 3, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 40, Name = "Metric 4", Kind = MetricKind.Standard, Priority = 4, IsHidden = false, RowVersion = [1] }
         ]);
 
         var reorderDto = new ReorderMetricsDto
@@ -135,10 +135,10 @@ public class ReorderMetricsTests : BaseTestClass
     {
         // Arrange
         var targetStatistic = await CreateImpactStatisticsAsync([
-            new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 0, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 1, IsHidden = true, RowVersion = [1] },
-            new Metric { Value = 30, Name = "Metric 3", Type = MetricType.Programs, Priority = 3, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 40, Name = "Metric 4", Type = MetricType.TherapyHours, Priority = 4, IsHidden = false, RowVersion = [1] }
+            new Metric { Value = 10, Name = "Metric 1", Kind = MetricKind.RaisedFunds, Priority = 0, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 20, Name = "Metric 2", Kind = MetricKind.Standard, Priority = 1, IsHidden = true, RowVersion = [1] },
+            new Metric { Value = 30, Name = "Metric 3", Kind = MetricKind.Standard, Priority = 3, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 40, Name = "Metric 4", Kind = MetricKind.Standard, Priority = 4, IsHidden = false, RowVersion = [1] }
         ]);
 
         var reorderDto = new ReorderMetricsDto
@@ -218,10 +218,10 @@ public class ReorderMetricsTests : BaseTestClass
         // Arrange
         var targetStatistic = await EnsureImpactStatisticsExistsAsync();
         var foreignStatistic = await CreateImpactStatisticsAsync([
-            new Metric { Value = 10, Name = "Foreign 1", Type = MetricType.Raised, Priority = 0, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 20, Name = "Foreign 2", Type = MetricType.Partners, Priority = 1, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 30, Name = "Foreign 3", Type = MetricType.Programs, Priority = 2, IsHidden = false, RowVersion = [1] },
-            new Metric { Value = 40, Name = "Foreign 4", Type = MetricType.TherapyHours, Priority = 3, IsHidden = false, RowVersion = [1] }
+            new Metric { Value = 10, Name = "Foreign 1", Kind = MetricKind.RaisedFunds, Priority = 0, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 20, Name = "Foreign 2", Kind = MetricKind.Standard, Priority = 1, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 30, Name = "Foreign 3", Kind = MetricKind.Standard, Priority = 2, IsHidden = false, RowVersion = [1] },
+            new Metric { Value = 40, Name = "Foreign 4", Kind = MetricKind.Standard, Priority = 3, IsHidden = false, RowVersion = [1] }
         ]);
 
         var metricIds = targetStatistic.Metrics.OrderBy(m => m.Priority).Select(m => m.Id).ToList();
@@ -298,8 +298,8 @@ public class ReorderMetricsTests : BaseTestClass
                 ImageId = image.Id,
                 Metrics =
                 [
-                    new Metric { Value = 10, Name = "Metric 1", Type = MetricType.Raised, Priority = 1, RowVersion = new byte[] { 1 } },
-                    new Metric { Value = 20, Name = "Metric 2", Type = MetricType.Partners, Priority = 2, RowVersion = new byte[] { 1 } }
+                    new Metric { Value = 10, Name = "Metric 1", Kind = MetricKind.RaisedFunds, Priority = 1, RowVersion = new byte[] { 1 } },
+                    new Metric { Value = 20, Name = "Metric 2", Kind = MetricKind.Standard, Priority = 2, RowVersion = new byte[] { 1 } }
                 ]
             }
         };
