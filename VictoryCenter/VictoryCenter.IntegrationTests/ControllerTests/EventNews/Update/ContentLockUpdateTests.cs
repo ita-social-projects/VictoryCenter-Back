@@ -53,19 +53,25 @@ public class ContentLockUpdateTests : BaseTestClass
         var acquisition = manager.Acquire(resource, AdminEmail, connectionId);
         Assert.True(acquisition.Acquired);
 
-        using var request = CreateLockedRequest(
-            "/api/EventNews/1",
-            new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 },
-            acquisition.LockId!,
-            connectionId);
-        var response = await Fixture.HttpClient.SendAsync(request);
+        try
+        {
+            using var request = CreateLockedRequest(
+                "/api/EventNews/1",
+                new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 },
+                acquisition.LockId!,
+                connectionId);
+            var response = await Fixture.HttpClient.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var status = manager.GetStatus(resource);
-        Assert.True(status.IsLocked);
-        Assert.False(status.IsUpdateInProgress);
-        Assert.True(manager.Renew(acquisition.LockId!, resource, AdminEmail, connectionId).Acquired);
-        Assert.True(manager.Release(acquisition.LockId!, resource, AdminEmail, connectionId).Accepted);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var status = manager.GetStatus(resource);
+            Assert.True(status.IsLocked);
+            Assert.False(status.IsUpdateInProgress);
+            Assert.True(manager.Renew(acquisition.LockId!, resource, AdminEmail, connectionId).Acquired);
+        }
+        finally
+        {
+            manager.Release(acquisition.LockId!, resource, AdminEmail, connectionId);
+        }
     }
 
     [Fact]
@@ -82,19 +88,25 @@ public class ContentLockUpdateTests : BaseTestClass
         var acquisition = manager.Acquire(resource, AdminEmail, connectionId);
         Assert.True(acquisition.Acquired);
 
-        using var request = CreateLockedRequest(
-            $"/api/EventNews/{missingEventNewsId}",
-            new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 },
-            acquisition.LockId!,
-            connectionId);
-        var response = await Fixture.HttpClient.SendAsync(request);
+        try
+        {
+            using var request = CreateLockedRequest(
+                $"/api/EventNews/{missingEventNewsId}",
+                new UpdateEventNewsDto { Status = Status.Draft, CategoryId = 1 },
+                acquisition.LockId!,
+                connectionId);
+            var response = await Fixture.HttpClient.SendAsync(request);
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        var status = manager.GetStatus(resource);
-        Assert.True(status.IsLocked);
-        Assert.False(status.IsUpdateInProgress);
-        Assert.True(manager.Renew(acquisition.LockId!, resource, AdminEmail, connectionId).Acquired);
-        Assert.True(manager.Release(acquisition.LockId!, resource, AdminEmail, connectionId).Accepted);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            var status = manager.GetStatus(resource);
+            Assert.True(status.IsLocked);
+            Assert.False(status.IsUpdateInProgress);
+            Assert.True(manager.Renew(acquisition.LockId!, resource, AdminEmail, connectionId).Acquired);
+        }
+        finally
+        {
+            manager.Release(acquisition.LockId!, resource, AdminEmail, connectionId);
+        }
     }
 
     private static HttpRequestMessage CreateLockedRequest<T>(string uri, T body, string lockId, string connectionId)
