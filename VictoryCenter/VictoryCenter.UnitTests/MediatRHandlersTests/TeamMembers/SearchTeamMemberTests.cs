@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.TeamMembers;
@@ -7,7 +8,9 @@ using VictoryCenter.BLL.DTOs.Common;
 using VictoryCenter.BLL.Interfaces.Search;
 using VictoryCenter.BLL.Queries.Admin.TeamMembers.Search;
 using VictoryCenter.BLL.Validators.TeamMembers;
+using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Enums;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
@@ -137,6 +140,50 @@ public class SearchTeamMemberTests
 
         // Assert
         Assert.Null(Assert.Single(result.Value!.Items).Image);
+    }
+
+    [Fact]
+    public async Task Handle_ShouldIncludeLocalizationsAndLanguage()
+    {
+        // Arrange
+        QueryOptions<TeamMember>? queryOptions = null;
+        SetupMapper([]);
+        _repositoryWrapperMock.Setup(x => x.TeamMembersRepository.GetAllAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .Callback<QueryOptions<TeamMember>>(options => queryOptions = options)
+            .ReturnsAsync(new List<TeamMember>());
+        _repositoryWrapperMock.Setup(x => x.TeamMembersRepository.CountAsync(It.IsAny<QueryOptions<TeamMember>>()))
+            .ReturnsAsync(0);
+
+        var handler = new SearchTeamMemberHandler(_mapperMock.Object, _repositoryWrapperMock.Object, _validator, _searchServiceMock.Object);
+        var query = new SearchTeamMemberQuery(new SearchTeamMemberDto { FullName = "Localized member" });
+
+        // Act
+        await handler.Handle(query, CancellationToken.None);
+
+        await using var context = new VictoryCenterDbContext(new DbContextOptionsBuilder<VictoryCenterDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options);
+        var member = CreateTeamMember(10, "Localized member", Status.Published, "localized@example.com");
+        member.TeamCategory = new TeamCategory { Id = 1, Name = "Category", Description = "Category description" };
+
+        member.Localizations =
+        [
+            new TeamMemberLocalization
+            {
+                Language = new LocalizationLanguage { Code = "en", Name = "English" },
+                FullName = "Localized member",
+                Description = "Localized description"
+            }
+
+        ];
+        context.TeamMembers.Add(member);
+        await context.SaveChangesAsync();
+
+        var searchedMember = await queryOptions!.Include!(context.TeamMembers).SingleAsync();
+
+        // Assert
+        var localization = Assert.Single(searchedMember.Localizations);
+        Assert.Equal("en", localization.Language.Code);
     }
 
     private static TeamMember CreateTeamMember(int id, string fullName, Status status, string email, Image? image = null)
