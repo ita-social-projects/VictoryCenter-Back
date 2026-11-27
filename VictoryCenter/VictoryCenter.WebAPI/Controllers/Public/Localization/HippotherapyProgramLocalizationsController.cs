@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.DTOs.Admin.Localization.HippotherapyProgram;
-using VictoryCenter.BLL.Queries.Admin.Localization.HippotherapyPrograms.GetByEntityId;
-using VictoryCenter.BLL.Queries.Admin.Localization.HippotherapyPrograms.GetByLanguageId;
+using VictoryCenter.BLL.Queries.Public.Localization.HippotherapyPrograms.GetByEntityId;
+using VictoryCenter.BLL.Queries.Public.Localization.HippotherapyPrograms.GetByLanguageId;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;

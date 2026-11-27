@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VictoryCenter.BLL.DTOs.Admin.Localization.FaqQuestions;
-using VictoryCenter.BLL.Queries.Admin.Localization.FaqQuestions.GetByFaqQuestionId;
-using VictoryCenter.BLL.Queries.Admin.Localization.FaqQuestions.GetByLanguageId;
+using VictoryCenter.BLL.Queries.Public.Localization.FaqQuestions.GetByFaqQuestionId;
+using VictoryCenter.BLL.Queries.Public.Localization.FaqQuestions.GetByLanguageId;
 using VictoryCenter.WebAPI.Controllers.Common;
 
 namespace VictoryCenter.WebAPI.Controllers.Public.Localization;
