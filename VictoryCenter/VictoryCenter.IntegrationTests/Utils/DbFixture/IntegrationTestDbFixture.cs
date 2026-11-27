@@ -111,6 +111,8 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         await DbContext.Database.EnsureDeletedAsync();
         await DbContext.Database.EnsureCreatedAsync();
         await Factory.Services.CreateInitialDataAsync();
+        HttpClient.Dispose();
+        HttpClient = Factory.CreateClient();
         HttpClient.DefaultRequestHeaders.Authorization = await CreateAdminAuthorizationHeaderAsync(_scope.ServiceProvider);
         InitializeSeeders();
         await SeederManager.SeedAllAsync();
