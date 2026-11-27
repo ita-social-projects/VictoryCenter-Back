@@ -11,6 +11,7 @@ using VictoryCenter.BLL.Services.StorageLifecycle;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.DAL.Entities;
 using VictoryCenter.IntegrationTests.Utils.Seeders;
+using VictoryCenter.WebAPI.Extensions;
 
 namespace VictoryCenter.IntegrationTests.Utils.DbFixture;
 
@@ -102,6 +103,19 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         await SeederManager.SeedAllAsync();
     }
 
+    public async Task ResetDatabaseAsync()
+    {
+        DbContext.ChangeTracker.Clear();
+        RecreateDirectory(BlobEnvironmentVariables.FullPath);
+        RecreateDirectory(PdfEnvironmentVariables.FullPath);
+        await DbContext.Database.EnsureDeletedAsync();
+        await DbContext.Database.EnsureCreatedAsync();
+        await Factory.Services.CreateInitialDataAsync();
+        HttpClient.DefaultRequestHeaders.Authorization = await CreateAdminAuthorizationHeaderAsync(_scope.ServiceProvider);
+        InitializeSeeders();
+        await SeederManager.SeedAllAsync();
+    }
+
     private void InitializeServices()
     {
         Factory = new VictoryCenterWebApplicationFactory<Program>();
@@ -153,5 +167,15 @@ public class IntegrationTestDbFixture : IAsyncLifetime
         }
 
         return admin;
+    }
+
+    private static void RecreateDirectory(string path)
+    {
+        if (Directory.Exists(path))
+        {
+            Directory.Delete(path, recursive: true);
+        }
+
+        Directory.CreateDirectory(path);
     }
 }

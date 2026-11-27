@@ -20,7 +20,7 @@ public abstract class BaseTestClass : IAsyncLifetime
 
     public virtual async Task InitializeAsync()
     {
-        await Fixture.CreateFreshWebApplicationAsync();
+        await Fixture.ResetDatabaseAsync();
     }
 
     public virtual Task DisposeAsync() => Task.CompletedTask;
