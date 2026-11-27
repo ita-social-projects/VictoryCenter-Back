@@ -16,11 +16,16 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
 {
     private readonly string _databaseName;
     private readonly string? _sqlServerConnectionString;
+    private readonly SaveChangesInterceptor? _sqlServerSaveInterceptor;
 
-    public VictoryCenterWebApplicationFactory(string? databaseName = null, string? sqlServerConnectionString = null)
+    public VictoryCenterWebApplicationFactory(
+        string? databaseName = null,
+        string? sqlServerConnectionString = null,
+        SaveChangesInterceptor? sqlServerSaveInterceptor = null)
     {
         _databaseName = databaseName ?? $"TestDb_{Guid.NewGuid()}";
         _sqlServerConnectionString = sqlServerConnectionString;
+        _sqlServerSaveInterceptor = sqlServerSaveInterceptor;
     }
 
     protected string TestBlobPath { get; } = Path.Combine(Path.GetTempPath(), "VictoryCenter_IntegrationTests_Blobs", Guid.NewGuid().ToString());
@@ -132,9 +137,18 @@ public class VictoryCenterWebApplicationFactory<TStartup> : WebApplicationFactor
     {
         if (_sqlServerConnectionString is not null)
         {
-            services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) => options
-                .UseSqlServer(_sqlServerConnectionString)
-                .AddInterceptors(serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>()));
+            services.AddDbContext<VictoryCenterDbContext>((serviceProvider, options) =>
+            {
+                options.UseSqlServer(_sqlServerConnectionString)
+                    .AddInterceptors(
+                        serviceProvider.GetRequiredService<RichTextSanitizationInterceptor>(),
+                        serviceProvider.GetRequiredService<AuditInterceptor>());
+
+                if (_sqlServerSaveInterceptor is not null)
+                {
+                    options.AddInterceptors(_sqlServerSaveInterceptor);
+                }
+            });
             return;
         }
 

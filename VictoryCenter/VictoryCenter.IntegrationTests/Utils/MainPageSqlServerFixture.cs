@@ -1,5 +1,11 @@
+using System.Data;
+using System.Net.Http.Json;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
+using VictoryCenter.BLL.DTOs.Admin.MainPages;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
 using Xunit.Sdk;
@@ -11,6 +17,7 @@ public sealed class MainPageSqlServerFixture : IAsyncLifetime
     public const string ConnectionVariable = "VICTORYCENTER_TEST_SQLSERVER";
 
     private VictoryCenterWebApplicationFactory<Program>? _factory;
+    private Action<DbContext>? _afterSave;
 
     public HttpClient Client { get; private set; } = null!;
 
@@ -38,10 +45,50 @@ public sealed class MainPageSqlServerFixture : IAsyncLifetime
         }
 
         builder.InitialCatalog = $"VictoryCenter_MetricsTests_{Guid.NewGuid():N}";
-        _factory = new VictoryCenterWebApplicationFactory<Program>(sqlServerConnectionString: builder.ConnectionString);
+        _factory = new VictoryCenterWebApplicationFactory<Program>(
+            sqlServerConnectionString: builder.ConnectionString,
+            sqlServerSaveInterceptor: new PublishSaveObserver(this));
         Client = _factory.CreateClient();
         Client.DefaultRequestHeaders.Authorization =
             await IntegrationTestDbFixture.CreateAdminAuthorizationHeaderAsync(Services);
+    }
+
+    public async Task<HttpResponseMessage> PublishAsync(UpdateMainPageDto update, Action<DbContext> afterSave)
+    {
+        _afterSave = afterSave;
+        try
+        {
+            return await Client.PutAsJsonAsync("/api/MainPage", update);
+        }
+        finally
+        {
+            _afterSave = null;
+        }
+    }
+
+    public async Task<HttpResponseMessage> PublishWithPoolInvalidationAsync(UpdateMainPageDto update)
+    {
+        var poolCleared = false;
+        IsolationLevel? isolationLevel = null;
+        var response = await PublishAsync(update, context =>
+        {
+            if (!poolCleared)
+            {
+                isolationLevel = context.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel;
+
+                // This fixture has its own database and pool, so other test fixtures keep their connections.
+                SqlConnection.ClearPool((SqlConnection)context.Database.GetDbConnection());
+                poolCleared = true;
+            }
+        });
+
+        Assert.True(poolCleared);
+        if (response.IsSuccessStatusCode)
+        {
+            Assert.Equal(IsolationLevel.Serializable, isolationLevel);
+        }
+
+        return response;
     }
 
     public async Task DisposeAsync()
@@ -63,6 +110,22 @@ public sealed class MainPageSqlServerFixture : IAsyncLifetime
 
     internal static bool IsRunningInCi() =>
         string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase);
+
+    private sealed class PublishSaveObserver(MainPageSqlServerFixture fixture) : SaveChangesInterceptor
+    {
+        public override ValueTask<int> SavedChangesAsync(
+            SaveChangesCompletedEventData eventData,
+            int result,
+            CancellationToken cancellationToken = default)
+        {
+            if (result > 0 && eventData.Context is { } context)
+            {
+                fixture._afterSave?.Invoke(context);
+            }
+
+            return ValueTask.FromResult(result);
+        }
+    }
 }
 
 [TraitDiscoverer("VictoryCenter.IntegrationTests.StorageLifecycle.SqlServerTraitDiscoverer", "VictoryCenter.IntegrationTests")]
