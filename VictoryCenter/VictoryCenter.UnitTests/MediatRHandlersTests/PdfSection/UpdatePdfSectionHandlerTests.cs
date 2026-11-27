@@ -1,12 +1,20 @@
+using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.PdfSection.Update;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.PdfSection;
+using VictoryCenter.BLL.DTOs.Public.PdfSection;
+using VictoryCenter.BLL.Hubs;
+using VictoryCenter.BLL.Mapping.Localization.Languages;
+using VictoryCenter.BLL.Mapping.PdfSection;
 using VictoryCenter.BLL.Validators.PdfSection;
+using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.SignalR;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.PdfSection;
 
@@ -16,12 +24,21 @@ public class UpdatePdfSectionHandlerTests
 {
     private readonly Mock<IRepositoryWrapper> _mockRepo;
     private readonly IValidator<UpdatePdfSectionCommand> _validator;
+    private readonly IMapper _mapper;
+    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
     private readonly PdfSection _existingSection;
 
     public UpdatePdfSectionHandlerTests()
     {
         _mockRepo = new Mock<IRepositoryWrapper>();
         _validator = new UpdatePdfSectionValidator();
+        var mapperConfig = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<PublicPdfSectionProfile>();
+            cfg.AddProfile<LocalizationsLanguageProfile>();
+        });
+        _mapper = mapperConfig.CreateMapper();
+        _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();
         _existingSection = new PdfSection
         {
             Id = 1,
@@ -51,7 +68,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.SaveChangesAsync())
                  .ReturnsAsync(1);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -63,6 +80,12 @@ public class UpdatePdfSectionHandlerTests
         Assert.Equal("Новий опис", result.Value.Description);
 
         _mockRepo.Verify(r => r.SaveChangesAsync(), Times.Once);
+        Mock.Get(_mockHubContext.Object.Clients.All).Verify(
+            p => p.SendCoreAsync(
+                "PdfSectionUpdated",
+                It.Is<object?[]>(args => IsUpdatedSectionArgs(args, "Нова назва", "Новий опис")),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -79,7 +102,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(0);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -103,7 +126,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.PdfSectionRepository.CountAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(2);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -130,7 +153,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.PdfSectionRepository.GetFirstOrDefaultAsync(It.IsAny<QueryOptions<PdfSection>>()))
                  .ReturnsAsync(_existingSection);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -141,6 +164,9 @@ public class UpdatePdfSectionHandlerTests
         Assert.Equal(_existingSection.Description, result.Value.Description);
 
         _mockRepo.Verify(r => r.SaveChangesAsync(), Times.Never);
+        Mock.Get(_mockHubContext.Object.Clients.All).Verify(
+            p => p.SendCoreAsync("PdfSectionUpdated", It.IsAny<object?[]>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     [Fact]
@@ -163,7 +189,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.SaveChangesAsync())
                  .ReturnsAsync(0);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -183,7 +209,7 @@ public class UpdatePdfSectionHandlerTests
         };
         var command = new UpdatePdfSectionCommand(updateDto);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -212,7 +238,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.SaveChangesAsync())
                  .ReturnsAsync(1);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -244,7 +270,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.SaveChangesAsync())
                  .ThrowsAsync(new DbUpdateException());
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -265,7 +291,7 @@ public class UpdatePdfSectionHandlerTests
         };
         var command = new UpdatePdfSectionCommand(updateDto);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -295,7 +321,7 @@ public class UpdatePdfSectionHandlerTests
         _mockRepo.Setup(r => r.SaveChangesAsync())
                  .ReturnsAsync(1);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -328,7 +354,7 @@ public class UpdatePdfSectionHandlerTests
                  .ReturnsAsync(sectionWithNullLocalizations);
         _mockRepo.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -349,9 +375,23 @@ public class UpdatePdfSectionHandlerTests
             CreatedAt = DateTimeOffset.UtcNow,
             Localizations =
             [
-                new() { TranslationStatus = DAL.Enums.TranslationStatus.Relevant },
-            new() { TranslationStatus = DAL.Enums.TranslationStatus.Relevant },
-        ]
+                new()
+                {
+                    LanguageId = 2,
+                    Title = "Old title",
+                    Description = "Old description",
+                    TranslationStatus = DAL.Enums.TranslationStatus.Relevant,
+                    Language = new LocalizationLanguage { Id = 2, Code = "en", Name = "English" },
+                },
+                new()
+                {
+                    LanguageId = 3,
+                    Title = "Other title",
+                    Description = "Other description",
+                    TranslationStatus = DAL.Enums.TranslationStatus.Relevant,
+                    Language = new LocalizationLanguage { Id = 3, Code = "de", Name = "German" },
+                },
+            ]
         };
 
         var updateDto = new PdfSectionDto { Title = "Нова назва", Description = "Новий опис" };
@@ -363,7 +403,7 @@ public class UpdatePdfSectionHandlerTests
                  .ReturnsAsync(sectionWithLocalizations);
         _mockRepo.Setup(r => r.SaveChangesAsync()).ReturnsAsync(1);
 
-        var handler = new UpdatePdfSectionHandler(_mockRepo.Object, _validator);
+        var handler = CreateHandler();
 
         // Act
         var result = await handler.Handle(command, CancellationToken.None);
@@ -374,4 +414,15 @@ public class UpdatePdfSectionHandlerTests
             sectionWithLocalizations.Localizations,
             loc => Assert.Equal(DAL.Enums.TranslationStatus.Outdated, loc.TranslationStatus));
     }
+
+    private static bool IsUpdatedSectionArgs(object?[] args, string expectedTitle, string expectedDescription)
+    {
+        return args.Length == 1
+            && args[0] is PublicPdfSectionDto dto
+            && dto.Title == expectedTitle
+            && dto.Description == expectedDescription;
+    }
+
+    private UpdatePdfSectionHandler CreateHandler() =>
+        new(_mockRepo.Object, _validator, _mapper, _mockHubContext.Object);
 }

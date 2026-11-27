@@ -1,15 +1,19 @@
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using VictoryCenter.BLL.Commands.Admin.Localization.PdfSection.Create;
 using VictoryCenter.BLL.Constants;
 using VictoryCenter.BLL.DTOs.Admin.Localization.PdfSection;
+using VictoryCenter.BLL.DTOs.Public.PdfSection;
+using VictoryCenter.BLL.Hubs;
 using VictoryCenter.BLL.Interfaces.Localization;
 using VictoryCenter.BLL.Validators.Localization.PdfSections;
 using VictoryCenter.DAL.Entities.Localization;
 using VictoryCenter.DAL.Repositories.Interfaces.Base;
 using VictoryCenter.DAL.Repositories.Options;
+using VictoryCenter.UnitTests.Utils.SignalR;
 using PdfSectionEntity = VictoryCenter.DAL.Entities.PdfSection;
 
 namespace VictoryCenter.UnitTests.MediatRHandlersTests.Localization.PdfSection;
@@ -19,6 +23,7 @@ public class CreatePdfSectionLocalizationHandlerTests
     private readonly Mock<ILocalizationService<PdfSectionEntity, PdfSectionLocalization>> _mockLocalizationService;
     private readonly Mock<IMapper> _mockMapper;
     private readonly Mock<IRepositoryWrapper> _mockRepositoryWrapper;
+    private readonly Mock<IHubContext<PdfReportsHub>> _mockHubContext;
     private readonly IValidator<CreatePdfSectionLocalizationCommand> _validator;
 
     private readonly PdfSectionEntity _testSection = new()
@@ -56,6 +61,7 @@ public class CreatePdfSectionLocalizationHandlerTests
         _mockLocalizationService = new Mock<ILocalizationService<PdfSectionEntity, PdfSectionLocalization>>();
         _mockMapper = new Mock<IMapper>();
         _mockRepositoryWrapper = new Mock<IRepositoryWrapper>();
+        _mockHubContext = HubContextMockFactory.Create<PdfReportsHub>();
         _validator = new CreatePdfSectionLocalizationValidator(new BasePdfSectionLocalizationValidator());
     }
 
@@ -78,6 +84,12 @@ public class CreatePdfSectionLocalizationHandlerTests
         Assert.Equal(_testDto.LocalizationInfoDto.Id, result.Value.LocalizationInfoDto.Id);
         _mockMapper.Verify(m => m.Map<PdfSectionLocalization>(It.IsAny<CreatePdfSectionLocalizationDto>()), Times.Once);
         _mockLocalizationService.Verify(s => s.CreateEntityLocalizationAsync(It.IsAny<PdfSectionLocalization>()), Times.Once);
+        Mock.Get(_mockHubContext.Object.Clients.All).Verify(
+            p => p.SendCoreAsync(
+                "PdfSectionUpdated",
+                It.Is<object?[]>(args => args.Length == 1 && args[0] is PublicPdfSectionDto),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
@@ -245,7 +257,12 @@ public class CreatePdfSectionLocalizationHandlerTests
     }
 
     private CreatePdfSectionLocalizationHandler CreateHandler() =>
-        new(_mockMapper.Object, _validator, _mockLocalizationService.Object, _mockRepositoryWrapper.Object);
+        new(
+            _mockMapper.Object,
+            _validator,
+            _mockLocalizationService.Object,
+            _mockRepositoryWrapper.Object,
+            _mockHubContext.Object);
 
     private void SetupDependencies()
     {
@@ -258,6 +275,9 @@ public class CreatePdfSectionLocalizationHandlerTests
         _mockMapper
             .Setup(x => x.Map<PdfSectionLocalizationDto>(It.IsAny<PdfSectionLocalization>()))
             .Returns(_testDto);
+        _mockMapper
+            .Setup(x => x.Map<PublicPdfSectionDto>(It.IsAny<PdfSectionEntity>()))
+            .Returns(new PublicPdfSectionDto { Title = _testSection.Title, Description = _testSection.Description });
         _mockLocalizationService
             .Setup(x => x.CreateEntityLocalizationAsync(It.IsAny<PdfSectionLocalization>()))
             .ReturnsAsync(_testEntity);
