@@ -2,6 +2,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.DependencyInjection;
 using VictoryCenter.DAL.Data;
 using VictoryCenter.IntegrationTests.Utils.DbFixture;
+using Xunit.Sdk;
 
 namespace VictoryCenter.IntegrationTests.Utils;
 
@@ -20,6 +21,12 @@ public sealed class MainPageSqlServerFixture : IAsyncLifetime
         var connection = Environment.GetEnvironmentVariable(ConnectionVariable);
         if (string.IsNullOrWhiteSpace(connection))
         {
+            if (IsRunningInCi())
+            {
+                throw new InvalidOperationException(
+                    $"{ConnectionVariable} is not set. SQL Server tests are mandatory in CI.");
+            }
+
             return;
         }
 
@@ -53,24 +60,31 @@ public sealed class MainPageSqlServerFixture : IAsyncLifetime
         Client.Dispose();
         await _factory.DisposeAsync();
     }
+
+    internal static bool IsRunningInCi() =>
+        string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase);
 }
 
-public sealed class SqlServerFactAttribute : FactAttribute
+[TraitDiscoverer("VictoryCenter.IntegrationTests.StorageLifecycle.SqlServerTraitDiscoverer", "VictoryCenter.IntegrationTests")]
+public sealed class SqlServerFactAttribute : FactAttribute, ITraitAttribute
 {
     public SqlServerFactAttribute()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(MainPageSqlServerFixture.ConnectionVariable)))
+        if (!MainPageSqlServerFixture.IsRunningInCi() &&
+            string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(MainPageSqlServerFixture.ConnectionVariable)))
         {
             Skip = $"Set {MainPageSqlServerFixture.ConnectionVariable} to a disposable local SQL Server connection.";
         }
     }
 }
 
-public sealed class SqlServerTheoryAttribute : TheoryAttribute
+[TraitDiscoverer("VictoryCenter.IntegrationTests.StorageLifecycle.SqlServerTraitDiscoverer", "VictoryCenter.IntegrationTests")]
+public sealed class SqlServerTheoryAttribute : TheoryAttribute, ITraitAttribute
 {
     public SqlServerTheoryAttribute()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(MainPageSqlServerFixture.ConnectionVariable)))
+        if (!MainPageSqlServerFixture.IsRunningInCi() &&
+            string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(MainPageSqlServerFixture.ConnectionVariable)))
         {
             Skip = $"Set {MainPageSqlServerFixture.ConnectionVariable} to a disposable local SQL Server connection.";
         }

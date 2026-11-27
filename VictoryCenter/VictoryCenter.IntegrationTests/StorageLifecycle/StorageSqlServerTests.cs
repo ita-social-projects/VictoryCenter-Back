@@ -29,7 +29,14 @@ public partial class StorageSqlServerTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var connection = new SqlConnectionStringBuilder(Environment.GetEnvironmentVariable(StorageSqlServerFactAttribute.ConnectionVariable))
+        var connectionString = Environment.GetEnvironmentVariable(StorageSqlServerFactAttribute.ConnectionVariable);
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                $"{StorageSqlServerFactAttribute.ConnectionVariable} is not set. SQL Server tests are mandatory in CI.");
+        }
+
+        var connection = new SqlConnectionStringBuilder(connectionString)
         {
             InitialCatalog = _databaseName,
             Pooling = true,
@@ -286,6 +293,20 @@ public partial class StorageSqlServerTests : IAsyncLifetime
             """).SingleAsync());
         await migrator.MigrateAsync();
         Assert.Empty(await context.Database.GetPendingMigrationsAsync());
+    }
+
+    [StorageSqlServerFact]
+    public async Task Migration_FreshDatabaseAppliesAllMigrationsAndMatchesModel()
+    {
+        await using var context = Context();
+        await context.Database.EnsureDeletedAsync();
+
+        await context.Database.MigrateAsync();
+
+        Assert.Empty(await context.Database.GetPendingMigrationsAsync());
+        Assert.False(
+            context.Database.HasPendingModelChanges(),
+            "The model has changes that are not covered by a migration.");
     }
 
     public async Task DisposeAsync()

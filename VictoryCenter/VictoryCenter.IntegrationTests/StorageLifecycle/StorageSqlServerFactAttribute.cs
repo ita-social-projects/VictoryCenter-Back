@@ -1,12 +1,17 @@
+using Xunit.Sdk;
+
 namespace VictoryCenter.IntegrationTests.StorageLifecycle;
 
-public sealed class StorageSqlServerFactAttribute : FactAttribute
+[TraitDiscoverer("VictoryCenter.IntegrationTests.StorageLifecycle.SqlServerTraitDiscoverer", "VictoryCenter.IntegrationTests")]
+public sealed class StorageSqlServerFactAttribute : FactAttribute, ITraitAttribute
 {
     public const string ConnectionVariable = "VICTORYCENTER_STORAGE_SQL_TEST_CONNECTION";
+    private const string CiVariable = "CI";
 
     public StorageSqlServerFactAttribute()
     {
-        if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ConnectionVariable)))
+        var isCi = string.Equals(Environment.GetEnvironmentVariable(CiVariable), "true", StringComparison.OrdinalIgnoreCase);
+        if (!isCi && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(ConnectionVariable)))
         {
             Skip = $"Set {ConnectionVariable} to a dedicated SQL Server with CREATE DATABASE permission. Tests create and drop isolated databases.";
         }
