@@ -326,24 +326,24 @@ public static class ServicesConfiguration
         }
     }
 
-    public static async Task CreateInitialDataAsync(this WebApplication app)
+    public static async Task CreateInitialDataAsync(this IServiceProvider services)
     {
-        await app.CreateInitialAdminAsync();
-        await app.SeedVisitorPagesAsync();
-        await app.CreateInitialLocalizationLanguages();
-        await app.CreateInitialWhoWeArePages();
-        await app.CreateInitialPdfSection();
-        await app.CreateInitialPartnersPageBanner();
-        await app.CreateInitialHippotherapyLandingPage();
-        await app.CreateInitialEventsIntroSectionAsync();
-        await app.CreateInitialReportsMediaSettingsAsync();
-        await app.CreateInitialReportFundsExpendituresSettings();
-        await app.CreateInitialMainPageAsync();
+        await services.CreateInitialAdminAsync();
+        await services.SeedVisitorPagesAsync();
+        await services.CreateInitialLocalizationLanguages();
+        await services.CreateInitialWhoWeArePages();
+        await services.CreateInitialPdfSection();
+        await services.CreateInitialPartnersPageBanner();
+        await services.CreateInitialHippotherapyLandingPage();
+        await services.CreateInitialEventsIntroSectionAsync();
+        await services.CreateInitialReportsMediaSettingsAsync();
+        await services.CreateInitialReportFundsExpendituresSettings();
+        await services.CreateInitialMainPageAsync();
     }
 
-    public static async Task SeedVisitorPagesAsync(this WebApplication app)
+    public static async Task SeedVisitorPagesAsync(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
         var existing = await dbContext.VisitorPages.ToListAsync();
@@ -367,9 +367,9 @@ public static class ServicesConfiguration
         await dbContext.SaveChangesAsync();
     }
 
-    private static async Task CreateInitialEventsIntroSectionAsync(this WebApplication app)
+    private static async Task CreateInitialEventsIntroSectionAsync(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
 
@@ -400,9 +400,9 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialAdminAsync(this WebApplication app)
+    private static async Task CreateInitialAdminAsync(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var userManager = asyncServiceScope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
         var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
         var initialAdminEmail = Environment.GetEnvironmentVariable("INITIAL_ADMIN_EMAIL")
@@ -433,9 +433,9 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialLocalizationLanguages(this WebApplication app)
+    private static async Task CreateInitialLocalizationLanguages(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var languages = new List<LocalizationLanguage>
         {
@@ -463,9 +463,9 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialWhoWeArePages(this WebApplication app)
+    private static async Task CreateInitialWhoWeArePages(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var sections = new List<WhoWeAreSection>
         {
@@ -612,9 +612,9 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialPdfSection(this WebApplication app)
+    private static async Task CreateInitialPdfSection(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         if (await dbContext.PdfSections.AnyAsync())
         {
@@ -632,9 +632,9 @@ public static class ServicesConfiguration
         await dbContext.SaveChangesAsync();
     }
 
-    private static async Task CreateInitialPartnersPageBanner(this WebApplication app)
+    private static async Task CreateInitialPartnersPageBanner(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
         var banner = new PartnersPageBanner
@@ -652,9 +652,9 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialHippotherapyLandingPage(this WebApplication app)
+    private static async Task CreateInitialHippotherapyLandingPage(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
         if (await dbContext.HippotherapyLandingPages.AnyAsync())
@@ -768,9 +768,9 @@ public static class ServicesConfiguration
         await dbContext.SaveChangesAsync();
     }
 
-    private static async Task CreateInitialReportsMediaSettingsAsync(this WebApplication app)
+    private static async Task CreateInitialReportsMediaSettingsAsync(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
 
         if (!await dbContext.ChangedLivesBlocks.AnyAsync())
@@ -801,9 +801,9 @@ public static class ServicesConfiguration
         await dbContext.SaveChangesAsync();
     }
 
-    private static async Task CreateInitialReportFundsExpendituresSettings(this WebApplication app)
+    private static async Task CreateInitialReportFundsExpendituresSettings(this IServiceProvider services)
     {
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var repositoryWrapper = asyncServiceScope.ServiceProvider.GetRequiredService<IRepositoryWrapper>();
         var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
         var settingsResult = await ReportFundsExpendituresSettingsHelper.GetOrCreateSettingsAsync(repositoryWrapper, timeProvider);
@@ -814,10 +814,10 @@ public static class ServicesConfiguration
         }
     }
 
-    private static async Task CreateInitialMainPageAsync(this WebApplication app)
+    private static async Task CreateInitialMainPageAsync(this IServiceProvider services)
     {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        await using var asyncServiceScope = app.Services.CreateAsyncScope();
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        await using var asyncServiceScope = services.CreateAsyncScope();
         var dbContext = asyncServiceScope.ServiceProvider.GetRequiredService<VictoryCenterDbContext>();
         var timeProvider = asyncServiceScope.ServiceProvider.GetRequiredService<TimeProvider>();
 

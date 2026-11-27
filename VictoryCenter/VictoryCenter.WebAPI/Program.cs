@@ -22,7 +22,7 @@ app.Lifetime.ApplicationStopped.Register(configurationFileProvider.Dispose);
 app.InitializeStorage();
 
 await app.ApplyMigrationsAsync();
-await app.CreateInitialDataAsync();
+await app.Services.CreateInitialDataAsync();
 
 app.UseForwardedHeaders();
 app.UseCors();
